@@ -14,9 +14,8 @@ from scipy.io import loadmat
 from scipy.ndimage import sobel
 from skimage.metrics import structural_similarity
 
-CANCONV = os.environ.get("PANCRAFTER_CANCONV", "/home/knuvi/Desktop/song/CANConv")
-sys.path.insert(0, CANCONV)
-from tools.eval_rr import evaluate  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from tools.metrics.eval_rr import evaluate  # noqa: E402
 
 
 def scc_dlpan(F, G):

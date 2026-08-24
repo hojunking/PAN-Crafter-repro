@@ -11,10 +11,9 @@ import os, sys, argparse
 import numpy as np, h5py
 from scipy.io import loadmat
 
-CANCONV = os.environ.get("PANCRAFTER_CANCONV", "/home/knuvi/Desktop/song/CANConv")
 DLPAN = os.environ.get("PANCRAFTER_DLPAN", "/home/knuvi/Desktop/song/DLPan-Toolbox")
-sys.path.insert(0, CANCONV)
-from tools.eval_fr import load_dlpan, d_lambda_k, d_s  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from tools.metrics.eval_fr import load_dlpan, d_lambda_k, d_s  # noqa: E402
 
 SCALE = {"wv3": 2047.0, "qb": 2047.0, "gf2": 1023.0, "wv2": 2047.0}
 H5 = {s: f"data/PanCollection/{s.upper()}/full_examples_h5/test_{s}_OrigScale_multiExm1.h5"

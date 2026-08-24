@@ -50,21 +50,47 @@ data/PanCollection/WV3/
 > python tools/repair_lpan.py
 > ```
 
-## 5. 평가 도구용 형제 저장소
+## 5. 평가 지표
 
-`tools/eval_dlpan*.py`, `tools/collect_*.py` 는 외부 저장소 두 개를 참조한다.
-**환경변수로 위치를 알려준다** (없으면 원 개발 환경 경로를 기본값으로 쓴다).
+지표 구현은 **이 저장소 안에 있다** (`tools/metrics/`). 별도 저장소를 clone 할 필요가 없다.
+
+| | |
+|---|---|
+| `tools/metrics/eval_rr.py` | reduced: SAM / ERGAS / Q2n |
+| `tools/metrics/eval_fr.py` | full-res: D_λ / D_s / HQNR |
+| `tools/metrics/q2n.py` | Q2n 코어 |
+| PSNR / SSIM / SCC | `tools/eval_dlpan.py` 안에 자체 구현 |
+
+### full-resolution 만 외부 의존이 있다
+
+`eval_fr.py` 는 DLPan-Toolbox 의 `wald_utilities.py`(MTF / interp23tap)를 런타임에
+import 한다. **DLPan-Toolbox 는 GPL-3.0 이라 이 저장소에 넣지 않았다** — MIT 인 이 저장소에
+포함시키면 결합 저작물이 GPL 로 끌려간다. 별도로 clone 해서 경로만 알려준다.
 
 ```bash
-export PANCRAFTER_CANCONV=/path/to/CANConv          # 지표 구현(eval_rr.py) 재사용
-export PANCRAFTER_DLPAN=/path/to/DLPan-Toolbox      # MTF/Q2n 공식 구현
+git clone https://github.com/liangjiandeng/DLPan-Toolbox.git
+export PANCRAFTER_DLPAN=$PWD/DLPan-Toolbox
 ```
 
-학습만 할 것이라면 없어도 된다. **논문과 비교 가능한 수치를 내려면 둘 다 필요하다.**
+reduced-resolution 지표(SAM/ERGAS/Q2n/PSNR/SSIM/SCC)는 **이것 없이도 전부 동작한다.**
+필요한 건 파이썬 파일 하나뿐이고 MATLAB 은 쓰지 않는다.
+
+### 이식 확인
+
+지표는 순수 numpy/scipy 연산이라 **입력이 같으면 서버가 달라도 값이 같아야 한다.**
+고정 시드 난수로 확인한다 (저장소에 데이터가 필요 없고 영상 라이선스 문제도 없다).
+
+```bash
+python tools/verify_metrics.py
+```
+
+여섯 지표가 상대오차 0 으로 일치하면 이식이 정상이다. `PANCRAFTER_DLPAN` 이 없으면
+reduced 세 개만 검사한다.
 
 ## 6. 동작 확인
 
 ```bash
+python tools/verify_metrics.py                   # 지표 구현 이식 확인
 python tools/check_data.py                       # 데이터 경로·shape 점검
 ./tools/run.sh wv3 --num-iter 100                # 짧은 스모크 런
 ```

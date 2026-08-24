@@ -12,9 +12,9 @@ from scipy.ndimage import sobel
 from skimage.metrics import structural_similarity
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, ROOT); sys.path.insert(0, os.environ.get("PANCRAFTER_CANCONV", "/home/knuvi/Desktop/song/CANConv"))
-from tools.eval_rr import evaluate as rr_eval          # noqa: E402
-from tools.eval_fr import load_dlpan, d_lambda_k, d_s  # noqa: E402
+sys.path.insert(0, ROOT)
+from tools.metrics.eval_rr import evaluate as rr_eval          # noqa: E402
+from tools.metrics.eval_fr import load_dlpan, d_lambda_k, d_s  # noqa: E402
 
 SCALE, CUT, BLK = 2047.0, slice(20, -21), 32
 DOC = os.path.join(ROOT, "results_log/2026-08-20_WIP_submodule-ablation.md")
