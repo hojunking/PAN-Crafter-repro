@@ -15,21 +15,37 @@ cd PAN-Crafter
 
 ### (a) Docker — 클라우드·새 서버에 가장 빠르다
 
+**빌드할 필요 없다.** Docker Hub 에 올려둔 환경 이미지를 받아 코드를 마운트한다.
+
 ```bash
-docker build -t pancrafter .
+git clone <이 저장소> PAN-Crafter && cd PAN-Crafter
 docker run --gpus all -it --rm \
+    -v "$PWD":/workspace \
     -v /path/to/PanCollection:/workspace/data/PanCollection \
-    -v /path/to/work_dir:/workspace/work_dir \
-    pancrafter ./tools/run.sh wv3
+    hojunqueen/pancrafter-env ./tools/run.sh wv3
 ```
 
-빌드 중 `tools/setup_paths.sh` 로 경로가 맞춰지고 `tools/verify_metrics.py` 가 실행되므로,
-**빌드가 성공하면 지표 구현까지 검증된 것**이다. DLPan-Toolbox 도 이미지 안에 들어간다.
+| | |
+|---|---|
+| 이미지 | `hojunqueen/pancrafter-env:latest` (= `:torch2.4.0-cu118`), 약 9.4 GB |
+| 담긴 것 | PyTorch 2.4.0 / CUDA 11.8 + 의존성 16개 + DLPan-Toolbox |
+| **담기지 않은 것** | **코드·데이터·`work_dir`** — 전부 마운트한다 |
 
-- **데이터와 `work_dir` 은 이미지에 넣지 않고 마운트한다** — 데이터는 PanCollection 배포
-  조건이 있고, `work_dir` 은 수십 GB 로 커진다.
-- 이미지 약 9.5 GB (베이스 PyTorch 이미지가 대부분). 커스텀 CUDA 확장이 없어 컴파일은 없다.
-- full-res 지표가 필요 없으면 `--build-arg WITH_DLPAN=0` 으로 줄일 수 있다.
+**코드를 마운트하는 구조라 코드가 바뀌어도 이미지를 다시 만들 필요가 없다.**
+이미지는 의존성이 바뀔 때만 갱신한다. 저장소가 비공개이므로 연구 기록이 이미지에
+섞여 들어가지 않는 이점도 있다.
+
+경로는 마운트 위치가 `/workspace` 로 고정되어 `tools/setup_paths.sh` 없이도 맞는다.
+컨테이너 안에서 `python tools/verify_metrics.py` 로 지표 구현을 확인할 수 있다.
+
+직접 빌드하려면:
+
+```bash
+docker build -f Dockerfile.env -t pancrafter-env .    # 환경만 (권장)
+docker build -t pancrafter .                          # 코드까지 포함 (비공개 배포용)
+```
+
+full-res 지표가 필요 없으면 `--build-arg WITH_DLPAN=0` 으로 줄일 수 있다.
 
 ### (b) pip — 기존 PyTorch 환경 위에 얹을 때
 

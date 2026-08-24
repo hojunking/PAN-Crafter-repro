@@ -19,6 +19,8 @@ clone 에 작업을 얹은 것이다.
 
 - conda env `pancrafter`. python 은 `/home/knuvi/miniconda3/envs/pancrafter/bin/python`
 - GPU 1장. Teacher 50K 학습 ≈ 5h, 25K ≈ 2.3h
+- 새 서버·클라우드는 Docker 가 가장 빠르다 — `hojunqueen/pancrafter-env:latest`
+  (환경만 담겨 있고 코드는 마운트한다. 코드가 바뀌어도 이미지 재빌드 불필요)
 - **지표 구현은 저장소 안에 있다** (`tools/metrics/`). CANConv 를 clone 할 필요 없다
 - full-resolution(D_λ/D_s/HQNR)만 DLPan-Toolbox 의 `wald_utilities.py` 를 런타임 import 한다.
   GPL-3.0 이라 편입하지 않고 외부에 둔다 — `export PANCRAFTER_DLPAN=/path/to/DLPan-Toolbox`
