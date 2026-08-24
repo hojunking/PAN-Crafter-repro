@@ -1,0 +1,173 @@
+[
+ {
+  "tag": "A1btl",
+  "params": 7744712,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 2,
+  "flops_g": 135.807893504,
+  "infer_ms": 9.79982614517212,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "A2enc",
+  "params": 7060680,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 2,
+  "flops_g": 132.111138816,
+  "infer_ms": 8.628523349761963,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "A3dec",
+  "params": 7060680,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 2,
+  "flops_g": 132.111138816,
+  "infer_ms": 8.666598796844482,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "B1kpan",
+  "params": 7715944,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 3,
+  "flops_g": 134.87194112,
+  "infer_ms": 9.763479232788086,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "B2panbr",
+  "params": 7347432,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 3,
+  "flops_g": 133.276401664,
+  "infer_ms": 8.952021598815918,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "B3hf",
+  "params": 8027624,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 3,
+  "flops_g": 136.096677888,
+  "infer_ms": 10.008800029754639,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "C1gate",
+  "params": 8030056,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 3,
+  "flops_g": 136.106246144,
+  "infer_ms": 10.247647762298584,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "C2resmod",
+  "params": 8030056,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 3,
+  "flops_g": 136.106246144,
+  "infer_ms": 9.555768966674805,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "A3base",
+  "params": 8030056,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 3,
+  "flops_g": 136.106246144,
+  "infer_ms": 9.799587726593018,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ }
+]

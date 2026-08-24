@@ -1,0 +1,192 @@
+[
+ {
+  "tag": "dec4_btl_resmod",
+  "params": 6775336,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 1,
+  "flops_g": 131.812786176,
+  "infer_ms": 9.411799907684326,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "dec4_resmod",
+  "params": 7060680,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 2,
+  "flops_g": 132.111138816,
+  "infer_ms": 8.905577659606934,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "gate_dec4",
+  "params": 7060680,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 2,
+  "flops_g": 132.111138816,
+  "infer_ms": 9.24288034439087,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "gate_resmod",
+  "params": 8030056,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 3,
+  "flops_g": 136.106246144,
+  "infer_ms": 9.901285171508789,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "hf_dec4",
+  "params": 7059400,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 2,
+  "flops_g": 132.106289152,
+  "infer_ms": 8.78077745437622,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "hf_dec4_btl_resmod",
+  "params": 6774184,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 1,
+  "flops_g": 131.808067584,
+  "infer_ms": 8.68532657623291,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "hf_gate",
+  "params": 8027624,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 3,
+  "flops_g": 136.096677888,
+  "infer_ms": 9.996640682220459,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "hf_gate_dec4",
+  "params": 7059400,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 2,
+  "flops_g": 132.106289152,
+  "infer_ms": 8.83709192276001,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "hf_resmod",
+  "params": 8027624,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 3,
+  "flops_g": 136.096677888,
+  "infer_ms": 9.934508800506592,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ },
+ {
+  "tag": "A3base",
+  "params": 8030056,
+  "width": 128,
+  "depth": [
+   2,
+   2,
+   2,
+   2
+  ],
+  "cm3a": 3,
+  "flops_g": 136.106246144,
+  "infer_ms": 10.399484634399414,
+  "infer_mem_mb": 0,
+  "train_mem_gb": 0,
+  "s_iter": 0,
+  "hours_25k": 0,
+  "num_iter": 25000
+ }
+]

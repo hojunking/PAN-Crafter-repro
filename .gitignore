@@ -1,0 +1,24 @@
+# datasets (CANConv/data/datasets 로 향하는 심볼릭 링크 + 저자 배포 _pan.h5)
+data/
+
+# 학습 산출물 (work_dir/<실험>/meta/ 에 실행 조건이 남는다)
+work_dir/
+runs/
+*.mat
+
+# results_log 는 추적한다. 문서와 그림 모두 git 에 올린다.
+!results_log/
+
+# pan_h5.zip 압축 해제본 (data/ 로 복사되어 사용됨)
+pan_h5/extracted/
+
+# python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# 에디터
+.vscode/
+
+# 진행 중 실험 로그 (work_dir/ 는 이미 제외됨)
+*.log
