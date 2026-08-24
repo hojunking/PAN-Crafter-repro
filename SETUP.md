@@ -11,12 +11,43 @@ git clone <이 저장소 URL> PAN-Crafter
 cd PAN-Crafter
 ```
 
-## 2. 환경
+## 2. 환경 — 셋 중 하나
+
+### (a) Docker — 클라우드·새 서버에 가장 빠르다
 
 ```bash
-conda env create -f requirements.yaml     # env 이름: pancrafter
+docker build -t pancrafter .
+docker run --gpus all -it --rm \
+    -v /path/to/PanCollection:/workspace/data/PanCollection \
+    -v /path/to/work_dir:/workspace/work_dir \
+    pancrafter ./tools/run.sh wv3
+```
+
+빌드 중 `tools/setup_paths.sh` 로 경로가 맞춰지고 `tools/verify_metrics.py` 가 실행되므로,
+**빌드가 성공하면 지표 구현까지 검증된 것**이다. DLPan-Toolbox 도 이미지 안에 들어간다.
+
+- **데이터와 `work_dir` 은 이미지에 넣지 않고 마운트한다** — 데이터는 PanCollection 배포
+  조건이 있고, `work_dir` 은 수십 GB 로 커진다.
+- 이미지 약 9.5 GB (베이스 PyTorch 이미지가 대부분). 커스텀 CUDA 확장이 없어 컴파일은 없다.
+- full-res 지표가 필요 없으면 `--build-arg WITH_DLPAN=0` 으로 줄일 수 있다.
+
+### (b) pip — 기존 PyTorch 환경 위에 얹을 때
+
+```bash
+pip install -r requirements.txt
+```
+
+실제로 import 되는 16개만 담았다. torch/torchvision 이 이미 있으면 그 두 줄은 빼도 된다.
+
+### (c) conda — 원 개발 환경 그대로
+
+```bash
+conda env create -f requirements.yaml     # env 이름: pancrafter, 약 7.7 GB
 conda activate pancrafter
 ```
+
+`requirements.yaml` 은 conda env 전체 export(155행)라 ffmpeg·intel-openmp 등 무관한 것도
+섞여 있다. 재현성이 중요한 게 아니면 (a)나 (b)가 빠르다.
 
 ## 3. 경로 맞추기
 

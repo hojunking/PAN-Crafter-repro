@@ -1,0 +1,12 @@
+.git
+work_dir/
+data/
+runs/
+*.mat
+*.log
+__pycache__/
+*.py[cod]
+.vscode/
+*.pdf
+pan_h5/extracted/
+results_log/assets/
