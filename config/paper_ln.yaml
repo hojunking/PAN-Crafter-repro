@@ -1,9 +1,10 @@
+# A: ResBlock 정규화를 논문 Eq (5) 의 LayerNorm 으로. params 동일(7.1707M)
 # 논문 충실 재구성 PAN-Crafter. 저자 배포 코드가 아니라 논문 본문·Figure 3 서술을 따른다.
 # params 7.1707 M (논문 주장 7.170 M, +0.01%). 배포 코드는 9.969 M.
 # 차이 근거는 model/pancrafter_paper.py 머리말 참고.
 seed: 2025
 num_worker: 4
-work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/paper_wv3
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/paper_ln
 
 phase: train
 
@@ -46,7 +47,7 @@ model_args:
   mlp_ratio: 4.0
   ks: 3                     # 논문: "local attention kernel size to k = 3" (bottleneck 포함)
   ka: 3
-  norm: gn                  # 실행 시점의 동작. 논문 Eq (5) 는 LN 이지만 이 실행은 배포본과 같은 GroupNorm32 였다
+  norm: ln                  # 논문 Eq (5): x <- Conv(SiLU(LN(x)))
   n_attn: 3                 # Figure 3: AttnBlock 3개 (H/2 enc, H/4 bottleneck, H/2 dec)
 
 # optim

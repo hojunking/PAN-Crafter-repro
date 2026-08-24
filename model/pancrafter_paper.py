@@ -48,18 +48,45 @@ class ModeModulation(nn.Module):
         return self.gamma[i][:, :, None, None], self.beta[i][:, :, None, None]
 
 
-class ResBlock(nn.Module):
-    """배포본 ResBlock 과 동일한 conv 구성. 변조만 논문 Eq (6) 방식이다."""
+class ChannelLayerNorm(nn.Module):
+    """공간 위치마다 채널축으로 정규화하는 LayerNorm (DiT/ConvNeXt 방식).
 
-    def __init__(self, channels, dropout=0.0, out_channels=None):
+    논문 Eq (5): x <- Conv(SiLU(LN(x))). 배포 코드는 여기에 GroupNorm32 를 쓴다.
+    파라미터 수는 둘 다 2C 로 같아서 params 대조로는 이 차이가 드러나지 않는다.
+    """
+
+    def __init__(self, channels):
+        super().__init__()
+        self.norm = nn.LayerNorm(channels)
+
+    def forward(self, x):
+        return self.norm(x.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+
+
+def _norm(kind, channels):
+    if kind == "ln":
+        return ChannelLayerNorm(channels)          # 논문 서술
+    if kind == "gn":
+        return GroupNorm32(32, channels)           # 배포 코드
+    raise ValueError(f"norm 은 'ln' 또는 'gn' 이어야 한다: {kind}")
+
+
+class ResBlock(nn.Module):
+    """논문 Eq (5)/(6).
+
+        x <- Conv(SiLU(LN(x)))
+        x <- x + Conv(SiLU(Modulate(LN(x); mode)))
+    """
+
+    def __init__(self, channels, dropout=0.0, out_channels=None, norm="ln"):
         super().__init__()
         self.out_channels = out_channels or channels
         self.in_layers = nn.Sequential(
-            GroupNorm32(32, channels), nn.SiLU(),
+            _norm(norm, channels), nn.SiLU(),
             nn.Conv2d(channels, self.out_channels, 3, padding=1))
         self.mod = ModeModulation(self.out_channels)
         self.out_layers = nn.Sequential(
-            GroupNorm32(32, self.out_channels), nn.SiLU(), nn.Dropout(p=dropout),
+            _norm(norm, self.out_channels), nn.SiLU(), nn.Dropout(p=dropout),
             zero_module(nn.Conv2d(self.out_channels, self.out_channels, 3, padding=1)))
         # 배포본 ResBlock 과 동일하게 use_conv=False 경로(1x1)를 쓴다.
         self.skip_connection = (nn.Identity() if self.out_channels == channels
@@ -120,12 +147,12 @@ class PANCrafterPaper(nn.Module):
 
     def __init__(self, in_channels=1, out_channels=8, hidden_size=128,
                  depth=(2, 2, 4), dropout=0.0, num_heads=8, mlp_ratio=4.0,
-                 ka=3, ks=3, n_attn=3):
+                 ka=3, ks=3, n_attn=3, norm="ln"):
         super().__init__()
         C = hidden_size
         d0, d1, d2 = depth
         self.depth = tuple(depth)
-        R = lambda ch, out=None: ResBlock(ch, dropout, out_channels=out)
+        R = lambda ch, out=None: ResBlock(ch, dropout, out_channels=out, norm=norm)
         A = lambda: AttnBlock(C, num_heads, pan_channel=in_channels, ms_channel=out_channels,
                               mlp_ratio=mlp_ratio, ks=ks, ka=ka)
 
@@ -140,7 +167,7 @@ class PANCrafterPaper(nn.Module):
         self.decoder2 = nn.ModuleList([R(2 * C, C)] + [R(C, C) for _ in range(d1 - 1)])
         self.up1 = UpConv(C, out_channels=C)
         self.decoder1 = nn.ModuleList([R(2 * C, C)] + [R(C, C) for _ in range(d0 - 1)])
-        self.output = nn.Sequential(GroupNorm32(32, C), nn.SiLU(),
+        self.output = nn.Sequential(_norm(norm, C), nn.SiLU(),
                                     zero_module(nn.Conv2d(C, out_channels, 3, padding=1)))
         self.cond2_e = A() if n_attn >= 1 else None
         self.cond_bot = A() if n_attn >= 2 else None
