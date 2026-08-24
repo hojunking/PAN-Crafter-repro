@@ -4,6 +4,31 @@
 (ICCV 2025) 의 코드에 **재현 실험과 분석**을 얹은 것이다. 원 저작권과 `LICENSE`
 (MIT, **비상업 연구·교육 목적 한정**)는 그대로 유지한다.
 
+## 0. 한 번에 준비하기 (권장)
+
+clone · 이미지 pull · 데이터 내려받기 · 재배치 · lpan 복구 · 검증을 한 번에 한다.
+
+```bash
+# 빈 디렉터리에서
+./tools/bootstrap.sh --repo <이 저장소 URL>
+
+# 이미 clone 했다면 저장소 안에서
+./tools/bootstrap.sh
+```
+
+| 옵션 | |
+|---|---|
+| `--sensors wv3,qb,gf2` | 배치할 센서 (기본 `wv3`) |
+| `--skip-data` / `--skip-docker` | 해당 단계 생략 |
+| `--keep-archive` | 받은 zip(12 GB)을 지우지 않는다 |
+
+**디스크는 35 GB 이상** 필요하다 — zip 12 GB + 압축해제 19 GB + 이미지 9.4 GB.
+WV3 만 배치하면 데이터는 약 6.5 GB 다.
+
+아래 1–6절은 각 단계를 손으로 할 때의 설명이다.
+
+---
+
 ## 1. clone
 
 ```bash
@@ -35,8 +60,14 @@ docker run --gpus all -it --rm \
 이미지는 의존성이 바뀔 때만 갱신한다. 저장소가 비공개이므로 연구 기록이 이미지에
 섞여 들어가지 않는 이점도 있다.
 
-경로는 마운트 위치가 `/workspace` 로 고정되어 `tools/setup_paths.sh` 없이도 맞는다.
-컨테이너 안에서 `python tools/verify_metrics.py` 로 지표 구현을 확인할 수 있다.
+**`config/*.yaml` 의 절대경로는 한 번 맞춰줘야 한다.** 컨테이너 기준으로 바꾼다.
+
+```bash
+docker run --rm -v "$PWD":/workspace hojunqueen/pancrafter-env ./tools/setup_paths.sh --apply
+```
+
+`tools/bootstrap.sh` 는 이 단계를 포함한다. 컨테이너 안에서
+`python tools/verify_metrics.py` 로 지표 구현을 확인할 수 있다.
 
 직접 빌드하려면:
 

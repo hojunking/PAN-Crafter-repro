@@ -40,7 +40,9 @@ def main():
     link = f"{dst_dir}/{name}.h5"
     if os.path.islink(link) or os.path.exists(link):
         os.remove(link)
-    os.symlink(os.path.realpath(f"{src_dir}/{name}.h5"), link)
+    # 상대 경로로 건다. 절대 경로로 걸면 컨테이너(/workspace)에서 만든 링크가
+    # 호스트에서 깨진다(그 반대도 마찬가지).
+    os.symlink(os.path.relpath(f"{src_dir}/{name}.h5", dst_dir), link)
 
     with h5py.File(f"{src_dir}/{name}.h5") as f:
         pan = f["pan"][:].astype(np.float64)
