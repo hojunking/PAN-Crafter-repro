@@ -2,7 +2,7 @@
 # Teacher 와 동일한 seed/batch/iteration/scheduler/augmentation 을 유지한다.
 seed: 2025
 num_worker: 4
-work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/wv3_s96detail_fixed
+work_dir: /home/honbul/Desktop/song/PAN-Crafter/work_dir/wv3_s96detail_fixed
 
 phase: train
 
@@ -12,7 +12,7 @@ select_on: val
 # feeder
 feeder: feeders.feeder.PanFeeder
 train_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5
   crop: True
   hflip: True
   vflip: True
@@ -21,13 +21,13 @@ train_feeder_args:
   ms_size: 16
 
 val_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5
 
 test_reduced_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5
 
 test_full_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5/test_wv3_OrigScale_multiExm1.h5
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5/test_wv3_OrigScale_multiExm1.h5
 
 # data
 num_bands: 8

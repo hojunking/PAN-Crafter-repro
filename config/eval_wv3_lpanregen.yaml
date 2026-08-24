@@ -1,14 +1,14 @@
 # 재생성 lpan 의 타당성 검증 전용. reduced 셋은 저자 원본이 정상이므로 대조가 가능하다.
 seed: 2025
 num_worker: 4
-work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/wv3_baseline
+work_dir: /home/honbul/Desktop/song/PAN-Crafter/work_dir/wv3_baseline
 
 phase: train
 
 # feeder
 feeder: feeders.feeder.PanFeeder
 train_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5
   crop: True
   hflip: True
   vflip: True
@@ -17,13 +17,13 @@ train_feeder_args:
   ms_size: 16
 
 val_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5
 
 test_reduced_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5_regen/test_wv3_multiExm1.h5
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5_regen/test_wv3_multiExm1.h5
 
 test_full_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5/test_wv3_OrigScale_multiExm1.h5
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5/test_wv3_OrigScale_multiExm1.h5
 
 # data
 num_bands: 8

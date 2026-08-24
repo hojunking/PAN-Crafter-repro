@@ -1,16 +1,10 @@
-# ① PAN 브랜치 + encoder H/4 동시 제거
-# Student 아키텍처 스윕. research_log/pancrafter_student_first_strategy_v0.1.md 기반.
-# W128D2222A3: width 128 / depth [2, 2, 2, 2] / CM3A 3개
-# Teacher 와 동일: seed 2025, batch 48(실효 96), AdamW 1e-4 wd 0.01, cosine+warmup 100, select_on val
-# 스윕 전용: num_iter 25000 (원 설정의 50%), eval_epoch 10, full-res 는 복구 lpan 사용
+# 새 서버 스모크 런 전용. 학습 250 iter(=1 epoch 조금 넘김) + 평가 1회 + mat 내보내기까지 전 경로를 태운다.
+# 결과 수치는 의미 없다. SETUP.md 6절.
 seed: 2025
 num_worker: 4
-work_dir: /home/honbul/Desktop/song/PAN-Crafter/work_dir/x1_panbr_enc4
+work_dir: /home/honbul/Desktop/song/PAN-Crafter/work_dir/_smoke
 
 phase: train
-
-# KNOWN_ISSUES.md E-1: 검증셋으로 best 를 고른다. 테스트셋은 곡선 기록용으로만 본다.
-select_on: val
 
 # feeder
 feeder: feeders.feeder.PanFeeder
@@ -30,7 +24,7 @@ test_reduced_feeder_args:
   dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5
 
 test_full_feeder_args:
-  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5_repaired/test_wv3_OrigScale_multiExm1.h5
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5/test_wv3_OrigScale_multiExm1.h5
 
 # data
 num_bands: 8
@@ -49,18 +43,16 @@ model_args:
   pan_ks: 3
   ms_ks: 3
   ka: 3
-  cm3a_locations: ["4", "3d"]
-  cm3a_pan_branch: False
   # KNOWN_ISSUES.md A-1 / A-2. 둘 다 False = 저자 배포본과 완전히 동일.
-  fix_key_alias: True
-  fix_local_attn: True
+  fix_key_alias: False
+  fix_local_attn: False
 
 # optim
 optimizer: AdamW
 learning_rate: 1e-4
 weight_decay: 0.01
 lr_scheduler: cosine
-num_iter: 25000
+num_iter: 250
 num_warmup: 100
 
 # loss
@@ -69,11 +61,12 @@ w_off: 1.0
 
 # logging
 log_iter: 100
-save_iter: 999999
+save_iter: 10000
 save_epoch: 0
-eval_epoch: 10
+eval_epoch: 1
 
 # training
 gpu: 0
 batch_size: 48  # duplicate
 test_batch_size: 1
+select_on: val
