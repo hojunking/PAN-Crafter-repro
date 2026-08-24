@@ -96,6 +96,15 @@ conda activate pancrafter
 `requirements.yaml` 은 conda env 전체 export(155행)라 ffmpeg·intel-openmp 등 무관한 것도
 섞여 있다. 재현성이 중요한 게 아니면 (a)나 (b)가 빠르다.
 
+> `requirements.yaml` 은 Anaconda 기본 채널(`defaults`)의 빌드를 고정한다. 최근 conda 는
+> 그 채널의 이용약관을 수락하지 않으면 `CondaToSNonInteractiveError` 로 멈춘다.
+> **수락 여부는 조직의 라이선스 판단이 필요한 사항이다** (200인 이상 조직은 유료).
+>
+> ```bash
+> conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+> conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+> ```
+
 ## 3. 경로 맞추기
 
 `config/*.yaml` 에는 원 개발 환경의 절대경로가 박혀 있다. 한 번 실행하면 현재 위치로 바뀐다.
@@ -104,6 +113,17 @@ conda activate pancrafter
 ./tools/setup_paths.sh            # 무엇이 바뀌는지 확인만
 ./tools/setup_paths.sh --apply    # 반영
 ```
+
+> **서버가 둘 이상이면 브랜치를 나눈다.** 치환된 경로를 `main` 에 커밋하면 다른 서버가 깨진다.
+> 또 `results_log/README.md` 는 양쪽이 **맨 위에** 행을 추가하는 구조라 커밋마다 충돌한다.
+>
+> | 브랜치 | 담는 것 |
+> |---|---|
+> | `main` | 서버 중립. 코드·문서·`results_log` |
+> | `server/<호스트명>` | 그 서버의 작업 전부 |
+>
+> `server/*` 브랜치는 **통째로 `main` 에 병합하지 않는다.** 공유 가능한 커밋만 cherry-pick 한다.
+> 그래서 커밋을 섞지 말고 `[공유]` / `[서버전용]` 으로 나눠 쌓는다.
 
 ## 4. 데이터 (저장소에 포함되지 않음)
 
@@ -120,6 +140,19 @@ data/PanCollection/WV3/
 ```
 
 `pan_h5/pan_h5.zip` 은 저자 배포본이며 저장소에 포함되어 있다. 압축을 풀어 `data/` 로 옮긴다.
+
+**PanCollection 배포본의 파일명은 위 구조와 다르다** (`train_wv3_9714.h5`, `valid_wv3_9714.h5`,
+`test_data/` 한 폴더에 전 센서 혼재). feeder 가 경로 문자열에서 split·센서를 추론하므로
+([KNOWN_ISSUES.md B-2/B-3](KNOWN_ISSUES.md)) 이름을 반드시 맞춰야 한다. 자동화해 두었다.
+
+```bash
+unzip -o pan_h5/pan_h5.zip -d pan_h5/extracted
+unzip -o <PanCollection zip> -d data/_extracted
+./tools/setup_data_layout.sh          # 링크 배치 + *_pan.h5 복사 (멱등)
+```
+
+실제 h5 20 GB 는 `<song>/datasets/PanCollection/` 한 곳에만 두고, PAN-Crafter 와 CANConv 가
+각자 기대하는 이름으로 심볼릭 링크만 건다.
 
 > **주의.** 배포 `pan_h5.zip` 의 WV3·QB **full-resolution `lpan` 이 다른 장면이다**
 > (`KNOWN_ISSUES.md` F-1). 그대로 쓰면 full-res 평가가 무효다. 반드시 복구본을 만든다.
@@ -165,13 +198,26 @@ python tools/verify_metrics.py
 여섯 지표가 상대오차 0 으로 일치하면 이식이 정상이다. `PANCRAFTER_DLPAN` 이 없으면
 reduced 세 개만 검사한다.
 
+`tools/env.sh` 에 이 export 가 들어 있고 `~/.bashrc` 에 등록해 두면 매번 쓰지 않아도 된다.
+`PANCRAFTER_CANCONV` 는 지표에는 더 이상 쓰이지 않고, `tools/setup_wv2.py` 가 WV2 테스트셋을
+찾는 데만 쓴다.
+
 ## 6. 동작 확인
 
 ```bash
 python tools/verify_metrics.py                   # 지표 구현 이식 확인
 python tools/check_data.py                       # 데이터 경로·shape 점검
-./tools/run.sh wv3 --num-iter 100                # 짧은 스모크 런
+python tools/repair_lpan.py --sensor wv3         # F-1 복구 (qb 도 함께). 상관 0.01 -> 1.000 이 나와야 한다
+python tools/setup_wv2.py                        # WV2 zero-shot 배치 (선택)
+./tools/run.sh _smoke                            # 250 iter + 평가 1회 + mat 내보내기까지 전 경로
 ```
+
+환경이 제대로 섰는지는 **수치 두 개**로 확인한다. 둘 다 서버와 무관하게 같아야 한다.
+
+| 확인 | 기대값 |
+|---|---|
+| `pancrafter_wv3.yaml` 파라미터 수 | **9,968,808** |
+| `repair_lpan.py --sensor wv3` 의 배포본 상관 | **+0.011** (손상) → 재생성 **+1.000** |
 
 ## 7. 학습
 
