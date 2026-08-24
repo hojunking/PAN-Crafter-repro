@@ -19,9 +19,11 @@ clone 에 작업을 얹은 것이다.
 
 - conda env `pancrafter`. python 은 `/home/knuvi/miniconda3/envs/pancrafter/bin/python`
 - GPU 1장. Teacher 50K 학습 ≈ 5h, 25K ≈ 2.3h
-- 평가 도구는 형제 저장소 두 개가 필요하다 (없으면 학습만 가능)
-  - `PANCRAFTER_CANCONV` — 지표 구현 재사용
-  - `PANCRAFTER_DLPAN` — MTF/Q2n 공식 구현
+- **지표 구현은 저장소 안에 있다** (`tools/metrics/`). CANConv 를 clone 할 필요 없다
+- full-resolution(D_λ/D_s/HQNR)만 DLPan-Toolbox 의 `wald_utilities.py` 를 런타임 import 한다.
+  GPL-3.0 이라 편입하지 않고 외부에 둔다 — `export PANCRAFTER_DLPAN=/path/to/DLPan-Toolbox`
+  reduced 지표(SAM/ERGAS/Q2n/PSNR/SSIM/SCC)는 이것 없이도 전부 동작한다
+- 이식 확인: `python tools/verify_metrics.py` (6개 지표 상대오차 0 이면 정상)
 
 ## 실행
 
@@ -47,16 +49,57 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지 
 
 - **재현 성립.** WV3 reduced ERGAS **2.1633** (배포본 그대로, 50K). 논문 2.040 대비 +6.09%
 - **그 격차는 우리 잘못이 아니다.** 평가기는 CANConv 배포 가중치로 논문 행을 6지표 0.5% 이내
-  재현하고, 논문 명시 설정은 시드 2,025 까지 전부 일치한다. 배포 코드가 논문 모델이 아닌 것이
-  유력하다 (params 1.39×, FLOPs 2.1×). → `results_log/2026-08-24_reproduction-audit.md`
+  재현하고, 논문 명시 설정은 시드 2,025 까지 전부 일치한다.
+  → `results_log/2026-08-24_reproduction-audit.md`
 - **논문의 CANConv 대비 우위는 재현되지 않는다** (주장 −5.69% vs 재현 −0.34%, p=0.667).
-  **비교 기준선은 논문 2.040 이 아니라 재현 Teacher 2.1633 이다.**
-- **프루닝 최적점**: `x1_panbr_dec4` = 6.694M(−33%) / 8.3ms(2.2×) 가 Teacher 와 구분 불가
-  (p=0.114). **6M 아래로 내려가야 실제 손실이 생기고, 거기가 KD 의 작업 대상이다.**
+- **배포 코드는 논문이 기술한 모델이 아니다 — 재구성으로 확인했다.**
+  논문 본문·Figure 3 대로 다시 구현하니 params 가 **7.1707 M** 으로 논문 주장 7.170 M 과
+  **+0.01%** 로 맞았다(배포 코드 9.969 M). 되돌린 것 셋 다 논문 본문이다 —
+  mode modulation 을 Eq (6) 의 직접 학습 γ,β 로(블록당 33,024→512), bottleneck 도 k=3
+  (배포본만 k=1), 입력 9ch. 구조는 **3-scale / Down·Up 2 / AttnBlock 3**.
+  → `model/pancrafter_paper.py`, `results_log/2026-08-24_paper-faithful-rebuild.md`
+- **FLOPs 79.03 G 는 미해결.** 재구성본도 161.9 G 이고, 어텐션을 전부 빼도 125.9 G 다.
+  "어텐션 미집계" 가설은 기각했다(배포 구조에서 79.2 G 가 나온 것은 무관한 우연).
 - **지표 선택**: ERGAS·SAM 만 판별력이 있다. Q8·SSIM·SCC 는 이 범위에서 포화(±0.15%)라
   판별 근거로 인용하면 안 된다. D_s·HQNR 은 축소하면 거의 항상 좋아지는 기전이 있어 단독 해석 금지.
 - **양방향 mutual learning 은 no-go** (`2026-08-20_mutual-learning-go-no-go.md`).
   단방향 T→S 증류는 별개이고 유효하다.
+
+## 판정 규칙 — 시드 오차가 대부분의 차이를 삼킨다
+
+동일 구성을 시드만 바꿔 돌린 폭이 **0.81%** 다(2.2527 vs 2.2344). 이는 지금까지 인용해온
+차이 대부분보다 크다.
+
+| 비교 | 차이 | 시드 폭 대비 |
+|---|---:|---|
+| 선정 Student vs Teacher | −0.31% (p=0.114) | 0.4배 |
+| 6.041 M 경계 | +0.74% (p=0.013) | 0.9배 |
+| A-1/A-2 적용 효과 | +0.74% (p=0.0014) | 0.9배 |
+
+**대응표본 t-검정은 같은 가중치를 20장에 적용한 것이라 시드 변동을 포착하지 못한다.**
+p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
+
+- **0.8% 미만의 차이는 시드 3개 이상에서 방향이 일관될 때만 주장한다.**
+- 단일 시드 대응표본 p 값만으로 구조 차이를 결론짓지 않는다.
+- 기존 결론들도 시드 σ 가 확정되면 **소급 재판정 대상**이다.
+
+## 진행 중 — 논문 재구성본 실험
+
+계획: `research_log/paper_faithful_experiment_plan_v1.md`
+실행: `tools/_run_priority.sh` (Phase 1 검증 50K → Phase 2 시드 25K×3 → Phase 3 탐색 25K×5)
+진행 상황: `results_log/2026-08-25_WIP_paper.md`
+
+**Phase 1 이 관문이다.** 재구성본 50K 가 논문 2.040 근처(≲2.08)를 내야 "배포 코드가 논문
+모델이 아니었다" 가 성립한다. 기존 2.16 대에 머물면 구조가 원인이 아니므로 Phase 2·3 은
+의미가 없고, 학습 파이프라인(`d1_nocrop`/`d2_lmsbase`)으로 선회해야 한다.
+
+**경량화 축이 바뀐다.** 배포 코드에선 CM3A 제거가 공짜였지만 재구성본엔 그 여지가 없다
+(AttnBlock 3개가 전부 mid/low 해상도에 있고, 무손실로 뺐던 것들이 애초에 없다).
+
+```
+배포 코드 :  CM3A 개수 -> PAN 브랜치 -> depth -> width
+재구성본  :  width  >>  full-res depth  >  AttnBlock 개수  >  bottleneck
+```
 
 ## 함정 (전부 한 번씩 당한 것)
 
