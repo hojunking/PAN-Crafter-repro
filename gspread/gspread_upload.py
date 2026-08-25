@@ -187,6 +187,11 @@ def _profile(args_ns, key, want):
 
 
 # ----------------------------------------------------------------- 한 실행 수집
+def _iter_label(n):
+    """25000 -> '25K'. 실행명에 붙여 iteration 이 다른 실행을 한눈에 구분한다."""
+    return f"{n // 1000}K" if n and n % 1000 == 0 else str(n)
+
+
 def collect(tag, want_profile):
     wd = os.path.join(ROOT, "work_dir", tag)
     if tag in EXTERNAL:                       # config 가 없는 외부 참조
@@ -215,7 +220,7 @@ def collect(tag, want_profile):
     row = {
         "tag": tag, "_ds": ds.upper(),
         "model": a.model.rsplit(".", 1)[-1],
-        "seed": a.seed, "iter": a.num_iter,
+        "seed": a.seed, "iter": a.num_iter,   # iter 는 비고와 실행명 양쪽에 들어간다
         "width": hs if isinstance(hs, int) else (hs[0] if hs else ""),
         "depth": str(ma.get("depth", "")),
         "n_attn": ma.get("n_attn", len(ma.get("cm3a_locations") or ["2e","3e","4","3d","2d"])),
@@ -262,6 +267,7 @@ def collect(tag, want_profile):
 
     # 비고에는 우리가 확인 중인 파라미터 특징만 남긴다.
     # Params(M) 는 열에 있으므로 학습params 는 넣지 않는다.
+    n_iter = row["iter"]
     bits = [f"width={row.pop('width')}", f"depth={row.pop('depth')}",
             f"AttnBlock={row.pop('n_attn')}", f"norm={row.pop('norm')}",
             f"mlp={row.pop('mlp_ratio')}", f"crop={row.pop('crop')}",
@@ -273,6 +279,9 @@ def collect(tag, want_profile):
     if row.get("note_err"):
         bits.append(row.pop("note_err"))
     row["note"] = " · ".join(bits)
+    lbl = _iter_label(n_iter)
+    # 실행명에 이미 25k/50k 같은 표기가 있으면 덧붙이지 않는다
+    row["tag"] = row["tag"] if lbl.lower() in row["tag"].lower() else f"{row['tag']} ({lbl})"
     return row
 
 
