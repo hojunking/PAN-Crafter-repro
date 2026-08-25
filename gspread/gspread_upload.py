@@ -153,35 +153,80 @@ def _fr(mat, ds, indices="12-19"):
 
 
 # ----------------------------------------------------------------- 비용
-def _profile(args_ns, key, want):
-    """FLOPs/추론시간/메모리. 오래 걸리므로 캐시한다."""
+def _gpu_busy(threshold=30):
+    """다른 프로세스가 GPU 를 쓰고 있는가. nvidia-smi 사용률로 판단한다."""
+    try:
+        import subprocess
+        r = subprocess.run(["nvidia-smi", "--query-gpu=utilization.gpu",
+                            "--format=csv,noheader,nounits"],
+                           capture_output=True, text=True, timeout=10)
+        return int(r.stdout.strip().split("\n")[0]) >= threshold
+    except Exception:
+        return False
+
+
+def _profile(args_ns, key, want_flops):
+    """비용 측정.
+
+    추론시간·메모리는 몇 초면 끝나므로 항상 잰다. FLOPs 는 thop 이 모델 전체를
+    훑어야 해 상대적으로 느리고 구조가 같으면 값이 같으므로 --profile 일 때만 재고
+    캐시한다.
+
+    주의: GPU 가 학습 중이면 추론시간이 경합으로 부풀려진다. 절대값이 필요하면
+    유휴 상태에서 --profile 로 다시 잴 것.
+    """
     cache = json.load(open(CACHE)) if os.path.exists(CACHE) else {}
-    if key in cache and not want:
-        return cache[key]
-    if not want:
-        return {}
+    hit = cache.get(key, {})
+    out = {}
     import torch
-    from thop import profile as thop_profile
     from main import import_class
     Model = import_class(args_ns.model)
-    m = Model(**args_ns.model_args).eval()
-    inp = (torch.randn(1, 1, 256, 256), torch.randn(1, 1, 64, 64),
-           torch.randn(1, 8, 64, 64), torch.ones(1))
-    f, _ = thop_profile(m, inputs=inp, verbose=False)
-    out = {"flops_g": f / 1e9}
-    if torch.cuda.is_available():
-        m = m.cuda(); inp = tuple(t.cuda() for t in inp)
-        with torch.no_grad():
-            for _ in range(5):
-                m(*inp)
-            torch.cuda.synchronize(); torch.cuda.reset_peak_memory_stats()
-            t0 = time.time()
-            for _ in range(20):
-                m(*inp)
-            torch.cuda.synchronize()
-        out["infer_ms"] = (time.time() - t0) / 20 * 1000
-        out["mem_mb"] = torch.cuda.max_memory_allocated() / 2**20
-    cache[key] = out
+
+    if want_flops or "flops_g" not in hit:
+        if want_flops:
+            from thop import profile as thop_profile
+            m = Model(**args_ns.model_args).eval()
+            inp = (torch.randn(1, 1, 256, 256), torch.randn(1, 1, 64, 64),
+                   torch.randn(1, 8, 64, 64), torch.ones(1))
+            f, _ = thop_profile(m, inputs=inp, verbose=False)
+            out["flops_g"] = f / 1e9
+            del m
+        elif "flops_g" in hit:
+            out["flops_g"] = hit["flops_g"]
+    else:
+        out["flops_g"] = hit["flops_g"]
+
+    # GPU 가 학습으로 바쁘면 추론시간이 경합으로 부풀려진다(실측 16 -> 36 ms).
+    # 그럴 때는 재지 않고 캐시된 값을 쓴다. 오염된 수치를 올리는 것보다 낫다.
+    busy = _gpu_busy()
+    if busy:
+        # 메모리는 경합 영향이 작아 캐시를 그대로 쓴다. 추론시간은 캐시가 있을 때만.
+        if "mem_mb" in hit:
+            out["mem_mb"] = hit["mem_mb"]
+        if "infer_ms" in hit:
+            out["infer_ms"] = hit["infer_ms"]
+    elif torch.cuda.is_available():
+        try:
+            m = Model(**args_ns.model_args).eval().cuda()
+            inp = tuple(x.cuda() for x in (torch.randn(1, 1, 256, 256), torch.randn(1, 1, 64, 64),
+                                           torch.randn(1, 8, 64, 64), torch.ones(1)))
+            with torch.no_grad():
+                for _ in range(5):
+                    m(*inp)
+                torch.cuda.synchronize(); torch.cuda.reset_peak_memory_stats()
+                t0 = time.time()
+                for _ in range(20):
+                    m(*inp)
+                torch.cuda.synchronize()
+            out["infer_ms"] = (time.time() - t0) / 20 * 1000
+            out["mem_mb"] = torch.cuda.max_memory_allocated() / 2**20
+            del m, inp
+            torch.cuda.empty_cache()
+        except Exception:
+            pass                      # 메모리 부족 등으로 실패해도 나머지는 올린다
+
+
+    cache[key] = {**hit, **out}
     json.dump(cache, open(CACHE, "w"), indent=1)
     return out
 
@@ -343,6 +388,33 @@ def _ensure_sheet(sh, name):
         return sh.add_worksheet(title=name, rows=200, cols=40)
 
 
+def _group_edges(cols):
+    """그룹이 바뀌는 지점의 0-based 열 인덱스. 여기에 세로 실선을 놓는다."""
+    return [i for i in range(1, len(cols)) if cols[i][0] != cols[i - 1][0]]
+
+
+def _apply_borders(ws, cols, last_row):
+    """RR / FR / 비용 사이에 세로 실선을 긋는다. 데이터 행까지 이어지게 한다."""
+    from gspread_formatting import (CellFormat, Border, Borders, Color,
+                                    format_cell_range, batch_updater)
+    line = Border("SOLID_MEDIUM", Color(0.25, 0.25, 0.25))
+    n = len(cols)
+    with batch_updater(ws.spreadsheet) as batch:
+        for i in _group_edges(cols):                    # 그룹 시작 열의 왼쪽에 선
+            c = _col(ORIGIN_COL + i)
+            batch.format_cell_range(ws, f"{c}{ORIGIN_ROW}:{c}{last_row}",
+                                    CellFormat(borders=Borders(left=line)))
+        # 표 바깥 테두리
+        c0, c1 = _col(ORIGIN_COL), _col(ORIGIN_COL + n - 1)
+        batch.format_cell_range(ws, f"{c0}{ORIGIN_ROW}:{c0}{last_row}",
+                                CellFormat(borders=Borders(left=line)))
+        batch.format_cell_range(ws, f"{c1}{ORIGIN_ROW}:{c1}{last_row}",
+                                CellFormat(borders=Borders(right=line)))
+        # 헤더와 데이터 사이 가로선
+        batch.format_cell_range(ws, f"{c0}{ORIGIN_ROW + 1}:{c1}{ORIGIN_ROW + 1}",
+                                CellFormat(borders=Borders(bottom=line)))
+
+
 def _write_header(ws, cols, color):
     """2행에 그룹(RR/FR/비용), 3행에 컬럼명. 그룹은 병합한다."""
     from gspread_formatting import (CellFormat, TextFormat, Color, format_cell_range,
@@ -419,6 +491,7 @@ def upload(rows, replace=False):
             while tags and not tags[-1]:  # 빈 범위에서 gspread 가 빈 행을 돌려주는 경우가 있다
                 tags.pop()
 
+        last = ORIGIN_ROW + 1
         for r in rs:
             v = fmt(r, cols)
             if r["tag"] in tags:
@@ -427,7 +500,9 @@ def upload(rows, replace=False):
                 i = ORIGIN_ROW + 2 + len(tags)
                 tags.append(r["tag"]); added += 1
             ws.update([v], f"{_a1(i, ORIGIN_COL)}:{_a1(i, ORIGIN_COL + n - 1)}")
+            last = max(last, i)
             total += 1
+        _apply_borders(ws, cols, last)      # 새로 쓴 행까지 선을 이어준다
         print(f"  [{ds}] {len(rs)}행")
     return total, added
 
