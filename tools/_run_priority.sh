@@ -38,7 +38,7 @@ for TAG in "${ORDER[@]}"; do
     echo "[pri] ($i/${#ORDER[@]}) === $TAG 시작 $(date -Iseconds) ==="
     if ./tools/run.sh "$TAG"; then echo "[pri] ($i/${#ORDER[@]}) $TAG 완료 $(date -Iseconds)"
     else echo "[pri] ($i/${#ORDER[@]}) FAILED $TAG $(date -Iseconds)"; fi
-    report "$TAG"; collect
+    report "$TAG"; ./tools/_upload.sh "$TAG"; collect
 done
 collect
 echo "[pri] DONE $(date -Iseconds)"

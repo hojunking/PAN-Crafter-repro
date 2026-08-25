@@ -30,10 +30,7 @@ while running; do
 done
 echo "[p25] 시작 $(date -Iseconds)  총 ${#ORDER[@]}개  예상 47h"
 
-sync(){  # 결과를 구글시트로 올린다 (실패해도 체인은 계속)
-    python gspread/gspread_upload.py "p25_*" > work_dir/p25_gspread.log 2>&1 \
-      || echo "[p25] gspread 업로드 실패 (work_dir/p25_gspread.log 참고)"
-}
+# 방금 끝난 실행만 올린다. 매번 p25_* 전부를 재수집하면 FR 평가 때문에 30분씩 든다.
 i=0
 for TAG in "${ORDER[@]}"; do
     i=$((i+1))
@@ -43,10 +40,9 @@ for TAG in "${ORDER[@]}"; do
         echo "[p25] ($i/${#ORDER[@]}) $TAG 완료 $(date -Iseconds)"
         python tools/eval_dlpan.py "work_dir/$TAG/results/reduced_best_val.mat" --preset wv3 2>/dev/null \
           | grep "$TAG" || true
+        ./tools/_upload.sh "$TAG"
     else
         echo "[p25] ($i/${#ORDER[@]}) FAILED $TAG $(date -Iseconds)"
     fi
-    sync
 done
-sync
 echo "[p25] DONE $(date -Iseconds)"
