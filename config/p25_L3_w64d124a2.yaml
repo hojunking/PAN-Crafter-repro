@@ -45,6 +45,7 @@ model_args:
   ks: 3                     # 논문: "local attention kernel size to k = 3" (bottleneck 포함)
   ka: 3
   n_attn: 2
+  norm: ln                  # 논문 Eq (5). 기본값에 의존하지 않도록 명시
 
 # optim
 optimizer: AdamW

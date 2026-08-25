@@ -50,6 +50,7 @@ model_args:
   n_attn: 3
   in_mode: released         # (구) input_hf: True 와 동일 의미. 실제 학습은 구 플래그로 돌았고
                             # 입력 concat 순서만 다르다(모델 클래스는 동등). s1 의 in_mode 인터페이스로 통일
+  norm: gn                  # 이 실행은 norm 옵션 도입 전 코드로 돌았다 = GroupNorm32. 사후 명시
 
 # optim
 optimizer: AdamW

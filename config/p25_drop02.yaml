@@ -47,6 +47,7 @@ model_args:
   ks: 3                     # 논문: "local attention kernel size to k = 3" (bottleneck 포함)
   ka: 3
   n_attn: 3                 # Figure 3: AttnBlock 3개 (H/2 enc, H/4 bottleneck, H/2 dec)
+  norm: gn                  # 이 실행은 norm 옵션 도입 전 코드로 돌았다 = GroupNorm32. 사후 명시
 
 # optim
 optimizer: AdamW

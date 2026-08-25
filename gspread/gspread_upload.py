@@ -362,6 +362,8 @@ def collect(tag, want_profile, server, peer=None):
         "n_attn": (0 if ("LRFuse" in a.model or "LRTinySwin" in a.model) else
                    ma.get("n_attn", len(ma.get("cm3a_locations") or ["2e","3e","4","3d","2d"]))),
         "norm": ma.get("norm", "gn"),
+        "dropout": ma.get("dropout", 0.0),
+        "input_hf": ma.get("input_hf", False),
         "mlp_ratio": ma.get("mlp_ratio", 4.0),
         "crop": a.train_feeder_args.get("crop", ""),
         "family": ("lrtinyswin" if "LRTinySwin" in a.model
@@ -474,6 +476,8 @@ def collect(tag, want_profile, server, peer=None):
             bits.append("in=11ch (↑LPAN·PAN−↑LPAN 추가)")
         if not row["crop"]:
             bits.append("crop=False")
+        if float(ma.get("dropout", 0.0)) != 0.0:
+            bits.append(f"dropout={ma['dropout']:g}")
         if getattr(a, "mars", "dual") == "ms":
             bits.append("mars=ms (PAN mode 제거)")
     if _tr == "kd":
@@ -709,6 +713,11 @@ def main():
                          "gspread/server.txt 를 본다. 셋 다 없으면 올리지 않는다")
     ap.add_argument("--replace", action="store_true",
                     help="기존 데이터 행을 비우고 주어진 순서대로 다시 쓴다")
+    ap.add_argument("--server", default=None, metavar="이름",
+                    help="이 실행이 어느 서버에서 나왔는지 (예: s1, s2). 실행명 뒤에 [이름] 이"
+                         " 붙어 별도 행이 되고 비고에도 남는다. **서버가 둘 이상이면 반드시 준다**"
+                         " — 행 식별이 실행명 단독이라, 같은 이름을 다른 서버에서 올리면"
+                         " 앞서 올린 행을 조용히 덮어쓴다 (학습 수치는 서버 간 섞으면 안 된다)")
     a = ap.parse_args()
 
     tags = []
@@ -744,6 +753,11 @@ def main():
         pm = r.get("params_m")
         print(f"  수집 {t}: ERGAS {r.get('ergas', float('nan')):.4f}"
               + (f"  params {pm:.4f} M" if pm else ""))
+
+    if a.server:
+        for r in rows:
+            r["tag"] = f"{r['tag']} [{a.server}]"
+            r["note"] = f"서버={a.server} · {r.get('note','')}".rstrip(" ·")
 
     if a.dry_run:
         for ds in sorted({r["_ds"] for r in rows}):
