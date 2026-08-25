@@ -713,11 +713,6 @@ def main():
                          "gspread/server.txt 를 본다. 셋 다 없으면 올리지 않는다")
     ap.add_argument("--replace", action="store_true",
                     help="기존 데이터 행을 비우고 주어진 순서대로 다시 쓴다")
-    ap.add_argument("--server", default=None, metavar="이름",
-                    help="이 실행이 어느 서버에서 나왔는지 (예: s1, s2). 실행명 뒤에 [이름] 이"
-                         " 붙어 별도 행이 되고 비고에도 남는다. **서버가 둘 이상이면 반드시 준다**"
-                         " — 행 식별이 실행명 단독이라, 같은 이름을 다른 서버에서 올리면"
-                         " 앞서 올린 행을 조용히 덮어쓴다 (학습 수치는 서버 간 섞으면 안 된다)")
     a = ap.parse_args()
 
     tags = []
@@ -753,11 +748,6 @@ def main():
         pm = r.get("params_m")
         print(f"  수집 {t}: ERGAS {r.get('ergas', float('nan')):.4f}"
               + (f"  params {pm:.4f} M" if pm else ""))
-
-    if a.server:
-        for r in rows:
-            r["tag"] = f"{r['tag']} [{a.server}]"
-            r["note"] = f"서버={a.server} · {r.get('note','')}".rstrip(" ·")
 
     if a.dry_run:
         for ds in sorted({r["_ds"] for r in rows}):
