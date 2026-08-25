@@ -26,3 +26,5 @@ account.json
 # gspread 서비스 계정 키와 프로파일 캐시
 gspread/account.json
 gspread/_profile_cache.json
+# 서버 식별자는 머신마다 다르다 (s1/s2). 저장소로 옮기면 안 된다
+gspread/server.txt

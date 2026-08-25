@@ -46,6 +46,9 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지 
   A-1·A-2 적용), 누가 쟀는가(`py` 학습 중 metrics.csv / `matlab` DLPan 프로토콜).
   **논문 Table 과 비교 가능한 것은 `matlab` 뿐이다.**
 - 새 문서를 만들면 `results_log/README.md` 맨 위에 한 행 추가한다.
+- **구글시트 업로드에는 서버 식별자를 반드시 붙인다** (`gspread/server.txt` 에 `s1`/`s2`).
+  두 서버가 같은 config 를 돌리면 실행명이 같아져, suffix 가 없으면 상대 서버 값을
+  덮어쓴다. 시트 위에서 서버 간 수치 혼용이 일어나는 것이다.
 
 ## 확정된 사실 (다시 파헤치지 말 것)
 

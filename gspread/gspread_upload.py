@@ -187,15 +187,38 @@ def _profile(args_ns, key, want):
 
 
 # ----------------------------------------------------------------- 한 실행 수집
+SERVER_FILE = os.path.join(ROOT, "gspread", "server.txt")
+
+
+def resolve_server(cli):
+    """서버 식별자. --server > PANCRAFTER_SERVER > gspread/server.txt 순.
+
+    지정이 없으면 올리지 않는다. 두 서버가 같은 config 를 돌리면 실행명이 같아져,
+    suffix 없이 올리면 상대 서버 값을 조용히 덮어쓴다. 그러면 한 행에 어느 서버
+    수치인지 알 수 없는 값이 남는다 (CLAUDE.md 가 금지하는 서버 간 수치 혼용).
+    """
+    s = cli or os.environ.get("PANCRAFTER_SERVER") or (
+        open(SERVER_FILE).read().strip() if os.path.exists(SERVER_FILE) else "")
+    if not s:
+        raise SystemExit(
+            "서버 식별자가 없다. 다음 중 하나로 지정할 것:\n"
+            "  --server s1\n"
+            "  export PANCRAFTER_SERVER=s1\n"
+            f"  echo s1 > {SERVER_FILE}   (그 서버에 한 번만 해두면 된다)\n\n"
+            "두 서버가 같은 config 를 돌리면 실행명이 같아진다. suffix 가 없으면\n"
+            "상대 서버 값을 덮어써서 어느 쪽 수치인지 알 수 없게 된다.")
+    return s.strip()
+
+
 def _iter_label(n):
     """25000 -> '25K'. 실행명에 붙여 iteration 이 다른 실행을 한눈에 구분한다."""
     return f"{n // 1000}K" if n and n % 1000 == 0 else str(n)
 
 
-def collect(tag, want_profile):
+def collect(tag, want_profile, server):
     wd = os.path.join(ROOT, "work_dir", tag)
     if tag in EXTERNAL:                       # config 가 없는 외부 참조
-        label, ds, note, extra = EXTERNAL[tag]
+        label, ds, note, extra = EXTERNAL[tag]   # 외부 참조는 서버와 무관하다
         row = {"tag": label, "_ds": ds.upper(), "note": note, "date": ""}
         row.update(extra)
         rr = os.path.join(wd, "results", "reduced_best_val.mat")
@@ -281,7 +304,8 @@ def collect(tag, want_profile):
     row["note"] = " · ".join(bits)
     lbl = _iter_label(n_iter)
     # 실행명에 이미 25k/50k 같은 표기가 있으면 덧붙이지 않는다
-    row["tag"] = row["tag"] if lbl.lower() in row["tag"].lower() else f"{row['tag']} ({lbl})"
+    base = row["tag"] if lbl.lower() in row["tag"].lower() else f"{row['tag']} ({lbl})"
+    row["tag"] = f"{base} [{server}]"
     return row
 
 
@@ -415,6 +439,9 @@ def main():
     ap.add_argument("--all", action="store_true", help="results/*.mat 이 있는 실행 전부")
     ap.add_argument("--profile", action="store_true", help="FLOPs·추론시간·메모리도 측정 (느리다)")
     ap.add_argument("--dry-run", action="store_true", help="올리지 않고 표만 출력")
+    ap.add_argument("--server", default=None,
+                    help="서버 식별자 (예: s1, s2). 미지정 시 PANCRAFTER_SERVER 또는 "
+                         "gspread/server.txt 를 본다. 셋 다 없으면 올리지 않는다")
     ap.add_argument("--replace", action="store_true",
                     help="기존 데이터 행을 비우고 주어진 순서대로 다시 쓴다")
     a = ap.parse_args()
@@ -430,12 +457,14 @@ def main():
         if x not in seen:
             seen.add(x); ordered.append(x)
     tags = ordered
+    server = resolve_server(a.server)
+    print(f"  서버 식별자: [{server}]")
     if not tags:
         print("대상이 없다. 실행명이나 glob 을 줄 것."); return 1
 
     rows = []
     for t in tags:
-        r = collect(t, a.profile)
+        r = collect(t, a.profile, server)
         if r is None:
             print(f"  건너뜀 {t} (config 없음)"); continue
         rows.append(r)

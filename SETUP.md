@@ -193,6 +193,23 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지
 | `work_dir/` | 학습 산출물 40 GB. 체크포인트·`.mat` 포함 |
 | `*.mat` | 평가 산출물. 필요하면 `tools/export_mat.py` 로 재생성 |
 
+## 결과를 구글시트로 올리기
+
+```bash
+echo s2 > gspread/server.txt          # 이 서버의 식별자. 한 번만 해두면 된다
+python gspread/gspread_upload.py paper_ln --profile
+```
+
+`gspread/account.json`(서비스 계정 키)이 필요하다. **저장소에 없으므로 별도로 복사**한다.
+
+**서버 식별자는 필수다.** 두 서버가 같은 config 를 돌리면 실행명이 같아지고, suffix 가
+없으면 상대 서버 값을 조용히 덮어쓴다. 그러면 한 행에 어느 서버 수치인지 알 수 없는
+값이 남는다. 지정하지 않으면 업로드를 거부한다.
+
+`--server s2` 나 `PANCRAFTER_SERVER=s2` 로도 줄 수 있다.
+
+---
+
 ## 먼저 읽을 것
 
 | 문서 | |
