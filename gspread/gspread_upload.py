@@ -45,10 +45,10 @@ ORIGIN_ROW, ORIGIN_COL = 2, 2
 COLUMNS = [
     ("",   "실행", "tag", None),
     # reduced-resolution (테스트 20장)
-    ("RR", "ERGAS", "ergas", 4),   ("RR", "±", "ergas_sd", 3),
-    ("RR", "SAM", "sam", 4),       ("RR", "±", "sam_sd", 3),
+    ("RR", "ERGAS", "ergas", 4),
+    ("RR", "SAM", "sam", 4),
     ("RR", "PSNR", "psnr", 4),     ("RR", "SSIM", "ssim", 4),
-    ("RR", "SCC", "scc", 4),       ("RR", "Q2n", "q2n", 4), ("RR", "±", "q2n_sd", 3),
+    ("RR", "SCC", "scc", 4),       ("RR", "Q2n", "q2n", 4),
     ("RR", "RMSE", "rmse", 4),     ("RR", "CC", "cc", 4),
     # full-resolution — 논문 대조용 12-19(8장)와 전체 20장
     ("FR", "D_lambda", "d_lambda", 4), ("FR", "D_s", "d_s", 4), ("FR", "HQNR", "hqnr", 4),
@@ -61,6 +61,26 @@ COLUMNS = [
     ("",   "날짜", "date", None),
     ("",   "비고", "note", None),
 ]
+
+
+# 논문이 보고한 수치. 항상 표 맨 위에 둔다. RMSE/CC/FR(20장)은 논문에 없다.
+PAPER_ROW = {
+    "WV3": dict(tag="■ 논문 (reported)", ergas=2.040, sam=2.787, psnr=37.956,
+                ssim=0.976, scc=0.988, q2n=0.922,
+                d_lambda=0.016, d_s=0.027, hqnr=0.958,
+                params_m=7.170, flops_g=79.03, infer_ms=9.0, mem_mb=1751.9,
+                note="논문 Table 3·10 (Inference/Memory 는 RTX 3090 기준)"),
+    "QB": dict(tag="■ 논문 (reported)", ergas=4.169, sam=5.078, psnr=29.276,
+               q2n=0.846, d_lambda=0.036, d_s=0.022, hqnr=0.942, note="논문 Table"),
+    "GF2": dict(tag="■ 논문 (reported)", ergas=0.552, sam=0.596, psnr=45.076,
+                ssim=0.988, scc=0.994, q2n=0.988,
+                d_lambda=0.017, d_s=0.020, hqnr=0.964, note="논문 Table"),
+}
+
+# work_dir 에 config 없이 결과 mat 만 있는 참조 (외부 모델의 배포 가중치 등)
+EXTERNAL = {"_ref_cannet": ("□ CANConv (배포 가중치)", "wv3",
+                            "논문 Table 3 의 CANConv 행을 배포 가중치로 실측한 것",
+                            {"params_m": 0.7874})}
 
 
 def columns_for(sheet):
@@ -169,6 +189,14 @@ def _profile(args_ns, key, want):
 # ----------------------------------------------------------------- 한 실행 수집
 def collect(tag, want_profile):
     wd = os.path.join(ROOT, "work_dir", tag)
+    if tag in EXTERNAL:                       # config 가 없는 외부 참조
+        label, ds, note, extra = EXTERNAL[tag]
+        row = {"tag": label, "_ds": ds.upper(), "note": note, "date": ""}
+        row.update(extra)
+        rr = os.path.join(wd, "results", "reduced_best_val.mat")
+        if os.path.exists(rr):
+            row.update(_rr(rr, ds))
+        return row
     cfg_path = os.path.join(wd, "meta", "config.yaml")
     if not os.path.exists(cfg_path):
         cfg_path = os.path.join(ROOT, "config", f"{tag}.yaml")
@@ -194,8 +222,8 @@ def collect(tag, want_profile):
         "norm": ma.get("norm", "gn"),
         "mlp_ratio": ma.get("mlp_ratio", 4.0),
         "crop": a.train_feeder_args.get("crop", ""),
-        "family": ("paper" if "Paper" in a.model else
-                   ("fixed" if ma.get("fix_key_alias") else "baseline")),
+        "family": "paper" if "Paper" in a.model else "released",
+        "fix": "True" if ma.get("fix_key_alias") else "False",
     }
     # 파라미터
     Model = import_class(a.model)
@@ -232,13 +260,16 @@ def collect(tag, want_profile):
             break
     row.update(_profile(a, tag, want_profile))
 
-    # 설정은 열로 두지 않고 비고에 모은다 (나중에 고정될 값들이라 열을 차지할 이유가 없다)
-    bits = [f"계열={row.pop('family')}", f"모델={row.pop('model')}",
-            f"seed={row.pop('seed')}", f"iter={row.pop('iter')}",
-            f"width={row.pop('width')}", f"depth={row.pop('depth')}",
+    # 비고에는 우리가 확인 중인 파라미터 특징만 남긴다.
+    # Params(M) 는 열에 있으므로 학습params 는 넣지 않는다.
+    bits = [f"width={row.pop('width')}", f"depth={row.pop('depth')}",
             f"AttnBlock={row.pop('n_attn')}", f"norm={row.pop('norm')}",
             f"mlp={row.pop('mlp_ratio')}", f"crop={row.pop('crop')}",
-            f"학습params={row.pop('train_params'):,}"]
+            f"iter={row.pop('iter')}", f"seed={row.pop('seed')}"]
+    fam = row.pop("family", "")
+    if fam != "paper":                       # 배포 코드 계열은 A-1/A-2 토글이 핵심이다
+        bits.append(f"fix_A1A2={row.pop('fix', '')}")
+    row.pop("model", None); row.pop("train_params", None); row.pop("fix", None)
     if row.get("note_err"):
         bits.append(row.pop("note_err"))
     row["note"] = " · ".join(bits)
@@ -322,7 +353,7 @@ def _write_header(ws, cols, color):
     set_column_width(ws, _col(c0 + n - 1), 620)
 
 
-def upload(rows):
+def upload(rows, replace=False):
     import gspread
     gc = gspread.service_account(filename=CRED)
     sh = gc.open(SHEET)
@@ -340,11 +371,20 @@ def upload(rows):
         if not cur or cur[0][:n] != [c[1] for c in cols]:
             _write_header(ws, cols, SHEET_COLOR.get(ds, (0.85, 0.89, 0.95)))
 
+        # 논문 수치를 맨 위에 놓는다
+        if ds in PAPER_ROW:
+            rs = [dict(PAPER_ROW[ds])] + [r for r in rs if not r["tag"].startswith("■")]
+
         tcol = _col(ORIGIN_COL)
-        vals = ws.get(f"{tcol}{ORIGIN_ROW + 2}:{tcol}")
-        tags = [v[0] if v else "" for v in vals]
-        while tags and not tags[-1]:      # 빈 범위에서 gspread 가 빈 행을 돌려주는 경우가 있다
-            tags.pop()
+        if replace:
+            last = ws.row_count
+            ws.batch_clear([f"{_a1(ORIGIN_ROW + 2, ORIGIN_COL)}:{_a1(last, ORIGIN_COL + n - 1)}"])
+            tags = []
+        else:
+            vals = ws.get(f"{tcol}{ORIGIN_ROW + 2}:{tcol}")
+            tags = [v[0] if v else "" for v in vals]
+            while tags and not tags[-1]:  # 빈 범위에서 gspread 가 빈 행을 돌려주는 경우가 있다
+                tags.pop()
 
         for r in rs:
             v = fmt(r, cols)
@@ -366,6 +406,8 @@ def main():
     ap.add_argument("--all", action="store_true", help="results/*.mat 이 있는 실행 전부")
     ap.add_argument("--profile", action="store_true", help="FLOPs·추론시간·메모리도 측정 (느리다)")
     ap.add_argument("--dry-run", action="store_true", help="올리지 않고 표만 출력")
+    ap.add_argument("--replace", action="store_true",
+                    help="기존 데이터 행을 비우고 주어진 순서대로 다시 쓴다")
     a = ap.parse_args()
 
     tags = []
@@ -374,7 +416,11 @@ def main():
                 for p in glob.glob(f"{ROOT}/work_dir/*/results/reduced_*.mat")]
     for pat in a.pattern:
         tags += [os.path.basename(d) for d in glob.glob(f"{ROOT}/work_dir/{pat}") if os.path.isdir(d)]
-    tags = sorted(set(tags))
+    seen = set(); ordered = []
+    for x in tags:                 # 인자로 준 순서를 유지한다 (표 정렬에 그대로 반영된다)
+        if x not in seen:
+            seen.add(x); ordered.append(x)
+    tags = ordered
     if not tags:
         print("대상이 없다. 실행명이나 glob 을 줄 것."); return 1
 
@@ -384,17 +430,21 @@ def main():
         if r is None:
             print(f"  건너뜀 {t} (config 없음)"); continue
         rows.append(r)
-        print(f"  수집 {t}: ERGAS {r.get('ergas', float('nan')):.4f}  params {r.get('params_m', 0):.4f} M")
+        pm = r.get("params_m")
+        print(f"  수집 {t}: ERGAS {r.get('ergas', float('nan')):.4f}"
+              + (f"  params {pm:.4f} M" if pm else ""))
 
     if a.dry_run:
         for ds in sorted({r["_ds"] for r in rows}):
             cols = columns_for(ds)
+            rs = [r for r in rows if r["_ds"] == ds]
+            if ds in PAPER_ROW:
+                rs = [dict(PAPER_ROW[ds])] + rs
             print(f"\n[{ds}]  " + " | ".join(f"{g}:{h}" if g else h for g, h, _, _ in cols))
-            for r in rows:
-                if r["_ds"] == ds:
-                    print("       " + " | ".join(str(v) for v in fmt(r, cols)))
+            for r in rs:
+                print("       " + " | ".join(str(v) for v in fmt(r, cols)))
         return 0
-    n, added = upload(rows)
+    n, added = upload(rows, replace=a.replace)
     print(f"\n업로드 완료: {n}행 처리 ({added}행 신규, {n-added}행 갱신)")
     print(f"  https://docs.google.com/spreadsheets/d/{gspread_id()}")
     return 0
