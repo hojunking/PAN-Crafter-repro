@@ -45,14 +45,14 @@ ORIGIN_ROW, ORIGIN_COL = 2, 2
 COLUMNS = [
     ("", "Run", "tag", None),
     # reduced-resolution (테스트 20장)
-    ("RR", "ERGAS", "ergas", 4), ("RR", "SAM", "sam", 4),
-    ("RR", "PSNR", "psnr", 4),   ("RR", "SSIM", "ssim", 4),
-    ("RR", "SCC", "scc", 4),     ("RR", "Q2n", "q2n", 4),
-    ("RR", "RMSE", "rmse", 4),   ("RR", "CC", "cc", 4),
+    ("RR", "ERGAS↓", "ergas", 4), ("RR", "SAM↓", "sam", 4),
+    ("RR", "PSNR↑", "psnr", 4),   ("RR", "SSIM↑", "ssim", 4),
+    ("RR", "SCC↑", "scc", 4),     ("RR", "Q2n↑", "q2n", 4),
+    ("RR", "RMSE↓", "rmse", 4),   ("RR", "CC↑", "cc", 4),
     # full-resolution — 논문 대조용 12-19(8장)와 전체 20장
-    ("FR", "D_lambda", "d_lambda", 4), ("FR", "D_s", "d_s", 4), ("FR", "HQNR", "hqnr", 4),
-    ("FR", "D_lambda(20)", "d_lambda20", 4), ("FR", "D_s(20)", "d_s20", 4),
-    ("FR", "HQNR(20)", "hqnr20", 4),
+    ("FR", "D_lambda↓", "d_lambda", 4), ("FR", "D_s↓", "d_s", 4), ("FR", "HQNR↑", "hqnr", 4),
+    ("FR", "D_lambda(20)↓", "d_lambda20", 4), ("FR", "D_s(20)↓", "d_s20", 4),
+    ("FR", "HQNR(20)↑", "hqnr20", 4),
     # 비용 — 첫 시트에만
     ("Cost", "Params(M)", "params_m", 4), ("Cost", "FLOPs(G)", "flops_g", 1),
     ("Cost", "Infer(ms)", "infer_ms", 2), ("Cost", "Mem(MB)", "mem_mb", 1),
