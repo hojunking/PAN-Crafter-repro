@@ -22,3 +22,7 @@ __pycache__/
 
 # 진행 중 실험 로그 (work_dir/ 는 이미 제외됨)
 *.log
+account.json
+# gspread 서비스 계정 키와 프로파일 캐시
+gspread/account.json
+gspread/_profile_cache.json
