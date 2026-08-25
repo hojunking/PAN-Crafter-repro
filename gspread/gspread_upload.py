@@ -43,43 +43,42 @@ ORIGIN_ROW, ORIGIN_COL = 2, 2
 
 # (그룹, 표시명, 키, 소수자리)
 COLUMNS = [
-    ("",   "실행", "tag", None),
+    ("", "Run", "tag", None),
     # reduced-resolution (테스트 20장)
-    ("RR", "ERGAS", "ergas", 4),
-    ("RR", "SAM", "sam", 4),
-    ("RR", "PSNR", "psnr", 4),     ("RR", "SSIM", "ssim", 4),
-    ("RR", "SCC", "scc", 4),       ("RR", "Q2n", "q2n", 4),
-    ("RR", "RMSE", "rmse", 4),     ("RR", "CC", "cc", 4),
+    ("RR", "ERGAS", "ergas", 4), ("RR", "SAM", "sam", 4),
+    ("RR", "PSNR", "psnr", 4),   ("RR", "SSIM", "ssim", 4),
+    ("RR", "SCC", "scc", 4),     ("RR", "Q2n", "q2n", 4),
+    ("RR", "RMSE", "rmse", 4),   ("RR", "CC", "cc", 4),
     # full-resolution — 논문 대조용 12-19(8장)와 전체 20장
     ("FR", "D_lambda", "d_lambda", 4), ("FR", "D_s", "d_s", 4), ("FR", "HQNR", "hqnr", 4),
     ("FR", "D_lambda(20)", "d_lambda20", 4), ("FR", "D_s(20)", "d_s20", 4),
     ("FR", "HQNR(20)", "hqnr20", 4),
     # 비용 — 첫 시트에만
-    ("비용", "Params(M)", "params_m", 4), ("비용", "FLOPs(G)", "flops_g", 1),
-    ("비용", "추론(ms)", "infer_ms", 2),  ("비용", "메모리(MB)", "mem_mb", 1),
-    ("비용", "학습시간(h)", "train_h", 2),
-    ("",   "날짜", "date", None),
-    ("",   "비고", "note", None),
+    ("Cost", "Params(M)", "params_m", 4), ("Cost", "FLOPs(G)", "flops_g", 1),
+    ("Cost", "Infer(ms)", "infer_ms", 2), ("Cost", "Mem(MB)", "mem_mb", 1),
+    ("Cost", "Train(h)", "train_h", 2),
+    ("", "Date", "date", None),
+    ("", "Notes", "note", None),
 ]
 
 
 # 논문이 보고한 수치. 항상 표 맨 위에 둔다. RMSE/CC/FR(20장)은 논문에 없다.
 PAPER_ROW = {
-    "WV3": dict(tag="■ 논문 (reported)", ergas=2.040, sam=2.787, psnr=37.956,
+    "WV3": dict(tag="■ Paper (reported)", ergas=2.040, sam=2.787, psnr=37.956,
                 ssim=0.976, scc=0.988, q2n=0.922,
                 d_lambda=0.016, d_s=0.027, hqnr=0.958,
                 params_m=7.170, flops_g=79.03, infer_ms=9.0, mem_mb=1751.9,
-                note="논문 Table 3·10 (Inference/Memory 는 RTX 3090 기준)"),
-    "QB": dict(tag="■ 논문 (reported)", ergas=4.169, sam=5.078, psnr=29.276,
-               q2n=0.846, d_lambda=0.036, d_s=0.022, hqnr=0.942, note="논문 Table"),
-    "GF2": dict(tag="■ 논문 (reported)", ergas=0.552, sam=0.596, psnr=45.076,
+                note="Paper Table 3 & 10 (inference/memory on RTX 3090)"),
+    "QB": dict(tag="■ Paper (reported)", ergas=4.169, sam=5.078, psnr=29.276,
+               q2n=0.846, d_lambda=0.036, d_s=0.022, hqnr=0.942, note="Paper Table"),
+    "GF2": dict(tag="■ Paper (reported)", ergas=0.552, sam=0.596, psnr=45.076,
                 ssim=0.988, scc=0.994, q2n=0.988,
-                d_lambda=0.017, d_s=0.020, hqnr=0.964, note="논문 Table"),
+                d_lambda=0.017, d_s=0.020, hqnr=0.964, note="Paper Table"),
 }
 
 # work_dir 에 config 없이 결과 mat 만 있는 참조 (외부 모델의 배포 가중치 등)
-EXTERNAL = {"_ref_cannet": ("□ CANConv (배포 가중치)", "wv3",
-                            "논문 Table 3 의 CANConv 행을 배포 가중치로 실측한 것",
+EXTERNAL = {"_ref_cannet": ("□ CANConv (released weights)", "wv3",
+                            "measured from released weights; matches paper Table 3 CANConv row",
                             {"params_m": 0.7874})}
 
 
@@ -87,7 +86,7 @@ def columns_for(sheet):
     """첫 시트가 아니면 비용 열을 뺀다."""
     if sheet == SHEET_ORDER[0]:
         return COLUMNS
-    return [c for c in COLUMNS if c[0] != "비용"]
+    return [c for c in COLUMNS if c[0] != "Cost"]
 
 
 # ----------------------------------------------------------------- 지표
@@ -427,11 +426,10 @@ def _write_header(ws, cols, color):
     ws.update([[c[0] for c in cols]], grp_a1)
     ws.update([[c[1] for c in cols]], hdr_a1)
 
-    # 같은 그룹이 이어지는 구간을 병합한다
-    try:
-        ws.unmerge_cells(ORIGIN_ROW, c0, ORIGIN_ROW, c0 + n - 1)
-    except Exception:
-        pass
+    # 같은 그룹이 이어지는 구간을 병합한다.
+    # merge_cells/unmerge_cells 는 A1 문자열을 받는다. 정수를 넘기면 조용히 실패해
+    # 이전 레이아웃의 병합이 그대로 남는다 (실제로 그렇게 어긋나 있었다).
+    ws.unmerge_cells(grp_a1)
     i = 0
     while i < n:
         g = cols[i][0]
@@ -439,10 +437,7 @@ def _write_header(ws, cols, color):
         while j + 1 < n and cols[j + 1][0] == g:
             j += 1
         if g and j > i:
-            try:
-                ws.merge_cells(ORIGIN_ROW, c0 + i, ORIGIN_ROW, c0 + j)
-            except Exception:
-                pass
+            ws.merge_cells(f"{_a1(ORIGIN_ROW, c0 + i)}:{_a1(ORIGIN_ROW, c0 + j)}")
         i = j + 1
 
     base = Color(*color)
