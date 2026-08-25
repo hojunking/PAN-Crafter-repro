@@ -28,7 +28,10 @@ CRED = os.path.join(ROOT, "gspread", "account.json")
 CACHE = os.path.join(ROOT, "gspread", "_profile_cache.json")
 SHEET = "pan-cvpr27"
 
-# 데이터셋마다 시트를 나눈다. 첫 시트에만 비용(resource) 열을 둔다 —
+# 시트는 "<데이터셋>-<서버>" 로 나눈다 (예: WV3-s1, WV3-s2).
+# 서버끼리 결과를 섞지 않기 위한 것이다. 같은 config 를 두 서버가 돌리면 실행명이
+# 같아지는데, 시트가 갈려 있으면 애초에 충돌하지 않는다.
+# 비용(resource) 열은 각 서버의 첫 데이터셋 시트에만 둔다 —
 # params·FLOPs·추론시간은 데이터셋과 무관해 한 번만 적으면 된다.
 SHEET_ORDER = ["WV3", "QB", "GF2", "WV2"]
 SHEET_COLOR = {                       # 시트마다 표 색을 달리한다
@@ -49,10 +52,12 @@ COLUMNS = [
     ("RR", "PSNR↑", "psnr", 4),   ("RR", "SSIM↑", "ssim", 4),
     ("RR", "SCC↑", "scc", 4),     ("RR", "Q2n↑", "q2n", 4),
     ("RR", "RMSE↓", "rmse", 4),   ("RR", "CC↑", "cc", 4),
-    # full-resolution — 논문 대조용 12-19(8장)와 전체 20장
+    # full-resolution — 논문 대조가 가능한 12-19(8장) 기준.
+    # 전체 0-19 는 쓰지 않는다. 0-11 은 12-19 보다 크게 어려운 장면이라(D_lambda 2.4배)
+    # 논문 수치와 맞지 않고, 어떤 논문도 20장 기준으로 보고하지 않는다.
+    # 근거: ../CANConv/RUNBOOK.md 8.5 — D_lambda 는 EXP 에서 msexp 에만 의존하는데도
+    # 두 구간이 2.4배 차이나므로 코드가 아니라 데이터 특성이다.
     ("FR", "D_lambda↓", "d_lambda", 4), ("FR", "D_s↓", "d_s", 4), ("FR", "HQNR↑", "hqnr", 4),
-    ("FR", "D_lambda(20)↓", "d_lambda20", 4), ("FR", "D_s(20)↓", "d_s20", 4),
-    ("FR", "HQNR(20)↑", "hqnr20", 4),
     # 비용 — 첫 시트에만
     ("Cost", "Params(M)", "params_m", 4), ("Cost", "FLOPs(G)", "flops_g", 1),
     ("Cost", "Infer(ms)", "infer_ms", 2), ("Cost", "Mem(MB)", "mem_mb", 1),
@@ -82,9 +87,13 @@ EXTERNAL = {"_ref_cannet": ("□ CANConv (released weights)", "wv3",
                             {"params_m": 0.7874})}
 
 
-def columns_for(sheet):
-    """첫 시트가 아니면 비용 열을 뺀다."""
-    if sheet == SHEET_ORDER[0]:
+def sheet_name(ds, server):
+    return f"{ds}-{server}"
+
+
+def columns_for(ds):
+    """첫 데이터셋(WV3)이 아니면 비용 열을 뺀다. ds 는 서버 접미사 없는 이름이다."""
+    if ds == SHEET_ORDER[0]:
         return COLUMNS
     return [c for c in COLUMNS if c[0] != "Cost"]
 
@@ -138,7 +147,7 @@ def _fr(mat, ds, indices="12-19"):
     with h5py.File(fr_h5) as f:
         lms = np.asarray(f["lms"], dtype=np.float64).transpose(0, 2, 3, 1)
         pan = np.asarray(f["pan"], dtype=np.float64)[:, 0]
-    a, b = (0, len(pan) - 1) if indices == "all" else (int(x) for x in indices.split("-"))
+    a, b = (int(x) for x in indices.split("-"))
     sr = loadmat(mat)["sr"].astype(np.float64)
     if sr.shape[1] in (4, 8):
         sr = sr.transpose(0, 2, 3, 1)
@@ -325,8 +334,6 @@ def collect(tag, want_profile, server):
         if os.path.exists(fr):
             try:
                 row.update(_fr(fr, ds))
-                w = _fr(fr, ds, "all")
-                row.update({"d_lambda20": w["d_lambda"], "d_s20": w["d_s"], "hqnr20": w["hqnr"]})
             except Exception as e:
                 row["note_err"] = f"FR 실패: {type(e).__name__}"
             break
@@ -343,13 +350,16 @@ def collect(tag, want_profile, server):
     if fam != "paper":                       # 배포 코드 계열은 A-1/A-2 토글이 핵심이다
         bits.append(f"fix_A1A2={row.pop('fix', '')}")
     row.pop("model", None); row.pop("train_params", None); row.pop("fix", None)
+    # 시트가 "<데이터셋>-<서버>" 로 갈리므로 실행명에 서버를 또 넣지 않는다.
+    # 다만 행을 다른 시트로 옮겼을 때 출처를 잃지 않도록 Notes 에 남긴다.
+    bits.append(f"server={server}")
     if row.get("note_err"):
         bits.append(row.pop("note_err"))
     row["note"] = " · ".join(bits)
+
     lbl = _iter_label(n_iter)
     # 실행명에 이미 25k/50k 같은 표기가 있으면 덧붙이지 않는다
-    base = row["tag"] if lbl.lower() in row["tag"].lower() else f"{row['tag']} ({lbl})"
-    row["tag"] = f"{base} [{server}]"
+    row["tag"] = row["tag"] if lbl.lower() in row["tag"].lower() else f"{row['tag']} ({lbl})"
     return row
 
 
@@ -453,7 +463,7 @@ def _write_header(ws, cols, color):
     set_column_width(ws, _col(c0 + n - 1), 620)
 
 
-def upload(rows, replace=False):
+def upload(rows, server, replace=False):
     import gspread
     gc = gspread.service_account(filename=CRED)
     sh = gc.open(SHEET)
@@ -466,7 +476,7 @@ def upload(rows, replace=False):
     for ds, rs in by_ds.items():
         cols = columns_for(ds)
         n = len(cols)
-        ws = _ensure_sheet(sh, ds)
+        ws = _ensure_sheet(sh, sheet_name(ds, server))
         cur = ws.get(f"{_a1(ORIGIN_ROW + 1, ORIGIN_COL)}:{_a1(ORIGIN_ROW + 1, ORIGIN_COL + n - 1)}")
         if not cur or cur[0][:n] != [c[1] for c in cols]:
             _write_header(ws, cols, SHEET_COLOR.get(ds, (0.85, 0.89, 0.95)))
@@ -498,7 +508,7 @@ def upload(rows, replace=False):
             last = max(last, i)
             total += 1
         _apply_borders(ws, cols, last)      # 새로 쓴 행까지 선을 이어준다
-        print(f"  [{ds}] {len(rs)}행")
+        print(f"  [{sheet_name(ds, server)}] {len(rs)}행")
     return total, added
 
 
@@ -552,7 +562,7 @@ def main():
             for r in rs:
                 print("       " + " | ".join(str(v) for v in fmt(r, cols)))
         return 0
-    n, added = upload(rows, replace=a.replace)
+    n, added = upload(rows, server, replace=a.replace)
     print(f"\n업로드 완료: {n}행 처리 ({added}행 신규, {n-added}행 갱신)")
     print(f"  https://docs.google.com/spreadsheets/d/{gspread_id()}")
     return 0
