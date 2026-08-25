@@ -15,7 +15,11 @@ fi
 LOG="$REPO/work_dir/gspread_upload.log"
 {
   echo "--- $(date -Iseconds)  $* ---"
-  python gspread/gspread_upload.py "$@" 2>&1
+  # 구글 API 가 간헐적으로 503 을 낸다. 몇 번 다시 시도한다.
+  for k in 1 2 3; do
+    python gspread/gspread_upload.py "$@" 2>&1 && break
+    echo "[upload] 시도 $k 실패 — 60초 후 재시도"; sleep 60
+  done
 } >> "$LOG" || echo "[upload] 실패 — $LOG 참고"
 tail -2 "$LOG" | grep -E "업로드 완료|실패" || true
 exit 0

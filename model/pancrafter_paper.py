@@ -147,7 +147,7 @@ class PANCrafterPaper(nn.Module):
 
     def __init__(self, in_channels=1, out_channels=8, hidden_size=128,
                  depth=(2, 2, 4), dropout=0.0, num_heads=8, mlp_ratio=4.0,
-                 ka=3, ks=3, n_attn=3, norm="ln"):
+                 ka=3, ks=3, n_attn=3, norm="ln", in_mode="paper"):
         super().__init__()
         C = hidden_size
         d0, d1, d2 = depth
@@ -156,8 +156,11 @@ class PANCrafterPaper(nn.Module):
         A = lambda: AttnBlock(C, num_heads, pan_channel=in_channels, ms_channel=out_channels,
                               mlp_ratio=mlp_ratio, ks=ks, ka=ka)
 
-        # 논문: "Pθ takes as input the channel-wise concatenation of I_pan and I_lrms"
-        self.input = nn.Conv2d(in_channels + out_channels, C, 3, padding=1)
+        # 논문: "Pθ takes as input the channel-wise concatenation of I_pan and I_lrms" -> 9ch.
+        # in_mode="released" 는 배포 코드와 같은 11ch (PAN, up(LPAN), PAN-up(LPAN), up(MS)).
+        self.in_mode = in_mode
+        n_in = (in_channels + out_channels) if in_mode == "paper" else (in_channels * 3 + out_channels)
+        self.input = nn.Conv2d(n_in, C, 3, padding=1)
         self.encoder1 = nn.ModuleList([R(C) for _ in range(d0)])
         self.down1 = DownConv(C, out_channels=C)
         self.encoder2 = nn.ModuleList([R(C) for _ in range(d1)])
@@ -193,7 +196,11 @@ class PANCrafterPaper(nn.Module):
     def forward(self, pan, lpan, ms, s):
         I = lambda t, k: F.interpolate(t, scale_factor=k, mode="bicubic")
         ms_u = I(ms, 4)
-        x = self.input(torch.cat((pan, ms_u), dim=1))
+        if self.in_mode == "paper":
+            x = self.input(torch.cat((pan, ms_u), dim=1))
+        else:
+            lpan_u = I(lpan, 4)
+            x = self.input(torch.cat((pan, lpan_u, pan - lpan_u, ms_u), dim=1))
         for b in self.encoder1:
             x = b(x, s)
         skip1 = x
