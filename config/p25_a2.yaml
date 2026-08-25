@@ -48,6 +48,7 @@ model_args:
   mlp_ratio: 4.0
   ks: 3                     # 논문: "local attention kernel size to k = 3" (bottleneck 포함)
   ka: 3
+  norm: ln                  # 현재 최고 세팅 (논문 Eq 5). 기본값에 의존하지 않도록 명시
   n_attn: 2                 # Figure 3: AttnBlock 3개 (H/2 enc, H/4 bottleneck, H/2 dec)
 
 # optim
