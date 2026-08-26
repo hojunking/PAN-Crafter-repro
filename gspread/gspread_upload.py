@@ -263,6 +263,43 @@ def resolve_server(cli):
     return s.strip()
 
 
+# 재구성본의 표준 설정. 실행명에는 여기서 벗어난 항목만 붙인다.
+REBUILD_DEFAULT = {"hidden_size": 128, "depth": [2, 2, 4], "n_attn": 3,
+                   "norm": "ln", "in_mode": "paper", "crop": True}
+
+
+def _descriptor(ma, crop, is_rebuild):
+    """실행명에 붙일 짧은 설명. 표준에서 벗어난 축만 보여준다.
+
+    s1_A0 같은 ID 만으로는 시트에서 무엇을 시험한 실행인지 알 수 없다.
+    """
+    if not is_rebuild:                       # 배포 구조 계열
+        bits = [f"w{ma['hidden_size'][0]}", f"d{''.join(map(str, ma['depth']))}",
+                f"a{ma.get('n_attn', 5)}", "gn"]
+        return " ".join(bits + ([] if crop else ["nocrop"]))
+    D, bits = REBUILD_DEFAULT, []
+    w = ma.get("hidden_size")
+    w = w[0] if isinstance(w, (list, tuple)) else w
+    if w != D["hidden_size"]:
+        bits.append(f"w{w}")
+    if list(ma.get("depth", [])) != D["depth"]:
+        bits.append("d" + "".join(map(str, ma["depth"])))
+    if ma.get("n_attn", 3) != D["n_attn"]:
+        bits.append(f"a{ma['n_attn']}")
+    # norm 키가 없는 meta 스냅샷은 옵션 도입 전에 찍힌 것이다. 그때 동작은
+    # 배포 코드에서 물려받은 GroupNorm 이었으므로 기본값을 gn 으로 본다.
+    nrm = ma.get("norm", "gn")
+    if nrm != D["norm"]:
+        bits.append(nrm)
+    if ma.get("in_mode", "paper") != D["in_mode"]:
+        bits.append("11ch")
+    if ma.get("mlp_ratio", 4.0) != 4.0:
+        bits.append(f"mlp{ma['mlp_ratio']:g}")
+    if not crop:
+        bits.append("nocrop")
+    return " ".join(bits) if bits else "표준"
+
+
 def _iter_label(n):
     """25000 -> '25K'. 실행명에 붙여 iteration 이 다른 실행을 한눈에 구분한다."""
     return f"{n // 1000}K" if n and n % 1000 == 0 else str(n)
@@ -339,6 +376,8 @@ def collect(tag, want_profile, server):
             break
     row.update(_profile(a, tag, want_profile))
 
+    desc = _descriptor(ma, row["crop"], "Paper" in a.model)
+
     # 비고에는 우리가 확인 중인 파라미터 특징만 남긴다.
     # Params(M) 는 열에 있으므로 학습params 는 넣지 않는다.
     n_iter = row["iter"]
@@ -356,8 +395,8 @@ def collect(tag, want_profile, server):
     row["note"] = " · ".join(bits)
 
     lbl = _iter_label(n_iter)
-    # 실행명에 이미 25k/50k 같은 표기가 있으면 덧붙이지 않는다
-    row["tag"] = row["tag"] if lbl.lower() in row["tag"].lower() else f"{row['tag']} ({lbl})"
+    base = row["tag"] if lbl.lower() in row["tag"].lower() else f"{row['tag']} ({lbl})"
+    row["tag"] = f"{base} · {desc}" if desc else base
     return row
 
 
