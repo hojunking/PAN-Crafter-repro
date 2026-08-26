@@ -41,7 +41,8 @@ CONDA_BASE="$(conda info --base 2>/dev/null || echo /home/knuvi/miniconda3)"
 # shellcheck disable=SC1091
 source "$CONDA_BASE/etc/profile.d/conda.sh"; conda activate pancrafter
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-running(){ ps -eo args | grep -v grep | grep -qE "^python .*main\.py --config"; }
+# main_dml.py(DML 조인트 학습)도 GPU 를 쓰므로 함께 기다린다 — 안 잡으면 충돌한다
+running(){ ps -eo args | grep -v grep | grep -qE "^python .*main(_dml)?\.py --config"; }
 while running; do echo "[cases] 대기 $(date -Iseconds)"; sleep 300; done
 echo "[cases] 시작 $(date -Iseconds)  총 ${#ORDER[@]}개"
 
