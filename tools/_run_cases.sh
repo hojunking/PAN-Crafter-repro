@@ -8,6 +8,8 @@
 #   - exit 3 (NaN/Inf 손실) 은 재시도하지 않는다 — 재개해도 다시 발산한다
 #   - 체인 자체가 죽는 경우는 tools/_watchdog.sh(cron) 가 재기동한다
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
+# 수동 재기동과 cron 감시자가 겹쳐도 체인은 하나만 뜬다
+exec 8>"$REPO/work_dir/.cases_chain.lock"; flock -n 8 || { echo "[cases] 이미 실행 중 — 종료"; exit 0; }
 ORDER=(c1_nopan c4_noattn c3b_btl c3e_enc c2_encbtl m1_single)
 source "$(conda info --base)/etc/profile.d/conda.sh"; conda activate pancrafter
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
@@ -15,7 +17,7 @@ running(){ ps -eo args | grep -v grep | grep -qE "^python .*main\.py --config"; 
 while running; do echo "[cases] 대기 $(date -Iseconds)"; sleep 300; done
 echo "[cases] 시작 $(date -Iseconds)  총 ${#ORDER[@]}개"
 
-latest_ckpt(){ ls -d "work_dir/$1"/epoch-* 2>/dev/null | sort -t- -k2 -n | tail -1; }
+latest_ckpt(){ ls -d "work_dir/$1"/epoch-* 2>/dev/null | sort -V | tail -1; }
 
 i=0
 for TAG in "${ORDER[@]}"; do
