@@ -297,7 +297,29 @@ class Trainer:
         self.last_reduced_metrics = report.as_dict()
         return report.ergas
 
+    def _fr_official_setup(self):
+        """공식 DLPan 프로토콜(D_lambda_K + block-UQI D_s)을 학습 중 선택에 쓰기 위한 준비.
+
+        utils 의 QNR 은 global-UIQI 근사라 공식 HQNR 과 순위가 다르다 (실측: paper_ln
+        proxy 0.9265/공식 0.9360 vs paper_ln_mlp1 proxy 0.9170/공식 0.9388 — 역전).
+        선택 기준은 반드시 공식 구현이어야 한다. 실패 시 조용히 proxy 로 떨어지지 않고
+        죽는다 — 선택 기준이 뒤바뀐 채 5시간을 돌리는 것보다 낫다.
+        """
+        if hasattr(self, "_fr_official"):
+            return self._fr_official
+        import os as _os
+        from tools.metrics.eval_fr import load_dlpan, d_lambda_k, d_s
+        wald = load_dlpan(_os.environ.get("PANCRAFTER_DLPAN",
+                                          "/home/knuvi/Desktop/song/DLPan-Toolbox"))
+        root = self.args.test_full_feeder_args.get("dataroot", "")
+        sensor = next((s for s in ("wv3", "qb", "gf2", "wv2") if s in _os.path.basename(root)), "wv3")
+        lo, hi = (int(x) for x in getattr(self.args, "fr_select_indices", "12-19").split("-"))
+        self._fr_official = (wald, d_lambda_k, d_s, sensor, lo, hi)
+        return self._fr_official
+
     def test_full(self, test_log, epoch):
+        wald, f_dl, f_ds, sensor, fr_lo, fr_hi = self._fr_official_setup()
+        dl_off, ds_off = [], []
         report = Test_Full_Report()
         self.model.eval()
         self.model.requires_grad_(False)
@@ -318,12 +340,28 @@ class Trainer:
                 metrics = full_metrics(x_pred=generated, pan=pan, ms=ms, max_pixel=self.args.max_pixel)
                 report.update(self.args.test_batch_size, metrics)
 
+                # 공식 HQNR: 논문 대조 프로토콜과 같은 index 부분집합만 계산한다
+                if fr_lo <= idx <= fr_hi:
+                    # feeder 는 [-1,1] 정규화다. mat 내보내기(tensor2img)와 동일한
+                    # 역변환((x+1)/2 -> clamp -> x max_pixel -> round)을 써야
+                    # 사후 평가(eval_dlpan_fr)와 같은 값이 나온다.
+                    def _dn(ten):
+                        a = ((ten + 1.0) / 2.0).clamp(0, 1).float().cpu().numpy()
+                        return np.round(a.astype(np.float64) * self.args.max_pixel)
+                    sr_np = _dn(generated[0]).transpose(1, 2, 0)
+                    lms_np = _dn(lms[0]).transpose(1, 2, 0)
+                    pan_np = _dn(pan[0, 0])
+                    dl_off.append(f_dl(sr_np, lms_np, sensor, 4, 32, wald))
+                    ds_off.append(f_ds(sr_np, lms_np, pan_np, 4, 32, wald))
+
+        hqnr_official = float((1 - np.mean(dl_off)) * (1 - np.mean(ds_off)))
         prefix_str = f'Epoch[{epoch}]\t'
         result_str = report.result_str()   # compute_mean() 이 여기서 수행된다
-        test_log.write(prefix_str + result_str)
+        test_log.write(prefix_str + result_str
+                       + f'\tHQNR_official({fr_lo}-{fr_hi}): {hqnr_official:.6f}')
         self.last_full_metrics = report.as_dict()
-        # qnr 항은 (1-D_lambda)(1-D_s) 로 HQNR 과 같은 식이다 (KNOWN_ISSUES D-5 는 라벨 문제).
-        return report.d_s, report.qnr
+        self.last_full_metrics['hqnr_official'] = hqnr_official
+        return report.d_s, hqnr_official
 
     def test_reduced_save(self, tag='best_reduced'):
         self.model.eval()

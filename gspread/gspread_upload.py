@@ -388,8 +388,12 @@ def collect(tag, want_profile, server):
     # 비고에는 우리가 확인 중인 파라미터 특징만 남긴다.
     # Params(M) 는 열에 있으므로 학습params 는 넣지 않는다.
     n_iter = row["iter"]
+    # AttnBlock 수는 attn_locations 가 있으면 그 길이가 실제값이다 (n_attn 은 무시됨)
+    _loc = ma.get("attn_locations")
+    n_attn_eff = len(_loc) if _loc is not None else row['n_attn']
+    row.pop('n_attn')
     bits = [f"width={row.pop('width')}", f"depth={row.pop('depth')}",
-            f"AttnBlock={row.pop('n_attn')}", f"norm={row.pop('norm')}",
+            f"AttnBlock={n_attn_eff}", f"norm={row.pop('norm')}",
             f"mlp={row.pop('mlp_ratio')}", f"crop={row.pop('crop')}",
             f"iter={row.pop('iter')}", f"seed={row.pop('seed')}"]
     fam = row.pop("family", "")

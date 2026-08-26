@@ -16,7 +16,7 @@ H/4      : ResBlock ×4 → AttnBlock(cond_bot)    (bottleneck)
     ↑ UpConv (+skip)
 H/2      : ResBlock ×2 → AttnBlock(cond2_d)
     ↑ UpConv (+skip)
-full-res : ResBlock ×2 → GroupNorm→SiLU→Conv(zero-init)
+full-res : ResBlock ×2 → LN→SiLU→Conv(zero-init)
     + 잔차 bicubic(ms,×4)
 학습: MARs dual-mode (batch ×2 복제: MS mode + PAN mode), L1, 50K, seed 2025
 ```
@@ -29,24 +29,35 @@ full-res : ResBlock ×2 → GroupNorm→SiLU→Conv(zero-init)
 | 학습 로그 | 지표 나열 | 매 eval epoch `[핵심] HQNR / SCC / ERGAS` 한 줄 보장 |
 | 체크포인트/산출물 | `best_val`, `reduced_best_val.mat` | `best_hqnr`, `reduced_best_hqnr.mat` |
 
-> **HQNR 선택의 알려진 한계.** FR 검증 split 이 존재하지 않아(PanCollection 의 valid 는
-> RR 패치) **FR 테스트셋의 HQNR 로 고른다.** no-reference 지표라 GT 누출은 없지만
-> 선택 편향은 존재한다. 이는 배포 코드가 테스트셋 D_s 로 `best_full` 을 고르던 것과
-> 같은 구조의 한계다. 학습 중 HQNR 은 파이썬 근사 구현이며, 최종 수치는 항상
-> DLPan 프로토콜(`tools/metrics/`)로 다시 잰다.
+> **선택에 쓰는 HQNR 은 공식 DLPan 프로토콜이다** — `tools/metrics/eval_fr.py` 의
+> MTF/Q2n 기반 D_λ^K 와 block-UQI D_s 를 **index 12–19** 에 대해 학습 중 직접 계산한다.
+> utils 의 QNR(global-UIQI, 전체 20장)은 순위를 뒤집는 것이 실측으로 확인되어
+> (paper_ln 0.9265/0.9360 vs paper_ln_mlp1 0.9170/0.9388) **선택에 쓰지 않는다**
+> (CSV 곡선 기록으로만 남는다). 공식 구현 로드에 실패하면 조용히 근사로 떨어지지 않고
+> 즉시 중단한다.
+>
+> **알려진 한계.** FR 검증 split 이 없어 FR 테스트셋(12–19)으로 고른다 — no-reference 라
+> GT 누출은 없지만 선택 편향은 존재한다. 사후 확정 수치는 언제나 같은 프로토콜로 다시 잰다.
 
 ---
 
 ## 1. Tier A — Teacher 한계선 (무손실 기대)
+
+### C0 `c0_hqnr` — 비교선 재수립 · 7.1730 M (구조 변경 없음)
+
+`s1_A1` 과 **완전히 같은 구조**를 select_on=hqnr 로 다시 돌린다. 기존 s1_A1 은
+검증셋 ERGAS 로 best 를 골랐으므로, C1~C4 를 그와 비교하면 **선택 기준이 섞인다.**
+같은 기준으로 뽑힌 C0 가 있어야 "무손실" 판정이 성립한다.
+
 
 ### C1 `c1_nopan` — CM3A 의 PAN K/V 브랜치 제거 · 6.2249 M / 150.0 G
 
 **무엇을 지우나.** AttnBlock 3개 각각에서 다음 모듈이 사라진다 (블록당 316,032 params):
 
 ```
-cond*.attn.k_pan     Conv( [x | ↑lpan] → head_dim )          148,608
-cond*.attn.v_pan     Conv( [x | ↑lpan | pan−↑lpan] → … )     150,912
-cond*.attn.proj_pan  Linear                                    16,512
+cond*.attn.k_pan     Conv( [x | ↑lpan] )                      148,608
+cond*.attn.v_pan     Conv( [x | ↑lpan | pan | pan−↑lpan] )    150,912
+cond*.attn.proj_pan  Conv2d 1×1                                16,512
 ```
 
 남는 것: `Q = Conv([cond|x])`, `[K_ms|V_ms] = Conv([ms|x])` 의 **MS-only local self-attention**.
@@ -90,7 +101,17 @@ forward 는 ResBlock·Down/Up·skip 만 지난다. 지금까지 **한 번도 학
 | C8 | `c8_c4w96` | C4 + 폭 96. **FLOPs 71.5 G < 논문 주장 79 G** | **2.4622 M** | **71.5 G** | 최대 축소 |
 
 Tier B 는 무손실을 기대하지 않는다 — **손실이 나야 KD 가 메울 대상이 생긴다.**
-Teacher 확정 후 s2 의 KD 파이프라인과 맞물려 돌린다.
+Teacher 확정 후 s2 의 KD 파이프라인과 맞물려 돌린다. **자동 체인(`_run_cases.sh`)에는
+포함되지 않으며** 의도된 보류다.
+
+- **C5**: C2 구조에서 `encoder1`·`decoder1` 의 ResBlock 을 각 2→1 로 줄인다
+  (full-res 활성이 가장 비싸다 — FLOPs −38.8G). 삭제되는 모듈: `encoder1.1`, `decoder1.1`.
+- **C6**: C4(AttnBlock 전무)에 같은 depth 축소를 겹친다. 남는 것은 순수 conv 몸통
+  (1,2,4)-U-Net 뿐이다.
+- **C7**: C1 구조의 모든 `hidden_size` 128→96. Conv·LN·CMAAA·MLP 전 층의 폭이 3/4 로
+  줄고 head_dim 도 16→12 가 된다.
+- **C8**: C4 + 폭 96. AttnBlock 도 PAN 브랜치도 없는 최소 구성으로,
+  FLOPs 71.5 G 는 논문이 주장한 79.03 G 보다 작다.
 
 ## 3. Tier 실험 — M1 `m1_single` · 구조 동일 7.1730 M
 

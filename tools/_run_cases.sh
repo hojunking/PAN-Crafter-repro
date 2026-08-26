@@ -10,7 +10,7 @@
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
 # 수동 재기동과 cron 감시자가 겹쳐도 체인은 하나만 뜬다
 exec 8>"$REPO/work_dir/.cases_chain.lock"; flock -n 8 || { echo "[cases] 이미 실행 중 — 종료"; exit 0; }
-ORDER=(c1_nopan c4_noattn c3b_btl c3e_enc c2_encbtl m1_single)
+ORDER=(c0_hqnr c1_nopan c4_noattn c3b_btl c3e_enc c2_encbtl m1_single)
 source "$(conda info --base)/etc/profile.d/conda.sh"; conda activate pancrafter
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 running(){ ps -eo args | grep -v grep | grep -qE "^python .*main\.py --config"; }
@@ -46,6 +46,9 @@ for TAG in "${ORDER[@]}"; do
         ./tools/_upload.sh "$TAG"
     else
         echo "[cases] ($i/${#ORDER[@]}) FAILED $TAG (rc=$rc) $(date -Iseconds)"
+        FAILED="${FAILED:-}$TAG "
     fi
 done
-echo "[cases] DONE $(date -Iseconds)"
+# DONE 은 감시자의 종료 신호다. 실패가 있어도 재기동 루프를 막기 위해 DONE 은 찍되
+# 실패 목록을 함께 남긴다 — 사람이 로그만 보고 정상 완료로 오인하지 않게.
+echo "[cases] DONE $(date -Iseconds)${FAILED:+  !! 실패: $FAILED}"

@@ -78,6 +78,8 @@ def get_parser():
     parser.add_argument('--pretrained-path', type=str, default='/model.safetensors', help='path for test')
     parser.add_argument('--residual-base', type=str, default='bicubic', choices=['bicubic','lms'],
                         help="잔차 기준선. 'bicubic'은 배포본 동작(bicubic(ms,x4)), 'lms'는 데이터셋 제공 보간")
+    parser.add_argument('--fr-select-indices', type=str, default='12-19',
+                        help="공식 HQNR 선택에 쓰는 FR index 범위 (논문 대조 프로토콜)")
     parser.add_argument('--mars', type=str, default='dual', choices=['dual', 'ms'],
                         help="MARs mode. 'dual'=배포본(MS+PAN 복제 학습), 'ms'=단일 mode (M1 실험)")
     parser.add_argument('--select-on', type=str, default='test', choices=['test', 'val', 'hqnr'],
@@ -175,8 +177,18 @@ def train(args):
     # KNOWN_ISSUES.md C-1: optimizer/scheduler 가 accelerator 에 등록되어 있으므로
     # checkpoint 가 완전하다. dataloader 는 prepare 하지 않으므로 배치 순서까지는
     # 복원되지 않는 '근사 재개' 다. 엄밀한 재현이 목적이면 처음부터 다시 돌릴 것.
+    best_state_path = os.path.join(args.work_dir, 'best_state.json')
     if args.resume:
         trainer.accelerator.load_state(args.resume)
+        # best 추적값을 복구한다. 없으면 재시작 후 첫 평가가 과거 best 를 덮어쓴다.
+        if os.path.exists(best_state_path):
+            import json as _json
+            bs = _json.load(open(best_state_path))
+            best_hqnr = bs.get('best_hqnr', best_hqnr)
+            best_epoch_hqnr = bs.get('best_epoch_hqnr', best_epoch_hqnr)
+            best_val_ergas = bs.get('best_val_ergas', best_val_ergas)
+            best_epoch_val = bs.get('best_epoch_val', best_epoch_val)
+            train_log.write(f'[resume] best_state 복구: {bs}')
         name = os.path.basename(args.resume.rstrip('/'))
         n = int(name.split('-')[-1])
         if name.startswith('epoch-'):
@@ -203,8 +215,11 @@ def train(args):
             ergas = trainer.test_reduced(test_log, epoch + 1)
             ds, hqnr = trainer.test_full(test_log, epoch + 1)
             scc = trainer.last_reduced_metrics.get('scc', float('nan'))
-            # 핵심 3지표는 어느 모드에서든 반드시 로그에 남긴다
-            test_log.write(f'[핵심] HQNR: {hqnr:.6f}\tSCC: {scc:.6f}\tERGAS: {ergas:.6f}')
+            # 핵심 3지표는 어느 모드에서든 반드시 로그에 남긴다.
+            # HQNR 은 공식 DLPan 프로토콜(D_lambda_K + block-UQI D_s, index 12-19)이다.
+            core = f'[핵심] HQNR(공식 {args.fr_select_indices}): {hqnr:.6f}\tSCC: {scc:.6f}\tERGAS: {ergas:.6f}'
+            test_log.write(core)
+            train_log.write(core)
 
             metrics_csv.append(epoch + 1, global_step,
                                trainer.last_reduced_metrics, trainer.last_full_metrics,
@@ -217,6 +232,9 @@ def train(args):
                     best_hqnr = hqnr
                     best_epoch_hqnr = epoch + 1
                     trainer.save_best_model_hqnr()
+                    import json as _json
+                    _json.dump({'best_hqnr': best_hqnr, 'best_epoch_hqnr': best_epoch_hqnr},
+                               open(best_state_path, 'w'))
                 test_log.write(f'Best HQNR: {best_hqnr:.6f}\tBest Epoch (hqnr): {best_epoch_hqnr}')
             elif args.select_on == 'val':
                 # 선택에 테스트 지표를 쓰지 않는다. 위 test_* 값은 곡선 기록용이다.
@@ -224,6 +242,9 @@ def train(args):
                     best_val_ergas = val_ergas
                     best_epoch_val = epoch + 1
                     trainer.save_best_model_val()
+                    import json as _json
+                    _json.dump({'best_val_ergas': best_val_ergas, 'best_epoch_val': best_epoch_val},
+                               open(best_state_path, 'w'))
                 test_log.write(f'Best val ERGAS: {best_val_ergas:.6f}\tBest Epoch (val): {best_epoch_val}')
             else:
                 if ergas < best_ergas:
