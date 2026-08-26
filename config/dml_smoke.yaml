@@ -51,7 +51,8 @@ model_args:
   ks: 3                     # 논문: "local attention kernel size to k = 3" (bottleneck 포함)
   ka: 3
   n_attn: 3                 # Figure 3: AttnBlock 3개 (H/2 enc, H/4 bottleneck, H/2 dec)
-  norm: gn                  # 이 실행은 norm 옵션 도입 전 코드로 돌았다 = GroupNorm32. 사후 명시
+  norm: ln                  # 논문 Eq (5). s1 50K 에서 ERGAS -1.34%(잡음 0.8% 초과).
+                            # HQNR -0.24% 는 FR 8장 잡음 안이라 근거로 쓰지 않는다
 
 # optim
 optimizer: AdamW
