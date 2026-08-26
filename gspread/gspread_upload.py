@@ -295,6 +295,11 @@ def _descriptor(ma, crop, is_rebuild):
         bits.append("11ch")
     if ma.get("mlp_ratio", 4.0) != 4.0:
         bits.append(f"mlp{ma['mlp_ratio']:g}")
+    if ma.get("cm3a_pan_branch", True) is False:
+        bits.append("noPANkv")
+    loc = ma.get("attn_locations")
+    if loc is not None and tuple(loc) != ("enc", "btl", "dec"):
+        bits.append("attn:" + ("+".join(loc) if loc else "0"))
     if not crop:
         bits.append("nocrop")
     return " ".join(bits) if bits else "표준"
@@ -361,12 +366,12 @@ def collect(tag, want_profile, server):
     row.pop("s", None); row.pop("f", None)
 
     # 지표
-    rr = os.path.join(wd, "results", "reduced_best_val.mat")
-    if not os.path.exists(rr):
-        rr = os.path.join(wd, "results", "reduced_best_reduced.mat")
+    rr = next((q for q in (os.path.join(wd, "results", f"reduced_{k}.mat")
+                           for k in ("best_hqnr", "best_val", "best_reduced"))
+               if os.path.exists(q)), "")
     if os.path.exists(rr):
         row.update(_rr(rr, ds))
-    for name in ("full_frrepair.mat", "full_best_val.mat", "full_best_reduced.mat"):
+    for name in ("full_frrepair.mat", "full_best_hqnr.mat", "full_best_val.mat", "full_best_reduced.mat"):
         fr = os.path.join(wd, "results", name)
         if os.path.exists(fr):
             try:
@@ -377,6 +382,8 @@ def collect(tag, want_profile, server):
     row.update(_profile(a, tag, want_profile))
 
     desc = _descriptor(ma, row["crop"], "Paper" in a.model)
+    if getattr(a, "mars", "dual") == "ms":
+        desc = (desc + " singleMARs").strip().removeprefix("표준 ")
 
     # 비고에는 우리가 확인 중인 파라미터 특징만 남긴다.
     # Params(M) 는 열에 있으므로 학습params 는 넣지 않는다.

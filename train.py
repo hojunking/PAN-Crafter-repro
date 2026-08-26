@@ -135,14 +135,19 @@ class Trainer:
         report = Train_Report()
         start = time.time()
 
+        # mars='ms' 는 PAN back-reconstruction mode 를 끈 단일 mode 학습이다 (M1 실험).
+        # batch 복제가 없어져 step 당 연산이 절반이 된다. 논문 Table 16 은 이 제거가
+        # 성능을 크게 해친다고 주장한다 — 그 주장의 재검증용이다.
+        single_mode = getattr(self.args, "mars", "dual") == "ms"
+        rep = 1 if single_mode else 2
         for idx, (gt, lms, ms, lpan, pan) in tqdm(enumerate(self.train_data_loader)):
             with self.accelerator.accumulate(self.model):
                 with torch.no_grad():
-                    gt = gt.to(self.accelerator.device, dtype=self.weight_dtype).repeat(2, 1, 1, 1)
-                    lms = lms.to(self.accelerator.device, dtype=self.weight_dtype).repeat(2, 1, 1, 1)
-                    ms = ms.to(self.accelerator.device, dtype=self.weight_dtype).repeat(2, 1, 1, 1)
-                    lpan = lpan.to(self.accelerator.device, dtype=self.weight_dtype).repeat(2, 1, 1, 1)
-                    pan = pan.to(self.accelerator.device, dtype=self.weight_dtype).repeat(2, 1, 1, 1)
+                    gt = gt.to(self.accelerator.device, dtype=self.weight_dtype).repeat(rep, 1, 1, 1)
+                    lms = lms.to(self.accelerator.device, dtype=self.weight_dtype).repeat(rep, 1, 1, 1)
+                    ms = ms.to(self.accelerator.device, dtype=self.weight_dtype).repeat(rep, 1, 1, 1)
+                    lpan = lpan.to(self.accelerator.device, dtype=self.weight_dtype).repeat(rep, 1, 1, 1)
+                    pan = pan.to(self.accelerator.device, dtype=self.weight_dtype).repeat(rep, 1, 1, 1)
 
                     res_pan = F.interpolate(lpan, scale_factor=4, mode="bicubic")
                     # 배포본은 bicubic(ms,x4) 를 잔차 기준선으로 쓴다. 데이터셋이 제공하는
@@ -150,9 +155,12 @@ class Trainer:
                     res_ms = (lms if getattr(self.args, "residual_base", "bicubic") == "lms"
                               else F.interpolate(ms, scale_factor=4, mode="bicubic"))
 
-                    switch_off = torch.zeros((self.args.batch_size,), device=self.accelerator.device).to(dtype=self.weight_dtype)
                     switch_on = torch.ones((self.args.batch_size,), device=self.accelerator.device).to(dtype=self.weight_dtype)
-                    switch = torch.cat((switch_off, switch_on), dim=0)
+                    if single_mode:
+                        switch = switch_on
+                    else:
+                        switch_off = torch.zeros((self.args.batch_size,), device=self.accelerator.device).to(dtype=self.weight_dtype)
+                        switch = torch.cat((switch_off, switch_on), dim=0)
 
                 objective_recon = self.model(pan, lpan, ms, switch)
 
@@ -160,9 +168,14 @@ class Trainer:
                     objective_recon = objective_recon + res_ms * switch.view(-1, 1, 1, 1) + res_pan.repeat(1, self.args.num_bands, 1, 1) * (1.0 - switch).view(-1, 1, 1, 1)
 
                 if self.args.loss_type == 'l1':
-                    loss_pan = (pan[:self.args.batch_size].repeat(1, self.args.num_bands, 1, 1) - objective_recon[:self.args.batch_size]).abs().mean() * self.args.w_off
-                    loss_ms = (gt[self.args.batch_size:] - objective_recon[self.args.batch_size:]).abs().mean()
-                    loss = loss_pan + loss_ms
+                    if single_mode:
+                        loss_ms = (gt - objective_recon).abs().mean()
+                        loss_pan = torch.zeros_like(loss_ms)   # 로그 호환용. PAN mode 없음
+                        loss = loss_ms
+                    else:
+                        loss_pan = (pan[:self.args.batch_size].repeat(1, self.args.num_bands, 1, 1) - objective_recon[:self.args.batch_size]).abs().mean() * self.args.w_off
+                        loss_ms = (gt[self.args.batch_size:] - objective_recon[self.args.batch_size:]).abs().mean()
+                        loss = loss_pan + loss_ms
                 else:
                     raise NotImplementedError()
 
@@ -176,7 +189,7 @@ class Trainer:
                 self.optimizer.zero_grad()
 
                 if self.accelerator.is_main_process:
-                    report.update(self.args.batch_size * 2, reduced_loss.item(), reduced_loss_ms.item(), reduced_loss_pan.item())
+                    report.update(self.args.batch_size * rep, reduced_loss.item(), reduced_loss_ms.item(), reduced_loss_pan.item())
 
             global_step += 1
 
@@ -242,6 +255,10 @@ class Trainer:
         self.last_val_metrics = report.as_dict()
         return report.ergas
 
+    def save_best_model_hqnr(self):
+        save_path = os.path.join(self.args.work_dir, 'best_hqnr')
+        self.accelerator.save_state(save_path)
+
     def save_best_model_val(self):
         save_path = os.path.join(self.args.work_dir, 'best_val')
         self.accelerator.save_state(save_path)
@@ -299,7 +316,8 @@ class Trainer:
         result_str = report.result_str()   # compute_mean() 이 여기서 수행된다
         test_log.write(prefix_str + result_str)
         self.last_full_metrics = report.as_dict()
-        return report.d_s
+        # qnr 항은 (1-D_lambda)(1-D_s) 로 HQNR 과 같은 식이다 (KNOWN_ISSUES D-5 는 라벨 문제).
+        return report.d_s, report.qnr
 
     def test_reduced_save(self, tag='best_reduced'):
         self.model.eval()

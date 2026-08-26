@@ -88,15 +88,18 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
 - 단일 시드 대응표본 p 값만으로 구조 차이를 결론짓지 않는다.
 - 기존 결론들도 시드 σ 가 확정되면 **소급 재판정 대상**이다.
 
-## 진행 중 — 논문 재구성본 실험
+## 진행 중 — 경량화 case 스크리닝 (HQNR 선택)
 
-계획: `research_log/paper_faithful_experiment_plan_v1.md`
-실행: `tools/_run_priority.sh` (Phase 1 검증 50K → Phase 2 시드 25K×3 → Phase 3 탐색 25K×5)
-진행 상황: `results_log/2026-08-25_WIP_paper.md`
+명세: `research_log/lightweight_case_specs_v1.md` · 실행: `tools/_run_cases.sh`
 
-**Phase 1 이 관문이다.** 재구성본 50K 가 논문 2.040 근처(≲2.08)를 내야 "배포 코드가 논문
-모델이 아니었다" 가 성립한다. 기존 2.16 대에 머물면 구조가 원인이 아니므로 Phase 2·3 은
-의미가 없고, 학습 파이프라인(`d1_nocrop`/`d2_lmsbase`)으로 선회해야 한다.
+- **재현은 완결됐다.** `s1_A1`(11ch·nocrop·LN) 이 ERGAS **2.0351** 로 논문 2.040 을 넘었다.
+  격차의 최대 원인은 배포 코드의 `crop`(실은 scale jitter, −3.63%)이었다.
+- **best 선택 기준이 HQNR 로 바뀌었다** (`select_on: hqnr`). FR 검증 split 이 없어 FR
+  테스트셋으로 고른다 — no-reference 라 GT 누출은 없지만 선택 편향은 있다. 산출물은
+  `best_hqnr` / `reduced_best_hqnr.mat` 이고, 체인 완료 판정도 이 파일이다.
+- 학습 로그에 매 eval epoch `[핵심] HQNR / SCC / ERGAS` 가 찍힌다.
+- **HQNR 시드 2σ ≈ 1.18%** (ERGAS 0.11%). HQNR 차이가 이보다 작으면 ERGAS 로 보조 판정.
+- s2 는 동일 config·동일 seed 로 같은 실험을 돌려 환경 변경을 검증한다 (명세 §5).
 
 **경량화 축이 바뀐다.** 배포 코드에선 CM3A 제거가 공짜였지만 재구성본엔 그 여지가 없다
 (AttnBlock 3개가 전부 mid/low 해상도에 있고, 무손실로 뺐던 것들이 애초에 없다).

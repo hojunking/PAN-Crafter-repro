@@ -104,12 +104,13 @@ class AttnBlock(nn.Module):
     """CM3A + MLP. alpha(결합 가중)도 논문 Eq (8) 대로 mode 별 직접 학습이다."""
 
     def __init__(self, hidden_size, num_heads=8, pan_channel=1, ms_channel=8,
-                 mlp_ratio=4.0, ks=3, ka=3):
+                 mlp_ratio=4.0, ks=3, ka=3, pan_branch=True):
         super().__init__()
         self.norm1 = nn.LayerNorm(hidden_size, elementwise_affine=False, eps=1e-6)
         self.attn = CMAAA(hidden_size, num_heads, pan_channel=pan_channel,
                           ms_channel=ms_channel, pan_ks=ks, ms_ks=ks, ka=ka,
-                          fix_key_alias=True)          # 논문 Eq (10)/(11) 대로
+                          fix_key_alias=True,          # 논문 Eq (10)/(11) 대로
+                          pan_branch=pan_branch)       # False 면 MS-only local self-attn
         self.norm2 = nn.LayerNorm(hidden_size, elementwise_affine=False, eps=1e-6)
         h = int(hidden_size * mlp_ratio)
         self.mlp = nn.Sequential(nn.Linear(hidden_size, h), nn.GELU(approximate="tanh"),
@@ -147,14 +148,15 @@ class PANCrafterPaper(nn.Module):
 
     def __init__(self, in_channels=1, out_channels=8, hidden_size=128,
                  depth=(2, 2, 4), dropout=0.0, num_heads=8, mlp_ratio=4.0,
-                 ka=3, ks=3, n_attn=3, norm="ln", in_mode="paper"):
+                 ka=3, ks=3, n_attn=3, norm="ln", in_mode="paper",
+                 attn_locations=None, cm3a_pan_branch=True):
         super().__init__()
         C = hidden_size
         d0, d1, d2 = depth
         self.depth = tuple(depth)
         R = lambda ch, out=None: ResBlock(ch, dropout, out_channels=out, norm=norm)
         A = lambda: AttnBlock(C, num_heads, pan_channel=in_channels, ms_channel=out_channels,
-                              mlp_ratio=mlp_ratio, ks=ks, ka=ka)
+                              mlp_ratio=mlp_ratio, ks=ks, ka=ka, pan_branch=cm3a_pan_branch)
 
         # 논문: "Pθ takes as input the channel-wise concatenation of I_pan and I_lrms" -> 9ch.
         # in_mode="released" 는 배포 코드와 같은 11ch (PAN, up(LPAN), PAN-up(LPAN), up(MS)).
@@ -172,9 +174,14 @@ class PANCrafterPaper(nn.Module):
         self.decoder1 = nn.ModuleList([R(2 * C, C)] + [R(C, C) for _ in range(d0 - 1)])
         self.output = nn.Sequential(_norm(norm, C), nn.SiLU(),
                                     zero_module(nn.Conv2d(C, out_channels, 3, padding=1)))
-        self.cond2_e = A() if n_attn >= 1 else None
-        self.cond_bot = A() if n_attn >= 2 else None
-        self.cond2_d = A() if n_attn >= 3 else None
+        # attn_locations 가 있으면 위치를 직접 고른다 ("enc","btl","dec" 의 부분집합).
+        # 없으면 기존 n_attn 규칙 (1=enc, 2=enc+btl, 3=전부) 을 따른다 — 이전 meta 와 호환.
+        if attn_locations is None:
+            attn_locations = ("enc", "btl", "dec")[:n_attn]
+        self.attn_locations = tuple(attn_locations)
+        self.cond2_e = A() if "enc" in self.attn_locations else None
+        self.cond_bot = A() if "btl" in self.attn_locations else None
+        self.cond2_d = A() if "dec" in self.attn_locations else None
         self.initialize_weights()
 
     def initialize_weights(self):

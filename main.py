@@ -78,7 +78,9 @@ def get_parser():
     parser.add_argument('--pretrained-path', type=str, default='/model.safetensors', help='path for test')
     parser.add_argument('--residual-base', type=str, default='bicubic', choices=['bicubic','lms'],
                         help="잔차 기준선. 'bicubic'은 배포본 동작(bicubic(ms,x4)), 'lms'는 데이터셋 제공 보간")
-    parser.add_argument('--select-on', type=str, default='test', choices=['test', 'val'],
+    parser.add_argument('--mars', type=str, default='dual', choices=['dual', 'ms'],
+                        help="MARs mode. 'dual'=배포본(MS+PAN 복제 학습), 'ms'=단일 mode (M1 실험)")
+    parser.add_argument('--select-on', type=str, default='test', choices=['test', 'val', 'hqnr'],
                         help="best 체크포인트 선택 기준. 'test'는 배포본 동작(테스트셋으로 고름, "
                              "낙관 편향). 'val'은 검증셋으로 고르고 테스트는 마지막에 한 번만 본다")
     parser.add_argument('--val-batch-size', type=int, default=16,
@@ -160,6 +162,7 @@ def train(args):
     trainer = Trainer(args=args, data_loader=data_loader, model=model)
 
     best_ergas, best_ds, best_val_ergas = 9999, 1, 9999
+    best_hqnr, best_epoch_hqnr = -1.0, 0
     best_epoch_reduced = best_epoch_full = best_epoch_val = 0
     last_epoch = 0
     total_epoch = args.num_iter // len(data_loader['train']) + 1
@@ -190,13 +193,24 @@ def train(args):
         if (epoch + 1) % args.eval_epoch == 0:
             val_ergas = trainer.validate(test_log, epoch + 1) if args.select_on == 'val' else None
             ergas = trainer.test_reduced(test_log, epoch + 1)
-            ds = trainer.test_full(test_log, epoch + 1)
+            ds, hqnr = trainer.test_full(test_log, epoch + 1)
+            scc = trainer.last_reduced_metrics.get('scc', float('nan'))
+            # 핵심 3지표는 어느 모드에서든 반드시 로그에 남긴다
+            test_log.write(f'[핵심] HQNR: {hqnr:.6f}\tSCC: {scc:.6f}\tERGAS: {ergas:.6f}')
 
             metrics_csv.append(epoch + 1, global_step,
                                trainer.last_reduced_metrics, trainer.last_full_metrics,
                                trainer.last_val_metrics)
 
-            if args.select_on == 'val':
+            if args.select_on == 'hqnr':
+                # HQNR=(1-D_l)(1-D_s) 기준. FR 검증 split 이 없어 FR 테스트셋으로 고른다 —
+                # no-reference 지표지만 선택 편향은 존재한다. 문서에 명시했다.
+                if hqnr > best_hqnr:
+                    best_hqnr = hqnr
+                    best_epoch_hqnr = epoch + 1
+                    trainer.save_best_model_hqnr()
+                test_log.write(f'Best HQNR: {best_hqnr:.6f}\tBest Epoch (hqnr): {best_epoch_hqnr}')
+            elif args.select_on == 'val':
                 # 선택에 테스트 지표를 쓰지 않는다. 위 test_* 값은 곡선 기록용이다.
                 if val_ergas < best_val_ergas:
                     best_val_ergas = val_ergas
@@ -218,7 +232,8 @@ def train(args):
     # KNOWN_ISSUES.md D-1: 학습 중에는 .mat 을 쓰지 않는다. 배포본은 best 가 갱신될 때마다
     # 고정 파일명으로 덮어써서 후보를 사후 재평가할 수 없었다. 학습이 끝난 뒤 선택된
     # checkpoint 에서만 내보낸다. 임의 checkpoint 는 tools/export_mat.py 로 처리한다.
-    tags = ['best_val'] if args.select_on == 'val' else ['best_reduced', 'best_full']
+    tags = {'val': ['best_val'], 'hqnr': ['best_hqnr'],
+            'test': ['best_reduced', 'best_full']}[args.select_on]
     for tag in tags:
         ckpt = os.path.join(args.work_dir, tag)
         if not os.path.isdir(ckpt):
@@ -228,7 +243,9 @@ def train(args):
         trainer.test_full_save(tag=tag)
         test_log.write(f'[export] {tag} -> results/reduced_{tag}.mat, results/full_{tag}.mat')
 
-    if args.select_on == 'val':
+    if args.select_on == 'hqnr':
+        test_log.write(f'DONE\tselect_on=hqnr\tBest HQNR: {best_hqnr:.6f} @epoch {best_epoch_hqnr}')
+    elif args.select_on == 'val':
         test_log.write(f'DONE\tselect_on=val\tBest val ERGAS: {best_val_ergas:.6f} @epoch {best_epoch_val}')
     else:
         test_log.write(f'DONE\tselect_on=test\tBest ERGAS: {best_ergas:.6f} @epoch {best_epoch_reduced}\t'
