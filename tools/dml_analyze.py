@@ -22,6 +22,7 @@ from scipy import stats
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from tools.metrics.eval_rr import evaluate          # noqa: E402
+from tools.metrics.eval_fr import load_dlpan, d_lambda_k, d_s   # noqa: E402
 from tools.eval_dlpan import scc_dlpan              # noqa: E402
 
 SCALE = {"wv3": 2047.0, "qb": 2047.0, "gf2": 1023.0, "wv2": 2047.0}
@@ -46,6 +47,18 @@ def per_image(sr, gtc, scale):
     return np.array(E), np.array(S), np.array(C)
 
 
+def per_image_fr(sr, lms, pan, preset, wald, indices):
+    """장면별 D_lambda / D_s / HQNR. 계획 11절의 필수 판정이 HQNR 대응검정이다."""
+    bit = int(round(np.log2(SCALE[preset] + 1)))
+    dl, ds, hq = [], [], []
+    for i in indices:
+        fused = np.clip(sr[i], 0.0, float(2 ** bit))
+        a = d_lambda_k(fused, lms[i], preset, 4, BLK, wald)
+        b = d_s(fused, lms[i], pan[i], 4, BLK, wald)
+        dl.append(a); ds.append(b); hq.append((1 - a) * (1 - b))
+    return np.array(dl), np.array(ds), np.array(hq)
+
+
 def diversity(sr_a, sr_b, gt):
     """8/20 go/no-go 와 같은 정의 — 오차 상관, 승률, 픽셀별 오라클 합성."""
     ea, eb = np.abs(sr_a - gt), np.abs(sr_b - gt)
@@ -62,6 +75,10 @@ def main():
     ap.add_argument("--m1", default=None, help="mutual work_dir. 없으면 M0 진단만 낸다")
     ap.add_argument("--preset", default="wv3", choices=list(SCALE))
     ap.add_argument("--mat", default="results/reduced_best_val.mat")
+    ap.add_argument("--mat-fr", default="results/full_best_val.mat")
+    ap.add_argument("--fr-indices", default="12-19",
+                    help="논문 대조 구간. all 이면 전체 20장 (HQNR-all)")
+    ap.add_argument("--no-fr", action="store_true", help="FR 생략 (PANCRAFTER_DLPAN 없을 때)")
     a = ap.parse_args()
 
     scale = SCALE[a.preset]
@@ -71,6 +88,19 @@ def main():
         gt = np.asarray(f["gt"], dtype=np.float64).transpose(0, 2, 3, 1)
     sl = slice(CUT - 1, -CUT)
     gtc = gt[:, sl, sl, :]
+
+    wald = lms_f = pan_f = None
+    if not a.no_fr:
+        wald = load_dlpan(os.environ.get("PANCRAFTER_DLPAN", ""))
+        fh5 = (f"data/PanCollection/{a.preset.upper()}/full_examples_h5/"
+               f"test_{a.preset}_OrigScale_multiExm1.h5")
+        with h5py.File(fh5) as f:
+            lms_f = np.asarray(f["lms"], dtype=np.float64).transpose(0, 2, 3, 1)
+            pan_f = np.asarray(f["pan"], dtype=np.float64)[:, 0]
+        if a.fr_indices == "all":
+            fr_idx = list(range(len(lms_f)))
+        else:
+            lo, hi = a.fr_indices.split("-"); fr_idx = list(range(int(lo), int(hi) + 1))
 
     runs = {}
     for tag, root in (("M0", a.m0), ("M1", a.m1)):
@@ -84,16 +114,34 @@ def main():
                 return 1
             sr[peer] = load_sr(p)
         sr["ens"] = (sr["peerA"] + sr["peerB"]) / 2.0
+        if not a.no_fr:
+            for peer in ("peerA", "peerB"):
+                pf = os.path.join(root, peer, a.mat_fr)
+                if not os.path.exists(pf):
+                    print(f"  !! FR mat 없음: {pf} — --no-fr 로 생략하거나 export 를 확인할 것")
+                    return 1
+                sr["fr_" + peer] = load_sr(pf)
+            sr["fr_ens"] = (sr["fr_peerA"] + sr["fr_peerB"]) / 2.0
         runs[tag] = sr
 
-    print(f"{'':24}{'ERGAS↓':>10}{'SAM↓':>10}{'SCC↑':>10}")
+    hdr = f"{'':24}{'ERGAS↓':>10}{'SAM↓':>10}{'SCC↑':>10}"
+    if not a.no_fr:
+        hdr += f"{'D_λ↓':>10}{'D_s↓':>10}{'HQNR↑':>10}"
+        print(f"  (FR 구간: {a.fr_indices})")
+    print(hdr)
     res = {}
     for tag, sr in runs.items():
         res[tag] = {}
         for k in ("peerA", "peerB", "ens"):
             E, S, C = per_image(sr[k], gtc, scale)
             res[tag][k] = (E, S, C)
-            print(f"  {tag} {k:<18}{E.mean():>10.4f}{S.mean():>10.4f}{C.mean():>10.4f}")
+            line = f"  {tag} {k:<18}{E.mean():>10.4f}{S.mean():>10.4f}{C.mean():>10.4f}"
+            if not a.no_fr:
+                DL, DS, HQ = per_image_fr(sr["fr_" + k if k != "ens" else "fr_ens"],
+                                          lms_f, pan_f, a.preset, wald, fr_idx)
+                res[tag][k] = (E, S, C, DL, DS, HQ)
+                line += f"{DL.mean():>10.4f}{DS.mean():>10.4f}{HQ.mean():>10.4f}"
+            print(line)
 
     # ---------------- peer 다양성 = DML 로 얻을 수 있는 상한 ----------------
     print("\npeer 다양성 — DML 헤드룸")
@@ -112,21 +160,28 @@ def main():
         print(f"{'':22}{'Δ%':>9}{'p':>10}{'개선 장면':>10}")
         verdict = {}
         for k in ("peerA", "peerB", "ens"):
-            for j, nm in enumerate(("ERGAS", "SAM", "SCC")):
+            names = ("ERGAS", "SAM", "SCC") if a.no_fr else \
+                    ("ERGAS", "SAM", "SCC", "D_lambda", "D_s", "HQNR")
+            for j, nm in enumerate(names):
                 v1, v0 = res["M1"][k][j], res["M0"][k][j]
-                better = (v1 > v0) if nm == "SCC" else (v1 < v0)
+                hi_good = nm in ("SCC", "HQNR")     # 높을수록 좋은 지표
+                better = (v1 > v0) if hi_good else (v1 < v0)
                 d = (v1.mean() / v0.mean() - 1) * 100
                 p = stats.ttest_rel(v1, v0).pvalue
                 verdict[(k, nm)] = (d, p, int(better.sum()))
-                print(f"  {k:<10}{nm:<8}{d:>+8.2f}%{p:>10.5f}{str(int(better.sum())) + '/20':>10}")
-        print("  ERGAS·SAM 은 음수가 개선, SCC 는 양수가 개선이다.")
+                n = len(v1)
+                print(f"  {k:<10}{nm:<10}{d:>+8.2f}%{p:>10.5f}"
+                      f"{str(int(better.sum())) + '/' + str(n):>10}")
+        print("  ERGAS·SAM·D_lambda·D_s 는 음수가 개선, SCC·HQNR 은 양수가 개선이다.")
 
         # 방향 일관성 — 두 peer 모두에서 같은 방향이어야 효과로 인정한다
         print("\n판정")
-        for nm in ("ERGAS", "SAM", "SCC"):
+        for nm in (("ERGAS", "SAM", "SCC") if a.no_fr else
+                   ("ERGAS", "SAM", "SCC", "D_lambda", "D_s", "HQNR")):
             da, _, _ = verdict[("peerA", nm)]
             db, _, _ = verdict[("peerB", nm)]
-            good = (da > 0 and db > 0) if nm == "SCC" else (da < 0 and db < 0)
+            hi_good = nm in ("SCC", "HQNR")
+            good = (da > 0 and db > 0) if hi_good else (da < 0 and db < 0)
             print(f"  {nm:<8} 두 peer 방향 일관: {'예' if good else '아니오'}"
                   f"  (A {da:+.2f}% / B {db:+.2f}%)")
         print("  대응표본 p < 0.05 이고 두 peer 방향이 일관될 때만 효과로 인정한다.")

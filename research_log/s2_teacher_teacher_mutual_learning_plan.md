@@ -195,25 +195,35 @@ r_g = \frac{\|\nabla L_{mut}\|}{\|\nabla L_{MARs}\|}
 
 ---
 
-## 7. 25K 운용 원칙
+## 7. 50K 완주로 변경 (2026-08-26 개정)
 
-M0와 M1 모두 다음을 사용한다.
+원안은 50K scheduler 위에서 **25K screening** 이었다. 이를 **50K 완주**로 바꾼다.
 
 ```text
 max_iterations        = 50K
-scheduler_total_steps = 50K
-save/evaluate         = 25K
+scheduler_total_steps = 50K      (= num_iter. 분리가 불필요해졌다)
+save/evaluate         = eval_epoch 10 (248 epoch 기준 25회)
 ```
 
-25K는 최종 결론이 아니라, 다음을 확인하는 screening checkpoint다.
+### 왜 바꾸는가
 
-- mutual learning의 방향성
-- peer collapse 여부
-- HQNR/SCC 개선 신호
-- ERGAS/SAM 악화 여부
-- 50K까지 이어갈 가치
+**25K 에서는 판정이 어렵다.** 이 저장소의 25K 값은 일관되게 **3.6% 비관적**이고
+([8/24 요약 §1.2](../results_log/2026-08-24_wv3-summary-and-protocol.md)), 그 편향이
+소형·미수렴 구성에 유리하게 걸린다. DML 효과는 그보다 훨씬 작을 것으로 예상되므로,
+25K 에서 잡히는 차이가 DML 때문인지 수렴도 차이인지 분리하기 어렵다.
 
----
+또 25K 는 이 저장소의 다른 50K 결과들과 가로로 비교할 수 없어, DML 결과를
+`paper_nocrop`(2.0875) 같은 기준선 옆에 놓으려면 어차피 50K 가 필요하다.
+
+### 비용
+
+| | |
+|---|---|
+| 50K 1벌 (두 peer 동시) | **약 9.3시간** (학습 8.9h + 평가 25회 26분) |
+| M0 + M1 순차 | **약 18.6시간** |
+
+원안 8절의 16시간 계획은 25K 기준이므로 성립하지 않는다. **M0 완주 후 조기 게이트로
+M1 진행 여부를 정하는 것이 더 중요해졌다** — 게이트에 걸리는 비용이 4.5h 에서 9.3h 로 늘었다.
 
 ## 8. 권장 16시간 계획
 

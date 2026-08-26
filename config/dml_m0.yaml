@@ -58,7 +58,7 @@ optimizer: AdamW
 learning_rate: 1e-4
 weight_decay: 0.01
 lr_scheduler: cosine
-num_iter: 25000
+num_iter: 50000
 num_warmup: 100
 
 # loss

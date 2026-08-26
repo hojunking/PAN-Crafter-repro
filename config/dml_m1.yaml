@@ -58,7 +58,7 @@ optimizer: AdamW
 learning_rate: 1e-4
 weight_decay: 0.01
 lr_scheduler: cosine
-num_iter: 25000
+num_iter: 50000
 num_warmup: 100
 
 # loss
@@ -77,7 +77,8 @@ batch_size: 48  # duplicate
 test_batch_size: 1
 # --- Teacher-Teacher DML (research_log/s2_teacher_teacher_mutual_learning_plan.md) ---
 seed_b: 2026              # peer B 초기화. peer A 는 위 seed(2025)
-mutual_lambda: 0.05         # lambda_max. 0 이면 M0 대조군
+mutual_lambda: 0.10       # 보정 결과. 실데이터 r_g=1.008 -> lambda*r_g=0.101 (목표 0.1~0.2).
+                          # 계획 6절이 정한 "최초 overnight run 상한 0.1" 과도 일치한다.
 mutual_warmup: 2500       # 이 스텝까지 lambda=0
 mutual_ramp_end: 5000     # 여기까지 선형 증가, 이후 lambda_max
 mutual_diag_iter: 500     # anchor/mutual gradient 비 r_g 측정 주기

@@ -7,7 +7,7 @@ M0 와 M1 은 **완전히 같은 초기 상태**에서 출발해야 한다 (계�
 seed 로 결정론적으로 초기화하고, 초기 가중치를 meta/init/ 에 저장해 감사 가능하게 둔다.
 차이는 mutual_lambda 하나뿐이다.
 """
-import argparse, os, shutil, sys, yaml, torch, numpy as np, random
+import argparse, json, os, shutil, sys, yaml, torch, numpy as np, random
 from main import (import_class, str2bool, init_seed, load_data, load_model, get_parser)
 from utils import Report, MetricsCSV
 from train import Trainer
@@ -32,6 +32,12 @@ def main():
     p.add_argument('--mutual-warmup', type=int, default=2500)
     p.add_argument('--mutual-ramp-end', type=int, default=5000)
     p.add_argument('--mutual-diag-iter', type=int, default=500)
+    p.add_argument('--init-from', type=str, default=None,
+                   help='짝 실행의 meta/init 경로. M0 가 만든 번들을 M1 이 로드해 '
+                        '동일 초기 상태를 보장한다 (계획 4절)')
+    p.add_argument('--ckpt-iter', type=int, default=5000,
+                   help='이 스텝마다 두 peer 를 함께 저장한다. 9시간 런이 '
+                        '중간에 죽어도 재개할 수 있게 한다. 0 이면 끄기')
     a = p.parse_args()
     if a.config:
         with open(a.config) as f:
@@ -57,11 +63,28 @@ def main():
     peerB = build_peer(a, data_loader, a.seed_b, 'peerB')
     init_seed(a.seed)                     # 배치 순서는 두 실행에서 동일해야 한다
 
-    # 초기 상태 스냅샷 (계획 4절 — 공정한 paired initialization 의 감사 근거)
-    init_dir = os.path.join(a.work_dir, 'meta', 'init'); os.makedirs(init_dir, exist_ok=True)
-    for nm, tr in (('peerA', peerA), ('peerB', peerB)):
-        torch.save(tr.model.state_dict(), os.path.join(init_dir, f'{nm}.pt'))
-    train_log.write(f'[DML] 초기 가중치 저장: {init_dir}')
+    # 계획 4절 — 공정한 paired initialization.
+    # model weight 만으로는 부족하다. optimizer/scheduler/RNG 까지 accelerator.save_state
+    # 로 통째로 저장하고, --init-from 으로 M0/M1 이 **같은 번들을 로드**하게 한다.
+    # 그래야 "차이는 mutual loss 뿐" 이 seed 재현이 아니라 실제 동일성으로 보장된다.
+    init_root = os.path.join(a.work_dir, 'meta', 'init')
+    if a.init_from:
+        for nm, tr in (('peerA', peerA), ('peerB', peerB)):
+            src = os.path.join(a.init_from, nm)
+            tr.accelerator.load_state(src)
+            train_log.write(f'[DML] 초기 상태 로드: {nm} <- {src}')
+        torch.set_rng_state(torch.load(os.path.join(a.init_from, 'rng_cpu.pt')))
+        np.random.set_state(np.load(os.path.join(a.init_from, 'rng_np.npy'),
+                                    allow_pickle=True).item()['state'])
+        train_log.write(f'[DML] RNG 상태 복원 완료 — M0/M1 이 동일 지점에서 출발한다')
+    else:
+        for nm, tr in (('peerA', peerA), ('peerB', peerB)):
+            tr.accelerator.save_state(os.path.join(init_root, nm))
+        torch.save(torch.get_rng_state(), os.path.join(init_root, 'rng_cpu.pt'))
+        np.save(os.path.join(init_root, 'rng_np.npy'),
+                {'state': np.random.get_state()}, allow_pickle=True)
+        train_log.write(f'[DML] 초기 상태 저장(model+optimizer+scheduler+RNG): {init_root}')
+        train_log.write(f'[DML] 짝 실행은 --init-from {init_root} 로 같은 지점에서 시작할 것')
 
     runner = DMLRunner(a, peerA, peerB, data_loader['train'])
     # MetricsCSV 는 work_dir 을 받아 그 안에 metrics.csv 를 만든다.
@@ -70,9 +93,33 @@ def main():
                'peerB': MetricsCSV(peerB.args.work_dir)}
 
     total_epoch = a.num_iter // len(data_loader['train']) + 1
-    gs = 0
+    gs, start_epoch, last_ckpt = 0, 0, 0
     best = {'peerA': (1e9, 0), 'peerB': (1e9, 0)}
-    for epoch in range(total_epoch):
+
+    # 재개 — 9시간 런이 중간에 죽어도 처음부터 다시 돌리지 않는다.
+    # 배치 순서까지 복원되지는 않으므로 "근사 재개" 다 (KNOWN_ISSUES C-1 과 같은 한계).
+    # --resume 은 main.py get_parser() 에서 상속받는다 (중복 등록 금지).
+    # DML 에서는 pair checkpoint 디렉터리를 가리킨다.
+    if a.resume:
+        for nm, tr in (('peerA', peerA), ('peerB', peerB)):
+            tr.accelerator.load_state(os.path.join(a.resume, nm))
+        st = json.load(open(os.path.join(a.resume, 'state.json')))
+        gs, start_epoch = st['global_step'], st['epoch']
+        last_ckpt = gs
+        best = {k: tuple(v) for k, v in st['best'].items()}
+        train_log.write(f'[DML] 재개: step {gs}, epoch {start_epoch}, best {best} '
+                        f'(배치 순서는 복원되지 않는 근사 재개)')
+
+    def save_pair(tag):
+        d = os.path.join(a.work_dir, tag)
+        for nm, tr in (('peerA', peerA), ('peerB', peerB)):
+            tr.accelerator.save_state(os.path.join(d, nm))
+        json.dump({'global_step': gs, 'epoch': epoch + 1,
+                   'best': {k: list(v) for k, v in best.items()}},
+                  open(os.path.join(d, 'state.json'), 'w'), indent=1)
+        train_log.write(f'[DML] pair checkpoint 저장: {tag} (step {gs})')
+
+    for epoch in range(start_epoch, total_epoch):
         train_log.write(f'========= Epoch {epoch + 1} of {total_epoch} =========')
         gs = runner.train(train_log, gs)
         if (epoch + 1) % a.eval_epoch == 0:
@@ -87,13 +134,25 @@ def main():
                     best[nm] = (v, epoch + 1); tr.save_best_model_val()
                 test_log.write(f'{nm} best val ERGAS {best[nm][0]:.6f} @epoch {best[nm][1]}')
             runner.save_diag(os.path.join(a.work_dir, 'diagnostics.csv'))
+        if a.ckpt_iter and gs // a.ckpt_iter > last_ckpt // a.ckpt_iter:
+            save_pair('checkpoint_pair'); last_ckpt = gs
         if gs >= a.num_iter:
             break
 
     runner.save_diag(os.path.join(a.work_dir, 'diagnostics.csv'))
+
+    # main.py:222-229 와 같은 계약 — **선택된 checkpoint 를 로드한 뒤에** 내보낸다.
+    # 이걸 빠뜨리면 현재(최종) 가중치가 best_val 이름으로 저장되어, 다른 실행의
+    # best_val mat 과 비교 불가능한 값이 된다. best 가 없으면 아예 내보내지 않는다.
     for nm, tr in (('peerA', peerA), ('peerB', peerB)):
-        tr.test_reduced_save(tag='best_val'); tr.test_full_save(tag='best_val')
-        test_log.write(f'[export] {nm} -> {tr.args.work_dir}/results/')
+        ckpt = os.path.join(tr.args.work_dir, 'best_val')
+        if not os.path.isdir(ckpt):
+            test_log.write(f'[export] {nm} 건너뜀 — best_val checkpoint 가 없다')
+            continue
+        tr.accelerator.load_state(ckpt)
+        tr.test_reduced_save(tag='best_val')
+        tr.test_full_save(tag='best_val')
+        test_log.write(f'[export] {nm} best_val(@epoch {best[nm][1]}) -> {tr.args.work_dir}/results/')
     test_log.write(f'DONE  A {best["peerA"]}  B {best["peerB"]}')
     return 0
 

@@ -57,7 +57,13 @@ class DMLRunner:
 
     # ---------------------------------------------------------------- 스텝
     def train(self, train_log, global_step):
-        self.A.model.train(); self.B.model.train()
+        # train.py 의 평가 메서드는 model.requires_grad_(False) 로 grad 를 영구히 끈다
+        # (train.py:221 등). 단일 모델 경로는 Trainer.train() 이 매 epoch 시작에
+        # requires_grad_(True) 로 되살린다(train.py:133-134). 여기서도 똑같이 해야 한다 —
+        # 빠뜨리면 첫 평가 직후 손실에 grad_fn 이 없어 backward 가 죽는다.
+        for tr in (self.A, self.B):
+            tr.model.train()
+            tr.model.requires_grad_(True)
         t_start = time.time()
         n_seen = 0
         acc = dict(la=0.0, lb=0.0, ma=0.0, mb=0.0, dis=0.0)
