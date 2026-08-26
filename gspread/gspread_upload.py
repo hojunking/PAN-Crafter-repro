@@ -73,17 +73,17 @@ PAPER_ROW = {
                 ssim=0.976, scc=0.988, q2n=0.922,
                 d_lambda=0.016, d_s=0.027, hqnr=0.958,
                 params_m=7.170, flops_g=79.03, infer_ms=9.0, mem_mb=1751.9,
-                note="Paper Table 3 & 10 (inference/memory on RTX 3090)"),
+                note="width=128 · depth=미기재(총 12블록) · AttnBlock=3 · norm=ln · mlp=미기재 · crop=True · iter=50000 · seed=2025 | AdamW lr1e-4 wd0.01 cosine warmup100 · batch48(실효96) · k=3 · λ=1.0 · 입력 9ch · best 선택 방식 미기재 | Table 3 & 10, 시간·메모리는 RTX 3090"),
     "QB": dict(tag="■ Paper (reported)", ergas=4.169, sam=5.078, psnr=29.276,
-               q2n=0.846, d_lambda=0.036, d_s=0.022, hqnr=0.942, note="Paper Table"),
+               q2n=0.846, d_lambda=0.036, d_s=0.022, hqnr=0.942, note="논문 Table. 세팅은 WV3 행과 동일"),
     "GF2": dict(tag="■ Paper (reported)", ergas=0.552, sam=0.596, psnr=45.076,
                 ssim=0.988, scc=0.994, q2n=0.988,
-                d_lambda=0.017, d_s=0.020, hqnr=0.964, note="Paper Table"),
+                d_lambda=0.017, d_s=0.020, hqnr=0.964, note="논문 Table. 세팅은 WV3 행과 동일"),
 }
 
 # work_dir 에 config 없이 결과 mat 만 있는 참조 (외부 모델의 배포 가중치 등)
 EXTERNAL = {"_ref_cannet": ("□ CANConv (released weights)", "wv3",
-                            "measured from released weights; matches paper Table 3 CANConv row",
+                            "CANConv 배포 가중치 실측. 논문 Table 3 의 CANConv 행과 6지표 0.5% 이내 일치 — 평가기 검증용",
                             {"params_m": 0.7874})}
 
 
