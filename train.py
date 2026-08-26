@@ -9,6 +9,7 @@
 # --------------------------------------------------------
 
 import os
+import sys
 import time
 import torch
 import torch.nn as nn
@@ -183,6 +184,11 @@ class Trainer:
                 reduced_loss_ms = self.accelerator.gather(loss_ms).mean()
                 reduced_loss_pan = self.accelerator.gather(loss_pan).mean()
 
+                # NaN/Inf 는 이후 모든 step 을 오염시킨다. 몇 시간 낭비하지 말고 즉시 죽는다.
+                # exit 3 은 체인이 '재시도 무의미' 로 해석하는 코드다 (재개해도 다시 발산한다).
+                if not torch.isfinite(loss):
+                    train_log.write(f'[abort] non-finite loss at step {global_step}: {loss.item()}')
+                    sys.exit(3)
                 self.accelerator.backward(loss)
                 self.optimizer.step()
                 self.lr_scheduler.step()

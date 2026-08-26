@@ -177,8 +177,16 @@ def train(args):
     # 복원되지 않는 '근사 재개' 다. 엄밀한 재현이 목적이면 처음부터 다시 돌릴 것.
     if args.resume:
         trainer.accelerator.load_state(args.resume)
-        global_step = int(os.path.basename(args.resume.rstrip('/')).split('-')[-1])
-        last_epoch = global_step // len(data_loader['train'])
+        name = os.path.basename(args.resume.rstrip('/'))
+        n = int(name.split('-')[-1])
+        if name.startswith('epoch-'):
+            # save_checkpoint 는 epoch 번호로 저장한다. step 으로 오독하면
+            # last_epoch=0 이 되어 스케줄이 통째로 어긋난다.
+            last_epoch = n
+            global_step = n * len(data_loader['train'])
+        else:                                  # checkpoint-<global_step> 형식
+            global_step = n
+            last_epoch = global_step // len(data_loader['train'])
         train_log.write(f'[resume] {args.resume} 에서 재개 — global_step={global_step}, epoch={last_epoch} '
                         f'(배치 순서는 복원되지 않는 근사 재개)')
 

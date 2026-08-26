@@ -36,6 +36,12 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지 
 
 실행 조건은 `work_dir/<실험>/meta/` 에 자동 스냅샷된다.
 
+**장애 대비가 걸려 있다** — cron 이 15분마다 `tools/_watchdog.sh` 로 체인 생존을 확인하고,
+죽어 있으면 재기동한다(재부팅 후 @reboot 포함). 체인은 완료분을 건너뛰고 이어 돈다.
+학습 실패 시 최신 `epoch-*` 체크포인트에서 1회 재개 재시도하며, **exit 3(NaN 손실)은
+재시도하지 않는다.** 캠페인이 끝나 로그에 `[cases] DONE` 이 찍히면 감시자는 멈춘다 —
+새 캠페인은 새 로그로 시작할 것. cron 해제: `crontab -l | grep -v PANCRAFTER-WATCHDOG | crontab -`
+
 ## 반드시 지킬 규약
 
 - **`results_log/` 의 기존 문서를 고치지 않는다** (`CONVENTION.md` §5). 각 문서는 그 시점의
