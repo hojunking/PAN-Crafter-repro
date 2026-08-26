@@ -350,9 +350,7 @@ def collect(tag, want_profile, server):
     if fam != "paper":                       # 배포 코드 계열은 A-1/A-2 토글이 핵심이다
         bits.append(f"fix_A1A2={row.pop('fix', '')}")
     row.pop("model", None); row.pop("train_params", None); row.pop("fix", None)
-    # 시트가 "<데이터셋>-<서버>" 로 갈리므로 실행명에 서버를 또 넣지 않는다.
-    # 다만 행을 다른 시트로 옮겼을 때 출처를 잃지 않도록 Notes 에 남긴다.
-    bits.append(f"server={server}")
+    # 서버는 시트 이름("<데이터셋>-<서버>")이 이미 담고 있으므로 Notes 에 넣지 않는다.
     if row.get("note_err"):
         bits.append(row.pop("note_err"))
     row["note"] = " · ".join(bits)
