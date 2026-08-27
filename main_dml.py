@@ -56,6 +56,8 @@ def main():
                     f'ramp_end={a.mutual_ramp_end}  seedA={a.seed}  seedB={a.seed_b}')
 
     # dataloader 는 하나만 만들어 두 peer 가 **같은 배치·같은 증강**을 보게 한다 (계획 5절)
+    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'      # main.py 와 동일 — gpu 인자 적용
+    os.environ['CUDA_VISIBLE_DEVICES'] = str(a.gpu)
     init_seed(a.seed)
     data_loader = load_data(a)
 
@@ -67,6 +69,21 @@ def main():
     # model weight 만으로는 부족하다. optimizer/scheduler/RNG 까지 accelerator.save_state
     # 로 통째로 저장하고, --init-from 으로 M0/M1 이 **같은 번들을 로드**하게 한다.
     # 그래야 "차이는 mutual loss 뿐" 이 seed 재현이 아니라 실제 동일성으로 보장된다.
+    # 학습 시점 config 를 peer 별 meta 로 스냅샷한다. 이것이 없으면 _upload_dml.sh 가
+    # '업로드 시점'의 config 로 meta 를 합성·동결해, config 를 고쳐 재실행한 경우 시트가
+    # 낡은 설정으로 라벨링된다 (자가검증 F11).
+    if a.config and os.path.exists(a.config):
+        import shutil as _sh
+        for nm, tr in (('peerA', peerA), ('peerB', peerB)):
+            md = os.path.join(tr.args.work_dir, 'meta'); os.makedirs(md, exist_ok=True)
+            if nm == 'peerB':
+                txt = open(a.config).read()
+                txt = __import__('re').sub(r'^seed: .*$', f'seed: {a.seed_b}', txt, count=1,
+                                           flags=__import__('re').M)
+                open(os.path.join(md, 'config.yaml'), 'w').write(txt)
+            else:
+                _sh.copy(a.config, os.path.join(md, 'config.yaml'))
+
     init_root = os.path.join(a.work_dir, 'meta', 'init')
     if a.init_from:
         for nm, tr in (('peerA', peerA), ('peerB', peerB)):
@@ -106,7 +123,14 @@ def main():
         st = json.load(open(os.path.join(a.resume, 'state.json')))
         gs, start_epoch = st['global_step'], st['epoch']
         last_ckpt = gs
+        dcsv = os.path.join(a.work_dir, 'diagnostics.csv')
+        if os.path.exists(dcsv):     # save_diag 가 'w' 모드라 기존 이력을 미리 실어 둔다
+            import csv as _csv
+            runner.diag.extend(list(_csv.DictReader(open(dcsv))))
         best = {k: tuple(v) for k, v in st['best'].items()}
+        bs_path = os.path.join(a.work_dir, 'best_state.json')
+        if os.path.exists(bs_path):          # eval 마다 갱신되는 쪽이 최신이다
+            best = {k: tuple(v) for k, v in json.load(open(bs_path)).items()}
         train_log.write(f'[DML] 재개: step {gs}, epoch {start_epoch}, best {best} '
                         f'(배치 순서는 복원되지 않는 근사 재개)')
 
@@ -132,6 +156,11 @@ def main():
                                    tr.last_full_metrics, tr.last_val_metrics)
                 if v < best[nm][0]:
                     best[nm] = (v, epoch + 1); tr.save_best_model_val()
+                    # main.py 와 같은 계약 — best 갱신 즉시 영속화. pair ckpt(5K 간격)에만
+                    # 의존하면 crash-resume 시 stale best 로 되돌아가, 근사 재개의 재평가가
+                    # 디스크의 더 좋은 best_val 을 더 나쁜 가중치로 덮어쓸 수 있다.
+                    json.dump({k: list(vv) for k, vv in best.items()},
+                              open(os.path.join(a.work_dir, 'best_state.json'), 'w'))
                 test_log.write(f'{nm} best val ERGAS {best[nm][0]:.6f} @epoch {best[nm][1]}')
             runner.save_diag(os.path.join(a.work_dir, 'diagnostics.csv'))
         if a.ckpt_iter and gs // a.ckpt_iter > last_ckpt // a.ckpt_iter:

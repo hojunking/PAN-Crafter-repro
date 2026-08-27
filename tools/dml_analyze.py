@@ -60,12 +60,21 @@ def per_image_fr(sr, lms, pan, preset, wald, indices):
 
 
 def diversity(sr_a, sr_b, gt):
-    """8/20 go/no-go 와 같은 정의 — 오차 상관, 승률, 픽셀별 오라클 합성."""
+    """peer 다양성 — **픽셀 단위** (8/18·8/20 정의: 밴드 평균 오차 지도에서 픽셀마다 승자 선택).
+
+    [자가검증 2026-08-27 교정] 이전 구현은 밴드-원소 단위(np.where(ea<eb))였고, 이는
+    8/20 go/no-go 의 픽셀 단위 정의와 달라 게이트 임계(≥0.97/<+5%)와 스케일이 어긋났다.
+    실측: dml_m0 에서 원소 단위 ρ=0.9557/오라클 +8.16% vs 픽셀 단위 ρ=0.9797/+4.31% —
+    정의 선택만으로 M1 진행/보류 판정이 뒤집힌다. 8/20 임계와 비교하려면 픽셀 단위여야 한다.
+    원소 단위 값도 참고로 함께 돌려준다.
+    """
     ea, eb = np.abs(sr_a - gt), np.abs(sr_b - gt)
-    rho = float(np.corrcoef(ea.ravel(), eb.ravel())[0, 1])
-    win_a = float((ea < eb).mean())
-    oracle = np.where(ea < eb, sr_a, sr_b)
-    return rho, win_a, oracle
+    pa, pb = ea.mean(axis=-1), eb.mean(axis=-1)          # (N,H,W) 픽셀 오차 지도
+    rho_px = float(np.corrcoef(pa.ravel(), pb.ravel())[0, 1])
+    win_px = float((pa < pb).mean())
+    oracle = np.where((pa < pb)[..., None], sr_a, sr_b)  # 픽셀 승자를 전 밴드에 적용
+    rho_el = float(np.corrcoef(ea.ravel(), eb.ravel())[0, 1])
+    return rho_px, win_px, oracle, rho_el
 
 
 def main():
@@ -146,17 +155,20 @@ def main():
     # ---------------- peer 다양성 = DML 로 얻을 수 있는 상한 ----------------
     print("\npeer 다양성 — DML 헤드룸")
     for tag, sr in runs.items():
-        rho, win_a, oracle = diversity(sr["peerA"], sr["peerB"], gt)
-        Eo, _, _ = per_image(oracle, gtc, scale)
+        rho, win_a, oracle, rho_el = diversity(sr["peerA"], sr["peerB"], gt)
+        Eo, _, _ = per_image(oracle, gtc, scale)[:3]
         base = min(res[tag]["peerA"][0].mean(), res[tag]["peerB"][0].mean())
-        print(f"  {tag}  오차 상관 {rho:.4f}   A 승률 {win_a * 100:.1f}%   "
-              f"오라클 ERGAS {Eo.mean():.4f}  (단일 최선 대비 {(1 - Eo.mean() / base) * 100:+.2f}%)")
+        print(f"  {tag}  오차 상관(픽셀) {rho:.4f}   A 승률 {win_a * 100:.1f}%   "
+              f"오라클 ERGAS {Eo.mean():.4f}  (단일 최선 대비 {(1 - Eo.mean() / base) * 100:+.2f}%)"
+              f"   [참고: 원소 단위 ρ={rho_el:.4f}]")
     print("  8/20 go/no-go 기준: 상관 ≤ 0.85 이고 오라클 이득 ≥ +15% 여야 상보성이 있다고 본다.")
     print("  상관 ≥ 0.97 이고 오라클 < +5% 면 M1 에 시간을 쓰기 전에 λ·다양성 설계를 먼저 본다.")
 
     # ---------------- M1 vs M0 대응표본 검정 ----------------
     if "M1" in res:
-        print("\nM1 vs M0 대응표본 t-검정 (20장)")
+        n_rr = len(res["M1"]["peerA"][0])
+        fr_txt = "" if a.no_fr else f", FR {len(res['M1']['peerA'][3])}장"
+        print(f"\nM1 vs M0 대응표본 t-검정 (RR {n_rr}장{fr_txt})")
         print(f"{'':22}{'Δ%':>9}{'p':>10}{'개선 장면':>10}")
         verdict = {}
         for k in ("peerA", "peerB", "ens"):
@@ -181,8 +193,12 @@ def main():
             da, _, _ = verdict[("peerA", nm)]
             db, _, _ = verdict[("peerB", nm)]
             hi_good = nm in ("SCC", "HQNR")
-            good = (da > 0 and db > 0) if hi_good else (da < 0 and db < 0)
-            print(f"  {nm:<8} 두 peer 방향 일관: {'예' if good else '아니오'}"
+            # [자가검증 2026-08-27 교정] 계획 §11 은 '같은 방향'이다. 이전 구현은 '양쪽 개선'만
+            # 참으로 놓아, 두 peer 가 일관되게 악화(§9 Case B 신호)해도 '아니오'로 가려졌다.
+            same = (da > 0) == (db > 0)
+            imp = (da > 0) if hi_good else (da < 0)
+            direction = ("개선" if imp else "악화") if same else "—"
+            print(f"  {nm:<8} 두 peer 방향 일관: {'예(' + direction + ')' if same else '아니오'}"
                   f"  (A {da:+.2f}% / B {db:+.2f}%)")
         print("  대응표본 p < 0.05 이고 두 peer 방향이 일관될 때만 효과로 인정한다.")
         print("  0.8% 미만 차이는 시드 3벌 이상에서 확인한 뒤에만 결론에 넣는다 (CLAUDE.md).")

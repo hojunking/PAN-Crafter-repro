@@ -103,6 +103,13 @@ class DMLRunner:
             # retain_graph 로 두 backward 동안 그래프를 살리면 peak VRAM 이 30 -> 34 GiB 를
             # 넘어 OOM 난다 (실측). r_g 는 스텝마다 필요한 값이 아니라 lambda 보정용 상수이므로
             # tools/dml_calibrate.py 에서 작은 배치로 따로 잰다 (계획 6절).
+            # train.py:187-191 과 같은 계약 — non-finite 손실이면 즉시 exit 3.
+            # 가드가 없으면 한 peer 가 발산해도 완주하고, sign(NaN)=0 이라 건강한 peer 의
+            # mutual gradient 가 0 이 되어 M1 처치가 소리 없이 단일 학습으로 퇴화한다.
+            if not (torch.isfinite(loss_a) and torch.isfinite(loss_b)):
+                train_log.write(f'[FATAL] non-finite loss at step {global_step}: '
+                                f'A {float(loss_a)} B {float(loss_b)} — exit 3 (재시도 무의미)')
+                import sys as _sys; _sys.exit(3)
             (loss_a + loss_b).backward()
 
             self.A.optimizer.step(); self.A.lr_scheduler.step()
