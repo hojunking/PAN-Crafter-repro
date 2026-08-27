@@ -73,7 +73,7 @@ PAPER_ROW = {
                 ssim=0.976, scc=0.988, q2n=0.922,
                 d_lambda=0.016, d_s=0.027, hqnr=0.958,
                 params_m=7.170, flops_g=79.03, infer_ms=9.0, mem_mb=1751.9,
-                note="width=128 · depth=미기재(총 12블록) · AttnBlock=3 · norm=ln · mlp=미기재 · crop=True · iter=50000 · seed=2025 | AdamW lr1e-4 wd0.01 cosine warmup100 · batch48(실효96) · k=3 · λ=1.0 · 입력 9ch · best 선택 방식 미기재 | Table 3 & 10, 시간·메모리는 RTX 3090"),
+                note="[기준] w128 · depth 총12블록(배분 미기재; 우리는 2,2,4) · AttnBlock 3 · PAN K/V 유지 · LN(Eq 5) · 입력 9ch · crop 명시(구현은 scale jitter) · 50K · seed 2025 · AdamW 1e-4/wd0.01 cosine warmup100 · batch48(실효96) · k=3 · λ=1.0 · best 선택 미기재. 아래 행 Notes 는 이 기준 대비 바뀐 부분만 적는다"),
     "QB": dict(tag="■ Paper (reported)", ergas=4.169, sam=5.078, psnr=29.276,
                q2n=0.846, d_lambda=0.036, d_s=0.022, hqnr=0.942, note="논문 Table. 세팅은 WV3 행과 동일"),
     "GF2": dict(tag="■ Paper (reported)", ergas=0.552, sam=0.596, psnr=45.076,
@@ -381,25 +381,50 @@ def collect(tag, want_profile, server):
             break
     row.update(_profile(a, tag, want_profile))
 
-    desc = _descriptor(ma, row["crop"], "Paper" in a.model)
+    is_rebuild = "Paper" in a.model
+    desc = _descriptor(ma, row["crop"], is_rebuild)
     if getattr(a, "mars", "dual") == "ms":
         desc = (desc + " singleMARs").strip().removeprefix("표준 ")
 
-    # 비고에는 우리가 확인 중인 파라미터 특징만 남긴다.
-    # Params(M) 는 열에 있으므로 학습params 는 넣지 않는다.
+    # Notes 는 기준(논문 충실 PAN-Crafter) 대비 "바뀐 부분만" 적는다. 같으면 안 쓴다.
+    # 기준: w128 · depth(2,2,4) · AttnBlock 3(enc+btl+dec) · PAN K/V 유지 · LN ·
+    #       mlp 4.0 · 입력 9ch · crop · MARs dual · seed 2025 · best선택 HQNR(공식 12-19)
     n_iter = row["iter"]
-    # AttnBlock 수는 attn_locations 가 있으면 그 길이가 실제값이다 (n_attn 은 무시됨)
     _loc = ma.get("attn_locations")
-    n_attn_eff = len(_loc) if _loc is not None else row['n_attn']
-    row.pop('n_attn')
-    bits = [f"width={row.pop('width')}", f"depth={row.pop('depth')}",
-            f"AttnBlock={n_attn_eff}", f"norm={row.pop('norm')}",
-            f"mlp={row.pop('mlp_ratio')}", f"crop={row.pop('crop')}",
-            f"iter={row.pop('iter')}", f"seed={row.pop('seed')}"]
-    fam = row.pop("family", "")
-    if fam != "paper":                       # 배포 코드 계열은 A-1/A-2 토글이 핵심이다
-        bits.append(f"fix_A1A2={row.pop('fix', '')}")
-    row.pop("model", None); row.pop("train_params", None); row.pop("fix", None)
+    bits = []
+    if not is_rebuild:
+        bits.append("배포 코드 구조 (4-scale · CM3A5 · GroupNorm · mode-token · 11ch)")
+        bits.append(f"fix_A1A2={row.get('fix', '')}")
+        if not row["crop"]:
+            bits.append("crop 제거")
+    else:
+        if row["width"] != 128:
+            bits.append(f"width {row['width']}")
+        if list(ma.get("depth", [])) != [2, 2, 4]:
+            bits.append(f"depth {row['depth']}")
+        if ma.get("cm3a_pan_branch", True) is False:
+            bits.append("CM3A PAN K/V 제거")
+        if _loc is not None and tuple(_loc) != ("enc", "btl", "dec"):
+            bits.append("AttnBlock 없음" if not _loc else f"AttnBlock {'+'.join(_loc)}만")
+        if ma.get("norm", "gn") != "ln":
+            bits.append("GroupNorm (배포식 — 논문은 LN)")
+        if ma.get("mlp_ratio", 4.0) != 4.0:
+            bits.append(f"mlp_ratio {ma['mlp_ratio']:g}")
+        if ma.get("in_mode", "paper") == "released":
+            bits.append("입력 11ch (↑LPAN·PAN−↑LPAN 추가)")
+        if not row["crop"]:
+            bits.append("crop 제거")
+        if getattr(a, "mars", "dual") == "ms":
+            bits.append("MARs single-mode (PAN mode 제거)")
+    if row["seed"] != 2025:
+        bits.append(f"seed {row['seed']}")
+    if a.select_on != "hqnr":
+        bits.append(f"best선택 {'val-ERGAS' if a.select_on == 'val' else 'test-ERGAS/D_s'}")
+    for k in ("width", "depth", "n_attn", "norm", "mlp_ratio", "crop", "iter", "seed",
+              "model", "train_params", "fix", "family"):
+        row.pop(k, None)
+    if not bits:
+        bits = ["기준 구조 그대로"]
     # 서버는 시트 이름("<데이터셋>-<서버>")이 이미 담고 있으므로 Notes 에 넣지 않는다.
     if row.get("note_err"):
         bits.append(row.pop("note_err"))
