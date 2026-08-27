@@ -16,4 +16,5 @@ pgrep -f "bash .*tools/_run_cases.sh" > /dev/null && exit 0          # 체인 �
 grep -q "\[cases\] DONE" "$LOG" 2>/dev/null && exit 0                # 이미 끝남
 echo "[watchdog] $(date -Iseconds) 체인 재기동" >> "$REPO/work_dir/watchdog.log"
 cd "$REPO"
+export PATH="/home/knuvi/miniconda3/bin:$PATH"   # cron 의 최소 PATH 대비
 setsid nohup ./tools/_run_cases.sh >> "$LOG" 2>&1 < /dev/null &

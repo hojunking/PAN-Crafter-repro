@@ -9,7 +9,9 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
 # 체인 밖에서 단독 실행될 수도 있으므로 환경을 직접 잡는다
 if [ "${CONDA_DEFAULT_ENV:-}" != "pancrafter" ]; then
   # shellcheck disable=SC1091
-  source "$(conda info --base)/etc/profile.d/conda.sh" 2>/dev/null && conda activate pancrafter
+  CONDA_BASE="$(conda info --base 2>/dev/null || echo /home/knuvi/miniconda3)"
+# shellcheck disable=SC1091
+source "$CONDA_BASE/etc/profile.d/conda.sh" 2>/dev/null && conda activate pancrafter
 fi
 [ $# -ge 1 ] || { echo "usage: $0 <실행명> [...]" >&2; exit 0; }
 LOG="$REPO/work_dir/gspread_upload.log"

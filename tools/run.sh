@@ -28,8 +28,9 @@ WORK_DIR="$(grep -m1 '^work_dir:' "$CFG" | awk '{print $2}')"
 META="$WORK_DIR/meta"
 mkdir -p "$META"
 
+CONDA_BASE="$(conda info --base 2>/dev/null || echo /home/knuvi/miniconda3)"
 # shellcheck disable=SC1091
-source "$(conda info --base)/etc/profile.d/conda.sh"
+source "$CONDA_BASE/etc/profile.d/conda.sh"
 conda activate pancrafter
 
 cd "$REPO"
