@@ -41,6 +41,9 @@ CONDA_BASE="$(conda info --base 2>/dev/null || echo /home/knuvi/miniconda3)"
 # shellcheck disable=SC1091
 source "$CONDA_BASE/etc/profile.d/conda.sh"; conda activate pancrafter
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+# select_on=hqnr 는 공식 DLPan 구현을 학습 중에 import 한다 — 없으면 의도적으로 죽는다.
+# 셸 환경에 PANCRAFTER_DLPAN 이 없을 수 있으므로(setsid/cron) env.sh 가 있으면 읽는다.
+[ -f "$REPO/tools/env.sh" ] && source "$REPO/tools/env.sh"
 # main_dml.py(DML 조인트 학습)도 GPU 를 쓰므로 함께 기다린다 — 안 잡으면 충돌한다
 running(){ ps -eo args | grep -v grep | grep -qE "^python .*main(_dml)?\.py --config"; }
 while running; do echo "[cases] 대기 $(date -Iseconds)"; sleep 300; done
