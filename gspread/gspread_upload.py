@@ -478,6 +478,9 @@ def collect(tag, want_profile, server, peer=None):
             bits.append("crop=False")
         if float(ma.get("dropout", 0.0)) != 0.0:
             bits.append(f"dropout={ma['dropout']:g}")
+        lam = float(getattr(a, "mutual_lambda", 0.0) or 0.0)
+        if getattr(a, "seed_b", None) is not None:      # DML 조인트 학습의 peer
+            bits.append(f"DML λ={lam:g}" if lam else "DML 대조군 (λ=0)")
         if getattr(a, "mars", "dual") == "ms":
             bits.append("mars=ms (PAN mode 제거)")
     if _tr == "kd":
