@@ -296,7 +296,7 @@ class MetricsCSV():
     COLUMNS = ['epoch', 'global_step',
                'val_psnr', 'val_ssim', 'val_scc', 'val_sam', 'val_q4_first4', 'val_ergas',
                'psnr', 'ssim', 'scc', 'sam', 'q4_first4', 'ergas',
-               'd_lambda', 'd_s', 'qnr', 'ergas_vs_pan', 'scc_vs_pan']
+               'd_lambda', 'd_s', 'qnr', 'hqnr_official', 'ergas_vs_pan', 'scc_vs_pan']
 
     def __init__(self, save_dir):
         Path(save_dir).mkdir(parents=True, exist_ok=True)
