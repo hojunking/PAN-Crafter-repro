@@ -393,33 +393,33 @@ def collect(tag, want_profile, server):
     _loc = ma.get("attn_locations")
     bits = []
     if not is_rebuild:
-        bits.append("배포 코드 구조 (4-scale · CM3A5 · GroupNorm · mode-token · 11ch)")
+        bits.append("arch=배포코드 (4-scale · CM3A5 · GroupNorm · mode-token · 11ch)")
         bits.append(f"fix_A1A2={row.get('fix', '')}")
         if not row["crop"]:
-            bits.append("crop 제거")
+            bits.append("crop=False")
     else:
         if row["width"] != 128:
-            bits.append(f"width {row['width']}")
+            bits.append(f"width={row['width']}")
         if list(ma.get("depth", [])) != [2, 2, 4]:
-            bits.append(f"depth {row['depth']}")
+            bits.append(f"depth={row['depth']}")
         if ma.get("cm3a_pan_branch", True) is False:
-            bits.append("CM3A PAN K/V 제거")
+            bits.append("cm3a_pan_branch=False (PAN K/V 제거)")
         if _loc is not None and tuple(_loc) != ("enc", "btl", "dec"):
-            bits.append("AttnBlock 없음" if not _loc else f"AttnBlock {'+'.join(_loc)}만")
+            bits.append("attn_locations=없음" if not _loc else f"attn_locations={'+'.join(_loc)}")
         if ma.get("norm", "gn") != "ln":
-            bits.append("GroupNorm (배포식 — 논문은 LN)")
+            bits.append("norm=gn (논문은 LN)")
         if ma.get("mlp_ratio", 4.0) != 4.0:
-            bits.append(f"mlp_ratio {ma['mlp_ratio']:g}")
+            bits.append(f"mlp_ratio={ma['mlp_ratio']:g}")
         if ma.get("in_mode", "paper") == "released":
-            bits.append("입력 11ch (↑LPAN·PAN−↑LPAN 추가)")
+            bits.append("in=11ch (↑LPAN·PAN−↑LPAN 추가)")
         if not row["crop"]:
-            bits.append("crop 제거")
+            bits.append("crop=False")
         if getattr(a, "mars", "dual") == "ms":
-            bits.append("MARs single-mode (PAN mode 제거)")
+            bits.append("mars=ms (PAN mode 제거)")
     if row["seed"] != 2025:
-        bits.append(f"seed {row['seed']}")
+        bits.append(f"seed={row['seed']}")
     if a.select_on != "hqnr":
-        bits.append(f"best선택 {'val-ERGAS' if a.select_on == 'val' else 'test-ERGAS/D_s'}")
+        bits.append(f"select={'val-ERGAS' if a.select_on == 'val' else 'test-ERGAS/D_s'}")
     for k in ("width", "depth", "n_attn", "norm", "mlp_ratio", "crop", "iter", "seed",
               "model", "train_params", "fix", "family"):
         row.pop(k, None)
@@ -536,6 +536,42 @@ def _write_header(ws, cols, color):
     set_column_width(ws, _col(c0 + n - 1), 620)
 
 
+def _bold_best(ws, cols):
+    """각 metric 컬럼의 최고(↑)/최저(↓)값 셀을 bold 로. 매 업로드마다 전체를 다시 계산한다.
+
+    ■ Paper (reported) 행은 제외한다. 이전 bold 는 컬럼 전체를 평문으로 되돌린 뒤
+    다시 칠하므로 행이 갱신되어 최고값이 바뀌어도 남은 bold 가 없다.
+    """
+    from gspread_formatting import CellFormat, TextFormat, format_cell_range, batch_updater
+    data = ws.get_all_values()
+    r0 = ORIGIN_ROW + 2                     # 1-based 첫 데이터 행
+    rows_ = data[r0 - 1:]
+    if not rows_:
+        return
+    tag_i = ORIGIN_COL - 1
+    with batch_updater(ws.spreadsheet) as batch:
+        for ci, (grp, hdr, _, _) in enumerate(cols):
+            if "↓" not in hdr and "↑" not in hdr:
+                continue
+            col = ORIGIN_COL + ci
+            vals = []
+            for ri, r in enumerate(rows_):
+                tag = r[tag_i] if len(r) > tag_i else ""
+                if not tag or tag.startswith("■"):
+                    continue
+                try:
+                    vals.append((float(r[col - 1]), r0 + ri))
+                except (ValueError, IndexError):
+                    continue
+            if not vals:
+                continue
+            best_row = (min if "↓" in hdr else max)(vals)[1]
+            rng = f"{_col(col)}{r0}:{_col(col)}{r0 + len(rows_) - 1}"
+            batch.format_cell_range(ws, rng, CellFormat(textFormat=TextFormat(bold=False)))
+            batch.format_cell_range(ws, f"{_col(col)}{best_row}",
+                                    CellFormat(textFormat=TextFormat(bold=True)))
+
+
 def upload(rows, server, replace=False):
     import gspread
     gc = gspread.service_account(filename=CRED)
@@ -581,7 +617,8 @@ def upload(rows, server, replace=False):
             last = max(last, i)
             total += 1
         _apply_borders(ws, cols, last)      # 새로 쓴 행까지 선을 이어준다
-        print(f"  [{sheet_name(ds, server)}] {len(rs)}행")
+        _bold_best(ws, cols)
+        print(f"  [{sheet_name(ds, server)}] {len(rs)}행 (best bold 갱신)")
     return total, added
 
 
