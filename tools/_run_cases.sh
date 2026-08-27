@@ -10,7 +10,8 @@
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
 # 수동 재기동과 cron 감시자가 겹쳐도 체인은 하나만 뜬다
 exec 8>"$REPO/work_dir/.cases_chain.lock"; flock -n 8 || { echo "[cases] 이미 실행 중 — 종료"; exit 0; }
-ORDER=(c0_hqnr c1_nopan c4_noattn c3b_btl c3e_enc c2_encbtl m1_single)
+ORDER=(c0_hqnr c1_nopan c4_noattn c3b_btl c3e_enc c2_encbtl m1_single
+       c5_c2d124 c6_c4d124 c7_c1w96 c8_c4w96)
 source "$(conda info --base)/etc/profile.d/conda.sh"; conda activate pancrafter
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 running(){ ps -eo args | grep -v grep | grep -qE "^python .*main\.py --config"; }
