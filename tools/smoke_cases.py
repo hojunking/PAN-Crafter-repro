@@ -7,7 +7,9 @@
      -> 출력 shape (B,8,64,64) · finite · grad finite
   3. FR 형상(512², WV3 full-res) no-grad forward -> shape · finite
      (PixelUnshuffle 배수 문제·해상도 의존 버그 검출)
-  4. peak VRAM · 대략적인 step 시간
+  4. 실배치 OOM 검사: batch_size x MARs 복제(dual 이면 2배)로 forward+backward+
+     AdamW step 1회 — 학습 시작 후에야 OOM 나는 사고(s1_A2 d444) 재발 방지
+  5. peak VRAM · 대략적인 step 시간
 
 zero_module 함정: 출력 conv 가 0 으로 초기화돼 있어 그대로면 상류 grad 가 전부 0
 이라 backward 검사가 공허하다. 검사 전에 0 파라미터를 난수화한다 (CLAUDE.md 함정 목록).
@@ -90,11 +92,33 @@ def smoke_one(name, dev):
     assert out_fr.shape[-2:] == (512, 512), f"FR 출력 shape {tuple(out_fr.shape)}"
     assert torch.isfinite(out_fr).all(), "FR 출력에 NaN/Inf"
 
+    # 실배치 OOM 검사: 학습과 같은 실효 배치(batch_size x MARs 복제)로
+    # forward+backward+AdamW step 을 1회 돌려 peak VRAM 을 잰다.
+    # s1_A2 가 d444·batch48 에서 학습 시작 후에야 OOM 난 사고의 재발 방지 —
+    # GPU 가 유휴한 case 시작 직전에 미리 터뜨린다. optimizer state 까지 잡는다.
+    peak_train = 0.0
+    if dev.type == "cuda":
+        m.zero_grad(set_to_none=True)
+        torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats(dev)
+        Bt = int(cfg.get("batch_size", 48)) * (2 if dual else 1)
+        opt = torch.optim.AdamW(m.parameters(), lr=1e-4, weight_decay=0.01)
+        pan_t = torch.randn(Bt, 1, 64, 64, device=dev)
+        lpan_t = torch.randn(Bt, 1, 16, 16, device=dev)
+        ms_t = torch.randn(Bt, cfg.get("num_bands", 8), 16, 16, device=dev)
+        sw_t = (torch.arange(Bt, device=dev) >= Bt // 2).float() if dual \
+            else torch.ones(Bt, device=dev)
+        out_t = m(pan_t, lpan_t, ms_t, sw_t)
+        out_t.abs().mean().backward()
+        opt.step()
+        peak_train = torch.cuda.max_memory_allocated(dev) / 2**20
+        del opt, pan_t, lpan_t, ms_t, sw_t, out_t
+
     peak = (torch.cuda.max_memory_allocated(dev) / 2**20) if dev.type == "cuda" else 0
     del m
     if dev.type == "cuda":
         torch.cuda.empty_cache()
-    return n_params, step_ms, peak, "dual" if dual else "ms"
+    return n_params, step_ms, max(peak, peak_train), "dual" if dual else "ms"
 
 
 def main():

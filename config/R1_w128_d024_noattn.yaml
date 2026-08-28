@@ -1,4 +1,4 @@
-# R1 — full-res stage 완전 제거. depth(0,2,4), decoder 미러(dec full 0)
+# R1 — full-res ResBlock·skip 완전 제거 (입출력 conv·Down/Up 은 잔존). depth(0,2,4), decoder 미러(dec full 0)
 # 실측 params 2.9989M. 계획: research_log/2026-08-28_architecture-search-24h-plan.md
 # 공통: 11ch(released)/9ch(paper) · nocrop · LN · 50K · best 선택 HQNR(공식 12-19)
 seed: 2025

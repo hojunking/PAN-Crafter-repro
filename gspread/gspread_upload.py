@@ -190,8 +190,11 @@ def _profile(args_ns, key, want_flops):
     from main import import_class
     Model = import_class(args_ns.model)
 
+    # --profile 이면 강제 재측정. 캐시 미스(신규 구조)면 자동 업로드에서도 한 번
+    # 측정해 채운다 — 업로드는 case 사이(GPU 유휴)에 돌아서 학습을 방해하지 않고,
+    # 값은 캐시돼 다음부터는 재지 않는다. thop 이 새 구조에서 실패해도 업로드는 계속.
     if want_flops or "flops_g" not in hit:
-        if want_flops:
+        try:
             from thop import profile as thop_profile
             m = Model(**args_ns.model_args).eval()
             inp = (torch.randn(1, 1, 256, 256), torch.randn(1, 1, 64, 64),
@@ -199,8 +202,9 @@ def _profile(args_ns, key, want_flops):
             f, _ = thop_profile(m, inputs=inp, verbose=False)
             out["flops_g"] = f / 1e9
             del m
-        elif "flops_g" in hit:
-            out["flops_g"] = hit["flops_g"]
+        except Exception:
+            if "flops_g" in hit:
+                out["flops_g"] = hit["flops_g"]
     else:
         out["flops_g"] = hit["flops_g"]
 

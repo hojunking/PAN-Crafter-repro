@@ -30,8 +30,18 @@ HQNR·D_s 단독 개선은 채택 근거로 쓰지 않는다(축소 시 자동 �
 | 9 | `R6_w96_d024_noattn` | 1.693M | stage 제거+폭 96 동시 | 초경량 U-Net |
 
 계획서의 R2(d014)는 A2 와 사실상 동일 구조라 삭제하고, 그 여유로 조건부였던
-A2·R6 을 꼬리에 무조건 편성했다. R5(w80)·A3(dec 전무)·L2(w96) 는 config 만
-만들어 두었고 이번 큐 결과를 보고 결정한다. `N2_9_d224_noattn` 은 s2 몫이다.
+A2·R6 을 꼬리에 무조건 편성했다. **R5(w80)·A3(dec ResBlock 없음)·L2(w96) 는
+`tools/campaign_gate.py` 가 본 큐 결과의 ERGAS(DLPan 프로토콜)로 자동 판정해
+이어 돌린다** — R5 는 R4 가 c6 와 동급(≤2.1034)일 때, A3 는 A2 ≤2.12,
+L2 는 L1 최저 ≤2.25. `N2_9_d224_noattn` 은 s2 몫이다
+(s2 는 `work_dir/cases_queue.txt` 에 자기 큐를 적고 같은 러너를 쓴다).
+
+**해석 주의.**
+- A1 은 c6 대비 enc H/2·dec H/2·dec full 을 동시에 줄인다 — 효과를 "decoder
+  비대칭"에 단독 귀속할 수 없다. 깨끗한 대조는 **A1 vs A2 짝**(enc full 1 vs 0)이다.
+- A2 는 이름과 달리 **사실상 대칭 d014** 다(enc 0,1 / dec 1,0). asym 은 계열 라벨.
+- "full-res 제거"(R1)·"dec 없음"(A3) 은 ResBlock·skip 기준이다 — 입출력 conv,
+  Down/Up, 출력 head 는 남는다.
 
 학습 합계 ≈ 16.5h (case 당 1.3~2.4h) + 평가·업로드 오버헤드. LR-Fuse 는 dual MARs
 그대로 학습한다(출력이 8ch 라 성립) — m1 에서 확인된 단일모드 ERGAS 열화 교란 배제.
@@ -41,10 +51,18 @@ A2·R6 을 꼬리에 무조건 편성했다. R5(w80)·A3(dec 전무)·L2(w96) �
 - `model/pancrafter_paper.py` — `dec_depth` 옵션: decoder (full-res, H/2) 블록 수 분리,
   0 이면 skip concat 째 생략. 미지정 시 encoder 미러(기존 체크포인트 호환, c0·c6 params 불변 확인).
 - `model/lr_fuse.py` — 신규. 인터페이스·잔차 계약은 기존과 동일해 train.py 무수정.
-- `tools/smoke_cases.py` — 학습 전 build·forward·backward·FR 형상 검증. 체인이 case
-  시작 전에 실행해 config 오류로 2h 슬롯을 태우는 것을 막는다. 15/15 통과 확인.
-- gspread — `dec_depth`(dd01 표기)·LR-Fuse 계열 서술자/Notes 지원.
+- `tools/smoke_cases.py` — 학습 전 build·forward·backward·FR 형상 + **실배치
+  (batch×MARs 복제) OOM 검사**(AdamW step 포함). 체인이 case 시작 전에 실행해
+  config 오류·OOM 으로 2h 슬롯을 태우는 것을 막는다. 15/15 통과 확인.
+- gspread — `dec_depth`(dd01 표기)·LR-Fuse 계열 서술자/Notes 지원. FLOPs 는
+  캐시 미스(신규 구조)면 자동 업로드에서도 측정해 채운다.
+- 러너 v2 — 재기동 시 **resume 우선**(epoch-*/checkpoint-* mtime 최신), 완료 판정은
+  reduced+full mat **둘 다**, 최종 실패는 `cases_failed.txt` 에 기록해 재기동 시
+  재소모 방지, `cases_deadline.txt`(24h 마감) 지나면 새 case 시작 안 함,
+  `cases_queue.txt` 로 서버별 큐 분리, 본 큐 후 `campaign_gate.py` 조건부 실행.
 
 ### 진행 기록
 
 - 2026-08-28: 체인 기동. 이전 캠페인 로그는 `work_dir/cases_chain_lightweight-11.log` 로 보관.
+- 2026-08-28 16:0x: 러너 v2 핸드오버 — N3 학습은 건드리지 않고 체인 셸만 교체.
+  마감 2026-08-29T15:34:43 설정.

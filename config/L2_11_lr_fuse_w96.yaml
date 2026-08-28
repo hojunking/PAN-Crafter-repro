@@ -1,4 +1,4 @@
-# L2 — LR-Fuse 용량 상한. w96·ResBlock6. L1 통과 시에만 (조건부)
+# L2 — LR-Fuse 용량 상한. w96·ResBlock6. L1 초경량 게이트 통과 시에만 (게이트 tools/campaign_gate.py)
 # 실측 params 1.1475M. 계획: research_log/2026-08-28_architecture-search-24h-plan.md
 # MARs dual 유지(출력 8ch 그대로라 성립) — m1 에서 확인된 단일모드 ERGAS 열화 교란을 배제
 seed: 2025

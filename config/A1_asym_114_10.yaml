@@ -1,4 +1,4 @@
-# A1 — 비대칭 U-Net (보수). enc full1/H2 1 · btl4 · dec H2 1/full 0
+# A1 — 비대칭 U-Net (보수). enc full1/H2 1 · btl4 · dec H2 1/full 0. 주의: c6 대비 enc H/2·dec H/2·dec full 을 동시에 줄여 효과의 단독 귀속 불가 — A2 와의 짝(enc full 1 vs 0)이 깨끗한 대조
 # 실측 params 2.7027M. 계획: research_log/2026-08-28_architecture-search-24h-plan.md
 # 공통: 11ch(released)/9ch(paper) · nocrop · LN · 50K · best 선택 HQNR(공식 12-19)
 seed: 2025

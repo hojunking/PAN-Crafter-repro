@@ -1,4 +1,4 @@
-# A2 — 비대칭 U-Net. enc full0/H2 1 · btl4 · dec H2 1/full 0. full-res body 전무
+# A2 — d014 (enc full0/H2 1 · btl4 · dec H2 1/full 0 = 사실상 대칭. 이름의 asym 은 A-계열 라벨). full-res ResBlock 전무, 입출력 conv·Up/Down·head 는 잔존. 계획서 R2 와 동일 취지
 # 실측 params 2.4065M. 계획: research_log/2026-08-28_architecture-search-24h-plan.md
 # 공통: 11ch(released)/9ch(paper) · nocrop · LN · 50K · best 선택 HQNR(공식 12-19)
 seed: 2025

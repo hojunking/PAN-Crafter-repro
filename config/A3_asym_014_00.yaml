@@ -1,4 +1,4 @@
-# A3 — 비대칭 극단. enc full0/H2 1 · btl4 · dec 없음(H2 0/full 0). A2 통과 시에만 (조건부)
+# A3 — 극단. enc full0/H2 1 · btl4 · dec ResBlock 없음 (UpConv 2·출력 head 는 잔존). A2 통과 시에만 (게이트 tools/campaign_gate.py)
 # 실측 params 1.9297M. 계획: research_log/2026-08-28_architecture-search-24h-plan.md
 # 공통: 11ch(released)/9ch(paper) · nocrop · LN · 50K · best 선택 HQNR(공식 12-19)
 seed: 2025

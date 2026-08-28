@@ -1,4 +1,4 @@
-# R5 — width 80 극단 지점. R4 통과 시에만 실행 (조건부)
+# R5 — width 80 극단 지점. R4 동급 판정 시에만 (게이트 tools/campaign_gate.py)
 # 실측 params 1.4819M. 계획: research_log/2026-08-28_architecture-search-24h-plan.md
 # 공통: 11ch(released)/9ch(paper) · nocrop · LN · 50K · best 선택 HQNR(공식 12-19)
 seed: 2025
