@@ -37,7 +37,7 @@ else
     ORDER=(N3_9_d124_noattn R1_w128_d024_noattn R3_w112_d124_noattn R4_w96_d124_noattn
            A1_asym_114_10 L1_11_lr_fuse_w64 L1_9_lr_fuse_w64 A2_asym_014_10 R6_w96_d024_noattn)
 fi
-CONDA_BASE="$(conda info --base 2>/dev/null || echo /home/knuvi/miniconda3)"
+CONDA_BASE="$(conda info --base 2>/dev/null || { [ -d "$HOME/miniconda3" ] && echo "$HOME/miniconda3"; } || echo /home/knuvi/miniconda3)"   # 폴백은 서버 무관($HOME 우선)
 # shellcheck disable=SC1091
 source "$CONDA_BASE/etc/profile.d/conda.sh"; conda activate pancrafter
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True

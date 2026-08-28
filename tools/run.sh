@@ -28,7 +28,7 @@ WORK_DIR="$(grep -m1 '^work_dir:' "$CFG" | awk '{print $2}')"
 META="$WORK_DIR/meta"
 mkdir -p "$META"
 
-CONDA_BASE="$(conda info --base 2>/dev/null || echo /home/knuvi/miniconda3)"
+CONDA_BASE="$(conda info --base 2>/dev/null || { [ -d "$HOME/miniconda3" ] && echo "$HOME/miniconda3"; } || echo /home/knuvi/miniconda3)"   # 폴백은 서버 무관($HOME 우선)
 # shellcheck disable=SC1091
 source "$CONDA_BASE/etc/profile.d/conda.sh"
 conda activate pancrafter
