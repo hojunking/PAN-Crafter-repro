@@ -149,11 +149,18 @@ class PANCrafterPaper(nn.Module):
     def __init__(self, in_channels=1, out_channels=8, hidden_size=128,
                  depth=(2, 2, 4), dropout=0.0, num_heads=8, mlp_ratio=4.0,
                  ka=3, ks=3, n_attn=3, norm="ln", in_mode="paper",
-                 attn_locations=None, cm3a_pan_branch=True):
+                 attn_locations=None, cm3a_pan_branch=True, dec_depth=None):
         super().__init__()
         C = hidden_size
         d0, d1, d2 = depth
         self.depth = tuple(depth)
+        # dec_depth=(full-res, H/2): decoder 블록 수를 encoder 와 분리한다.
+        # None 이면 encoder 를 미러링한다(기존 동작과 동일한 모듈 이름·순서라
+        # 기존 체크포인트가 그대로 로드된다). 0 이면 그 해상도의 skip concat 과
+        # ResBlock 을 통째로 생략한다 — encoder 쪽 depth 0 과 달리 decoder 는
+        # 융합 블록 1개가 강제로 남던 구조였는데, 0 을 주면 그것까지 없앤다.
+        dd0, dd1 = (d0, d1) if dec_depth is None else dec_depth
+        self.dec_depth = (dd0, dd1)
         R = lambda ch, out=None: ResBlock(ch, dropout, out_channels=out, norm=norm)
         A = lambda: AttnBlock(C, num_heads, pan_channel=in_channels, ms_channel=out_channels,
                               mlp_ratio=mlp_ratio, ks=ks, ka=ka, pan_branch=cm3a_pan_branch)
@@ -169,9 +176,11 @@ class PANCrafterPaper(nn.Module):
         self.down2 = DownConv(C, out_channels=C)
         self.middle = nn.ModuleList([R(C, C) for _ in range(d2)])
         self.up2 = UpConv(C, out_channels=C)
-        self.decoder2 = nn.ModuleList([R(2 * C, C)] + [R(C, C) for _ in range(d1 - 1)])
+        self.decoder2 = nn.ModuleList(
+            ([R(2 * C, C)] + [R(C, C) for _ in range(dd1 - 1)]) if dd1 > 0 else [])
         self.up1 = UpConv(C, out_channels=C)
-        self.decoder1 = nn.ModuleList([R(2 * C, C)] + [R(C, C) for _ in range(d0 - 1)])
+        self.decoder1 = nn.ModuleList(
+            ([R(2 * C, C)] + [R(C, C) for _ in range(dd0 - 1)]) if dd0 > 0 else [])
         self.output = nn.Sequential(_norm(norm, C), nn.SiLU(),
                                     zero_module(nn.Conv2d(C, out_channels, 3, padding=1)))
         # attn_locations 가 있으면 위치를 직접 고른다 ("enc","btl","dec" 의 부분집합).
@@ -223,13 +232,15 @@ class PANCrafterPaper(nn.Module):
         if self.cond_bot is not None:
             x = self.cond_bot(x, ms, lpan, I(pan, 1 / 4), s)
         x = self.up2(x)
-        x = torch.cat((x, skip2), dim=1)
-        for b in self.decoder2:
-            x = b(x, s)
+        if len(self.decoder2) > 0:
+            x = torch.cat((x, skip2), dim=1)
+            for b in self.decoder2:
+                x = b(x, s)
         if self.cond2_d is not None:
             x = self.cond2_d(x, I(ms, 2), I(lpan, 2), I(pan, 1 / 2), s)
         x = self.up1(x)
-        x = torch.cat((x, skip1), dim=1)
-        for b in self.decoder1:
-            x = b(x, s)
+        if len(self.decoder1) > 0:
+            x = torch.cat((x, skip1), dim=1)
+            for b in self.decoder1:
+                x = b(x, s)
         return self.output(x)

@@ -268,11 +268,18 @@ REBUILD_DEFAULT = {"hidden_size": 128, "depth": [2, 2, 4], "n_attn": 3,
                    "norm": "ln", "in_mode": "paper", "crop": True}
 
 
-def _descriptor(ma, crop, is_rebuild):
+def _descriptor(ma, crop, family):
     """실행명에 붙일 짧은 설명. 표준에서 벗어난 축만 보여준다.
 
     s1_A0 같은 ID 만으로는 시트에서 무엇을 시험한 실행인지 알 수 없다.
+    family: "paper"(재구성본) / "released"(배포 구조) / "lrfuse"(LR-Fuse)
     """
+    if family == "lrfuse":                   # 새 초경량 구조 (24h 탐색 §6)
+        bits = [f"LR-Fuse w{ma.get('hidden_size', 64)}",
+                f"{ma.get('n_blocks', 6)}blk",
+                "9ch계열" if ma.get("in_mode", "paper") == "paper" else "11ch계열"]
+        return " ".join(bits + ([] if crop else ["nocrop"]))
+    is_rebuild = family == "paper"
     if not is_rebuild:                       # 배포 구조 계열
         bits = [f"w{ma['hidden_size'][0]}", f"d{''.join(map(str, ma['depth']))}",
                 f"a{ma.get('n_attn', 5)}", "gn"]
@@ -300,6 +307,8 @@ def _descriptor(ma, crop, is_rebuild):
     loc = ma.get("attn_locations")
     if loc is not None and tuple(loc) != ("enc", "btl", "dec"):
         bits.append("attn:" + ("+".join(loc) if loc else "0"))
+    if ma.get("dec_depth") is not None:
+        bits.append("dd" + "".join(map(str, ma["dec_depth"])))
     if not crop:
         bits.append("nocrop")
     return " ".join(bits) if bits else "표준"
@@ -341,11 +350,13 @@ def collect(tag, want_profile, server):
         "seed": a.seed, "iter": a.num_iter,   # iter 는 비고와 실행명 양쪽에 들어간다
         "width": hs if isinstance(hs, int) else (hs[0] if hs else ""),
         "depth": str(ma.get("depth", "")),
-        "n_attn": ma.get("n_attn", len(ma.get("cm3a_locations") or ["2e","3e","4","3d","2d"])),
+        "n_attn": (0 if "LRFuse" in a.model else
+                   ma.get("n_attn", len(ma.get("cm3a_locations") or ["2e","3e","4","3d","2d"]))),
         "norm": ma.get("norm", "gn"),
         "mlp_ratio": ma.get("mlp_ratio", 4.0),
         "crop": a.train_feeder_args.get("crop", ""),
-        "family": "paper" if "Paper" in a.model else "released",
+        "family": ("lrfuse" if "LRFuse" in a.model
+                   else "paper" if "Paper" in a.model else "released"),
         "fix": "True" if ma.get("fix_key_alias") else "False",
     }
     # 파라미터
@@ -381,8 +392,9 @@ def collect(tag, want_profile, server):
             break
     row.update(_profile(a, tag, want_profile))
 
-    is_rebuild = "Paper" in a.model
-    desc = _descriptor(ma, row["crop"], is_rebuild)
+    family = row["family"]
+    is_rebuild = family == "paper"
+    desc = _descriptor(ma, row["crop"], family)
     if getattr(a, "mars", "dual") == "ms":
         desc = (desc + " singleMARs").strip().removeprefix("표준 ")
 
@@ -392,7 +404,18 @@ def collect(tag, want_profile, server):
     n_iter = row["iter"]
     _loc = ma.get("attn_locations")
     bits = []
-    if not is_rebuild:
+    if family == "lrfuse":
+        bits.append(f"arch=LR-Fuse (PixelUnshuffle×4 · 전연산 1/16 면적 "
+                    f"· w{ma.get('hidden_size', 64)} · ResBlock {ma.get('n_blocks', 6)} "
+                    f"· attention 없음)")
+        bits.append("in=" + ("unshuffle(PAN)+MS (9ch 철학)"
+                             if ma.get("in_mode", "paper") == "paper"
+                             else "unshuffle(PAN)+LPAN+고주파+MS (11ch 철학)"))
+        if not row["crop"]:
+            bits.append("crop=False")
+        if getattr(a, "mars", "dual") == "ms":
+            bits.append("mars=ms (PAN mode 제거)")
+    elif not is_rebuild:
         bits.append("arch=배포코드 (4-scale · CM3A5 · GroupNorm · mode-token · 11ch)")
         bits.append(f"fix_A1A2={row.get('fix', '')}")
         if not row["crop"]:
@@ -406,6 +429,8 @@ def collect(tag, want_profile, server):
             bits.append("cm3a_pan_branch=False (PAN K/V 제거)")
         if _loc is not None and tuple(_loc) != ("enc", "btl", "dec"):
             bits.append("attn_locations=없음" if not _loc else f"attn_locations={'+'.join(_loc)}")
+        if ma.get("dec_depth") is not None:
+            bits.append(f"dec_depth={list(ma['dec_depth'])} (decoder 비대칭; 0=해당 해상도 생략)")
         if ma.get("norm", "gn") != "ln":
             bits.append("norm=gn (논문은 LN)")
         if ma.get("mlp_ratio", 4.0) != 4.0:
