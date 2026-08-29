@@ -50,11 +50,22 @@ GATES = [
 ]
 
 
+def _ledgered(tag):
+    """실패 원장(cases_failed.txt)에 오른 case — 게이트가 다시 열지 않는다."""
+    p = os.path.join(ROOT, "work_dir", "cases_failed.txt")
+    if not os.path.exists(p):
+        return False
+    return any(line.startswith(tag + " ") for line in open(p))
+
+
 def main():
     for cand, prereqs, thr, why in GATES:
         done = os.path.join(ROOT, "work_dir", cand, "results", "reduced_best_hqnr.mat")
         if os.path.exists(done):
             print(f"[gate] {cand}: 이미 완료 — 생략", file=sys.stderr)
+            continue
+        if _ledgered(cand):
+            print(f"[gate] {cand}: 실패 원장 기록 — 생략", file=sys.stderr)
             continue
         vals = [(p, ergas_of(p)) for p in prereqs]
         known = [(p, v) for p, v in vals if v is not None]

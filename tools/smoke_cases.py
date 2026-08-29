@@ -31,12 +31,19 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 
+class ConfigMissing(Exception):
+    """config 파일 부재 — 빌드 실패와 달리 일시 사유다 (예: git pull 전).
+
+    체인은 이 경우(exit 2)를 실패 원장에 남기지 않고 이번 패스만 건너뛴다.
+    """
+
+
 def load_cfg(name):
     for p in (os.path.join(ROOT, "config", f"{name}.yaml"),
               os.path.join(ROOT, "config", f"pancrafter_{name}.yaml")):
         if os.path.exists(p):
             return yaml.safe_load(open(p))
-    raise FileNotFoundError(f"config 없음: {name}")
+    raise ConfigMissing(f"config 없음: {name}")
 
 
 def build(cfg):
@@ -57,6 +64,12 @@ def smoke_one(name, dev):
     cfg = load_cfg(name)
     m = build(cfg).to(dev)
     n_params = sum(p.numel() for p in m.parameters()) / 1e6
+    # config 에 expect_params_m 이 있으면 실측과 대조한다 — 옵션 하나(예:
+    # cm3a_pan_branch) 빠뜨려 딴 모델을 학습하는 사고를 학습 전에 잡는다.
+    exp = cfg.get("expect_params_m")
+    if exp is not None:
+        assert abs(n_params - float(exp)) / float(exp) < 0.005, \
+            f"params {n_params:.4f}M ≠ 기대 {exp}M — config 옵션 누락 의심"
     randomize_zero_params(m)
     dual = cfg.get("mars", "dual") != "ms"
 
@@ -127,19 +140,25 @@ def main():
         print(__doc__)
         sys.exit(2)
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    failed = []
+    failed, missing = [], []
     print(f"[smoke] device={dev}  cases={len(names)}")
     for name in names:
         try:
             p, ms_t, peak, mars = smoke_one(name, dev)
             print(f"[smoke] OK   {name:26s} {p:7.4f}M  step≈{ms_t:6.0f}ms  "
                   f"peakVRAM {peak:6.0f}MB  mars={mars}")
+        except ConfigMissing as e:
+            print(f"[smoke] MISS {name:26s} {e}")
+            missing.append(name)
         except Exception as e:
             print(f"[smoke] FAIL {name:26s} {type(e).__name__}: {e}")
             failed.append(name)
     if failed:
         print(f"[smoke] 실패 {len(failed)}: {' '.join(failed)}")
         sys.exit(1)
+    if missing:
+        print(f"[smoke] config 없음 {len(missing)}: {' '.join(missing)}")
+        sys.exit(2)
     print("[smoke] 전부 통과")
 
 

@@ -149,7 +149,9 @@ class PANCrafterPaper(nn.Module):
     def __init__(self, in_channels=1, out_channels=8, hidden_size=128,
                  depth=(2, 2, 4), dropout=0.0, num_heads=8, mlp_ratio=4.0,
                  ka=3, ks=3, n_attn=3, norm="ln", in_mode="paper",
-                 attn_locations=None, cm3a_pan_branch=True, dec_depth=None):
+                 attn_locations=None, cm3a_pan_branch=True, dec_depth=None,
+                 swin_depth=0, swin_mid=0, swin_heads=4, swin_window=8,
+                 swin_mlp_ratio=2.0):
         super().__init__()
         C = hidden_size
         d0, d1, d2 = depth
@@ -191,6 +193,15 @@ class PANCrafterPaper(nn.Module):
         self.cond2_e = A() if "enc" in self.attn_locations else None
         self.cond_bot = A() if "btl" in self.attn_locations else None
         self.cond2_d = A() if "dec" in self.attn_locations else None
+        # 표준 Swin block (Swin hybrid 실험용, 계획 v2 §2).
+        #   swin_depth : H/4 bottleneck 의 ResBlock(+CM3A) 뒤에 W→SW 교대로 붙는 수
+        #   swin_mid   : H/2 encoder 끝(skip2 캡처 직전)에 붙는 수 — 위치 실험용
+        # 0(기본)이면 빈 ModuleList 라 파라미터·state_dict 키가 없다 — 기존
+        # config·체크포인트와 완전 호환. mode 조건화는 ResBlock 몫이므로 Swin 은
+        # 표준형 그대로 둔다 (model/swin.py 머리말 참고).
+        from model.swin import swin_blocks
+        self.swin_btl = swin_blocks(swin_depth, C, swin_heads, swin_window, swin_mlp_ratio)
+        self.swin_h2 = swin_blocks(swin_mid, C, swin_heads, swin_window, swin_mlp_ratio)
         self.initialize_weights()
 
     def initialize_weights(self):
@@ -225,12 +236,16 @@ class PANCrafterPaper(nn.Module):
             x = b(x, s)
         if self.cond2_e is not None:
             x = self.cond2_e(x, I(ms, 2), I(lpan, 2), I(pan, 1 / 2), s)
+        for b in self.swin_h2:
+            x = b(x)
         skip2 = x
         x = self.down2(x)
         for b in self.middle:
             x = b(x, s)
         if self.cond_bot is not None:
             x = self.cond_bot(x, ms, lpan, I(pan, 1 / 4), s)
+        for b in self.swin_btl:
+            x = b(x)
         x = self.up2(x)
         if len(self.decoder2) > 0:
             x = torch.cat((x, skip2), dim=1)

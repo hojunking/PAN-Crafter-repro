@@ -278,10 +278,11 @@ def _descriptor(ma, crop, family):
     s1_A0 같은 ID 만으로는 시트에서 무엇을 시험한 실행인지 알 수 없다.
     family: "paper"(재구성본) / "released"(배포 구조) / "lrfuse"(LR-Fuse)
     """
-    if family == "lrfuse":                   # 새 초경량 구조 (24h 탐색 §6)
-        bits = [f"LR-Fuse w{ma.get('hidden_size', 64)}",
-                f"{ma.get('n_blocks', 6)}blk",
-                "9ch계열" if ma.get("in_mode", "paper") == "paper" else "11ch계열"]
+    if family in ("lrfuse", "lrtinyswin"):   # 저해상도 초경량 구조들
+        head = (f"LR-TinySwin w{ma.get('hidden_size', 64)} sw{ma.get('swin_depth', 2)}"
+                if family == "lrtinyswin"
+                else f"LR-Fuse w{ma.get('hidden_size', 64)} {ma.get('n_blocks', 6)}blk")
+        bits = [head, "9ch계열" if ma.get("in_mode", "paper") == "paper" else "11ch계열"]
         return " ".join(bits + ([] if crop else ["nocrop"]))
     is_rebuild = family == "paper"
     if not is_rebuild:                       # 배포 구조 계열
@@ -313,6 +314,10 @@ def _descriptor(ma, crop, family):
         bits.append("attn:" + ("+".join(loc) if loc else "0"))
     if ma.get("dec_depth") is not None:
         bits.append("dd" + "".join(map(str, ma["dec_depth"])))
+    if ma.get("swin_depth", 0):
+        bits.append(f"sw{ma['swin_depth']}@btl")
+    if ma.get("swin_mid", 0):
+        bits.append(f"sw{ma['swin_mid']}@H2")
     if not crop:
         bits.append("nocrop")
     return " ".join(bits) if bits else "표준"
@@ -354,12 +359,13 @@ def collect(tag, want_profile, server):
         "seed": a.seed, "iter": a.num_iter,   # iter 는 비고와 실행명 양쪽에 들어간다
         "width": hs if isinstance(hs, int) else (hs[0] if hs else ""),
         "depth": str(ma.get("depth", "")),
-        "n_attn": (0 if "LRFuse" in a.model else
+        "n_attn": (0 if ("LRFuse" in a.model or "LRTinySwin" in a.model) else
                    ma.get("n_attn", len(ma.get("cm3a_locations") or ["2e","3e","4","3d","2d"]))),
         "norm": ma.get("norm", "gn"),
         "mlp_ratio": ma.get("mlp_ratio", 4.0),
         "crop": a.train_feeder_args.get("crop", ""),
-        "family": ("lrfuse" if "LRFuse" in a.model
+        "family": ("lrtinyswin" if "LRTinySwin" in a.model
+                   else "lrfuse" if "LRFuse" in a.model
                    else "paper" if "Paper" in a.model else "released"),
         "fix": "True" if ma.get("fix_key_alias") else "False",
     }
@@ -408,10 +414,16 @@ def collect(tag, want_profile, server):
     n_iter = row["iter"]
     _loc = ma.get("attn_locations")
     bits = []
-    if family == "lrfuse":
-        bits.append(f"arch=LR-Fuse (PixelUnshuffle×4 · 전연산 1/16 면적 "
-                    f"· w{ma.get('hidden_size', 64)} · ResBlock {ma.get('n_blocks', 6)} "
-                    f"· attention 없음)")
+    if family in ("lrfuse", "lrtinyswin"):
+        if family == "lrtinyswin":
+            bits.append(f"arch=LR-TinySwin (PixelUnshuffle×4 · 전연산 1/16 면적 "
+                        f"· w{ma.get('hidden_size', 64)} · Swin {ma.get('swin_depth', 2)} "
+                        f"(h{ma.get('num_heads', 4)}·w{ma.get('window_size', 8)}"
+                        f"·mlp{ma.get('mlp_ratio', 2.0):g}) · residual group)")
+        else:
+            bits.append(f"arch=LR-Fuse (PixelUnshuffle×4 · 전연산 1/16 면적 "
+                        f"· w{ma.get('hidden_size', 64)} · ResBlock {ma.get('n_blocks', 6)} "
+                        f"· attention 없음)")
         bits.append("in=" + ("unshuffle(PAN)+MS (9ch 철학)"
                              if ma.get("in_mode", "paper") == "paper"
                              else "unshuffle(PAN)+LPAN+고주파+MS (11ch 철학)"))
@@ -435,6 +447,12 @@ def collect(tag, want_profile, server):
             bits.append("attn_locations=없음" if not _loc else f"attn_locations={'+'.join(_loc)}")
         if ma.get("dec_depth") is not None:
             bits.append(f"dec_depth={list(ma['dec_depth'])} (decoder 비대칭; 0=해당 해상도 생략)")
+        if ma.get("swin_depth", 0):
+            bits.append(f"swin={ma['swin_depth']}@btl (표준 Swin, W→SW 교대 · "
+                        f"h{ma.get('swin_heads', 4)}·w{ma.get('swin_window', 8)}"
+                        f"·mlp{ma.get('swin_mlp_ratio', 2.0):g})")
+        if ma.get("swin_mid", 0):
+            bits.append(f"swin_mid={ma['swin_mid']}@H/2enc (표준 Swin)")
         if ma.get("norm", "gn") != "ln":
             bits.append("norm=gn (논문은 LN)")
         if ma.get("mlp_ratio", 4.0) != 4.0:

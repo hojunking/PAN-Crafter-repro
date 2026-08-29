@@ -54,7 +54,7 @@ past_deadline(){
     [ "$(date +%s)" -gt "$dl" ]
 }
 
-FAILED=""; DEADLINE_SKIPPED=""
+FAILED=""; DEADLINE_SKIPPED=""; MISSING_CFG=""
 run_case(){  # $1=TAG $2=순번표시
     local TAG=$1 i=$2 rc CK
     if ledgered "$TAG"; then
@@ -70,8 +70,13 @@ run_case(){  # $1=TAG $2=순번표시
         DEADLINE_SKIPPED="${DEADLINE_SKIPPED:-}$TAG "; return
     fi
     echo "[cases] ($i) === $TAG 시작 $(date -Iseconds) ==="
-    # 새 아키텍처의 config·build·OOM 오류는 학습 전에 분 단위로 걸러낸다
-    if ! python tools/smoke_cases.py "$TAG" 8>&-; then
+    # 새 아키텍처의 config·build·OOM 오류는 학습 전에 분 단위로 걸러낸다.
+    # rc=2 는 config 부재(예: s2 가 pull 전) — 일시 사유라 원장에 남기지 않는다.
+    set +e; python tools/smoke_cases.py "$TAG" 8>&-; smoke_rc=$?; set -e
+    if [ $smoke_rc -eq 2 ]; then
+        echo "[cases] ($i) $TAG config 없음 — 이번 패스 건너뜀 (원장 미기록, pull 후 재기동 시 재시도)"
+        MISSING_CFG="${MISSING_CFG:-}$TAG "; return
+    elif [ $smoke_rc -ne 0 ]; then
         echo "[cases] ($i) FAILED $TAG (smoke 불통과 — 학습 시작 안 함) $(date -Iseconds)"
         echo "$TAG rc=smoke $(date -Iseconds)" >> "$LEDGER"
         FAILED="${FAILED:-}$TAG "; return
@@ -117,22 +122,31 @@ for TAG in "${ORDER[@]}"; do
     i=$((i+1)); run_case "$TAG" "$i/${#ORDER[@]}"
 done
 
-# 본 큐 종료 후: 결과 ERGAS 기반 조건부 case (R5·A3·L2). 마감 지났으면 생략
+# 본 큐 종료 후: 결과 기반 조건부 case. 게이트는 **다중 패스**로 평가한다 —
+# 2단 체인(예: SW4 결과가 SW6 을 열고, SW6 결과가 SW8 을 여는 구조)은 단일
+# 패스로는 영영 닫힌 채 끝나기 때문이다. 패스마다 새로 열린 것이 없으면 종료.
 if ! past_deadline; then
-    # 게이트: stdout 은 실행할 tag 목록, 판정 사유는 stderr(체인 로그)로 남는다
-    mapfile -t EXTRA < <(python tools/campaign_gate.py 8>&- | grep -E '^[A-Za-z0-9_]+$' || true)
-    if [ ${#EXTRA[@]} -gt 0 ]; then
-        echo "[cases] 조건부 게이트 통과: ${EXTRA[*]}"
+    PREV_EXTRA=""
+    for pass in 1 2 3 4; do
+        # 게이트: stdout 은 실행할 tag 목록, 판정 사유는 stderr(체인 로그)로 남는다
+        mapfile -t EXTRA < <(python tools/campaign_gate.py 8>&- | grep -E '^[A-Za-z0-9_]+$' || true)
+        if [ ${#EXTRA[@]} -eq 0 ]; then
+            echo "[cases] 조건부 게이트(패스 $pass): 추가 실행 없음"; break
+        fi
+        if [ "${EXTRA[*]}" = "$PREV_EXTRA" ]; then
+            echo "[cases] 조건부 게이트(패스 $pass): 진전 없음(${EXTRA[*]}) — 종료"; break
+        fi
+        PREV_EXTRA="${EXTRA[*]}"
+        echo "[cases] 조건부 게이트(패스 $pass) 통과: ${EXTRA[*]}"
         j=0
         for TAG in "${EXTRA[@]}"; do
-            j=$((j+1)); run_case "$TAG" "gate $j/${#EXTRA[@]}"
+            j=$((j+1)); run_case "$TAG" "gate$pass $j/${#EXTRA[@]}"
         done
-    else
-        echo "[cases] 조건부 게이트: 추가 실행 없음"
-    fi
+        past_deadline && { echo "[cases] 게이트 루프 마감 도달 — 종료"; break; }
+    done
 fi
 
 # DONE 은 감시자의 종료 신호다. 실패가 있어도 재기동 루프를 막기 위해 DONE 은 찍되
 # 실패·마감스킵 목록을 함께 남긴다 — 사람이 로그만 보고 정상 완료로 오인하지 않게.
 # (실패는 이미 재시도를 소진했고 ledger 에 남아, 재기동해도 다시 태우지 않는다)
-echo "[cases] DONE $(date -Iseconds)${FAILED:+  !! 실패: $FAILED}${DEADLINE_SKIPPED:+  !! 마감스킵: $DEADLINE_SKIPPED}"
+echo "[cases] DONE $(date -Iseconds)${FAILED:+  !! 실패: $FAILED}${DEADLINE_SKIPPED:+  !! 마감스킵: $DEADLINE_SKIPPED}${MISSING_CFG:+  !! config없음(미실행): $MISSING_CFG}"
