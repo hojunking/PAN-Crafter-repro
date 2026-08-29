@@ -89,6 +89,10 @@ def get_parser():
                         help='검증셋 평가 배치. 지표는 표본별로 계산하므로 결과에 영향 없다')
     parser.add_argument('--resume', type=str, default=None,
                         help='이어서 학습할 accelerate checkpoint 디렉터리 (예: work_dir/.../checkpoint-20000)')
+    parser.add_argument('--expect-params-m', type=float, default=None,
+                        help='기대 params(M). 학습은 사용하지 않고 tools/smoke_cases.py 가 '
+                             'build 실측과 대조한다 — config 옵션 누락으로 딴 모델을 '
+                             '학습하는 사고 방지용. (config 키 검증을 통과시키기 위해 선언)')
     return parser
 
 

@@ -388,13 +388,14 @@ local anchor다. seed는 추가로 확인하지 않는다.
 ### 7.1 구현 범위
 
 ~~~text
-PANCrafterPaper:
-  swin_depth
-  swin_window_size
-  swin_num_heads
+PANCrafterPaper (구현 실명 — 2026-08-29 교정):
+  swin_depth      (btl)
+  swin_mid        (H/2 enc, 예비 옵션)
+  swin_window
+  swin_heads
   swin_mlp_ratio
 
-SwinBlock:
+SwinBlock (model/swin.py):
   window partition / reverse
   cyclic shift
   shifted-window mask
@@ -402,7 +403,8 @@ SwinBlock:
   pre-norm residual
 
 LR-TinySwin:
-  별도 model/lr_tiny_swin.py
+  별도 model/lr_tinyswin.py (클래스 LRTinySwin;
+  인자는 hidden_size · swin_depth · num_heads · window_size · mlp_ratio · in_mode)
 ~~~
 
 기존 config에서 swin_depth가 0이거나 미지정이면 c0·c6 파라미터와 checkpoint 동작이 변하지 않아야 한다.

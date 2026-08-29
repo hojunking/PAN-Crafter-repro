@@ -31,15 +31,16 @@ build 실측이 우연히 좋은 정렬을 준다 — **SW4 4.3054M · d126 4.36
 "bottleneck 에 +0.27~0.62M 이 늘어서"라는 대안 가설을 가를 수 없다
 (w112→w128 만으로 ERGAS 1.63% 가 움직이는 것이 확인된 저장소다).
 
-**② LR 반증은 `LR_SW2_w128` (0.5907M) 로 변경.**
-신계획의 w64(0.194M)는 이미 기각된 LR-Fuse L1(0.544M)의 1/3 용량이라 실패가
+**② LR 반증은 `LR_SW2_w128` (실측 0.6103M, 11ch 계열) 로 변경.**
+신계획의 w64(0.194M)는 이미 기각된 LR-Fuse L1_11(0.5439M)의 1/3 용량이라 실패가
 과잉결정된다 — 그 실패로는 "Swin 전역 attention 이면 다른가"(신계획 §9 의 질문)에
-답할 수 없다. w128 은 L1 과 params +8.6% 로 매칭되어 **mechanism 만 다른 비교**가 된다.
-비용 차이는 ~0.2h. 0.2M급 ultra-lite 지점 탐색은 w128 이 생존할 때만 다음 캠페인에서.
+답할 수 없다. w128·11ch 계열은 L1_11 과 입력을 같게 두고 params +12.2% 로 매칭되어
+**mechanism 만 다른 비교**가 된다. 0.2M급 ultra-lite 탐색은 w128 생존 시 다음 캠페인에서.
 
-**③ s2 예비로 `N3_9_d124_noattn` 재현.**
+**③ `N3_9_d124_noattn` 재현은 s2 의 post-gate 예비.**
 c6-s2 가 환경을 검증했지만 **9ch 성립(Teacher-Student 입력 통일 결정)은 아직 s1 단일
-근거**다. s2 확정+게이트가 ~14h 라 슬랙이 충분하므로, 게이트 종료 후 잔여 시간에 돌린다.
+근거**다. 큐가 아니라 **게이트**로 구현했다 — w112 이 종결된 뒤에만 열리고, W96 이
+같은 패스에 열리면 W96 먼저 돈다. 마감이 닥치면 자동 마감스킵되는 진짜 예비다.
 
 ## 2. s1 큐 — attention 의 존재·종류·깊이·용량 등가 (확정 5 + 게이트 1)
 
@@ -72,10 +73,10 @@ anchor: 완료된 c6-s2. s2 는 `tools/campaign_start.sh --queue` 로 기동 (�
 | 1 | `SW2_add` (s1 과 동일 config) | d124 + Swin×2 | 4.0387M | ~3.0h | s2 에서 Swin 효과 |
 | 2 | `SW2_d024` | d024 + Swin×2 | 3.2657M | ~2.0h | full-res 제거를 Swin 이 벌충하는가 |
 | 3 | `SW2_d122` | d122(btl 4→2) + Swin×2 | 3.4463M | ~2.6h | 3M대 예산을 고해상도 vs btl 어디에 |
-| 4 | `LR_SW2_w128` | LR-TinySwin w128·sw2 | 0.5907M | ~1.1h | LR 패러다임 최종 반증 (L1 과 용량 매칭) |
-| g1 | [gate] `SW2_<승자>_w112` | quality parent 의 w112 | 2.5~3.1M | ~2.4h | hybrid 폭 축소 기울기 |
-| g2 | [gate] `SW2_<승자>_w96` | 〃 w96 | build 시 | ~2.1h | w112 통과 시에만 |
-| 예비 | `N3_9_d124_noattn` (기존 config) | 9ch 재현 | 3.7696M | ~3.0h | 9ch 성립의 서버 독립 확정 |
+| 4 | `LR_SW2_w128` | LR-TinySwin w128·sw2·11ch계열 | 0.6103M | ~1.1h | LR 패러다임 최종 반증 (L1_11 과 용량·입력 매칭) |
+| g1 | [gate] `SW2_d024_w112` 또는 `SW2_d122_w112` | quality parent 의 w112 | 2.5047 / 2.6430M | ~2.4h | hybrid 폭 축소 기울기 (4벌 선생성, 게이트가 하나만 연다) |
+| g2 | [gate] 〃 `_w96` | 〃 w96 | 1.8445 / 1.9462M | ~2.1h | w112 통과 시에만 (§5.3 게이트) |
+| g3 | [gate·예비] `N3_9_d124_noattn` | 9ch 재현 | 3.7696M | ~3.0h | 9ch 성립의 서버 독립 확정 — w112 종결 후에만, W96 다음 순위 |
 
 확정 ~8.7h + 게이트 ~4.5h + 예비 ~3h = **최대 ~16h**.
 
@@ -96,7 +97,7 @@ Efficiency Pareto winner 를 분리해 선언**하고, results_log 에 정식 �
 ## 5. 실행 절차 (양 서버 공통)
 
 ```bash
-# s1 (구현 커밋 push 후):
+# s1 (커밋 push 후):
 cat > /tmp/queue_s1.txt << 'Q'
 SW2_add
 CM3A_btl_nopan_d124
@@ -112,20 +113,37 @@ SW2_add
 SW2_d024
 SW2_d122
 LR_SW2_w128
-N3_9_d124_noattn
 Q
 ./tools/campaign_start.sh --queue /tmp/queue_s2.txt --hours 24
 ```
 
-- SW6·W112·W96 은 큐가 아니라 `campaign_gate.py` 가 연다 (다중 패스).
-- 모든 신규 config 에 `expect_params_m` 을 기입한다 — 옵션 누락(cm3a_pan_branch 등)을
-  smoke 가 학습 전에 잡는다.
-- N3 재현은 s2 큐 마지막에 두어, 마감이 닥치면 자동으로 마감스킵된다 (예비 시맨틱).
-- w112/w96 config 는 quality parent 확정 후 만들어 커밋한다 (게이트가 열리기 전까지
-  config 부재는 exit 2 로 무해).
+- SW6·W112·W96·N3(예비) 는 큐가 아니라 `campaign_gate.py` 가 연다 (러너 다중 패스).
+- **config 13벌은 전부 생성·smoke 통과 완료** — `expect_params_m` 이 main.py parser 에
+  수용되고 smoke 가 build 실측과 대조한다 (w112/w96 4벌도 선생성돼 게이트가 즉시 연다).
+- 준비 상태: 모델 검증 23/23 · 신규 config smoke 13/13 · 게이트 dry-run 정상.
+
+## 5.1 구현 실명 (문서-코드 대응)
+
+config 키: `swin_depth` / `swin_mid` / `swin_heads` / `swin_window` / `swin_mlp_ratio`,
+LR-TinySwin 은 `model.lr_tinyswin.LRTinySwin` (`hidden_size`·`swin_depth`·`num_heads`·
+`window_size`·`mlp_ratio`·`in_mode`). `expect_params_m` 은 최상위 키.
 
 ## 6. 예상 의사결정 (실행 전 가설 — 판정에는 쓰지 않는다)
 
 - 보수적 예상: SW2 또는 CM3A 가 품질형 후보, D024 계열이 효율형 후보 (신계획 §9).
 - d126 이 SW4·CM3A 와 동급이면 "attention 이 아니라 용량"이 결론이 되고, Swin 서사는
   기각된다 — 이 경우 Teacher 는 c6/N3 유지, KD 캠페인으로 직행한다.
+
+## 7. (정정) 직전 캠페인 전제의 오류 3건 — 지적 검증 후 확정
+
+1. **c6 Q2n = 0.9204** (mat 재평가로 확인). 결과 보고서 표의 0.9208 은 N3 값의 전사
+   오류였고 표는 정정했다(규약 §5 의 오타 예외). 따라서 N3 의 Q2n 은 "동률"이 아니라
+   **+0.04% (0.9208 vs 0.9204, 포화 범위 내 동급)** — 9ch 성립 결론은 불변.
+2. **LR-Fuse 의 입력 차이는 "미미"가 아니다.** 9ch 는 11ch 대비 ERGAS +3.14%,
+   **HQNR −0.0306 (동급 band 0.011 의 약 3배)**. "둘 다 실패" 결론은 유지되나
+   "실패 원인이 입력과 무관"이라는 서술은 과했다 — LR grid 에서도 명시적 저주파/고주파
+   채널이 유의미하게 돕는다. LR_SW2 를 **11ch 계열로 고정**한 추가 근거이기도 하다.
+3. **R6 은 완만하지만 분명한 초가산이다.** R1(+2.28%)·R4(+2.84%)의 독립(곱셈) 기대는
+   +5.19%인데 R6 실측은 +6.50% — 차이 +1.31%p 는 ERGAS 노이즈(두 실행 차 3σ 0.23%)의
+   약 5배다. 직전 보고서의 "거의 가산·초가산 붕괴 없음" 서술을 "**완만한 초가산
+   상호작용**"으로 교체한다. c8(w96×d224)의 급붕괴보다는 온건하다는 비교 자체는 유효.
