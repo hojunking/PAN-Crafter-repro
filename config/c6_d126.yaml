@@ -4,7 +4,7 @@
 expect_params_m: 4.3643   # smoke 가 build 실측과 대조 (옵션 누락 사고 방지)
 seed: 2025
 num_worker: 4
-work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/c6_d126
+work_dir: /home/honbul/Desktop/song/PAN-Crafter/work_dir/c6_d126
 
 phase: train
 
@@ -14,7 +14,7 @@ select_on: hqnr
 # feeder
 feeder: feeders.feeder.PanFeeder
 train_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5
   crop: False
   hflip: True
   vflip: True
@@ -23,13 +23,13 @@ train_feeder_args:
   ms_size: 16
 
 val_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5
 
 test_reduced_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5
 
 test_full_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5_repaired/test_wv3_OrigScale_multiExm1.h5
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5_repaired/test_wv3_OrigScale_multiExm1.h5
 
 # data
 num_bands: 8
