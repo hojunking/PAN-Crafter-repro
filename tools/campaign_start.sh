@@ -54,9 +54,11 @@ fi
 
 setsid nohup ./tools/_run_cases.sh > work_dir/cases_chain.log 2>&1 < /dev/null &
 sleep 3
-if ps -eo pid,ppid,args | grep -v grep | grep -q "bash ./tools/_run_cases.sh"; then
+# 주의: pipefail 상태에서 `ps | grep | grep -q` 는 -q 의 조기 종료가 상류 grep 에
+# SIGPIPE(141)를 일으켜 비결정적 거짓 실패를 낸다 — 실제로 겪었다. pgrep 을 쓴다.
+if pgrep -f "bash .*tools/_run_cases\.sh" > /dev/null; then
     echo "체인 기동 완료 — 마감 $(cat work_dir/cases_deadline.txt), 큐 $(grep -cvE '^[[:space:]]*(#|$)' work_dir/cases_queue.txt)건"
-    ps -eo pid,ppid,args | grep -v grep | grep "bash ./tools/_run_cases.sh"
+    pgrep -af "bash .*tools/_run_cases\.sh"
 else
     echo "기동 실패 — work_dir/cases_chain.log 확인" >&2; exit 1
 fi
