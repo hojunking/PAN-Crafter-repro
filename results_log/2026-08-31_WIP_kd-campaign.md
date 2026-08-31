@@ -31,3 +31,7 @@ KD, T=c6) → K1B_T1(spectral KD, T=T1 — teacher 교란 분리) → [게이트
   사실상 동일 — **KDTrainer(variant k0)가 기존 학습 경로와 등가임이 실증**돼,
   이후 K1A~K4 의 차이는 순수하게 KD loss 몫으로 귀속할 수 있다.
   K1A(full-output KD) 21:27 개시.
+- 2026-08-31 21:26: **`K0_R4_base` 완료 (3/6, 1.98h).** HQNR **0.9562** @145 ·
+  SCC 0.9902. 원본 R4(HQNR 0.9561)와 사실상 동일 — **KD 코드 경로의 재기준
+  측정이 원 실행을 완벽 재현**(코드 경로 동등성 확인 완료). 이후 모든 K-실행의
+  local baseline 은 이 K0 이다. K1A(full-output KD) 21:27 개시.
