@@ -8,6 +8,7 @@
 
 | 날짜 | 문서 | 요지 |
 |---|---|---|
+| 2026-08-31 | [swin-bottleneck-report](2026-08-31_swin-bottleneck-report.md) | **Bottleneck Swin 종합 보고서 (두 캠페인 26건, 질문별 정리).** 11ch 에선 기각(형태 자체 비용, CM3A>Swin, 깊이 비단조) · **효과 부호가 맥락에 따라 반전** — 9ch·d122 에서만 −0.81% 유익 → `SW2_d122_9ch`(3.44M) 가 anchor 동률 params 최소 Quality winner 후보 · 폭 축소 하 attention 보호 없음(서버 교차 착시 정정) · 비용은 공짜(+0.1ms) |
 | 2026-08-30 | [WIP_compression-attribution-20h](2026-08-30_WIP_compression-attribution-20h.md) | **[진행 중] 압축 귀속·9ch 통일 20h.** d122 위 입력{11,9ch}×Swin{유,무} 요인(w128·w96) + CM3A 압축 짝 + w80 게이트 — **KD Student 확정**용. s1 7건·s2 5건 |
 | 2026-08-30 | [swin-campaign-results](2026-08-30_swin-campaign-results.md) | **Swin·CM3A 캠페인 13/13 완주 (s1 14.8h·s2, 무장애).** Quality winner **c6/N3 유지**(9ch 서버 독립 확정) · Efficiency winner **SW2_d122_w96(1.95M·+1.95%)**. ① attention 손실은 형태 자체 비용(등가 conv ±0σ) ② **입력×attention 상호작용 2.6%p**(Swin@btl 11ch 유해/9ch 무해) ③ CM3A>표준 Swin(−1.72%)·깊이 비단조 무효 ④ hybrid 폭 곡선 평탄(+0.23/+0.50%) — 귀속 미완 ⑤ LR-only 최종 기각(Swin 판 3.72). SW2_add 서버 간 1.84% 격차 단서 |
 | 2026-08-29 | [arch-search-24h-results](2026-08-29_arch-search-24h-results.md) | **24h 탐색 9/9 완주 (13.7h, 무장애).** ① **9ch 성립** — N3 이 c6 와 전 지표 동급, 입력을 논문 9ch 로 되돌릴 근거. ② **고해상도 인접 용량이 핵심 자원** — enc full-res 블록 1개가 +4.93%(A1→A2 짝), full-res 제거(R1)는 HQNR 무손실·ERGAS +2.28%·추론 2배. ③ **LR-Fuse 기각**(ERGAS 4.0+, 용량·구조 문제). 폭 곡선 단조 유상(w112 +1.63%, w96 +2.84%). 게이트 3개 자동 닫힘. **주력 R3 · 초경량 R6(1.69M, c8 실질 대체) · KD Student 1순위 R1** |
