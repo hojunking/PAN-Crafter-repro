@@ -1,3 +1,13 @@
+> **[확정 변경 — 2026-08-31, 본문과 다르면 이 블록을 따른다]**
+> 1. **서버 배정 교체: s1 = KD(Part B), s2 = mutual(Part A)** — 2-peer 학습이
+>    VRAM 을 2배 쓰므로 큰 쪽(s2)이 mutual 을 맡는다 (사용자 확정).
+> 2. **checkpoint 선택은 공식 HQNR 로 불변** — §0.4-5·§24 의 "FR HQNR 금지 /
+>    best val-ERGAS" 는 채택하지 않는다 (사용자 확정, 기존 전 실행과의 비교성 유지).
+>    best_state.json 에 best epoch 의 SCC/ERGAS 를 병기해 실행 간 판정(HQNR band
+>    → SCC → ERGAS)에 쓴다.
+> 3. K5(feature KD)는 구현 결함(proj 스케줄러 미적용) 판정으로 **No-Go 보류**.
+> 구현·검증 상세: [2026-08-31_kd-mutual-implementation-report.md](2026-08-31_kd-mutual-implementation-report.md)
+
 # R4–R4 Mutual Learning 및 c6→R4 Two-Stage KD 구현 설계서
 
 > **목적**: s1에서 공통 코드를 구축하고, 동일 커밋을 두 서버에 배포해 다음 두 연구 축을 병렬 검증한다.

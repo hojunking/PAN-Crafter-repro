@@ -60,26 +60,37 @@ def randomize_zero_params(m):
                 p.normal_(0, 1e-3)
 
 
-def check_teacher(cfg):
-    """kd config 의 teacher checkpoint 존재·호환(uncertainty 필요 변형) 사전검사."""
-    if cfg.get("trainer") != "kd":
-        return
-    variant = (cfg.get("kd_args") or {}).get("variant", "k0")
-    if variant == "k0":
-        return
-    ck = cfg.get("teacher_checkpoint")
-    sd_path = os.path.join(ROOT, ck, "model.safetensors") if ck else None
-    assert ck and os.path.exists(sd_path), f"teacher checkpoint 없음: {ck}"
-    if variant in ("k2", "k3", "k4", "k5"):
-        from safetensors import safe_open
-        with safe_open(sd_path, framework="pt") as f:
-            assert any(k.startswith("head.") for k in f.keys()), \
-                f"{variant} 는 uncertainty teacher 필요 — {ck} 에 head 없음"
+def check_trainer_extras(cfg):
+    """신규 trainer 의 실제 실패 지점을 학습 전에 재현한다.
+
+    kd: teacher 를 **실제로 로딩**(CPU) — 존재/키/uncertainty 호환을 전부 검증.
+    mutual: peer 2벌 build — 구성 오류·대략적 2x 메모리 사실을 드러낸다.
+    """
+    tr = cfg.get("trainer")
+    if tr == "kd":
+        variant = (cfg.get("kd_args") or {}).get("variant", "k0")
+        if variant == "k0":
+            return ""
+        ck = cfg.get("teacher_checkpoint")
+        assert ck and os.path.isdir(os.path.join(ROOT, ck)), f"teacher checkpoint 없음: {ck}"
+        from train_kd import load_teacher
+        t, has_unc = load_teacher(os.path.join(ROOT, cfg["teacher_config"]),
+                                  os.path.join(ROOT, ck),
+                                  torch.device("cpu"), torch.float32)
+        del t
+        if variant in ("k2", "k3", "k4", "k5"):
+            assert has_unc, f"{variant} 는 uncertainty teacher 필요 — {ck} 에 head 없음"
+        return f" teacher={'unc' if has_unc else 'plain'}"
+    if tr == "mutual":
+        b = build(cfg)     # peer_b 구성 재현 (같은 model_args)
+        del b
+        return " 2-peer"
+    return ""
 
 
 def smoke_one(name, dev):
     cfg = load_cfg(name)
-    check_teacher(cfg)
+    extra_note = check_trainer_extras(cfg)
     m = build(cfg).to(dev)
     n_params = sum(p.numel() for p in m.parameters()) / 1e6
     # config 에 expect_params_m 이 있으면 실측과 대조한다 — 옵션 하나(예:
@@ -149,7 +160,7 @@ def smoke_one(name, dev):
     del m
     if dev.type == "cuda":
         torch.cuda.empty_cache()
-    return n_params, step_ms, max(peak, peak_train), "dual" if dual else "ms"
+    return n_params, step_ms, max(peak, peak_train), ("dual" if dual else "ms") + extra_note
 
 
 def main():

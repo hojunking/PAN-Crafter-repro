@@ -102,11 +102,27 @@ def emit(tag, why):
 CAL_TAG = "T1_c6_unc"
 
 
+def _ckpt_signature(tag):
+    sd = os.path.join(ROOT, "work_dir", tag, "best_hqnr", "model.safetensors")
+    if not os.path.exists(sd):
+        return None
+    st = os.stat(sd)
+    return f"{st.st_size}-{st.st_mtime_ns}"
+
+
 def calibration_ok():
-    """T1 의 θ-오차 calibration (명세 §8.3). 없으면 검사 도구를 1회 실행한다."""
+    """T1 의 θ-오차 calibration (명세 §8.3). 없거나 checkpoint 가 갱신됐으면 재검사한다."""
     if not complete(CAL_TAG):
         return None                                    # 아직 판정 불가 (다음 패스 대기)
     p = os.path.join(ROOT, "work_dir", CAL_TAG, "calibration.json")
+    sig = _ckpt_signature(CAL_TAG)
+    if os.path.exists(p):
+        try:
+            if json.load(open(p)).get("ckpt_signature") != sig:
+                log("calibration: checkpoint 갱신 감지 — 재검사")
+                os.remove(p)
+        except Exception:
+            os.remove(p)
     if not os.path.exists(p):
         log(f"calibration: {CAL_TAG} 검사 실행 (tools/check_calibration.py)")
         subprocess.run([PY, os.path.join(ROOT, "tools", "check_calibration.py"),
@@ -135,9 +151,13 @@ def gate_kd_ladder():
     if not cal:
         log("KD 사다리: calibration FAIL — K2~K4 닫힘 (teacher head/loss 재설계 필요)")
         return
-    if not (terminal("K1B_R4_specKD") and terminal("K1B_T1_specKD")):
-        log("KD 사다리: 대조군(K1B·K1B_T1) 미종결 — 대기")
-        return
+    for ctrl in ("K1B_R4_specKD", "K1B_T1_specKD"):
+        if ledgered(ctrl) and not complete(ctrl):
+            log(f"KD 사다리: 대조군 {ctrl} 실패 — K2~K4 영구 닫힘 (대조 불가한 비교는 돌리지 않는다)")
+            return
+        if not complete(ctrl):
+            log(f"KD 사다리: 대조군 {ctrl} 미완 — 대기")
+            return
     if not complete("K2_R4_uknow"):
         emit("K2_R4_uknow", "calibration PASS · 대조군 종결")
         return

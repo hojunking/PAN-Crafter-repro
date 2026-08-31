@@ -165,6 +165,10 @@ class KDTrainer(DualBatchMixin, Trainer):
         ka = dict(args.kd_args or {})
         self.variant = ka.get("variant", "k0")
         assert self.variant in self.LADDER, f"kd variant: {self.variant}"
+        if self.variant == "k5":
+            raise NotImplementedError(
+                "K5 는 No-Go 판정 — proj 가 scheduler 생성 후 추가돼 warm-up/cosine 을 "
+                "따르지 않고, teacher 측 stop-gradient 설계도 미확정. K4 까지 결과 확인 후 재설계")
         self.need_teacher = self.variant != "k0"
         self.need_unc = self.variant in ("k2", "k3", "k4", "k5")
         self.lam_soft = float(ka.get("lambda_soft", 0.1))

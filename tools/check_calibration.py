@@ -65,8 +65,11 @@ def main():
     mae = [float(er[bins == b].mean()) for b in range(5)]
     monotonic = all(mae[i + 1] >= mae[i] - 1e-4 for i in range(4))
     ok = bool(rho > 0 and monotonic)
+    sd_path = os.path.join(wd, "best_hqnr", "model.safetensors")
+    st = os.stat(sd_path)
     result = {"spearman": float(rho), "quintile_mae": mae,
-              "monotonic": monotonic, "pass": ok, "n_pixels": int(len(th))}
+              "monotonic": monotonic, "pass": ok, "n_pixels": int(len(th)),
+              "ckpt_signature": f"{st.st_size}-{st.st_mtime_ns}"}
     json.dump(result, open(os.path.join(wd, "calibration.json"), "w"), indent=1)
     print(f"[calib] {os.path.basename(wd)}: Spearman {rho:.4f}  "
           f"quintile MAE {['%.4f' % m for m in mae]}  단조 {monotonic}  -> "

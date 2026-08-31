@@ -1,7 +1,8 @@
 # KD·Mutual Learning 프레임워크 구현 보고서 (2026-08-31)
 
 명세: [`s1_mutual_and_kd_implementation_spec.md`](s1_mutual_and_kd_implementation_spec.md)
-· 검토에서 합의된 조정을 반영한 구현이다. **상태: 구현·검증 완료, 캠페인 미기동.**
+· 검토에서 합의된 조정을 반영한 구현이다.
+**상태(2026-08-31 갱신): s1 KD 캠페인 기동됨** (T1 부터, 큐 T1→T2→K0→K1A→K1B→K1B_T1 + 게이트 K2~K4) · **s2 mutual 은 push 후 기동 대기.**
 서버 배정(사용자 확정): **s1 = KD(Part B), s2 = mutual(Part A — 2-peer 라 VRAM 큰 쪽)**.
 
 ## 0. 명세 대비 확정 변경 2가지
@@ -23,7 +24,8 @@
 | `train_mutual.py` | MutualTrainer(M0~M3) — 2-peer, 같은 accelerator 에 prepare |
 | `main.py` | `--trainer {default,teacher,kd,mutual}` + `teacher_config/checkpoint` + `{kd,teacher,mutual}_args`(YamlAction dict) — 미지 키 assert 통과용 선언 포함 |
 | `tools/test_kd.py` | unit test 10건 (명세 §26) |
-| config 12벌 | s1: T1·T2·K0~K4 (8) / s2: M0~M3 (4) — 전부 `expect_params_m` 기입 |
+| config 13벌 | s1: T1·T2·K0~K4 + **K1B_T1**(teacher 교란 분리 대조군) / s2: M0~M3 — 전부 `expect_params_m` 기입 |
+| `tools/check_calibration.py` | T1 θ-오차 calibration (Spearman·quintile 단조, checkpoint 서명 포함) — **K2~K4 게이트가 자동 실행·판정** |
 
 ## 2. 핵심 설계 결정
 
@@ -72,10 +74,17 @@ config 12벌은 `smoke_cases.py`(expect_params 대조) 통과.
 - 예상 시간: s1 ≈ 22~25h, s2 ≈ 16~20h (명세 §30 기준) — 20h 마감이면 K4/M3 는
   게이트·잔여시간 판단.
 
-## 5. 남은 것 / 알려진 한계
+## 5. 남은 것 / 알려진 한계 (2026-08-31 갱신)
 
-- uncertainty calibration 의 정식 통계(Spearman·quintile)는 학습 로그의 배치 수준
-  진단으로 우선 대체 — 정밀 분석은 T1 완료 후 체크포인트 사후 분석 스크립트로.
+- ~~calibration 정식 통계~~ → `tools/check_calibration.py` 로 구현 완료, K2~K4 는
+  calibration PASS ∧ 대조군(K1B·K1B_T1) **완료**(실패 시 영구 폐쇄) 시에만 게이트 개방.
+- **K5 는 No-Go 보류** — proj 가 scheduler 생성 후 optimizer 에 추가돼 warm-up/cosine
+  을 따르지 않는 결함 + teacher 측 stop-gradient 설계 미확정. 코드에 NotImplementedError
+  가드를 걸어 오사용을 차단했다. K4 까지의 결과 확인 후 재설계.
+- mutual 판정 보조 diagnostics(ensemble RR 평가, gradient norm/cosine 예산 검사,
+  SiS offset histogram 전체)는 **분석 단계 도구로 연기** — 학습 중에는 disagreement·
+  SiS center/boundary 비율이 로깅되고 있어 중단 판정(§31.1)에는 충분하다.
+  M 캠페인 결과 분석 전에 체크포인트 사후 도구로 추가한다.
 - mutual 의 peer_b 는 best 선택 시점이 peer_a 와 공유된다(두 peer 평균 HQNR 의
   최적 epoch). per-peer 독립 best 는 v2 과제.
 - shift-robustness 곡선 평가(§25.5)는 캠페인 결과 분석 단계에서 도구로 추가 예정.
