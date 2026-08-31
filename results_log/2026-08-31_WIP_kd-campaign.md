@@ -53,3 +53,10 @@ KD, T=c6) → K1B_T1(spectral KD, T=T1 — teacher 교란 분리) → [게이트
   이른 피크는 spectral-only soft 신호가 학습을 불안정하게 만든다는 단서.
   (참고 지표 — 판정에 쓰지 않음: ergas_at_best 2.2234, K0 2.1117 보다도 나쁨.)
   K1B_T1(동일 spectral KD, T=T1 — 게이트 대조군) 02:01 개시.
+- 2026-09-01 02:01: **`K1B_R4_specKD` 완료 (5/6, 2.32h).** HQNR **0.9550** @75 ·
+  SCC **0.9889**. K0(0.9562·0.9902) 대비 HQNR 동급이나 **SCC −0.0013(판정선의
+  2.6배) 유의 열세 → K1B < K0.** K1A(0.9551·0.9906)에도 SCC 로 밀린다.
+  **명세의 사전 가설(선택적 spectral KD > full KD)이 HQNR·SCC 판정으로는
+  뒤집혔다** — full 복제는 무해했고(K1A), spectral-only 는 SCC 를 잃는다.
+  best epoch 75 조기 피크. (참고 기록: ergas_at_best 2.2234 — 판정 미사용)
+  K1B_T1(동일 구성, teacher 만 T1) 02:01 개시 — 완료 시 게이트가 K2 를 연다.
