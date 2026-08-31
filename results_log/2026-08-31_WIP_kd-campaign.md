@@ -81,3 +81,8 @@ KD, T=c6) → K1B_T1(spectral KD, T=T1 — teacher 교란 분리) → [게이트
   +0.0021·SCC 동률 — 판정선 미만이라 **uncertainty weighting 의 추가 이득은
   "구분되지 않는다"** (방향은 +). 다중 패스 게이트 2 정상 작동, K3(+GT variance)
   06:42 개시.
+- 2026-09-01 06:40: **`K2_R4_uknow` 완료 (게이트 1/3, 2.32h).** HQNR **0.9543**
+  @205 · SCC 0.9905. 직접 대조인 K1B_T1(0.9522·0.9905 — 같은 teacher, weighting 만
+  없음) 대비 HQNR 동급·SCC 동률 → **uncertainty routing 의 순효과는 HQNR·SCC 로
+  구분되지 않는다** (명목 HQNR +0.0021 은 band 내). K0 와도 동급 — 비회귀 유지.
+  게이트 패스 2가 K3(+GT variance) 자동 개방, 06:42 개시.
