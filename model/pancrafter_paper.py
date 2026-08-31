@@ -78,7 +78,7 @@ class ResBlock(nn.Module):
         x <- x + Conv(SiLU(Modulate(LN(x); mode)))
     """
 
-    def __init__(self, channels, dropout=0.0, out_channels=None, norm="ln"):
+    def __init__(self, channels, dropout=0.0, out_channels=None, norm="ln", se=False):
         super().__init__()
         self.out_channels = out_channels or channels
         self.in_layers = nn.Sequential(
@@ -91,12 +91,21 @@ class ResBlock(nn.Module):
         # 배포본 ResBlock 과 동일하게 use_conv=False 경로(1x1)를 쓴다.
         self.skip_connection = (nn.Identity() if self.out_channels == channels
                                 else nn.Conv2d(channels, self.out_channels, 1))
+        # SE ablation (계획 §3): residual branch 출력에 channel gate. 기본 off 면
+        # 파라미터·state_dict 가 기존과 완전 동일하다.
+        if se:
+            from model.se import SEGate
+            self.se = SEGate(self.out_channels)
+        else:
+            self.se = None
 
     def forward(self, x, s):
         h = self.in_layers(x)
         gamma, beta = self.mod(s)
         h = self.out_layers[0](h) * (1 + gamma) + beta
         h = self.out_layers[1:](h)
+        if self.se is not None:
+            h = self.se(h)
         return self.skip_connection(x) + h
 
 
@@ -151,7 +160,7 @@ class PANCrafterPaper(nn.Module):
                  ka=3, ks=3, n_attn=3, norm="ln", in_mode="paper",
                  attn_locations=None, cm3a_pan_branch=True, dec_depth=None,
                  swin_depth=0, swin_mid=0, swin_heads=4, swin_window=8,
-                 swin_mlp_ratio=2.0):
+                 swin_mlp_ratio=2.0, se_btl=False, se_dec_h2=False):
         super().__init__()
         C = hidden_size
         d0, d1, d2 = depth
@@ -176,7 +185,9 @@ class PANCrafterPaper(nn.Module):
         self.down1 = DownConv(C, out_channels=C)
         self.encoder2 = nn.ModuleList([R(C) for _ in range(d1)])
         self.down2 = DownConv(C, out_channels=C)
-        self.middle = nn.ModuleList([R(C, C) for _ in range(d2)])
+        # SE ablation: se_btl 이면 bottleneck ResBlock 에 SE 삽입 (계획 §3)
+        self.middle = nn.ModuleList(
+            [ResBlock(C, dropout, out_channels=C, norm=norm, se=se_btl) for _ in range(d2)])
         self.up2 = UpConv(C, out_channels=C)
         self.decoder2 = nn.ModuleList(
             ([R(2 * C, C)] + [R(C, C) for _ in range(dd1 - 1)]) if dd1 > 0 else [])
@@ -185,6 +196,12 @@ class PANCrafterPaper(nn.Module):
             ([R(2 * C, C)] + [R(C, C) for _ in range(dd0 - 1)]) if dd0 > 0 else [])
         self.output = nn.Sequential(_norm(norm, C), nn.SiLU(),
                                     zero_module(nn.Conv2d(C, out_channels, 3, padding=1)))
+        # SE ablation: se_dec_h2 이면 H/2 fusion(decoder2 첫 블록) 출력에 SE 1개 (계획 §4)
+        if se_dec_h2:
+            from model.se import SEGate
+            self.se_dec_h2 = SEGate(C)
+        else:
+            self.se_dec_h2 = None
         # attn_locations 가 있으면 위치를 직접 고른다 ("enc","btl","dec" 의 부분집합).
         # 없으면 기존 n_attn 규칙 (1=enc, 2=enc+btl, 3=전부) 을 따른다 — 이전 meta 와 호환.
         if attn_locations is None:
@@ -249,8 +266,10 @@ class PANCrafterPaper(nn.Module):
         x = self.up2(x)
         if len(self.decoder2) > 0:
             x = torch.cat((x, skip2), dim=1)
-            for b in self.decoder2:
+            for bi, b in enumerate(self.decoder2):
                 x = b(x, s)
+                if bi == 0 and self.se_dec_h2 is not None:
+                    x = self.se_dec_h2(x)               # fusion 블록 뒤, decoder body 앞
         if self.cond2_d is not None:
             x = self.cond2_d(x, I(ms, 2), I(lpan, 2), I(pan, 1 / 2), s)
         x = self.up1(x)
