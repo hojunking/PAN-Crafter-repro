@@ -78,13 +78,16 @@ class ResBlock(nn.Module):
         x <- x + Conv(SiLU(Modulate(LN(x); mode)))
     """
 
-    def __init__(self, channels, dropout=0.0, out_channels=None, norm="ln", se=False):
+    def __init__(self, channels, dropout=0.0, out_channels=None, norm="ln", se=False,
+                 mode_mod=True):
         super().__init__()
         self.out_channels = out_channels or channels
         self.in_layers = nn.Sequential(
             _norm(norm, channels), nn.SiLU(),
             nn.Conv2d(channels, self.out_channels, 3, padding=1))
-        self.mod = ModeModulation(self.out_channels)
+        # mode_mod=False: MARs mode 조건화(γβ) 완전 제거 — plain single-task 블록
+        # (s2 MS-only 계획 §2). 기본 True 면 기존과 파라미터·동작 완전 동일.
+        self.mod = ModeModulation(self.out_channels) if mode_mod else None
         self.out_layers = nn.Sequential(
             _norm(norm, self.out_channels), nn.SiLU(), nn.Dropout(p=dropout),
             zero_module(nn.Conv2d(self.out_channels, self.out_channels, 3, padding=1)))
@@ -101,8 +104,11 @@ class ResBlock(nn.Module):
 
     def forward(self, x, s):
         h = self.in_layers(x)
-        gamma, beta = self.mod(s)
-        h = self.out_layers[0](h) * (1 + gamma) + beta
+        if self.mod is not None:
+            gamma, beta = self.mod(s)
+            h = self.out_layers[0](h) * (1 + gamma) + beta
+        else:
+            h = self.out_layers[0](h)
         h = self.out_layers[1:](h)
         if self.se is not None:
             h = self.se(h)
@@ -160,7 +166,8 @@ class PANCrafterPaper(nn.Module):
                  ka=3, ks=3, n_attn=3, norm="ln", in_mode="paper",
                  attn_locations=None, cm3a_pan_branch=True, dec_depth=None,
                  swin_depth=0, swin_mid=0, swin_heads=4, swin_window=8,
-                 swin_mlp_ratio=2.0, se_btl=False, se_dec_h2=False):
+                 swin_mlp_ratio=2.0, se_btl=False, se_dec_h2=False,
+                 mode_modulation=True):
         super().__init__()
         C = hidden_size
         d0, d1, d2 = depth
@@ -172,7 +179,8 @@ class PANCrafterPaper(nn.Module):
         # 융합 블록 1개가 강제로 남던 구조였는데, 0 을 주면 그것까지 없앤다.
         dd0, dd1 = (d0, d1) if dec_depth is None else dec_depth
         self.dec_depth = (dd0, dd1)
-        R = lambda ch, out=None: ResBlock(ch, dropout, out_channels=out, norm=norm)
+        R = lambda ch, out=None: ResBlock(ch, dropout, out_channels=out, norm=norm,
+                                          mode_mod=mode_modulation)
         A = lambda: AttnBlock(C, num_heads, pan_channel=in_channels, ms_channel=out_channels,
                               mlp_ratio=mlp_ratio, ks=ks, ka=ka, pan_branch=cm3a_pan_branch)
 
@@ -187,7 +195,8 @@ class PANCrafterPaper(nn.Module):
         self.down2 = DownConv(C, out_channels=C)
         # SE ablation: se_btl 이면 bottleneck ResBlock 에 SE 삽입 (계획 §3)
         self.middle = nn.ModuleList(
-            [ResBlock(C, dropout, out_channels=C, norm=norm, se=se_btl) for _ in range(d2)])
+            [ResBlock(C, dropout, out_channels=C, norm=norm, se=se_btl,
+                      mode_mod=mode_modulation) for _ in range(d2)])
         self.up2 = UpConv(C, out_channels=C)
         self.decoder2 = nn.ModuleList(
             ([R(2 * C, C)] + [R(C, C) for _ in range(dd1 - 1)]) if dd1 > 0 else [])
