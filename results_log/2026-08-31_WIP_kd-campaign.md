@@ -26,3 +26,8 @@ KD, T=c6) → K1B_T1(spectral KD, T=T1 — teacher 교란 분리) → [게이트
   0.64 / boundary 0.36 (r=1 의 9후보 중 중앙 선호 우세 — 경고 조건 아님).
   **K2+ 의 teacher 는 기본값 T1 유지** (HQNR 명목 우위 0.9522 vs 0.9498, calibration
   동률이라 교체 사유 없음). K0(R4 재기준) 19:27 개시.
+- 2026-08-31 21:26: **`K0_R4_base` 완료 (3/6, 2.0h) — Student 재기준 성립.**
+  HQNR **0.9562** @145 · SCC 0.9902. 기존 `R4_w96_d124_noattn`(HQNR 0.9561 @150)과
+  사실상 동일 — **KDTrainer(variant k0)가 기존 학습 경로와 등가임이 실증**돼,
+  이후 K1A~K4 의 차이는 순수하게 KD loss 몫으로 귀속할 수 있다.
+  K1A(full-output KD) 21:27 개시.
