@@ -60,3 +60,11 @@ KD, T=c6) → K1B_T1(spectral KD, T=T1 — teacher 교란 분리) → [게이트
   뒤집혔다** — full 복제는 무해했고(K1A), spectral-only 는 SCC 를 잃는다.
   best epoch 75 조기 피크. (참고 기록: ergas_at_best 2.2234 — 판정 미사용)
   K1B_T1(동일 구성, teacher 만 T1) 02:01 개시 — 완료 시 게이트가 K2 를 연다.
+- 2026-09-01 04:20: **`K1B_T1_specKD` 완료 (6/6, 2.31h) — K1B 의 SCC 악화는
+  teacher 탓이었다.** HQNR 0.9522 @220 (동급 band) · **SCC 0.9905** — 같은
+  spectral KD 인데 teacher 만 c6→T1 로 바꾸자 K1B 의 SCC 악화(0.9889)가 사라지고
+  K1A(0.9906) 수준으로 복원. **spectral KD 자체가 나쁜 게 아니라 teacher 의
+  spectral 품질에 민감**하다는 재해석 (T1 은 SAM 이 개선된 teacher — 참고 지표).
+  본 큐 6/6 종료. **게이트 정상 작동: calibration PASS + 대조군 종결 확인 후
+  K2 개방** (04:20 개시). K2 vs K1B_T1 이 동일 teacher 로 정렬돼 uncertainty
+  weighting 의 순수 효과를 잰다.
