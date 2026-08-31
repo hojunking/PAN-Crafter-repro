@@ -110,9 +110,12 @@ def settings_of(tag, override):
                                 else f"·conv {ma.get('n_blocks', 6)}블록"))
         inp = "9ch계열" if ma.get("in_mode", "paper") == "paper" else "11ch계열"
         return (inp, str(ma.get("hidden_size", "")), "-", "-", sw, extra)
-    inp = "9ch" if ma.get("in_mode", "paper") == "paper" else ""
-    if ma.get("in_mode") is None:
-        inp = "9ch"          # 재구성 기본은 paper=9ch
+    if "pancrafter_paper" in model:
+        # 재구성본: in_mode 기본값 paper = 9ch
+        inp = "9ch" if ma.get("in_mode", "paper") == "paper" else ""
+    else:
+        # 배포 코드 계열: 입력 11ch 하드코딩 (기준과 동일 → 빈칸)
+        inp = ""
     w = "" if ma.get("hidden_size", 128) == 128 else str(ma["hidden_size"])
     d = "" if list(ma.get("depth", BASE["depth"])) == BASE["depth"] else str(ma.get("depth"))
     if ma.get("dec_depth") is not None:
