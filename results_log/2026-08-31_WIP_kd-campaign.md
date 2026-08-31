@@ -41,3 +41,8 @@ KD, T=c6) → K1B_T1(spectral KD, T=T1 — teacher 교란 분리) → [게이트
   해치지 않으면서 품질 신호를 개선 방향으로 움직였다.
   (참고 지표 — 판정에 쓰지 않음: ergas_at_best 2.0837, K0 2.1117 대비 큰 회복.)
   K1B(spectral-only KD, T=c6) 23:41 개시.
+- 2026-08-31 23:41: **`K1A_R4_fullKD` 완료 (4/6, 2.24h).** HQNR **0.9551** @210 ·
+  SCC 0.9906. K0(0.9562·0.9902) 대비 HQNR 동급 band, SCC 차 +0.0004 는 판정선
+  (0.0005) 이내 — **HQNR·SCC 로는 K0 와 구분되지 않는다.** full-output KD 는
+  최소한 HQNR 비회귀(운영 목표)를 충족. 선택적(spectral) KD 와의 차이는 K1B 가
+  가른다. K1B(spectral KD, T=c6) 23:41 개시.
