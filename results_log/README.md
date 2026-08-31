@@ -8,6 +8,7 @@
 
 | 날짜 | 문서 | 요지 |
 |---|---|---|
+| 2026-09-01 | [mutual-factorial-s2-results](2026-09-01_mutual-factorial-s2-results.md) | **Mutual 요인 4벌(2-peer×50K) 완주 — 이 규모에서 mutual 무효 확정.** M1−M0 방향일치 악화(B +0.67% p=1e-4), 다양성(M2−M0)도 소폭 비용, M3−M2 무효, HQNR 전 셀 Δ≤0.0019≪band. λ=0.02 에선 DML(λ=0.10)의 FR 이득마저 소멸 — 8/20 no-go·8/27 트레이드에 이은 세 번째 확인으로 **Part A 종결, KD(Part B)만 남음**. MS-only 2벌 진행 중 |
 | 2026-08-31 | [WIP_kd-campaign](2026-08-31_WIP_kd-campaign.md) | **[진행 중] KD(s1)·Mutual(s2) 캠페인.** T=c6 계열 → S=R4(2.13M, 격차 +2.84%). 첫 결과: **T1(c6+uncertainty) — 품질 보존(ERGAS +0.60%·SAM −0.85% 개선)에 calibration Spearman 0.884·5분위 완전 단조 PASS** → K2~K4 게이트 calibration 조건 충족 |
 | 2026-08-31 | [swin-bottleneck-report](2026-08-31_swin-bottleneck-report.md) | **Bottleneck Swin 종합 보고서 (두 캠페인 26건, 질문별 정리).** 11ch 에선 기각(형태 자체 비용, CM3A>Swin, 깊이 비단조) · **효과 부호가 맥락에 따라 반전** — 9ch·d122 에서만 −0.81% 유익 → `SW2_d122_9ch`(3.44M) 가 anchor 동률 params 최소 Quality winner 후보 · 폭 축소 하 attention 보호 없음(서버 교차 착시 정정) · 비용은 공짜(+0.1ms) |
 | 2026-08-31 | [compression-attribution-s2-results](2026-08-31_compression-attribution-s2-results.md) | **압축 귀속 2×2 완성(s1 셀 합산).** **11ch 에선 Swin·CM3A 모두 무익** — d122_w96(1.79M, 7.57ms)이 동급 최소·최속. **9ch 압축 지점에선 무Swin 만 HQNR 0.9401 로 꺾여 Swin 이 실질 보호** — 입력×attention 상호작용의 압축판(방향 역전). 폭 바닥 w96(w80 탈락). 서버 재현 셀 3개 일치. **Student 는 입력 정책 갈림길**: 9ch 통일이면 SW2_d122_w96_9ch(1.94M), 11ch 허용이면 d122_w96 |
