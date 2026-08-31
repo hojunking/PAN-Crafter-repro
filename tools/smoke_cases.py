@@ -60,8 +60,26 @@ def randomize_zero_params(m):
                 p.normal_(0, 1e-3)
 
 
+def check_teacher(cfg):
+    """kd config 의 teacher checkpoint 존재·호환(uncertainty 필요 변형) 사전검사."""
+    if cfg.get("trainer") != "kd":
+        return
+    variant = (cfg.get("kd_args") or {}).get("variant", "k0")
+    if variant == "k0":
+        return
+    ck = cfg.get("teacher_checkpoint")
+    sd_path = os.path.join(ROOT, ck, "model.safetensors") if ck else None
+    assert ck and os.path.exists(sd_path), f"teacher checkpoint 없음: {ck}"
+    if variant in ("k2", "k3", "k4", "k5"):
+        from safetensors import safe_open
+        with safe_open(sd_path, framework="pt") as f:
+            assert any(k.startswith("head.") for k in f.keys()), \
+                f"{variant} 는 uncertainty teacher 필요 — {ck} 에 head 없음"
+
+
 def smoke_one(name, dev):
     cfg = load_cfg(name)
+    check_teacher(cfg)
     m = build(cfg).to(dev)
     n_params = sum(p.numel() for p in m.parameters()) / 1e6
     # config 에 expect_params_m 이 있으면 실측과 대조한다 — 옵션 하나(예:

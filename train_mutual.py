@@ -53,6 +53,7 @@ class MutualTrainer(DualBatchMixin, Trainer):
         self.sis_radius = int(ma.get("sis_radius", 1))
         self.sis_mode = ma.get("sis_mode", "shared_vector")
         self.eta_sam = float(ma.get("eta_sam", 0.1))
+        self.no_warmup = bool(ma.get("no_warmup", False))
 
         super().__init__(args, data_loader, model)          # peer_a 경로
 
@@ -97,7 +98,8 @@ class MutualTrainer(DualBatchMixin, Trainer):
                 mars_a, ms_a, pan_a = self._mars(rec_a, gt, pan, B)
                 mars_b, ms_b, pan_b = self._mars(rec_b, gt, pan, B)
                 loss_a, loss_b = mars_a, mars_b
-                lam_t = mutual_weight(global_step, self.args.num_iter, self.lam_mutual)
+                lam_t = (self.lam_mutual if self.no_warmup else
+                         mutual_weight(global_step, self.args.num_iter, self.lam_mutual))
                 extra = ""
 
                 if self.variant in ("m2", "m3"):
@@ -159,6 +161,11 @@ class MutualTrainer(DualBatchMixin, Trainer):
         finally:
             self.model = keep
 
+    @staticmethod
+    def _pair_mean(a, b):
+        return {k: (a[k] + b[k]) / 2 for k in a if k in b
+                and isinstance(a[k], (int, float))}
+
     def test_reduced(self, test_log, epoch):
         test_log.write('[peer_a]')
         ergas_a = super().test_reduced(test_log, epoch)
@@ -166,7 +173,9 @@ class MutualTrainer(DualBatchMixin, Trainer):
         test_log.write('[peer_b]')
         ergas_b = self._swapped(super().test_reduced, test_log, epoch)
         self.last_reduced_metrics_b = dict(self.last_reduced_metrics)
-        self.last_reduced_metrics = met_a                 # 1차 기록은 peer_a 유지
+        self.last_reduced_metrics_a = met_a
+        # 핵심 로그·CSV 의 모집단을 선택값(두 peer 평균)과 일치시킨다
+        self.last_reduced_metrics = self._pair_mean(met_a, self.last_reduced_metrics_b)
         return (ergas_a + ergas_b) / 2
 
     def test_full(self, test_log, epoch):
@@ -176,7 +185,8 @@ class MutualTrainer(DualBatchMixin, Trainer):
         test_log.write('[peer_b]')
         ds_b, hqnr_b = self._swapped(super().test_full, test_log, epoch)
         self.last_full_metrics_b = dict(self.last_full_metrics)
-        self.last_full_metrics = met_a
+        self.last_full_metrics_a = met_a
+        self.last_full_metrics = self._pair_mean(met_a, self.last_full_metrics_b)
         test_log.write(f'[mutual] HQNR peerA {hqnr_a:.6f}  peerB {hqnr_b:.6f}  '
                        f'mean {(hqnr_a + hqnr_b) / 2:.6f}')
         # best 선택은 두 peer 평균 HQNR — save_state 가 두 peer 를 함께 저장한다

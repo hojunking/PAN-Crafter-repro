@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """압축 귀속 캠페인 조건부 게이트 — 본 큐 결과로 추가 실행을 판정한다.
 
-계획: research_log/2026-08-30_compression-attribution-20h-plan.md §4.
+계획: research_log/2026-08-31_kd-mutual-implementation-report.md (KD 캠페인).
 게이트는 캠페인마다 이 파일의 GATE 함수를 교체한다 (직전 캠페인 R5/A3/L2 는 종료·삭제).
 
 측정 원칙
@@ -99,33 +99,59 @@ def emit(tag, why):
     print(tag)
 
 
-def gate_w80_9ch():
-    """SW2_d122_w80_9ch: 9ch hybrid 의 폭 바닥 탐침.
+CAL_TAG = "T1_c6_unc"
 
-    전제: SW2_d122_9ch(parent)·SW2_d122_w96_9ch 둘 다 그 서버에서 완료.
-    조건: w96_9ch 가 parent 대비 HQNR drop <= 0.011 그리고 ERGAS <= +3% (운영 게이트).
-    params -23% 는 자동 충족이라 비용 조건은 생략하고 사유에 남긴다.
+
+def calibration_ok():
+    """T1 의 θ-오차 calibration (명세 §8.3). 없으면 검사 도구를 1회 실행한다."""
+    if not complete(CAL_TAG):
+        return None                                    # 아직 판정 불가 (다음 패스 대기)
+    p = os.path.join(ROOT, "work_dir", CAL_TAG, "calibration.json")
+    if not os.path.exists(p):
+        log(f"calibration: {CAL_TAG} 검사 실행 (tools/check_calibration.py)")
+        subprocess.run([PY, os.path.join(ROOT, "tools", "check_calibration.py"),
+                        os.path.join(ROOT, "work_dir", CAL_TAG)], cwd=ROOT)
+    if not os.path.exists(p):
+        log("calibration: 결과 파일 생성 실패 — K2+ 닫힘")
+        return False
+    r = json.load(open(p))
+    log(f"calibration: Spearman {r.get('spearman', 0):.4f} 단조 {r.get('monotonic')} "
+        f"-> {'PASS' if r.get('pass') else 'FAIL'}")
+    return bool(r.get("pass"))
+
+
+def gate_kd_ladder():
+    """K2 -> K3 -> K4 순차 게이트 (다중 패스로 체인).
+
+    K2: T1 calibration PASS 이고 대조군(K1B·K1B_T1)이 종결됐을 때만.
+    K3/K4: 직전 단계가 완료됐을 때만. calibration FAIL 이면 사다리 전체 닫힘
+    — 명세 §8.3 "uncertainty 가 오차와 연결되지 않으면 uncertainty KD 를 진행하지
+    않는다" 의 자동화다.
     """
-    parent, w96 = "SW2_d122_9ch", "SW2_d122_w96_9ch"
-    if not (complete(parent) and complete(w96)):
-        log(f"w80_9ch: 전제({parent}·{w96}) 미완 — 닫힘")
+    cal = calibration_ok()
+    if cal is None:
+        log("KD 사다리: T1 미완 — 대기")
         return
-    hp, hw = hqnr_of(parent), hqnr_of(w96)
-    mp, mw = rr_of(parent), rr_of(w96)
-    if None in (hp, hw) or mp is None or mw is None:
-        log("w80_9ch: 지표 조회 실패 — 닫힘")
+    if not cal:
+        log("KD 사다리: calibration FAIL — K2~K4 닫힘 (teacher head/loss 재설계 필요)")
         return
-    drop = hp - hw
-    de = mw["ergas"] / mp["ergas"] - 1
-    if drop <= HQNR_BAND and de <= 0.03:
-        emit("SW2_d122_w80_9ch",
-             f"w96_9ch 통과 (HQNR drop {drop:+.4f} <= {HQNR_BAND}, ERGAS {de*100:+.2f}% <= 3%, params -30%)")
-    else:
-        log(f"w80_9ch: 닫힘 — HQNR drop {drop:+.4f}, ERGAS {de*100:+.2f}% (폭 축소 종료)")
+    if not (terminal("K1B_R4_specKD") and terminal("K1B_T1_specKD")):
+        log("KD 사다리: 대조군(K1B·K1B_T1) 미종결 — 대기")
+        return
+    if not complete("K2_R4_uknow"):
+        emit("K2_R4_uknow", "calibration PASS · 대조군 종결")
+        return
+    if not complete("K3_R4_uknow_gtvar"):
+        emit("K3_R4_uknow_gtvar", "K2 완료")
+        return
+    if not complete("K4_R4_uknow_gtvar_sis"):
+        emit("K4_R4_uknow_gtvar_sis", "K3 완료")
+        return
+    log("KD 사다리: 전부 완료")
 
 
 def main():
-    gate_w80_9ch()
+    gate_kd_ladder()
 
 
 if __name__ == "__main__":

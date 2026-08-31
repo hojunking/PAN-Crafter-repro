@@ -328,7 +328,7 @@ def _iter_label(n):
     return f"{n // 1000}K" if n and n % 1000 == 0 else str(n)
 
 
-def collect(tag, want_profile, server):
+def collect(tag, want_profile, server, peer=None):
     wd = os.path.join(ROOT, "work_dir", tag)
     if tag in EXTERNAL:                       # config 가 없는 외부 참조
         label, ds, note, extra = EXTERNAL[tag]   # 외부 참조는 서버와 무관하다
@@ -387,12 +387,14 @@ def collect(tag, want_profile, server):
     row.pop("s", None); row.pop("f", None)
 
     # 지표
-    rr = next((q for q in (os.path.join(wd, "results", f"reduced_{k}.mat")
+    _sfx = "_peerB" if peer == "B" else ""
+    rr = next((q for q in (os.path.join(wd, "results", f"reduced_{k}{_sfx}.mat")
                            for k in ("best_hqnr", "best_val", "best_reduced"))
                if os.path.exists(q)), "")
     if os.path.exists(rr):
         row.update(_rr(rr, ds))
-    for name in ("full_frrepair.mat", "full_best_hqnr.mat", "full_best_val.mat", "full_best_reduced.mat"):
+    for name in (("full_best_hqnr_peerB.mat",) if peer == "B" else
+                 ("full_frrepair.mat", "full_best_hqnr.mat", "full_best_val.mat", "full_best_reduced.mat")):
         fr = os.path.join(wd, "results", name)
         if os.path.exists(fr):
             try:
@@ -480,7 +482,8 @@ def collect(tag, want_profile, server):
         bits.append(f"trainer=kd({_ka.get('variant', '?')}) · teacher={_tck}")
     elif _tr == "mutual":
         _ma2 = getattr(a, "mutual_args", {}) or {}
-        bits.append(f"trainer=mutual({_ma2.get('variant', '?')}) · 2-peer, best=두 peer 평균 HQNR")
+        bits.append(f"trainer=mutual({_ma2.get('variant', '?')}) · 2-peer · "
+                    "선택=pair 평균 HQNR, 이 행 지표=개별 peer mat (A/B 두 행 병기)")
     elif _tr == "teacher":
         _ta = getattr(a, "teacher_args", {}) or {}
         bits.append("trainer=teacher (uncertainty head"
@@ -499,6 +502,9 @@ def collect(tag, want_profile, server):
         bits.append(row.pop("note_err"))
     row["note"] = " · ".join(bits)
 
+    if peer == "B":
+        row["tag"] = row["tag"] + "·peerB"
+        desc = (desc + " peerB").strip()
     lbl = _iter_label(n_iter)
     base = row["tag"] if lbl.lower() in row["tag"].lower() else f"{row['tag']} ({lbl})"
     row["tag"] = f"{base} · {desc}" if desc else base
@@ -727,6 +733,14 @@ def main():
         if r is None:
             print(f"  건너뜀 {t} (config 없음)"); continue
         rows.append(r)
+        # mutual 실행: peer_b 의 mat 이 있으면 별도 행으로 병기한다 — 선택은
+        # pair 평균 HQNR 이지만, 시트의 지표는 mat(=개별 peer)에서 나오므로
+        # 두 peer 를 모두 올려야 모집단이 일관된다.
+        pb = os.path.join(ROOT, "work_dir", t, "results", "reduced_best_hqnr_peerB.mat")
+        if os.path.exists(pb):
+            rb = collect(t, False, server, peer="B")
+            if rb is not None:
+                rows.append(rb)
         pm = r.get("params_m")
         print(f"  수집 {t}: ERGAS {r.get('ergas', float('nan')):.4f}"
               + (f"  params {pm:.4f} M" if pm else ""))

@@ -5,6 +5,7 @@
 # 대신 저장소에서 검증된 lpan 레시피(가우시안 σ=1.98·41×41·4배 데시메이션,
 # tools/repair_lpan.py)와 같은 형태의 clean-room 가우시안 근사를 쓴다.
 # 밴드별 σ 는 config 로 열어 두었다 — 공개 Nyquist gain 상수로 세분할 수 있다.
+# 커널 크기·패딩은 기존 레시피와 동일하게 41×41·replicate (경계 일치).
 # --------------------------------------------------------
 
 import torch
@@ -25,7 +26,7 @@ class MTFDownsampler(nn.Module):
     requires_grad=False 커널 — gradient 는 입력 prediction 으로만 흐른다 (§6.1).
     """
 
-    def __init__(self, bands=8, scale=4, sigma=1.98, ksize=17, offset=None):
+    def __init__(self, bands=8, scale=4, sigma=1.98, ksize=41, offset=None):
         super().__init__()
         self.bands, self.scale = bands, scale
         self.offset = (scale // 2) if offset is None else offset
@@ -38,7 +39,7 @@ class MTFDownsampler(nn.Module):
     def forward(self, x_hr):
         # x_hr: (B, C, H, W) -> (B, C, H/s, W/s)
         k = self.kernel.to(dtype=x_hr.dtype)
-        x = F.pad(x_hr, [self.pad] * 4, mode="reflect")
+        x = F.pad(x_hr, [self.pad] * 4, mode="replicate")
         x = F.conv2d(x, k, groups=self.bands)
         return x[..., self.offset::self.scale, self.offset::self.scale]
 

@@ -14,12 +14,26 @@ def charbonnier(x, eps=1e-3):
     return torch.sqrt(x * x + eps * eps).mean()
 
 
+def to_nonneg(x):
+    """[-1,1] 정규화 공간 -> 비음수 반사도 공간 근사 ((x+1)/2, 하한 0).
+
+    SAM 은 affine offset 에 불변하지 않다 — feeder 가 [-1,1] 로 정규화한 값을
+    그대로 각도 계산에 넣으면 실제 spectral angle 이 아니다. **모든 SAM 계열
+    계산은 이 변환을 거친 값으로 한다** (L1 항은 affine 공간 무관이라 그대로).
+    """
+    return ((x + 1.0) * 0.5).clamp_min(1e-6)
+
+
 def sam_per_candidate(pred_lr, candidates, eps=1e-8):
-    """spectral angle: pred (B,C,h,w) vs candidates (B,C,K,h,w) -> (B,K,h,w)."""
-    p = pred_lr.unsqueeze(2)
-    dot = (p * candidates).sum(dim=1)
+    """spectral angle: pred (B,C,h,w) vs candidates (B,C,K,h,w) -> (B,K,h,w).
+
+    입력은 [-1,1] 공간이어도 된다 — 내부에서 to_nonneg 로 복원한다.
+    """
+    p = to_nonneg(pred_lr).unsqueeze(2)
+    c = to_nonneg(candidates)
+    dot = (p * c).sum(dim=1)
     n1 = p.norm(dim=1)
-    n2 = candidates.norm(dim=1)
+    n2 = c.norm(dim=1)
     cos = (dot / (n1 * n2 + eps)).clamp(-1 + 1e-7, 1 - 1e-7)
     return torch.acos(cos)
 
@@ -101,10 +115,14 @@ def weighted_l1(pred, target, weight=None):
 
 
 def spectral_kd_loss(pred_lr_s, pred_lr_t, weight=None, eta_sam=0.1):
-    """LR scale spectral KD (§20 K1-B): L1 + SAM. teacher 는 detach 해 넘길 것."""
+    """LR scale spectral KD (§20 K1-B): L1 + SAM. teacher 는 detach 해 넘길 것.
+
+    SAM 항은 to_nonneg 로 반사도 공간을 복원해 계산한다 (L1 은 affine 무관).
+    """
     l1 = weighted_l1(pred_lr_s, pred_lr_t, weight)
-    dot = (pred_lr_s * pred_lr_t).sum(dim=1)
-    cos = (dot / (pred_lr_s.norm(dim=1) * pred_lr_t.norm(dim=1) + 1e-8)).clamp(-1 + 1e-7, 1 - 1e-7)
+    s, t = to_nonneg(pred_lr_s), to_nonneg(pred_lr_t)
+    dot = (s * t).sum(dim=1)
+    cos = (dot / (s.norm(dim=1) * t.norm(dim=1) + 1e-8)).clamp(-1 + 1e-7, 1 - 1e-7)
     sam = torch.acos(cos).mean()
     return l1 + eta_sam * sam, {"kd_l1": l1.item(), "kd_sam": sam.item()}
 

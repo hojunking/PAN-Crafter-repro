@@ -176,6 +176,7 @@ class KDTrainer(DualBatchMixin, Trainer):
         self.sis_radius = int(ka.get("sis_radius", 1))
         self.sis_mode = ka.get("sis_mode", "shared_vector")
         self.w_mode = ka.get("uncertainty_weight_mode", "robust_normalized")
+        self.no_schedule = bool(ka.get("no_schedule", False))
         super().__init__(args, data_loader, model)
         dev, dt = self.accelerator.device, self.weight_dtype
         self.mtf = MTFDownsampler(bands=args.num_bands).to(dev, dtype=dt)
@@ -196,13 +197,16 @@ class KDTrainer(DualBatchMixin, Trainer):
             t_ch = base_t.middle[-1].out_channels
             s_ch = args.model_args.get("hidden_size", 128)
             self.t_tap = FeatureTap(base_t)
-            # 주의: k5 의 proj 는 별도 param group 으로 optimizer 에 추가된다.
-            self.proj = FeatureProj(t_ch, s_ch).to(dev, dtype=dt)
+            # k5 proj: prepare 로 accelerator 에 등록해 save_state 에 포함시키고,
+            # param group 으로 optimizer 에 추가한다 (양쪽 사영 모두 학습).
+            self.proj = self.accelerator.prepare(FeatureProj(t_ch, s_ch).to(dev, dtype=dt))
             self.optimizer.add_param_group({"params": self.proj.parameters()})
             self.s_tap = FeatureTap(self.model)
 
     def _sched(self, step):
-        """명세 §22 의 ramp_then_decay 3종."""
+        """명세 §22 의 ramp_then_decay 3종. no_schedule(스모크용)이면 최댓값 고정."""
+        if getattr(self, "no_schedule", False):
+            return self.lam_soft, self.lam_sis, self.lam_feat
         T = self.args.num_iter
         return (ramp_then_decay(step, 5_000, 15_000, 40_000, T, self.lam_soft),
                 ramp_then_decay(step, 10_000, 20_000, 45_000, T, self.lam_sis),
@@ -234,11 +238,15 @@ class KDTrainer(DualBatchMixin, Trainer):
 
                 w_hard = w_soft = None
                 if self.need_unc:
-                    w_hard, w_soft = uknow_weights(theta, self.w_mode, alpha_u=self.alpha_u)
                     if self.variant in ("k3", "k4", "k5"):
-                        from kd.ops import mean_normalize
+                        # 명세: normalize(1 + αu + βv) — 한 번에 정규화해야 실효 β 가 유지된다
+                        from kd.ops import mean_normalize, robust_normalize_01
+                        u = robust_normalize_01(theta.detach())
                         v = self.var_map(gt_ms)
-                        w_hard = mean_normalize(w_hard + self.beta_v * v)
+                        w_hard = mean_normalize(1.0 + self.alpha_u * u + self.beta_v * v)
+                        w_soft = mean_normalize(1.0 - u)
+                    else:
+                        w_hard, w_soft = uknow_weights(theta, self.w_mode, alpha_u=self.alpha_u)
 
                 hard = weighted_l1(pred, gt_ms, w_hard)
                 lam_soft_t, lam_sis_t, lam_feat_t = self._sched(global_step)

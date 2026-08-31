@@ -262,7 +262,9 @@ def train(args):
                     best_epoch_hqnr = epoch + 1
                     trainer.save_best_model_hqnr()
                     import json as _json
-                    _json.dump({'best_hqnr': best_hqnr, 'best_epoch_hqnr': best_epoch_hqnr},
+                    _json.dump({'best_hqnr': best_hqnr, 'best_epoch_hqnr': best_epoch_hqnr,
+                                'scc_at_best': trainer.last_reduced_metrics.get('scc'),
+                                'ergas_at_best': trainer.last_reduced_metrics.get('ergas')},
                                open(best_state_path, 'w'))
                 test_log.write(f'Best HQNR: {best_hqnr:.6f}\tBest Epoch (hqnr): {best_epoch_hqnr}')
             elif args.select_on == 'val':

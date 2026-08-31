@@ -49,8 +49,7 @@ class FeatureProj(nn.Module):
 
     def forward(self, f_s, f_t_detached, weight=None):
         zs = F.normalize(self.proj_s(f_s), dim=1)
-        with torch.no_grad():
-            zt = F.normalize(self.proj_t(f_t_detached), dim=1)
+        zt = F.normalize(self.proj_t(f_t_detached), dim=1)   # 입력은 detach 됨 — 사영만 학습
         d = (zs - zt).abs()
         if weight is not None:
             if weight.shape[-2:] != d.shape[-2:]:
