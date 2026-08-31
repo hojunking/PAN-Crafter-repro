@@ -68,3 +68,11 @@ KD, T=c6) → K1B_T1(spectral KD, T=T1 — teacher 교란 분리) → [게이트
   본 큐 6/6 종료. **게이트 정상 작동: calibration PASS + 대조군 종결 확인 후
   K2 개방** (04:20 개시). K2 vs K1B_T1 이 동일 teacher 로 정렬돼 uncertainty
   weighting 의 순수 효과를 잰다.
+- 2026-09-01 04:20: **`K1B_T1_specKD` 완료 (6/6, 2.31h) — teacher 교란 분리가 결정적.**
+  HQNR **0.9522** @220 · SCC **0.9905**. 같은 spectral KD 인데 teacher 만
+  c6→T1 으로 바꾸자 **SCC 가 0.9889→0.9905 로 회복(판정선 3.2배 개선)** —
+  K0(0.9902)·K1A(0.9906)와 동급. **K1B 의 SCC 열세는 spectral KD 방식이 아니라
+  c6-teacher 조합 탓**임이 확정됐고, K2 의 기반(T1+spectral soft)은 건강하다.
+  대조군 신설(strict 검증 지적 3)이 없었다면 "선택적 KD 기각"으로 오판했을 지점.
+  본 큐 6/6 종결 — **게이트 첫 실전: calibration 재확인 PASS → K2 자동 개방**
+  (04:20 개시, 이후 K3→K4 다중 패스).
