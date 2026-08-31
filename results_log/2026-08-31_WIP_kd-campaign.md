@@ -35,3 +35,9 @@ KD, T=c6) → K1B_T1(spectral KD, T=T1 — teacher 교란 분리) → [게이트
   SCC 0.9902. 원본 R4(HQNR 0.9561)와 사실상 동일 — **KD 코드 경로의 재기준
   측정이 원 실행을 완벽 재현**(코드 경로 동등성 확인 완료). 이후 모든 K-실행의
   local baseline 은 이 K0 이다. K1A(full-output KD) 21:27 개시.
+- 2026-08-31 23:41: **`K1A_R4_fullKD` 완료 (4/6, 2.24h) — 첫 KD 결과, 긍정적.**
+  HQNR **0.9551** @210 (K0 0.9562 와 동급 band — Student 특성 유지) ·
+  SCC 0.9906 (K0 0.9902, 명목 개선). full-output KD 는 Student 의 HQNR 를
+  해치지 않으면서 품질 신호를 개선 방향으로 움직였다.
+  (참고 지표 — 판정에 쓰지 않음: ergas_at_best 2.0837, K0 2.1117 대비 큰 회복.)
+  K1B(spectral-only KD, T=c6) 23:41 개시.
