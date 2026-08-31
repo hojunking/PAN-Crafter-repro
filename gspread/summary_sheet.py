@@ -31,6 +31,19 @@ BASELINE = ("기준 세팅 (모든 행 공통 — 아래 열은 기준과 다른
             "수치: RR 는 DLPan 프로토콜, HQNR 는 공식 구현 — 서버 간 절대값 비교 금지 "
             "(anchor 대비로 읽을 것).")
 
+SWIN_SPEC = ("Swin 공통 명세 (Swin 열이 있는 모든 행, model/swin.py): 표준 pre-norm "
+             "Swin block 을 W-MSA→SW-MSA 교대쌍으로 사용 · 삽입 위치 = H/4 bottleneck 의 "
+             "ResBlock(및 CM3A 가 있으면 그 뒤) 다음 · embed dim = backbone width 와 동일"
+             "(별도 사영 없음) · heads 4 · window 8×8 · shift 0/4 교대(cyclic, 경계는 "
+             "attention mask 로 차단·해상도별 캐시) · MLP ratio 2(GELU) · LayerNorm "
+             "pre-norm · relative-position bias((2·8−1)² 테이블, trunc_normal 0.02 초기화) "
+             "· dropout/attn-drop/drop-path 0 · patch merging·class token 없음 · "
+             "MARs mode 조건화 없음(mode 는 ResBlock 의 ModeModulation 이 담당, Swin 은 "
+             "순정 표준형) · qkv/proj/MLP 는 xavier 초기화 · 블록당 params(dim128 기준) "
+             "0.1334M. 처리 격자: 학습 16²·RR 64²·FR 128² (전부 window 8 의 배수라 "
+             "padding 미사용). LR-TinySwin 은 같은 블록을 LR grid(unshuffle 후 16²/64²/"
+             "128²)에서 residual conv group 으로 사용.")
+
 # (tag, server, 추가설정 override 또는 None(=config 파생), 판정 한 줄)
 MILESTONES = [
     ("■ Paper", "-", "논문 보고 세팅: 7.17M·79G 주장 · best 선택 미기재", "논문 보고값 — 모든 비교의 기준행"),
@@ -103,7 +116,9 @@ def settings_of(tag, override):
     model = c.get("model", "")
     if "LRFuse" in model or "LRTinySwin" in model:
         arch = ("LR-TinySwin" if "TinySwin" in model else "LR-Fuse")
-        sw = f"{ma.get('swin_depth', 0)}블록" if "TinySwin" in model else ""
+        sw = (f"{ma.get('swin_depth', 0)}블록 W→SW · dim {ma.get('hidden_size')} · "
+              f"h{ma.get('num_heads', 4)} · win{ma.get('window_size', 8)} · shift 0/4 · "
+              f"mlp{ma.get('mlp_ratio', 2.0):g} · LR grid") if "TinySwin" in model else ""
         extra = override or (f"신규 구조 {arch}: PixelUnshuffle×4·전연산 1/16 면적·"
                              f"w{ma.get('hidden_size')}"
                              + (f"·Swin {ma.get('swin_depth')}" if "TinySwin" in model
@@ -129,8 +144,14 @@ def settings_of(tag, override):
         att = "CM3A@" + "+".join(loc) + ("" if ma.get("cm3a_pan_branch", True) else " (PAN K/V 제거)")
     sw = ""
     if ma.get("swin_depth", 0):
-        sw = (f"{ma['swin_depth']}@btl h{ma.get('swin_heads', 4)}·"
-              f"w{ma.get('swin_window', 8)}·mlp{ma.get('swin_mlp_ratio', 2.0):g}")
+        n = ma["swin_depth"]
+        arr = "·".join(("W" if i % 2 == 0 else "SW") for i in range(n))
+        sw = (f"{n}블록 @btl [{arr}] · dim {ma.get('hidden_size', 128)}(=width) · "
+              f"h{ma.get('swin_heads', 4)} · win{ma.get('swin_window', 8)} · "
+              f"shift 0/{ma.get('swin_window', 8) // 2} · mlp{ma.get('swin_mlp_ratio', 2.0):g} · "
+              f"rel-pos bias · pre-LN")
+    if ma.get("swin_mid", 0):
+        sw = (sw + " · " if sw else "") + f"{ma['swin_mid']}블록 @H/2enc"
     bits = []
     if c.get("mars", "dual") == "ms":
         bits.append("MARs 단일모드(ms)")
@@ -165,11 +186,13 @@ def main():
         return [g("ERGAS↓"), g("SAM↓"), g("SCC↑"), g("Q2n↑"), g("HQNR↑"),
                 g("Params(M)"), g("Infer(ms)"), g("Train(h)")]
 
-    out = [[BASELINE] + [""] * (len(HEADER) - 1), [""] * len(HEADER), HEADER]
+    out = [[BASELINE] + [""] * (len(HEADER) - 1),
+           [SWIN_SPEC] + [""] * (len(HEADER) - 1),
+           [""] * len(HEADER), HEADER]
     sections = [("① 이정표 — 재현·재구성·경량화 대표", MILESTONES),
                 ("② Swin·CM3A 대조 캠페인 (2026-08-29~30)", SWIN),
                 ("③ 압축 귀속 캠페인 (2026-08-30~31)", COMPRESS)]
-    sec_rows, hdr_row = [], 3
+    sec_rows, hdr_row = [], 4
     for title, items in sections:
         out.append([title] + [""] * (len(HEADER) - 1))
         sec_rows.append(len(out))
@@ -192,7 +215,7 @@ def main():
                          backgroundColor=Color(0.95, 0.95, 0.90))
     fmt_base = CellFormat(textFormat=TextFormat(italic=True, fontSize=9))
     format_cell_range(ws, f"A{hdr_row}:Q{hdr_row}", fmt_hdr)
-    format_cell_range(ws, "A1:Q1", fmt_base)
+    format_cell_range(ws, "A1:Q2", fmt_base)
     for r in sec_rows:
         format_cell_range(ws, f"A{r}:Q{r}", fmt_sec)
     ws.freeze(rows=hdr_row)
