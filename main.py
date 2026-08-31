@@ -93,6 +93,22 @@ def get_parser():
                         help='기대 params(M). 학습은 사용하지 않고 tools/smoke_cases.py 가 '
                              'build 실측과 대조한다 — config 옵션 누락으로 딴 모델을 '
                              '학습하는 사고 방지용. (config 키 검증을 통과시키기 위해 선언)')
+    # KD·mutual learning (research_log/s1_mutual_and_kd_implementation_spec.md).
+    # best 선택 기준은 trainer 와 무관하게 기존 그대로다 (공식 HQNR).
+    parser.add_argument('--trainer', type=str, default='default',
+                        choices=['default', 'teacher', 'kd', 'mutual'],
+                        help='default=기존 MARs / teacher=uncertainty teacher(T1·T2) / '
+                             'kd=frozen teacher KD(K0~K5) / mutual=2-peer(M0~M3)')
+    parser.add_argument('--teacher-config', type=str, default=None,
+                        help='kd: teacher 의 config yaml 경로')
+    parser.add_argument('--teacher-checkpoint', type=str, default=None,
+                        help='kd: teacher 의 accelerate checkpoint 디렉터리 (예: work_dir/c6_c4d124/best_hqnr)')
+    parser.add_argument('--teacher-args', action=YamlAction, default=dict(),
+                        help='teacher trainer 인자 (lambda_sis, sis_radius, sis_mode, lambda_edge, eta_sam)')
+    parser.add_argument('--kd-args', action=YamlAction, default=dict(),
+                        help='kd trainer 인자 (variant k0~k5, lambda_soft/sis/feat, alpha_u, beta_v, ...)')
+    parser.add_argument('--mutual-args', action=YamlAction, default=dict(),
+                        help='mutual trainer 인자 (variant m0~m3, lambda_mutual, self loss 가중 등)')
     return parser
 
 
@@ -165,7 +181,16 @@ def train(args):
     data_loader = load_data(args)
     model = load_model(args)
 
-    trainer = Trainer(args=args, data_loader=data_loader, model=model)
+    kind = getattr(args, 'trainer', 'default')
+    if kind == 'teacher':
+        from train_kd import TeacherTrainer as TrainerCls
+    elif kind == 'kd':
+        from train_kd import KDTrainer as TrainerCls
+    elif kind == 'mutual':
+        from train_mutual import MutualTrainer as TrainerCls
+    else:
+        TrainerCls = Trainer
+    trainer = TrainerCls(args=args, data_loader=data_loader, model=model)
 
     best_ergas, best_ds, best_val_ergas = 9999, 1, 9999
     best_hqnr, best_epoch_hqnr = -1.0, 0

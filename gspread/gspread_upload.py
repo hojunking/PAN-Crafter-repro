@@ -405,6 +405,17 @@ def collect(tag, want_profile, server):
     family = row["family"]
     is_rebuild = family == "paper"
     desc = _descriptor(ma, row["crop"], family)
+    # KD·mutual trainer 표기 — run 명과 Notes 양쪽에 남긴다
+    _tr = getattr(a, "trainer", "default")
+    if _tr == "kd":
+        _v = (getattr(a, "kd_args", {}) or {}).get("variant", "?")
+        _tc = os.path.basename(getattr(a, "teacher_config", "") or "").replace(".yaml", "")
+        desc = (desc + f" KD:{_v}(T={_tc})").strip()
+    elif _tr == "mutual":
+        _v = (getattr(a, "mutual_args", {}) or {}).get("variant", "?")
+        desc = (desc + f" MUT:{_v}").strip()
+    elif _tr == "teacher":
+        desc = (desc + " +unc.head").strip()
     if getattr(a, "mars", "dual") == "ms":
         desc = (desc + " singleMARs").strip().removeprefix("표준 ")
 
@@ -463,6 +474,17 @@ def collect(tag, want_profile, server):
             bits.append("crop=False")
         if getattr(a, "mars", "dual") == "ms":
             bits.append("mars=ms (PAN mode 제거)")
+    if _tr == "kd":
+        _ka = getattr(a, "kd_args", {}) or {}
+        _tck = getattr(a, "teacher_checkpoint", "") or ""
+        bits.append(f"trainer=kd({_ka.get('variant', '?')}) · teacher={_tck}")
+    elif _tr == "mutual":
+        _ma2 = getattr(a, "mutual_args", {}) or {}
+        bits.append(f"trainer=mutual({_ma2.get('variant', '?')}) · 2-peer, best=두 peer 평균 HQNR")
+    elif _tr == "teacher":
+        _ta = getattr(a, "teacher_args", {}) or {}
+        bits.append("trainer=teacher (uncertainty head"
+                    + (f" + SiS r{_ta.get('sis_radius')}" if _ta.get("lambda_sis") else "") + ")")
     if row["seed"] != 2025:
         bits.append(f"seed={row['seed']}")
     if a.select_on != "hqnr":

@@ -1,0 +1,61 @@
+# M3 — component mutual (spec M->P, edge P->M)
+# 명세: research_log/s1_mutual_and_kd_implementation_spec.md · best 선택 = 공식 HQNR (불변)
+seed: 2025
+num_worker: 4
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/M3_R4edge_R4sis_mutual
+phase: train
+select_on: hqnr
+feeder: feeders.feeder.PanFeeder
+train_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5
+  crop: false
+  hflip: true
+  vflip: true
+  rot: true
+  crop_ratio: 0.75
+  ms_size: 16
+val_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5
+test_reduced_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5
+test_full_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5_repaired/test_wv3_OrigScale_multiExm1.h5
+num_bands: 8
+max_pixel: 2047.0
+model: model.pancrafter_paper.PANCrafterPaper
+model_args:
+  in_channels: 1
+  out_channels: 8
+  hidden_size: 96
+  depth:
+  - 1
+  - 2
+  - 4
+  dropout: 0.0
+  num_heads: 8
+  mlp_ratio: 4.0
+  ks: 3
+  ka: 3
+  norm: ln
+  in_mode: released
+  attn_locations: []
+  n_attn: 3
+optimizer: AdamW
+learning_rate: 1e-4
+weight_decay: 0.01
+lr_scheduler: cosine
+num_iter: 50000
+num_warmup: 100
+res: true
+w_off: 1.0
+log_iter: 100
+save_iter: 10000
+save_epoch: 25
+eval_epoch: 5
+gpu: 0
+batch_size: 48
+test_batch_size: 1
+trainer: mutual
+mutual_args:
+  variant: m3
+expect_params_m: 2.1285
