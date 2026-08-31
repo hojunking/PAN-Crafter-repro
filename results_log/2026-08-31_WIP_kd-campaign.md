@@ -46,3 +46,10 @@ KD, T=c6) → K1B_T1(spectral KD, T=T1 — teacher 교란 분리) → [게이트
   (0.0005) 이내 — **HQNR·SCC 로는 K0 와 구분되지 않는다.** full-output KD 는
   최소한 HQNR 비회귀(운영 목표)를 충족. 선택적(spectral) KD 와의 차이는 K1B 가
   가른다. K1B(spectral KD, T=c6) 23:41 개시.
+- 2026-09-01 02:01: **`K1B_R4_specKD` 완료 (5/6, 2.32h) — 선택적 spectral KD 열세.**
+  HQNR 0.9550 @75 (동급 band) · **SCC 0.9889 — K0 0.9902 대비 판정선(0.0005)의
+  2.6배 악화.** HQNR→SCC 규칙상 **K1B < K0 이고 K1B < K1A** — "전부 복제(K1A)가
+  선택 전달(K1B)보다 낫다"로, 명세의 선택적 KD 가설과 반대 방향. best epoch 75 의
+  이른 피크는 spectral-only soft 신호가 학습을 불안정하게 만든다는 단서.
+  (참고 지표 — 판정에 쓰지 않음: ergas_at_best 2.2234, K0 2.1117 보다도 나쁨.)
+  K1B_T1(동일 spectral KD, T=T1 — 게이트 대조군) 02:01 개시.
