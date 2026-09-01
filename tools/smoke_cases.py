@@ -88,10 +88,29 @@ def check_trainer_extras(cfg):
     return ""
 
 
+def check_identity(name, cfg, model):
+    """config 이름·work_dir·구조 스위치의 자기정합 검사.
+
+    - work_dir 이 config 이름과 다르면 남의 실행을 덮어쓴다 (복사로 config 를 만들 때
+      실제로 나는 사고).
+    - mode_modulation 은 이 캠페인의 정의적 스위치인데 params 차이가 0.2% 뿐이라
+      expect_params_m(허용 0.5%)로는 절대 잡히지 않는다 -> 구조로 직접 확인한다.
+    """
+    wd = os.path.basename(str(cfg.get("work_dir", "")).rstrip("/"))
+    assert wd == name, f"work_dir 이름 불일치: config {name} vs work_dir {wd}"
+    want = cfg.get("model_args", {}).get("mode_modulation", True)
+    has = any("mod." in k or k.endswith(".gamma") or k.endswith(".beta")
+              for k in model.state_dict())
+    assert bool(want) == bool(has), (
+        f"mode_modulation={want} 인데 실제 모델은 {'있음' if has else '없음'} — "
+        "MS2 plain 을 의도하고 MS1(γβ 유지)을 학습하는 사고")
+
+
 def smoke_one(name, dev):
     cfg = load_cfg(name)
     extra_note = check_trainer_extras(cfg)
     m = build(cfg).to(dev)
+    check_identity(name, cfg, m)
     n_params = sum(p.numel() for p in m.parameters()) / 1e6
     # config 에 expect_params_m 이 있으면 실측과 대조한다 — 옵션 하나(예:
     # cm3a_pan_branch) 빠뜨려 딴 모델을 학습하는 사고를 학습 전에 잡는다.
@@ -160,7 +179,9 @@ def smoke_one(name, dev):
     del m
     if dev.type == "cuda":
         torch.cuda.empty_cache()
-    return n_params, step_ms, max(peak, peak_train), ("dual" if dual else "ms") + extra_note
+    mm = cfg.get("model_args", {}).get("mode_modulation", True)
+    return (n_params, step_ms, max(peak, peak_train),
+            ("dual" if dual else "ms") + ("" if mm else "+plain") + extra_note)
 
 
 def main():

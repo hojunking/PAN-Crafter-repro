@@ -116,3 +116,28 @@ def ramp_then_decay(step, start, full, decay, total=50_000, max_w=1.0):
     if step < decay:
         return max_w
     return max_w * max(0.0, (total - step)) / max(1, total - decay)
+
+
+def local_variance(x, k):
+    """window k 의 band-mean 국소 분산: (1/C)Σ_c [A_k(x_c²) − A_k(x_c)²].
+
+    s2 계획 §6. 입력 (B,C,H,W) -> (B,1,H,W).
+    """
+    p = k // 2
+    m = F.avg_pool2d(x, k, stride=1, padding=p, count_include_pad=False)
+    m2 = F.avg_pool2d(x * x, k, stride=1, padding=p, count_include_pad=False)
+    return (m2 - m * m).clamp_min(0).mean(dim=1, keepdim=True)
+
+
+def multiscale_variance(x, weights=((3, 0.5), (5, 0.3), (9, 0.2))):
+    """V(R) = 0.5·V_3 + 0.3·V_5 + 0.2·V_9 (s2 계획 §6)."""
+    out = None
+    for k, w in weights:
+        v = local_variance(x, k) * w
+        out = v if out is None else out + v
+    return out
+
+
+def squash_variance(v, kappa):
+    """Ṽ = V/(V+κ) — 학습셋에서 고정한 κ 로 두 map 을 같은 스케일에 둔다."""
+    return v / (v + kappa)

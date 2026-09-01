@@ -314,6 +314,8 @@ def _descriptor(ma, crop, family):
         bits.append("attn:" + ("+".join(loc) if loc else "0"))
     if ma.get("dec_depth") is not None:
         bits.append("dd" + "".join(map(str, ma["dec_depth"])))
+    if ma.get("mode_modulation", True) is False:
+        bits.append("plain")          # γβ 조건화 제거 — MS1 과 시트에서 구분되도록
     if ma.get("swin_depth", 0):
         bits.append(f"sw{ma['swin_depth']}@btl")
     if ma.get("swin_mid", 0):
@@ -443,7 +445,9 @@ def collect(tag, want_profile, server, peer=None):
         if not row["crop"]:
             bits.append("crop=False")
         if getattr(a, "mars", "dual") == "ms":
-            bits.append("mars=ms (PAN mode 제거)")
+            bits.append("mars=ms (PAN task·복제 제거)")
+        if ma.get("mode_modulation", True) is False:
+            bits.append("mode_modulation=False (γβ 조건화 제거 — 순수 residual U-Net)")
     elif not is_rebuild:
         bits.append("arch=배포코드 (4-scale · CM3A5 · GroupNorm · mode-token · 11ch)")
         bits.append(f"fix_A1A2={row.get('fix', '')}")
@@ -475,7 +479,9 @@ def collect(tag, want_profile, server, peer=None):
         if not row["crop"]:
             bits.append("crop=False")
         if getattr(a, "mars", "dual") == "ms":
-            bits.append("mars=ms (PAN mode 제거)")
+            bits.append("mars=ms (PAN task·복제 제거)")
+        if ma.get("mode_modulation", True) is False:
+            bits.append("mode_modulation=False (γβ 조건화 제거 — 순수 residual U-Net)")
     if _tr == "kd":
         _ka = getattr(a, "kd_args", {}) or {}
         _tck = getattr(a, "teacher_checkpoint", "") or ""

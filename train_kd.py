@@ -23,28 +23,47 @@ from train import Trainer
 from utils import Train_Report
 from kd.ops import MTFDownsampler, AbsoluteGradient, LocalVarianceMap, ramp_then_decay
 from kd.losses import (sis_loss, edge_loss, uncertainty_nll, uknow_weights,
-                       weighted_l1, spectral_kd_loss)
+                       weighted_l1, spectral_kd_loss, uknow_weights_fixed, gtvar_loss)
 from kd.features import FeatureTap, FeatureProj, WithUncertainty
 
 
 class DualBatchMixin:
     """배치 준비 공용부 — 기존 train() 의 전처리를 그대로 옮긴 것."""
 
+    @property
+    def ms_only(self):
+        """mars: ms — PAN reconstruction task·batch 복제 제거 (clean MS-only)."""
+        return getattr(self.args, "mars", "dual") == "ms"
+
     def prep(self, batch):
+        """MS-only 면 rep=1·switch=1(MS mode 만), dual 이면 기존과 동일하게 2배 복제.
+
+        반환의 B 는 항상 'MS half 의 시작 index' 다 — MS-only 에서는 0 이라
+        recon[B:] 가 전체를 가리키고 recon[:B] 는 빈 텐서가 된다 (PAN 항 자연 소멸).
+        """
         gt, lms, ms, lpan, pan = batch
         dev, dt = self.accelerator.device, self.weight_dtype
-        B = self.args.batch_size
-        t = lambda x: x.to(dev, dtype=dt).repeat(2, 1, 1, 1)
+        bs = self.args.batch_size
+        rep = 1 if self.ms_only else 2
+        t = lambda x: x.to(dev, dtype=dt).repeat(rep, 1, 1, 1)
         gt, lms, ms, lpan, pan = map(t, (gt, lms, ms, lpan, pan))
         res_pan = F.interpolate(lpan, scale_factor=4, mode="bicubic")
         res_ms = (lms if getattr(self.args, "residual_base", "bicubic") == "lms"
                   else F.interpolate(ms, scale_factor=4, mode="bicubic"))
-        switch = torch.cat((torch.zeros(B, device=dev), torch.ones(B, device=dev))).to(dtype=dt)
+        if self.ms_only:
+            switch = torch.ones(bs, device=dev).to(dtype=dt)
+            B = 0
+        else:
+            switch = torch.cat((torch.zeros(bs, device=dev),
+                                torch.ones(bs, device=dev))).to(dtype=dt)
+            B = bs
         return gt, lms, ms, lpan, pan, res_pan, res_ms, switch, B
 
     def recon_of(self, out, res_ms, res_pan, switch):
         if not self.args.res:
             return out
+        if self.ms_only:
+            return out + res_ms
         return (out + res_ms * switch.view(-1, 1, 1, 1)
                 + res_pan.repeat(1, self.args.num_bands, 1, 1) * (1.0 - switch).view(-1, 1, 1, 1))
 
@@ -69,7 +88,14 @@ def load_teacher(cfg_path, ckpt_dir, device, dtype):
     has_unc = any(k.startswith("head.") for k in sd)
     if has_unc:
         ch = c.get("model_args", {}).get("hidden_size", 128)
-        model = WithUncertainty(base, ch)
+        # head 출력 종류는 calibration 산출물에 기록돼 있다 (없으면 기존 softplus).
+        # 이걸 틀리면 theta 의 의미가 바뀌므로 조용한 오해석을 막는다.
+        head_out = "softplus"
+        nrm = os.path.join(ckpt_dir, "uq_norm.json")
+        if os.path.exists(nrm):
+            import json as _json
+            head_out = _json.load(open(nrm)).get("head_out", "softplus")
+        model = WithUncertainty(base, ch, head_out=head_out)
     else:
         model = base
     missing, unexpected = model.load_state_dict(sd, strict=False)
@@ -112,8 +138,10 @@ class TeacherTrainer(DualBatchMixin, Trainer):
                 recon = self.recon_of(out, res_ms, res_pan, switch)
                 theta = self.model.theta() if not hasattr(self.model, "module") \
                     else self.model.module.theta()
-                loss_pan = (pan[:B].repeat(1, self.args.num_bands, 1, 1)
-                            - recon[:B]).abs().mean() * self.args.w_off
+                loss_pan = (torch.zeros((), device=recon.device, dtype=recon.dtype)
+                            if self.ms_only else
+                            (pan[:B].repeat(1, self.args.num_bands, 1, 1)
+                             - recon[:B]).abs().mean() * self.args.w_off)
                 l_unc, unc_d = uncertainty_nll(recon[B:], gt[B:], theta[B:])
                 loss = l_unc + loss_pan
                 extra = ""
@@ -134,7 +162,7 @@ class TeacherTrainer(DualBatchMixin, Trainer):
                 self.lr_scheduler.step()
                 self.optimizer.zero_grad()
                 if self.accelerator.is_main_process:
-                    report.update(self.args.batch_size * 2, loss.item(), l_unc.item(), loss_pan.item())
+                    report.update(self.args.batch_size * (1 if self.ms_only else 2), loss.item(), l_unc.item(), loss_pan.item())
             global_step += 1
             if global_step % self.args.log_iter == 0 or idx == len(self.train_data_loader) - 1:
                 lr = self.optimizer.state_dict()['param_groups'][0]['lr']
@@ -159,7 +187,10 @@ class KDTrainer(DualBatchMixin, Trainer):
     teacher 는 MS half 에서만 online forward (no_grad). PAN half 는 기존 hard anchor.
     """
 
-    LADDER = ["k0", "k1a", "k1b", "k2", "k3", "k4", "k5"]
+    # k* = 2026-08-31 KD 캠페인 사다리 / u_full·u_full_gtvar = s2 계획(2026-09-01)
+    #   u_full      : uncertainty routing + **full-output** soft KD (spectral 아님)
+    #   u_full_gtvar: u_full + GT-output local variance 정합 loss
+    LADDER = ["k0", "k1a", "k1b", "k2", "k3", "k4", "k5", "u_full", "u_full_gtvar"]
 
     def __init__(self, args, data_loader, model):
         ka = dict(args.kd_args or {})
@@ -170,7 +201,7 @@ class KDTrainer(DualBatchMixin, Trainer):
                 "K5 는 No-Go 판정 — proj 가 scheduler 생성 후 추가돼 warm-up/cosine 을 "
                 "따르지 않고, teacher 측 stop-gradient 설계도 미확정. K4 까지 결과 확인 후 재설계")
         self.need_teacher = self.variant != "k0"
-        self.need_unc = self.variant in ("k2", "k3", "k4", "k5")
+        self.need_unc = self.variant in ("k2", "k3", "k4", "k5", "u_full", "u_full_gtvar")
         self.lam_soft = float(ka.get("lambda_soft", 0.1))
         self.lam_sis = float(ka.get("lambda_sis", 0.1))
         self.lam_feat = float(ka.get("lambda_feat", 0.001))
@@ -181,6 +212,13 @@ class KDTrainer(DualBatchMixin, Trainer):
         self.sis_mode = ka.get("sis_mode", "shared_vector")
         self.w_mode = ka.get("uncertainty_weight_mode", "robust_normalized")
         self.no_schedule = bool(ka.get("no_schedule", False))
+        # s2 계획: λ_U(최대) · soft weight 바닥 · GT-variance 가중/κ
+        self.lam_u = float(ka.get("lambda_u_max", self.lam_soft))
+        self.soft_floor = float(ka.get("soft_floor", 0.05))
+        self.lam_gtvar = float(ka.get("lambda_gtvar", 0.10))
+        self.gtvar_kappa = ka.get("gtvar_kappa", None)
+        self.uq_q05 = ka.get("uq_q05", None)
+        self.uq_q95 = ka.get("uq_q95", None)
         super().__init__(args, data_loader, model)
         dev, dt = self.accelerator.device, self.weight_dtype
         self.mtf = MTFDownsampler(bands=args.num_bands).to(dev, dtype=dt)
@@ -191,6 +229,23 @@ class KDTrainer(DualBatchMixin, Trainer):
                 "kd 는 teacher_config/teacher_checkpoint 가 필요하다"
             self.teacher, t_has_unc = load_teacher(
                 args.teacher_config, args.teacher_checkpoint, dev, dt)
+            # head-only calibration 이 남긴 고정 상수(q05/q95/κ)를 teacher 디렉터리에서 읽는다.
+            # config 로 명시하면 그쪽이 우선한다.
+            nrm = os.path.join(args.teacher_checkpoint, "uq_norm.json")
+            if os.path.exists(nrm):
+                import json as _json
+                d = _json.load(open(nrm))
+                if self.uq_q05 is None:
+                    self.uq_q05, self.uq_q95 = d.get("q05"), d.get("q95")
+                if self.gtvar_kappa is None:
+                    self.gtvar_kappa = d.get("kappa")
+            if self.variant in ("u_full", "u_full_gtvar"):
+                assert self.uq_q05 is not None and self.uq_q95 is not None, (
+                    "u_full 계열은 고정 분위수(q05/q95)가 필요하다 — "
+                    "tools/calibrate_head.py 로 teacher 를 보정하거나 kd_args 에 직접 줄 것")
+            if self.variant == "u_full_gtvar":
+                assert self.gtvar_kappa is not None, (
+                    "u_full_gtvar 는 gtvar_kappa 가 필요하다 (tools/calibrate_head.py 산출)")
             if self.need_unc and not t_has_unc:
                 raise RuntimeError(
                     f"{self.variant} 는 uncertainty teacher(T1/T2 checkpoint)가 필요하다 "
@@ -212,7 +267,8 @@ class KDTrainer(DualBatchMixin, Trainer):
         if getattr(self, "no_schedule", False):
             return self.lam_soft, self.lam_sis, self.lam_feat
         T = self.args.num_iter
-        return (ramp_then_decay(step, 5_000, 15_000, 40_000, T, self.lam_soft),
+        lam_max = self.lam_u if self.variant in ("u_full", "u_full_gtvar") else self.lam_soft
+        return (ramp_then_decay(step, 5_000, 15_000, 40_000, T, lam_max),
                 ramp_then_decay(step, 10_000, 20_000, 45_000, T, self.lam_sis),
                 ramp_then_decay(step, 15_000, 25_000, 40_000, T, self.lam_feat))
 
@@ -228,8 +284,10 @@ class KDTrainer(DualBatchMixin, Trainer):
                 out = self.model(pan, lpan, ms, switch)
                 recon = self.recon_of(out, res_ms, res_pan, switch)
                 pred, gt_ms = recon[B:], gt[B:]
-                loss_pan = (pan[:B].repeat(1, self.args.num_bands, 1, 1)
-                            - recon[:B]).abs().mean() * self.args.w_off
+                loss_pan = (torch.zeros((), device=pred.device, dtype=pred.dtype)
+                            if self.ms_only else
+                            (pan[:B].repeat(1, self.args.num_bands, 1, 1)
+                             - recon[:B]).abs().mean() * self.args.w_off)
 
                 t_pred = theta = None
                 if self.need_teacher:
@@ -249,6 +307,11 @@ class KDTrainer(DualBatchMixin, Trainer):
                         v = self.var_map(gt_ms)
                         w_hard = mean_normalize(1.0 + self.alpha_u * u + self.beta_v * v)
                         w_soft = mean_normalize(1.0 - u)
+                    elif self.variant in ("u_full", "u_full_gtvar"):
+                        # s2 계획 §4: 고정 train-set 분위수 정규화 + soft 바닥
+                        w_hard, w_soft, _u = uknow_weights_fixed(
+                            theta, self.uq_q05, self.uq_q95,
+                            soft_floor=self.soft_floor, alpha_u=self.alpha_u)
                     else:
                         w_hard, w_soft = uknow_weights(theta, self.w_mode, alpha_u=self.alpha_u)
 
@@ -260,6 +323,19 @@ class KDTrainer(DualBatchMixin, Trainer):
                     soft = F.l1_loss(pred, t_pred)
                     loss = loss + lam_soft_t * soft
                     extra += f"\tsoft(full): {soft.item():.5f}"
+                elif self.variant in ("u_full", "u_full_gtvar"):
+                    # uncertainty routing + full-output soft KD (s2 계획 §4)
+                    soft = weighted_l1(pred, t_pred, w_soft)
+                    loss = loss + lam_soft_t * soft
+                    extra += (f"\tsoft(u_full): {soft.item():.5f}"
+                              f"\twh {w_hard.mean().item():.2f}/{w_hard.std().item():.2f}"
+                              f"\tws {w_soft.mean().item():.2f}/{w_soft.std().item():.2f}")
+                    if self.variant == "u_full_gtvar":
+                        l_gv, gd = gtvar_loss(pred - res_ms[B:], gt_ms - res_ms[B:], self.gtvar_kappa)
+                        loss = loss + self.lam_gtvar * l_gv
+                        extra += (f"\tGTVar: {l_gv.item():.5f}"
+                                  f" (V_S {gd['v_s_mean']:.3f}±{gd['v_s_std']:.3f}"
+                                  f" V_GT {gd['v_gt_mean']:.3f} r {gd['v_corr']:.3f})")
                 elif self.variant in ("k1b", "k2", "k3", "k4", "k5"):
                     w_lr = None
                     if w_soft is not None:
@@ -288,7 +364,7 @@ class KDTrainer(DualBatchMixin, Trainer):
                 self.lr_scheduler.step()
                 self.optimizer.zero_grad()
                 if self.accelerator.is_main_process:
-                    report.update(self.args.batch_size * 2, loss.item(), hard.item(), loss_pan.item())
+                    report.update(self.args.batch_size * (1 if self.ms_only else 2), loss.item(), hard.item(), loss_pan.item())
             global_step += 1
             if global_step % self.args.log_iter == 0 or idx == len(self.train_data_loader) - 1:
                 lr = self.optimizer.state_dict()['param_groups'][0]['lr']

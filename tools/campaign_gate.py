@@ -1,19 +1,18 @@
 #!/usr/bin/env python
-"""압축 귀속 캠페인 조건부 게이트 — 본 큐 결과로 추가 실행을 판정한다.
+"""조건부 게이트 — 본 큐 결과로 추가 실행을 판정한다. 캠페인마다 이 파일을 교체한다.
 
-계획: research_log/2026-08-31_kd-mutual-implementation-report.md (KD 캠페인).
-게이트는 캠페인마다 이 파일의 GATE 함수를 교체한다 (직전 캠페인 R5/A3/L2 는 종료·삭제).
+현재 담당 캠페인 (2026-09-01/02, 두 서버가 같은 파일을 쓴다):
+  s1  research_log/2026-09-01_s1-teacher-architecture-4-6m-plan.md  (4-6M teacher 탐색)
+  s2  research_log/2026-09-01_s2-uncertainty-distillation-gtvar-plan.md (uncertainty KD·GT-var)
+
+서버 구분은 하지 않는다 — 전제 실행이 그 서버 work_dir 에 없으면 해당 게이트는
+자연히 닫히므로, 같은 코드가 양쪽에서 자기 몫만 연다.
 
 측정 원칙
-  - HQNR: 학습이 남긴 best_state.json (공식 12-19, 재평가 불필요)
-  - SCC·ERGAS: reduced_best_hqnr.mat 을 DLPan 프로토콜(tools/eval_dlpan.py)로 평가
-    — 학습 중 metrics.csv(py) 수치는 프로토콜이 달라 임계값과 비교하면 안 된다
-  - params 는 config 의 expect_params_m (build 실측 기입값)
-
-동작: stdout 에 실행할 tag(한 줄 하나), 판정 사유는 stderr(체인 로그).
-러너가 다중 패스로 호출하므로, 전제가 이번 패스에 없으면 조용히 닫고 다음 패스를 기다린다.
-
-s1/s2 공용: 전제 실행이 그 서버 work_dir 에 없으면 해당 게이트는 자연히 닫힌다
+  - HQNR: best_state.json (공식 12-19). 판정 1순위.
+  - SCC·ERGAS: reduced_best_hqnr.mat 을 DLPan 프로토콜로 평가 (보조·참고).
+동작: stdout 에 실행할 tag(한 줄 하나), 사유는 stderr(체인 로그).
+러너가 다중 패스로 호출하므로 전제가 없으면 조용히 닫고 다음 패스를 기다린다.
 """
 import json
 import os
@@ -24,9 +23,9 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PY = sys.executable
 
-HQNR_BAND = 0.011      # 확정 2σ ≈ 1.18% (절대값)
-SCC_TIE = 0.0005       # 이 이하 SCC 차이로는 승자 선언 금지 (신계획 §3.2)
-ERGAS_SIG = 0.0023     # 두 단일 실행 차이의 3σ (2σ 0.11% × √2)
+HQNR_BAND = 0.011      # 확정 2σ. 이 안이면 HQNR 로는 "구분되지 않는다"
+SCC_TIE = 0.0005       # 이 이하 SCC 차이로는 승자 선언 금지
+ERGAS_SIG = 0.0023     # 두 단일 실행 차이의 3σ (참고 지표)
 
 _mat_cache = {}
 
@@ -58,9 +57,15 @@ def hqnr_of(tag):
 
 
 def rr_of(tag):
-    """DLPan 프로토콜 RR 지표. {'ergas':…, 'scc':…} 또는 None."""
+    """DLPan 프로토콜 RR 지표 {'ergas','scc'}. best_state.json 에 있으면 그걸 쓴다."""
     if tag in _mat_cache:
         return _mat_cache[tag]
+    bs = os.path.join(ROOT, "work_dir", tag, "best_state.json")
+    if os.path.exists(bs):
+        d = json.load(open(bs))
+        if d.get("scc_at_best") is not None and d.get("ergas_at_best") is not None:
+            _mat_cache[tag] = {"scc": d["scc_at_best"], "ergas": d["ergas_at_best"]}
+            return _mat_cache[tag]
     mat = os.path.join(ROOT, "work_dir", tag, "results", "reduced_best_hqnr.mat")
     if not os.path.exists(mat):
         return None
@@ -75,8 +80,8 @@ def rr_of(tag):
     return None
 
 
-def quality_better(a, b):
-    """신계획 §3.2: HQNR band -> SCC -> ERGAS. a 가 b 보다 좋으면 True."""
+def better(a, b):
+    """HQNR band -> SCC -> ERGAS. a 가 b 보다 좋으면 True."""
     ha, hb = hqnr_of(a), hqnr_of(b)
     if ha is not None and hb is not None and abs(ha - hb) > HQNR_BAND:
         return ha > hb
@@ -89,6 +94,9 @@ def quality_better(a, b):
 
 
 def emit(tag, why):
+    if not os.path.exists(os.path.join(ROOT, "config", f"{tag}.yaml")):
+        log(f"{tag}: config 없음 — 열지 않는다")
+        return
     if complete(tag):
         log(f"{tag}: 이미 완료 — 생략")
         return
@@ -99,79 +107,175 @@ def emit(tag, why):
     print(tag)
 
 
-CAL_TAG = "T1_c6_unc"
+# ================================================================= s1 캠페인
+S1_CORE = ["S1_T00_W160_D122_MS2", "S1_T01_W144_D124_MS2",
+           "S1_T02_W160_D124_MS2", "S1_T03_W176_D122_MS2"]
+S1_ANCHOR = "S1_A0_W128_D124_MS2"
+S1_DUAL = {"S1_T00_W160_D122_MS2": "S1_T05_W160_D122_DUAL",
+           "S1_T01_W144_D124_MS2": "S1_T05_W144_D124_DUAL",
+           "S1_T02_W160_D124_MS2": "S1_T05_W160_D124_DUAL",
+           "S1_T03_W176_D122_MS2": "S1_T05_W176_D122_DUAL"}
+S1_MID = [("S1_T04A_W152_D123_MS2", "S1_T00_W160_D122_MS2", "S1_T01_W144_D124_MS2"),
+          ("S1_T04B_W168_D123_MS2", "S1_T02_W160_D124_MS2", "S1_T03_W176_D122_MS2")]
 
 
-def _ckpt_signature(tag):
-    sd = os.path.join(ROOT, "work_dir", tag, "best_hqnr", "model.safetensors")
-    if not os.path.exists(sd):
-        return None
-    st = os.stat(sd)
-    return f"{st.st_size}-{st.st_mtime_ns}"
+def _ambiguity(x, y):
+    """계획 §4.2 "서로 다른 지표 방향" 의 조작적 정의.
 
-
-def calibration_ok():
-    """T1 의 θ-오차 calibration (명세 §8.3). 없거나 checkpoint 가 갱신됐으면 재검사한다."""
-    if not complete(CAL_TAG):
-        return None                                    # 아직 판정 불가 (다음 패스 대기)
-    p = os.path.join(ROOT, "work_dir", CAL_TAG, "calibration.json")
-    sig = _ckpt_signature(CAL_TAG)
-    if os.path.exists(p):
-        try:
-            if json.load(open(p)).get("ckpt_signature") != sig:
-                log("calibration: checkpoint 갱신 감지 — 재검사")
-                os.remove(p)
-        except Exception:
-            os.remove(p)
-    if not os.path.exists(p):
-        log(f"calibration: {CAL_TAG} 검사 실행 (tools/check_calibration.py)")
-        subprocess.run([PY, os.path.join(ROOT, "tools", "check_calibration.py"),
-                        os.path.join(ROOT, "work_dir", CAL_TAG)], cwd=ROOT)
-    if not os.path.exists(p):
-        log("calibration: 결과 파일 생성 실패 — K2+ 닫힘")
-        return False
-    r = json.load(open(p))
-    log(f"calibration: Spearman {r.get('spearman', 0):.4f} 단조 {r.get('monotonic')} "
-        f"-> {'PASS' if r.get('pass') else 'FAIL'}")
-    return bool(r.get("pass"))
-
-
-def gate_kd_ladder():
-    """K2 -> K3 -> K4 순차 게이트 (다중 패스로 체인).
-
-    K2: T1 calibration PASS 이고 대조군(K1B·K1B_T1)이 종결됐을 때만.
-    K3/K4: 직전 단계가 완료됐을 때만. calibration FAIL 이면 사다리 전체 닫힘
-    — 명세 §8.3 "uncertainty 가 오차와 연결되지 않으면 uncertainty KD 를 진행하지
-    않는다" 의 자동화다.
+    HQNR 이 동급(|Δ| ≤ band)이면서 SCC 와 ERGAS 가 **서로 반대 모델을 가리킬 때**
+    그 구간의 depth/width 결론이 불명확한 것으로 본다. 반환: (엇갈림?, |ΔHQNR|, 사유)
     """
-    cal = calibration_ok()
-    if cal is None:
-        log("KD 사다리: T1 미완 — 대기")
+    hx, hy = hqnr_of(x), hqnr_of(y)
+    mx, my = rr_of(x), rr_of(y)
+    if None in (hx, hy) or mx is None or my is None:
+        return None
+    dh = abs(hx - hy)
+    if dh > HQNR_BAND:
+        return (False, dh, f"HQNR 로 결정됨(Δ{dh:.4f} > {HQNR_BAND})")
+    d_scc = mx["scc"] - my["scc"]            # + 면 x 우세
+    d_erg = my["ergas"] - mx["ergas"]        # + 면 x 우세
+    if abs(d_scc) <= SCC_TIE:
+        return (False, dh, f"SCC 동률(Δ{d_scc:+.5f}) — 엇갈림 아님")
+    split = (d_scc > 0) != (d_erg > 0)
+    return (split, dh,
+            f"HQNR 동급(Δ{dh:.4f}) · SCC {d_scc:+.5f} · ERGAS {d_erg:+.4f} → "
+            + ("엇갈림" if split else "같은 방향"))
+
+
+def gate_s1_midpoint():
+    """조건부 중간점 — 두 구간 중 **하나만** 연다 (계획 §4.2)."""
+    if not complete(S1_CORE[0]):
         return
-    if not cal:
-        log("KD 사다리: calibration FAIL — K2~K4 닫힘 (teacher head/loss 재설계 필요)")
+    cands = []
+    for mid, x, y in S1_MID:
+        if not (complete(x) and complete(y)):
+            log(f"{mid}: 전제({x}·{y}) 미완 — 대기")
+            continue
+        r = _ambiguity(x, y)
+        if r is None:
+            continue
+        split, dh, why = r
+        log(f"{mid}: {why}")
+        if split:
+            cands.append((dh, mid, why))
+    if not cands:
         return
-    for ctrl in ("K1B_R4_specKD", "K1B_T1_specKD"):
-        if ledgered(ctrl) and not complete(ctrl):
-            log(f"KD 사다리: 대조군 {ctrl} 실패 — K2~K4 영구 닫힘 (대조 불가한 비교는 돌리지 않는다)")
+    for m in ("S1_T04A_W152_D123_MS2", "S1_T04B_W168_D123_MS2"):
+        if complete(m) or ledgered(m):
+            log("중간점: 이미 하나 실행됨 — 둘 다 돌리지 않는다")
             return
-        if not complete(ctrl):
-            log(f"KD 사다리: 대조군 {ctrl} 미완 — 대기")
+    dh, mid, why = min(cands)                # 더 모호한(ΔHQNR 작은) 구간 하나만
+    emit(mid, f"{why} — 중간점 1벌만 실행")
+
+
+def gate_s1_dual():
+    """architecture winner 의 dual MARs 대조 (계획 §6). 탐색이 전부 끝난 뒤 한 벌만."""
+    done = [t for t in S1_CORE if complete(t)]
+    if len(done) < len(S1_CORE):
+        log(f"T05 dual: 탐색 미완({len(done)}/{len(S1_CORE)}) — 대기")
+        return
+    # 중간점이 열렸다면 그것도 끝나야 한다
+    for m in ("S1_T04A_W152_D123_MS2", "S1_T04B_W168_D123_MS2"):
+        if os.path.isdir(os.path.join(ROOT, "work_dir", m)) and not terminal(m):
+            log(f"T05 dual: 중간점 {m} 진행 중 — 대기")
             return
-    if not complete("K2_R4_uknow"):
-        emit("K2_R4_uknow", "calibration PASS · 대조군 종결")
+        if complete(m):
+            done.append(m)
+    win = done[0]
+    for t in done[1:]:
+        if better(t, win):
+            win = t
+    if any(complete(v) for v in S1_DUAL.values()):
+        log("T05 dual: 이미 완료 — 생략")
         return
-    if not complete("K3_R4_uknow_gtvar"):
-        emit("K3_R4_uknow_gtvar", "K2 완료")
+    dual = S1_DUAL.get(win)
+    if dual is None:
+        log(f"T05 dual: winner={win} 의 dual config 가 없다 — 수동 생성 필요")
         return
-    if not complete("K4_R4_uknow_gtvar_sis"):
-        emit("K4_R4_uknow_gtvar_sis", "K3 완료")
+    emit(dual, f"architecture winner = {win} (HQNR {hqnr_of(win):.4f}) 의 PAN reconstruction 대조")
+
+
+def gate_s1_naf_note():
+    """NAF-U fallback 조건 기록 (계획 §4.3). 구현본이 있으면 연다."""
+    if not (complete(S1_CORE[0]) and complete(S1_CORE[1]) and complete(S1_ANCHOR)):
         return
-    log("KD 사다리: 전부 완료")
+    a = hqnr_of(S1_ANCHOR)
+    worse = [t for t in S1_CORE[:2] if hqnr_of(t) is not None and hqnr_of(t) <= a]
+    if len(worse) < 2:
+        return
+    log(f"NAF fallback 조건 성립 — T00·T01 이 anchor({S1_ANCHOR} HQNR {a:.4f})를 "
+        "모두 개선하지 못했다")
+    emit("S1_TF_NAFU_MS2", "capacity scaling 실패 — backbone family 대조")
+
+
+# ================================================================= s2 캠페인
+S2_TEACHER = "S2_T00_W160_D122_MS2"
+S2_UQ = os.path.join(ROOT, "work_dir", S2_TEACHER, "uq_head")
+S2_STUDENTS = ([f"S2_PKD_L010_S{s}" for s in (2025, 1234)]
+               + [f"S2_UKD_{t}_S{s}" for t in ("L003", "L010", "L030") for s in (2025, 1234)])
+S2_LAMBDAS = ["L003", "L010", "L030"]
+
+
+def gate_s2_calibrate():
+    """teacher mean 이 끝나면 head-only calibration 을 돌리고 student 큐를 연다.
+
+    calibration 은 mean 을 고정한 사후 보정이라 모델 선택(HQNR) 대상이 아니다 —
+    체인 case 가 아니라 도구로 실행한다 (tools/calibrate_head.py).
+    """
+    if not complete(S2_TEACHER):
+        return
+    if not os.path.exists(os.path.join(S2_UQ, "model.safetensors")):
+        log(f"{S2_TEACHER}: uncertainty head calibration 실행")
+        r = subprocess.run([PY, os.path.join(ROOT, "tools", "calibrate_head.py"),
+                            os.path.join(ROOT, "work_dir", S2_TEACHER)], cwd=ROOT)
+        if r.returncode != 0:
+            log("calibration FAIL — student 큐를 열지 않는다 "
+                "(Spearman>0 · 5분위 단조 · 전역분산 대비 NLL 개선 중 하나가 불충족)")
+            return
+    info = json.load(open(os.path.join(S2_UQ, "uq_norm.json")))
+    if not info.get("pass"):
+        log(f"calibration FAIL 기록 (Spearman {info.get('spearman'):.4f}) — student 큐 닫힘")
+        return
+    log(f"calibration PASS (Spearman {info['spearman']:.4f}, "
+        f"NLL 개선 {info['nll_gain']:+.5f}) — student 큐 개방")
+    for t in S2_STUDENTS:
+        emit(t, "teacher calibration PASS")
+
+
+def gate_s2_gtvar():
+    """λ_U 스윕 승자를 seed 쌍 평균으로 고르고 GT-variance 2벌만 연다 (계획 §5.3)."""
+    ukd = {t: [f"S2_UKD_{t}_S2025", f"S2_UKD_{t}_S1234"] for t in S2_LAMBDAS}
+    if not all(complete(r) for rs in ukd.values() for r in rs):
+        return
+    if any(complete(f"S2_GTVAR_{t}_S{s}") for t in S2_LAMBDAS for s in (2025, 1234)):
+        log("GTVar: 이미 실행됨 — 생략")
+        return
+    rows = []
+    for t, rs in ukd.items():
+        h = sum(hqnr_of(r) for r in rs) / 2
+        m = [rr_of(r) for r in rs]
+        rows.append((t, h, sum(x["scc"] for x in m) / 2, sum(x["ergas"] for x in m) / 2))
+    for t, h, sc, er in rows:
+        log(f"λ_U {t}: seed 평균 HQNR {h:.4f} · SCC {sc:.5f} · ERGAS {er:.4f}")
+    best = max(rows, key=lambda r: r[1])
+    top = [r for r in rows if abs(r[1] - best[1]) <= HQNR_BAND]
+    if len(top) > 1:                      # HQNR 동급이면 SCC, 그다음 ERGAS
+        top.sort(key=lambda r: (-r[2], r[3]))
+        best = top[0]
+        why = f"HQNR 동급 {len(top)}개 중 SCC 우위"
+    else:
+        why = "HQNR 우위"
+    log(f"λ_U* = {best[0]} ({why})")
+    for s in (2025, 1234):
+        emit(f"S2_GTVAR_{best[0]}_S{s}", f"λ_U* = {best[0]} · {why}")
 
 
 def main():
-    gate_kd_ladder()
+    gate_s1_midpoint()
+    gate_s1_naf_note()
+    gate_s1_dual()
+    gate_s2_calibrate()
+    gate_s2_gtvar()
 
 
 if __name__ == "__main__":

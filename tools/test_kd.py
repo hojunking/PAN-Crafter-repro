@@ -15,7 +15,9 @@ sys.path.insert(0, ROOT)
 from kd.ops import (MTFDownsampler, AbsoluteGradient, LocalVarianceMap,
                     build_shift_candidates, mean_normalize, ramp_then_decay)
 from kd.losses import (sis_loss, uncertainty_nll, uknow_weights, weighted_l1,
-                       spectral_kd_loss, mutual_residual)
+                       spectral_kd_loss, mutual_residual, local_error_map, logvar_nll,
+                       uknow_weights_fixed, gtvar_loss)
+from kd.ops import multiscale_variance, squash_variance, local_variance
 from kd.features import FeatureTap, FeatureProj, UncertaintyHead, WithUncertainty
 from model.pancrafter_paper import PANCrafterPaper
 
@@ -170,6 +172,60 @@ def t_wrapper_contract():
     assert any(k.startswith("head.") for k in sd) and any(k.startswith("base.") for k in sd)
 
 
+# ------------------------------------------------- s2 계획 신규 (logvar·GTVar)
+def t_logvar_nll():
+    """NLL 최소화가 s -> log(e_loc) 로 수렴해야 한다 (정답 분산 회복)."""
+    e = torch.rand(2, 1, 16, 16) * 0.1 + 0.01
+    s_ = torch.zeros_like(e, requires_grad=True)
+    opt = torch.optim.Adam([s_], lr=0.2)
+    for _ in range(400):
+        loss, _ = logvar_nll(e, s_)
+        opt.zero_grad(); loss.backward(); opt.step()
+    assert torch.allclose(s_.detach(), torch.log(e), atol=0.05), \
+        f"최적해 s=log(e_loc) 미회복 (최대오차 {(s_.detach()-torch.log(e)).abs().max():.3f})"
+
+
+def t_local_error_map():
+    pred, gt = torch.rand(2, 8, 16, 16), torch.rand(2, 8, 16, 16)
+    e = local_error_map(pred, gt, k=3)
+    assert e.shape == (2, 1, 16, 16) and (e >= 0).all()
+    # 완전 일치면 0
+    assert local_error_map(gt, gt).abs().max() < 1e-6
+
+
+def t_fixed_weights():
+    s_ = torch.randn(2, 1, 16, 16)
+    wh, ws, u = uknow_weights_fixed(s_, q05=-1.6, q95=1.6, soft_floor=0.05)
+    assert (u >= 0).all() and (u <= 1).all()
+    assert abs(wh.mean().item() - 1) < 1e-3 and abs(ws.mean().item() - 1) < 1e-3, "평균 1 정규화"
+    assert (ws > 0).all(), "soft 바닥(0.05) 이 음수/0 을 막아야 한다"
+    # 같은 입력이면 배치 구성과 무관하게 같은 u (고정 분위수의 목적)
+    u2 = uknow_weights_fixed(s_[:1], q05=-1.6, q95=1.6)[2]
+    assert torch.allclose(u[:1], u2), "고정 분위수인데 배치에 따라 u 가 달라졌다"
+
+
+def t_gtvar():
+    # 평탄한 잔차 vs 디테일 있는 잔차 -> V 가 구분돼야 한다
+    flat = torch.zeros(2, 8, 32, 32)
+    tex = torch.randn(2, 8, 32, 32) * 0.3
+    v_flat, v_tex = multiscale_variance(flat), multiscale_variance(tex)
+    assert v_tex.mean() > v_flat.mean() + 1e-4
+    k = float(v_tex.median())
+    assert 0 < squash_variance(v_tex, k).mean() < 1, "Ṽ 는 (0,1)"
+    rs = torch.randn(2, 8, 32, 32, requires_grad=True)
+    loss, d = gtvar_loss(rs, tex, kappa=k)
+    loss.backward()
+    assert torch.isfinite(rs.grad).all() and rs.grad.abs().sum() > 0
+    assert -1.001 <= d["v_corr"] <= 1.001
+    # 자기 자신과는 loss 0
+    l0, _ = gtvar_loss(tex, tex, kappa=k)
+    assert l0.item() < 1e-8, f"동일 입력인데 loss {l0.item()}"
+
+
+check("logvar NLL: 최적해 s=log(e_loc) 회복", t_logvar_nll)
+check("local_error_map: 형상·비음수·완전일치 0", t_local_error_map)
+check("고정분위수 weight: 정규화·바닥·배치 불변", t_fixed_weights)
+check("GTVar: 텍스처 구분·grad·동일입력 0", t_gtvar)
 check("SiS: 정확한 shift 회복", t_sis_exact_shift)
 check("SiS: radius=0 == L1", t_sis_center_equiv)
 check("SiS: shared_vector vs bandwise 구분", t_sis_shared_vs_bandwise)

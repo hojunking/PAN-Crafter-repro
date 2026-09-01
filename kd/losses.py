@@ -146,3 +146,60 @@ def mutual_edge(pred_self, pred_peer_detached, grad_op):
     with torch.no_grad():
         g_p = grad_op(pred_peer_detached.mean(dim=1, keepdim=True))
     return F.l1_loss(g_s, g_p)
+
+
+# ------------------------------------------------- s2 계획 (2026-09-01) 전용
+
+def local_error_map(pred, gt, k=3):
+    """e_loc = A_k( (1/C)Σ_c (Y_c − μ_c)² )  — s2 계획 §2.
+
+    픽셀 절대오차가 아니라 **국소 평균 제곱오차**다. head 가 단일 픽셀 노이즈가
+    아니라 영역 난이도를 학습하게 한다.
+    """
+    se = (pred - gt).pow(2).mean(dim=1, keepdim=True)
+    return F.avg_pool2d(se, k, stride=1, padding=k // 2, count_include_pad=False)
+
+
+def logvar_nll(e_loc, s):
+    """L = 0.5·exp(−s)·e_loc + 0.5·s,  s = log σ² (s2 계획 §2).
+
+    e_loc 은 detach 된 상태를 기대한다 — head-only calibration 에서 mean 은 고정이다.
+    """
+    loss = (0.5 * torch.exp(-s) * e_loc + 0.5 * s).mean()
+    return loss, {"s_mean": s.mean().item(), "e_loc_mean": e_loc.mean().item()}
+
+
+def uknow_weights_fixed(s, q05, q95, soft_floor=0.05, alpha_u=1.0):
+    """고정 train-set 분위수로 정규화한 hard/soft weight (s2 계획 §4).
+
+    u = clip((s − q05)/(q95 − q05), 0, 1)
+    w_hard = MeanNorm(1 + α·u)          — teacher 가 못 미더운 곳은 GT 를 더 본다
+    w_soft = MeanNorm(max(1 − u, floor)) — teacher 가 자신 있는 곳은 teacher 를 따른다
+
+    배치마다 분위수를 다시 재는 방식(uknow_weights)과 달리 **전 실행에서 같은
+    스케일**을 쓴다 — λ 스윕에서 배치 구성이 가중치 분포를 흔들지 않게.
+    """
+    s = s.detach()
+    u = ((s - q05) / (q95 - q05 + 1e-6)).clamp(0, 1)
+    w_hard = mean_normalize(1.0 + alpha_u * u)
+    w_soft = mean_normalize((1.0 - u).clamp_min(soft_floor))
+    return w_hard, w_soft, u
+
+
+def gtvar_loss(res_s, res_gt, kappa, beta=0.1):
+    """L_GTVar = SmoothL1( Ṽ(R_S), sg(Ṽ(R_GT)) ) — s2 계획 §6.
+
+    R = (출력 − ↑MS) 잔차. 다중 스케일 국소 분산을 κ 로 squash 해 비교한다.
+    GT 쪽은 detach — student 의 detail energy 를 GT 쪽으로 끌어올린다.
+    """
+    from kd.ops import multiscale_variance, squash_variance
+    v_s = squash_variance(multiscale_variance(res_s), kappa)
+    with torch.no_grad():
+        v_g = squash_variance(multiscale_variance(res_gt), kappa)
+    loss = F.smooth_l1_loss(v_s, v_g, beta=beta)
+    with torch.no_grad():
+        a = v_s.flatten().float(); b = v_g.flatten().float()
+        corr = float(((a - a.mean()) * (b - b.mean())).mean()
+                     / (a.std() * b.std() + 1e-8))
+    return loss, {"v_s_mean": v_s.mean().item(), "v_gt_mean": v_g.mean().item(),
+                  "v_s_std": v_s.std().item(), "v_corr": corr}

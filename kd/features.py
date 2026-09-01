@@ -59,17 +59,26 @@ class FeatureProj(nn.Module):
 
 
 class UncertaintyHead(nn.Module):
-    """pixel 당 1ch uncertainty (§8.1). softplus 로 양수 보장."""
+    """pixel 당 1ch uncertainty. Conv3x3(C->C/4) -> SiLU -> Conv1x1(C/4->1).
 
-    def __init__(self, channels):
+    out 모드 (구조·state_dict 키는 동일 — 기존 T1/T2 checkpoint 그대로 로드된다):
+      "softplus" : theta = softplus(z) + eps  (분산 그 자체, 기존 KD 캠페인)
+      "logvar"   : s = z                      (log sigma^2, s2 계획 §2 — 무제약이라
+                   head-only calibration 에서 수치적으로 안정)
+    """
+
+    def __init__(self, channels, out="softplus"):
         super().__init__()
+        assert out in ("softplus", "logvar")
+        self.out = out
         self.net = nn.Sequential(
             nn.Conv2d(channels, max(8, channels // 4), 3, padding=1),
             nn.SiLU(),
             nn.Conv2d(max(8, channels // 4), 1, 1))
 
     def forward(self, feat):
-        return F.softplus(self.net(feat)) + 1e-6
+        z = self.net(feat)
+        return z if self.out == "logvar" else F.softplus(z) + 1e-6
 
 
 class WithUncertainty(nn.Module):
@@ -80,14 +89,15 @@ class WithUncertainty(nn.Module):
     accelerate 가 이 래퍼 전체를 저장하므로 head 도 checkpoint 에 포함된다.
     """
 
-    def __init__(self, base, channels):
+    def __init__(self, base, channels, head_out="softplus"):
         super().__init__()
         self.base = base
-        self.head = UncertaintyHead(channels)
+        self.head = UncertaintyHead(channels, out=head_out)
         self._tap = FeatureTap(base, names=("dec_h",))
 
     def forward(self, pan, lpan, ms, s):
         return self.base(pan, lpan, ms, s)
 
     def theta(self):
+        """head 출력 그대로. head_out='logvar' 면 log sigma^2 다."""
         return self.head(self._tap.out["dec_h"])
