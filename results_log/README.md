@@ -8,6 +8,7 @@
 
 | 날짜 | 문서 | 요지 |
 |---|---|---|
+| 2026-09-01 | [WIP_ms-only-ablation](2026-09-01_WIP_ms-only-ablation.md) | **[진행중] MS-only ablation — R4 에서 단일-task 가 dual MARs 를 ERGAS −2.7%(20/20) 로 이긴다.** 모드 변조 파라미터는 무가치(n.s.). 적대적 감사로 기계적 교란 전부 기각, 단 **효과는 구조 의존**(w128 단일축 쌍은 −0.64%)이고 **HQNR 은 dual 명목 우위(band 내)**. 표준 trainer dual 대조군 학습 중 |
 | 2026-09-01 | [mutual-factorial-s2-results](2026-09-01_mutual-factorial-s2-results.md) | **Mutual 요인 4벌(2-peer×50K) 완주 — 이 규모에서 mutual 무효 확정.** M1−M0 방향일치 악화(B +0.67% p=1e-4), 다양성(M2−M0)도 소폭 비용, M3−M2 무효, HQNR 전 셀 Δ≤0.0019≪band. λ=0.02 에선 DML(λ=0.10)의 FR 이득마저 소멸 — 8/20 no-go·8/27 트레이드에 이은 세 번째 확인으로 **Part A 종결, KD(Part B)만 남음**. MS-only 2벌 진행 중 |
 | 2026-08-31 | [WIP_kd-campaign](2026-08-31_WIP_kd-campaign.md) | **[진행 중] KD(s1)·Mutual(s2) 캠페인.** T=c6 계열 → S=R4(2.13M, 격차 +2.84%). 첫 결과: **T1(c6+uncertainty) — 품질 보존(ERGAS +0.60%·SAM −0.85% 개선)에 calibration Spearman 0.884·5분위 완전 단조 PASS** → K2~K4 게이트 calibration 조건 충족 |
 | 2026-08-31 | [swin-bottleneck-report](2026-08-31_swin-bottleneck-report.md) | **Bottleneck Swin 종합 보고서 (두 캠페인 26건, 질문별 정리).** 11ch 에선 기각(형태 자체 비용, CM3A>Swin, 깊이 비단조) · **효과 부호가 맥락에 따라 반전** — 9ch·d122 에서만 −0.81% 유익 → `SW2_d122_9ch`(3.44M) 가 anchor 동률 params 최소 Quality winner 후보 · 폭 축소 하 attention 보호 없음(서버 교차 착시 정정) · 비용은 공짜(+0.1ms) |
