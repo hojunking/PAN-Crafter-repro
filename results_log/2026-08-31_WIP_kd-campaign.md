@@ -92,3 +92,8 @@ KD, T=c6) → K1B_T1(spectral KD, T=T1 — teacher 교란 분리) → [게이트
   와의 격차도 사다리 중 최소. GT variance 추가는 최소한 무해, 방향은 플러스.
   (참고 지표: ergas_at_best 2.0776 — 사다리 명목 최저.) K4(+Student SiS) 09:02 개시
   — 마지막 게이트.
+- 2026-09-01 09:01: **`K3_R4_uknow_gtvar` 완료 (게이트 2/3, 2.33h).** HQNR **0.9552**
+  @225 · SCC **0.9907**(K-사다리 명목 최고). K2(0.9543·0.9905) 대비 HQNR band 내
+  ·SCC 판정선 내 → **GT variance 추가의 순효과도 HQNR·SCC 로 구분되지 않는다.**
+  K0 대비 비회귀 유지. (참고 기록: ergas_at_best 2.0776 — 판정 미사용)
+  게이트 패스 3이 K4(+Student SiS, 마지막) 자동 개방, 09:02 개시.
