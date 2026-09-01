@@ -1,0 +1,80 @@
+# 반복 실행 (seed 1234) — MS ablation 판정의 시드+실행 잡음 확인용. 원본과 seed·work_dir 만 다르다.
+# MS1(=계획 S2_MS1_R4_MS_ONLY_MODED) — R4 + PAN task 제거, MS modulation 유지
+# 실측 params 2.1285M. 계획: research_log/s2_ms_only_ablation_and_uncertainty_audit.md
+# 선행 증거: m1_single(w128급) — PAN task 제거 시 HQNR 동급·학습 2배. 이 실험은 그 결론의 R4(압축) 전이 검증
+# best 선택 = 공식 HQNR (계획 §7 의 val-ERGAS 서술 불채택 — 확정 규칙·기준선 일관성)
+expect_params_m: 2.1285
+seed: 1234
+num_worker: 4
+work_dir: /home/honbul/Desktop/song/PAN-Crafter/work_dir/MS1_R4_msonly_s1234
+
+phase: train
+
+mars: ms                      # PAN mode·loss·batch 복제 제거 (단일 task)
+
+# KNOWN_ISSUES.md E-1: 검증셋으로 best 를 고른다. 테스트셋은 곡선 기록용으로만 본다.
+select_on: hqnr
+
+# feeder
+feeder: feeders.feeder.PanFeeder
+train_feeder_args:
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5
+  crop: False
+  hflip: True
+  vflip: True
+  rot: True
+  crop_ratio: 0.75
+  ms_size: 16
+
+val_feeder_args:
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5
+
+test_reduced_feeder_args:
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5
+
+test_full_feeder_args:
+  dataroot: /home/honbul/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5_repaired/test_wv3_OrigScale_multiExm1.h5
+
+# data
+num_bands: 8
+max_pixel: 2047.0
+
+# model
+model: model.pancrafter_paper.PANCrafterPaper
+model_args:
+  in_channels: 1
+  out_channels: 8
+  hidden_size: 96
+  depth: [1, 2, 4]          # full-res / H/2 / H/4(bottleneck)
+  dropout: 0.0
+  num_heads: 8
+  mlp_ratio: 4.0
+  ks: 3                     # 논문: "local attention kernel size to k = 3" (bottleneck 포함)
+  ka: 3
+  norm: ln                  # 논문 Eq (5): x <- Conv(SiLU(LN(x)))
+  in_mode: released
+  attn_locations: []
+  n_attn: 3                 # Figure 3: AttnBlock 3개 (H/2 enc, H/4 bottleneck, H/2 dec)
+
+# optim
+optimizer: AdamW
+learning_rate: 1e-4
+weight_decay: 0.01
+lr_scheduler: cosine
+num_iter: 50000
+num_warmup: 100
+
+# loss
+res: True
+w_off: 1.0
+
+# logging
+log_iter: 100
+save_iter: 10000
+save_epoch: 25
+eval_epoch: 5
+
+# training
+gpu: 0
+batch_size: 48  # duplicate
+test_batch_size: 1
