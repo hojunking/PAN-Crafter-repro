@@ -8,6 +8,7 @@
 
 | 날짜 | 문서 | 요지 |
 |---|---|---|
+| 2026-09-01 | [WIP_msonly-grid](2026-09-01_WIP_msonly-grid.md) | **[진행 중] MS-only baseline 2×2 전수 (s1 4건, ~5h).** s2 성립 결과의 서버 재현 + {w96,w128}×{11,9ch} — 향후 clean baseline 채택 판정용 |
 | 2026-09-01 | [se-ablation-results](2026-09-01_se-ablation-results.md) | **SE ablation 2건 종료 — 둘 다 무효.** bottleneck SE×4·H/2 fusion SE×1 모두 R4 와 HQNR·SCC 구분 불가. 게이트는 활성(포화 0%)이나 **MS/PAN mode-cos 0.994+ 로 mode 의존 선택 미형성** → §9 결정표 '둘 다 무효' — SE 계열 종료, loss/KD 집중. 채널 재조정으로는 w96 용량 문제를 못 푼다(폭 곡선 결론과 정합) |
 | 2026-09-01 | [kd-mutual-campaign-results](2026-09-01_kd-mutual-campaign-results.md) | **KD(s1 9건)·Mutual(s2 4건) 캠페인 완주 — HQNR 는 어떤 변형으로도 유의하게 움직이지 않았다(전부 동급 band, "구분되지 않는다"가 공식 판정).** 판별된 것: ① K1B(spectral KD, T=c6)의 SCC 악화 0.9889 와 그 귀속 — teacher 를 T1 로 바꾸면 소멸 → **spectral KD 는 teacher spectral 품질에 민감** ② **mutual 재차 무효**(M1≈M0, M3<M2) → 갈래 종료. 명목 최상은 K3(0.9552/0.9907). Teacher uncertainty calibration Spearman 0.884 완전 단조 PASS. 게이트(calibration·대조군·다중 패스) 전부 실작동. **(추기) D_λ/D_s 분해 — K3 가 명세 운영 목표 유일 전항목 충족(방법 후보 확정), s2 MS-only 2건 병합: plain 단일-task backbone 이 HQNR·SCC 동급 성립(MS2 SCC 0.9910 명목 최고)** |
 | 2026-08-31 | [swin-bottleneck-report](2026-08-31_swin-bottleneck-report.md) | **Bottleneck Swin 종합 보고서 (두 캠페인 26건, 질문별 정리).** 11ch 에선 기각(형태 자체 비용, CM3A>Swin, 깊이 비단조) · **효과 부호가 맥락에 따라 반전** — 9ch·d122 에서만 −0.81% 유익 → `SW2_d122_9ch`(3.44M) 가 anchor 동률 params 최소 Quality winner 후보 · 폭 축소 하 attention 보호 없음(서버 교차 착시 정정) · 비용은 공짜(+0.1ms) |
