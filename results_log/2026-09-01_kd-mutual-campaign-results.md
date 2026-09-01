@@ -75,3 +75,45 @@ K0 재기준은 기존 R4(0.9561)와 동일 — KD 코드 경로 등가 실증.
 2. KD 방향 재설계 논의 거리: HQNR 를 움직이려면 출력 모방이 아니라 **D_λ/D_s 를
    직접 겨냥하는 loss** 또는 Student 구조 개선(SE 등)이 필요하다는 것이 이번
    캠페인의 함의다. Mutual 갈래는 종료.
+
+---
+
+## 추기 (2026-09-01 12시) — D_λ/D_s 분해 분석과 MS-only 결과 병합
+
+### A. 분해로 보면 증류는 실재했다 — 방법 승자 판정
+
+"HQNR 무변동"(§3-1)을 HQNR = (1−D_λ)(1−D_s) 분해로 열면 성분 이동이 보인다:
+
+| 실행 | D_λ↓ | D_s↓ | 해석 |
+|---|---:|---:|---|
+| (참조) `c6_c4d124` | 0.0213 | 0.0256 | teacher — spectral 우위 |
+| `K0_R4_base` | 0.0235 | **0.0209** | student — spatial 우위 |
+| `K2_R4_uknow` | **0.0211** | 0.0251 | teacher 의 spectral 일관성 완전 이식, spatial 강점 절반 상실 |
+| **`K3_R4_uknow_gtvar`** | 0.0226 | 0.0228 | GT variance 가 균형 복원 |
+
+**명세 §31.2 운영 목표 대조: `K3_R4_uknow_gtvar` 가 유일한 전항목 충족**이다 —
+D_λ gap(K0−c6 = 0.0022) 41% 회복 ✓ · D_s 악화 +0.0019 ≤ 0.002 ✓ · HQNR 비회귀 ✓.
+K2 는 D_λ 를 109% 회복하지만 D_s 악화가 한도(0.002)의 2배다. K4 는 K3 와 구분
+불가라 단순한 K3 를 방법 후보로 확정한다. mutual 쪽도 같은 구조 — SiS peer 는
+D_λ 최저(0.0202~3), edge peer 는 D_s 우위로 **specialization 이 구성비는 설계대로
+움직였으나 곱은 불변**이었다.
+
+Teacher 감사 보강(`tools/analyze_uncertainty.py`, T1): Top-10% θ 픽셀 오차 lift
+**2.33×**, 10분위 완전 단조, edge/smooth 양 영역 Spearman 0.87(단순 edge 탐지기
+아님), θ~GT분산 상관 0.52 — K3 에서 GT variance 가 θ 와 비중복 정보를 더한다는
+사전 근거와 결과가 정합한다.
+
+### B. s2 MS-only 2건 — clean single-task backbone 성립
+
+같은 기간 s2 에서 완료 (계획: `research_log/s2_ms_only_ablation_and_uncertainty_audit.md`):
+
+| 실행 | D_λ↓ | D_s↓ | HQNR | SCC |
+|---|---:|---:|---:|---:|
+| `MS1_R4_msonly` (PAN task 제거) | 0.0229 | 0.0257 | 0.9520 | 0.9905 |
+| **`MS2_R4_plain_msonly`** (mode modulation 까지 제거) | 0.0217 | 0.0249 | 0.9539 | **0.9910** |
+
+둘 다 같은 서버의 R4-dual 쌍(`M0_R4R4_indep` 두 peer 0.9550/0.9520)과 동급 band,
+MS2 는 SCC 명목 최고. **PAN auxiliary·mode modulation 전부를 제거한 순수 residual
+U-Net 이 HQNR·SCC 동급 + 학습 ~2배** — 계획 §13 의 "clean single-task backbone
+전환 가능" 분기가 성립했다. §5-2 의 재설계 논의와 합치면 자연스러운 다음 캠페인은
+**plain backbone 위에서 K3 레시피 재검증**(MARs 의존성 제거 확인)이다.
