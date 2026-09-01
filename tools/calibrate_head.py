@@ -133,39 +133,51 @@ def main():
             if step >= a.iters:
                 break
 
-    # ---------------- 고정 상수 (계획 §4·§6) + 검증 진단 --------------------
+    # ---------------- 고정 상수(train) + PASS 판정(held-out val) --------------
+    # 계획 §4·§6 은 q05/q95·κ 를 "training set 에서 고정" 하라고 명시한다.
+    # 반면 calibration PASS(§2)는 **일반화** 주장이므로 학습에 쓰지 않은 validation
+    # 에서 재야 한다 — 같은 train 배치에서 재면 head 가 외운 것을 통과로 읽는다.
     model.eval()
-    S, E, V = [], [], []
-    with torch.no_grad():
-        for i, (gt, lms, ms, lpan, pan) in enumerate(tr):
-            if i >= 40:                                  # ≈1000 표본이면 분위수는 안정
-                break
-            gt, ms, lpan, pan = (x.to(dev, dtype=torch.float32) for x in (gt, ms, lpan, pan))
-            mu = forward_mean(model, ms, lpan, pan, res)
-            s = model.theta()
-            S.append(s[..., ::2, ::2].flatten().cpu().numpy())
-            E.append(local_error_map(mu, gt)[..., ::2, ::2].flatten().cpu().numpy())
-            up = F.interpolate(ms, scale_factor=4, mode="bicubic")
-            V.append(multiscale_variance(gt - up).flatten().cpu().numpy())
-    S = np.concatenate(S); E = np.concatenate(E); V = np.concatenate(V)
-    q05, q95 = float(np.quantile(S, 0.05)), float(np.quantile(S, 0.95))
-    kappa = float(np.median(V))                          # Ṽ 중앙값이 0.5 가 되는 스케일
 
-    sel = np.random.default_rng(0).choice(len(S), min(200_000, len(S)), replace=False)
-    rho = float(spearmanr(S[sel], E[sel]).statistic)
-    qs = np.quantile(S, [0.2, 0.4, 0.6, 0.8])
-    bins = np.digitize(S, qs)
-    quint = [float(E[bins == b].mean()) for b in range(5)]
+    def collect(loader, limit, want_v):
+        S_, E_, V_ = [], [], []
+        with torch.no_grad():
+            for i, (gt, lms, ms, lpan, pan) in enumerate(loader):
+                if i >= limit:
+                    break
+                gt, ms, lpan, pan = (x.to(dev, dtype=torch.float32)
+                                     for x in (gt, ms, lpan, pan))
+                mu = forward_mean(model, ms, lpan, pan, res)
+                sv = model.theta()
+                S_.append(sv[..., ::2, ::2].flatten().cpu().numpy())
+                E_.append(local_error_map(mu, gt)[..., ::2, ::2].flatten().cpu().numpy())
+                if want_v:
+                    up = F.interpolate(ms, scale_factor=4, mode="bicubic")
+                    V_.append(multiscale_variance(gt - up).flatten().cpu().numpy())
+        return (np.concatenate(S_), np.concatenate(E_),
+                np.concatenate(V_) if want_v else None)
+
+    S, _Etr, V = collect(tr, 40, True)            # 고정 상수용 (train)
+    q05, q95 = float(np.quantile(S, 0.05)), float(np.quantile(S, 0.95))
+    kappa = float(np.median(V))                   # Ṽ 중앙값이 0.5 가 되는 스케일
+
+    Sv, Ev, _ = collect(va, 10**9, False)         # 판정용 (held-out validation 전체)
+    sel = np.random.default_rng(0).choice(len(Sv), min(200_000, len(Sv)), replace=False)
+    rho = float(spearmanr(Sv[sel], Ev[sel]).statistic)
+    qs = np.quantile(Sv, [0.2, 0.4, 0.6, 0.8])
+    bins = np.digitize(Sv, qs)
+    quint = [float(Ev[bins == b].mean()) for b in range(5)]
     monotonic = bool(all(quint[i + 1] >= quint[i] - 1e-9 for i in range(4)))
-    # NLL 비교: 예측 분산 vs 전역 상수 분산(최적 상수 = E 평균)
-    nll_pred = float(np.mean(0.5 * np.exp(-S) * E + 0.5 * S))
-    s_glob = float(np.log(E.mean() + 1e-12))
-    nll_glob = float(np.mean(0.5 * np.exp(-s_glob) * E + 0.5 * s_glob))
+    # NLL 비교: 예측 분산 vs 전역 상수 분산(최적 상수 = val 오차 평균)
+    nll_pred = float(np.mean(0.5 * np.exp(-Sv) * Ev + 0.5 * Sv))
+    s_glob = float(np.log(Ev.mean() + 1e-12))
+    nll_glob = float(np.mean(0.5 * np.exp(-s_glob) * Ev + 0.5 * s_glob))
     ok = bool(rho > 0 and monotonic and nll_pred < nll_glob)
 
     sd = {k: v.detach().contiguous().cpu() for k, v in model.state_dict().items()}
     save_file(sd, os.path.join(out_dir, "model.safetensors"))
     info = {"q05": q05, "q95": q95, "kappa": kappa, "iters": a.iters,
+            "diag_split": "val", "const_split": "train", "n_val_px": int(len(Sv)),
             "spearman": rho, "quintile_e_loc": quint, "monotonic": monotonic,
             "nll_pred": nll_pred, "nll_global": nll_glob,
             "nll_gain": nll_glob - nll_pred, "pass": ok,
@@ -173,8 +185,8 @@ def main():
     json.dump(info, open(os.path.join(out_dir, "uq_norm.json"), "w"), indent=1)
 
     print(f"\n[calib] q05 {q05:+.3f}  q95 {q95:+.3f}  kappa {kappa:.6f}")
-    print(f"[calib] Spearman(s, e_loc) {rho:.4f} · 5분위 {['%.5f' % q for q in quint]} "
-          f"단조 {monotonic}")
+    print(f"[calib] (held-out val) Spearman(s, e_loc) {rho:.4f} · "
+          f"5분위 {['%.5f' % q for q in quint]} 단조 {monotonic}")
     print(f"[calib] NLL 예측 {nll_pred:.5f} vs 전역상수 {nll_glob:.5f} "
           f"(개선 {nll_glob - nll_pred:+.5f})")
     print(f"[calib] -> {'PASS' if ok else 'FAIL'}   저장: {out_dir}")

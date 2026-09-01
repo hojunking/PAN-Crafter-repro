@@ -239,11 +239,23 @@ class KDTrainer(DualBatchMixin, Trainer):
                     self.uq_q05, self.uq_q95 = d.get("q05"), d.get("q95")
                 if self.gtvar_kappa is None:
                     self.gtvar_kappa = d.get("kappa")
+            # GT-variance gradient audit 결과(계획 §6)가 있으면 그 λ_V 를 쓴다 —
+            # 두 seed 가 같은 파일을 읽으므로 "한 번만 조정하고 동일 고정"이 지켜진다.
+            aud = os.path.join(args.teacher_checkpoint, "gtvar_audit.json")
+            if self.variant == "u_full_gtvar" and os.path.exists(aud):
+                import json as _json
+                _a = _json.load(open(aud))
+                self.lam_gtvar = float(_a["lambda_gtvar"])
+                self._audit_ratio = _a.get("ratio")
             if self.variant in ("u_full", "u_full_gtvar"):
                 assert self.uq_q05 is not None and self.uq_q95 is not None, (
                     "u_full 계열은 고정 분위수(q05/q95)가 필요하다 — "
                     "tools/calibrate_head.py 로 teacher 를 보정하거나 kd_args 에 직접 줄 것")
             if self.variant == "u_full_gtvar":
+                assert os.path.exists(os.path.join(args.teacher_checkpoint,
+                                                   "gtvar_audit.json")), (
+                    "u_full_gtvar 는 계획 §6 의 gradient audit 이 선행돼야 한다 — "
+                    "tools/gtvar_audit.py 를 먼저 돌릴 것 (게이트가 자동 실행한다)")
                 assert self.gtvar_kappa is not None, (
                     "u_full_gtvar 는 gtvar_kappa 가 필요하다 (tools/calibrate_head.py 산출)")
             if self.need_unc and not t_has_unc:

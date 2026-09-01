@@ -28,6 +28,7 @@ SCC_TIE = 0.0005       # 이 이하 SCC 차이로는 승자 선언 금지
 ERGAS_SIG = 0.0023     # 두 단일 실행 차이의 3σ (참고 지표)
 
 _mat_cache = {}
+EMITTED = set()          # 이번 호출에서 연 tag — 같은 패스의 후속 게이트가 참조한다
 
 
 def log(msg):
@@ -104,6 +105,7 @@ def emit(tag, why):
         log(f"{tag}: 실패 원장 기록 — 생략")
         return
     log(f"{tag}: 열림 — {why}")
+    EMITTED.add(tag)
     print(tag)
 
 
@@ -114,7 +116,9 @@ S1_ANCHOR = "S1_A0_W128_D124_MS2"
 S1_DUAL = {"S1_T00_W160_D122_MS2": "S1_T05_W160_D122_DUAL",
            "S1_T01_W144_D124_MS2": "S1_T05_W144_D124_DUAL",
            "S1_T02_W160_D124_MS2": "S1_T05_W160_D124_DUAL",
-           "S1_T03_W176_D122_MS2": "S1_T05_W176_D122_DUAL"}
+           "S1_T03_W176_D122_MS2": "S1_T05_W176_D122_DUAL",
+           "S1_T04A_W152_D123_MS2": "S1_T05_W152_D123_DUAL",
+           "S1_T04B_W168_D123_MS2": "S1_T05_W168_D123_DUAL"}
 S1_MID = [("S1_T04A_W152_D123_MS2", "S1_T00_W160_D122_MS2", "S1_T01_W144_D124_MS2"),
           ("S1_T04B_W168_D123_MS2", "S1_T02_W160_D124_MS2", "S1_T03_W176_D122_MS2")]
 
@@ -174,8 +178,13 @@ def gate_s1_dual():
     if len(done) < len(S1_CORE):
         log(f"T05 dual: 탐색 미완({len(done)}/{len(S1_CORE)}) — 대기")
         return
-    # 중간점이 열렸다면 그것도 끝나야 한다
+    # 중간점이 열렸다면 그것도 끝나야 한다.
+    # 주의: 같은 게이트 호출에서 방금 emit 된 중간점은 work_dir 이 아직 없다.
+    # EMITTED 를 함께 보지 않으면 T04 결과를 보지 않은 채 T05 winner 가 정해진다.
     for m in ("S1_T04A_W152_D123_MS2", "S1_T04B_W168_D123_MS2"):
+        if m in EMITTED:
+            log(f"T05 dual: 중간점 {m} 이 이번 패스에 열렸다 — 다음 패스로 대기")
+            return
         if os.path.isdir(os.path.join(ROOT, "work_dir", m)) and not terminal(m):
             log(f"T05 dual: 중간점 {m} 진행 중 — 대기")
             return
@@ -247,8 +256,15 @@ def gate_s2_gtvar():
     ukd = {t: [f"S2_UKD_{t}_S2025", f"S2_UKD_{t}_S1234"] for t in S2_LAMBDAS}
     if not all(complete(r) for rs in ukd.values() for r in rs):
         return
-    if any(complete(f"S2_GTVAR_{t}_S{s}") for t in S2_LAMBDAS for s in (2025, 1234)):
-        log("GTVar: 이미 실행됨 — 생략")
+    # 이미 어느 λ 로 시작했다면 그 λ 를 고정한다 (한 seed 만 끝난 중단 상황에서
+    # 나머지 seed 를 자동 복구해야 한다 — 전체를 닫으면 복구가 막힌다).
+    started = [t for t in S2_LAMBDAS
+               if any(terminal(f"S2_GTVAR_{t}_S{s}") for s in (2025, 1234))]
+    if started:
+        t = started[0]
+        log(f"GTVar: λ_U {t} 로 이미 시작됨 — 남은 seed 만 복구")
+        for s_ in (2025, 1234):
+            emit(f"S2_GTVAR_{t}_S{s_}", f"λ_U {t} (진행 중이던 쌍의 잔여 seed)")
         return
     rows = []
     for t, rs in ukd.items():
@@ -266,8 +282,20 @@ def gate_s2_gtvar():
     else:
         why = "HQNR 우위"
     log(f"λ_U* = {best[0]} ({why})")
+    # 계획 §6: gradient audit 을 **두 seed 전에 한 번** 돌려 λ_V 를 고정한다
+    aud = os.path.join(S2_UQ, "gtvar_audit.json")
+    if not os.path.exists(aud):
+        cfg = os.path.join(ROOT, "config", f"S2_GTVAR_{best[0]}_S2025.yaml")
+        log("GTVar: gradient audit 실행 (계획 §6)")
+        r = subprocess.run([PY, os.path.join(ROOT, "tools", "gtvar_audit.py"), cfg], cwd=ROOT)
+        if r.returncode != 0 or not os.path.exists(aud):
+            log("GTVar: audit 실패 — 여는 것을 보류한다")
+            return
+    info = json.load(open(aud))
+    log(f"GTVar: audit ratio {info['ratio']:.4f} -> λ_V {info['lambda_gtvar']}")
     for s in (2025, 1234):
-        emit(f"S2_GTVAR_{best[0]}_S{s}", f"λ_U* = {best[0]} · {why}")
+        emit(f"S2_GTVAR_{best[0]}_S{s}",
+             f"λ_U* = {best[0]} · {why} · λ_V {info['lambda_gtvar']} (audit)")
 
 
 def main():
