@@ -444,10 +444,20 @@ def collect(tag, want_profile, server, peer=None):
                              else "unshuffle(PAN)+LPAN+고주파+MS (11ch 철학)"))
         if not row["crop"]:
             bits.append("crop=False")
-        if getattr(a, "mars", "dual") == "ms":
-            bits.append("mars=ms (PAN task·복제 제거)")
-        if ma.get("mode_modulation", True) is False:
-            bits.append("mode_modulation=False (γβ 조건화 제거 — 순수 residual U-Net)")
+        # task 축(PAN reconstruction 유무·mode 조건화)은 **항상** 적는다.
+        # 2026-09-02 발견: 4-6M 대역에서 MS-only 는 학습 후반 D_lambda 가 계속 악화돼
+        # HQNR 을 잃고(같은 구조 dual 대비 plateau -0.0112), 붕괴 폭이 용량에 비례한다.
+        # 그래서 두 계열을 시트에서 반드시 구분할 수 있어야 한다.
+        _ms = getattr(a, "mars", "dual") == "ms"
+        _mm = ma.get("mode_modulation", True)
+        if _ms and not _mm:
+            bits.append("task=MS-only plain (PAN 재구성 없음 · γβ 조건화 없음 — "
+                        "4-6M 에서 후반 D_lambda 악화 주의)")
+        elif _ms:
+            bits.append("task=MS-only (PAN 재구성 없음 · γβ 조건화 유지)")
+        else:
+            bits.append("task=dual MARs (MS+PAN 재구성 · γβ mode 조건화)"
+                        + ("" if _mm else " · mode_modulation=False"))
     elif not is_rebuild:
         bits.append("arch=배포코드 (4-scale · CM3A5 · GroupNorm · mode-token · 11ch)")
         bits.append(f"fix_A1A2={row.get('fix', '')}")
@@ -478,10 +488,20 @@ def collect(tag, want_profile, server, peer=None):
             bits.append("in=11ch (↑LPAN·PAN−↑LPAN 추가)")
         if not row["crop"]:
             bits.append("crop=False")
-        if getattr(a, "mars", "dual") == "ms":
-            bits.append("mars=ms (PAN task·복제 제거)")
-        if ma.get("mode_modulation", True) is False:
-            bits.append("mode_modulation=False (γβ 조건화 제거 — 순수 residual U-Net)")
+        # task 축(PAN reconstruction 유무·mode 조건화)은 **항상** 적는다.
+        # 2026-09-02 발견: 4-6M 대역에서 MS-only 는 학습 후반 D_lambda 가 계속 악화돼
+        # HQNR 을 잃고(같은 구조 dual 대비 plateau -0.0112), 붕괴 폭이 용량에 비례한다.
+        # 그래서 두 계열을 시트에서 반드시 구분할 수 있어야 한다.
+        _ms = getattr(a, "mars", "dual") == "ms"
+        _mm = ma.get("mode_modulation", True)
+        if _ms and not _mm:
+            bits.append("task=MS-only plain (PAN 재구성 없음 · γβ 조건화 없음 — "
+                        "4-6M 에서 후반 D_lambda 악화 주의)")
+        elif _ms:
+            bits.append("task=MS-only (PAN 재구성 없음 · γβ 조건화 유지)")
+        else:
+            bits.append("task=dual MARs (MS+PAN 재구성 · γβ mode 조건화)"
+                        + ("" if _mm else " · mode_modulation=False"))
     if _tr == "kd":
         _ka = getattr(a, "kd_args", {}) or {}
         _tck = getattr(a, "teacher_checkpoint", "") or ""
