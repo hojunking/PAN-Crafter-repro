@@ -10,7 +10,7 @@
 
 측정 원칙
   - HQNR: best_state.json (공식 12-19). 판정 1순위.
-  - SCC·ERGAS: reduced_best_hqnr.mat 을 DLPan 프로토콜로 평가 (보조·참고).
+  - SCC: 보조 판정. **ERGAS 는 판정에 쓰지 않는다** (참고 지표).
 동작: stdout 에 실행할 tag(한 줄 하나), 사유는 stderr(체인 로그).
 러너가 다중 패스로 호출하므로 전제가 없으면 조용히 닫고 다음 패스를 기다린다.
 """
@@ -25,7 +25,6 @@ PY = sys.executable
 
 HQNR_BAND = 0.011      # 확정 2σ. 이 안이면 HQNR 로는 "구분되지 않는다"
 SCC_TIE = 0.0005       # 이 이하 SCC 차이로는 승자 선언 금지
-ERGAS_SIG = 0.0023     # 두 단일 실행 차이의 3σ (참고 지표)
 
 _mat_cache = {}
 EMITTED = set()          # 이번 호출에서 연 tag — 같은 패스의 후속 게이트가 참조한다
@@ -82,7 +81,11 @@ def rr_of(tag):
 
 
 def better(a, b):
-    """HQNR band -> SCC -> ERGAS. a 가 b 보다 좋으면 True."""
+    """확정 규칙: **HQNR(best checkpoint) -> SCC 에서 끝낸다.**
+
+    둘 다 동급이면 "구분되지 않는다" 이므로 False 를 돌려준다(교체하지 않는다).
+    ERGAS 로 내려가 tie-break 하지 않는다 — 참고 지표이지 판정 근거가 아니다.
+    """
     ha, hb = hqnr_of(a), hqnr_of(b)
     if ha is not None and hb is not None and abs(ha - hb) > HQNR_BAND:
         return ha > hb
@@ -91,7 +94,8 @@ def better(a, b):
         return False
     if abs(ma["scc"] - mb["scc"]) > SCC_TIE:
         return ma["scc"] > mb["scc"]
-    return ma["ergas"] < mb["ergas"]
+    log(f"{a} vs {b}: HQNR·SCC 모두 동급 — 구분되지 않음(교체 없음)")
+    return False
 
 
 def emit(tag, why):
@@ -109,113 +113,10 @@ def emit(tag, why):
     print(tag)
 
 
-# ================================================================= s1 캠페인
-S1_CORE = ["S1_T00_W160_D122_MS2", "S1_T01_W144_D124_MS2",
-           "S1_T02_W160_D124_MS2", "S1_T03_W176_D122_MS2"]
-S1_ANCHOR = "S1_A0_W128_D124_MS2"
-S1_DUAL = {"S1_T00_W160_D122_MS2": "S1_T05_W160_D122_DUAL",
-           "S1_T01_W144_D124_MS2": "S1_T05_W144_D124_DUAL",
-           "S1_T02_W160_D124_MS2": "S1_T05_W160_D124_DUAL",
-           "S1_T03_W176_D122_MS2": "S1_T05_W176_D122_DUAL",
-           "S1_T04A_W152_D123_MS2": "S1_T05_W152_D123_DUAL",
-           "S1_T04B_W168_D123_MS2": "S1_T05_W168_D123_DUAL"}
-S1_MID = [("S1_T04A_W152_D123_MS2", "S1_T00_W160_D122_MS2", "S1_T01_W144_D124_MS2"),
-          ("S1_T04B_W168_D123_MS2", "S1_T02_W160_D124_MS2", "S1_T03_W176_D122_MS2")]
-
-
-def _ambiguity(x, y):
-    """계획 §4.2 "서로 다른 지표 방향" 의 조작적 정의.
-
-    HQNR 이 동급(|Δ| ≤ band)이면서 SCC 와 ERGAS 가 **서로 반대 모델을 가리킬 때**
-    그 구간의 depth/width 결론이 불명확한 것으로 본다. 반환: (엇갈림?, |ΔHQNR|, 사유)
-    """
-    hx, hy = hqnr_of(x), hqnr_of(y)
-    mx, my = rr_of(x), rr_of(y)
-    if None in (hx, hy) or mx is None or my is None:
-        return None
-    dh = abs(hx - hy)
-    if dh > HQNR_BAND:
-        return (False, dh, f"HQNR 로 결정됨(Δ{dh:.4f} > {HQNR_BAND})")
-    d_scc = mx["scc"] - my["scc"]            # + 면 x 우세
-    d_erg = my["ergas"] - mx["ergas"]        # + 면 x 우세
-    if abs(d_scc) <= SCC_TIE:
-        return (False, dh, f"SCC 동률(Δ{d_scc:+.5f}) — 엇갈림 아님")
-    split = (d_scc > 0) != (d_erg > 0)
-    return (split, dh,
-            f"HQNR 동급(Δ{dh:.4f}) · SCC {d_scc:+.5f} · ERGAS {d_erg:+.4f} → "
-            + ("엇갈림" if split else "같은 방향"))
-
-
-def gate_s1_midpoint():
-    """조건부 중간점 — 두 구간 중 **하나만** 연다 (계획 §4.2)."""
-    if not complete(S1_CORE[0]):
-        return
-    cands = []
-    for mid, x, y in S1_MID:
-        if not (complete(x) and complete(y)):
-            log(f"{mid}: 전제({x}·{y}) 미완 — 대기")
-            continue
-        r = _ambiguity(x, y)
-        if r is None:
-            continue
-        split, dh, why = r
-        log(f"{mid}: {why}")
-        if split:
-            cands.append((dh, mid, why))
-    if not cands:
-        return
-    for m in ("S1_T04A_W152_D123_MS2", "S1_T04B_W168_D123_MS2"):
-        if complete(m) or ledgered(m):
-            log("중간점: 이미 하나 실행됨 — 둘 다 돌리지 않는다")
-            return
-    dh, mid, why = min(cands)                # 더 모호한(ΔHQNR 작은) 구간 하나만
-    emit(mid, f"{why} — 중간점 1벌만 실행")
-
-
-def gate_s1_dual():
-    """architecture winner 의 dual MARs 대조 (계획 §6). 탐색이 전부 끝난 뒤 한 벌만."""
-    done = [t for t in S1_CORE if complete(t)]
-    if len(done) < len(S1_CORE):
-        log(f"T05 dual: 탐색 미완({len(done)}/{len(S1_CORE)}) — 대기")
-        return
-    # 중간점이 열렸다면 그것도 끝나야 한다.
-    # 주의: 같은 게이트 호출에서 방금 emit 된 중간점은 work_dir 이 아직 없다.
-    # EMITTED 를 함께 보지 않으면 T04 결과를 보지 않은 채 T05 winner 가 정해진다.
-    for m in ("S1_T04A_W152_D123_MS2", "S1_T04B_W168_D123_MS2"):
-        if m in EMITTED:
-            log(f"T05 dual: 중간점 {m} 이 이번 패스에 열렸다 — 다음 패스로 대기")
-            return
-        if os.path.isdir(os.path.join(ROOT, "work_dir", m)) and not terminal(m):
-            log(f"T05 dual: 중간점 {m} 진행 중 — 대기")
-            return
-        if complete(m):
-            done.append(m)
-    win = done[0]
-    for t in done[1:]:
-        if better(t, win):
-            win = t
-    if any(complete(v) for v in S1_DUAL.values()):
-        log("T05 dual: 이미 완료 — 생략")
-        return
-    dual = S1_DUAL.get(win)
-    if dual is None:
-        log(f"T05 dual: winner={win} 의 dual config 가 없다 — 수동 생성 필요")
-        return
-    emit(dual, f"architecture winner = {win} (HQNR {hqnr_of(win):.4f}) 의 PAN reconstruction 대조")
-
-
-def gate_s1_naf_note():
-    """NAF-U fallback 조건 기록 (계획 §4.3). 구현본이 있으면 연다."""
-    if not (complete(S1_CORE[0]) and complete(S1_CORE[1]) and complete(S1_ANCHOR)):
-        return
-    a = hqnr_of(S1_ANCHOR)
-    worse = [t for t in S1_CORE[:2] if hqnr_of(t) is not None and hqnr_of(t) <= a]
-    if len(worse) < 2:
-        return
-    log(f"NAF fallback 조건 성립 — T00·T01 이 anchor({S1_ANCHOR} HQNR {a:.4f})를 "
-        "모두 개선하지 못했다")
-    emit("S1_TF_NAFU_MS2", "capacity scaling 실패 — backbone family 대조")
-
+# s1 게이트는 없다 — 2026-09-03 캠페인부터 큐가 전부 무조건 실행이고,
+# 이전 캠페인(중간점·winner dual)의 조건부 게이트는 종료돼 삭제했다.
+# 그 게이트의 "엇갈림" 정의는 SCC 와 ERGAS 의 방향 대립이었는데, 확정 규칙상
+# ERGAS 는 판정에 쓰지 않으므로 정의 자체가 성립하지 않는다.
 
 # ================================================================= s2 캠페인
 S2_TEACHER = "S2_T00_W160_D122_MS2"
@@ -270,13 +171,13 @@ def gate_s2_gtvar():
     for t, rs in ukd.items():
         h = sum(hqnr_of(r) for r in rs) / 2
         m = [rr_of(r) for r in rs]
-        rows.append((t, h, sum(x["scc"] for x in m) / 2, sum(x["ergas"] for x in m) / 2))
-    for t, h, sc, er in rows:
-        log(f"λ_U {t}: seed 평균 HQNR {h:.4f} · SCC {sc:.5f} · ERGAS {er:.4f}")
+        rows.append((t, h, sum(x["scc"] for x in m) / 2))
+    for t, h, sc in rows:
+        log(f"λ_U {t}: seed 평균 HQNR {h:.4f} · SCC {sc:.5f}")
     best = max(rows, key=lambda r: r[1])
     top = [r for r in rows if abs(r[1] - best[1]) <= HQNR_BAND]
-    if len(top) > 1:                      # HQNR 동급이면 SCC, 그다음 ERGAS
-        top.sort(key=lambda r: (-r[2], r[3]))
+    if len(top) > 1:                      # HQNR 동급이면 SCC 까지만 (ERGAS 안 씀)
+        top.sort(key=lambda r: -r[2])
         best = top[0]
         why = f"HQNR 동급 {len(top)}개 중 SCC 우위"
     else:
@@ -299,9 +200,6 @@ def gate_s2_gtvar():
 
 
 def main():
-    gate_s1_midpoint()
-    gate_s1_naf_note()
-    gate_s1_dual()
     gate_s2_calibrate()
     gate_s2_gtvar()
 
