@@ -18,14 +18,14 @@ import gspread
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "gspread"))
-from sheet_categories import classify, run_tag, NAME  # noqa: E402
+from sheet_categories import classify, run_tag, NAME, DESC, SEP as _SEP  # noqa: E402
 
 CRED = os.path.join(ROOT, "gspread", "account.json")
 BK = os.path.join(ROOT, "gspread", "_sheet_backup")
 SHEET = "pan-cvpr27"
-DISPLAY = ["REF", "SEED", "P25", "SUBMOD", "ARCH", "ATTN", "KD", "SE", "MS", "MUT", "MISC"]
+DISPLAY = ["REF", "SEED", "P25", "SUBMOD", "ARCH", "ATTN", "KD", "SE", "MS", "MUT", "GA", "MISC"]
 NCOL = 19
-SEP = "▍"
+SEP = _SEP
 
 
 def datarows(vals):
@@ -47,6 +47,8 @@ def regroup(vals):
             continue
         row = [""] * max(len(header[2]), NCOL + 1)
         row[1] = f"{SEP}{NAME[k]}"
+        if k in DESC:                         # 캠페인 설명은 Notes(마지막 열)에
+            row[NCOL] = DESC[k]
         out.append(row); sep.append(len(out))
         out.extend(list(r) for r in buckets[k])
     return out, sep, data

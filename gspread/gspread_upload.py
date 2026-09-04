@@ -244,6 +244,9 @@ def _profile(args_ns, key, want_flops):
 
 
 # ----------------------------------------------------------------- 한 실행 수집
+sys.path.insert(0, os.path.join(ROOT, "gspread"))
+from sheet_categories import classify, DESC, separator_cell, SEP  # noqa: E402
+
 SERVER_FILE = os.path.join(ROOT, "gspread", "server.txt")
 
 
@@ -270,6 +273,47 @@ def resolve_server(cli):
 # 재구성본의 표준 설정. 실행명에는 여기서 벗어난 항목만 붙인다.
 REBUILD_DEFAULT = {"hidden_size": 128, "depth": [2, 2, 4], "n_attn": 3,
                    "norm": "ln", "in_mode": "paper", "crop": True}
+
+
+def _ga_case(al):
+    """alignment config 5-key -> (case 표기, 계획이 그 case 로 답하려는 질문)."""
+    src = al.get("delta_source", "zero"); a = float(al.get("alpha", 0))
+    inv = al.get("inverse_location", "none")
+    if src == "zero":
+        return "P0(phase fix)", "bicubic(phase 1.5) 을 interp23tap(=데이터셋 lms) 로 바꾸면 성능이 달라지는가"
+    if src == "cache" and inv == "final_output":
+        return "C1(frozen round-trip)", "PAN frame 에서 정렬된 MS 를 내부 처리한 뒤 최종 출력을 M-frame 으로 되돌려도 이득이 남는가"
+    if src == "cache" and inv == "loss_branch":
+        return "C3(frozen dual-frame)", "최종 출력은 P-frame 에 두고 GT loss 만 inverse 뷰로 계산하면 좌표 충돌이 줄어드는가"
+    if src == "cache":
+        return f"C2(input-only α={a:g})", "조건 입력 MS 에만 부분 shift 를 주면 HQNR–fSCC 절충점이 있는가"
+    if inv == "final_output":
+        return "C4-A(trainable round-trip)", "작은 trainable ShiftNet 이 외부 추정기의 효과를 재현하는가"
+    return "C4-B(trainable dual-frame)", "trainable ShiftNet + dual-frame 이 최종 method 로 성립하는가"
+
+
+def _ga_notes(al):
+    """GA 실행의 맞춤 세팅 설명 — 시트만 보고도 무엇을 어떻게 돌렸는지 알 수 있어야 한다."""
+    case, q = _ga_case(al)
+    src = al.get("delta_source", "zero"); a = float(al.get("alpha", 0))
+    fr = al.get("output_frame", "M"); inv = al.get("inverse_location", "none")
+    src_d = {"zero": "없음",
+             "cache": "frozen cache(Scharr-ZNCC audit, GT 미사용; FR 12-19 Δ≈(−0.16,+0.18) LR px, "
+                      "train 16² patch 는 추정 노이즈 jitter sd 0.076)",
+             "trainable": "trainable GlobalShiftNet(입력=Scharr 구조맵; pseudo-label pretrain, "
+                          "gate 결과 outputs/global_shift_cache/shiftnet_pretrained.json)"}.get(src, "?")
+    inv_d = {"none": "inverse 없음", "final_output": "최종 출력을 M-frame 으로 inverse(round-trip, border mask 로 loss 정규화)",
+             "loss_branch": "P-frame 출력 유지 · GT loss 만 inverse 뷰(M-frame, border mask)"}.get(inv, "?")
+    full = inv != "none"
+    return [
+        f"GA {case} — 질문: {q}",
+        f"세팅: up={al.get('upsampler', 'interp23tap')}(데이터셋 lms 정확 재현; 기존 bicubic phase 1.5 대체) · Δ={src_d}"
+        f" · alpha={a:g} · 잔차 base={'P-frame(shift 된 MS)' if full else 'M-frame'} · 출력 frame={fr} · {inv_d}"
+        " · PAN mode 는 inverse·마스크 없음(target=입력 PAN 복제)",
+        "판정: best=HQNR(12-19, 동률 1e-4)→fSCC(12-19)→나중 iteration · 이 행 FR 지표=최종 frame(mat sr), "
+        "RR 지표=M-frame 뷰(GT 좌표) · 다른 frame 뷰는 work_dir/<run>/best_hqnr_meta.json 의 hqnr_alt/fscc_alt",
+        "anchor: S1_T05_W152_D123_DUAL(bicubic phase 1.5, HQNR 0.9546) — case 간 직접 비교는 P0 기준",
+    ]
 
 
 def _descriptor(ma, crop, family):
@@ -422,9 +466,9 @@ def collect(tag, want_profile, server, peer=None):
         desc = (desc + " +unc.head").strip()
     elif _tr == "align":
         _al = getattr(a, "alignment", {}) or {}
-        desc = (desc + f" GA:{_al.get('delta_source', 'zero')}"
-                f"/a{float(_al.get('alpha', 0)):g}/{_al.get('output_frame', 'M')}"
-                f"/{_al.get('inverse_location', 'none')}").strip()
+        _case, _ = _ga_case(_al)
+        desc = (desc + f" GA {_case}: Δ={_al.get('delta_source', 'zero')} α={float(_al.get('alpha', 0)):g}"
+                f" out={_al.get('output_frame', 'M')} inv={_al.get('inverse_location', 'none')}").strip()
     if getattr(a, "mars", "dual") == "ms":
         desc = (desc + " singleMARs").strip().removeprefix("표준 ")
 
@@ -463,15 +507,6 @@ def collect(tag, want_profile, server, peer=None):
         else:
             bits.append("task=dual MARs (MS+PAN 재구성 · γβ mode 조건화)"
                         + ("" if _mm else " · mode_modulation=False"))
-        if getattr(a, "trainer", "default") == "align":
-            _al = getattr(a, "alignment", {}) or {}
-            _src = {"zero": "shift 없음(P0: phase 보정만)", "cache": "frozen cache Δ(Scharr-ZNCC audit)",
-                    "trainable": "trainable ShiftNet Δ"}.get(_al.get("delta_source", "zero"), "?")
-            _inv = {"none": "inverse 없음", "final_output": "최종 출력을 M-frame 으로 inverse(round-trip)",
-                    "loss_branch": "P-frame 출력 유지·GT loss 만 inverse 뷰(dual-frame)"}.get(_al.get("inverse_location", "none"), "?")
-            bits.append(f"global-align: up={_al.get('upsampler', 'interp23tap')}(lms 정확 재현) · Δ={_src}"
-                        f" · alpha={float(_al.get('alpha', 0)):g} · 출력 frame={_al.get('output_frame', 'M')} · {_inv}"
-                        " · PAN mode 는 inverse 없음 · best=HQNR→fSCC(12-19)")
     elif not is_rebuild:
         bits.append("arch=배포코드 (4-scale · CM3A5 · GroupNorm · mode-token · 11ch)")
         bits.append(f"fix_A1A2={row.get('fix', '')}")
@@ -528,6 +563,8 @@ def collect(tag, want_profile, server, peer=None):
         _ta = getattr(a, "teacher_args", {}) or {}
         bits.append("trainer=teacher (uncertainty head"
                     + (f" + SiS r{_ta.get('sis_radius')}" if _ta.get("lambda_sis") else "") + ")")
+    elif _tr == "align":
+        bits.extend(_ga_notes(getattr(a, "alignment", {}) or {}))   # 맞춤 세팅 설명 (family 무관)
     if row["seed"] != 2025:
         bits.append(f"seed={row['seed']}")
     if a.select_on != "hqnr":
@@ -687,6 +724,26 @@ def _bold_best(ws, cols):
                                     CellFormat(textFormat=TextFormat(bold=True)))
 
 
+def _needs_separator(tags, tag_cell):
+    """이 행의 범주에 캠페인 설명(DESC)이 있고 시트에 그 구분행이 아직 없으면 구분행 문자열을 돌려준다."""
+    key = classify(tag_cell)
+    if key not in DESC:
+        return None
+    cell = separator_cell(key)
+    return None if any(t.strip().startswith(cell) for t in tags) else cell
+
+
+def _format_separator(ws, row_idx, n):
+    """refile_sheet.py 의 구분행과 같은 모양(굵게 · 연회색 배경)."""
+    ws.spreadsheet.batch_update({"requests": [{"repeatCell": {
+        "range": {"sheetId": ws.id, "startRowIndex": row_idx - 1, "endRowIndex": row_idx,
+                  "startColumnIndex": ORIGIN_COL - 1, "endColumnIndex": ORIGIN_COL - 1 + n},
+        "cell": {"userEnteredFormat": {
+            "backgroundColor": {"red": .87, "green": .89, "blue": .93},
+            "textFormat": {"bold": True}}},
+        "fields": "userEnteredFormat(backgroundColor,textFormat.bold)"}}]})
+
+
 def upload(rows, server, replace=False):
     import gspread
     gc = gspread.service_account(filename=CRED)
@@ -726,6 +783,16 @@ def upload(rows, server, replace=False):
             if r["tag"] in tags:
                 i = ORIGIN_ROW + 2 + tags.index(r["tag"])
             else:
+                # 새 캠페인(DESC 가 정의된 범주)의 첫 행이면 그 위에 구분행을 먼저 넣는다 —
+                # 업로드는 맨 아래에 덧붙이므로 지난 실험과 섞여 보이지 않게. Notes 에 캠페인 설명.
+                sep_cell = _needs_separator(tags, r["tag"])
+                if sep_cell:
+                    j = ORIGIN_ROW + 2 + len(tags)
+                    tags.append(sep_cell)
+                    srow = [""] * n; srow[0] = sep_cell; srow[-1] = DESC[classify(r["tag"])]
+                    ws.update([srow], f"{_a1(j, ORIGIN_COL)}:{_a1(j, ORIGIN_COL + n - 1)}")
+                    _format_separator(ws, j, n)
+                    last = max(last, j)
                 i = ORIGIN_ROW + 2 + len(tags)
                 tags.append(r["tag"]); added += 1
             ws.update([v], f"{_a1(i, ORIGIN_COL)}:{_a1(i, ORIGIN_COL + n - 1)}")

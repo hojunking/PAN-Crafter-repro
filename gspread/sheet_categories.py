@@ -23,11 +23,30 @@ CATS = [
   lambda t: t.startswith("SE") and not t.startswith("SEED")),
  ("MUT", "⑩ Mutual / DML 상호학습 (s2)",
   lambda t: t.startswith(("M0_","M1_","M2_","M3_","dml_"))),
+ ("GA", "⑫ Global alignment (GA 계열) — interp23tap phase 수정 + 전역 sub-pixel shift (frozen/partial/trainable)",
+  lambda t: t.startswith("GA_")),
  ("MISC", "⑪ 기타 대조군",
   lambda t: True),
 ]
 ORDER = [c[0] for c in CATS]
 NAME  = {c[0]: c[1] for c in CATS}
+SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload 가 같이 쓴다
+
+# 캠페인 설명 — 구분행의 Notes 에 들어간다. 여기 있는 범주만 업로드 시 구분행을 자동으로 넣는다
+# (업로드는 시트 맨 아래에 덧붙이므로, 새 캠페인이 지난 실험과 섞여 보이지 않게 한다).
+DESC = {
+ "GA": ("[캠페인] Global alignment 40h · s1 · 2026-09-04 21:27 기동 · backbone W152·d123 dual 11ch nocrop 50K 고정. "
+        "공통 변경: 입력 MS/LPAN 업샘플을 bicubic(phase 1.5) → interp23tap(=데이터셋 lms 정확 재현) 로 교체. "
+        "Δ = GT 없이 MTF↓PAN vs LRMS 로 추정한 전역 sub-pixel shift(LR px; FR 12-19 ≈(−0.16,+0.18), train 은 추정 노이즈). "
+        "P0 phase 보정만 / C1 frozen round-trip(M 출력) / C3 frozen dual-frame(P 출력, GT loss 만 inverse) / "
+        "C2 조건입력 부분 shift α / C4 trainable ShiftNet(pretrain gate FAIL 시 미실행). "
+        "판정 HQNR→fSCC(12-19). anchor S1_T05_W152_D123_DUAL HQNR 0.9546. "
+        "계획 research_log/s1_w152_d123_global_alignment_40h_plan.md · 검토 research_log/2026-09-04_global-alignment-plan-review.md"),
+}
+
+
+def separator_cell(key):
+    return f"{SEP}{NAME[key]}"
 
 def run_tag(cell):
     """B열 문자열에서 실행명만 뽑는다.  'K0_R4_base (50K) · w96 ...' -> 'K0_R4_base'"""
