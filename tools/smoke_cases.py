@@ -81,6 +81,40 @@ def check_trainer_extras(cfg):
         if variant in ("k2", "k3", "k4", "k5"):
             assert has_unc, f"{variant} 는 uncertainty teacher 필요 — {ck} 에 head 없음"
         return f" teacher={'unc' if has_unc else 'plain'}"
+    if tr == "align":
+        from align.model import AlignCfg, AlignedModel
+        from align.cache import ShiftCache
+        cfg_a = AlignCfg.from_dict(cfg.get("alignment") or {})
+        assert cfg.get("feeder") == "feeders.feeder_align.PanFeederAlign", "align 은 PanFeederAlign 필요"
+        assert cfg.get("mars", "dual") == "dual" and cfg.get("res", True), "align 은 dual MARs·잔차 고정"
+        assert not (cfg.get("train_feeder_args") or {}).get("crop", False), "align 캠페인은 crop 없음"
+        note = f" GA:{cfg_a.delta_source}/a{cfg_a.alpha:g}/{cfg_a.output_frame}/{cfg_a.inverse_location}/{cfg_a.upsampler}"
+        if cfg_a.delta_source in ("cache", "trainable"):
+            c = ShiftCache(os.path.join(ROOT, cfg_a.cache_dir))
+            assert all(c.has(k) for k in (0, 2, 3)), "shift cache 3 split 필요"
+            note += f" cache={c.sha256_all[:8]}"
+        if cfg_a.trainable_shift_net:
+            rep = os.path.join(ROOT, cfg_a.shiftnet_pretrained.replace(".pt", ".json"))
+            note += (" shiftnet=pretrained" if os.path.exists(rep) else " shiftnet=미학습(체인이 pretrain 실행)")
+        # wrapper forward: 학습 형상(dual) + FR 형상
+        dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        w = AlignedModel(build(cfg), cfg_a).to(dev)
+        randomize_zero_params(w)
+        B = 4
+        d = torch.randn(B, 2, device=dev) * 0.3 if cfg_a.delta_source != "zero" else torch.zeros(B, 2, device=dev)
+        sw = torch.tensor([0., 0., 1., 1.], device=dev)
+        v = w.build_views(torch.randn(B, 1, 64, 64, device=dev), torch.randn(B, 1, 16, 16, device=dev),
+                          torch.randn(B, 8, 16, 16, device=dev), d)
+        res = w.residual(v["x11"], sw)
+        fin = w.finalize_ms(v["ms_base_hr"][2:], res[2:], d[2:])
+        assert fin["y_final"].shape == (2, 8, 64, 64) and torch.isfinite(fin["y_final"]).all()
+        fin["y_loss"].abs().mean().backward()
+        with torch.no_grad():
+            o = w.infer_ms(torch.randn(1, 1, 512, 512, device=dev), torch.randn(1, 1, 128, 128, device=dev),
+                           torch.randn(1, 8, 128, 128, device=dev), d[:1])
+        assert o["y_final"].shape[-2:] == (512, 512) and torch.isfinite(o["y_final"]).all()
+        del w
+        return note
     if tr == "mutual":
         b = build(cfg)     # peer_b 구성 재현 (같은 model_args)
         del b

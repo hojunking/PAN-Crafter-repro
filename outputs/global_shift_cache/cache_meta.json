@@ -1,0 +1,73 @@
+{
+ "sign_convention": "aligned[y,x]=moving[y+dy,x+dx]",
+ "order": "(dy,dx)",
+ "scale": 4,
+ "search_radius_lr_int": 2,
+ "max_magnitude_lr": 1.0,
+ "mtf_sigma": 1.98,
+ "mtf_ksize": 41,
+ "decimation_phase": 2,
+ "primary": "scharr_zncc_q3x3",
+ "secondary": "census5_hamming",
+ "gates": {
+  "search_int": 2,
+  "max_magnitude": 1.0,
+  "min_peak_margin": 0.05,
+  "max_primary_secondary_diff": 0.25,
+  "edge_top_frac": 0.3
+ },
+ "estimator_version": "scharr_zncc_q3x3+census5_hamming/v1",
+ "note": "train \uc740 parent scene ID \ubd80\uc7ac\ub85c 16x16 patch \ub2e8\uc704(\u00a75.2 \uc6b0\uc120\uc21c\uc704 2). lpan \uc740 \ub370\uc774\ud130\uc14b \uc81c\uacf5(MTF\u2193PAN phase2)",
+ "sha256": {
+  "wv3_train.csv": "a2bb427cef99124df810dff2cab6823e745b221c9ef861c1ee58bc5e53523c3a",
+  "wv3_rr.csv": "56ac4a8b881c46cc827af38183a762c3f0e6a0964a8f7d93da495db6e0e27bc8",
+  "wv3_fr.csv": "0489147f0c999c225998cba35b90cb1670b23b6fb40a931749c22330e694ed30"
+ },
+ "stats": {
+  "train": {
+   "n": 9714,
+   "accepted": 0.9252625077208153,
+   "boundary_hit": 0.008029647930821495,
+   "mag_p50": 0.0913510156823051,
+   "mag_p90": 0.2120161541391921,
+   "mag_max": 2.8284271247461903,
+   "dy_mean": 0.012832157313002546,
+   "dy_sd": 0.1869056070575607,
+   "dx_mean": 0.008278705489840403,
+   "dx_sd": 0.1901842848441075,
+   "sign_dy_pos": 0.5478690549722051,
+   "peak_p50": 0.9621649168649503,
+   "seconds": 20.3
+  },
+  "rr": {
+   "n": 20,
+   "accepted": 1.0,
+   "boundary_hit": 0.0,
+   "mag_p50": 0.06367485165500482,
+   "mag_p90": 0.09576871964126896,
+   "mag_max": 0.12814123489494078,
+   "dy_mean": 0.04116211128222901,
+   "dy_sd": 0.04139889864773458,
+   "dx_mean": 0.0006475721043809482,
+   "dx_sd": 0.03789849382677899,
+   "sign_dy_pos": 0.75,
+   "peak_p50": 0.9735879156117433,
+   "seconds": 0.1
+  },
+  "fr": {
+   "n": 20,
+   "accepted": 0.6,
+   "boundary_hit": 0.0,
+   "mag_p50": 0.3354806696638202,
+   "mag_p90": 0.48720672954221506,
+   "mag_max": 0.5158661214666194,
+   "dy_mean": 0.15069035769622977,
+   "dy_sd": 0.2597764879017696,
+   "dx_mean": 0.010220993642069983,
+   "dx_sd": 0.20020226342392672,
+   "sign_dy_pos": 0.6,
+   "peak_p50": 0.8189201021876944,
+   "seconds": 0.1
+  }
+ }
+}

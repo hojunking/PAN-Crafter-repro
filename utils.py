@@ -296,7 +296,12 @@ class MetricsCSV():
     COLUMNS = ['epoch', 'global_step',
                'val_psnr', 'val_ssim', 'val_scc', 'val_sam', 'val_q4_first4', 'val_ergas',
                'psnr', 'ssim', 'scc', 'sam', 'q4_first4', 'ergas',
-               'd_lambda', 'd_s', 'qnr', 'hqnr_official', 'ergas_vs_pan', 'scc_vs_pan']
+               'd_lambda', 'd_s', 'qnr', 'hqnr_official', 'ergas_vs_pan', 'scc_vs_pan',
+               # 2026-09-04: d_lambda/d_s 열은 utils proxy(20장·MTF 없음)라 hqnr_official 의
+               # 분해가 아니다. 공식(12-19) 분해와 fSCC 를 별도 열로 남긴다.
+               'd_lambda_official', 'd_s_official', 'fscc_official',
+               # global alignment 진단: 최종이 아닌 frame 뷰(y_pan/y_ms)의 값, delta 통계
+               'hqnr_alt', 'fscc_alt', 'ergas_alt', 'sam_alt', 'delta_mag_mean', 'accepted_ratio']
 
     def __init__(self, save_dir):
         Path(save_dir).mkdir(parents=True, exist_ok=True)

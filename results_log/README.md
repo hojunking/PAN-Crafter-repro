@@ -8,6 +8,7 @@
 
 | 날짜 | 문서 | 요지 |
 |---|---|---|
+| 2026-09-04 | [WIP_global-alignment](2026-09-04_WIP_global-alignment.md) | **[준비] global alignment 40h 캠페인 (W152·d123 dual, P0 phase 수정 + frozen/partial/trainable shift 9벌).** 구현·검증 완료, 기동은 결정 대기. 전제 정정: `lms`=interp23tap(bicubic 아님), train/RR shift 는 추정기 노이즈·FR 만 실재(12-19 Δ≈0.9 HR px). 추론 sweep: 정렬할수록 fSCC↑ HQNR↓(D_s). ShiftNet pretrain gate FAIL → 검토서 §5 |
 | 2026-09-04 | [hqnr-band-invalid-and-placement](2026-09-04_hqnr-band-invalid-and-placement-results.md) | **판정 밴드 0.011 이 공식 HQNR 에서 측정된 적 없음을 확인 — 출처는 25K·proxy QNR 이고 seed≠2025 실행 중 `hqnr_official` 보유 0개.** 실측 상한 ~0.0027(약 4배 좁다). 배치 축 6벌 완주: **full-res depth(d0) 를 올리면 HQNR 이 내려간다** (params 동일 통제쌍 −0.0022, r(HQNR,d0)=−0.545 > params −0.276). 그룹 차 76% 는 D_s(공간). 7M 확대도 실패(6.99M 이 14벌 최하위). 부수: `metrics.csv` 의 `d_lambda`/`d_s` 는 공식 분해가 아니며 직전 문서의 D_λ 기전 설명을 정정 |
 | 2026-09-01 | [WIP_msonly-grid](2026-09-01_WIP_msonly-grid.md) | **[진행 중] MS-only baseline 2×2 전수 (s1 4건, ~5h).** s2 성립 결과의 서버 재현 + {w96,w128}×{11,9ch} — 향후 clean baseline 채택 판정용 |
 | 2026-09-01 | [se-ablation-results](2026-09-01_se-ablation-results.md) | **SE ablation 2건 종료 — 둘 다 무효.** bottleneck SE×4·H/2 fusion SE×1 모두 R4 와 HQNR·SCC 구분 불가. 게이트는 활성(포화 0%)이나 **MS/PAN mode-cos 0.994+ 로 mode 의존 선택 미형성** → §9 결정표 '둘 다 무효' — SE 계열 종료, loss/KD 집중. 채널 재조정으로는 w96 용량 문제를 못 푼다(폭 곡선 결론과 정합) |

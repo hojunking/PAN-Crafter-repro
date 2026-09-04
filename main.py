@@ -96,9 +96,13 @@ def get_parser():
     # KD·mutual learning (research_log/s1_mutual_and_kd_implementation_spec.md).
     # best 선택 기준은 trainer 와 무관하게 기존 그대로다 (공식 HQNR).
     parser.add_argument('--trainer', type=str, default='default',
-                        choices=['default', 'teacher', 'kd', 'mutual'],
+                        choices=['default', 'teacher', 'kd', 'mutual', 'align'],
                         help='default=기존 MARs / teacher=uncertainty teacher(T1·T2) / '
-                             'kd=frozen teacher KD(K0~K5) / mutual=2-peer(M0~M3)')
+                             'kd=frozen teacher KD(K0~K5) / mutual=2-peer(M0~M3) / '
+                             'align=global alignment wrapper (align/, train_align.py)')
+    parser.add_argument('--alignment', action=YamlAction, default=dict(),
+                        help='align trainer 인자 (upsampler, delta_source, alpha, output_frame, '
+                             'inverse_location, trainable_shift_net, cache_dir ...) — align/model.py AlignCfg')
     parser.add_argument('--teacher-config', type=str, default=None,
                         help='kd: teacher 의 config yaml 경로')
     parser.add_argument('--teacher-checkpoint', type=str, default=None,
@@ -188,12 +192,14 @@ def train(args):
         from train_kd import KDTrainer as TrainerCls
     elif kind == 'mutual':
         from train_mutual import MutualTrainer as TrainerCls
+    elif kind == 'align':
+        from train_align import AlignTrainer as TrainerCls
     else:
         TrainerCls = Trainer
     trainer = TrainerCls(args=args, data_loader=data_loader, model=model)
 
     best_ergas, best_ds, best_val_ergas = 9999, 1, 9999
-    best_hqnr, best_epoch_hqnr = -1.0, 0
+    best_hqnr, best_epoch_hqnr, best_fscc = -1.0, 0, float('nan')
     best_epoch_reduced = best_epoch_full = best_epoch_val = 0
     last_epoch = 0
     total_epoch = args.num_iter // len(data_loader['train']) + 1
@@ -215,6 +221,7 @@ def train(args):
             bs = _json.load(open(best_state_path))
             best_hqnr = bs.get('best_hqnr', best_hqnr)
             best_epoch_hqnr = bs.get('best_epoch_hqnr', best_epoch_hqnr)
+            best_fscc = bs.get('fscc_at_best', best_fscc) or float('nan')
             best_val_ergas = bs.get('best_val_ergas', best_val_ergas)
             best_epoch_val = bs.get('best_epoch_val', best_epoch_val)
             train_log.write(f'[resume] best_state 복구: {bs}')
@@ -257,14 +264,27 @@ def train(args):
             if args.select_on == 'hqnr':
                 # HQNR=(1-D_l)(1-D_s) 기준. FR 검증 split 이 없어 FR 테스트셋으로 고른다 —
                 # no-reference 지표지만 선택 편향은 존재한다. 문서에 명시했다.
-                if hqnr > best_hqnr:
+                # align trainer: HQNR 차이 <= 1e-4 면 fSCC(12-19), 그것도 <= 1e-4 면 나중 iteration
+                # (global alignment 계획 §17.2). 다른 trainer 는 기존 strict '>' 그대로.
+                fscc = getattr(trainer, 'last_fscc_official', None)
+                if kind == 'align' and best_hqnr > 0:
+                    dh = hqnr - best_hqnr
+                    is_best = (dh > 1e-4) or (abs(dh) <= 1e-4 and (
+                        (fscc - best_fscc) > 1e-4 or abs(fscc - best_fscc) <= 1e-4))
+                else:
+                    is_best = hqnr > best_hqnr
+                if is_best:
                     best_hqnr = hqnr
                     best_epoch_hqnr = epoch + 1
+                    best_fscc = fscc if fscc is not None else float('nan')
                     trainer.save_best_model_hqnr()
+                    if hasattr(trainer, 'write_best_meta'):
+                        trainer.write_best_meta(epoch + 1, global_step, hqnr)
                     import json as _json
                     _json.dump({'best_hqnr': best_hqnr, 'best_epoch_hqnr': best_epoch_hqnr,
                                 'scc_at_best': trainer.last_reduced_metrics.get('scc'),
-                                'ergas_at_best': trainer.last_reduced_metrics.get('ergas')},
+                                'ergas_at_best': trainer.last_reduced_metrics.get('ergas'),
+                                'fscc_at_best': fscc},
                                open(best_state_path, 'w'))
                 test_log.write(f'Best HQNR: {best_hqnr:.6f}\tBest Epoch (hqnr): {best_epoch_hqnr}')
             elif args.select_on == 'val':

@@ -77,7 +77,11 @@ def main():
     ckpt = os.path.abspath(opt.ckpt)
     assert os.path.isdir(ckpt), f'checkpoint 디렉터리가 없다: {ckpt}'
 
-    trainer = Trainer(args=args, data_loader=load_test_only(args), model=load_model(args))
+    if getattr(args, 'trainer', 'default') == 'align':
+        from train_align import AlignTrainer as TrainerCls
+    else:
+        TrainerCls = Trainer
+    trainer = TrainerCls(args=args, data_loader=load_test_only(args), model=load_model(args))
     trainer.accelerator.load_state(ckpt)
     print(f'[export] ckpt={ckpt}\n[export] tag={tag}\n[export] work_dir={args.work_dir}')
 

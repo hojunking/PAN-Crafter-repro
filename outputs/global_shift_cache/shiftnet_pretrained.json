@@ -1,0 +1,16 @@
+{
+ "pass": false,
+ "val_n": 875,
+ "val_median_err": 0.0749581977725029,
+ "val_p90_err": 0.14737144112586975,
+ "val_sign_acc": 0.6782857179641724,
+ "val_sign_acc_big": 0.7772276997566223,
+ "val_n_big": 101,
+ "pred_mag_mean": 0.061958130449056625,
+ "pred_zero_ratio": 0.020571429282426834,
+ "target_mag_median": 0.08766237646341324,
+ "synthetic": false,
+ "steps": 2000,
+ "corr_dy": 0.5418321739942631,
+ "corr_dx": 0.45933756349917626
+}

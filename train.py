@@ -361,6 +361,8 @@ class Trainer:
                        + f'\tHQNR_official({fr_lo}-{fr_hi}): {hqnr_official:.6f}')
         self.last_full_metrics = report.as_dict()
         self.last_full_metrics['hqnr_official'] = hqnr_official
+        self.last_full_metrics['d_lambda_official'] = float(np.mean(dl_off))
+        self.last_full_metrics['d_s_official'] = float(np.mean(ds_off))
         return report.d_s, hqnr_official
 
     def test_reduced_save(self, tag='best_reduced'):

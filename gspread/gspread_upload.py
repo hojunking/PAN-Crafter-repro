@@ -420,6 +420,11 @@ def collect(tag, want_profile, server, peer=None):
         desc = (desc + f" MUT:{_v}").strip()
     elif _tr == "teacher":
         desc = (desc + " +unc.head").strip()
+    elif _tr == "align":
+        _al = getattr(a, "alignment", {}) or {}
+        desc = (desc + f" GA:{_al.get('delta_source', 'zero')}"
+                f"/a{float(_al.get('alpha', 0)):g}/{_al.get('output_frame', 'M')}"
+                f"/{_al.get('inverse_location', 'none')}").strip()
     if getattr(a, "mars", "dual") == "ms":
         desc = (desc + " singleMARs").strip().removeprefix("표준 ")
 
@@ -458,6 +463,15 @@ def collect(tag, want_profile, server, peer=None):
         else:
             bits.append("task=dual MARs (MS+PAN 재구성 · γβ mode 조건화)"
                         + ("" if _mm else " · mode_modulation=False"))
+        if getattr(a, "trainer", "default") == "align":
+            _al = getattr(a, "alignment", {}) or {}
+            _src = {"zero": "shift 없음(P0: phase 보정만)", "cache": "frozen cache Δ(Scharr-ZNCC audit)",
+                    "trainable": "trainable ShiftNet Δ"}.get(_al.get("delta_source", "zero"), "?")
+            _inv = {"none": "inverse 없음", "final_output": "최종 출력을 M-frame 으로 inverse(round-trip)",
+                    "loss_branch": "P-frame 출력 유지·GT loss 만 inverse 뷰(dual-frame)"}.get(_al.get("inverse_location", "none"), "?")
+            bits.append(f"global-align: up={_al.get('upsampler', 'interp23tap')}(lms 정확 재현) · Δ={_src}"
+                        f" · alpha={float(_al.get('alpha', 0)):g} · 출력 frame={_al.get('output_frame', 'M')} · {_inv}"
+                        " · PAN mode 는 inverse 없음 · best=HQNR→fSCC(12-19)")
     elif not is_rebuild:
         bits.append("arch=배포코드 (4-scale · CM3A5 · GroupNorm · mode-token · 11ch)")
         bits.append(f"fix_A1A2={row.get('fix', '')}")
