@@ -23,7 +23,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-BAND = 0.011      # HQNR 동급 band (확정 2σ)
+BAND = 0.011      # **미검증 상한** — 2026-09-04_hqnr-band-invalid-... §2 참조
 
 
 def curve(tag):

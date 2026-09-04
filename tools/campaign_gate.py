@@ -23,7 +23,9 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PY = sys.executable
 
-HQNR_BAND = 0.011      # 확정 2σ. 이 안이면 HQNR 로는 "구분되지 않는다"
+HQNR_BAND = 0.011      # **미검증 상한**. 공식 HQNR 은 시드 반복이 없다 —
+                       # 이 값의 출처는 25K·crop·proxy QNR 체제다(2026-09-04 문서 §2).
+                       # 실측 상한은 ~0.0027. 측정 전까지는 넓은 쪽을 유지한다.
 SCC_TIE = 0.0005       # 이 이하 SCC 차이로는 승자 선언 금지
 
 _mat_cache = {}
