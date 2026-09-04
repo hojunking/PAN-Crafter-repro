@@ -86,13 +86,13 @@ run_case(){  # $1=TAG $2=순번표시
     if [ -n "$CK" ]; then
         echo "[cases] ($i) $TAG 체크포인트 발견 — $CK 에서 재개"
         set +e; ./tools/run.sh "$TAG" --resume "$CK" 8>&-; rc=$?; set -e
-        if [ $rc -ne 0 ] && [ $rc -ne 3 ]; then
+        if [ $rc -ne 0 ] && [ $rc -ne 3 ] && [ $rc -ne 4 ]; then
             echo "[cases] ($i) $TAG 재개 실패(rc=$rc) — 처음부터 재시도"
             set +e; ./tools/run.sh "$TAG" 8>&-; rc=$?; set -e
         fi
     else
         set +e; ./tools/run.sh "$TAG" 8>&-; rc=$?; set -e
-        if [ $rc -ne 0 ] && [ $rc -ne 3 ]; then
+        if [ $rc -ne 0 ] && [ $rc -ne 3 ] && [ $rc -ne 4 ]; then
             CK=$(latest_ckpt "$TAG")
             if [ -n "$CK" ]; then
                 echo "[cases] ($i) $TAG 실패(rc=$rc) — $CK 에서 재개 재시도"
@@ -105,6 +105,8 @@ run_case(){  # $1=TAG $2=순번표시
     fi
     if [ $rc -eq 3 ]; then
         echo "[cases] ($i) $TAG NaN 중단 — 재시도하지 않는다"
+    elif [ $rc -eq 4 ]; then
+        echo "[cases] ($i) $TAG 사전 gate 불통과(예: ShiftNet pretrain·resume provenance) — 학습 시작 안 함, 재시도하지 않는다"
     fi
     if [ $rc -eq 0 ] && complete "$TAG"; then
         echo "[cases] ($i) $TAG 완료 $(date -Iseconds)"

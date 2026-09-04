@@ -36,6 +36,13 @@ conda activate pancrafter
 cd "$REPO"
 
 # --- 실행 조건 스냅샷 (results_log/CONVENTION.md 의 "설정값과 그 근거") ---
+# 재개(--resume)면 이전 스냅샷을 덮어쓰지 않고 meta/prev_<시각>/ 에 보존한다 — 어느 commit/설정으로
+# 시작했는지가 provenance 다 (2026-09-05 검증 지적).
+if [ -f "$META/started_at.txt" ] && printf '%s\n' "$@" | grep -q -- '--resume'; then
+  PREV="$META/prev_$(date +%Y%m%d-%H%M%S)"; mkdir -p "$PREV"
+  cp -f "$META"/*.txt "$META"/config.yaml "$META"/*.patch "$PREV"/ 2>/dev/null || true
+  echo "$*" > "$META/resumed_with.txt"
+fi
 cp -f "$CFG" "$META/config.yaml"
 { echo "./tools/run.sh $DS $*"; echo "python -u main.py --config $CFG $*"; } > "$META/command.txt"
 git rev-parse HEAD                      > "$META/git_commit.txt" 2>/dev/null || echo "n/a" > "$META/git_commit.txt"

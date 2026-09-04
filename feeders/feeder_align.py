@@ -1,8 +1,14 @@
 """PanFeeder + (sample_id, split, augmentation 파라미터) 메타 반환.
 
-shift cache 를 표본별로 찾고(§5), augmentation 이 걸리면 shift vector 도 같이 변환해야(§6)
-하므로 feeder 가 무엇을 했는지 밖으로 알려야 한다. 원본 feeder 의 난수 호출 순서
-(crop 없음 -> hflip/vflip 은 플래그면 무조건 -> rot 은 randint) 를 그대로 재현한다.
+**LR(ms, lpan) 은 증강하지 않는다.** HR(gt, lms, pan) 만 flip/rot 하고, LR 은 원본 격자 그대로
+돌려준다 — wrapper(align/model.py)가 LR 을 interp23tap 으로 올린 *뒤에* 같은 flip/rot 을 HR 에서 건다.
+
+이유 (2026-09-05 검증 지적): phase-2 격자(LR j -> HR 4j+2)는 flip 대칭이 아니다. LR 을 먼저 flip 하고
+올리면 62-4j 인데 HR 을 flip 하면 61-4j 라 **축마다 1 HR px 어긋난다.** 실측: hflip+vflip 고정 + rot 0/1/3
+에서 interp23tap(aug_LR(ms)) 와 aug_HR(lms) 의 MAD 22.7 / 17.0 / 14.8 DN (1px roll 로 0.000) — 표본의 75%.
+원본 feeder 의 bicubic(phase 1.5)은 flip 대칭이라 이 문제가 없었다.
+
+원본 feeder 의 난수 호출 순서(crop 없음 -> hflip/vflip 은 플래그면 무조건 -> rot 은 randint)를 그대로 재현한다.
 meta = LongTensor [sample_id, split_code, hflip, vflip, rot]  (split_code 0 train·1 val·2 RR·3 FR)
 """
 import random
@@ -43,9 +49,9 @@ class PanFeederAlign(PanFeeder):
         if self.has_gt:
             gt = np.array(self.gt[index])
             if self.split == "train":
-                gt, lms, ms, lpan, pan = self._apply((gt, lms, ms, lpan, pan), hflip, vflip, rot)
+                gt, lms, pan = self._apply((gt, lms, pan), hflip, vflip, rot)    # HR 만. LR 은 원본 격자
             return (self.np2tensor(gt), self.np2tensor(lms), self.np2tensor(ms),
                     self.np2tensor(lpan), self.np2tensor(pan), meta)
         if self.split == "train":
-            lms, ms, lpan, pan = self._apply((lms, ms, lpan, pan), hflip, vflip, rot)
+            lms, pan = self._apply((lms, pan), hflip, vflip, rot)
         return self.np2tensor(lms), self.np2tensor(ms), self.np2tensor(lpan), self.np2tensor(pan), meta

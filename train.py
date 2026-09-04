@@ -354,11 +354,15 @@ class Trainer:
                     dl_off.append(f_dl(sr_np, lms_np, sensor, 4, 32, wald))
                     ds_off.append(f_ds(sr_np, lms_np, pan_np, 4, 32, wald))
 
-        hqnr_official = float((1 - np.mean(dl_off)) * (1 - np.mean(ds_off)))
+        # 2026-09-05: 장면별 (1-D_l)(1-D_s) 평균 — tools/eval_dlpan_fr.py(DLPan 관례)와 같은 식.
+        # 이전의 (1-mean D_l)(1-mean D_s) 는 ~1e-5 다르다 (S1_T05_W152: 0.9546072 vs 0.9546199).
+        # 선택 지표와 보고 지표는 같은 식이어야 한다. 과거 14벌의 best_state 값은 옛 식이다.
+        hqnr_official = float(np.mean((1 - np.array(dl_off)) * (1 - np.array(ds_off))))
+        hqnr_pm = float((1 - np.mean(dl_off)) * (1 - np.mean(ds_off)))
         prefix_str = f'Epoch[{epoch}]\t'
         result_str = report.result_str()   # compute_mean() 이 여기서 수행된다
         test_log.write(prefix_str + result_str
-                       + f'\tHQNR_official({fr_lo}-{fr_hi}): {hqnr_official:.6f}')
+                       + f'\tHQNR_official({fr_lo}-{fr_hi}): {hqnr_official:.6f} (prod-of-means {hqnr_pm:.6f})')
         self.last_full_metrics = report.as_dict()
         self.last_full_metrics['hqnr_official'] = hqnr_official
         self.last_full_metrics['d_lambda_official'] = float(np.mean(dl_off))

@@ -14,7 +14,7 @@ import torch
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 from align.resample import (interp23tap, phase_shift_upsample, upsample_shift, warp_hr,   # noqa: E402
-                            transform_delta, border_mask)
+                            transform_delta, border_mask, augment_hr)
 from align.estimator import estimate_shift                                                # noqa: E402
 from align.model import AlignCfg, AlignedModel                                            # noqa: E402
 from align.shiftnet import structural_input                                               # noqa: E402
@@ -211,6 +211,63 @@ def test_T10_gradient():
     ((v["lpan_hr"].repeat(1, 8, 1, 1) + res) - pan.repeat(1, 8, 1, 1)).abs().mean().backward()
     assert all(p.grad is None for p in t.shift_net.parameters()), "PAN loss 는 ShiftNet 을 건드리면 안 된다"
     assert structural_input(lpan, ms).shape == (2, 2, 16, 16)
+
+
+def test_T11_augmentation_phase_real_data():
+    """2026-09-05 지적: LR 을 flip/rot 한 뒤 phase-2 로 올리면 HR 과 1px 어긋난다. 고친 경로
+    (feeder 가 LR 원본 + 플래그, wrapper 가 upsample 뒤 HR 증강)에서는 ms_base_hr 이 feeder 가
+    증강한 lms 와 **비트 수준으로** 같아야 한다 — 16 조합 전부."""
+    import random
+    from feeders.feeder_align import PanFeederAlign
+    fd = PanFeederAlign(dataroot=H5["train"], crop=False, hflip=True, vflip=True, rot=True)
+    m = _model(dict(delta_source="zero", alpha=0.0))
+    seen = set()
+    for trial in range(40):
+        gt, lms, ms, lpan, pan, meta = fd[trial]
+        hf, vf, r = int(meta[2]), int(meta[3]), int(meta[4])
+        seen.add((hf, vf, r))
+        v = m.build_views(pan[None].double(), lpan[None].double(), ms[None].double(),
+                          torch.zeros(1, 2, dtype=torch.float64),
+                          aug=(meta[None, 2], meta[None, 3], meta[None, 4]))
+        mad = (v["ms_base_hr"][0] - lms.double()).abs().mean().item()
+        assert mad < 1e-6, f"aug (hf,vf,rot)=({hf},{vf},{r}): ms_base_hr vs 증강 lms MAD {mad:.3e}"   # feeder 는 float32 (옛 경로는 ~2e-2)
+        # 반대로 LR 을 먼저 증강했다면 (옛 경로) 1px 어긋난다 — 회귀 방지용 대조
+        if r != 2:
+            ms_np = ms.numpy()[:, ::-1, ::-1] if True else ms.numpy()
+            ms_aug = np.ascontiguousarray(np.rot90(ms_np, r, (1, 2)))
+            old = interp23tap(torch.tensor(ms_aug)[None].double())[0]
+            assert (old - lms.double()).abs().mean().item() > 1e-3, "옛 경로가 어긋나지 않으면 이 검사는 무의미"   # 정규화 단위 (~2e-2)
+    assert len(seen) >= 3, seen
+    # 모든 rot 를 강제로 훑는다 (hflip/vflip 은 항상 켜져 있다)
+    for r in range(4):
+        gt, lms, ms, lpan, pan = (np.array(fd.gt[3]), np.array(fd.lms[3]), np.array(fd.ms[3]),
+                                  np.array(fd.lpan[3]), np.array(fd.pan[3]))
+        gt, lms, pan = fd._apply((gt, lms, pan), 1, 1, r)
+        v = m.build_views(fd.np2tensor(pan)[None].double(), fd.np2tensor(lpan)[None].double(),
+                          fd.np2tensor(ms)[None].double(), torch.zeros(1, 2, dtype=torch.float64),
+                          aug=(torch.tensor([1]), torch.tensor([1]), torch.tensor([r])))
+        assert (v["ms_base_hr"][0] - fd.np2tensor(lms).double()).abs().max().item() < 1e-6, r
+        assert (v["lpan_hr"][0] - augment_hr(interp23tap(fd.np2tensor(lpan)[None].double()),
+                                             torch.tensor([1]), torch.tensor([1]), torch.tensor([r]))[0]).abs().max() < 1e-12
+
+
+def test_T12_warp_commutes_with_augmentation():
+    """full-shift 경로: (원본 frame 에서 shift) 뒤 HR 증강 == HR 증강 뒤 (변환된 Δ 로 shift).
+    inverse warp 를 증강된 출력 frame 에서 transform_delta(Δ) 로 거는 근거."""
+    lr = _smooth(1, 8, 16, 16)
+    d = torch.tensor([[0.37, -0.22]], dtype=torch.float64)
+    for hf in (0, 1):
+        for vf in (0, 1):
+            for r in range(4):
+                fl = (torch.tensor([hf]), torch.tensor([vf]), torch.tensor([r]))
+                a = augment_hr(upsample_shift(lr, d, 1.0), *fl)
+                b = warp_hr(augment_hr(interp23tap(lr), *fl), 4 * transform_delta(d, *fl))
+                m = border_mask(d, 64, 64).bool().expand_as(a)
+                assert (a - b)[m].abs().max() < 1e-9, (hf, vf, r, (a - b)[m].abs().max())
+                # inverse 도 같은 frame 에서 -T(Δ) 로 돌아온다
+                back = warp_hr(a, -4 * transform_delta(d, *fl))
+                ref = augment_hr(interp23tap(lr), *fl)
+                assert ((back - ref)[m].abs().max() / ref.abs().max()).item() < 0.1
 
 
 if __name__ == "__main__":

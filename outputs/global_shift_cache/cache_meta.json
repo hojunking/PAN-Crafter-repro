@@ -19,9 +19,9 @@
  "estimator_version": "scharr_zncc_q3x3+census5_hamming/v1",
  "note": "train \uc740 parent scene ID \ubd80\uc7ac\ub85c 16x16 patch \ub2e8\uc704(\u00a75.2 \uc6b0\uc120\uc21c\uc704 2). lpan \uc740 \ub370\uc774\ud130\uc14b \uc81c\uacf5(MTF\u2193PAN phase2)",
  "sha256": {
-  "wv3_train.csv": "a2bb427cef99124df810dff2cab6823e745b221c9ef861c1ee58bc5e53523c3a",
-  "wv3_rr.csv": "56ac4a8b881c46cc827af38183a762c3f0e6a0964a8f7d93da495db6e0e27bc8",
-  "wv3_fr.csv": "0489147f0c999c225998cba35b90cb1670b23b6fb40a931749c22330e694ed30"
+  "wv3_train.csv": "b8ef166bb16e515efa95209e49bdefc5e35e26001f118565880e625771b02547",
+  "wv3_rr.csv": "437e090fa66a6e9db884dfe0a8592d3e345eb2cf2617ed08324209d30b80d3f7",
+  "wv3_fr.csv": "ba1e9a4e23936b02877c96ac664edc8b3ce57070c121103eda5e9868fbc54210"
  },
  "stats": {
   "train": {
@@ -37,7 +37,7 @@
    "dx_sd": 0.1901842848441075,
    "sign_dy_pos": 0.5478690549722051,
    "peak_p50": 0.9621649168649503,
-   "seconds": 20.3
+   "seconds": 20.2
   },
   "rr": {
    "n": 20,
@@ -68,6 +68,20 @@
    "sign_dy_pos": 0.6,
    "peak_p50": 0.8189201021876944,
    "seconds": 0.1
+  }
+ },
+ "source_hashes": {
+  "train": {
+   "ms_h5": "e1580938e1ba45ff",
+   "pan_h5": "1fe0c04c7f45551d"
+  },
+  "rr": {
+   "ms_h5": "4c811fd96b0046d7",
+   "pan_h5": "509a4a346601c201"
+  },
+  "fr": {
+   "ms_h5": "cb78f0e00507d26a",
+   "pan_h5": "feca07fbb9fb8fc5"
   }
  }
 }

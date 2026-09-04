@@ -200,6 +200,7 @@ def train(args):
 
     best_ergas, best_ds, best_val_ergas = 9999, 1, 9999
     best_hqnr, best_epoch_hqnr, best_fscc = -1.0, 0, float('nan')
+    best_hqnr_anchor = -1.0            # 지금까지의 최대 HQNR (tie band 기준점)
     best_epoch_reduced = best_epoch_full = best_epoch_val = 0
     last_epoch = 0
     total_epoch = args.num_iter // len(data_loader['train']) + 1
@@ -222,6 +223,7 @@ def train(args):
             best_hqnr = bs.get('best_hqnr', best_hqnr)
             best_epoch_hqnr = bs.get('best_epoch_hqnr', best_epoch_hqnr)
             best_fscc = bs.get('fscc_at_best', best_fscc) or float('nan')
+            best_hqnr_anchor = bs.get('max_hqnr', best_hqnr)
             best_val_ergas = bs.get('best_val_ergas', best_val_ergas)
             best_epoch_val = bs.get('best_epoch_val', best_epoch_val)
             train_log.write(f'[resume] best_state 복구: {bs}')
@@ -238,6 +240,76 @@ def train(args):
         train_log.write(f'[resume] {args.resume} 에서 재개 — global_step={global_step}, epoch={last_epoch} '
                         f'(배치 순서는 복원되지 않는 근사 재개)')
 
+    def _evaluate(epoch, global_step):
+        nonlocal best_hqnr, best_epoch_hqnr, best_fscc, best_hqnr_anchor
+        nonlocal best_ergas, best_ds, best_val_ergas, best_epoch_reduced, best_epoch_full, best_epoch_val
+        val_ergas = trainer.validate(test_log, epoch + 1) if args.select_on == 'val' else None
+        ergas = trainer.test_reduced(test_log, epoch + 1)
+        ds, hqnr = trainer.test_full(test_log, epoch + 1)
+        scc = trainer.last_reduced_metrics.get('scc', float('nan'))
+        # 핵심 3지표는 어느 모드에서든 반드시 로그에 남긴다.
+        # HQNR 은 공식 DLPan 프로토콜(D_lambda_K + block-UQI D_s, index 12-19)이다.
+        core = f'[핵심] HQNR(공식 {args.fr_select_indices}): {hqnr:.6f}\tSCC: {scc:.6f}\tERGAS: {ergas:.6f}'
+        test_log.write(core)
+        train_log.write(core)
+
+        metrics_csv.append(epoch + 1, global_step,
+                           trainer.last_reduced_metrics, trainer.last_full_metrics,
+                           trainer.last_val_metrics)
+
+        if args.select_on == 'hqnr':
+            # HQNR=(1-D_l)(1-D_s) 기준. FR 검증 split 이 없어 FR 테스트셋으로 고른다 —
+            # no-reference 지표지만 선택 편향은 존재한다. 문서에 명시했다.
+            # align trainer: HQNR 차이 <= 1e-4 면 fSCC(12-19), 그것도 <= 1e-4 면 나중 iteration
+            # (global alignment 계획 §17.2). 다른 trainer 는 기존 strict '>' 그대로.
+            fscc = getattr(trainer, 'last_fscc_official', None)
+            if kind == 'align' and best_hqnr > 0:
+                # tie band 의 기준은 **지금까지의 최대 HQNR**(anchor) 이다. 현재 best 의 HQNR 을
+                # 기준으로 하면 동률 교체가 반복될 때 기준이 조금씩 내려가 최대값보다 1e-4 넘게
+                # 낮은 checkpoint 까지 best 가 될 수 있다 (2026-09-05 검증 지적).
+                dh = hqnr - best_hqnr_anchor
+                is_best = (dh > 1e-4) or (dh >= -1e-4 and (
+                    (fscc - best_fscc) > 1e-4 or abs(fscc - best_fscc) <= 1e-4))
+            else:
+                is_best = hqnr > best_hqnr
+            best_hqnr_anchor = max(best_hqnr_anchor, hqnr)
+            if is_best:
+                best_hqnr = hqnr
+                best_epoch_hqnr = epoch + 1
+                best_fscc = fscc if fscc is not None else float('nan')
+                trainer.save_best_model_hqnr()
+                if hasattr(trainer, 'write_best_meta'):
+                    trainer.write_best_meta(epoch + 1, global_step, hqnr)
+                import json as _json
+                _json.dump({'best_hqnr': best_hqnr, 'best_epoch_hqnr': best_epoch_hqnr,
+                            'scc_at_best': trainer.last_reduced_metrics.get('scc'),
+                            'ergas_at_best': trainer.last_reduced_metrics.get('ergas'),
+                            'fscc_at_best': fscc, 'max_hqnr': best_hqnr_anchor},
+                           open(best_state_path, 'w'))
+            test_log.write(f'Best HQNR: {best_hqnr:.6f}\tBest Epoch (hqnr): {best_epoch_hqnr}')
+        elif args.select_on == 'val':
+            # 선택에 테스트 지표를 쓰지 않는다. 위 test_* 값은 곡선 기록용이다.
+            if val_ergas < best_val_ergas:
+                best_val_ergas = val_ergas
+                best_epoch_val = epoch + 1
+                trainer.save_best_model_val()
+                import json as _json
+                _json.dump({'best_val_ergas': best_val_ergas, 'best_epoch_val': best_epoch_val},
+                           open(best_state_path, 'w'))
+            test_log.write(f'Best val ERGAS: {best_val_ergas:.6f}\tBest Epoch (val): {best_epoch_val}')
+        else:
+            if ergas < best_ergas:
+                best_ergas = ergas
+                best_epoch_reduced = epoch + 1
+                trainer.save_best_model_reduced()
+            if ds < best_ds:
+                best_ds = ds
+                best_epoch_full = epoch + 1
+                trainer.save_best_model_full()
+            test_log.write(f'Best ERGAS: {best_ergas:.6f}\tBest Epoch (Reduced): {best_epoch_reduced}\t'
+                           f'Best D_s: {best_ds:.6f}\tBest Epoch (Full): {best_epoch_full}')
+
+
     for epoch in range(last_epoch, total_epoch):
         train_log.write(f'========= Epoch {epoch + 1} of {total_epoch} =========')
         global_step = trainer.train(train_log, global_step)
@@ -247,67 +319,12 @@ def train(args):
             trainer.save_checkpoint(epoch + 1)
 
         if (epoch + 1) % args.eval_epoch == 0:
-            val_ergas = trainer.validate(test_log, epoch + 1) if args.select_on == 'val' else None
-            ergas = trainer.test_reduced(test_log, epoch + 1)
-            ds, hqnr = trainer.test_full(test_log, epoch + 1)
-            scc = trainer.last_reduced_metrics.get('scc', float('nan'))
-            # 핵심 3지표는 어느 모드에서든 반드시 로그에 남긴다.
-            # HQNR 은 공식 DLPan 프로토콜(D_lambda_K + block-UQI D_s, index 12-19)이다.
-            core = f'[핵심] HQNR(공식 {args.fr_select_indices}): {hqnr:.6f}\tSCC: {scc:.6f}\tERGAS: {ergas:.6f}'
-            test_log.write(core)
-            train_log.write(core)
-
-            metrics_csv.append(epoch + 1, global_step,
-                               trainer.last_reduced_metrics, trainer.last_full_metrics,
-                               trainer.last_val_metrics)
-
-            if args.select_on == 'hqnr':
-                # HQNR=(1-D_l)(1-D_s) 기준. FR 검증 split 이 없어 FR 테스트셋으로 고른다 —
-                # no-reference 지표지만 선택 편향은 존재한다. 문서에 명시했다.
-                # align trainer: HQNR 차이 <= 1e-4 면 fSCC(12-19), 그것도 <= 1e-4 면 나중 iteration
-                # (global alignment 계획 §17.2). 다른 trainer 는 기존 strict '>' 그대로.
-                fscc = getattr(trainer, 'last_fscc_official', None)
-                if kind == 'align' and best_hqnr > 0:
-                    dh = hqnr - best_hqnr
-                    is_best = (dh > 1e-4) or (abs(dh) <= 1e-4 and (
-                        (fscc - best_fscc) > 1e-4 or abs(fscc - best_fscc) <= 1e-4))
-                else:
-                    is_best = hqnr > best_hqnr
-                if is_best:
-                    best_hqnr = hqnr
-                    best_epoch_hqnr = epoch + 1
-                    best_fscc = fscc if fscc is not None else float('nan')
-                    trainer.save_best_model_hqnr()
-                    if hasattr(trainer, 'write_best_meta'):
-                        trainer.write_best_meta(epoch + 1, global_step, hqnr)
-                    import json as _json
-                    _json.dump({'best_hqnr': best_hqnr, 'best_epoch_hqnr': best_epoch_hqnr,
-                                'scc_at_best': trainer.last_reduced_metrics.get('scc'),
-                                'ergas_at_best': trainer.last_reduced_metrics.get('ergas'),
-                                'fscc_at_best': fscc},
-                               open(best_state_path, 'w'))
-                test_log.write(f'Best HQNR: {best_hqnr:.6f}\tBest Epoch (hqnr): {best_epoch_hqnr}')
-            elif args.select_on == 'val':
-                # 선택에 테스트 지표를 쓰지 않는다. 위 test_* 값은 곡선 기록용이다.
-                if val_ergas < best_val_ergas:
-                    best_val_ergas = val_ergas
-                    best_epoch_val = epoch + 1
-                    trainer.save_best_model_val()
-                    import json as _json
-                    _json.dump({'best_val_ergas': best_val_ergas, 'best_epoch_val': best_epoch_val},
-                               open(best_state_path, 'w'))
-                test_log.write(f'Best val ERGAS: {best_val_ergas:.6f}\tBest Epoch (val): {best_epoch_val}')
-            else:
-                if ergas < best_ergas:
-                    best_ergas = ergas
-                    best_epoch_reduced = epoch + 1
-                    trainer.save_best_model_reduced()
-                if ds < best_ds:
-                    best_ds = ds
-                    best_epoch_full = epoch + 1
-                    trainer.save_best_model_full()
-                test_log.write(f'Best ERGAS: {best_ergas:.6f}\tBest Epoch (Reduced): {best_epoch_reduced}\t'
-                               f'Best D_s: {best_ds:.6f}\tBest Epoch (Full): {best_epoch_full}')
+            _evaluate(epoch, global_step)
+    # 마지막 epoch(=num_iter 도달, 예: 50K)이 eval 격자에 없으면 한 번 더 평가한다 —
+    # 이전엔 ep245(49,490 step)가 마지막 평가라 정확한 50K 모델은 후보에 들지 못했다 (2026-09-05).
+    if total_epoch % args.eval_epoch != 0:
+        train_log.write(f'[eval] 최종 epoch {total_epoch} (step {global_step}) 추가 평가')
+        _evaluate(total_epoch - 1, global_step)
 
     # KNOWN_ISSUES.md D-1: 학습 중에는 .mat 을 쓰지 않는다. 배포본은 best 가 갱신될 때마다
     # 고정 파일명으로 덮어써서 후보를 사후 재평가할 수 없었다. 학습이 끝난 뒤 선택된

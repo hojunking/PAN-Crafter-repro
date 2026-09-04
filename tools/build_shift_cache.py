@@ -39,13 +39,15 @@ def build(split, out_dir):
     for i in range(ms.shape[0]):
         r = estimate_shift(lpan[i, 0], ms[i].mean(0))
         r.update(split=split, sample_id=i, scene_id=(i if split != "train" else -1),
-                 estimator_version=ESTIMATOR_VERSION, source_file_hash=fingerprint_h5(h5) if i == 0 else "")
+                 estimator_version=ESTIMATOR_VERSION)
         rows.append(r)
     df = pd.DataFrame(rows)
-    df["source_file_hash"] = df["source_file_hash"].iloc[0]
+    # 추정기 입력은 ms(h5)와 lpan(*_pan.h5) 둘이다 — 둘 다 지문을 남긴다
+    df["source_file_hash"] = fingerprint_h5(h5)
+    df["source_pan_file_hash"] = fingerprint_h5(pan_h5)
     cols = ["split", "sample_id", "scene_id", "dy_lr_raw", "dx_lr_raw", "magnitude_raw", "peak_zncc", "peak_margin",
             "secondary_dy", "secondary_dx", "primary_secondary_diff", "boundary_hit", "accepted",
-            "dy_lr_applied", "dx_lr_applied", "estimator_version", "source_file_hash"]
+            "dy_lr_applied", "dx_lr_applied", "estimator_version", "source_file_hash", "source_pan_file_hash"]
     df = df[cols]
     fn = SPLIT_FILE[code]
     df.to_csv(os.path.join(out_dir, fn), index=False)
@@ -80,6 +82,8 @@ def main():
         fn, st = build(s, a.out)
         meta["sha256"][fn] = sha256_file(os.path.join(a.out, fn))
         meta["stats"][s] = st
+        meta.setdefault("source_hashes", {})[s] = dict(ms_h5=fingerprint_h5(SRC[s][0]),
+                                                        pan_h5=fingerprint_h5(SRC[s][0].replace(".h5", "_pan.h5")))
     json.dump(meta, open(meta_p, "w"), indent=1)
     print(f"[cache] meta -> {meta_p}")
 

@@ -199,3 +199,29 @@ phase 수정은 D_s 와 무관하게 GT 정합을 고치므로 이득이 날 수
 - RR 의 shift 는 0.06 px 라 RR 지표는 정렬로 거의 안 움직인다 — RR 차이는 학습 분포 변화(jitter)의 효과다.
 - C3/C4B 의 공식 HQNR 은 P-frame 출력을 M-frame `lms` 와 비교한다 (계획 §13.5·§24 가 인정). D_λ 가
   뛰는 것은 좌표 불일치의 표현이지 스펙트럼 붕괴가 아니다 — `hqnr_alt`(inverse 뷰)를 같이 본다.
+
+---
+
+## 7. 추기 (2026-09-05) — 실행 후 검증 지적 9건과 조치
+
+캠페인 기동 3시간 뒤 받은 엄격 검증 지적. **1건은 치명이라 체인을 세우고 P0 를 무효화했다**
+(`work_dir/_INVALID_augphase_GA_P0_PHASEFIX_W152_D123_DUAL`). 전부 재현·수정한 뒤 재기동한다.
+
+| # | 지적 | 검증 | 조치 |
+|---|---|---|---|
+| 1 | **LR 을 flip/rot 한 뒤 phase-2 interp23tap 하면 HR(gt/lms/pan) 과 1px 어긋난다** | **실재.** hflip+vflip 고정 + rot 0/1/3 에서 MAD 22.7/17.0/14.8 DN, 1px roll 로 0.000 (rot 2 만 정상). 표본 75%. 원인: LR j→HR 4j+2 를 flip 하면 62−4j, HR flip 은 61−4j. 원본 bicubic(phase 1.5)은 flip 대칭이라 없던 문제 | feeder 는 **LR(ms, lpan) 을 원본 격자로** 주고 HR(gt, lms, pan)만 증강. wrapper 가 upsample(+shift, 원본 frame Δ) **뒤 HR 에서** 같은 flip/rot(`augment_hr`). inverse warp/mask 는 증강된 출력 frame 에서 `transform_delta(Δ)` 로. ShiftNet 입력·pseudo-label 은 원본 frame 그대로(변환 불필요) |
+| 2 | HQNR 집계식: trainer 는 (1−mean D_λ)(1−mean D_s), 사후 평가기·계획은 mean((1−D_λᵢ)(1−D_sᵢ)) | **실재.** S1_T05_W152 best mat 에서 0.9546072 vs 0.9546199, 차 1.27e-5 = tie band 의 13% | 두 trainer 모두 **장면별 곱의 평균**으로 통일(사후 평가기·DLPan 관례). 로그에 두 값 병기. 과거 14벌의 `best_state` 값은 옛 식(차 ~1e-5, 판정 불변) |
+| 3 | tie band 기준이 "현재 best" 라 동률 교체가 반복되면 기준이 누적 하락 | 논리상 맞음 (P0 에선 미발생) | 기준을 **running max**(anchor) 로 고정. `best_state.json` 에 `max_hqnr` 저장·resume 복구 |
+| 4 | 계획은 10K…50K 9점, 실제는 1,010 step 간격 49점이며 **정확한 50K 는 미평가** | 실재 (마지막 eval ep245 = 49,490) | 마지막 epoch 이 eval 격자에 없으면 **종료 시 1회 추가 평가** — 50K 모델도 후보. 49점 격자는 유지(더 촘촘, 기존 14벌과 동일 조건) |
+| 5 | resume 이 config/commit/cache SHA 를 확인하지 않고 `run.sh` 가 meta 를 덮어씀 | 실재 | `run.sh`: `--resume` 이면 기존 meta 를 `meta/prev_<시각>/` 에 보존하고 `resumed_with.txt` 기록. `AlignTrainer`: resume 시 `best_hqnr_meta.json` 의 cache SHA·upsampler 가 다르면 rc=4 거부 |
+| 6 | cache builder 가 추정기 입력인 `*_pan.h5`(lpan) 을 해시하지 않음 | 실재 | `source_pan_file_hash` 열 + `cache_meta.source_hashes`. 캐시 재생성(값 동일, SHA `81dccdd8…`) |
+| 7 | drop 순서가 주석뿐, deadline 은 case 시작 전에만 검사 → optional C2 가 필수 C4 dual-frame 보다 먼저 | 실재 | 큐 순서 = 우선순위로 재배열: P0·C1·C3·C2 a0.5·C2 a1.0·**C4 dual-frame** → C2 a0.25·C2 a0.75·C4 RT (계획 §10.1 "반드시 보존" 6벌 먼저) |
+| 8 | C4 gate 종료(exit 3)를 러너가 "NaN 중단"으로 기록 | 실재 | gate/provenance 거부는 **rc=4** — 러너가 "사전 gate 불통과, 학습 시작 안 함" 으로 기록, 재시도 없음 |
+| 9 | 실배치 OOM smoke 가 bare backbone 이라 C2 이중 view·C4 ShiftNet graph 미검증 | 실재 | align smoke 는 **wrapper 로 실배치(48×2) forward+backward+AdamW** — HR 증강·inverse·mask·ShiftNet 포함. peak 를 smoke 표기에 반영 |
+
+**검증**: T01–T12 **12/12** (신규 T11 = 실데이터 16 증강 조합에서 `ms_base_hr` 이 feeder 증강 `lms` 와 float32
+정밀도(2.5e-8)로 일치 + 옛 경로가 어긋남(~2e-2)을 대조로 확인; T12 = shift→증강 == 증강→shift(변환 Δ), 1e-9),
+smoke 9/9 (wrapper 실배치 peak ≈ 7.8 GB), 통합 실행 P0·C3 210 iter (아래 갱신).
+
+**남기는 것**: 지적 4 의 "10K…50K 9점" 은 채택하지 않는다 — 49점 격자가 더 촘촘하고 기존 실행과 같은 조건이며,
+50K 는 추가 평가로 포함됐다. 지적 7 의 우선순위는 계획 §10.1 을 따르되, C4 는 gate FAIL 이라 어차피 학습되지 않는다.

@@ -1,10 +1,12 @@
-# global alignment 40h 캠페인 (계획 §10.1 순서). 초과 시 drop 순서: C2 a0.75 -> C2 a0.25 -> C4 RT
+# global alignment 40h 캠페인. 순서 = 우선순위 (deadline 은 case 시작 전에만 검사하므로 뒤쪽이 먼저 잘린다).
+# 계획 §10.1 "반드시 보존": P0 · C1 · C3 · C2 a0.5 · C2 a1.0 · C4 dual-frame  →  drop 후보(계획 순): C2 a0.75 · C2 a0.25 · C4 RT
+# C4 는 ShiftNet pretrain gate(§15.3) FAIL 이면 시작 즉시 rc=4 로 FAILED 처리된다(학습 없음).
 GA_P0_PHASEFIX_W152_D123_DUAL
 GA_C1_FROZEN_RT_A100_W152_D123_DUAL
 GA_C3_FROZEN_DUALFRAME_A100_W152_D123_DUAL
 GA_C2_INPUTONLY_A050_W152_D123_DUAL
 GA_C2_INPUTONLY_A100_W152_D123_DUAL
+GA_C4_TRAIN_DUALFRAME_W152_D123_DUAL
 GA_C2_INPUTONLY_A025_W152_D123_DUAL
 GA_C2_INPUTONLY_A075_W152_D123_DUAL
 GA_C4_TRAIN_RT_W152_D123_DUAL
-GA_C4_TRAIN_DUALFRAME_W152_D123_DUAL

@@ -144,3 +144,28 @@ def transform_delta(delta, hflip, vflip, rot):
         dy = torch.where(sel, ndy, dy)
         dx = torch.where(sel, ndx, dx)
     return torch.stack([dy, dx], dim=1)
+
+
+def augment_hr(x, hflip, vflip, rot):
+    """HR 텐서 [B,C,H,W] 에 feeder 와 같은 순서(hflip -> vflip -> np.rot90 CCW k)로 표본별 증강.
+
+    LR 을 증강한 뒤 phase-2 로 올리면 HR 과 1px 어긋나므로(feeder_align.py 머리말), 증강은 반드시
+    **upsample 뒤 HR 에서** 건다. flip/rot90 은 미분 가능하다 (trainable Δ 경로 유지)."""
+    if hflip is None:
+        return x
+    B = x.shape[0]
+    hflip, vflip, rot = (t.to(x.device).long().view(-1) for t in (hflip, vflip, rot))
+    keys = hflip * 8 + vflip * 4 + rot
+    out = torch.empty_like(x)
+    for k in torch.unique(keys):
+        idx = keys == k
+        y = x[idx]
+        hf, vf, r = int(k) // 8, (int(k) // 4) % 2, int(k) % 4
+        if hf:
+            y = y.flip(-1)
+        if vf:
+            y = y.flip(-2)
+        if r:
+            y = torch.rot90(y, r, dims=(-2, -1))
+        out[idx] = y
+    return out

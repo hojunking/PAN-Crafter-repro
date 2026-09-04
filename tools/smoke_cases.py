@@ -31,6 +31,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 
+_ALIGN_PEAK = 0.0      # align wrapper 실배치 peak (check_trainer_extras 가 채운다)
+
+
 class ConfigMissing(Exception):
     """config 파일 부재 — 빌드 실패와 달리 일시 사유다 (예: git pull 전).
 
@@ -96,24 +99,49 @@ def check_trainer_extras(cfg):
         if cfg_a.trainable_shift_net:
             rep = os.path.join(ROOT, cfg_a.shiftnet_pretrained.replace(".pt", ".json"))
             note += (" shiftnet=pretrained" if os.path.exists(rep) else " shiftnet=미학습(체인이 pretrain 실행)")
-        # wrapper forward: 학습 형상(dual) + FR 형상
+        # wrapper 로 **실배치** forward+backward+AdamW 1 step — C2 의 이중 view, C4 의 ShiftNet graph,
+        # HR 증강, inverse warp/mask 까지 실제 학습 그래프 그대로 peak VRAM 을 잰다 (bare backbone 만으로는 부족).
+        from align.resample import transform_delta
         dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         w = AlignedModel(build(cfg), cfg_a).to(dev)
         randomize_zero_params(w)
-        B = 4
-        d = torch.randn(B, 2, device=dev) * 0.3 if cfg_a.delta_source != "zero" else torch.zeros(B, 2, device=dev)
-        sw = torch.tensor([0., 0., 1., 1.], device=dev)
-        v = w.build_views(torch.randn(B, 1, 64, 64, device=dev), torch.randn(B, 1, 16, 16, device=dev),
-                          torch.randn(B, 8, 16, 16, device=dev), d)
+        if w.shift_net is not None:
+            with torch.no_grad():
+                w.shift_net.head.weight.normal_(0, 0.05)
+        B = int(cfg.get("batch_size", 48))
+        if dev.type == "cuda":
+            torch.cuda.empty_cache(); torch.cuda.reset_peak_memory_stats(dev)
+        opt = torch.optim.AdamW(w.parameters(), lr=1e-4)
+        pan = torch.randn(B, 1, 64, 64, device=dev); lpan = torch.randn(B, 1, 16, 16, device=dev)
+        ms = torch.randn(B, 8, 16, 16, device=dev); gt = torch.randn(B, 8, 64, 64, device=dev)
+        aug = (torch.ones(B, device=dev, dtype=torch.long), torch.ones(B, device=dev, dtype=torch.long),
+               torch.randint(0, 4, (B,), device=dev))
+        if cfg_a.delta_source == "zero":
+            d = torch.zeros(B, 2, device=dev)
+        elif cfg_a.delta_source == "trainable":
+            d = w.predict_delta(lpan, ms)
+        else:
+            d = torch.randn(B, 2, device=dev) * 0.3
+        dd = torch.cat([d.detach(), d]); sw = torch.cat([torch.zeros(B, device=dev), torch.ones(B, device=dev)])
+        v = w.build_views(pan.repeat(2, 1, 1, 1), lpan.repeat(2, 1, 1, 1), ms.repeat(2, 1, 1, 1), dd,
+                          aug=tuple(t.repeat(2) for t in aug))
         res = w.residual(v["x11"], sw)
-        fin = w.finalize_ms(v["ms_base_hr"][2:], res[2:], d[2:])
-        assert fin["y_final"].shape == (2, 8, 64, 64) and torch.isfinite(fin["y_final"]).all()
-        fin["y_loss"].abs().mean().backward()
+        fin = w.finalize_ms(v["ms_base_hr"][B:], res[B:], transform_delta(d, *aug))
+        assert fin["y_final"].shape == (B, 8, 64, 64) and torch.isfinite(fin["y_final"]).all()
+        loss = ((fin["y_loss"] - gt).abs() * fin["mask"]).sum() / (fin["mask"].sum() * 8) \
+            + (v["lpan_hr"][:B].repeat(1, 8, 1, 1) + res[:B] - pan.repeat(1, 8, 1, 1)).abs().mean()
+        loss.backward(); opt.step()
+        if dev.type == "cuda":
+            global _ALIGN_PEAK
+            _ALIGN_PEAK = torch.cuda.max_memory_allocated(dev) / 2**20
+            note += f" wrapperPeak {_ALIGN_PEAK:.0f}MB"
         with torch.no_grad():
             o = w.infer_ms(torch.randn(1, 1, 512, 512, device=dev), torch.randn(1, 1, 128, 128, device=dev),
-                           torch.randn(1, 8, 128, 128, device=dev), d[:1])
+                           torch.randn(1, 8, 128, 128, device=dev), d[:1].detach())
         assert o["y_final"].shape[-2:] == (512, 512) and torch.isfinite(o["y_final"]).all()
-        del w
+        del w, opt, v, res, fin, loss
+        if dev.type == "cuda":
+            torch.cuda.empty_cache()
         return note
     if tr == "mutual":
         b = build(cfg)     # peer_b 구성 재현 (같은 model_args)
@@ -141,6 +169,8 @@ def check_identity(name, cfg, model):
 
 
 def smoke_one(name, dev):
+    global _ALIGN_PEAK
+    _ALIGN_PEAK = 0.0
     cfg = load_cfg(name)
     extra_note = check_trainer_extras(cfg)
     m = build(cfg).to(dev)
@@ -210,6 +240,7 @@ def smoke_one(name, dev):
         del opt, pan_t, lpan_t, ms_t, sw_t, out_t
 
     peak = (torch.cuda.max_memory_allocated(dev) / 2**20) if dev.type == "cuda" else 0
+    peak = max(peak, _ALIGN_PEAK)          # align: wrapper 실배치 peak 가 진짜 학습 peak
     del m
     if dev.type == "cuda":
         torch.cuda.empty_cache()

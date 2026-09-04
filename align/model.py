@@ -16,7 +16,7 @@ from dataclasses import dataclass, asdict
 import torch
 import torch.nn as nn
 
-from align.resample import upsample_shift, warp_hr, border_mask
+from align.resample import upsample_shift, warp_hr, border_mask, augment_hr
 from align.shiftnet import GlobalShiftNet, structural_input
 
 
@@ -94,12 +94,15 @@ class AlignedModel(nn.Module):
         return upsample_shift(lr, delta_lr, alpha, kind=self.cfg.upsampler, scale=self.cfg.scale,
                               phase=self.cfg.phase, padding_mode=self.cfg.padding_mode)
 
-    def build_views(self, pan, lpan, ms, delta_lr):
-        """공통 입력 view. PAN 계열 3ch 은 shift 하지 않는다 (§4.4)."""
+    def build_views(self, pan, lpan, ms, delta_lr, aug=None):
+        """공통 입력 view. PAN 계열 3ch 은 shift 하지 않는다 (§4.4).
+
+        ms/lpan 은 **원본 격자의 LR**, delta_lr 은 **원본 frame** 의 Δ. aug=(hflip,vflip,rot) 가 있으면
+        upsample(+shift) 뒤 HR 에서 증강을 걸어 feeder 가 증강한 pan/gt 와 같은 좌표계로 맞춘다
+        (LR 을 먼저 증강하면 phase-2 격자에서 1px 어긋난다 — feeders/feeder_align.py 머리말)."""
         B = ms.shape[0]
         zeros = torch.zeros(B, 2, dtype=ms.dtype, device=ms.device)
         lpan_hr = self._up(lpan, zeros, 0.0)
-        pan_hf = pan - lpan_hr
         if self.cfg.full_shift:                           # C1/C3/C4: cond == base == P-frame MS
             ms_cond = self._up(ms, delta_lr, 1.0)
             ms_base = ms_cond
@@ -109,6 +112,12 @@ class AlignedModel(nn.Module):
         else:                                             # C2: cond 만 α·Δ, base 는 M-frame
             ms_cond = self._up(ms, delta_lr, float(self.cfg.alpha))
             ms_base = self._up(ms, zeros, 0.0)
+        if aug is not None:
+            hf, vf, r = aug
+            lpan_hr = augment_hr(lpan_hr, hf, vf, r)
+            ms_cond = augment_hr(ms_cond, hf, vf, r)
+            ms_base = ms_cond if self.cfg.full_shift or self.cfg.delta_source == "zero" else augment_hr(ms_base, hf, vf, r)
+        pan_hf = pan - lpan_hr
         x11 = torch.cat((pan, lpan_hr, pan_hf, ms_cond), dim=1)
         return dict(x11=x11, ms_cond_hr=ms_cond, ms_base_hr=ms_base, lpan_hr=lpan_hr, pan_hf=pan_hf)
 
@@ -117,7 +126,10 @@ class AlignedModel(nn.Module):
 
     # ---- MS mode 마무리 ------------------------------------------------------
     def finalize_ms(self, ms_base_hr, res, delta_lr):
-        """반환: y_final(배포 출력), y_loss(GT loss 뷰), mask(loss 용), y_pan, y_ms."""
+        """반환: y_final(배포 출력), y_loss(GT loss 뷰), mask(loss 용), y_pan, y_ms.
+
+        delta_lr 은 **출력 텐서와 같은 frame** 이어야 한다 — 학습 시(증강된 HR) 에는
+        transform_delta(Δ원본, hflip, vflip, rot) 를 넘긴다. inverse warp 는 flip/rot 과 가환이다(T12)."""
         y = ms_base_hr + res
         H, W = y.shape[-2:]
         one = torch.ones(y.shape[0], 1, H, W, dtype=y.dtype, device=y.device)

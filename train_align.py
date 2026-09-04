@@ -86,6 +86,15 @@ class AlignTrainer(Trainer):
         self.last_reduced_metrics, self.last_full_metrics, self.last_val_metrics = {}, {}, {}
         self.last_fscc_official = float("nan")
         self._ema = {}
+        # resume provenance: 이전 best 가 다른 cache/upsampler 로 만들어졌으면 이어 돌리지 않는다
+        bm = os.path.join(args.work_dir, "best_hqnr_meta.json")
+        if getattr(args, "resume", None) and os.path.exists(bm):
+            prev = json.load(open(bm))
+            cur = self.cache.sha256_all if self.cache else None
+            if prev.get("cache_sha256") != cur or prev.get("upsampler") != self.acfg.upsampler:
+                print(f"[align] resume 거부 — best_hqnr_meta 의 cache/upsampler 가 현재와 다르다: "
+                      f"{prev.get('cache_sha256')}/{prev.get('upsampler')} vs {cur}/{self.acfg.upsampler}")
+                sys.exit(4)
 
     # ------------------------------------------------------------------ helpers
     @property
@@ -101,11 +110,11 @@ class AlignTrainer(Trainer):
                                 "--cache-dir", os.path.join(ROOT, self.acfg.cache_dir), "--out", ck], cwd=ROOT)
             if r.returncode != 0 or not os.path.exists(ck):
                 print("[align] ShiftNet pretrain 실패 — C4 를 시작하지 않는다 (계획 §15.3)")
-                sys.exit(3)
+                sys.exit(4)          # 4 = gate 불통과 (체인: 학습 시작 안 함·재시도 없음. 3=NaN 과 구분)
         info = json.load(open(rep)) if os.path.exists(rep) else {}
         if not info.get("pass", False):
             print(f"[align] ShiftNet pretrain gate FAIL {info} — C4 를 시작하지 않는다 (계획 §15.3)")
-            sys.exit(3)
+            sys.exit(4)
         sd = torch.load(ck, map_location="cpu")
         self.model.shift_net.load_state_dict(sd)
         print(f"[align] ShiftNet pretrained 로드: median err {info.get('val_median_err'):.4f} "
@@ -118,9 +127,7 @@ class AlignTrainer(Trainer):
         if src == "zero":
             return torch.zeros(B, 2, dtype=dt, device=dev), torch.zeros(B, dtype=torch.bool, device=dev), None
         d, acc = self.cache.lookup(meta[:, 1], meta[:, 0], device=dev)
-        d = d.to(dt)
-        if train:
-            d = transform_delta(d, meta[:, 2], meta[:, 3], meta[:, 4])
+        d = d.to(dt)                     # 원본 frame. 증강 frame 으로의 변환은 inverse 직전에만 (train 참고)
         if src == "cache":
             return d, acc, None
         pred = self.M.predict_delta(lpan, ms).to(dt)          # trainable
@@ -147,13 +154,16 @@ class AlignTrainer(Trainer):
                 ms2, lpan2, pan2 = ms.repeat(2, 1, 1, 1), lpan.repeat(2, 1, 1, 1), pan.repeat(2, 1, 1, 1)
                 delta_dual = torch.cat([delta.detach(), delta], dim=0)
                 switch = torch.cat([torch.zeros(B, device=dev, dtype=dt), torch.ones(B, device=dev, dtype=dt)])
-                v = M.build_views(pan2, lpan2, ms2, delta_dual)
+                # 증강은 HR 에서, upsample(+shift) 뒤에 (feeder 는 LR 을 원본으로 준다)
+                aug = (meta[:, 2], meta[:, 3], meta[:, 4])
+                v = M.build_views(pan2, lpan2, ms2, delta_dual, aug=tuple(t.repeat(2) for t in aug))
                 res = M.residual(v["x11"], switch)
                 # PAN mode — inverse 없음, 마스크 없음, target 은 입력 PAN 복제 (§9.2)
                 p_hat = v["lpan_hr"][:B].repeat(1, C, 1, 1) + res[:B]
                 loss_pan = (pan.repeat(1, C, 1, 1) - p_hat).abs().mean() * self.args.w_off
                 # MS mode
-                fin = M.finalize_ms(v["ms_base_hr"][B:], res[B:], delta)
+                # inverse/mask 는 증강된 출력 frame 에서 — Δ 를 같은 frame 으로 변환 (T05·T12)
+                fin = M.finalize_ms(v["ms_base_hr"][B:], res[B:], transform_delta(delta, *aug))
                 loss_ms = masked_l1(fin["y_loss"], gt, fin["mask"])
                 loss = loss_pan + loss_ms
                 loss_shift = loss_zero = torch.zeros((), device=dev)
@@ -274,12 +284,16 @@ class AlignTrainer(Trainer):
                 if out["alt"] is not None:
                     dl2, ds2, fs2 = self._official(out["alt"], lms, out["pan"], f_dl, f_ds, sensor, wald)
                     dl_alt.append(dl2); ds_alt.append(ds2); fs_alt.append(fs2)
-        hqnr = float((1 - np.mean(dl_off)) * (1 - np.mean(ds_off)))
+        # 장면별 (1-D_l)(1-D_s) 의 평균 — tools/eval_dlpan_fr.py·DLPan·계획 §17.2 와 같은 식.
+        # (1-mean D_l)(1-mean D_s) 와는 ~1e-5 차이지만 tie band 1e-4 안이라 같은 식을 써야 한다.
+        hqnr = float(np.mean((1 - np.array(dl_off)) * (1 - np.array(ds_off))))
+        hqnr_pm = float((1 - np.mean(dl_off)) * (1 - np.mean(ds_off)))
         fscc = float(np.mean(fs_off))
-        line = report.result_str() + f'\tHQNR_official({fr_lo}-{fr_hi}): {hqnr:.6f}\tfSCC({fr_lo}-{fr_hi}): {fscc:.6f}' \
+        line = report.result_str() + f'\tHQNR_official({fr_lo}-{fr_hi}): {hqnr:.6f} (prod-of-means {hqnr_pm:.6f})' \
+            + f'\tfSCC({fr_lo}-{fr_hi}): {fscc:.6f}' \
             + f'\tD_l_off {np.mean(dl_off):.5f} D_s_off {np.mean(ds_off):.5f}\t|delta| {np.mean(mags):.3f} acc {np.mean(accs):.2f}'
         if dl_alt:
-            h_alt = float((1 - np.mean(dl_alt)) * (1 - np.mean(ds_alt)))
+            h_alt = float(np.mean((1 - np.array(dl_alt)) * (1 - np.array(ds_alt))))
             line += f'\t[alt frame] HQNR {h_alt:.6f} fSCC {np.mean(fs_alt):.6f}'
         test_log.write(f'Epoch[{epoch}]\t' + line)
         self.last_full_metrics = report.as_dict()
