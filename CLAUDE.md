@@ -131,6 +131,8 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
 - **배포 `pan_h5.zip` 의 WV3·QB full-res `lpan` 이 다른 장면이다** (F-1).
   `tools/repair_lpan.py` 로 복구하지 않으면 full-res 평가가 무효다.
 - **`pkill -f <패턴>` 이 자기 자신을 잡는다.** `ps -eo pid,args` 로 PID 를 골라 죽인다.
+  `pgrep -f` 도 같다 — 확인 명령줄에 패턴 텍스트가 있으면 그 셸이 잡혀 "이미 실행 중" 이 거짓으로
+  뜬다(`campaign_start.sh` 가 그렇게 한 번 거부됐다). `grep '[_]run_cases'` 처럼 bracket 으로 피한다.
 - **`tail -f log | grep`** 은 마지막 10줄부터 시작해 아무것도 안 나온다.
   `tail -n +1 -f ... | grep --line-buffered` 를 쓴다.
 - **`${1:?메시지}` 안에 `}` 를 넣지 않는다.** 파라미터 확장이 끊겨 인자가 오염된다.

@@ -1,4 +1,4 @@
-# [WIP] Global alignment 40h 캠페인 — s1 (2026-09-04 기동 준비)
+# [WIP] Global alignment 40h 캠페인 — s1 (2026-09-04 21:27 기동)
 
 계획: [s1_w152_d123_global_alignment_40h_plan.md](../research_log/s1_w152_d123_global_alignment_40h_plan.md) ·
 검토·구현: [2026-09-04_global-alignment-plan-review.md](../research_log/2026-09-04_global-alignment-plan-review.md)
@@ -6,10 +6,12 @@
 
 ## 상태
 
-- 구현·검증 완료 (T01–T10 10/10 · smoke 9/9 · 통합 210 iter 완주). **체인은 아직 기동하지 않았다** —
-  검토서 §5 의 결정(C4 처리·큐 규모·2단계 진행) 대기.
-- 큐: `config/queues/s1_global_alignment.txt` (9벌, 계획 §10.1 순서). 기동:
-  `./tools/campaign_start.sh --queue config/queues/s1_global_alignment.txt --hours 40`
+- 구현·검증 완료 (T01–T10 10/10 · smoke 9/9 · 통합 210 iter 완주).
+- **2026-09-04 21:27:22 기동**, 마감 2026-09-06 13:27 (40h). 큐 `config/queues/s1_global_alignment.txt`
+  9벌, 계획 §10.1 순서. 사용자 지시: "lms 안 맞는 부분은 알아서 맞추고(→ interp23tap 기본), 실험은 진행".
+- C4 두 벌은 ShiftNet pretrain gate 가 FAIL(sign 0.678) 이라 계획 §15.3 규칙대로 **시작 즉시 exit 3 →
+  체인이 FAILED 로 기록하고 넘어간다.** 실효 7벌 ≈ 24h. P0 는 ≈ 3.3h 뒤(9/5 01:00 경) 끝난다.
+- 진행 확인: `ps -eo pid,ppid,args | grep '[_]run_cases'` · `tail -n +1 -f work_dir/cases_chain.log`
 
 ## 이미 확보된 중간 산출물
 
