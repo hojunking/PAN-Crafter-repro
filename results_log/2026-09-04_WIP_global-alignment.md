@@ -1,4 +1,4 @@
-# [WIP] Global alignment 40h 캠페인 — s1 (2026-09-04 21:27 기동)
+# [WIP] Global alignment 40h 캠페인 — s1 (작 2026-09-05 00: 재기동)
 
 계획: [s1_w152_d123_global_alignment_40h_plan.md](../research_log/s1_w152_d123_global_alignment_40h_plan.md) ·
 검토·구현: [2026-09-04_global-alignment-plan-review.md](../research_log/2026-09-04_global-alignment-plan-review.md)
@@ -8,6 +8,7 @@
 
 - **2026-09-05 00:30 체인 중단·P0 무효화** — 검증 지적: LR 을 flip/rot 한 뒤 phase-2 interp23tap 하면 HR 과 1px
   어긋남(표본 75%). 검토서 §7 의 9건을 수정하고 재기동한다. 무효 P0 는 `work_dir/_INVALID_augphase_…` 에 격리.
+- **작 2026-09-05 00: 재기동** (9건 수정 커밋 9b324b4 · T01–T12 12/12 · smoke 9/9 · 통합 P0/C3 완주). 큐 순서는 계획 §10.1 우선순위(P0·C1·C3·C2 a0.5·C2 a1.0·C4 dual-frame → C2 a0.25·C2 a0.75·C4 RT). P0 는 ≈3.7h 뒤 끝난다.
 
 - 구현·검증 완료 (T01–T10 10/10 · smoke 9/9 · 통합 210 iter 완주).
 - **2026-09-04 21:27:22 기동**, 마감 2026-09-06 13:27 (40h). 큐 `config/queues/s1_global_alignment.txt`
