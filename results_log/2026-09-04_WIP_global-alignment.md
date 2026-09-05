@@ -1,7 +1,8 @@
 # [WIP] Global alignment 40h 캠페인 — s1 (2026-09-05 00:42 재기동)
 
 계획: [s1_w152_d123_global_alignment_40h_plan.md](../research_log/s1_w152_d123_global_alignment_40h_plan.md) ·
-검토·구현: [2026-09-04_global-alignment-plan-review.md](../research_log/2026-09-04_global-alignment-plan-review.md)
+검토·구현: [2026-09-04_global-alignment-plan-review.md](../research_log/2026-09-04_global-alignment-plan-review.md) ·
+계획 대비 차이·이슈·결과 상세: [2026-09-05_global-alignment-plan-vs-implementation.md](../research_log/2026-09-05_global-alignment-plan-vs-implementation.md)
 판정: **best checkpoint HQNR(공식 12-19) → fSCC(12-19)**. 밴드 0.011 은 미검증 상한(어제 문서 §2).
 
 ## 상태
