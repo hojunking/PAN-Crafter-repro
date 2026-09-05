@@ -27,6 +27,8 @@ CATS = [
   lambda t: t.startswith("GA_")),
  ("SR", "⑬ Shift-robust conditioning + M-frame PAN guidance (SR/AF 계열) — random jitter·blur control·consistency·global correlator",
   lambda t: t.startswith(("SR_", "AF_"))),
+ ("UVS", "⑭ UVS-KD (s2) — uncertainty routing · GT residual variance · shift-token KD · teacher forcing (teacher c0_hqnr → d122)",
+  lambda t: t.startswith("UVS_")),
  ("MISC", "⑪ 기타 대조군",
   lambda t: True),
 ]
@@ -37,6 +39,11 @@ SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload �
 # 캠페인 설명 — 구분행의 Notes 에 들어간다. 여기 있는 범주만 업로드 시 구분행을 자동으로 넣는다
 # (업로드는 시트 맨 아래에 덧붙이므로, 새 캠페인이 지난 실험과 섞여 보이지 않게 한다).
 DESC = {
+ "UVS": ("[캠페인] UVS-KD 30h · s2 · 2026-09-06 · teacher c0_hqnr(7.17M, CM3A 3) → student d122(3.18M). 공통: 입력·잔차 base = 제공 lms, "
+         "PAN 3ch 는 δ(LR px)×4 강체 warp, PAN mode 는 raw. teacher 신호(R_T·U_T·δ_T·c_T)는 cache. "
+         "B0 baseline / K0 output KD / K1 uncertainty routing / K2 +GT residual variance / S0 shift-token KD / M1 K2+shift / "
+         "M2 +teacher forcing(η 1→0, 5K–20K) / M3 +shift-effect loss / R1 seed / C1 w96. 판정 HQNR→fSCC + controlled-shift AUC. "
+         "계획 research_log/2026-09-06_uvs-kd_30h_experiment-plan.md · 검토 research_log/2026-09-06_uvs-kd-plan-review.md"),
  "SR": ("[캠페인] Shift-robust 30h · s1 · 2026-09-06 · backbone W168·d123 dual 11ch nocrop 50K, **원 bicubic·원 feeder·M-frame 출력** 고정 "
         "(interp23tap·cache·inverse 전부 폐기). 바뀌는 것은 네트워크가 보는 MS 조건 채널뿐: J1 ±0.5 HR px 무작위 전역 jitter(두 mode) / "
         "J2 MS mode 만 / J3 위치 이동 없는 matched Gaussian blur(σ* 보정) / J4 clean+jitter 두 branch + 잔차 consistency λ0.1 / "

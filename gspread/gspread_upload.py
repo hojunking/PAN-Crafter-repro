@@ -488,6 +488,10 @@ def collect(tag, want_profile, server, peer=None):
         desc = (desc + " SR " + {"j1": f"J1(random jitter ±{_r:g}px, 두 mode)", "j2": f"J2(random jitter ±{_r:g}px, MS mode 만)",
                                   "j3": "J3(matched blur control)", "j4": f"J4(clean+jitter ±{_r:g}px consistency)",
                                   "g1": "G1(global PAN-feature correlator)"}.get(_v, _v)).strip()
+    elif _tr == "uvs":
+        _u = getattr(a, "uvs", {}) or {}; _v = _u.get("variant", "?")
+        desc = (desc + " UVS " + {"b0": "B0(lms baseline)", "k0": "K0(output KD)", "k1": "K1(U routing)", "k2": "K2(U+GT var)",
+                                   "s0": "S0(shift KD)", "m1": "M1(K2+shift)", "m2": "M2(+teacher forcing)", "m3": "M3(+warp loss)"}.get(_v, _v)).strip()
     elif _tr == "align":
         _al = getattr(a, "alignment", {}) or {}
         _case, _ = _ga_case(_al)
@@ -591,6 +595,16 @@ def collect(tag, want_profile, server, peer=None):
         bits.extend(_ga_notes(getattr(a, "alignment", {}) or {}))   # 맞춤 세팅 설명 (family 무관)
     elif _tr == "sr":
         bits.extend(_sr_notes(getattr(a, "sr", {}) or {}))
+    elif _tr == "uvs":
+        _u = getattr(a, "uvs", {}) or {}; _v = _u.get("variant", "?"); _l = _u.get("loss") or {}; _s = _u.get("shift") or {}
+        _q = {"b0": "phase-correct 공통 baseline(제공 lms)", "k0": "일반 output KD 대조", "k1": "U-KD > plain KD?", "k2": "UV-KD > U-KD?",
+              "s0": "shift cue 단독 기전", "m1": "UV-KD 위에 shift 를 더한 효과", "m2": "early teacher forcing 효과 (주력)", "m3": "vector KD 와 shift-effect KD 차이"}.get(_v, "")
+        bits.append(f"UVS {_v.upper()} — 질문: {_q}")
+        bits.append(f"세팅: 입력 [P, LP, P−LP, LMS(제공)] · 잔차 base LMS · teacher c0_hqnr cache(R_T=Y_T−LMS, U_T=θ Q10/Q90 정규화, δ_T,c_T) · "
+                    f"λ_soft {_l.get('lambda_soft', 0.1)} λ_shift {_l.get('lambda_shift', 0.25)} λ_warp {_l.get('lambda_warp', 0)} α_V {(_u.get('variance') or {}).get('alpha', 1.0)} · "
+                    f"shift: MS 격자 ±{_s.get('search_radius', 3)} cost-volume, T {_s.get('softmax_temperature', 0.07)}, 추론 gate c<{_s.get('confidence_threshold', 0.35)}→0, PAN 3ch {_s.get('warp_mode', 'bicubic')} warp ×4 · "
+                    f"teacher forcing η 1→0 ({(_u.get('teacher_forcing') or {}).get('s0', 5000)}–{(_u.get('teacher_forcing') or {}).get('s1', 20000)})")
+        bits.append("판정: best=HQNR(12-19, 장면별 평균)→fSCC · controlled-shift 는 tools/uvs_controlled_shift.py (results/controlled_shift.csv)")
     if row["seed"] != 2025:
         bits.append(f"seed={row['seed']}")
     if a.select_on != "hqnr":

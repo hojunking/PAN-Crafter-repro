@@ -1,0 +1,23 @@
+{
+ "teacher": "c0_hqnr",
+ "ckpt": "best_hqnr",
+ "n": 9714,
+ "sha256": "3a500f9ddea2f0b10bc335d21a5301d62b9c1cff12a6b9c863978cd1ceb52ae6",
+ "norm": {
+  "theta_q10": 7.361798125202768e-05,
+  "theta_q90": 0.0023804035736247897,
+  "v_q10": 0.0002758890565019102,
+  "v_q90": 0.024893851950764653,
+  "head_out": "logvar",
+  "conf_threshold": 0.35,
+  "teacher_input": "raw"
+ },
+ "gate_pass": true,
+ "stats": {
+  "c_t_mean": 0.6722004413604736,
+  "gated_zero_ratio": 0.015750463248919086,
+  "delta_mag_p50": 0.06196071580052376,
+  "u_t_mean": 0.2911313772201538,
+  "r_t_abs_mean": 0.055663660168647766
+ }
+}

@@ -29,7 +29,8 @@ def main():
     unc = WithUncertainty(bb, cfg["model_args"].get("hidden_size", 128), head_out="logvar").to(dev).eval()
     unc.head.load_state_dict(load_file(os.path.join(tdir, "unc.safetensors")))
     shift = ShiftModule((16, 32, 32), 3, 0.07).to(dev).eval(); shift.load_state_dict(load_file(os.path.join(tdir, "shift.safetensors")))
-    thr = float(norm.get("conf_threshold", 0.35))
+    thr = float(norm.get("conf_threshold", 0.35)); tin = norm.get("teacher_input", "raw")
+    print(f"[cache] teacher MS-mode 입력: {tin} (gate.json pass_shift={gate.get('pass_shift')})")
     with h5py.File(os.path.join(ROOT, "data/PanCollection/WV3/train_wv3.h5")) as f:
         N = f["ms"].shape[0]; ms_all = f["ms"][:] / 1023.5 - 1; pan_all = f["pan"][:] / 1023.5 - 1; lms_all = f["lms"][:] / 1023.5 - 1
     with h5py.File(os.path.join(ROOT, "data/PanCollection/WV3/train_wv3_pan.h5")) as f:
@@ -40,8 +41,11 @@ def main():
         for i in range(0, N, a.batch):
             ms, pan, lms, lp = (torch.tensor(x[i:i + a.batch], dtype=torch.float32, device=dev) for x in (ms_all, pan_all, lms_all, lp_all))
             o = shift(edge_rep(lp), edge_rep(ms)); d = gated_delta(o["delta"], o["conf"], thr)
-            lpu = F.interpolate(lp, scale_factor=4, mode="bicubic")
-            pan_a, _, _ = warp_pan_channels(pan, lpu, pan - lpu, d, "bicubic"); lp_a = warp(lp, d, 1.0, "bicubic")
+            if tin == "aligned":
+                lpu = F.interpolate(lp, scale_factor=4, mode="bicubic")
+                pan_a, _, _ = warp_pan_channels(pan, lpu, pan - lpu, d, "bicubic"); lp_a = warp(lp, d, 1.0, "bicubic")
+            else:
+                pan_a, lp_a = pan, lp
             sw = torch.ones(ms.shape[0], device=dev)
             y = unc.base(pan_a, lp_a, ms, sw) + F.interpolate(ms, scale_factor=4, mode="bicubic")
             theta = torch.exp(unc.theta())

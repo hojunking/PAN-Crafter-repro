@@ -5,7 +5,7 @@
 판정: **best checkpoint HQNR(12-19, 장면별 평균) → fSCC**. anchor `S1_T05_W168_D123_DUAL` HQNR **0.9571** / fSCC 0.8785 / D_λ 0.0231 / D_s 0.0202.
 
 ## 상태
-- 구현·검증 완료(T01–T24 24/24 · smoke 5/5). **기동 대기** — 대조 run `GA_CTRL_C2_BICUBIC15_A100`(≈03:15 종료) 뒤.
+- 구현·검증 완료(T01–T24 24/24 · smoke 5/5 · 등가 실행 · 통합 210 iter 4벌). 대조 run `GA_CTRL_C2_BICUBIC15_A100` DONE 직후 **자동 기동**(대기 스크립트, ≈03:25).
 - 큐 `config/queues/s1_shift_robust.txt`: J1 → J3 → J4 → J2 → G1, 이후 `gate_sr` 가 winner seed 1234 반복(또는 radius refinement) 1벌.
 - J3 의 σ* = **1.225 HR px (MSE 매칭)**. grad-energy 매칭은 σ* 0.10 ≈ 항등이라 쓰지 않음(검토서 §2).
 

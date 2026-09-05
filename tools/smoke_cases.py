@@ -192,6 +192,58 @@ def check_trainer_extras(cfg):
         if dev.type == "cuda":
             torch.cuda.empty_cache()
         return note
+    if tr == "uvs":
+        import json
+        from train_uvs import UVSModel, VARIANTS, USES_SHIFT, USES_V, build_inputs, x11
+        from uvs.shift import ShiftModule, edge_rep, warp_pan_channels, gated_delta
+        from uvs.losses import gt_residual_variance, percentile_normalize, variance_weight, routed_losses, shift_kd_loss
+        u = cfg.get("uvs") or {}; v = u.get("variant"); assert v in VARIANTS, f"uvs.variant {v}"
+        assert cfg.get("feeder") == "feeders.feeder_uvs.PanFeederUVS"
+        note = f" UVS:{v}"
+        if v != "b0":
+            tc = (cfg.get("train_feeder_args") or {}).get("teacher_cache"); tcp = os.path.join(ROOT, tc)
+            assert tc and os.path.exists(tcp), f"teacher cache 없음: {tc} — tools/uvs_build_cache.py"
+            meta = json.load(open(tcp.replace(".npz", ".json"))); note += f" cache={meta['sha256'][:8]} gate={'PASS' if meta.get('gate_pass') else 'FAIL'}"
+            if v in USES_SHIFT:
+                tg = json.load(open(os.path.join(ROOT, "work_dir", meta["teacher"], "uvs_teacher", "gate.json")))
+                assert tg.get("pass_shift"), "teacher shift gate FAIL — S0/M1/M2/M3 는 열지 않는다 (계획 §10.1)"
+        if v in USES_V:
+            nrm = os.path.join(ROOT, u.get("teacher_norm", "")); assert os.path.exists(nrm), "uvs.teacher_norm 없음"
+        dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        bb = build(cfg).to(dev); randomize_zero_params(bb)
+        sh = u.get("shift") or {}
+        shift = ShiftModule(tuple(sh.get("student_channels", [8, 8])), int(sh.get("search_radius", 3)), float(sh.get("softmax_temperature", 0.07))).to(dev) if v in USES_SHIFT else None
+        m = UVSModel(bb, shift); B = int(cfg.get("batch_size", 48))
+        if dev.type == "cuda":
+            torch.cuda.empty_cache(); torch.cuda.reset_peak_memory_stats(dev)
+        opt = torch.optim.AdamW(m.parameters(), lr=1e-4)
+        pan, lpan, ms = torch.randn(B, 1, 64, 64, device=dev), torch.randn(B, 1, 16, 16, device=dev), torch.randn(B, 8, 16, 16, device=dev)
+        lms, gt = torch.randn(B, 8, 64, 64, device=dev), torch.randn(B, 8, 64, 64, device=dev)
+        r_t, u_t = torch.randn(B, 8, 64, 64, device=dev) * 0.05, torch.rand(B, 1, 64, 64, device=dev)
+        d_t, c_t = torch.randn(B, 2, device=dev) * 0.3, torch.rand(B, device=dev)
+        lpan_u, pan_hf = build_inputs(pan, lpan, lms)
+        d = None
+        if shift is not None:
+            o = shift(edge_rep(lpan), edge_rep(ms)); d = gated_delta(o["delta"], o["conf"])
+        pa, la, ha = warp_pan_channels(pan, lpan_u, pan_hf, d) if d is not None else (pan, lpan_u, pan_hf)
+        sw = torch.cat([torch.zeros(B, device=dev), torch.ones(B, device=dev)])
+        res = bb(None, None, None, sw, x_in=torch.cat([x11(pan, lpan_u, pan_hf, lms), x11(pa, la, ha, lms)], 0))
+        r_s = res[B:]
+        w_v = variance_weight(percentile_normalize(gt_residual_variance(gt, lms), 0.001, 0.05)) if v in USES_V else None
+        hard, soft = routed_losses(r_s, gt - lms, r_t, u_t, w_v)
+        loss = hard + 0.1 * soft + (lpan_u.repeat(1, 8, 1, 1) + res[:B] - pan.repeat(1, 8, 1, 1)).abs().mean()
+        if shift is not None:
+            loss = loss + 0.25 * shift_kd_loss(o["delta"], o["conf"], d_t, c_t)[0]
+        assert torch.isfinite(loss); loss.backward(); opt.step()
+        if dev.type == "cuda":
+            _ALIGN_PEAK = torch.cuda.max_memory_allocated(dev) / 2**20; note += f" trainPeak {_ALIGN_PEAK:.0f}MB"
+        with torch.no_grad():
+            P, LP, M, L = torch.randn(1, 1, 512, 512, device=dev), torch.randn(1, 1, 128, 128, device=dev), torch.randn(1, 8, 128, 128, device=dev), torch.randn(1, 8, 512, 512, device=dev)
+            lu, hf = build_inputs(P, LP, L); y = L + bb(None, None, None, torch.ones(1, device=dev), x_in=x11(P, lu, hf, L))
+        assert y.shape[-2:] == (512, 512) and torch.isfinite(y).all()
+        del m, bb, shift, opt, res, loss
+        if dev.type == "cuda": torch.cuda.empty_cache()
+        return note
     if tr == "mutual":
         b = build(cfg)     # peer_b 구성 재현 (같은 model_args)
         del b

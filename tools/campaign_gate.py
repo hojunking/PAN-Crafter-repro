@@ -250,7 +250,46 @@ def gate_sr():
     emit(SR_CANDS[top], f"winner {top} (best {done[top]['best']:.4f} fSCC {done[top]['fscc']:.4f}) seed 1234 반복")
 
 
+# ================================================================= UVS-KD 캠페인 (s2, 2026-09-06)
+UVS_TEACHER = "c0_hqnr"
+UVS_BASE = ["UVS_B0_lms_d122", "UVS_K0_outkd_d122", "UVS_K1_ukd_d122", "UVS_K2_uvkd_d122"]
+UVS_SHIFT = ["UVS_S0_shift_d122", "UVS_M1_uvs_d122", "UVS_M2_uvs_tf_d122"]
+
+
+def _uvs_teacher_gate():
+    p = os.path.join(ROOT, "work_dir", UVS_TEACHER, "uvs_teacher", "gate.json")
+    return json.load(open(p)) if os.path.exists(p) else None
+
+
+def gate_uvs():
+    """§10.1: teacher shift gate PASS 면 S0/M1/M2 를 연다. M2 가 끝나면 (a) shift MAE 만 좋고 품질 미개선 → M3,
+    (b) M2 가 K2·B0 대비 우세 → R1 seed 반복, 그 뒤 C1 w96. teacher gate FAIL 이면 shift 계열은 열지 않는다."""
+    g = _uvs_teacher_gate()
+    if g is None or not all(complete(t) for t in UVS_BASE):
+        return
+    if not g.get("pass_shift"):
+        log(f"UVS: teacher shift gate FAIL {g.get('checks')} — S0/M1/M2/M3 닫음 (K1/K2 반복은 사람이 결정)")
+        return
+    for t in UVS_SHIFT:
+        if not terminal(t):
+            emit(t, "teacher shift gate PASS")
+    if not all(complete(t) for t in UVS_SHIFT):
+        return
+    b0, k2, m1, m2 = (hqnr_of(t) for t in ("UVS_B0_lms_d122", "UVS_K2_uvkd_d122", "UVS_M1_uvs_d122", "UVS_M2_uvs_tf_d122"))
+    st = {t: json.load(open(os.path.join(ROOT, "work_dir", t, "best_state.json"))) for t in ("UVS_M1_uvs_d122", "UVS_M2_uvs_tf_d122")}
+    log(f"UVS: B0 {b0:.4f} K2 {k2:.4f} M1 {m1:.4f} M2 {m2:.4f}")
+    if m2 >= max(k2, b0) - 1e-4 and m2 >= m1 - 1e-4:
+        emit("UVS_R1_m2_seed1234_d122", "M2 가 K2/B0/M1 대비 비열위 → seed 1234 반복 (§10.1)")
+        if complete("UVS_R1_m2_seed1234_d122"):
+            r1 = hqnr_of("UVS_R1_m2_seed1234_d122")
+            if r1 is not None and r1 >= max(k2, b0) - 1e-4:
+                emit("UVS_C1_m2_w96", "R1 재현 → w96 압축 확인 (§10.1)")
+    else:
+        emit("UVS_M3_uvs_tf_warp_d122", "M2 가 품질 미개선 → shift-effect loss 추가 (§10.1)")
+
+
 def main():
+    gate_uvs()
     gate_sr()
     gate_s2_calibrate()
     gate_s2_gtvar()

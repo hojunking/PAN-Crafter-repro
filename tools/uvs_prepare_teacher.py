@@ -58,6 +58,9 @@ def main():
     ap.add_argument("--batch", type=int, default=64); ap.add_argument("--real-weight", type=float, default=1.0)
     ap.add_argument("--radius", type=int, default=3); ap.add_argument("--temperature", type=float, default=0.07)
     ap.add_argument("--conf-thr", type=float, default=0.35); ap.add_argument("--seed", type=int, default=2025)
+    ap.add_argument("--teacher-input", default="raw", choices=["raw", "aligned"],
+                    help="T_unc 학습·cache 의 teacher MS-mode PAN 입력. raw(기본): teacher 는 raw 로 학습됐고 aligned 는 RR ERGAS +6% (검토서)")
+    ap.add_argument("--reuse-shift", action="store_true", help="기존 shift.safetensors 가 있으면 T_shift 학습을 건너뛴다")
     a = ap.parse_args()
     torch.manual_seed(a.seed); np.random.seed(a.seed)
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -79,6 +82,10 @@ def main():
     opt = torch.optim.AdamW(shift.parameters(), lr=1e-3, weight_decay=1e-4)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, a.shift_iters)
     ms_all, lp_all = tr["ms"], tr["lpan"]
+    sp = os.path.join(out, "shift.safetensors")
+    if a.reuse_shift and os.path.exists(sp):
+        from safetensors.torch import load_file as _lf
+        shift.load_state_dict(_lf(sp)); print(f"[T_shift] 기존 {sp} 재사용"); a.shift_iters = 0
     for it in range(1, a.shift_iters + 1):
         idx = torch.randint(N, (a.batch,))
         ms, lp = ms_all[idx].to(dev), lp_all[idx].to(dev); da, qa = d_a[idx].to(dev), q_a[idx].to(dev)
@@ -139,10 +146,15 @@ def main():
     # ---------------- T_unc (head-only, aligned input, logvar NLL) ----------------
     unc = WithUncertainty(bb, cfg["model_args"].get("hidden_size", 128), head_out="logvar").to(dev)
     unc.base.requires_grad_(False); unc.head.requires_grad_(True)
-    trn = load_split("train", keys=("ms", "gt"))
+    trn = load_split("train", keys=("ms", "gt", "pan", "lms"))
+    vgt = load_split("val", keys=("ms", "gt", "pan"))
     def aligned_inputs(pan, lp, ms):
+        """teacher MS-mode 입력. --teacher-input raw 면 그대로(δ 만 계산), aligned 면 ĉ_T δ_T 로 warp."""
         with torch.no_grad():
-            o = shift(edge_rep(lp), edge_rep(ms)); d = gated_delta(o["delta"], o["conf"], a.conf_thr)
+            o = shift(edge_rep(lp), edge_rep(ms))
+            if a.teacher_input == "raw":
+                return pan, lp, o["delta"], o["conf"]
+            d = gated_delta(o["delta"], o["conf"], a.conf_thr)
             lpu = F.interpolate(lp, scale_factor=4, mode="bicubic")
             pan_a, _, _ = warp_pan_channels(pan, lpu, pan - lpu, d, "bicubic"); lp_a = warp(lp, d, 1.0, "bicubic")
         return pan_a, lp_a, o["delta"], o["conf"]
@@ -165,7 +177,6 @@ def main():
     with torch.no_grad():
         for i in range(0, min(1024, va["ms"].shape[0]), 32):
             ms, lp = va["ms"][i:i + 32].to(dev), va["lpan"][i:i + 32].to(dev)
-            vgt = load_split("val", keys=("gt", "pan"))  # 소량이라 재로딩 허용
             gt, pan = vgt["gt"][i:i + 32].to(dev), vgt["pan"][i:i + 32].to(dev)
             pan_a, lp_a, _, _ = aligned_inputs(pan, lp, ms)
             y = teacher_forward(unc.base, pan_a, lp_a, ms); e = local_error_map(y, gt); s = unc.theta()
@@ -181,13 +192,18 @@ def main():
             TH.append(torch.exp(unc.theta()).flatten().cpu()); V.append(gt_residual_variance(gt, lms, 5).flatten().cpu())
     TH, V = torch.cat(TH).numpy(), torch.cat(V).numpy()
     norm = dict(theta_q10=float(np.quantile(TH, .10)), theta_q90=float(np.quantile(TH, .90)),
-                v_q10=float(np.quantile(V, .10)), v_q90=float(np.quantile(V, .90)), head_out="logvar", conf_threshold=a.conf_thr)
+                v_q10=float(np.quantile(V, .10)), v_q90=float(np.quantile(V, .90)), head_out="logvar", conf_threshold=a.conf_thr,
+                teacher_input=a.teacher_input)
     save_file({k: v.cpu() for k, v in unc.head.state_dict().items()}, os.path.join(out, "unc.safetensors"))
     gate = dict(identity_mae=mae_id, syn_mae_le1=mae_1, syn_mae_all=mae_3, fr_med_err_vs_audit=fr_med, fr_conf=fr_conf,
                 rr_ergas_raw=e_raw, rr_ergas_aligned=e_al, rr_ergas_rel=(e_al - e_raw) / e_raw, spearman=rho,
                 checks=dict(identity=mae_id <= 0.05, syn_le1=mae_1 <= 0.12, syn_all=mae_3 <= 0.25, fr_audit=fr_med <= 0.20,
                             rr_noharm=(e_al - e_raw) / e_raw <= 0.005, spearman=rho >= 0.30))
-    gate["pass_shift"] = all(gate["checks"][k] for k in ("identity", "syn_le1", "syn_all", "fr_audit", "rr_noharm"))
+    gate["teacher_input"] = a.teacher_input
+    keys = ("identity", "syn_le1", "syn_all", "fr_audit") + (("rr_noharm",) if a.teacher_input == "aligned" else ())
+    gate["pass_shift"] = all(gate["checks"][k] for k in keys)
+    gate["note"] = ("teacher_input=raw: aligned 입력은 RR ERGAS 를 해쳐(raw 학습 모델의 OOD) cache 는 raw PAN 으로 만든다. "
+                    "δ_T/c_T 는 T_shift 에서. rr_noharm 은 정보로만 기록" if a.teacher_input == "raw" else "")
     gate["pass_unc"] = gate["checks"]["spearman"]; gate["pass"] = gate["pass_shift"] and gate["pass_unc"]
     json.dump(norm, open(os.path.join(out, "norm.json"), "w"), indent=1); json.dump(gate, open(os.path.join(out, "gate.json"), "w"), indent=1)
     print(f"[T_unc gate] Spearman {rho:.3f} (≥0.30)"); print("[gate]", gate["checks"], "-> shift", gate["pass_shift"], "unc", gate["pass_unc"])

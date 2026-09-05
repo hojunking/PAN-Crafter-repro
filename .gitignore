@@ -28,3 +28,6 @@ gspread/account.json
 gspread/_profile_cache.json
 # 서버 식별자는 머신마다 다르다 (s1/s2). 저장소로 옮기면 안 된다
 gspread/server.txt
+
+# UVS teacher cache (0.7 GB, 서버별로 tools/uvs_build_cache.py 로 생성)
+outputs/uvs_cache/*.npz
