@@ -28,6 +28,10 @@
 | 추론 sweep (기존 W152·d123) | α↑ → fSCC↑ HQNR↓ (D_s) | `work_dir/S1_T05_W152_D123_DUAL/results/infer_sweep.csv` |
 | ShiftNet pretrain gate | **FAIL** (sign 0.678) | `outputs/global_shift_cache/shiftnet_pretrained.json` |
 
+- **객관성 검증(22:40)**: 1차 P0 버그는 C 계열에 새지 않음(commit 확인). AlignTrainer+옛 커널 == 원 Trainer(210 iter 등가).
+  단 **P0 커널 교체가 plateau 를 −0.0024 내려** C2-vs-P0 이득이 부풀려 보임 — 원 anchor 기준 C2 plateau +0.001. 대조 run
+  `GA_CTRL_C2_BICUBIC15_A100`(원 커널 + C2 jitter) 이 체인 DONE 직후 자동 기동된다. 상세: 상세 기록 §7.
+
 ## 결과 표 (2026-09-05 21:20 중간 — 6/9 완료, C2 α0.75 진행 중, C4 는 gate FAIL rc=4)
 
 best checkpoint HQNR(공식 12-19, 장면별 곱 평균) → fSCC. plateau = ep≥100 평균, final = ep245.
