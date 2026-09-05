@@ -1,0 +1,90 @@
+# GA CTRL — C2(α=1 조건입력 jitter) 를 원 baseline 커널(bicubic phase 1.5, =F.interpolate) 위에. P0 커널 교체와 무관하게 C2 이득이 나는지 대조
+# 계획: research_log/s1_w152_d123_global_alignment_40h_plan.md · 검토: research_log/2026-09-04_global-alignment-plan-review.md
+# 공통: 11ch · crop=False · attention 없음 · 50K · AdamW 1e-4/wd0.01 cosine warmup100
+#       best 선택 = 공식 HQNR(FR 12-19)
+expect_params_m: 4.8935
+seed: 2025
+num_worker: 4
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/GA_CTRL_C2_BICUBIC15_A100_W152_D123_DUAL
+
+phase: train
+
+mars: dual                    # 계획 §0.1 고정 (PAN back-reconstruction 유지)
+trainer: align                # train_align.py — backbone 은 그대로, 앞/뒤 wrapper 만
+alignment:                    # C2 — 조건 입력 MS 에만 alpha·Δ, 잔차 base 와 GT 는 M-frame (inverse 없음)
+  upsampler: bicubic_phase2   # 원 코드의 F.interpolate(bicubic, align_corners=False) 와 3e-12 이내 동일
+  phase: 1.5
+  delta_source: cache
+  alpha: 1.00
+  output_frame: M
+  inverse_location: none
+  trainable_shift_net: false
+  cache_dir: outputs/global_shift_cache
+
+# KNOWN_ISSUES.md E-1: 검증셋으로 best 를 고른다. 테스트셋은 곡선 기록용으로만 본다.
+select_on: hqnr
+
+# feeder
+feeder: feeders.feeder_align.PanFeederAlign   # sample_id·split·aug 메타 반환 (shift cache·§6)
+train_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5
+  crop: False
+  hflip: True
+  vflip: True
+  rot: True
+  crop_ratio: 0.75
+  ms_size: 16
+
+val_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5
+
+test_reduced_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5
+
+test_full_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5_repaired/test_wv3_OrigScale_multiExm1.h5
+
+# data
+num_bands: 8
+max_pixel: 2047.0
+
+# model
+model: model.pancrafter_paper.PANCrafterPaper
+model_args:
+  in_channels: 1
+  out_channels: 8
+  hidden_size: 152
+  depth: [1, 2, 3]          # full-res / H/2 / H/4(bottleneck)
+  dropout: 0.0
+  num_heads: 8
+  mlp_ratio: 4.0
+  ks: 3                     # 논문: "local attention kernel size to k = 3" (bottleneck 포함)
+  ka: 3
+  norm: ln                  # 논문 Eq (5): x <- Conv(SiLU(LN(x)))
+  in_mode: released
+  attn_locations: []
+  mode_modulation: true     # dual MARs 이므로 mode 조건화 복원
+  n_attn: 3                 # Figure 3: AttnBlock 3개 (H/2 enc, H/4 bottleneck, H/2 dec)
+
+# optim
+optimizer: AdamW
+learning_rate: 1e-4
+weight_decay: 0.01
+lr_scheduler: cosine
+num_iter: 50000
+num_warmup: 100
+
+# loss
+res: True
+w_off: 1.0
+
+# logging
+log_iter: 100
+save_iter: 10000
+save_epoch: 25
+eval_epoch: 5
+
+# training
+gpu: 0
+batch_size: 48  # duplicate
+test_batch_size: 1

@@ -1,0 +1,2 @@
+# 대조: C2 α1 jitter 를 원 bicubic(phase 1.5) 커널 위에 — 커널 교체 없이도 C2 이득이 나는가
+GA_CTRL_C2_BICUBIC15_A100_W152_D123_DUAL
