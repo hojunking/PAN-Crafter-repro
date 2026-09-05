@@ -246,12 +246,18 @@ class PANCrafterPaper(nn.Module):
                     nn.init.constant_(m.dep_conv.bias, 0)
                     m.dep_conv.bias.requires_grad_(False)
 
-    def forward(self, pan, lpan, ms, s, x_in=None):
+    def forward(self, pan, lpan, ms, s, x_in=None, f_in=None):
         I = lambda t, k: F.interpolate(t, scale_factor=k, mode="bicubic")
         # x_in: 밖에서 만든 입력 채널(global alignment wrapper, align/model.py). 주면 내부
         # bicubic 입력 빌더를 건너뛴다. 코어 U-Net 은 그대로다. 이때 attention 조건 블록은
         # 지원하지 않는다 — 그 블록들이 LR ms/lpan 을 직접 받기 때문.
-        if x_in is not None:
+        # f_in: 첫 conv(self.input) 의 출력을 밖에서 만들어 넣는다 (sr/pan_align.py 의 PAN/MS 기여
+        # 분리·정렬). self.input 은 건너뛴다.
+        if f_in is not None:
+            assert self.cond2_e is None and self.cond_bot is None and self.cond2_d is None, \
+                "f_in 경로는 attn_locations=[] 에서만"
+            x = f_in
+        elif x_in is not None:
             assert self.cond2_e is None and self.cond_bot is None and self.cond2_d is None, \
                 "x_in 경로는 attn_locations=[] 에서만"
             x = self.input(x_in)

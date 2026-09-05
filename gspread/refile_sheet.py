@@ -23,7 +23,7 @@ from sheet_categories import classify, run_tag, NAME, DESC, SEP as _SEP  # noqa:
 CRED = os.path.join(ROOT, "gspread", "account.json")
 BK = os.path.join(ROOT, "gspread", "_sheet_backup")
 SHEET = "pan-cvpr27"
-DISPLAY = ["REF", "SEED", "P25", "SUBMOD", "ARCH", "ATTN", "KD", "SE", "MS", "MUT", "GA", "MISC"]
+DISPLAY = ["REF", "SEED", "P25", "SUBMOD", "ARCH", "ATTN", "KD", "SE", "MS", "MUT", "GA", "SR", "MISC"]
 NCOL = 19
 SEP = _SEP
 

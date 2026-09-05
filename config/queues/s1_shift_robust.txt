@@ -1,0 +1,6 @@
+# shift-robust 30h 캠페인 (계획 §13.1 순서). 이후 게이트(tools/campaign_gate.py gate_sr)가 winner seed repeat 또는 radius refinement 를 연다
+SR_J1_C2RAND_BOTH_R050_W168_D123_DUAL
+SR_J3_BLURCTRL_MATCH_R050_W168_D123_DUAL
+SR_J4_CJCONS_R050_L010_W168_D123_DUAL
+SR_J2_C2RAND_MSONLY_R050_W168_D123_DUAL
+AF_G1_PAN2M_GLOBALCORR_W168_D123_DUAL

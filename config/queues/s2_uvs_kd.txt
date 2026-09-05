@@ -1,0 +1,6 @@
+# UVS-KD 30h (s2). 순서 = 계획 §10. 사전: tools/uvs_prepare.sh (teacher T_shift/T_unc + gate + cache).
+# S0/M1/M2/M3 는 gate_uvs 가 teacher gate PASS 일 때만 연다 (계획 §10.1). R1/C1 은 M2 결과에 따라 gate 가 연다.
+UVS_B0_lms_d122
+UVS_K0_outkd_d122
+UVS_K1_ukd_d122
+UVS_K2_uvkd_d122

@@ -316,6 +316,24 @@ def _ga_notes(al):
     ]
 
 
+def _sr_notes(sr):
+    """shift-robust 실행의 맞춤 세팅 설명 (계획 §5–§11)."""
+    v = sr.get("variant", "?"); jit = sr.get("jitter") or {}; r = float(jit.get("max_abs_hr_px", 0.5))
+    q = {"j1": "noisy cache 없이 통제된 무작위 jitter 만으로 C2 의 HQNR·후반 D_s 안정화가 재현되는가",
+         "j2": "같은 jitter 를 MS mode 에만 주는 것과 두 mode 에 주는 것 중 무엇이 나은가 (PAN mode 의 shared-backbone 정규화 기여)",
+         "j3": "C2 의 이득이 위치 perturbation 인가, sub-pixel 보간의 약한 smoothing 인가",
+         "j4": "clean/jitter MS 가 같은 M-frame 잔차를 내도록 직접 제약하면 C2 보다 안정적인가",
+         "g1": "MS 를 옮기지 않고 PAN 의 shallow feature 를 M-frame 으로 가져오면 HQNR·fSCC 를 함께 지키는가"}.get(v, "")
+    st = {"j1": f"조건 MS = T_ε(bicubic ↑MS), ε~U(−{r:g},{r:g})² HR px(표본당 1개, 8밴드 동일), MS·PAN 두 mode 공통 입력",
+          "j2": f"조건 MS = T_ε(bicubic ↑MS), ε~U(−{r:g},{r:g})² HR px, MS mode 만. PAN mode 는 clean 조건",
+          "j3": "조건 MS = depthwise Gaussian(σ*) — σ* 는 J1 jitter 와 gradient-energy 비를 500 표본에서 맞춘 값(outputs/shift_robust/blur_calib.json). 위치 이동 없음, 두 mode 공통",
+          "j4": f"MS mode 를 clean/jitter(±{r:g}px) 두 branch(가중치 공유): L_MS=½L1(Ŷ0)+½L1(Ŷε), L_cons=|Rε−sg(R0)|₁, λ 0→{(sr.get('cons') or {}).get('lambda', 0.1)} ({(sr.get('cons') or {}).get('warmup_steps', 5000)} step warmup). PAN mode clean. 3×48 forward",
+          "g1": "first conv 를 PAN(0-2ch)/MS(3-10ch) 기여로 분리(합은 원 conv 와 동일). MS mode 에서 synthetic shift ε_g~U(−1,1)² (p 0.75) 를 PAN feature 에 주고 25 후보(±1 HR px, 0.5 step) edge-weighted descriptor 상관 → softmax(τ0.07) soft-argmax Δ̂, gate clip(conf/0.3), F̃_P=F_P+g[W(F_P,Δ̂)−F_P], L+=0.1·SmoothL1(Δ̂,−ε_g). PAN mode 는 원 경로"}.get(v, "")
+    return [f"SR {v.upper()} — 질문: {q}", f"세팅: {st}",
+            "공통: 원 bicubic(F.interpolate)·원 feeder·잔차 base/GT/출력 M-frame·PAN mode inverse 없음·추론 시 jitter 0 · 판정 best=HQNR(장면별 평균, 1e-4)→fSCC→나중 iteration",
+            "anchor: S1_T05_W168_D123_DUAL(HQNR 0.9571 / fSCC 0.8785 / D_λ 0.0231 / D_s 0.0202)"]
+
+
 def _descriptor(ma, crop, family):
     """실행명에 붙일 짧은 설명. 표준에서 벗어난 축만 보여준다.
 
@@ -464,6 +482,12 @@ def collect(tag, want_profile, server, peer=None):
         desc = (desc + f" MUT:{_v}").strip()
     elif _tr == "teacher":
         desc = (desc + " +unc.head").strip()
+    elif _tr == "sr":
+        _sr = getattr(a, "sr", {}) or {}
+        _v = _sr.get("variant", "?"); _r = (_sr.get("jitter") or {}).get("max_abs_hr_px", 0.5)
+        desc = (desc + " SR " + {"j1": f"J1(random jitter ±{_r:g}px, 두 mode)", "j2": f"J2(random jitter ±{_r:g}px, MS mode 만)",
+                                  "j3": "J3(matched blur control)", "j4": f"J4(clean+jitter ±{_r:g}px consistency)",
+                                  "g1": "G1(global PAN-feature correlator)"}.get(_v, _v)).strip()
     elif _tr == "align":
         _al = getattr(a, "alignment", {}) or {}
         _case, _ = _ga_case(_al)
@@ -565,6 +589,8 @@ def collect(tag, want_profile, server, peer=None):
                     + (f" + SiS r{_ta.get('sis_radius')}" if _ta.get("lambda_sis") else "") + ")")
     elif _tr == "align":
         bits.extend(_ga_notes(getattr(a, "alignment", {}) or {}))   # 맞춤 세팅 설명 (family 무관)
+    elif _tr == "sr":
+        bits.extend(_sr_notes(getattr(a, "sr", {}) or {}))
     if row["seed"] != 2025:
         bits.append(f"seed={row['seed']}")
     if a.select_on != "hqnr":

@@ -301,7 +301,9 @@ class MetricsCSV():
                # 분해가 아니다. 공식(12-19) 분해와 fSCC 를 별도 열로 남긴다.
                'd_lambda_official', 'd_s_official', 'fscc_official',
                # global alignment 진단: 최종이 아닌 frame 뷰(y_pan/y_ms)의 값, delta 통계
-               'hqnr_alt', 'fscc_alt', 'ergas_alt', 'sam_alt', 'delta_mag_mean', 'accepted_ratio']
+               'hqnr_alt', 'fscc_alt', 'ergas_alt', 'sam_alt', 'delta_mag_mean', 'accepted_ratio',
+               # shift-robust G1 진단 (train_sr.py): 예측 Δ̂ 통계·audit 대비
+               'g1_conf_mean', 'g1_p_boundary', 'g1_p_center', 'g1_delta_mag', 'g1_corr_dy', 'g1_corr_dx', 'g1_med_err_vs_audit']
 
     def __init__(self, save_dir):
         Path(save_dir).mkdir(parents=True, exist_ok=True)

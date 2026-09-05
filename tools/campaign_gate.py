@@ -201,7 +201,57 @@ def gate_s2_gtvar():
              f"λ_U* = {best[0]} · {why} · λ_V {info['lambda_gtvar']} (audit)")
 
 
+# ================================================================= shift-robust 캠페인 (2026-09-06)
+SR_ANCHOR = "S1_T05_W168_D123_DUAL"            # best HQNR 0.9571 · fSCC 0.8785 · D_λ 0.0231 · D_s 0.0202 (추론 sweep 실측)
+SR_ANCHOR_FSCC, SR_ANCHOR_DL, SR_ANCHOR_DS = 0.87849, 0.0231, 0.0202
+SR_CANDS = {"SR_J1_C2RAND_BOTH_R050_W168_D123_DUAL": "SR_J1_C2RAND_BOTH_R050_S1234_W168_D123_DUAL",
+            "SR_J2_C2RAND_MSONLY_R050_W168_D123_DUAL": "SR_J2_C2RAND_MSONLY_R050_S1234_W168_D123_DUAL",
+            "SR_J4_CJCONS_R050_L010_W168_D123_DUAL": "SR_J4_CJCONS_R050_L010_S1234_W168_D123_DUAL",
+            "AF_G1_PAN2M_GLOBALCORR_W168_D123_DUAL": "AF_G1_PAN2M_GLOBALCORR_S1234_W168_D123_DUAL"}
+
+
+def _sr_stats(tag):
+    import csv
+    p = os.path.join(ROOT, "work_dir", tag, "metrics.csv")
+    rows = list(csv.DictReader(open(p)))
+    h = {int(r["epoch"]): float(r["hqnr_official"]) for r in rows}
+    bs = json.load(open(os.path.join(ROOT, "work_dir", tag, "best_state.json")))
+    bm = json.load(open(os.path.join(ROOT, "work_dir", tag, "best_hqnr_meta.json")))
+    return dict(best=bs["best_hqnr"], fscc=bs.get("fscc_at_best") or 0.0,
+                plateau=sum(v for e, v in h.items() if e >= 100) / max(1, sum(1 for e in h if e >= 100)),
+                final=h[max(h)], dl=bm.get("d_lambda") or 0.0, ds=bm.get("d_s") or 0.0)
+
+
+def gate_sr():
+    """§13.2: 마지막 슬롯 — winner(HQNR→fSCC 1e-4→plateau→final) seed 1234 반복. 단 전 case 가 anchor 보다
+    HQNR 0.002 이상 낮고 fSCC 도 낮으면 seed repeat 대신 J1 radius refinement (D_s 높음→R075, D_λ 악화→R025)."""
+    done = {t: _sr_stats(t) for t in SR_CANDS if complete(t)}
+    if len(done) < len(SR_CANDS):
+        return
+    anchor = hqnr_of(SR_ANCHOR) or 0.9571
+    for t, st in done.items():
+        log(f"SR {t}: best {st['best']:.4f} fSCC {st['fscc']:.4f} plateau {st['plateau']:.4f} final {st['final']:.4f}")
+    all_fail = all(st["best"] < anchor - 0.002 and st["fscc"] < SR_ANCHOR_FSCC for st in done.values())
+    if all_fail:
+        j1 = done["SR_J1_C2RAND_BOTH_R050_W168_D123_DUAL"]
+        tag = ("SR_J1_C2RAND_BOTH_R075_W168_D123_DUAL" if j1["ds"] > SR_ANCHOR_DS
+               else "SR_J1_C2RAND_BOTH_R025_W168_D123_DUAL" if j1["dl"] > SR_ANCHOR_DL
+               else "SR_J1_C2RAND_BOTH_R075_W168_D123_DUAL")
+        emit(tag, f"전 case 가 anchor 대비 HQNR −0.002 이하·fSCC 열위 → radius refinement (J1 D_s {j1['ds']:.4f} vs anchor {SR_ANCHOR_DS})")
+        return
+    def key(t):
+        st = done[t]; return (round(st["best"], 4), round(st["fscc"], 4), st["plateau"], st["final"])
+    ranked = sorted(done, key=key, reverse=True)
+    top = ranked[0]
+    ties = [t for t in ranked if abs(done[t]["best"] - done[top]["best"]) <= 1e-4]
+    if len(ties) > 1:
+        ties.sort(key=lambda t: (done[t]["fscc"], done[t]["plateau"], done[t]["final"]), reverse=True)
+        top = ties[0]
+    emit(SR_CANDS[top], f"winner {top} (best {done[top]['best']:.4f} fSCC {done[top]['fscc']:.4f}) seed 1234 반복")
+
+
 def main():
+    gate_sr()
     gate_s2_calibrate()
     gate_s2_gtvar()
 

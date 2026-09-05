@@ -64,6 +64,7 @@ def randomize_zero_params(m):
 
 
 def check_trainer_extras(cfg):
+    global _ALIGN_PEAK
     """신규 trainer 의 실제 실패 지점을 학습 전에 재현한다.
 
     kd: teacher 를 **실제로 로딩**(CPU) — 존재/키/uncertainty 호환을 전부 검증.
@@ -132,7 +133,6 @@ def check_trainer_extras(cfg):
             + (v["lpan_hr"][:B].repeat(1, 8, 1, 1) + res[:B] - pan.repeat(1, 8, 1, 1)).abs().mean()
         loss.backward(); opt.step()
         if dev.type == "cuda":
-            global _ALIGN_PEAK
             _ALIGN_PEAK = torch.cuda.max_memory_allocated(dev) / 2**20
             note += f" wrapperPeak {_ALIGN_PEAK:.0f}MB"
         with torch.no_grad():
@@ -140,6 +140,55 @@ def check_trainer_extras(cfg):
                            torch.randn(1, 8, 128, 128, device=dev), d[:1].detach())
         assert o["y_final"].shape[-2:] == (512, 512) and torch.isfinite(o["y_final"]).all()
         del w, opt, v, res, fin, loss
+        if dev.type == "cuda":
+            torch.cuda.empty_cache()
+        return note
+    if tr == "sr":
+        from train_sr import SRModel, VARIANTS
+        from sr.forward import sr_forward, sr_infer
+        from sr.jitter import sample_jitter
+        from sr.pan_align import GlobalCorrelator
+        sr = cfg.get("sr") or {}; v = sr.get("variant")
+        assert v in VARIANTS, f"sr.variant {v}"
+        assert cfg.get("feeder") == "feeders.feeder.PanFeeder" and cfg.get("mars", "dual") == "dual", "sr 는 원 feeder·dual"
+        note = f" SR:{v}"
+        blur = None
+        if v == "j3":
+            import json
+            cal = os.path.join(ROOT, (sr.get("blur") or {}).get("calibration", "outputs/shift_robust/blur_calib.json"))
+            assert os.path.exists(cal), "blur 보정 파일 없음 — tools/calibrate_blur.py"
+            j = json.load(open(cal)); mt = (sr.get("blur") or {}).get("match", "mse"); j = j.get(mt, j)
+            assert j["within_tol"]; blur = j["sigma_star"]; note += f" sigma={blur:.3f}({mt})"
+        dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        bb = build(cfg).to(dev); randomize_zero_params(bb)
+        g1 = sr.get("g1") or {}
+        corr = GlobalCorrelator(bb.input.out_channels, int(g1.get("desc_channels", 16)), float(g1.get("radius_hr_px", 1.0)),
+                                int(g1.get("n_per_axis", 5)), float(g1.get("tau", 0.07)), float(g1.get("gate_c0", 0.30))).to(dev) if v == "g1" else None
+        m = SRModel(bb, corr)
+        B = int(cfg.get("batch_size", 48)); r = float((sr.get("jitter") or {}).get("max_abs_hr_px", 0.5))
+        if dev.type == "cuda":
+            torch.cuda.empty_cache(); torch.cuda.reset_peak_memory_stats(dev)
+        opt = torch.optim.AdamW(m.parameters(), lr=1e-4)
+        pan, lpan = torch.randn(B, 1, 64, 64, device=dev), torch.randn(B, 1, 16, 16, device=dev)
+        ms, gt = torch.randn(B, 8, 16, 16, device=dev), torch.randn(B, 8, 64, 64, device=dev)
+        eps = sample_jitter(B, r, dev, torch.float32) if v in ("j1", "j2", "j4") else None
+        eps_g = sample_jitter(B, float(g1.get("syn_max_hr_px", 1.0)), dev, torch.float32, float(g1.get("syn_prob", 0.75))) if v == "g1" else None
+        o = sr_forward(m, v, pan, lpan, ms, gt, eps=eps, eps_g=eps_g, lam_cons=0.1, blur_sigma=blur)
+        loss = o["loss"] + 0.1 * o["loss_shift"]
+        assert torch.isfinite(loss) and o["loss_ms"].item() > 0 and o["loss_pan"].item() > 0
+        assert o["y"].shape == (B, 8, 64, 64)
+        loss.backward(); opt.step()
+        if eps is not None:
+            assert eps.abs().max() <= r + 1e-6 and eps.abs().mean() > 0.05 * r, "jitter 통계 이상"
+        if dev.type == "cuda":
+            _ALIGN_PEAK = torch.cuda.max_memory_allocated(dev) / 2**20
+            note += f" trainPeak {_ALIGN_PEAK:.0f}MB" + (" (3x48 forward)" if v == "j4" else "")
+        m.eval()
+        with torch.no_grad():
+            of = sr_infer(m, v, torch.randn(1, 1, 512, 512, device=dev), torch.randn(1, 1, 128, 128, device=dev),
+                          torch.randn(1, 8, 128, 128, device=dev), blur_sigma=blur)
+        assert of["y"].shape[-2:] == (512, 512) and torch.isfinite(of["y"]).all()
+        del m, bb, corr, opt, o, loss, of
         if dev.type == "cuda":
             torch.cuda.empty_cache()
         return note

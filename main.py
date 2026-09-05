@@ -96,10 +96,16 @@ def get_parser():
     # KD·mutual learning (research_log/s1_mutual_and_kd_implementation_spec.md).
     # best 선택 기준은 trainer 와 무관하게 기존 그대로다 (공식 HQNR).
     parser.add_argument('--trainer', type=str, default='default',
-                        choices=['default', 'teacher', 'kd', 'mutual', 'align'],
+                        choices=['default', 'teacher', 'kd', 'mutual', 'align', 'sr', 'uvs'],
                         help='default=기존 MARs / teacher=uncertainty teacher(T1·T2) / '
                              'kd=frozen teacher KD(K0~K5) / mutual=2-peer(M0~M3) / '
-                             'align=global alignment wrapper (align/, train_align.py)')
+                             'align=global alignment wrapper (align/, train_align.py) / '
+                             'sr=shift-robust conditioning·PAN guidance (sr/, train_sr.py) / '
+                             'uvs=uncertainty-variance-shift KD (uvs/, train_uvs.py, s2)')
+    parser.add_argument('--uvs', action=YamlAction, default=dict(),
+                        help='uvs trainer 인자 (variant b0|k0|k1|k2|s0|m1|m2|m3, loss, variance, shift, teacher_forcing, teacher_norm)')
+    parser.add_argument('--sr', action=YamlAction, default=dict(),
+                        help='sr trainer 인자 (variant j1|j2|j3|j4|g1, jitter, blur, cons, g1, inference) — train_sr.py')
     parser.add_argument('--alignment', action=YamlAction, default=dict(),
                         help='align trainer 인자 (upsampler, delta_source, alpha, output_frame, '
                              'inverse_location, trainable_shift_net, cache_dir ...) — align/model.py AlignCfg')
@@ -194,6 +200,10 @@ def train(args):
         from train_mutual import MutualTrainer as TrainerCls
     elif kind == 'align':
         from train_align import AlignTrainer as TrainerCls
+    elif kind == 'sr':
+        from train_sr import ShiftRobustTrainer as TrainerCls
+    elif kind == 'uvs':
+        from train_uvs import UVSTrainer as TrainerCls
     else:
         TrainerCls = Trainer
     trainer = TrainerCls(args=args, data_loader=data_loader, model=model)

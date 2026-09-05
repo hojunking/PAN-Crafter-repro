@@ -1,0 +1,88 @@
+# SR J3 — blur control: 위치 이동 없이 J1 jitter 와 gradient-energy 비를 맞춘 depthwise Gaussian(σ* 보정) 조건, 두 mode 공통
+# 계획: research_log/s1_w168_d123_shift_robust_alignment_30h_plan.md · 검토: research_log/2026-09-06_shift-robust-plan-review.md
+# 공통: 11ch · crop=False · attention 없음 · 50K · AdamW 1e-4/wd0.01 cosine warmup100
+#       best 선택 = 공식 HQNR(FR 12-19)
+expect_params_m: 5.9731
+seed: 2025
+num_worker: 4
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/SR_J3_BLURCTRL_MATCH_R050_W168_D123_DUAL
+
+phase: train
+
+mars: dual                    # 계획 §0 고정 (dual MARs, PAN back-reconstruction)
+trainer: sr                   # train_sr.py — 원 feeder·원 bicubic·M-frame 고정, 조건 MS 채널만 바뀐다
+sr:
+  variant: j3
+  jitter:
+    max_abs_hr_px: 0.5      # 보정 기준(J1 과 동일)
+  blur:
+    calibration: outputs/shift_robust/blur_calib.json   # tools/calibrate_blur.py 산출
+    match: mse                # 'grad_energy'(계획 원안)는 bicubic warp 가 gradient 를 안 줄여 σ→0.10 항등으로 퇴화 → perturbation 크기(MSE) 매칭
+
+# KNOWN_ISSUES.md E-1: 검증셋으로 best 를 고른다. 테스트셋은 곡선 기록용으로만 본다.
+select_on: hqnr
+
+# feeder
+feeder: feeders.feeder.PanFeeder
+train_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5
+  crop: False
+  hflip: True
+  vflip: True
+  rot: True
+  crop_ratio: 0.75
+  ms_size: 16
+
+val_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5
+
+test_reduced_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5
+
+test_full_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5_repaired/test_wv3_OrigScale_multiExm1.h5
+
+# data
+num_bands: 8
+max_pixel: 2047.0
+
+# model
+model: model.pancrafter_paper.PANCrafterPaper
+model_args:
+  in_channels: 1
+  out_channels: 8
+  hidden_size: 168
+  depth: [1, 2, 3]          # full-res / H/2 / H/4(bottleneck)
+  dropout: 0.0
+  num_heads: 8
+  mlp_ratio: 4.0
+  ks: 3                     # 논문: "local attention kernel size to k = 3" (bottleneck 포함)
+  ka: 3
+  norm: ln                  # 논문 Eq (5): x <- Conv(SiLU(LN(x)))
+  in_mode: released
+  attn_locations: []
+  mode_modulation: true     # dual MARs 이므로 mode 조건화 복원
+  n_attn: 3                 # Figure 3: AttnBlock 3개 (H/2 enc, H/4 bottleneck, H/2 dec)
+
+# optim
+optimizer: AdamW
+learning_rate: 1e-4
+weight_decay: 0.01
+lr_scheduler: cosine
+num_iter: 50000
+num_warmup: 100
+
+# loss
+res: True
+w_off: 1.0
+
+# logging
+log_iter: 100
+save_iter: 10000
+save_epoch: 25
+eval_epoch: 5
+
+# training
+gpu: 0
+batch_size: 48  # duplicate
+test_batch_size: 1
