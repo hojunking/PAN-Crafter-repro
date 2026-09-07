@@ -8,6 +8,7 @@
 
 | 날짜 | 문서 | 요지 |
 |---|---|---|
+| 2026-09-07 | [metric-comparability-audit](2026-09-07_metric-comparability-audit.md) | **논문 비교 FR 세트는 PanCollection `.mat` 20장 — 배포 H5 와 다른 장면(겹침 6장). EXP·CANConv anchor 가 표준편차까지 일치.** 시트에 FR·paper 열 신설(`eval_fr_paperset.py`), SCC 를 SCC.m zero-padding(옛 +0.004)·SSIM 을 Gaussian 창(옛 +0.002)으로 교정. 2차 검증 지적 반영: genMTF.m 충실 커널(HQNR −3e-4)·imresize symmetric·std N−1·JSON provenance·논문 QB/GF2 기준행 교정 |
 | 2026-09-07 | [shift-robust-results](2026-09-07_shift-robust-results.md) | **jitter 는 후반 D_s 붕괴를 없애는 정규화 — final HQNR +0.005~0.006·fSCC +0.01 (두 seed·두 backbone·두 커널 재현), best HQNR 은 동급.** J3 blur 대조 붕괴(smoothing 아님), G1 PAN-feature correlator 실패(PAN 을 흔들면 D_s·fSCC 악화), §12 local 종료. 미세조정 4벌 진행 중 |
 | 2026-09-07 | [global-alignment-results](2026-09-07_global-alignment-results.md) | **정리: 전역 정렬(C1/C3/C4)은 전부 실패, C2 의 이득은 정렬이 아니라 jitter.** 대조 run(원 커널+jitter)으로 커널 독립 확인. WIP 대체 |
 | 2026-09-06 | [WIP_uvs-kd-s2](2026-09-06_WIP_uvs-kd-s2.md) | **[s2 인계] UVS-KD 30h (teacher c0_hqnr → student d122): uncertainty routing · GT residual variance · shift-token KD · teacher forcing.** 구현·검증 완료, s2 에서 `tools/uvs_prepare.sh` 로 기동. 계획과 다른 점: PAN 채널 강체 warp(MTF↓ aliasing·phase), shift 입력 provided lpan, teacher native 입력 |

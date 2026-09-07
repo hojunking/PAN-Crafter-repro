@@ -8,6 +8,18 @@
 지표는 tools/metrics/ 의 DLPan 프로토콜 구현을 그대로 쓴다. 학습 중 metrics.csv 값이
 아니라 .mat 을 다시 평가한 값이라, 논문 Table 과 비교 가능한 수치다.
 
+측정 규약 (results_log/2026-09-07_metric-comparability-audit.md — 논문 표와 맞춘 근거):
+  RR  : 20장, dim_cut=21, thvalues=0. SAM/ERGAS/Q2n 은 MATLAB 원본 포팅, SCC 는 SCC.m(zero-padding Sobel),
+        PSNR 은 전 밴드 통합 MSE, SSIM 은 11×11 Gaussian σ1.5 (Wang/MATLAB). RMSE/CC 는 논문에 없는 자체 정의.
+  FR·paper mat20 : PanCollection **.mat 형식** FR 20장 (= 논문들이 MATLAB DLPan 으로 평가한 세트).
+        work_dir/<run>/results/fr_mat20.json (tools/eval_fr_paperset.py). **시트의 FR 은 이 열뿐이다.**
+        배포 H5 12-19 (best checkpoint 선택 기준) 는 시트에 올리지 않는다 (2026-09-07 결정).
+  HQNR 은 장면별 (1-D_λ)(1-D_s) 의 평균(MATLAB 관례). 새 서버 준비는 tools/metric_v2_prepare.sh.
+2026-09-07 이전 시트의 SCC 는 reflect 패딩(약 +0.004), SSIM 은 skimage 기본창(약 +0.002)이었다 —
+그 시트는 `<데이터셋>-<서버>_v1` 탭으로 남겨 두었고, 접미사 없는 탭이 새 정의다.
+`--all --replace` 는 work_dir 의 run 을 전부 파일 순서로 올린다. 큐레이션된 순서·구분행으로 되돌리려면
+`python gspread/apply_layout.py --sheet WV3-s1 --ref WV3-s1_v1` (옛 탭에 없던 run 은 `<탭>-extra` 로).
+
 params 는 항상 계산한다(빠르다). FLOPs·추론시간·메모리는 --profile 일 때만 재고,
 한 번 잰 값은 gspread/_profile_cache.json 에 저장해 재사용한다.
 """
@@ -52,12 +64,15 @@ COLUMNS = [
     ("RR", "PSNR↑", "psnr", 4),   ("RR", "SSIM↑", "ssim", 4),
     ("RR", "SCC↑", "scc", 4),     ("RR", "Q2n↑", "q2n", 4),
     ("RR", "RMSE↓", "rmse", 4),   ("RR", "CC↑", "cc", 4),
-    # full-resolution — 논문 대조가 가능한 12-19(8장) 기준.
-    # 전체 0-19 는 쓰지 않는다. 0-11 은 12-19 보다 크게 어려운 장면이라(D_lambda 2.4배)
-    # 논문 수치와 맞지 않고, 어떤 논문도 20장 기준으로 보고하지 않는다.
-    # 근거: ../CANConv/RUNBOOK.md 8.5 — D_lambda 는 EXP 에서 msexp 에만 의존하는데도
-    # 두 구간이 2.4배 차이나므로 코드가 아니라 데이터 특성이다.
-    ("FR", "D_lambda↓", "d_lambda", 4), ("FR", "D_s↓", "d_s", 4), ("FR", "HQNR↑", "hqnr", 4),
+    # full-resolution (1) — 논문 세트. PanCollection .mat 형식 FR 20장. CANConv 배포 가중치가
+    # 논문 CANConv 행과 D_λ/D_s/HQNR 평균·표준편차까지 일치한다(0.9513±0.0122 vs 0.951±0.013).
+    # 값은 tools/eval_fr_paperset.py 가 쓴 results/fr_mat20.json 에서 읽는다. 없으면 빈 칸.
+    ("FR·paper mat20", "D_lambda↓", "p_d_lambda", 4), ("FR·paper mat20", "D_s↓", "p_d_s", 4),
+    ("FR·paper mat20", "HQNR↑", "p_hqnr", 4),
+    # 배포 H5 의 12-19(8장) FR 열은 2026-09-07 시트에서 뺐다 (사용자 결정 — 논문 세트만 보고한다).
+    # H5 12-19 는 학습 중 best checkpoint 선택(train.py `fr_select_indices`)에만 쓰이고 시트에는 오르지 않는다.
+    # 0-11 은 12-19 보다 크게 어려운 장면(D_lambda 2.4배)이고 논문 세트와는 6장만 겹친다 (KNOWN_ISSUES F-2).
+    # 필요하면 work_dir/<run>/best_state.json 의 best_hqnr 이나 tools/eval_dlpan_fr.py --indices 12-19 로 본다.
     # 비용 — 첫 시트에만
     ("Cost", "Params(M)", "params_m", 4), ("Cost", "FLOPs(G)", "flops_g", 1),
     ("Cost", "Infer(ms)", "infer_ms", 2), ("Cost", "Mem(MB)", "mem_mb", 1),
@@ -69,22 +84,49 @@ COLUMNS = [
 
 # 논문이 보고한 수치. 항상 표 맨 위에 둔다. RMSE/CC/FR(20장)은 논문에 없다.
 PAPER_ROW = {
+    # 논문 FR 수치는 .mat 형식 20장 세트의 값이므로 FR·paper 열(p_*)에 둔다. FR·H5 12-19 열은 비운다.
     "WV3": dict(tag="■ Paper (reported)", ergas=2.040, sam=2.787, psnr=37.956,
                 ssim=0.976, scc=0.988, q2n=0.922,
-                d_lambda=0.016, d_s=0.027, hqnr=0.958,
+                p_d_lambda=0.016, p_d_s=0.027, p_hqnr=0.958,
                 params_m=7.170, flops_g=79.03, infer_ms=9.0, mem_mb=1751.9,
-                note="[기준] w128 · depth 총12블록(배분 미기재; 우리는 2,2,4) · AttnBlock 3 · PAN K/V 유지 · LN(Eq 5) · 입력 9ch · crop 명시(구현은 scale jitter) · 50K · seed 2025 · AdamW 1e-4/wd0.01 cosine warmup100 · batch48(실효96) · k=3 · λ=1.0 · best 선택 미기재. 아래 행 Notes 는 이 기준 대비 바뀐 부분만 적는다"),
-    "QB": dict(tag="■ Paper (reported)", ergas=4.169, sam=5.078, psnr=29.276,
-               q2n=0.846, d_lambda=0.036, d_s=0.022, hqnr=0.942, note="논문 Table. 세팅은 WV3 행과 동일"),
+                note="[기준] w128 · depth 총12블록(배분 미기재; 우리는 2,2,4) · AttnBlock 3 · PAN K/V 유지 · LN(Eq 5) · 입력 9ch · crop 명시(구현은 scale jitter) · 50K · seed 2025 · AdamW 1e-4/wd0.01 cosine warmup100 · batch48(실효96) · k=3 · λ=1.0 · best 선택 미기재. FR 은 .mat 20장 세트(FR·paper 열) 기준. 아래 행 Notes 는 이 기준 대비 바뀐 부분만 적는다"),
+    # 2026-09-07 검증 지적으로 교정: 종전 QB 행은 WV2(unseen) 값이었고 GF2 는 D_λ/D_s 가 뒤바뀌어 있었다.
+    # 출처: 논문 Table 2 (GF2/QB) · Table 3 (WV2) · 보충자료 표(±std, Q4/Q8, SSIM).
+    "QB": dict(tag="■ Paper (reported)", ergas=3.570, sam=4.426, psnr=38.195,
+               ssim=0.963, scc=0.984, q2n=0.938,
+               p_d_lambda=0.043, p_d_s=0.039, p_hqnr=0.920, note="논문 Table 2 + 보충자료. 세팅은 WV3 행과 동일"),
     "GF2": dict(tag="■ Paper (reported)", ergas=0.552, sam=0.596, psnr=45.076,
                 ssim=0.988, scc=0.994, q2n=0.988,
-                d_lambda=0.017, d_s=0.020, hqnr=0.964, note="논문 Table. 세팅은 WV3 행과 동일"),
+                p_d_lambda=0.020, p_d_s=0.017, p_hqnr=0.964, note="논문 Table 2 + 보충자료. 세팅은 WV3 행과 동일"),
+    "WV2": dict(tag="■ Paper (reported, WV3 학습 → WV2 zero-shot)", ergas=4.169, sam=5.078, psnr=29.276,
+                ssim=0.839, scc=0.924, q2n=0.846,
+                p_d_lambda=0.022, p_d_s=0.036, p_hqnr=0.942, note="논문 Table 3 (unseen WV2) + 보충자료. WV3 로 학습한 모델을 WV2 에 그대로 적용"),
 }
 
 # work_dir 에 config 없이 결과 mat 만 있는 참조 (외부 모델의 배포 가중치 등)
 EXTERNAL = {"_ref_cannet": ("□ CANConv (released weights)", "wv3",
-                            "CANConv 배포 가중치 실측. 논문 Table 3 의 CANConv 행과 6지표 0.5% 이내 일치 — 평가기 검증용",
+                            "CANConv 배포 가중치 실측 — 평가기 검증용. RR 6지표는 논문 CANConv 행과 0.5% 이내, "
+                            "FR·paper(.mat 20장)는 HQNR 0.9513±0.0122 vs 논문 0.951±0.013 으로 표준편차까지 일치",
                             {"params_m": 0.7874})}
+
+
+def _fr_paper(wd, peer=None):
+    """논문 세트(.mat FR 20장) 결과 — tools/eval_fr_paperset.py 가 쓴 results/fr_mat20[_peerB].json.
+
+    JSON 의 provenance(평가기 버전·입력 h5 해시)가 지금 코드·데이터와 다르면 **쓰지 않는다**(빈 칸 + 경고).
+    검증 지적(2026-09-07): 이전에는 검증 없이 읽어 옛 정의의 값이 새 열에 섞일 수 있었다.
+    """
+    p = os.path.join(wd, "results", "fr_mat20_peerB.json" if peer == "B" else "fr_mat20.json")
+    if not os.path.exists(p):
+        return {}
+    from tools.eval_fr_paperset import EVAL_VERSION, H5_DEFAULT, sha256_of
+    j = json.load(open(p))
+    want_sha = sha256_of(H5_DEFAULT) if os.path.exists(H5_DEFAULT) else None
+    if j.get("eval_version") != EVAL_VERSION or (want_sha and j.get("input_sha256") != want_sha):
+        print(f"  [fr_paper] {os.path.basename(wd)}: JSON 이 옛 평가기/데이터({j.get('eval_version')}) — "
+              f"FR·paper 열 비움. tools/eval_fr_paperset.py 로 다시 잴 것")
+        return {}
+    return {"p_hqnr": j["hqnr"], "p_d_lambda": j["d_lambda"], "p_d_s": j["d_s"]}
 
 
 def sheet_name(ds, server):
@@ -156,8 +198,11 @@ def _fr(mat, ds, indices="12-19"):
     for i in range(a, b + 1):
         dl_all.append(d_lambda_k(sr[i], lms[i], ds, 4, 32, wald))
         dsv_all.append(d_s(sr[i], lms[i], pan[i], 4, 32, wald))
-    dl, dsv = float(np.mean(dl_all)), float(np.mean(dsv_all))
-    return {"d_lambda": dl, "d_s": dsv, "hqnr": (1 - dl) * (1 - dsv)}
+    dl_all, dsv_all = np.array(dl_all), np.array(dsv_all)
+    # HQNR 은 장면별 (1-D_λ)(1-D_s) 의 평균 — MATLAB 관례(indexes_evaluation_FS 를 장면마다 부른 뒤 평균)이자
+    # train.py 의 선택 지표와 같은 식. 2026-09-07 이전의 (1-mean D_λ)(1-mean D_s) 와는 ~1e-5 차이.
+    return {"d_lambda": float(dl_all.mean()), "d_s": float(dsv_all.mean()),
+            "hqnr": float(((1 - dl_all) * (1 - dsv_all)).mean())}
 
 
 # ----------------------------------------------------------------- 비용
@@ -401,6 +446,7 @@ def collect(tag, want_profile, server, peer=None):
         rr = os.path.join(wd, "results", "reduced_best_val.mat")
         if os.path.exists(rr):
             row.update(_rr(rr, ds))
+        row.update(_fr_paper(wd))
         return row
     cfg_path = os.path.join(wd, "meta", "config.yaml")
     if not os.path.exists(cfg_path):
@@ -457,15 +503,10 @@ def collect(tag, want_profile, server, peer=None):
                if os.path.exists(q)), "")
     if os.path.exists(rr):
         row.update(_rr(rr, ds))
-    for name in (("full_best_hqnr_peerB.mat",) if peer == "B" else
-                 ("full_frrepair.mat", "full_best_hqnr.mat", "full_best_val.mat", "full_best_reduced.mat")):
-        fr = os.path.join(wd, "results", name)
-        if os.path.exists(fr):
-            try:
-                row.update(_fr(fr, ds))
-            except Exception as e:
-                row["note_err"] = f"FR 실패: {type(e).__name__}"
-            break
+    # FR 은 논문 세트(.mat 20장)만 올린다. 배포 H5 12-19 (`_fr`) 는 2026-09-07 시트에서 뺐다 — 선택 전용.
+    row.update(_fr_paper(wd, peer))          # tools/eval_fr_paperset.py 산출물이 유효(버전·해시 일치)할 때만
+    if not any(k in row for k in ("p_hqnr",)):
+        row["note_err"] = "FR·paper 없음 — tools/eval_fr_paperset.py <run> 을 돌릴 것 (KNOWN_ISSUES F-2)"
     row.update(_profile(a, tag, want_profile))
 
     family = row["family"]
@@ -773,15 +814,33 @@ def _needs_separator(tags, tag_cell):
     return None if any(t.strip().startswith(cell) for t in tags) else cell
 
 
-def _format_separator(ws, row_idx, n):
-    """refile_sheet.py 의 구분행과 같은 모양(굵게 · 연회색 배경)."""
-    ws.spreadsheet.batch_update({"requests": [{"repeatCell": {
+def _sep_request(ws, row_idx, n):
+    """구분행 서식(굵게 · 연회색 배경) repeatCell 요청 하나. refile_sheet.py 의 구분행과 같은 모양."""
+    return {"repeatCell": {
         "range": {"sheetId": ws.id, "startRowIndex": row_idx - 1, "endRowIndex": row_idx,
                   "startColumnIndex": ORIGIN_COL - 1, "endColumnIndex": ORIGIN_COL - 1 + n},
         "cell": {"userEnteredFormat": {
             "backgroundColor": {"red": .87, "green": .89, "blue": .93},
             "textFormat": {"bold": True}}},
-        "fields": "userEnteredFormat(backgroundColor,textFormat.bold)"}}]})
+        "fields": "userEnteredFormat(backgroundColor,textFormat.bold)"}}
+
+
+def _format_separator(ws, row_idx, n):
+    ws.spreadsheet.batch_update({"requests": [_sep_request(ws, row_idx, n)]})
+
+
+def _retry(fn, *a, **kw):
+    """Sheets API 429(분당 write 한도)·5xx 는 잠시 쉬고 다시 시도한다. 그 밖의 오류는 그대로 올린다."""
+    import gspread
+    for k in range(6):
+        try:
+            return fn(*a, **kw)
+        except gspread.exceptions.APIError as e:
+            code = getattr(getattr(e, "response", None), "status_code", None)
+            if code not in (429, 500, 502, 503) or k == 5:
+                raise
+            print(f"  [sheets] API {code} — 65초 후 재시도 ({k + 1}/5)", flush=True)
+            time.sleep(65)
 
 
 def upload(rows, server, replace=False):
@@ -799,7 +858,21 @@ def upload(rows, server, replace=False):
         n = len(cols)
         ws = _ensure_sheet(sh, sheet_name(ds, server))
         cur = ws.get(f"{_a1(ORIGIN_ROW + 1, ORIGIN_COL)}:{_a1(ORIGIN_ROW + 1, ORIGIN_COL + n - 1)}")
-        if not cur or cur[0][:n] != [c[1] for c in cols]:
+        grp = ws.get(f"{_a1(ORIGIN_ROW, ORIGIN_COL)}:{_a1(ORIGIN_ROW, ORIGIN_COL + n - 1)}")
+        want_hdr = [c[1] for c in cols]
+        want_grp = [c[0] if (i == 0 or cols[i - 1][0] != c[0]) else "" for i, c in enumerate(cols)]
+        cur_hdr = (cur[0] + [""] * n)[:n] if cur else []
+        cur_grp = (grp[0] + [""] * n)[:n] if grp else []
+        if cur and cur_hdr != want_hdr or cur_grp != want_grp:
+            has_rows = bool(ws.get(f"{_col(ORIGIN_COL)}{ORIGIN_ROW + 2}"))
+            if has_rows and not replace:
+                # 열 배치가 바뀌었는데 기존 행이 있다. 헤더만 다시 쓰면 기존 행의 셀이 새 열과 어긋난다
+                # (2026-09-07 FR·paper 열 추가 때 생긴 상황). 단건 업로드는 건너뛰고 전체 재작성을 요구한다.
+                print(f"  [{sheet_name(ds, server)}] !! 시트의 열 배치가 코드와 다르다 — 단건 업로드를 건너뛴다. "
+                      f"`python gspread/gspread_upload.py --all --replace` 로 전체를 다시 쓸 것")
+                continue
+            _write_header(ws, cols, SHEET_COLOR.get(ds, (0.85, 0.89, 0.95)))
+        elif not cur:
             _write_header(ws, cols, SHEET_COLOR.get(ds, (0.85, 0.89, 0.95)))
 
         # 논문 수치를 맨 위에 놓는다
@@ -817,7 +890,10 @@ def upload(rows, server, replace=False):
             while tags and not tags[-1]:  # 빈 범위에서 gspread 가 빈 행을 돌려주는 경우가 있다
                 tags.pop()
 
+        # 행 쓰기는 모아서 한 번에 보낸다. Sheets API 는 분당 write 60회 제한이 있어 행마다 update 를
+        # 부르면 --all --replace(150행)에서 429 로 죽는다 (2026-09-07 실제 발생).
         last = ORIGIN_ROW + 1
+        pending, sep_rows = [], []
         for r in rs:
             v = fmt(r, cols)
             if r["tag"] in tags:
@@ -830,16 +906,20 @@ def upload(rows, server, replace=False):
                     j = ORIGIN_ROW + 2 + len(tags)
                     tags.append(sep_cell)
                     srow = [""] * n; srow[0] = sep_cell; srow[-1] = DESC[classify(r["tag"])]
-                    ws.update([srow], f"{_a1(j, ORIGIN_COL)}:{_a1(j, ORIGIN_COL + n - 1)}")
-                    _format_separator(ws, j, n)
+                    pending.append({"range": f"{_a1(j, ORIGIN_COL)}:{_a1(j, ORIGIN_COL + n - 1)}", "values": [srow]})
+                    sep_rows.append(j)
                     last = max(last, j)
                 i = ORIGIN_ROW + 2 + len(tags)
                 tags.append(r["tag"]); added += 1
-            ws.update([v], f"{_a1(i, ORIGIN_COL)}:{_a1(i, ORIGIN_COL + n - 1)}")
+            pending.append({"range": f"{_a1(i, ORIGIN_COL)}:{_a1(i, ORIGIN_COL + n - 1)}", "values": [v]})
             last = max(last, i)
             total += 1
-        _apply_borders(ws, cols, last)      # 새로 쓴 행까지 선을 이어준다
-        _bold_best(ws, cols)
+        if pending:
+            _retry(ws.batch_update, pending)                       # 값 전체를 한 요청으로
+        if sep_rows:
+            _retry(ws.spreadsheet.batch_update, {"requests": [_sep_request(ws, j, n) for j in sep_rows]})
+        _retry(_apply_borders, ws, cols, last)      # 새로 쓴 행까지 선을 이어준다
+        _retry(_bold_best, ws, cols)
         print(f"  [{sheet_name(ds, server)}] {len(rs)}행 (best bold 갱신)")
     return total, added
 

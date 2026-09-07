@@ -50,7 +50,8 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지 
 - **30분 넘는 실험은 WIP 문서를 먼저 만든다** (§2). 사람이 기다리는 동안 볼 수 있어야 한다.
 - **모든 수치에 두 가지를 명시한다** — 어느 실행인가(`baseline` 배포본 그대로 / `fixed`
   A-1·A-2 적용), 누가 쟀는가(`py` 학습 중 metrics.csv / `matlab` DLPan 프로토콜).
-  **논문 Table 과 비교 가능한 것은 `matlab` 뿐이다.**
+  **논문 Table 과 비교 가능한 것은 `matlab` 뿐이다.** FR 은 거기에 **어느 세트인가**까지 —
+  논문 비교는 `.mat` 20장(`fr_mat20`), H5 12-19 는 선택용이라 논문 표에 넣지 않는다.
 - 새 문서를 만들면 `results_log/README.md` 맨 위에 한 행 추가한다.
 - **구글시트 업로드에는 서버 식별자를 반드시 붙인다** (`gspread/server.txt` 에 `s1`/`s2`).
   두 서버가 같은 config 를 돌리면 실행명이 같아져, suffix 가 없으면 상대 서버 값을
@@ -75,6 +76,16 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지 
   판별 근거로 인용하면 안 된다. D_s·HQNR 은 축소하면 거의 항상 좋아지는 기전이 있어 단독 해석 금지.
 - **양방향 mutual learning 은 no-go** (`2026-08-20_mutual-learning-go-no-go.md`).
   단방향 T→S 증류는 별개이고 유효하다.
+- **논문 비교 FR 세트는 PanCollection `.mat` 형식 20장이다 — 배포 H5 의 20장이 아니다** (KNOWN_ISSUES F-2,
+  `2026-09-07_metric-comparability-audit.md`). H5 12-19 는 그중 6장만 겹친다. **시트의 FR 은
+  `results/fr_mat20.json`(`tools/eval_fr_paperset.py`) = FR·paper mat20 열뿐이다** (2026-09-07 사용자 결정).
+  H5 12-19 는 학습 중 best 선택에만 쓴다. 새 서버·다른 서버 재측정은 `./tools/metric_v2_prepare.sh` 한 번.
+- **시트·보고용 SCC 는 SCC.m(zero-padding), SSIM 은 Gaussian 11×11** (KNOWN_ISSUES D-7). 2026-09-07 이전
+  문서의 SCC 는 약 +0.004, SSIM 은 약 +0.002 높은 옛 정의다. 학습 로그의 SCC 는 여전히 옛 정의(상대 비교용).
+- **평가기는 MATLAB 소스를 파이썬으로 재구현한 것이지 MATLAB 실행이 아니다.** 비트 동일을 주장하지 않는다.
+  근거는 anchor 두 개(EXP·CANConv 배포 가중치)가 논문 값과 평균·N−1 표준편차까지 맞는 것. MTF 커널은
+  DLPan 파이썬 포트(정규화)가 아니라 `genMTF.m` 충실 재구현을 쓴다 — 2026-09-07 이전 HQNR 보다 ~3e-4 낮다.
+  PSNR·SSIM 은 DLPan 프로토콜 밖이라 관례 추정이다.
 
 ## 판정 규칙 — 시드 오차가 대부분의 차이를 삼킨다
 

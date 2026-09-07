@@ -39,7 +39,10 @@ except ImportError:  # python tools/metrics/eval_rr.py 처럼 직접 실행한 �
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from q2n import q2n  # noqa: E402
 
-# SCC용 고역통과 필터 (DLPan의 ScoreCC와 동일한 3x3 Laplacian)
+# SCC용 고역통과 필터 (3x3 Laplacian). **주의: DLPan Quality_Indices/SCC.m 의 정의가 아니다.**
+# SCC.m 은 Sobel 기울기 크기의 전역 코사인 유사도(zero padding)다 — tools/eval_dlpan.py scc_dlpan().
+# 아래 scc() 는 CANConv 쪽 포팅의 유산(Laplacian + 밴드별 Pearson, WV3 에서 0.88 수준)이며
+# 시트·보고서에는 쓰지 않는다. evaluate() 의 "SCC" 키도 그 값이다.
 HIGHPASS = np.array([[-1.0, -1.0, -1.0],
                      [-1.0, 8.0, -1.0],
                      [-1.0, -1.0, -1.0]])
@@ -68,7 +71,7 @@ def ergas(sr: np.ndarray, gt: np.ndarray, ratio: int = 4) -> float:
 
 
 def scc(sr: np.ndarray, gt: np.ndarray) -> float:
-    """고역통과 성분의 밴드별 상관계수 평균. 공간 디테일 보존을 본다."""
+    """고역통과 성분의 밴드별 상관계수 평균. **DLPan SCC.m 이 아니다** — 보고용은 eval_dlpan.scc_dlpan."""
     vals = []
     for b in range(sr.shape[2]):
         a = convolve(sr[:, :, b], HIGHPASS, mode="reflect")
@@ -92,8 +95,9 @@ def evaluate(sr_all: np.ndarray, gt_all: np.ndarray, peak: float, block: int = 3
             "SCC": scc(sr, gt),
             "Q2n": q2n(gt, sr, block, block)[0],
         })
+    # 표준편차는 MATLAB std 기본값(N-1). 논문의 ±값과 맞추려면 이쪽이다 (2026-09-07 검증 지적 반영).
     return {k: (float(np.mean([r[k] for r in rows])),
-                float(np.std([r[k] for r in rows]))) for k in rows[0]}
+                float(np.std([r[k] for r in rows], ddof=1)) if len(rows) > 1 else 0.0) for k in rows[0]}
 
 
 def main() -> int:

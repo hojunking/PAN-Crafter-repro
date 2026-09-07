@@ -7,8 +7,12 @@
 그래서 실제 위성영상 대신 고정 시드 난수를 쓴다 — 저장소에 데이터를 넣지 않고도
 동일한 검증이 되고, 영상 라이선스 문제도 없다.
 
-full-resolution 은 DLPan-Toolbox 의 wald_utilities.py 를 런타임에 import 하므로
+full-resolution 은 DLPan-Toolbox 의 wald_utilities.py(interp23tap) 를 런타임에 import 하므로
 PANCRAFTER_DLPAN 이 필요하다. 없으면 reduced 만 검사한다.
+
+**이 검사는 서버 간 이식·회귀 검사다. MATLAB 과의 동치 검사가 아니다.** 기대값은 이 파이썬 구현이
+낸 값이다. MATLAB 원본과의 대조는 results_log/2026-09-07_metric-comparability-audit.md 의 anchor
+(EXP·CANConv 배포 가중치) 로 했고, MATLAB 실행 없이는 비트 동일을 주장하지 않는다.
 """
 import os
 import sys
@@ -27,10 +31,15 @@ RTOL = 1e-9             # 같은 코드·같은 입력이면 이 정도로 맞�
 EXPECTED = {
     "reduced": {"SAM": 2.69059269243812,
                 "ERGAS": 2.6117638486447348,
-                "Q2n": 0.9342110942114301},
-    "full": {"D_lambda": 0.04943129510937505,
-             "D_s": 0.016026738589190015,
-             "HQNR": 0.935334188746278},
+                "Q2n": 0.9342110942114301,
+                # 2026-09-07: 시트·보고용 SCC(SCC.m zero-padding) / SSIM(Gaussian 11×11 σ1.5) / PSNR(통합 MSE)
+                "SCC": 0.9799613277046044,
+                "SSIM": 0.9387956175923986,
+                "PSNR": 33.199058261933516},
+    # 2026-09-07.2: genMTF.m 충실 커널(정규화 없음) + imresize symmetric 경계 + HQNR 장면별 평균
+    "full": {"D_lambda": 0.04961858766027322,
+             "D_s": 0.015746757806697133,
+             "HQNR": 0.9354159689306566},
 }
 
 
@@ -63,9 +72,20 @@ def make_full(n=2, c=8, h=128, ratio=4, seed=20260825):
 
 
 def run_reduced():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "_ed", os.path.join(os.path.dirname(os.path.abspath(__file__)), "eval_dlpan.py"))
+    ed = importlib.util.module_from_spec(spec)
+    sys.modules["_ed"] = ed
+    spec.loader.exec_module(ed)
     gt, sr = make_reduced()
     m = evaluate(sr, gt, SCALE, 32)
-    return {k: float(m[k][0]) for k in ("SAM", "ERGAS", "Q2n")}
+    out = {k: float(m[k][0]) for k in ("SAM", "ERGAS", "Q2n")}
+    n = len(gt)
+    out["SCC"] = float(np.mean([ed.scc_dlpan(sr[i], gt[i]) for i in range(n)]))
+    out["SSIM"] = float(np.mean([ed.ssim_skimage(sr[i], gt[i], SCALE) for i in range(n)]))
+    out["PSNR"] = float(np.mean([ed.psnr_global(sr[i], gt[i], SCALE) for i in range(n)]))
+    return out
 
 
 def run_full():
@@ -77,9 +97,9 @@ def run_full():
     for i in range(len(sr)):
         dls.append(d_lambda_k(sr[i], lms[i], "wv3", 4, 32, wald))
         dss.append(d_s(sr[i], lms[i], pan[i], 4, 32, wald))
-    dl, ds = float(np.mean(dls)), float(np.mean(dss))
-    out["D_lambda"], out["D_s"] = dl, ds
-    out["HQNR"] = float((1 - dl) * (1 - ds))
+    dls, dss = np.array(dls), np.array(dss)
+    out["D_lambda"], out["D_s"] = float(dls.mean()), float(dss.mean())
+    out["HQNR"] = float(((1 - dls) * (1 - dss)).mean())     # 장면별 HQNR 평균 (보고·선택과 같은 식)
     return out
 
 

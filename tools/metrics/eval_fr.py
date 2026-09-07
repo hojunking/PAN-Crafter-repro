@@ -118,8 +118,12 @@ def _contributions(in_length: int, out_length: int, scale: float):
     ind = left[:, None] + np.arange(p)[None, :]
     weights = kernel(u[:, None] - ind)
     weights = weights / weights.sum(axis=1, keepdims=True)
-    # MATLAB: indices = min(max(indices,1), in_length)  (replicate)
-    ind = (np.minimum(np.maximum(ind, 1), in_length) - 1).astype(np.intp)
+    # MATLAB imresize.m contributions():
+    #   aux = [1:in_length in_length:-1:1]; indices = aux(mod(indices-1, length(aux))+1);
+    # 범위 밖 인덱스를 거울 대칭(symmetric)으로 접는다. 2026-09-07 이전에는 clamp(replicate)를
+    # 썼다 — 검증 지적. D_s 의 PAN 축소에서 가장자리 2px 만 달라지며 HQNR 영향 ~2e-5.
+    aux = np.concatenate([np.arange(1, in_length + 1), np.arange(in_length, 0, -1)])
+    ind = (aux[np.mod(ind.astype(np.int64) - 1, len(aux))] - 1).astype(np.intp)
 
     keep = ~np.all(weights == 0, axis=0)
     return weights[:, keep], ind[:, keep]
@@ -142,23 +146,78 @@ def imresize_matlab(img: np.ndarray, scale: float) -> np.ndarray:
     return out
 
 
+# --- MATLAB genMTF.m (fspecial + fwind1) 충실 재구현 ---------------------------
+
+# genMTF.m 의 센서별 GNyq. 없으면 otherwise 분기 0.3.
+GNYQ_TABLE = {
+    "QB": [0.34, 0.32, 0.30, 0.22],
+    "IKONOS": [0.26, 0.28, 0.29, 0.28],
+    "GeoEye1": [0.23, 0.23, 0.23, 0.23], "WV4": [0.23, 0.23, 0.23, 0.23],
+    "WV2": [0.35] * 7 + [0.27],
+    "WV3": [0.325, 0.355, 0.360, 0.350, 0.365, 0.360, 0.335, 0.315],
+}
+
+
+def _fspecial_gaussian(n: int, sigma: float) -> np.ndarray:
+    """MATLAB fspecial('gaussian', n, sigma): eps*max 미만 0, 합 1."""
+    m = (n - 1) / 2.0
+    y, x = np.ogrid[-m:m + 1, -m:m + 1]
+    h = np.exp(-(x * x + y * y) / (2.0 * sigma * sigma))
+    h[h < np.finfo(float).eps * h.max()] = 0.0
+    return h / h.sum()
+
+
+def _fwind1_huang(hd: np.ndarray, win: np.ndarray) -> np.ndarray:
+    """MATLAB fwind1(Hd, win) — 1-D 창 하나를 Huang 회전으로 2-D 창으로 만들고, fsamp2 식으로
+    Hd 의 임펄스 응답을 구해 창을 곱한다. **정규화하지 않는다** (fwind1·genMTF 모두 sum=1 로
+    맞추지 않는다). 검증 지적(2026-09-07): DLPan 공식 파이썬 포트는 1-D 창을 한 축에만 곱하고
+    음수를 자른 뒤 sum=1 로 정규화한다 — D_λ 가 ~2e-4 달라진다.
+
+    회전 창의 표본 좌표는 freqspace(n) (홀수 n: (-(n-1)/2..(n-1)/2)·2/n). 이 좌표를 linspace(-1,1,n)
+    으로 바꿔도 임펄스 응답이 중심 σ≈2px 에 몰려 있어 D_λ 차이는 1e-6 이하다.
+    """
+    n = len(win)
+    t = np.arange(-(n - 1) / 2.0, (n - 1) / 2.0 + 1) * 2.0 / n          # freqspace(n)
+    t1, t2 = np.meshgrid(t, t)
+    r = np.sqrt(t1 ** 2 + t2 ** 2)
+    w = np.zeros_like(r)
+    inside = (r >= t[0]) & (r <= t[-1])
+    w[inside] = np.interp(r[inside], t, win)
+    # fsamp2: hd = rot90(fftshift(rot90(Hd,2)),2); h = fftshift(ifft2(hd)); h = rot90(h,2)
+    h = np.rot90(np.fft.fftshift(np.rot90(hd, 2)), 2)
+    h = np.rot90(np.fft.fftshift(np.fft.ifft2(h)), 2)
+    return np.real(h) * w
+
+
+def genmtf_matlab(gnyq, ratio: int, n: int = 41) -> np.ndarray:
+    """genMTF.m: 밴드별 alpha -> fspecial gaussian -> Hd/max -> fwind1(Hd, kaiser(N)). (N, N, nbands)"""
+    gnyq = np.asarray(gnyq, dtype=np.float64)
+    fcut = 1.0 / ratio
+    h = np.zeros((n, n, len(gnyq)))
+    for b, g in enumerate(gnyq):
+        alpha = np.sqrt(((n - 1) * (fcut / 2)) ** 2 / (-2 * np.log(g)))
+        H = _fspecial_gaussian(n, alpha)
+        h[:, :, b] = _fwind1_huang(H / H.max(), np.kaiser(n, 0.5))      # MATLAB kaiser(N) = beta 0.5
+    return h
+
+
 # --- 지표 -------------------------------------------------------------------
 
-def mtf_filter(img: np.ndarray, preset: str, ratio: int, wald) -> np.ndarray:
-    """센서 MTF 저역통과 필터. MATLAB MTF.m = imfilter(..., 'replicate').
+def mtf_filter(img: np.ndarray, preset: str, ratio: int, wald=None) -> np.ndarray:
+    """센서 MTF 저역통과 필터. MATLAB MTF.m = imfilter(real(h), 'replicate').
 
-    41x41 커널을 512x512x8에 직접 상관하면 화소당 1681회 곱셈이라 한 장에 5초가 걸린다
-    (체크포인트 20개 × 20장이면 그것만 33분). 가장자리를 replicate로 미리 채운 뒤
-    FFT 컨볼루션으로 바꾸면 결과는 같고 훨씬 빠르다. 커널이 대칭이라 correlate와
-    convolve가 동일하므로 뒤집기도 불필요하다.
+    커널은 genMTF.m 을 그대로 옮긴 genmtf_matlab() 이다 (wald 인자는 호환용으로 남겼고 쓰지 않는다).
+    41x41 커널을 512x512x8에 직접 상관하면 화소당 1681회 곱셈이라 한 장에 5초가 걸린다.
+    가장자리를 replicate로 미리 채운 뒤 FFT 컨볼루션으로 바꾸면 결과는 같고 훨씬 빠르다.
+    커널이 대칭이라 correlate와 convolve가 동일하므로 뒤집기도 불필요하다.
     """
     sensor = SENSOR_NAME[preset]
     if sensor is None:
         # genMTF.m의 otherwise 분기: GNyq = 0.3 * ones. 데이터가 다른 값으로 만들어졌으면 그것을 쓴다.
         gnyq = GNYQ_OVERRIDE.get(preset, 0.3) * np.ones(img.shape[2])
-        kernel = wald.NyquistFilterGenerator(gnyq, ratio, 41)
     else:
-        kernel = wald.MTF(ratio, sensor)
+        gnyq = GNYQ_TABLE[sensor]
+    kernel = genmtf_matlab(gnyq, ratio, 41)
 
     out = np.empty_like(img, dtype=np.float64)
     for b in range(img.shape[2]):
@@ -300,10 +359,11 @@ def main() -> int:
             print(f"  [{name}] {i + 1:2d}/{len(fused_list)}  D_λ={dl:.4f}  "
                   f"D_s={ds:.4f}  HQNR={rows[-1][2]:.4f}", end="\r", file=sys.stderr)
         arr = np.array(rows)
+        sd = (lambda v: v.std(ddof=1)) if len(arr) > 1 else (lambda v: 0.0)   # MATLAB std (N-1)
         print(" " * 78, end="\r", file=sys.stderr)
-        print(f"{name:12s}  D_λ↓ {arr[:, 0].mean():.4f}±{arr[:, 0].std():.4f}   "
-              f"D_s↓ {arr[:, 1].mean():.4f}±{arr[:, 1].std():.4f}   "
-              f"HQNR↑ {arr[:, 2].mean():.4f}±{arr[:, 2].std():.4f}")
+        print(f"{name:12s}  D_λ↓ {arr[:, 0].mean():.4f}±{sd(arr[:, 0]):.4f}   "
+              f"D_s↓ {arr[:, 1].mean():.4f}±{sd(arr[:, 1]):.4f}   "
+              f"HQNR↑ {arr[:, 2].mean():.4f}±{sd(arr[:, 2]):.4f}")
 
     print()
     print("* Q2n / MTF / interp23tap은 DLPan-Toolbox 공식 Python 구현을 그대로 사용한다.")

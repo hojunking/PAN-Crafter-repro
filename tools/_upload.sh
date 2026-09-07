@@ -17,6 +17,12 @@ fi
 LOG="$REPO/work_dir/gspread_upload.log"
 {
   echo "--- $(date -Iseconds)  $* ---"
+  # 논문 세트(.mat FR 20장) 평가 — 시트의 FR·paper 열. 입력 h5 가 없는 서버면 건너뛴다 (KNOWN_ISSUES F-2).
+  if [ -f "$REPO/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5" ]; then
+    python tools/eval_fr_paperset.py "$@" 2>&1 | grep -v Warning || true
+  else
+    echo "[upload] full_examples_mat20 h5 없음 — FR·paper 열은 비운다 (tools/build_fr_paperset.py 참고)"
+  fi
   # 구글 API 가 간헐적으로 503 을 낸다. 몇 번 다시 시도한다.
   for k in 1 2 3; do
     python gspread/gspread_upload.py "$@" 2>&1 && break

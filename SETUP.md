@@ -153,6 +153,20 @@ export PANCRAFTER_DLPAN=$PWD/DLPan-Toolbox
 reduced-resolution 지표(SAM/ERGAS/Q2n/PSNR/SSIM/SCC)는 **이것 없이도 전부 동작한다.**
 필요한 건 파이썬 파일 하나뿐이고 MATLAB 은 쓰지 않는다.
 
+### 논문 비교용 FR 세트와 재측정 (2026-09-07 지표 v2)
+
+논문들이 쓴 WV3 full-resolution 테스트셋은 PanCollection **`.mat` 형식** 20장이고, 배포 H5 의 20장과 장면이 다르다
+(`KNOWN_ISSUES.md` F-2). 시트의 FR 열은 이 세트 기준이며, RR 의 SCC·SSIM 정의도 MATLAB 관례로 바꿨다(D-7).
+서버마다 한 번 아래를 돌리면 .mat 다운로드 → 입력 h5 생성 → 이식 검사 → 전 run 재평가 → 시트 업로드 →
+옛 탭 순서 재배치까지 끝난다 (`gspread/server.txt`, `PANCRAFTER_DLPAN` 필요).
+
+```bash
+./tools/metric_v2_prepare.sh              # 시트까지
+./tools/metric_v2_prepare.sh --no-upload  # results/fr_mat20.json 까지만
+```
+
+이후 체인이 끝낸 run 은 `tools/_upload.sh` 가 자동으로 논문 세트 평가를 먼저 돌린 뒤 올린다.
+
 ### 이식 확인
 
 지표는 순수 numpy/scipy 연산이라 **입력이 같으면 서버가 달라도 값이 같아야 한다.**

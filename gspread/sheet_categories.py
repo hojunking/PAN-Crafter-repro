@@ -29,6 +29,8 @@ CATS = [
   lambda t: t.startswith(("SR_", "AF_"))),
  ("UVS", "⑭ UVS-KD (s2) — uncertainty routing · GT residual variance · shift-token KD · teacher forcing (teacher c0_hqnr → d122)",
   lambda t: t.startswith("UVS_")),
+ ("S1GRID", "⑮ Teacher 후보 격자 (S1 계열) — 폭 W·깊이 D·MS2/DUAL 스크리닝, HQNR 선택 (S1_T05_W168_D123_DUAL 이 SR anchor)",
+  lambda t: t.startswith("S1_")),
  ("MISC", "⑪ 기타 대조군",
   lambda t: True),
 ]

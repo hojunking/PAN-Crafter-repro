@@ -65,7 +65,8 @@ def main():
             print(f"  {name} {len(rows)}/{len(sel)}", end="\r", file=sys.stderr)
         r = np.array(rows)
         print(" " * 60, end="\r", file=sys.stderr)
-        print(f"{name:28s} " + " ".join(f"{r[:,j].mean():>9.4f}±{r[:,j].std():<5.3f}" for j in range(3)))
+        # ± 는 MATLAB std 기본값(N-1)
+        print(f"{name:28s} " + " ".join(f"{r[:,j].mean():>9.4f}±{(r[:,j].std(ddof=1) if len(r) > 1 else 0):<5.3f}" for j in range(3)))
     print("\n* ../CANConv/tools/eval_fr.py 재사용. 논문 Table 은 20장 중 12-19 부분집합과 일치한다"
           "\n  (CANConv RUNBOOK 8절). 전체 20장 값은 실험 간 비교용으로만 쓸 것.")
 

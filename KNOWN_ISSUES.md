@@ -26,6 +26,8 @@
 | [D-6](#d-6) | 환경 | `utils.py` import | **적용** — `scipy.ndimage`, 미사용 import 제거 |
 | [E-1](#e-1) | 평가 방법론 | `main.py` / `train.py` | **적용** — `select_on: test\|val` 스위치, `validate()` 추가 |
 | [F-1](#f-1) | **배포 데이터 결함** | `pan_h5.zip` | **적용** — `tools/repair_lpan.py` 로 재생성 |
+| [F-2](#f-2) | **배포 데이터 불일치** | PanCollection FR 테스트셋 H5 vs .mat | **적용** — 논문 비교 FR 은 .mat 20장 (`tools/build_fr_paperset.py`, `eval_fr_paperset.py`) |
+| [D-7](#d-7) | 지표 | `tools/eval_dlpan.py` SCC·SSIM | **적용** — SCC.m zero-padding, SSIM Gaussian 11×11 (2026-09-07) |
 
 ### A-1 / A-2 를 토글로 둔 이유
 
@@ -431,6 +433,39 @@ str += f'SAM: {self.sam:.6f}\tQ4(first4): {self.q4:.6f}\tERGAS: {self.ergas:.6f}
 최종 수치는 어차피 MATLAB 으로 내므로, 로그 라벨을 `QNR` 로 유지하되
 논문 HQNR 과 같은 것으로 읽지 않도록 주석을 다는 선에서 충분하다.
 
+### D-7. 시트·보고용 SCC 와 SSIM 의 구현 관례가 MATLAB 과 달랐다 (2026-09-07 교정) {#d-7}
+
+`tools/eval_dlpan.py` — 시트(`gspread_upload.py`)와 보고서가 쓰는 함수다.
+`results_log/2026-09-07_metric-comparability-audit.md` 에 근거와 수치가 있다.
+
+- **SCC**: DLPan `SCC.m` 은 `imfilter(fspecial('sobel'))` 이고 imfilter 기본값은 **zero padding** 이다.
+  이전 구현은 `scipy.ndimage.sobel`(reflect 패딩)이라 잘린 영상의 가장자리 1px 링에서 값이 달라
+  **약 +0.004 높게** 나왔다. CANConv 배포 가중치 기준 0.9897(reflect) vs 0.9854(zero) vs 논문 0.985.
+  146개 run 에서 두 정의의 Spearman 0.992 — 순위는 거의 보존된다. 옛 정의는 `scc_scipy_reflect()`.
+  학습 로그(`utils.SCC_numpy`, `[핵심] SCC`, `best_state.scc_at_best`)는 여전히 reflect 정의다 —
+  과거 run 과의 상대 비교를 깨지 않으려고 두었다. 논문 표에 적을 SCC 는 시트 값이다.
+- **SSIM**: DLPan 표준 프로토콜에 없다. Wang/MATLAB 관례(11×11 Gaussian σ1.5, 모집단 분산)로 바꿨다.
+  skimage 기본값(7×7 균일창)은 **약 +0.002 높다**. CANConv 배포 가중치 0.9751(기본) vs 0.9732(Gaussian)
+  vs 논문 0.973. 방법 간 SSIM 차이가 0.003 수준이라 이 차이는 판별에 직접 걸린다. 옛 정의는
+  `ssim_skimage_default()`.
+- **PSNR**: 통합 MSE 그대로. 밴드별 평균은 +1.5 dB (Jensen). 배포 CANConv 37.47 vs 논문 37.441.
+- **HQNR 집계**: 시트의 `_fr()` 도 장면별 (1−D_λ)(1−D_s) 평균으로 통일했다 (이전 prod-of-means 와 ~1e-5).
+- **MTF 커널 (같은 날 2차 지적)**: DLPan 공식 파이썬 포트의 `MTF()` 는 1-D Kaiser 창을 한 축에만 곱하고 음수를
+  자른 뒤 **sum=1 로 정규화**한다. MATLAB `genMTF.m`/`fwind1` 은 Huang 회전 2-D 창을 곱할 뿐 정규화하지 않아
+  DC 이득이 0.9988 이다. 그 차이가 D_λ **+2~4e-4**, HQNR **−2~4e-4** 다 (처음 "9e-7" 이라 한 것은 비교용 재구현에
+  정규화가 남아 있던 오류). `tools/metrics/eval_fr.py` 의 `genmtf_matlab()` 로 교체했다 — train.py 의 선택 지표에도
+  같은 함수가 쓰이므로 이후 run 의 `best_hqnr` 는 이전 run 보다 ~3e-4 낮게 나온다(정의 차이, 성능 차이 아님).
+- **imresize 경계 (2차 지적)**: MATLAB `imresize` 는 범위 밖 인덱스를 symmetric 으로 접는다
+  (`aux=[1:n n:-1:1]`). 이전 구현은 clamp(replicate). D_s +2e-5. 같이 교체했다.
+- **표준편차 (2차 지적)**: 보고하는 ±는 MATLAB `std` 기본값 N−1 이다. numpy 기본 N 을 쓰면 20장에서 2.6% 작다.
+  N−1 로 바꾸니 EXP anchor 가 논문과 네 자리까지 같다 (D_λ 0.0232±0.0066 / D_s 0.0813±0.0318 / HQNR 0.8975±0.0362).
+- **FR·paper JSON 의 provenance (2차 지적)**: `results/fr_mat20.json` 에 평가기 버전·입력 h5/lpan/config 해시·
+  checkpoint 수정시각을 넣고, 하나라도 다르면 캐시를 버린다. 시트 업로더도 버전·해시가 맞지 않는 JSON 은 쓰지 않는다.
+
+2026-09-07 이전에 쓴 문서·시트의 SCC/SSIM 은 옛 정의다. 같은 문서 안에서 비교하는 것은 문제없지만
+논문 값과 나란히 놓을 때는 −0.004 / −0.002 를 감안하거나 새 시트를 인용할 것. 옛 시트는
+`<데이터셋>-<서버>_v1` 탭으로 보존했고, 접미사 없는 탭이 새 정의다.
+
 ### D-6. `scipy.ndimage.filters` 는 deprecated {#d-6}
 
 `utils.py:22` — `from scipy.ndimage.filters import sobel, convolve`.
@@ -532,6 +567,33 @@ Gaussian(sigma=1.98, N=41, BORDER_REPLICATE) 후 [2::4, 2::4] 데시메이션
 어긋나는 2개가 정확히 문제의 파일이다. 원본은 건드리지 않고
 `full_examples_h5_repaired/` 에 새로 만든다. 같은 레시피로 WV2 의 `lpan` 도 생성했다
 (`tools/setup_wv2.py`) — 다만 WV2 는 대조할 배포본이 없어 **검증 불가**다.
+
+### F-2. PanCollection WV3 full-res 테스트셋은 H5 와 .mat 이 **다른 장면 20장**이다 {#f-2}
+
+README 는 "H5 files have same data with mat files" 라고 하지만, 2026-09-07 에 Google Drive 에서
+직접 받아 대조한 결과 WV3 FR 은 그렇지 않다 (`results_log/2026-09-07_metric-comparability-audit.md`).
+
+| | 장면 수 | 성격 | 우리 H5 와 겹침 |
+|---|---:|---|---|
+| H5 `test_wv3_OrigScale_multiExm1.h5` (배포본, 우리가 쓰던 것) | 20 | 0-11 해안 도시(어려움) + 12-19 건조 시가지 | — |
+| **.mat `Test(HxWxC)_wv3_data_fr{1..20}.mat`** | 20 | 전부 건조 시가지 | **6장** (H5 12-17) |
+
+RR 셋은 H5 와 .mat 이 화소 단위로 동일하다(19/19 확인, 20번 파일은 드라이브 폴더에 없었다).
+
+**논문들이 쓴 FR 세트는 .mat 쪽이다.** 모델과 무관한 EXP(=lms) 기준선이 .mat 20장에서
+D_λ 0.0231±0.0064 / D_s 0.0814±0.0310 / HQNR 0.8976±0.0353 으로 CANConv 논문 EXP 행
+(0.0232±0.0066 / 0.0813±0.0318 / 0.897±0.036)과 **표준편차까지** 맞고, CANConv 배포 가중치도
+0.9513±0.0122 vs 논문 0.951±0.013 이다. H5 12-19 로는 표준편차가 맞지 않았다(0.0199 vs 0.0318).
+PAN-Crafter(README: "official MATLAB code from the DLPan-Toolbox")·U-Know-DiffPAN 도 MATLAB
+경로라 .mat 입력이다.
+
+**적용**: `tools/build_fr_paperset.py` 가 .mat 20장을 PAN-Crafter 입력 h5
+(`data/PanCollection/WV3/full_examples_mat20/`, lpan 은 F-1 레시피로 생성)로 만들고,
+`tools/eval_fr_paperset.py` 가 run 마다 `results/fr_mat20.json` 을 낸다. 시트의 FR 은 **FR·paper mat20**
+열뿐이다 (같은 날 사용자 결정으로 H5 12-19 열은 시트에서 뺐다). best checkpoint 선택은 종전대로
+H5 12-19 (`fr_select_indices`) — 선택 세트와 보고 세트를 분리해 선택 편향이 논문 비교 수치에
+들어가지 않게 한다. 다른 서버는 `./tools/metric_v2_prepare.sh` 한 번으로 .mat 다운로드 → h5 생성 →
+이식 검사 → 전 run 재평가 → 시트 업로드 → 옛 탭 순서 재배치까지 끝난다.
 
 ---
 
