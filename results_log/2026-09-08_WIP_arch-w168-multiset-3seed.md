@@ -38,3 +38,13 @@ LR 1픽셀(HR 4px) 어긋나 있다(데시메이션 위상 (1,2)/(2,1)). WV3·GF
 FR 세 지표와 RR 의 PSNR·SSIM·SCC·Q2n 이 논문 자릿수에서 맞는다. SAM·ERGAS 의 −1~−2.6% 는 WV3 때와 같이 "배포 가중치 ≠
 논문 표의 재학습 출력" 차이다(평가기가 아니라 모델 출력). 논문 Table 1/2/3 의 데이터셋별 결과와 같은 데이터·같은 프로토콜로
 비교할 수 있다.
+
+## 2026-09-08 21:xx — JQM 추가 (Palubinskas 2015, `tools/metrics/jqm.py`)
+
+시트 FR·paper 에 JQM↑ 열을 넣었다(논문 세트 mat 에서 계산, 재추론 없음). 정의는 논문 Eq.4/6/8/9/11 그대로이고 논문이 정하지 않은
+선택 — 전역 CMSC 통계 · lpf = genMTF(센서) + (2,2) 데시메이션 · 분광 가중 w = NNLS(MTF_PAN↓PAN ~ MS) · R = 2^L−1 — 은 모듈 docstring
+에 적었다. 두 논문은 JQM 을 보고하지 않으므로 대조값은 없고, **판정 기준은 그대로 HQNR → SCC** 다.
+
+실측 성질: d1·d2 항은 ~1e-4 이하라 CMSC ≈ ρ⁺ 이고, QHR 은 사실상 PAN–intensity 상관이다. 그래서 PAN 구조를 강하게 주입한 출력이
+높게 나온다 — WV3 139 run 에서 **Spearman(HQNR, JQM) = −0.56**, LR-Fuse(HQNR 0.907, 최하위)가 JQM 0.988 로 최상위. QLR 만 보면
+LR-Fuse 가 최하(0.9878)로 상식과 맞는다. 즉 JQM 은 HQNR 과 다른 것을 재며(공간 충실도 편향), 단독 순위 근거로 쓰면 안 된다.
