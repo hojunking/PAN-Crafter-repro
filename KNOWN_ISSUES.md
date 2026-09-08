@@ -581,9 +581,20 @@ README 는 "H5 files have same data with mat files" 라고 하지만, 2026-09-07
 
 RR 셋은 H5 와 .mat 이 화소 단위로 동일하다(19/19 확인, 20번 파일은 드라이브 폴더에 없었다).
 
-다른 센서(2026-09-08 대조): **QB FR 도 다르다** — .mat 20장 중 H5 와 동일한 것은 4장(H5 idx 1,7,9,10). GF2 FR 은 받은
-16장이 전부 H5 0-15 와 동일(나머지 4장은 Drive 속도제한으로 미확인). WV2 FR·각 센서 RR .mat 는 미확인.
-센서별 논문 세트는 `tools/build_paperset_all.sh` 로 만들고, `eval_fr_paperset.py` 가 run 의 센서에 맞는 세트를 고른다.
+다른 센서(2026-09-08, 네 센서 .mat 전부 받아 화소 대조):
+
+| 센서 | RR .mat vs H5 | FR .mat vs H5 | 논문 세트로 쓰는 것 |
+|---|---|---|---|
+| WV3 | 동일 (19/19) | **다름** (겹침 6/20) | `.mat` 20장 |
+| QB | 동일 (20/20) | **다름** (겹침 4/20) | `.mat` 20장 |
+| GF2 | 동일 (20/20) | 동일 (20/20) | `.mat` = H5 |
+| WV2 | 동일 (20/20) | 동일 (20/20) | `.mat` = H5 |
+
+어느 센서든 FR 은 `.mat` 20장 전체를 쓴다 — 부분집합(12-19 같은 것)은 어디에도 없다. 센서별 세트는
+`tools/build_paperset_all.sh`, `eval_fr_paperset.py` 가 run 의 센서에 맞는 세트를 고른다. 평가기·데이터가 논문과
+같은지는 CANConv 배포 가중치(`tools/make_cannet_reference.py`)로 센서마다 확인했다 — 두 논문의 CANConv 행 대비
+FR HQNR: QB 0.8941 vs 0.893 · GF2 0.9189 vs 0.919 · WV2(zero-shot) 0.8770 vs 0.876 · WV3 0.9511 vs 0.951,
+D_λ/D_s 도 세 자리에서 일치. RR 은 PSNR·SSIM·SCC·Q2n 0.4% 이내, SAM·ERGAS 는 −0.5~−2.6%(재학습된 출력 차이).
 
 **논문들이 쓴 FR 세트는 .mat 쪽이다.** 모델과 무관한 EXP(=lms) 기준선이 .mat 20장에서
 D_λ 0.0231±0.0064 / D_s 0.0814±0.0310 / HQNR 0.8976±0.0353 으로 CANConv 논문 EXP 행

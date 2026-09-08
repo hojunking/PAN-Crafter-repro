@@ -106,8 +106,15 @@ PAPER_ROW = {
 # work_dir 에 config 없이 결과 mat 만 있는 참조 (외부 모델의 배포 가중치 등)
 EXTERNAL = {"_ref_cannet": ("□ CANConv (released weights)", "wv3",
                             "CANConv 배포 가중치 실측 — 평가기 검증용. RR 6지표는 논문 CANConv 행과 0.5% 이내, "
-                            "FR·paper(.mat 20장)는 HQNR 0.9513±0.0122 vs 논문 0.951±0.013 으로 표준편차까지 일치",
-                            {"params_m": 0.7874})}
+                            "FR·paper(.mat 20장)는 HQNR 0.9511±0.0126 vs 논문 0.951±0.013 으로 표준편차까지 일치",
+                            {"params_m": 0.7874}),
+            # 센서별 anchor (tools/make_cannet_reference.py): 두 논문의 CANConv 행과 대조해 평가기·데이터가 같은지 확인
+            "_ref_cannet_qb": ("□ CANConv (released cannet_qb.pth)", "qb",
+                               "CANConv 배포 QB 가중치 실측 — 평가기·데이터 anchor (논문 CANConv 행과 대조)", {"params_m": 0.7874}),
+            "_ref_cannet_gf2": ("□ CANConv (released cannet_gf2.pth)", "gf2",
+                                "CANConv 배포 GF2 가중치 실측 — 평가기·데이터 anchor (논문 CANConv 행과 대조)", {"params_m": 0.7874}),
+            "_ref_cannet_wv2": ("□ CANConv (released cannet_wv3.pth → WV2 zero-shot)", "wv2",
+                                "CANConv WV3 가중치의 WV2 zero-shot 실측 — 논문 Table 3 CANConv 행과 대조", {"params_m": 0.7874})}
 
 
 def _fr_paper(wd, peer=None):
