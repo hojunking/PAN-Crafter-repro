@@ -48,15 +48,20 @@ def main():
             lms = np.asarray(f["lms"], dtype=np.float64).transpose(0, 2, 3, 1); pan = np.asarray(f["pan"], dtype=np.float64)[:, 0]
         with h5py.File(a.fr) as f:
             fsr = np.asarray(f["sr"], dtype=np.float64).transpose(0, 2, 3, 1)
+        with h5py.File(h5) as f:
+            ms_all = np.asarray(f["ms"], dtype=np.float64).transpose(0, 2, 3, 1)
         dl = np.array([d_lambda_k(fsr[i], lms[i], s, 4, 32, wald) for i in range(len(fsr))])
         dsv = np.array([d_s(fsr[i], lms[i], pan[i], 4, 32, wald) for i in range(len(fsr))]); h = (1 - dl) * (1 - dsv)
         print(f"   D_l    {dl.mean():9.4f}±{dl.std(ddof=1):.4f}   paper {PAPER[s]['d_lambda']:8.3f}")
         print(f"   D_s    {dsv.mean():9.4f}±{dsv.std(ddof=1):.4f}   paper {PAPER[s]['d_s']:8.3f}")
         print(f"   HQNR   {h.mean():9.4f}±{h.std(ddof=1):.4f}   paper {PAPER[s]['hqnr']:8.3f}   ({100*(h.mean()-PAPER[s]['hqnr'])/PAPER[s]['hqnr']:+.2f}%)")
+        from tools.eval_fr_paperset import jqm_fields
+        jq = jqm_fields([fsr[i] for i in range(len(fsr))], ms_all, pan, s, 1023.0 if s == "gf2" else 2047.0)
+        print(f"   JQM    {jq['jqm']:9.4f}±{jq['jqm_sd']:.4f}   (논문 미보고; QLR {jq['qlr']:.4f} QHR {jq['qhr']:.4f})")
         j = dict(hqnr=float(h.mean()), hqnr_sd=float(h.std(ddof=1)), d_lambda=float(dl.mean()), d_lambda_sd=float(dl.std(ddof=1)), d_s=float(dsv.mean()), d_s_sd=float(dsv.std(ddof=1)),
                  per_scene_hqnr=[round(float(x), 6) for x in h], n=int(len(fsr)), checkpoint=f"../CANConv/weights/{weights} (released)", sensor=s,
                  forward="CANConv tools/infer_h5.py (container), sr uint16 반올림", input_h5=h5, input_sha256=sha256_of(h5), lpan_sha256="", config_sha256="",
-                 eval_version=EVAL_VERSION, std="ddof=1 (MATLAB std)", evaluated_at=datetime.datetime.now().isoformat(timespec="seconds"))
+                 eval_version=EVAL_VERSION, std="ddof=1 (MATLAB std)", evaluated_at=datetime.datetime.now().isoformat(timespec="seconds"), **jq)
         json.dump(j, open(os.path.join(wd, "results", "fr_mat20.json"), "w"), indent=1)
     print(f"   -> {os.path.relpath(wd, ROOT)}")
 

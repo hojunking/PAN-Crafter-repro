@@ -15,6 +15,7 @@
         work_dir/<run>/results/fr_mat20.json (tools/eval_fr_paperset.py). **시트의 FR 은 이 열뿐이다.**
         배포 H5 12-19 (best checkpoint 선택 기준) 는 시트에 올리지 않는다 (2026-09-07 결정).
   HQNR 은 장면별 (1-D_λ)(1-D_s) 의 평균(MATLAB 관례). 새 서버 준비는 tools/metric_v2_prepare.sh.
+  JQM↑ (2026-09-08 추가): Palubinskas 2015 Joint Quality Measure, tools/metrics/jqm.py. 논문 미보고 추가 지표, 판정 기준 아님.
 2026-09-07 이전 시트의 SCC 는 reflect 패딩(약 +0.004), SSIM 은 skimage 기본창(약 +0.002)이었다 —
 그 시트는 `<데이터셋>-<서버>_v1` 탭으로 남겨 두었고, 접미사 없는 탭이 새 정의다.
 `--all --replace` 는 work_dir 의 run 을 전부 파일 순서로 올린다. 큐레이션된 순서·구분행으로 되돌리려면
@@ -69,6 +70,8 @@ COLUMNS = [
     # 값은 tools/eval_fr_paperset.py 가 쓴 results/fr_mat20.json 에서 읽는다. 없으면 빈 칸.
     ("FR·paper mat20", "D_lambda↓", "p_d_lambda", 4), ("FR·paper mat20", "D_s↓", "p_d_s", 4),
     ("FR·paper mat20", "HQNR↑", "p_hqnr", 4),
+    # JQM (Palubinskas 2015, tools/metrics/jqm.py) — 두 논문이 보고하지 않는 추가 지표. 판정 기준이 아니다(HQNR→SCC 유지).
+    ("FR·paper mat20", "JQM↑", "p_jqm", 4),
     # 배포 H5 의 12-19(8장) FR 열은 2026-09-07 시트에서 뺐다 (사용자 결정 — 논문 세트만 보고한다).
     # H5 12-19 는 학습 중 best checkpoint 선택(train.py `fr_select_indices`)에만 쓰이고 시트에는 오르지 않는다.
     # 0-11 은 12-19 보다 크게 어려운 장면(D_lambda 2.4배)이고 논문 세트와는 6장만 겹친다 (KNOWN_ISSUES F-2).
@@ -142,7 +145,10 @@ def _fr_paper(wd, peer=None):
         print(f"  [fr_paper] {os.path.basename(wd)}: JSON 이 옛 평가기/데이터({j.get('eval_version')}) — "
               f"FR·paper 열 비움. tools/eval_fr_paperset.py 로 다시 잴 것")
         return {}
-    return {"p_hqnr": j["hqnr"], "p_d_lambda": j["d_lambda"], "p_d_s": j["d_s"]}
+    out = {"p_hqnr": j["hqnr"], "p_d_lambda": j["d_lambda"], "p_d_s": j["d_s"]}
+    if "jqm" in j:
+        out["p_jqm"] = j["jqm"]
+    return out
 
 
 def sheet_name(ds, server):

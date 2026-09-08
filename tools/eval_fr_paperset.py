@@ -46,7 +46,10 @@ CKPTS = ("best_hqnr", "best_val", "best_reduced")
 # 다르면 캐시를 버리고 다시 잰다 (검증 지적 2026-09-07: 캐시가 코드·데이터 변경을 몰랐다).
 #   2026-09-07.1  최초 (DLPan 파이썬 포트 MTF 커널, imresize replicate, std N)
 #   2026-09-07.2  genMTF.m 충실 커널(정규화 없음)·imresize symmetric·std N-1·provenance 필드·uvs/mutual 지원
-EVAL_VERSION = "2026-09-07.2"
+#   2026-09-08.3  JQM(Palubinskas 2015; tools/metrics/jqm.py) 추가 — D_λ/D_s/HQNR 은 .2 와 같으므로 .2 JSON 은 저장된
+#                 mat 에서 JQM 만 계산해 올린다(재추론 없음)
+EVAL_VERSION = "2026-09-08.3"
+JQM_COMPATIBLE = ("2026-09-07.2",)
 
 _SHA = {}
 
@@ -139,10 +142,22 @@ def build(cfg, wd, ckpt, peer=None):
     raise NotImplementedError(f"trainer={tr} 는 이 스크립트가 다루지 않는다")
 
 
-def cache_valid(j, ckpt, ckpt_mtime, prov):
+def cache_valid(j, ckpt, ckpt_mtime, prov, ignore_version=False):
     """캐시 유효 조건: 평가기 버전·입력 h5·lpan·config 해시·checkpoint 이름·checkpoint 수정시각이 전부 같다."""
+    keys = ("input_sha256", "lpan_sha256", "config_sha256") + (() if ignore_version else ("eval_version",))
     return (j.get("checkpoint") == ckpt and abs(float(j.get("ckpt_mtime", -1)) - ckpt_mtime) < 1e-6
-            and all(j.get(k) == prov[k] for k in ("eval_version", "input_sha256", "lpan_sha256", "config_sha256")))
+            and all(j.get(k) == prov[k] for k in keys))
+
+
+def jqm_fields(sr_hwc_list, ms_all, pan_all, sensor, R):
+    """장면별 JQM/QLR/QHR (tools/metrics/jqm.py). sr_hwc_list: (H,W,C) DN 리스트."""
+    from tools.metrics.jqm import jqm
+    r = [jqm(s, ms_all[i], pan_all[i], sensor.upper(), 4, R) for i, s in enumerate(sr_hwc_list)]
+    J = np.array([x["JQM"] for x in r]); L = np.array([x["QLR"] for x in r]); H = np.array([x["QHR"] for x in r])
+    sd = (lambda v: float(v.std(ddof=1))) if len(J) > 1 else (lambda v: 0.0)
+    return dict(jqm=float(J.mean()), jqm_sd=sd(J), qlr=float(L.mean()), qhr=float(H.mean()),
+                per_scene_jqm=[round(float(x), 6) for x in J],
+                jqm_protocol="Palubinskas 2015 Eq.4/6/8/9/11: CMSC 전역 통계, lpf=genMTF(sensor)+(2,2) 데시메이션, w=NNLS(MTF_PAN↓PAN~MS), v1=v2=0.5, R=2^L-1")
 
 
 def run_one(tag, h5, wald, dev, force, peer=None):
@@ -170,10 +185,22 @@ def run_one(tag, h5, wald, dev, force, peer=None):
     if not os.path.exists(h5):
         return None, f"논문 세트 h5 없음 ({os.path.relpath(h5, ROOT)}) — tools/build_paperset_all.sh {sensor}"
     prov = provenance(h5, cfgp)
+    R = float(2 ** int(round(np.log2(2048.0 if sensor != "gf2" else 1024.0))) - 1)     # 2047 / 1023
     if os.path.exists(out_json) and not force:
         j = json.load(open(out_json))
         if cache_valid(j, ckpt, ckpt_mtime, prov):
             return j, "cached"
+        # 이전 호환 버전 JSON: D_λ/D_s/HQNR 은 그대로 두고 저장된 mat 에서 JQM 만 더한다 (재추론 없음)
+        mat_prev = os.path.join(ROOT, j.get("mat", "")) if j.get("mat") else ""
+        if j.get("eval_version") in JQM_COMPATIBLE and cache_valid(j, ckpt, ckpt_mtime, prov, ignore_version=True) and os.path.exists(mat_prev):
+            import h5py
+            with h5py.File(h5) as f:
+                ms_all = np.asarray(f["ms"], dtype=np.float64).transpose(0, 2, 3, 1); pan_all = np.asarray(f["pan"], dtype=np.float64)[:, 0]
+            srm = loadmat(mat_prev)["sr"].astype(np.float64)
+            srl = [srm[i].transpose(1, 2, 0) for i in range(len(srm))]
+            j.update(jqm_fields(srl, ms_all, pan_all, sensor, R)); j["eval_version"] = EVAL_VERSION
+            json.dump(j, open(out_json, "w"), indent=1)
+            return j, "jqm-added"
     try:
         m, fwd, how = build(cfg, wd, ckpt, peer)
     except NotImplementedError as e:
@@ -197,12 +224,14 @@ def run_one(tag, h5, wald, dev, force, peer=None):
     import h5py
     with h5py.File(h5) as f:
         lms_all = np.asarray(f["lms"], dtype=np.float64).transpose(0, 2, 3, 1)
+        ms_all = np.asarray(f["ms"], dtype=np.float64).transpose(0, 2, 3, 1)
         pan_all = np.asarray(f["pan"], dtype=np.float64)[:, 0]
-    dl, dsv = [], []
+    dl, dsv, srl = [], [], []
     for i in range(len(sr)):
-        s = sr[i].astype(np.float64).transpose(1, 2, 0)
+        s = sr[i].astype(np.float64).transpose(1, 2, 0); srl.append(s)
         # 센서별 MTF(genMTF.m: WV3/WV2/QB 표, GF2 는 otherwise 0.3) — eval_fr.SENSOR_NAME 이 preset 키로 매핑
         dl.append(d_lambda_k(s, lms_all[i], sensor, 4, 32, wald)); dsv.append(d_s(s, lms_all[i], pan_all[i], 4, 32, wald))
+    jq = jqm_fields(srl, ms_all, pan_all, sensor, R)
     dl, dsv = np.array(dl), np.array(dsv); h = (1 - dl) * (1 - dsv)
     sd = (lambda v: float(v.std(ddof=1))) if len(h) > 1 else (lambda v: 0.0)     # MATLAB std (N-1)
     j = dict(hqnr=float(h.mean()), hqnr_sd=sd(h), d_lambda=float(dl.mean()), d_lambda_sd=sd(dl),
@@ -211,7 +240,7 @@ def run_one(tag, h5, wald, dev, force, peer=None):
              n=int(len(sr)), checkpoint=ckpt, ckpt_mtime=ckpt_mtime, peer=peer or "", forward=how, mat=os.path.relpath(mat_path, ROOT),
              sensor=sensor, std="ddof=1 (MATLAB std)",
              protocol="DLPan HQNR: D_lambda_K(genMTF.m 충실 커널, q2n S=32) + D_s(block-UQI S=32, interp23tap(imresize symmetric(PAN,1/4))) ; HQNR = mean_i (1-Dl_i)(1-Ds_i)",
-             evaluated_at=datetime.datetime.now().isoformat(timespec="seconds"), **prov)
+             evaluated_at=datetime.datetime.now().isoformat(timespec="seconds"), **prov, **jq)
     json.dump(j, open(out_json, "w"), indent=1)
     return j, "new"
 
@@ -250,7 +279,7 @@ def main():
                 print(f"  {lab:52s} 실패: {type(e).__name__}: {e}", flush=True); continue
             if j is None:
                 print(f"  {lab:52s} 건너뜀 ({st})", flush=True); continue
-            print(f"  {lab:52s} HQNR {j['hqnr']:.4f}±{j['hqnr_sd']:.4f}  D_l {j['d_lambda']:.4f}  D_s {j['d_s']:.4f}  [{j['checkpoint']}, {st}]", flush=True)
+            print(f"  {lab:52s} HQNR {j['hqnr']:.4f}±{j['hqnr_sd']:.4f}  D_l {j['d_lambda']:.4f}  D_s {j['d_s']:.4f}  JQM {j.get('jqm', float('nan')):.4f}  [{j['checkpoint']}, {st}]", flush=True)
     return 0
 
 

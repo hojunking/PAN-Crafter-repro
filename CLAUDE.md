@@ -80,6 +80,8 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지 
   `2026-09-07_metric-comparability-audit.md`). H5 12-19 는 그중 6장만 겹친다. **시트의 FR 은
   `results/fr_mat20.json`(`tools/eval_fr_paperset.py`) = FR·paper mat20 열뿐이다** (2026-09-07 사용자 결정).
   H5 12-19 는 학습 중 best 선택에만 쓴다. 새 서버·다른 서버 재측정은 `./tools/metric_v2_prepare.sh` 한 번.
+- **JQM(Palubinskas 2015, `tools/metrics/jqm.py`)은 추가 지표다** — 두 논문이 보고하지 않으며 판정 기준이 아니다(HQNR→SCC 유지).
+  전역 CMSC, lpf=genMTF, 분광 가중 NNLS 라는 우리 선택이 들어 있으니 인용할 때 그 사실을 적는다. 시트 FR·paper 의 JQM↑ 열.
 - **시트·보고용 SCC 는 SCC.m(zero-padding), SSIM 은 Gaussian 11×11** (KNOWN_ISSUES D-7). 2026-09-07 이전
   문서의 SCC 는 약 +0.004, SSIM 은 약 +0.002 높은 옛 정의다. 학습 로그의 SCC 는 여전히 옛 정의(상대 비교용).
 - **평가기는 MATLAB 소스를 파이썬으로 재구현한 것이지 MATLAB 실행이 아니다.** 비트 동일을 주장하지 않는다.

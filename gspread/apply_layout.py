@@ -85,12 +85,19 @@ def main():
         for t, d in keyed_rows(json.load(open(p))).items():
             src.setdefault(t, d)
     want = [("", "Run")] + [(c[0], c[1]) for c in cols[1:]]
-    def to_row(d):
+    key_of = {(c[0], c[1]): c[2] for c in cols}          # (그룹, 라벨) -> row 키
+    def to_row(t, d):
         r = [""] * (len(want) + 1)
+        # 시트에 없던 FR·paper 열(예: 2026-09-08 JQM 추가)은 run 의 fr_mat20.json 에서 채운다 (검증된 JSON 만)
+        wd = os.path.join(ROOT, "work_dir", t)
+        fresh = gu._fr_paper(wd) if os.path.isdir(wd) else {}
         for j, k in enumerate(want):
-            r[j + 1] = d.get(k, "")
+            v = d.get(k, "")
+            if v == "" and key_of.get(k, "").startswith("p_") and key_of[k] in fresh:
+                v = round(float(fresh[key_of[k]]), 4)
+            r[j + 1] = v
         return r
-    rows = {t: to_row(d) for t, d in src.items()}
+    rows = {t: to_row(t, d) for t, d in src.items()}
     # 헤더는 코드 기준으로 다시 만든다
     header = [[""] * (len(want) + 1) for _ in range(3)]
     header[1] = [""] + [c[0] if (i == 0 or cols[i - 1][0] != c[0]) else "" for i, c in enumerate(cols)]
@@ -132,6 +139,12 @@ def main():
             gu._retry(gu._write_header, w, cols, gu.SHEET_COLOR.get(ds, (0.85, 0.89, 0.95)))
     ensure_header(ws)
     write_tab(sh, ws, header, main_body, seps, ncol, cols)
+    if not leftover:
+        # 옛 탭에 없던 run 이 없으면 extra 탭을 만들지 않는다 (빈 탭 생성 방지)
+        got = {run_tag(r[1]) for r in datarows(ws.get_all_values())}
+        lost = set(rows) - got
+        print("검증 " + ("OK — run 손실 0 (extra 없음)" if not lost else f"실패 — 손실 {sorted(lost)}"))
+        return 1 if lost else 0
     wx = gu._ensure_sheet(sh, extra_title)
     json.dump(wx.get_all_values(), open(os.path.join(BK, f"{extra_title}.before_layout.json"), "w"), ensure_ascii=False, indent=1)
     ensure_header(wx)
