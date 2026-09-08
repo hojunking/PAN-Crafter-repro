@@ -62,7 +62,7 @@ COLUMNS = [
     # reduced-resolution (테스트 20장)
     ("RR", "ERGAS↓", "ergas", 4), ("RR", "SAM↓", "sam", 4),
     ("RR", "PSNR↑", "psnr", 4),   ("RR", "SSIM↑", "ssim", 4),
-    ("RR", "SCC↑", "scc", 4),     ("RR", "Q2n↑", "q2n", 4),
+    ("RR", "SCC↑", "scc", 4),     ("RR", "Q4/Q8↑", "q2n", 4),   # Q2n: 4밴드 = Q4, 8밴드 = Q8 (논문 표기)
     ("RR", "RMSE↓", "rmse", 4),   ("RR", "CC↑", "cc", 4),
     # full-resolution (1) — 논문 세트. PanCollection .mat 형식 FR 20장. CANConv 배포 가중치가
     # 논문 CANConv 행과 D_λ/D_s/HQNR 평균·표준편차까지 일치한다(0.9513±0.0122 vs 0.951±0.013).

@@ -183,7 +183,7 @@ def main():
         if r is None:
             return [""] * 8
         g = lambda col: (r[idx[col]] if col in idx and idx[col] < len(r) else "")
-        return [g("ERGAS↓"), g("SAM↓"), g("SCC↑"), g("Q2n↑"), g("HQNR↑"),
+        return [g("ERGAS↓"), g("SAM↓"), g("SCC↑"), g("Q4/Q8↑"), g("HQNR↑"),
                 g("Params(M)"), g("Infer(ms)"), g("Train(h)")]
 
     out = [[BASELINE] + [""] * (len(HEADER) - 1),
