@@ -17,8 +17,17 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 from repair_lpan import make_lpan  # noqa: E402
 
-SRC = os.path.join(os.environ.get("PANCRAFTER_CANCONV", "/home/knuvi/Desktop/song/CANConv"), "data/datasets/wv2")
+# 원본 h5 위치: --src <dir> > PANCRAFTER_WV2_SRC > CANConv 형제 저장소. PanCollection Drive 에서 받은
+# test_wv2_multiExm1.h5 / test_wv2_OrigScale_multiExm1.h5 를 한 폴더에 두고 --src 로 주면 된다.
+_argv = sys.argv[1:]
+SRC = (_argv[_argv.index("--src") + 1] if "--src" in _argv else
+       os.environ.get("PANCRAFTER_WV2_SRC") or
+       os.path.join(os.environ.get("PANCRAFTER_CANCONV", "/home/knuvi/Desktop/song/CANConv"), "data/datasets/wv2"))
 DST = f"{ROOT}/data/PanCollection/WV2"
+for _name in ("test_wv2_multiExm1", "test_wv2_OrigScale_multiExm1"):
+    if not os.path.exists(f"{SRC}/{_name}.h5"):
+        sys.exit(f"!! {SRC}/{_name}.h5 없음 — PanCollection WV2 Testing(H5) 를 받아 --src 로 지정할 것 "
+                 f"(Drive RR 1bpx99ewDRhe8jgAnr4XUMxvb2PqMxKk4 · FR 1uIYVnceftT3KjM_WRLwMpy0IOgpNmMIv)")
 JOBS = [("reduced_examples_h5", "test_wv2_multiExm1"),
         ("full_examples_h5",    "test_wv2_OrigScale_multiExm1")]
 

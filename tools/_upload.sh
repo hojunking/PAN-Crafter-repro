@@ -17,12 +17,20 @@ fi
 LOG="$REPO/work_dir/gspread_upload.log"
 {
   echo "--- $(date -Iseconds)  $* ---"
-  # 논문 세트(.mat FR 20장) 평가 — 시트의 FR·paper 열. 입력 h5 가 없는 서버면 건너뛴다 (KNOWN_ISSUES F-2).
-  if [ -f "$REPO/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5" ]; then
-    python tools/eval_fr_paperset.py "$@" 2>&1 | grep -v Warning || true
-  else
-    echo "[upload] full_examples_mat20 h5 없음 — FR·paper 열은 비운다 (tools/build_fr_paperset.py 참고)"
-  fi
+  # 논문 세트(.mat FR 20장) 평가 — 시트의 FR 열. run 의 센서에 맞는 h5 가 없으면 스크립트가 건너뛴다 (KNOWN_ISSUES F-2).
+  python tools/eval_fr_paperset.py "$@" 2>&1 | grep -v Warning || true
+  # 아키텍처 고정 다중 데이터셋 캠페인: WV3 학습 run 이 끝나면 WV2 zero-shot run 도 만들어 함께 올린다
+  ZS=()
+  for t in "$@"; do
+    case "$t" in ARCH_W168_D123_DUAL_WV3_*|S1_T05_W168_D123_DUAL)
+      if [ -f "$REPO/data/PanCollection/WV2/reduced_examples_h5/test_wv2_multiExm1_pan.h5" ]; then
+        python tools/make_zeroshot_run.py --run "$t" --sensor wv2 2>&1 | grep -v Warning && ZS+=("${t}_zs_wv2") || echo "[upload] zero-shot 실패: $t"
+      else
+        echo "[upload] WV2 데이터 없음 — zero-shot 생략 (tools/setup_wv2.py)"
+      fi;;
+    esac
+  done
+  set -- "$@" "${ZS[@]}"
   # 구글 API 가 간헐적으로 503 을 낸다. 몇 번 다시 시도한다.
   for k in 1 2 3; do
     python gspread/gspread_upload.py "$@" 2>&1 && break

@@ -19,7 +19,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
 UPLOAD=1; SHARDS=1
 while [ $# -gt 0 ]; do case "$1" in
   --no-upload) UPLOAD=0;; --shards) SHARDS="$2"; shift;; *) echo "unknown arg $1" >&2; exit 2;; esac; shift; done
-[ -f tools/setup_paths.sh ] && source tools/setup_paths.sh >/dev/null 2>&1 || true
+# (tools/setup_paths.sh 는 대화형 sourcing 용이라 여기서는 부르지 않는다 — set -e 아래에서 스크립트를 끝내 버린다)
 : "${PANCRAFTER_DLPAN:=/home/knuvi/Desktop/song/DLPan-Toolbox}"; export PANCRAFTER_DLPAN
 [ -d "$PANCRAFTER_DLPAN" ] || { echo "!! PANCRAFTER_DLPAN=$PANCRAFTER_DLPAN 없음 — DLPan-Toolbox 를 clone 하고 경로를 지정할 것"; exit 1; }
 PY="${PYTHON:-python}"; command -v "$PY" >/dev/null || PY=/home/knuvi/miniconda3/envs/pancrafter/bin/python
@@ -27,22 +27,9 @@ SERVER="$(cat gspread/server.txt 2>/dev/null || true)"
 [ -n "$SERVER" ] || { echo "!! gspread/server.txt 가 없다 (예: echo s2 > gspread/server.txt)"; exit 1; }
 echo "[prepare] server=$SERVER  python=$PY  DLPan=$PANCRAFTER_DLPAN"
 
-H5=data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5
-if [ ! -f "$H5" ]; then
-  SRC=data/PanCollection/WV3/full_examples_mat
-  if ! ls "$SRC"/Test\(HxWxC\)_wv3_data_fr*.mat >/dev/null 2>&1; then
-    echo "[prepare] 1/5 .mat FR 20장 다운로드 (Google Drive, ~300MB)"
-    "$PY" -c "import gdown" 2>/dev/null || "$PY" -m pip install -q gdown
-    mkdir -p "$SRC"; ( cd "$SRC" && "$PY" -m gdown --folder "https://drive.google.com/drive/folders/16pGIqvwWfyQVvkk3s1xrwLpavqQd0Bv7" )
-    # gdown 은 폴더 이름(full_examples)으로 받는다 — 평탄화
-    find "$SRC" -name 'Test(HxWxC)_wv3_data_fr*.mat' -exec mv -n {} "$SRC"/ \; 2>/dev/null || true
-    n=$(ls "$SRC"/Test\(HxWxC\)_wv3_data_fr*.mat 2>/dev/null | wc -l)
-    [ "$n" = 20 ] || { echo "!! .mat 20장이 아니라 $n 장 — Drive 할당량이면 브라우저로 받아 $SRC 에 둘 것"; exit 1; }
-  fi
-  echo "[prepare] 1/5 입력 h5 생성"; "$PY" tools/build_fr_paperset.py --src "$SRC"
-else
-  echo "[prepare] 1/5 $H5 있음 — 건너뜀"
-fi
+echo "[prepare] 1/5 논문 FR 세트 (센서별 .mat 20장 → h5)"
+PYTHON="$PY" ./tools/build_paperset_all.sh          # 데이터가 있는 센서만; 이미 있으면 건너뜀
+[ -f data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5 ] || { echo "!! WV3 논문 세트 h5 가 없다"; exit 1; }
 echo "[prepare] 2/5 지표 이식 검사"; "$PY" tools/verify_metrics.py
 echo "[prepare] 3/5 논문 세트 평가 (shards=$SHARDS)"
 if [ "$SHARDS" -gt 1 ]; then

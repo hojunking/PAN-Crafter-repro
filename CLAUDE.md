@@ -154,5 +154,9 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
 
 ## 현재 진행 상황
 
-`results_log/README.md` 최상단과 `2026-08-24_WIP_*.md` 를 보면 된다.
+`results_log/README.md` 최상단과 최신 `*_WIP_*.md` 를 보면 된다.
 진행 중인 체인은 `ps -eo pid,ppid,args | grep _run_` 으로 확인한다.
+
+2026-09-08 부터: **아키텍처 고정(S1_T05_W168_D123_DUAL) 다중 데이터셋 3-seed** — WV3/QB/GF2 × seed 2025·1234·7777 +
+WV2 zero-shot, 서버 3대가 같은 큐(`config/queues/arch_w168_multiset_3seed.txt`). 준비·기동은 `./tools/arch_multiset_prepare.sh`,
+계획은 `research_log/2026-09-08_arch-w168-multiset-3seed-plan.md`. config 는 `tools/gen_arch_multiset_configs.py` 가 만든다.

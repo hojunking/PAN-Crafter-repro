@@ -25,7 +25,21 @@ sys.path.insert(0, ROOT)
 from main import import_class                                             # noqa: E402
 from tools.metrics.eval_fr import load_dlpan, d_lambda_k, d_s             # noqa: E402
 
-H5_DEFAULT = os.path.join(ROOT, "data", "PanCollection", "WV3", "full_examples_mat20", "test_wv3_OrigScale_mat20.h5")
+SENSORS = ("wv3", "qb", "gf2", "wv2")
+
+
+def h5_for(sensor):
+    """센서별 논문 세트 h5 (tools/build_fr_paperset.py --sensor 가 만든다)."""
+    return os.path.join(ROOT, "data", "PanCollection", sensor.upper(), "full_examples_mat20", f"test_{sensor}_OrigScale_mat20.h5")
+
+
+def sensor_of(cfg):
+    """run 의 FR 테스트 dataroot 파일명에서 센서를 읽는다 (test_<sensor>_OrigScale_...)."""
+    base = os.path.basename(str(cfg.get("test_full_feeder_args", {}).get("dataroot", "")))
+    return next((s for s in SENSORS if base.startswith(f"test_{s}_")), "wv3")
+
+
+H5_DEFAULT = h5_for("wv3")           # 하위 호환 (gspread 등)
 CKPTS = ("best_hqnr", "best_val", "best_reduced")
 
 # 평가기 버전. tools/metrics/eval_fr.py 나 이 파일의 추론·집계가 바뀌면 올린다 — JSON 의 eval_version 이
@@ -149,12 +163,17 @@ def run_one(tag, h5, wald, dev, force, peer=None):
     meta = os.path.join(wd, "meta")
     if not force and os.path.exists(os.path.join(meta, "started_at.txt")) and not os.path.exists(os.path.join(meta, "finished_at.txt")):
         return None, "학습 진행 중 (finished_at 없음)"
+    cfg = yaml.safe_load(open(cfgp))
+    sensor = sensor_of(cfg)
+    if h5 is None:
+        h5 = h5_for(sensor)
+    if not os.path.exists(h5):
+        return None, f"논문 세트 h5 없음 ({os.path.relpath(h5, ROOT)}) — tools/build_paperset_all.sh {sensor}"
     prov = provenance(h5, cfgp)
     if os.path.exists(out_json) and not force:
         j = json.load(open(out_json))
         if cache_valid(j, ckpt, ckpt_mtime, prov):
             return j, "cached"
-    cfg = yaml.safe_load(open(cfgp))
     try:
         m, fwd, how = build(cfg, wd, ckpt, peer)
     except NotImplementedError as e:
@@ -182,14 +201,15 @@ def run_one(tag, h5, wald, dev, force, peer=None):
     dl, dsv = [], []
     for i in range(len(sr)):
         s = sr[i].astype(np.float64).transpose(1, 2, 0)
-        dl.append(d_lambda_k(s, lms_all[i], "wv3", 4, 32, wald)); dsv.append(d_s(s, lms_all[i], pan_all[i], 4, 32, wald))
+        # 센서별 MTF(genMTF.m: WV3/WV2/QB 표, GF2 는 otherwise 0.3) — eval_fr.SENSOR_NAME 이 preset 키로 매핑
+        dl.append(d_lambda_k(s, lms_all[i], sensor, 4, 32, wald)); dsv.append(d_s(s, lms_all[i], pan_all[i], 4, 32, wald))
     dl, dsv = np.array(dl), np.array(dsv); h = (1 - dl) * (1 - dsv)
     sd = (lambda v: float(v.std(ddof=1))) if len(h) > 1 else (lambda v: 0.0)     # MATLAB std (N-1)
     j = dict(hqnr=float(h.mean()), hqnr_sd=sd(h), d_lambda=float(dl.mean()), d_lambda_sd=sd(dl),
              d_s=float(dsv.mean()), d_s_sd=sd(dsv), per_scene_hqnr=[round(float(x), 6) for x in h],
              per_scene_d_lambda=[round(float(x), 6) for x in dl], per_scene_d_s=[round(float(x), 6) for x in dsv],
              n=int(len(sr)), checkpoint=ckpt, ckpt_mtime=ckpt_mtime, peer=peer or "", forward=how, mat=os.path.relpath(mat_path, ROOT),
-             std="ddof=1 (MATLAB std)",
+             sensor=sensor, std="ddof=1 (MATLAB std)",
              protocol="DLPan HQNR: D_lambda_K(genMTF.m 충실 커널, q2n S=32) + D_s(block-UQI S=32, interp23tap(imresize symmetric(PAN,1/4))) ; HQNR = mean_i (1-Dl_i)(1-Ds_i)",
              evaluated_at=datetime.datetime.now().isoformat(timespec="seconds"), **prov)
     json.dump(j, open(out_json, "w"), indent=1)
@@ -200,7 +220,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("pattern", nargs="*", default=[])
     ap.add_argument("--all", action="store_true")
-    ap.add_argument("--h5", default=H5_DEFAULT)
+    ap.add_argument("--h5", default=None, help="논문 세트 h5 (기본: run 의 센서에 맞는 data/PanCollection/<DS>/full_examples_mat20/)")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     ap.add_argument("--shard", default=None, help="i/n — 대상 run 을 n 조각으로 나눠 i 번째만 (병렬 배치용)")
@@ -216,7 +236,7 @@ def main():
     if not tags:
         print("대상 없음"); return 1
     wald = load_dlpan(os.environ.get("PANCRAFTER_DLPAN", "/home/knuvi/Desktop/song/DLPan-Toolbox"))
-    print(f"입력 {a.h5}  device={a.device}  {len(tags)} run")
+    print(f"입력 {a.h5 or '센서별 full_examples_mat20'}  device={a.device}  {len(tags)} run")
     for t in tags:
         peers = [None]
         ck = pick_ckpt(os.path.join(ROOT, "work_dir", t))

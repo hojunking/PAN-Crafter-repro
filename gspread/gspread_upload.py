@@ -119,10 +119,11 @@ def _fr_paper(wd, peer=None):
     p = os.path.join(wd, "results", "fr_mat20_peerB.json" if peer == "B" else "fr_mat20.json")
     if not os.path.exists(p):
         return {}
-    from tools.eval_fr_paperset import EVAL_VERSION, H5_DEFAULT, sha256_of
+    from tools.eval_fr_paperset import EVAL_VERSION, sha256_of
     j = json.load(open(p))
-    want_sha = sha256_of(H5_DEFAULT) if os.path.exists(H5_DEFAULT) else None
-    if j.get("eval_version") != EVAL_VERSION or (want_sha and j.get("input_sha256") != want_sha):
+    src_h5 = j.get("input_h5", "")
+    want_sha = sha256_of(src_h5) if src_h5 and os.path.exists(src_h5) else None    # 센서별 논문 세트 h5
+    if j.get("eval_version") != EVAL_VERSION or want_sha is None or j.get("input_sha256") != want_sha:
         print(f"  [fr_paper] {os.path.basename(wd)}: JSON 이 옛 평가기/데이터({j.get('eval_version')}) — "
               f"FR·paper 열 비움. tools/eval_fr_paperset.py 로 다시 잴 것")
         return {}
@@ -646,6 +647,9 @@ def collect(tag, want_profile, server, peer=None):
                     f"shift: MS 격자 ±{_s.get('search_radius', 3)} cost-volume, T {_s.get('softmax_temperature', 0.07)}, 추론 gate c<{_s.get('confidence_threshold', 0.35)}→0, PAN 3ch {_s.get('warp_mode', 'bicubic')} warp ×4 · "
                     f"teacher forcing η 1→0 ({(_u.get('teacher_forcing') or {}).get('s0', 5000)}–{(_u.get('teacher_forcing') or {}).get('s1', 20000)})")
         bits.append("판정: best=HQNR(12-19, 장면별 평균)→fSCC · controlled-shift 는 tools/uvs_controlled_shift.py (results/controlled_shift.csv)")
+    if "_zs_" in tag:
+        bits.append("zero-shot: 학습 센서(WV3) best checkpoint 를 이 센서 테스트셋에 그대로 적용 · "
+                    "lpan 은 F-1 레시피 생성(배포본 없어 검증 불가) · tools/make_zeroshot_run.py")
     if row["seed"] != 2025:
         bits.append(f"seed={row['seed']}")
     if a.select_on != "hqnr":
