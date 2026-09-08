@@ -230,7 +230,7 @@ def main():
         tags = sorted({os.path.basename(os.path.dirname(d)) for d in glob.glob(os.path.join(ROOT, "work_dir", "*", "results"))})
     for pat in a.pattern:
         tags += [os.path.basename(d) for d in sorted(glob.glob(os.path.join(ROOT, "work_dir", pat))) if os.path.isdir(d)]
-    seen = set(); tags = [t for t in tags if not (t in seen or seen.add(t)) and not t.startswith("_INVALID")]
+    seen = set(); tags = [t for t in tags if not (t in seen or seen.add(t)) and not t.startswith("_INVALID") and not t.endswith("_msbug")]
     if a.shard:
         i, n = (int(x) for x in a.shard.split("/")); tags = tags[i::n]
     if not tags:

@@ -141,6 +141,8 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
   비교용 mat 은 반드시 이름으로 명시한다. 정렬로 고르면 이게 먼저 잡힌다.
 - **배포 `pan_h5.zip` 의 WV3·QB full-res `lpan` 이 다른 장면이다** (F-1).
   `tools/repair_lpan.py` 로 복구하지 않으면 full-res 평가가 무효다.
+- **PanCollection QB 학습·검증셋의 `ms` 는 2/3 패치가 `gt` 와 LR 1px 어긋나 있다** (F-3). `train_qb.h5` 로 학습한
+  QB 결과는 무효 — `tools/repair_qb_ms.py` 가 만든 `*_msfix.h5` 를 쓴다. WV3·GF2·QB 테스트셋은 정상.
 - **`pkill -f <패턴>` 이 자기 자신을 잡는다.** `ps -eo pid,args` 로 PID 를 골라 죽인다.
   `pgrep -f` 도 같다 — 확인 명령줄에 패턴 텍스트가 있으면 그 셸이 잡혀 "이미 실행 중" 이 거짓으로
   뜬다(`campaign_start.sh` 가 그렇게 한 번 거부됐다). `grep '[_]run_cases'` 처럼 bracket 으로 피한다.

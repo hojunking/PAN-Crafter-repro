@@ -17,7 +17,7 @@ select_on: hqnr
 # feeder
 feeder: feeders.feeder.PanFeeder
 train_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb.h5
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb_msfix.h5
   crop: False
   hflip: True
   vflip: True
@@ -26,7 +26,7 @@ train_feeder_args:
   ms_size: 16
 
 val_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb.h5
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb_msfix.h5
 
 test_reduced_feeder_args:
   dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/reduced_examples_h5/test_qb_multiExm1.h5

@@ -868,7 +868,9 @@ def upload(rows, server, replace=False):
         cur_hdr = (cur[0] + [""] * n)[:n] if cur else []
         cur_grp = (grp[0] + [""] * n)[:n] if grp else []
         if cur and cur_hdr != want_hdr or cur_grp != want_grp:
-            has_rows = bool(ws.get(f"{_col(ORIGIN_COL)}{ORIGIN_ROW + 2}"))
+            got = ws.get(f"{_col(ORIGIN_COL)}{ORIGIN_ROW + 2}:{_col(ORIGIN_COL)}")
+            # gspread 는 빈 범위에도 [[]] 를 돌려줄 수 있다 — 실제 값이 있는지 본다 (2026-09-08 QB-s1 빈 탭에서 오탐)
+            has_rows = any(any(c.strip() for c in r) for r in (got or []))
             if has_rows and not replace:
                 # 열 배치가 바뀌었는데 기존 행이 있다. 헤더만 다시 쓰면 기존 행의 셀이 새 열과 어긋난다
                 # (2026-09-07 FR·paper 열 추가 때 생긴 상황). 단건 업로드는 건너뛰고 전체 재작성을 요구한다.
@@ -946,6 +948,8 @@ def main():
     if a.all:
         tags = [os.path.basename(os.path.dirname(os.path.dirname(p)))
                 for p in glob.glob(f"{ROOT}/work_dir/*/results/reduced_*.mat")]
+        # 무효 run 은 --all 에서 뺀다: _INVALID_*(증강 위상 버그), *_msbug(QB 배포 ms 결함, KNOWN_ISSUES F-3)
+        tags = [t for t in tags if not t.startswith("_INVALID") and not t.endswith("_msbug")]
     for pat in a.pattern:
         tags += [os.path.basename(d) for d in glob.glob(f"{ROOT}/work_dir/{pat}") if os.path.isdir(d)]
     seen = set(); ordered = []

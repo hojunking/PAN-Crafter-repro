@@ -27,6 +27,7 @@
 | [E-1](#e-1) | 평가 방법론 | `main.py` / `train.py` | **적용** — `select_on: test\|val` 스위치, `validate()` 추가 |
 | [F-1](#f-1) | **배포 데이터 결함** | `pan_h5.zip` | **적용** — `tools/repair_lpan.py` 로 재생성 |
 | [F-2](#f-2) | **배포 데이터 불일치** | PanCollection FR 테스트셋 H5 vs .mat | **적용** — 논문 비교 FR 은 .mat 20장 (`tools/build_fr_paperset.py`, `eval_fr_paperset.py`) |
+| [F-3](#f-3) | **배포 데이터 결함** | PanCollection `train_qb.h5`/`valid_qb.h5` 의 `ms` | **적용** — 67% 패치가 LR 1px 어긋남. `tools/repair_qb_ms.py` 로 Wald 재생성(`*_msfix.h5`) |
 | [D-7](#d-7) | 지표 | `tools/eval_dlpan.py` SCC·SSIM | **적용** — SCC.m zero-padding, SSIM Gaussian 11×11 (2026-09-07) |
 
 ### A-1 / A-2 를 토글로 둔 이유
@@ -598,6 +599,30 @@ PAN-Crafter(README: "official MATLAB code from the DLPan-Toolbox")·U-Know-DiffP
 H5 12-19 (`fr_select_indices`) — 선택 세트와 보고 세트를 분리해 선택 편향이 논문 비교 수치에
 들어가지 않게 한다. 다른 서버는 `./tools/metric_v2_prepare.sh` 한 번으로 .mat 다운로드 → h5 생성 →
 이식 검사 → 전 run 재평가 → 시트 업로드 → 옛 탭 순서 재배치까지 끝난다.
+
+### F-3. PanCollection QB 학습·검증셋의 `ms` 가 패치의 2/3 에서 `gt` 와 LR 1픽셀 어긋나 있다 {#f-3}
+
+2026-09-08 아키텍처 고정 다중 데이터셋 캠페인에서 QB 만 학습이 불안정하고(RR ERGAS 가 eval 마다 3.9~6.5 사이를 오감,
+변동계수 12~14% vs WV3 4%) 서버마다 결과가 크게 달라(같은 config·seed 로 s1 4.79 / s2 6.83 / s3 5.28) 데이터를 뜯어봤다.
+
+Wald 프로토콜대로면 `ms = MTF↓gt` 이고 WV3·GF2 학습셋과 QB **테스트**셋은 genMTF 커널 + (2,2) 위상 데시메이션으로
+MAD **0.00 DN** 재현된다. 그런데 QB **학습·검증**셋은 패치마다 데시메이션 위상이 다르다:
+
+| 위상 (dy,dx) | (2,2) 정상 | (1,2) | (2,1) |
+|---|---:|---:|---:|
+| train (표본 400) | 33% | 34% | 33% |
+| valid (표본 200) | 30% | 38% | 32% |
+
+각 패치를 자기 위상으로 맞추면 MAD 0.00 이므로 잡음이 아니라 **`ms` 크롭이 `gt`/`pan` 크롭과 LR 1픽셀(HR 4픽셀)
+어긋난 것**이다. `pan` 은 `gt` 와 정렬돼 있고, `lms` 도 `interp23tap(ms)` 와 최대 186 DN 다르다(어긋나지 않은 ms 로 만든 흔적).
+`ms` 를 입력으로 쓰는 모델(PAN-Crafter 계열: up(MS) 입력 + bicubic(ms) 잔차 base)은 학습 표본의 2/3 에서 4px 어긋난
+분광 입력을 받고, 테스트에서는 정렬된 입력을 받는다. `lms` 만 쓰는 모델(CANConv 등)은 영향이 없다. 논문 저자의 QB 결과
+(ERGAS 3.570)가 이 결함을 겪었는지는 알 수 없다 — 저자들의 사본이 달랐거나, CM3A 가 흡수했을 수 있다.
+
+**적용**: `tools/repair_qb_ms.py` 가 `ms = genMTF(QB)·replicate(gt)[2::4, 2::4]`, `lms = interp23tap(ms)` 로 다시 만든
+`train_qb_msfix.h5`/`valid_qb_msfix.h5` 를 쓴다(gt·pan·lpan 은 그대로; 정상 1/3 은 원본과 MAD 0.00 으로 같다).
+QB config 는 전부 `_msfix` 를 가리키고, 배포 `ms` 로 학습한 run 은 `*_msbug` 로 치워 시트·배치에서 제외한다.
+다른 서버는 `arch_multiset_prepare.sh` 가 자동으로 복구·격리한다. 이전 QB 결과(s1·s2·s3 의 ARCH_..._QB_*)는 전부 무효.
 
 ---
 

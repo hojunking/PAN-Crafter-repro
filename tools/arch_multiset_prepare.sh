@@ -26,8 +26,14 @@ for d in QB GF2; do
     [ -f "data/PanCollection/$d/$f" ] || { echo "!! data/PanCollection/$d/$f 없음 — SETUP.md §4 (PanCollection + pan_h5.zip)"; exit 1; }
   done
 done
-echo "[arch] 1/5 QB full-res lpan 복구"
-[ -f data/PanCollection/QB/full_examples_h5_repaired/test_qb_OrigScale_multiExm1_pan.h5 ] && echo "  있음" || "$PY" tools/repair_lpan.py --sensor qb
+echo "[arch] 1/5 QB full-res lpan 복구 (F-1) + QB 학습·검증 ms 복구 (F-3)"
+[ -f data/PanCollection/QB/full_examples_h5_repaired/test_qb_OrigScale_multiExm1_pan.h5 ] && echo "  lpan 있음" || "$PY" tools/repair_lpan.py --sensor qb
+if [ -f data/PanCollection/QB/train_qb_msfix.h5 ] && [ -f data/PanCollection/QB/valid_qb_msfix.h5 ]; then echo "  ms 복구본 있음"; else "$PY" tools/repair_qb_ms.py; fi
+# 배포 ms 로 학습한 QB run 이 있으면 결과가 무효다 — 옆으로 치운다 (F-3)
+for d in work_dir/ARCH_W168_D123_DUAL_QB_S*; do
+  [ -d "$d" ] || continue; case "$d" in *_msbug) continue;; esac
+  if grep -q "train_qb.h5" "$d/meta/config.yaml" 2>/dev/null; then mv "$d" "${d}_msbug"; echo "  $d -> ${d}_msbug (배포 ms 로 학습한 run, 무효)"; fi
+done
 echo "[arch] 2/5 WV2 zero-shot 데이터"
 if [ -f data/PanCollection/WV2/reduced_examples_h5/test_wv2_multiExm1_pan.h5 ] && [ -f data/PanCollection/WV2/full_examples_h5/test_wv2_OrigScale_multiExm1_pan.h5 ]; then
   echo "  있음"

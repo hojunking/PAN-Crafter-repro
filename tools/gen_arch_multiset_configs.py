@@ -6,6 +6,7 @@
 템플릿은 config/S1_T05_W168_D123_DUAL.yaml (WV3·seed 2025 — 이 run 자체가 WV3 seed 2025 멤버다).
 데이터셋별로 바뀌는 것: 경로 · num_bands/out_channels(QB·GF2 4) · max_pixel(GF2 1023) · expect_params_m.
 WV3 FR 은 복구 lpan(full_examples_h5_repaired), QB FR 도 복구본(F-1: 배포 lpan 손상), GF2 는 배포본 정상.
+QB 학습·검증은 ms 복구본 train_qb_msfix.h5 / valid_qb_msfix.h5 (F-3: 배포본 ms 의 2/3 가 gt 대비 LR 1px 어긋남).
 best 선택은 종전대로 FR H5 12-19 HQNR(fr_select_indices 기본값) — 보고는 논문 세트(.mat 20)로 별도.
 """
 import os, re, sys
@@ -13,7 +14,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TPL = os.path.join(ROOT, "config", "S1_T05_W168_D123_DUAL.yaml")
 DS = {  # sensor -> (bands, max_pixel, params_M(8band 5.9731 / 4band 5.9610), FR dir)
     "wv3": (8, 2047.0, 5.9731, "full_examples_h5_repaired"),
-    "qb":  (4, 2047.0, 5.9610, "full_examples_h5_repaired"),
+    "qb":  (4, 2047.0, 5.9610, "full_examples_h5_repaired"),   # train/valid 는 _msfix (F-3)
     "gf2": (4, 1023.0, 5.9610, "full_examples_h5"),
 }
 SEEDS = {"wv3": (1234, 7777), "qb": (2025, 1234, 7777), "gf2": (2025, 1234, 7777)}   # WV3 2025 = S1_T05_W168_D123_DUAL
@@ -33,8 +34,9 @@ def main():
             t = re.sub(r"expect_params_m: [\d.]+", f"expect_params_m: {pm}", t)
             t = re.sub(r"^seed: \d+", f"seed: {seed}", t, flags=re.M)
             t = re.sub(r"work_dir: .*", f"work_dir: {ROOT}/work_dir/{tag}", t)
-            t = t.replace("data/PanCollection/WV3/train_wv3.h5", f"data/PanCollection/{s.upper()}/train_{s}.h5")
-            t = t.replace("data/PanCollection/WV3/valid_wv3.h5", f"data/PanCollection/{s.upper()}/valid_{s}.h5")
+            fix = "_msfix" if s == "qb" else ""      # QB 학습·검증셋은 ms 복구본 (KNOWN_ISSUES F-3, tools/repair_qb_ms.py)
+            t = t.replace("data/PanCollection/WV3/train_wv3.h5", f"data/PanCollection/{s.upper()}/train_{s}{fix}.h5")
+            t = t.replace("data/PanCollection/WV3/valid_wv3.h5", f"data/PanCollection/{s.upper()}/valid_{s}{fix}.h5")
             t = t.replace("data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5",
                           f"data/PanCollection/{s.upper()}/reduced_examples_h5/test_{s}_multiExm1.h5")
             t = t.replace("data/PanCollection/WV3/full_examples_h5_repaired/test_wv3_OrigScale_multiExm1.h5",
