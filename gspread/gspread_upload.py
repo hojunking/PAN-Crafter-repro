@@ -95,9 +95,17 @@ PAPER_ROW = {
     "QB": dict(tag="■ Paper (reported)", ergas=3.570, sam=4.426, psnr=38.195,
                ssim=0.963, scc=0.984, q2n=0.938,
                p_d_lambda=0.043, p_d_s=0.039, p_hqnr=0.920, note="논문 Table 2 + 보충자료. 세팅은 WV3 행과 동일"),
+    # GF2 ERGAS 는 논문 내부가 불일치한다 — 본문 Table 2 는 0.522, 보충 Table 7 은 0.552±0.093.
+    # 다른 9개 방법의 GF2 ERGAS 는 두 표가 완전히 일치하고 PAN-Crafter 행만 다르다(둘 중 하나가 오기).
+    # 우리는 ±std 가 있는 보충자료 값을 쓴다. ERGAS 는 참고 지표라 판정에 영향 없음.
     "GF2": dict(tag="■ Paper (reported)", ergas=0.552, sam=0.596, psnr=45.076,
                 ssim=0.988, scc=0.994, q2n=0.988,
-                p_d_lambda=0.020, p_d_s=0.017, p_hqnr=0.964, note="논문 Table 2 + 보충자료. 세팅은 WV3 행과 동일"),
+                p_d_lambda=0.020, p_d_s=0.017, p_hqnr=0.964,
+                note="논문 보충자료 Table 7(±std) 기준. 세팅은 WV3 행과 동일. "
+                     "주의: ERGAS 는 본문 Table 2 가 0.522, 보충 Table 7 이 0.552 로 논문 내부 불일치 — "
+                     "보충값 채택(다른 9개 방법은 두 표 일치). "
+                     "검증: CANConv 배포 가중치 실측 HQNR 0.9189 / D_s 0.0629 / D_λ 0.0194 가 "
+                     "논문 CANConv 행 0.919±0.011 / 0.063±0.009 / 0.019±0.010 과 소수 셋째 자리까지 일치"),
     "WV2": dict(tag="■ Paper (reported, WV3 학습 → WV2 zero-shot)", ergas=4.169, sam=5.078, psnr=29.276,
                 ssim=0.839, scc=0.924, q2n=0.846,
                 p_d_lambda=0.022, p_d_s=0.036, p_hqnr=0.942, note="논문 Table 3 (unseen WV2) + 보충자료. WV3 로 학습한 모델을 WV2 에 그대로 적용"),
@@ -142,10 +150,11 @@ def sheet_name(ds, server):
 
 
 def columns_for(ds):
-    """첫 데이터셋(WV3)이 아니면 비용 열을 뺀다. ds 는 서버 접미사 없는 이름이다."""
+    """첫 데이터셋(WV3)만 비용 열 전부. 다른 데이터셋은 Params(M)·Train(h) 만 남긴다 — FLOPs·추론시간·메모리는
+    데이터셋과 무관하지만 학습 시간은 데이터셋마다 다르다 (2026-09-08 요청). ds 는 서버 접미사 없는 이름이다."""
     if ds == SHEET_ORDER[0]:
         return COLUMNS
-    return [c for c in COLUMNS if c[0] != "Cost"]
+    return [c for c in COLUMNS if c[0] != "Cost" or c[2] in ("params_m", "train_h")]
 
 
 # ----------------------------------------------------------------- 지표
@@ -657,6 +666,7 @@ def collect(tag, want_profile, server, peer=None):
     if "_zs_" in tag:
         bits.append("zero-shot: 학습 센서(WV3) best checkpoint 를 이 센서 테스트셋에 그대로 적용 · "
                     "lpan 은 F-1 레시피 생성(배포본 없어 검증 불가) · tools/make_zeroshot_run.py")
+        row["train_h"] = ""                  # 학습이 없다 — 생성 시각으로 계산된 0h 를 지운다
     if row["seed"] != 2025:
         bits.append(f"seed={row['seed']}")
     if a.select_on != "hqnr":
