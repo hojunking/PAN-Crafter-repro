@@ -62,7 +62,7 @@ COLUMNS = [
     # reduced-resolution (테스트 20장)
     ("RR", "ERGAS↓", "ergas", 4), ("RR", "SAM↓", "sam", 4),
     ("RR", "PSNR↑", "psnr", 4),   ("RR", "SSIM↑", "ssim", 4),
-    ("RR", "SCC↑", "scc", 4),     ("RR", "Q4/Q8↑", "q2n", 4),   # Q2n: 4밴드 = Q4, 8밴드 = Q8 (논문 표기)
+    ("RR", "SCC↑", "scc", 4),     ("RR", "Q2n↑", "q2n", 4),   # 표시명은 columns_for() 가 데이터셋에 맞춰 Q4↑/Q8↑ 로 바꾼다
     ("RR", "RMSE↓", "rmse", 4),   ("RR", "CC↑", "cc", 4),
     # full-resolution (1) — 논문 세트. PanCollection .mat 형식 FR 20장. CANConv 배포 가중치가
     # 논문 CANConv 행과 D_λ/D_s/HQNR 평균·표준편차까지 일치한다(0.9513±0.0122 vs 0.951±0.013).
@@ -152,9 +152,10 @@ def sheet_name(ds, server):
 def columns_for(ds):
     """첫 데이터셋(WV3)만 비용 열 전부. 다른 데이터셋은 Params(M)·Train(h) 만 남긴다 — FLOPs·추론시간·메모리는
     데이터셋과 무관하지만 학습 시간은 데이터셋마다 다르다 (2026-09-08 요청). ds 는 서버 접미사 없는 이름이다."""
-    if ds == SHEET_ORDER[0]:
-        return COLUMNS
-    return [c for c in COLUMNS if c[0] != "Cost" or c[2] in ("params_m", "train_h")]
+    cols = COLUMNS if ds == SHEET_ORDER[0] else [c for c in COLUMNS if c[0] != "Cost" or c[2] in ("params_m", "train_h")]
+    # Q2n 열 이름은 데이터셋의 밴드 수를 따른다 — 8밴드(WV3·WV2) Q8, 4밴드(QB·GF2) Q4 (논문 표기)
+    q = "Q8↑" if ds in ("WV3", "WV2") else "Q4↑"
+    return [(g, q if k == "q2n" else h, k, nd) for g, h, k, nd in cols]
 
 
 # ----------------------------------------------------------------- 지표
