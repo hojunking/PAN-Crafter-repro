@@ -4,8 +4,9 @@ B0(W96·D124 · MS+PAN 9ch · mars ms · mode_modulation false) 의 학습 경�
   Ŷ = M + Fθ(concat(P̃, M)),  M = bicubic↑S,  P̃ = W(P, Aφ(P, M))          (§2)
   A1: L_rec / A2: L_rec + λE(t) L_edge / A3: L_rec + λG(t) L_geo,  λ(t) = λ·min(t/5000, 1)   (§5.4)
 학습 loss 영역은 B0 와 같은 전 영역(L_rec), 고정 interior(L_edge 1px, L_geo margin 11). 평가 mask 는 loss 에 닿지 않는다 (§6·§10.7).
-평가(test_full): 같은 forward 의 같은 SR 에 세 view(raw_original / raw_valid / aligned_valid) + RR, 두 선택기(best_raw → best_hqnr alias,
-best_aligned) 와 last 를 보존한다 (§10). 산출물은 §13 의 이름을 따른다.
+support guard 는 L_geo 가 실제로 참조하는 P̃ 영역(margin − Gaussian radius − Scharr radius = [4:60])까지 검사한다 (검토 지적 1).
+평가(test_full): 같은 forward 의 같은 SR 에 세 view(raw_original / raw_valid / aligned_valid) + RR(original·valid), 두 선택기(best_raw → best_hqnr alias,
+best_aligned) 와 last 를 보존한다 (§10). 참조(lms·pan)는 h5 원본 float64, P̃_eval = W(P_raw, Δ̂) (float64) — 시트 evaluator 와 같은 경로.
 """
 import csv
 import hashlib
@@ -15,35 +16,51 @@ import shutil
 import sys
 import time
 
+import h5py
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from accelerate import Accelerator
 from accelerate.utils import ProjectConfiguration
 from diffusers.optimization import get_scheduler
 from tqdm import tqdm
 
 from pa.aligner import PANGlobalAligner
-from pa.losses import output_edge_loss, direct_geometry_loss, lambda_ramp, scharr
+from pa.losses import output_edge_loss, direct_geometry_loss, lambda_ramp, scharr, geometry_support_margin
 from pa.model import PAModel
-from pa.warp import warp_support_mask, support_margin_ok
-from pa.evalviews import scene_views, roi_manifest, PROTOCOL_ID, MAX_ELIGIBLE_SHIFT
+from pa.warp import warp_support_mask, support_margin_ok, warp_pan
+from pa.evalviews import scene_views, roi_manifest, PROTOCOL_ID, MAX_ELIGIBLE_SHIFT, VIEWS, evaluator_hash, fixed_roi
 from pa.selector import BestSelector
 from train import Trainer
 from utils import Train_Report, Test_Reduced_Report, Test_Full_Report, reduced_metrics, full_metrics
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 CASES = {"A1": dict(lambda_edge=0.0, lambda_geo=0.0), "A2": dict(lambda_edge=0.1, lambda_geo=0.0), "A3": dict(lambda_edge=0.0, lambda_geo=0.01)}
-VIEWS = ("raw_original", "raw_valid", "aligned_valid")
 EXIT_SUPPORT_FAIL = 4
 
 
-def _sha(t):
+def _sha_tensors(t):
     h = hashlib.sha256()
     for k in sorted(t):
         h.update(k.encode()); h.update(t[k].detach().cpu().contiguous().numpy().tobytes())
     return h.hexdigest()[:16]
+
+
+def sha256_file(path, cache_dir=None):
+    """파일 sha256 (경로·크기·mtime 으로 캐시 — 학습셋 h5 는 GB 단위)."""
+    st = os.stat(path); key = f"{os.path.abspath(path)}|{st.st_size}|{int(st.st_mtime)}"
+    cp = os.path.join(cache_dir, "sha256_cache.json") if cache_dir else None
+    cache = json.load(open(cp)) if cp and os.path.exists(cp) else {}
+    if key in cache:
+        return cache[key]
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 24), b""):
+            h.update(chunk)
+    cache[key] = h.hexdigest()
+    if cp:
+        json.dump(cache, open(cp, "w"), indent=1)
+    return cache[key]
 
 
 class PATrainer(Trainer):
@@ -63,6 +80,7 @@ class PATrainer(Trainer):
         self.ramp = int(pa.get("ramp_steps", 5000))
         self.geo_sigma = float(pa.get("geometry_sigma_hr", 2.0))            # r/2, WV3 r=4
         self.geo_margin = int(pa.get("geometry_margin_hr", 11))
+        self.guard_margin = geometry_support_margin(self.geo_sigma, self.geo_margin)     # 11 − (6+1) = 4
         self.diag_iter = int(pa.get("diag_iter", 500))
         self.init_dir = os.path.join(ROOT, pa.get("init_dir", "work_dir/_pa_init"))
 
@@ -90,42 +108,79 @@ class PATrainer(Trainer):
         self.model, self.optimizer, self.lr_scheduler = self.accelerator.prepare(self.model, self.optimizer, self.lr_scheduler)
         self.last_reduced_metrics, self.last_full_metrics, self.last_val_metrics = {}, {}, {}
         self.last_fscc_official = float("nan"); self.raw_is_best = False
-        self._ema = {}; self._global_step = 0
-        self.sel_raw = BestSelector("raw"); self.sel_aligned = BestSelector("aligned")
-        for s in (self.sel_raw, self.sel_aligned):
-            p = os.path.join(args.work_dir, f"selector_state_{s.name}.json")
-            if os.path.exists(p):
-                loaded = BestSelector.load(p, expect_protocol=PROTOCOL_ID)
-                s.max_hqnr, s.cands, s.best, s.history = loaded.max_hqnr, loaded.cands, loaded.best, loaded.history
+        self._ema = {}; self._global_step = 0; self.step_records = {}
         self.cand_dir = os.path.join(args.work_dir, "candidates")
+        # 평가 참조: h5 원본 float64 (시트 evaluator 와 같은 값). feeder 의 float32 정규화 왕복을 쓰지 않는다 (검토 지적 3).
+        self.fr_h5 = args.test_full_feeder_args["dataroot"]; self.fr_h5_sha = sha256_file(self.fr_h5, self.init_dir)
+        with h5py.File(self.fr_h5) as f:
+            self._fr_lms = np.asarray(f["lms"], dtype=np.float64); self._fr_pan = np.asarray(f["pan"], dtype=np.float64)[:, 0]
         self._roi = None
+        self._init_selectors()
         if self.accelerator.is_main_process:
             json.dump(self.init_hashes, open(os.path.join(args.work_dir, "initialization_hashes.json"), "w"), indent=1)
             json.dump(dict(case=self.case, lambda_edge=self.lam_edge, lambda_geo=self.lam_geo, ramp_steps=self.ramp, geometry_sigma_hr=self.geo_sigma,
-                           geometry_margin_hr=self.geo_margin, warp="bicubic/border/align_corners=False, no zero bypass", loss_domain="L_rec full frame (B0)",
-                           aligner_params=sum(p.numel() for p in aligner.parameters())),
+                           geometry_margin_hr=self.geo_margin, support_guard_margin_hr=self.guard_margin, warp="bicubic/border/align_corners=False, no zero bypass",
+                           loss_domain="L_rec full frame (B0)", aligner_params=sum(p.numel() for p in aligner.parameters()), evaluator_hash=evaluator_hash()),
                       open(os.path.join(args.work_dir, "pa_config_resolved.json"), "w"), indent=1)
+            self._write_manifests()
 
-    # ------------------------------------------------------------------ init pairing
+    # ------------------------------------------------------------------ init pairing · manifests · selectors
     def _pair_init(self, unet, aligner):
         os.makedirs(self.init_dir, exist_ok=True)
-        seed = int(self.args.seed)
-        out = {}
+        seed = int(self.args.seed); out = {}
         for name, mod in (("unet", unet), ("aligner", aligner)):
             p = os.path.join(self.init_dir, f"init_{name}_seed{seed}.pt")
             sd = {k: v.detach().cpu().clone() for k, v in mod.state_dict().items()}
-            h = _sha(sd)
+            h = _sha_tensors(sd)
             if os.path.exists(p):
-                ref = torch.load(p, map_location="cpu")
-                hr = _sha(ref)
+                ref = torch.load(p, map_location="cpu"); hr = _sha_tensors(ref)
                 if hr != h:
-                    # 같은 seed 의 다른 case 와 초기 tensor 가 달라졌다 — 대응 비교가 깨진다. 저장본을 로드해 맞춘다 (T19).
-                    mod.load_state_dict(ref); h = hr; out[f"{name}_loaded_from_file"] = True
+                    mod.load_state_dict(ref); h = hr; out[f"{name}_loaded_from_file"] = True     # 같은 seed 의 다른 case 와 맞춘다 (T19)
             else:
                 torch.save(sd, p)
             out[f"{name}_init_sha256_16"] = h; out[f"{name}_init_file"] = p
         out["seed"] = seed
         return out
+
+    def _write_manifests(self):
+        a = self.args; wd = a.work_dir
+        ds = {}
+        for k in ("train_feeder_args", "val_feeder_args", "test_reduced_feeder_args", "test_full_feeder_args"):
+            p = getattr(a, k)["dataroot"]; ds[k] = dict(path=p, sha256=sha256_file(p, self.init_dir))
+            pp = p.replace(".h5", "_pan.h5")
+            if os.path.exists(pp):
+                ds[k + "_pan"] = dict(path=pp, sha256=sha256_file(pp, self.init_dir))
+        json.dump(ds, open(os.path.join(wd, "dataset_hashes.json"), "w"), indent=1)
+        b0 = f"BASE_W96_D124_MSPAN_WV3_S{int(a.seed)}"; b0d = os.path.join(ROOT, "work_dir", b0)
+        m = dict(b0_run_id=b0, b0_config=os.path.join(ROOT, "config", b0 + ".yaml"), b0_exists=os.path.isdir(b0d),
+                 b0_finished=os.path.exists(os.path.join(b0d, "finished_at.txt")), init_hashes=self.init_hashes,
+                 b0_best_hqnr_model_sha256=(sha256_file(os.path.join(b0d, "best_hqnr", "model.safetensors")) if os.path.exists(os.path.join(b0d, "best_hqnr", "model.safetensors")) else None),
+                 b0_best_state=(json.load(open(os.path.join(b0d, "best_state.json"))) if os.path.exists(os.path.join(b0d, "best_state.json")) else None),
+                 note="U-Net init 은 B0 와 같은 경로(init_seed(seed) 뒤 build)로 만들었다; B0 는 초기 tensor 를 저장하지 않아 동치는 경로로만 대응한다",
+                 selection_scene_ids=list(range(20)), report_scene_ids=list(range(20)), fr_h5=self.fr_h5, fr_h5_sha256=self.fr_h5_sha, protocol_id=PROTOCOL_ID)
+        json.dump(m, open(os.path.join(wd, "baseline_manifest.json"), "w"), indent=1)
+
+    def _init_selectors(self):
+        wd = self.args.work_dir
+        self.sel_raw = BestSelector("raw"); self.sel_aligned = BestSelector("aligned")
+        paths = [os.path.join(wd, f"selector_state_{n}.json") for n in ("raw", "aligned")]
+        if getattr(self.args, "resume", None):
+            expect = dict(protocol_id=PROTOCOL_ID, evaluator_hash=evaluator_hash(), fr_h5_sha256=self.fr_h5_sha, n_scenes=len(self._fr_pan))
+            for s, p in zip((self.sel_raw, self.sel_aligned), paths):
+                if os.path.exists(p):
+                    loaded = BestSelector.load(p, expect=expect)
+                    s.max_hqnr, s.cands, s.best, s.history = loaded.max_hqnr, loaded.cands, loaded.best, loaded.history
+            rp = os.path.join(wd, "selection_roi_manifest.json")
+            if os.path.exists(rp):
+                self._roi = json.load(open(rp))
+                if self._roi.get("evaluator_hash") != evaluator_hash() or self._roi.get("input_sha256") != self.fr_h5_sha:
+                    raise RuntimeError("selection_roi_manifest 가 현재 evaluator/데이터와 다르다 — 새 protocol 로 처음부터 돌릴 것 (§13)")
+        elif self.accelerator.is_main_process:
+            stale = [p for p in paths + [self.cand_dir, os.path.join(wd, "selection_roi_manifest.json")] if os.path.exists(p)]
+            if stale:                                    # --resume 없이 같은 work_dir 를 다시 쓰는 경우: 이전 선택 상태를 옆으로 치운다 (검토 지적 5)
+                d = os.path.join(wd, f"_stale_selection_{time.strftime('%Y%m%d-%H%M%S')}"); os.makedirs(d, exist_ok=True)
+                for p in stale:
+                    shutil.move(p, os.path.join(d, os.path.basename(p)))
 
     # ------------------------------------------------------------------ helpers
     @property
@@ -159,12 +214,13 @@ class PATrainer(Trainer):
                 o = M(pan, ms, lpan)
                 y, delta, pan_al = o["y"], o["delta"], o["pan_aligned"]
                 H, W = pan.shape[-2:]
-                # §6.2 support guard — 모든 case 동일. 조용히 0 으로 만들지 않고 중단·기록한다.
-                ok = support_margin_ok(H, W, delta.detach(), self.geo_margin)
+                # §6.2 support guard — 모든 case 동일. L_geo 가 참조하는 [guard_margin:H-guard_margin] 의 sampling 이웃이 전부 영상 안이어야 한다.
+                ok = support_margin_ok(H, W, delta.detach(), self.guard_margin)
                 if not bool(ok.all()):
                     d = delta.detach().float()
-                    train_log.write(f'[SUPPORT_FAIL] step {global_step}: |Δ| max {d.abs().max().item():.2f} px 가 margin {self.geo_margin} support 를 깼다 ({int((~ok).sum())}/{B} sample)')
-                    json.dump(dict(status="SUPPORT_FAIL", step=int(global_step), max_abs_delta=float(d.abs().max())), open(os.path.join(self.args.work_dir, "support_fail.json"), "w"))
+                    train_log.write(f'[SUPPORT_FAIL] step {global_step}: |Δ| max {d.abs().max().item():.2f} px 가 geometry support(margin {self.guard_margin}) 를 깼다 ({int((~ok).sum())}/{B} sample)')
+                    json.dump(dict(status="SUPPORT_FAIL", step=int(global_step), max_abs_delta=float(d.abs().max()), guard_margin=self.guard_margin),
+                              open(os.path.join(self.args.work_dir, "support_fail.json"), "w"))
                     sys.exit(EXIT_SUPPORT_FAIL)
                 loss_rec = (gt - y).abs().mean()                                     # §5.1 B0 와 같은 전 영역 L1
                 lam_e, lam_g = self._lams(global_step)
@@ -179,8 +235,7 @@ class PATrainer(Trainer):
                 loss = loss_rec + loss_aux
                 if not torch.isfinite(loss):
                     train_log.write(f'[abort] non-finite loss at step {global_step}: {loss.item()}'); sys.exit(3)
-                # §13 gradient diagnostics — aligner 가 rec / aux 에서 받는 gradient 크기 (주기적으로만)
-                if self.accelerator.is_main_process and global_step % self.diag_iter == 0:
+                if self.accelerator.is_main_process and global_step % self.diag_iter == 0:     # §13 aligner 가 rec / aux 에서 받는 gradient
                     ap = [p for p in M.aligner.parameters()]
                     g_rec = torch.autograd.grad(loss_rec, ap, retain_graph=True, allow_unused=True)
                     n_rec = float(torch.sqrt(sum((g.float() ** 2).sum() for g in g_rec if g is not None)))
@@ -199,7 +254,7 @@ class PATrainer(Trainer):
                 self.optimizer.step(); self.lr_scheduler.step(); self.optimizer.zero_grad()
 
                 if self.accelerator.is_main_process:
-                    report.update(B, loss.item(), loss_rec.item(), loss_aux.item())
+                    report.update(B, loss.item(), loss_rec.item(), loss_aux.item())        # 'Loss PAN' 칸 = 보조 loss (PA 에는 PAN task 없음)
                     with torch.no_grad():
                         d = delta.detach().float(); n = d.norm(dim=1)
                         for k, v in (("dy_mean", d[:, 0].mean().item()), ("dy_std", d[:, 0].std().item()), ("dx_mean", d[:, 1].mean().item()),
@@ -247,21 +302,28 @@ class PATrainer(Trainer):
         return o
 
     def test_reduced(self, test_log, epoch):
-        report = Test_Reduced_Report(); self.model.eval(); self.model.requires_grad_(False)
+        report = Test_Reduced_Report(); rep_v = Test_Reduced_Report(); self.model.eval(); self.model.requires_grad_(False)
         ds = []
         for idx, (gt, lms, ms, lpan, pan) in tqdm(enumerate(self.test_reduced_data_loader)):
             o = self._infer(pan, lpan, ms)
             gt = gt.to(self.accelerator.device, dtype=self.weight_dtype)
             self.save_test_reduced(o["pan"], gt, o["y"], o["ms_base"], idx)
             report.update(self.args.test_batch_size, reduced_metrics(x_true=gt, x_pred=o["y"], max_pixel=self.args.max_pixel))
+            H, W = gt.shape[-2:]
+            if H > 2 * fixed_roi(512, 512)[0]:                                       # RR-valid: 같은 margin 규칙(64px) — 256² 이면 128² (§10.7)
+                y0, y1, x0, x1 = fixed_roi(H, W)
+                rep_v.update(self.args.test_batch_size, reduced_metrics(x_true=gt[..., y0:y1, x0:x1], x_pred=o["y"][..., y0:y1, x0:x1], max_pixel=self.args.max_pixel))
             ds.append(o["delta"][0].float().cpu().numpy())
         d = np.array(ds)
-        test_log.write(f'Epoch[{epoch}]\t' + report.result_str() + f'\tRR Δ median ({np.median(d[:, 0]):+.3f},{np.median(d[:, 1]):+.3f}) |Δ| median {np.median(np.linalg.norm(d, axis=1)):.3f}')
+        test_log.write(f'Epoch[{epoch}]\t' + report.result_str() + f'\tRR Δ median ({np.median(d[:, 0]):+.3f},{np.median(d[:, 1]):+.3f}) |Δ| median {np.median(np.linalg.norm(d, axis=1)):.3f}'
+                       + (f'\t[RR-valid] ' + rep_v.result_str() if rep_v.num_examples else ''))
         self.last_reduced_metrics = report.as_dict()
         self.last_reduced_metrics.update(rr_dy_median=float(np.median(d[:, 0])), rr_dx_median=float(np.median(d[:, 1])))
+        if rep_v.num_examples:
+            self.last_reduced_metrics.update({f"valid_{k}": v for k, v in rep_v.as_dict().items()})
         return report.ergas
 
-    def _dn(self, t):
+    def _dn_sr(self, t):
         return ((t.clip(-1.0, 1.0).float().cpu().numpy() + 1.0) / 2.0 * self.args.max_pixel).astype(np.float64)
 
     def test_full(self, test_log, epoch):
@@ -269,36 +331,37 @@ class PATrainer(Trainer):
         step = self._global_step
         report = Test_Full_Report(); self.model.eval(); self.model.requires_grad_(False)
         per = {v: dict(d_lambda=[], d_s=[], hqnr=[], fscc=[]) for v in VIEWS}
-        deltas, elig, rows = [], [], []
+        deltas, elig, reasons, rows = [], [], [], []
         for idx, (lms, ms, lpan, pan) in tqdm(enumerate(self.test_full_data_loader)):
             o = self._infer(pan, lpan, ms)
-            lms = lms.to(self.accelerator.device, dtype=self.weight_dtype)
             self.save_test_full(o["pan"], o["y"], o["ms_base"], idx)
             report.update(self.args.test_batch_size, full_metrics(x_pred=o["y"], pan=o["pan"], ms=o["ms"], max_pixel=self.args.max_pixel))
             if not (lo <= idx <= hi):
                 continue
-            sr = self._dn(o["y"][0]).transpose(1, 2, 0); lm = self._dn(lms[0]).transpose(1, 2, 0)
-            p = self._dn(o["pan"][0, 0]); pa_ = self._dn(o["pan_aligned"][0, 0])
+            sr = self._dn_sr(o["y"][0]).transpose(1, 2, 0)
+            lm = self._fr_lms[idx].transpose(1, 2, 0); p = self._fr_pan[idx]                # h5 원본 float64 참조
             d = o["delta"][0].float().cpu().numpy()
+            pa_eval = warp_pan(torch.from_numpy(p)[None, None], torch.from_numpy(d.astype(np.float64))[None])[0, 0].numpy()   # P̃_eval = W(P_raw, Δ̂), float64
             if self._roi is None:
-                self._roi = roi_manifest(p.shape[0], p.shape[1], hi - lo + 1)
+                self._roi = roi_manifest(p.shape[0], p.shape[1], hi - lo + 1, self.fr_h5, self.fr_h5_sha)
                 if self.accelerator.is_main_process:
                     json.dump(self._roi, open(os.path.join(self.args.work_dir, "selection_roi_manifest.json"), "w"), indent=1)
-            views, ok = scene_views(sr, lm, p, pa_, sensor, wald, d, 4, float(self.args.max_pixel))
-            deltas.append(d); elig.append(ok)
+            views, ok, reason = scene_views(sr, lm, p, pa_eval, sensor, wald, d, 4, float(self.args.max_pixel))
+            deltas.append(d); elig.append(ok); reasons.append(reason)
             for v in VIEWS:
                 for k in per[v]:
                     per[v][k].append(views[v][k])
                 rows.append(dict(step=step, epoch=epoch, scene=idx, view=v, roi_scope=("original" if v == "raw_original" else "selection_fixed_V"),
                                  pan_reference=("P_aligned" if v == "aligned_valid" else "P"), d_lambda=views[v]["d_lambda"], d_s=views[v]["d_s"],
                                  hqnr=views[v]["hqnr"], fscc=views[v]["fscc"], dy_hr=float(d[0]), dx_hr=float(d[1]), delta_norm_hr=float(np.hypot(*d)),
-                                 selection_eligible=bool(ok), roi_hash=self._roi["roi_hash"]))
+                                 selection_eligible=bool(ok), invalid_reason=reason, roi_hash=self._roi["roi_hash"]))
         agg = {v: {k: float(np.mean(per[v][k])) for k in per[v]} for v in VIEWS}       # HQNR = 장면별 곱의 평균 (§10.4)
         D = np.array(deltas); all_ok = bool(np.all(elig)); n_bad = int(np.sum(~np.array(elig)))
+        bad_reasons = sorted({r for r in reasons if r})
         hqnr, fscc = agg["raw_original"]["hqnr"], agg["raw_original"]["fscc"]
         line = (report.result_str() + f'\tHQNR_official({lo}-{hi}): {hqnr:.6f}\tfSCC({lo}-{hi}): {fscc:.6f}\tD_l_off {agg["raw_original"]["d_lambda"]:.5f} D_s_off {agg["raw_original"]["d_s"]:.5f}'
                 f'\t[views] raw_valid HQNR {agg["raw_valid"]["hqnr"]:.6f} fSCC {agg["raw_valid"]["fscc"]:.4f} | aligned_valid HQNR {agg["aligned_valid"]["hqnr"]:.6f} fSCC {agg["aligned_valid"]["fscc"]:.4f}'
-                f' eligible {"all" if all_ok else f"INVALID({n_bad} scenes >{MAX_ELIGIBLE_SHIFT}px)"}'
+                f' eligible {"all" if all_ok else f"INVALID({n_bad} scenes: {bad_reasons})"}'
                 f'\tΔ median ({np.median(D[:, 0]):+.3f},{np.median(D[:, 1]):+.3f}) |Δ| median {np.median(np.linalg.norm(D, axis=1)):.3f} max {np.abs(D).max():.3f}')
         self.last_full_metrics = report.as_dict()
         self.last_full_metrics.update(hqnr_official=hqnr, d_lambda_official=agg["raw_original"]["d_lambda"], d_s_official=agg["raw_original"]["d_s"], fscc_official=fscc,
@@ -306,10 +369,12 @@ class PATrainer(Trainer):
                                       fscc_aligned_valid=agg["aligned_valid"]["fscc"], d_s_aligned_valid=agg["aligned_valid"]["d_s"], aligned_eligible=float(all_ok),
                                       fr_dy_median=float(np.median(D[:, 0])), fr_dx_median=float(np.median(D[:, 1])), fr_delta_norm_median=float(np.median(np.linalg.norm(D, axis=1))))
         self.last_fscc_official = fscc
+        self.step_records[step] = dict(step=step, epoch=epoch, hqnr=hqnr, fscc=fscc, scc=self.last_reduced_metrics.get("scc"), ergas=self.last_reduced_metrics.get("ergas"),
+                                       sam=self.last_reduced_metrics.get("sam"), hqnr_aligned_valid=agg["aligned_valid"]["hqnr"])
         test_log.write(f'Epoch[{epoch}]\t' + line)
         if self.accelerator.is_main_process:
-            self._record(step, epoch, rows, agg, D, all_ok, n_bad)
-            self._select(step, epoch, agg, all_ok, n_bad, test_log)
+            self._record(step, epoch, rows, agg, D, all_ok, n_bad, bad_reasons)
+            self._select(step, epoch, agg, all_ok, n_bad, bad_reasons, test_log)
         return report.d_s, hqnr
 
     # ------------------------------------------------------------------ records · selection
@@ -323,25 +388,26 @@ class PATrainer(Trainer):
                 w.writeheader()
             w.writerows(rows)
 
-    def _record(self, step, epoch, rows, agg, D, all_ok, n_bad):
+    def _record(self, step, epoch, rows, agg, D, all_ok, n_bad, bad_reasons):
         self._csv_append("scene_metrics.csv", rows)
         rec = dict(step=step, epoch=epoch)
         for v in VIEWS:
             for k in ("hqnr", "d_lambda", "d_s", "fscc"):
                 rec[f"{v}.{k}"] = agg[v][k]
         rec.update(dy_median=float(np.median(D[:, 0])), dx_median=float(np.median(D[:, 1])), delta_norm_median=float(np.median(np.linalg.norm(D, axis=1))),
-                   delta_abs_max=float(np.abs(D).max()), aligned_eligible=all_ok, n_invalid_scenes=n_bad,
+                   delta_abs_max=float(np.abs(D).max()), aligned_eligible=int(all_ok), n_invalid_scenes=n_bad, invalid_reasons="|".join(bad_reasons),
                    region_effect=agg["raw_valid"]["hqnr"] - agg["raw_original"]["hqnr"], reference_effect=agg["aligned_valid"]["hqnr"] - agg["raw_valid"]["hqnr"],
-                   rr_ergas=self.last_reduced_metrics.get("ergas"), rr_scc=self.last_reduced_metrics.get("scc"), rr_sam=self.last_reduced_metrics.get("sam"))
+                   rr_ergas=self.last_reduced_metrics.get("ergas"), rr_scc=self.last_reduced_metrics.get("scc"), rr_sam=self.last_reduced_metrics.get("sam"),
+                   rr_valid_ergas=self.last_reduced_metrics.get("valid_ergas"), rr_valid_scc=self.last_reduced_metrics.get("valid_scc"))
         self._csv_append("checkpoint_metrics.csv", [rec])
         self._csv_append("delta_predictions.csv", [dict(step=step, scene=i, dy_hr=float(D[i, 0]), dx_hr=float(D[i, 1])) for i in range(len(D))])
 
-    def _select(self, step, epoch, agg, all_ok, n_bad, test_log):
+    def _select(self, step, epoch, agg, all_ok, n_bad, bad_reasons, test_log):
         cand = os.path.join(self.cand_dir, f"step-{step}")
         self.accelerator.save_state(cand)                                            # band 판정 전 저장, 밖이면 아래서 정리
         r_raw = self.sel_raw.update(step, epoch, agg["raw_original"]["hqnr"], agg["raw_original"]["fscc"], True, cand)
         r_al = self.sel_aligned.update(step, epoch, agg["aligned_valid"]["hqnr"], agg["aligned_valid"]["fscc"], all_ok, cand,
-                                       reason=("" if all_ok else f"{n_bad} scenes exceed {MAX_ELIGIBLE_SHIFT}px"))
+                                       reason=("" if all_ok else f"{n_bad} scenes: {bad_reasons}"))
         keep = {c["path"] for c in self.sel_raw.cands} | {c["path"] for c in self.sel_aligned.cands}
         for p in set(r_raw["pruned"]) | set(r_al["pruned"]) | ({cand} if cand not in keep else set()):
             if p not in keep and os.path.isdir(p):
@@ -349,8 +415,9 @@ class PATrainer(Trainer):
         self.raw_is_best = r_raw["changed"]
         if r_al["changed"]:
             self._materialize(self.sel_aligned.best, "best_aligned", "aligned_valid")
-        self.sel_raw.save(os.path.join(self.args.work_dir, "selector_state_raw.json"), dict(protocol_id=PROTOCOL_ID, roi_hash=(self._roi or {}).get("roi_hash")))
-        self.sel_aligned.save(os.path.join(self.args.work_dir, "selector_state_aligned.json"), dict(protocol_id=PROTOCOL_ID, roi_hash=(self._roi or {}).get("roi_hash")))
+        extra = dict(protocol_id=PROTOCOL_ID, roi_hash=(self._roi or {}).get("roi_hash"), evaluator_hash=evaluator_hash(), fr_h5_sha256=self.fr_h5_sha, n_scenes=len(self._fr_pan))
+        self.sel_raw.save(os.path.join(self.args.work_dir, "selector_state_raw.json"), extra)
+        self.sel_aligned.save(os.path.join(self.args.work_dir, "selector_state_aligned.json"), extra)
         if self.sel_aligned.best is None:
             json.dump(dict(status="no_valid_candidate", history=self.sel_aligned.history[-5:]), open(os.path.join(self.args.work_dir, "best_aligned_meta.json"), "w"), indent=1)
         b = self.sel_raw.best; a = self.sel_aligned.best
@@ -362,9 +429,16 @@ class PATrainer(Trainer):
         if os.path.isdir(dst):
             shutil.rmtree(dst)
         shutil.copytree(best["path"], dst)
+        rec = self.step_records.get(best["step"], {})
         json.dump(dict(step=best["step"], epoch=best["epoch"], selection_view=view, hqnr=best["hqnr"], fscc=best["fscc"], protocol_id=PROTOCOL_ID,
-                       roi_hash=(self._roi or {}).get("roi_hash"), alias=("best_hqnr" if tag == "best_hqnr" else None), case=self.case),
+                       roi_hash=(self._roi or {}).get("roi_hash"), alias=("best_hqnr" if tag == "best_hqnr" else None), case=self.case,
+                       rr_scc=rec.get("scc"), rr_ergas=rec.get("ergas"), rr_sam=rec.get("sam"), hqnr_aligned_valid=rec.get("hqnr_aligned_valid")),
                   open(os.path.join(self.args.work_dir, f"{tag}_meta.json"), "w"), indent=1)
+
+    def best_raw_record(self):
+        """main.py 가 best_state.json 에 쓸 값 — 선택된 step 의 기록 (현재 step 이 아닐 수 있다, 검토 지적 5)."""
+        b = self.sel_raw.best
+        return dict(self.step_records.get(b["step"], {}), **b) if b else None
 
     def save_best_model_hqnr(self):
         """main.py 가 raw_is_best 일 때 부른다. best_raw = 선택기가 고른 후보(현재 step 이 아닐 수 있다) → best_hqnr(alias) 로 복사."""

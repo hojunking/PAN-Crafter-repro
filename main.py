@@ -300,9 +300,10 @@ def train(args):
                 if hasattr(trainer, 'write_best_meta'):
                     trainer.write_best_meta(epoch + 1, global_step, hqnr)
                 import json as _json
+                _rec = trainer.best_raw_record() if kind == 'pa' else None      # pa: 선택된 step(과거 후보일 수 있다)의 기록
                 _json.dump({'best_hqnr': best_hqnr, 'best_epoch_hqnr': best_epoch_hqnr,
-                            'scc_at_best': trainer.last_reduced_metrics.get('scc'),
-                            'ergas_at_best': trainer.last_reduced_metrics.get('ergas'),
+                            'scc_at_best': (_rec.get('scc') if _rec else trainer.last_reduced_metrics.get('scc')),
+                            'ergas_at_best': (_rec.get('ergas') if _rec else trainer.last_reduced_metrics.get('ergas')),
                             'fscc_at_best': fscc, 'max_hqnr': best_hqnr_anchor},
                            open(best_state_path, 'w'))
             test_log.write(f'Best HQNR: {best_hqnr:.6f}\tBest Epoch (hqnr): {best_epoch_hqnr}')

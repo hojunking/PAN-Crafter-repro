@@ -242,6 +242,26 @@ def _gpu_busy(threshold=30):
         return False
 
 
+def _cost_model(args_ns):
+    """비용 측정용 모듈. trainer pa 면 aligner+warp 를 포함한 PAModel 을 (pan, lpan, ms, s) 서명으로 감싼다 (검토 지적 6)."""
+    import torch
+    from main import import_class
+    Model = import_class(args_ns.model)
+    m = Model(**args_ns.model_args)
+    if getattr(args_ns, "trainer", "default") == "pa":
+        from pa.aligner import PANGlobalAligner
+        from pa.model import PAModel
+
+        class _PA(torch.nn.Module):
+            def __init__(self, pm):
+                super().__init__(); self.pm = pm
+
+            def forward(self, pan, lpan, ms, s):
+                return self.pm(pan, ms, lpan)["y"]
+        return _PA(PAModel(m, PANGlobalAligner(int(getattr(args_ns, "num_bands", 8)))))
+    return m
+
+
 def _profile(args_ns, key, want_flops):
     """비용 측정.
 
@@ -265,7 +285,7 @@ def _profile(args_ns, key, want_flops):
     if want_flops or "flops_g" not in hit:
         try:
             from thop import profile as thop_profile
-            m = Model(**args_ns.model_args).eval()
+            m = _cost_model(args_ns).eval()
             inp = (torch.randn(1, 1, 256, 256), torch.randn(1, 1, 64, 64),
                    torch.randn(1, 8, 64, 64), torch.ones(1))
             f, _ = thop_profile(m, inputs=inp, verbose=False)
@@ -288,7 +308,7 @@ def _profile(args_ns, key, want_flops):
             out["infer_ms"] = hit["infer_ms"]
     elif torch.cuda.is_available():
         try:
-            m = Model(**args_ns.model_args).eval().cuda()
+            m = _cost_model(args_ns).eval().cuda()
             inp = tuple(x.cuda() for x in (torch.randn(1, 1, 256, 256), torch.randn(1, 1, 64, 64),
                                            torch.randn(1, 8, 64, 64), torch.ones(1)))
             with torch.no_grad():
@@ -504,8 +524,7 @@ def collect(tag, want_profile, server, peer=None):
         "fix": "True" if ma.get("fix_key_alias") else "False",
     }
     # 파라미터
-    Model = import_class(a.model)
-    m = Model(**ma)
+    m = _cost_model(a)                      # pa 면 aligner(0.1053M) 포함 — 시트 비용은 실제 추론 모델 전체
     row["params_m"] = sum(x.numel() for x in m.parameters()) / 1e6
     row["train_params"] = sum(x.numel() for x in m.parameters() if x.requires_grad)
     del m

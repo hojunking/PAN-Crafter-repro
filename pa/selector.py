@@ -42,9 +42,14 @@ class BestSelector:
         json.dump(s, open(path, "w"), indent=1)
 
     @classmethod
-    def load(cls, path, expect_protocol=None):
+    def load(cls, path, expect_protocol=None, expect=None):
+        """expect: {protocol_id, evaluator_hash, fr_h5_sha256, n_scenes, ...} — 하나라도 다르면 이어 쓰지 않는다 (§13, 검토 지적 5)."""
         s = json.load(open(path)); o = cls(s["name"], s["tol_hqnr"], s["tol_fscc"])
-        if expect_protocol is not None and s.get("protocol_id") != expect_protocol:
-            raise RuntimeError(f"selector state protocol {s.get('protocol_id')} != {expect_protocol} — 이어 쓰지 않는다 (§13)")
+        exp = dict(expect or {})
+        if expect_protocol is not None:
+            exp["protocol_id"] = expect_protocol
+        bad = {k: (s.get(k), v) for k, v in exp.items() if s.get(k) != v}
+        if bad:
+            raise RuntimeError(f"selector state 가 현재 평가 조건과 다르다 {bad} — 새 protocol 로 처음부터 돌릴 것 (§13)")
         o.max_hqnr = s["max_hqnr"]; o.cands = s["cands"]; o.best = s["best"]; o.history = s["history"]
         return o

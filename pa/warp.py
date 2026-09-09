@@ -9,11 +9,11 @@ import torch.nn.functional as F
 
 
 def warp_pan(pan, delta):
-    """pan [B,1,H,W], delta [B,2]=(dy,dx) HR px. 반환 float32 [B,1,H,W]."""
+    """pan [B,1,H,W], delta [B,2]=(dy,dx) HR px. 반환 float32 [B,1,H,W] (입력이 float64 면 float64)."""
     B, _, H, W = pan.shape
-    p = pan.float(); d = delta.float()
-    ys = torch.arange(H, device=pan.device, dtype=torch.float32)
-    xs = torch.arange(W, device=pan.device, dtype=torch.float32)
+    p = pan if pan.dtype == torch.float64 else pan.float(); d = delta.to(p.dtype)
+    ys = torch.arange(H, device=pan.device, dtype=p.dtype)
+    xs = torch.arange(W, device=pan.device, dtype=p.dtype)
     yy, xx = torch.meshgrid(ys, xs, indexing="ij")                      # [H,W]
     qy = yy[None] + d[:, 0].view(B, 1, 1)                                # 원본 sampling 좌표 (clamp 전)
     qx = xx[None] + d[:, 1].view(B, 1, 1)

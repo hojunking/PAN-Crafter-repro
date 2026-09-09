@@ -52,14 +52,15 @@
 - `tools/smoke_cases.py` A1/A2/A3: 통과, 학습 peak 2.45 GB, step ≈ 0.12 s.
 - 40-iteration end-to-end dry run(A3, 임시 config): 학습 로그·support guard·세 view·두 선택기·후보 보존·`best_hqnr/best_aligned/last` 내보내기 전부 동작. Δ=0 근방에서 valid fraction 0.9084 = (61/64)² (보수적 mask).
 - `tools/pa_diag.py` stand-in(B0 checkpoint-10000 + Δ=(−0.4,+0.2) 고정 aligner): 교차표·세 대조·known-shift·tile 전부 실행. 고정 aligner 라 known-shift 반응 기울기 0(정의상)·tile 분산 0.
+- §9.4 합성 학습 가능성(`tools/pa_synthetic_check.py`, RR GT 로 만든 통제 쌍, e~U(−2,2)² HR px, aligner 만 학습): 400 step 에서 corr 0.97/0.95·중앙 오차 0.31 px(기준 0.25 미달), **1500 step 에서 corr 0.996/0.997·중앙 오차 0.079 px·p95 0.24 → PASS**. 이 checkpoint 는 버린다.
 - 미실행 gate: T06(LR→HR 단위 변환 — 이 구현은 HR 단위만 쓴다, 해당 없음), E01/E04/E05/E08–E10/E12/E14/E17–E19 는 코드 구조로 보장(같은 forward 의 SR·Δ·P̃ 를 세 view 가 공유, P̃ 저해상도는 매번 재생성·캐시 없음, 평가 mask 는 loss 에 연결되지 않음)하되 **별도 테스트 코드로 닫지는 않았다**.
 
 ## 4. 명세 중 이번 구현이 미룬 것
 
-- **RR-valid**(§10.7): RR PAN 256² 에 64 px ring 을 두면 128² 만 남아 무의미. RR 은 원 영역만 기록. 필요하면 RR 전용 margin 을 별도 protocol 로 정한다.
+- ~~RR-valid~~ → §6-7 에서 구현(같은 64 px 규칙, 256² → 128²; 학습 로그·`checkpoint_metrics.csv`·`pa_diag`).
 - **report_common 교집합 ROI**(§10.6d): 고정 V 로 충분한 동안 만들지 않는다.
-- **`environment.json` / `dataset_hashes.json` / `code_commit.txt`**: `tools/run.sh` 가 `meta/` 에 config·commit 스냅샷을 이미 남긴다. 별도 파일은 만들지 않았다.
-- **`predictions/<ckpt>/<split>/<scene>/` 디렉터리 구조·overlays**: `results/full_<tag>.mat` 에 sr·pan_aligned·delta 를 넣는 것으로 대신했다. `warp_support_mask` 는 Δ 에서 재생성 가능.
+- ~~`dataset_hashes.json` · B0 manifest~~ → §6-7 에서 구현(`dataset_hashes.json`, `baseline_manifest.json`). `environment.json`/`code_commit.txt` 는 `tools/run.sh` 의 `meta/` 스냅샷으로 대신한다.
+- **`predictions/<ckpt>/<split>/<scene>/` 디렉터리 구조·overlays**: `results/full_<tag>.mat` 에 sr·pan_aligned·delta, `results/controls_*_best_hqnr.mat` 에 zero/wrong-sign SR 을 넣는 것으로 대신했다. overlay 그림은 없다.
 - **A2 대조군 `B0 + edge loss, aligner 없음`**(§11.5): 승인된 9벌에 포함되지 않음 — 결과 후 후속.
 
 ## 5. 실행
@@ -72,3 +73,18 @@ export PANCRAFTER_DLPAN=/path/to/DLPan-Toolbox
 ```
 
 s1: B0 3벌 체인(19:58 기동) 뒤 `pa_s1.txt` 자동 기동 예약(`work_dir/chain_after.log`). run 당 ≈ 1 h + 평가(세 view 20장 ≈ 1 min/epoch 평가).
+
+## 6. 2차 검토(사용자, 8건) 반영 — 2026-09-09 밤
+
+| # | 지적 | 판단 | 반영 |
+|---|---|---|---|
+| 1 | L_geo guard 가 warp support 를 [11:53] 만 검사 — Gaussian 6 + Scharr 1 만큼 바깥 P̃ 도 참조 | **맞음** | `pa/losses.geometry_support_margin(σ, margin)` = 11 − (6+1) = **4** → guard 는 [4:60]² 의 sampling 이웃을 검사. 64² 에서 2.9 px 통과 / 4.5·9 px 중단(테스트 추가). 모든 case 동일 |
+| 2 | `pa_diag` 가 CSV 의 `True/False` 를 float 로 바꾸다 죽고, `_upload.sh` 파이프가 실패를 숨김 | **맞음** | `cross_table` 이 열별로 파싱(bool 은 bool); 실패는 rc 로 잡아 `!!` 로 표시하고 로그 파일에 남김. 교차표는 CSV 에 의존하지 않고 **세 checkpoint 를 재추론**해 만든다 |
+| 3 | B0 선택(반올림) · PA 선택(반올림 없음 + lms clip) · 시트(원본 참조) 가 같은 경로가 아님 | **맞음** | PA 평가 참조를 **h5 원본 float64** 로 바꿈(feeder 왕복·clip 없음), P̃_eval = W(P_raw, Δ̂) 를 float64 로 계산 → **시트 evaluator 와 배열 단위로 동일**(E02 확장 테스트: 참조 배열 동일, Δ=0 warp exact). B0 의 **선택** 은 `train.py` 옛 경로(반올림)라 ~1e-6 차이가 남는다 — 시트 보고값은 두 계열 모두 `eval_fr_paperset` 경로라 같다. 구현 노트 표현을 "선택은 B0 와 동일" 에서 "보고 경로와 동일, B0 선택과는 반올림 ~1e-6 차이" 로 정정 |
+| 4 | valid fSCC 가 crop 후 Sobel — 규칙 위반, 6e-5 차이 | **맞음** | `sobel_maps` 를 전체 프레임에서 만든 뒤 자른다(`fscc_from_maps`). 전체 프레임은 `SCC_full_numpy` 와 1e-12 이내 동일(테스트) |
+| 5 | resume 안전장치·best 메타·NaN | **맞음** | selector 복원은 `--resume` 일 때만, protocol·evaluator hash·FR h5 sha·scene 수 전부 검사(불일치 → 예외). resume 없이 같은 work_dir 면 옛 선택 상태·후보를 `_stale_selection_<time>/` 로 치움. `best_state.json` 의 SCC/ERGAS 는 **선택된 step 의 기록**(`step_records`). eligibility 가 세 view metric 유한성까지 보고 사유(`shift>8px` / `nan_metric:<view>`)를 CSV 에 남김 |
+| 6 | 시트 비용에 aligner 누락 | **맞음** | `gspread_upload._cost_model` — trainer pa 면 PAModel(aligner+warp) 로 params/FLOPs/추론시간/메모리 측정. PA **2.228282 M** (backbone 2.122952 + aligner 0.105330) |
+| 7 | 미구현 평가·검증 | **부분 수용** | RR-valid(같은 64 px 규칙, 256² → 128²) 학습 중·pa_diag 모두 기록. B0 를 같은 view·공통 V 로 재평가하는 경로(`pa_diag.py --run BASE_…`, Δ=0). zero/wrong-sign SR 저장(`results/controls_*_best_hqnr.mat`). 독립 구조 진단(audit 추정기로 PAN_b←up(MS) vs P̃_b←up(MS)) + RR band 별 Scharr edge error. §9.4 합성 학습 가능성 검사 `tools/pa_synthetic_check.py`. `dataset_hashes.json`(train/valid/RR/FR h5 sha256) · `baseline_manifest.json`(B0 run·config·best 가중치 sha·init hash·scene set). **미반영**: overlay 그림, `report_common` 교집합 ROI(고정 V 로 충분한 동안 보류) |
+| 8 | `--after` 도 GPU smoke 를 즉시 돌림 | **맞음** | 예약 모드면 gate 는 CPU(`CUDA_VISIBLE_DEVICES=""`), smoke 는 체인이 case 시작 직전에 스스로 돈다(`_run_cases.sh`) |
+
+재검증: `tools/pa_unit_tests.py` 전부 통과(추가 항목 포함), 40-iter dry run + `pa_diag`(재추론 교차표·대조·shift 반응·tile·독립 구조) 정상, B0 재평가 경로 정상.

@@ -24,10 +24,17 @@ for f in train_wv3.h5 train_wv3_pan.h5 valid_wv3.h5 valid_wv3_pan.h5 reduced_exa
 done
 if [ -f data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20_pan.h5 ]; then echo "  논문 세트 있음"; else PYTHON="$PY" ./tools/build_paperset_all.sh wv3; fi
 echo "[pa] 2/5 지표 이식 검사"; "$PY" tools/verify_metrics.py
-echo "[pa] 3/5 A1–A3 gate (tools/pa_unit_tests.py)"; "$PY" tools/pa_unit_tests.py
-echo "[pa] 4/5 smoke"
-# shellcheck disable=SC2086
-"$PY" tools/smoke_cases.py $CASES
+if [ "$AFTER" = 1 ] && ps -eo args | grep -q '[_]run_cases\.sh'; then
+  # 다른 학습이 GPU 를 쓰는 중: gate 는 CPU 로, smoke 는 체인이 case 시작 직전에 스스로 돈다 (_run_cases.sh)
+  echo "[pa] 3/5 A1–A3 gate (CPU)"; CUDA_VISIBLE_DEVICES="" "$PY" tools/pa_unit_tests.py
+  echo "[pa] 4/5 smoke — 예약 모드라 지금은 건너뛴다 (체인이 case 마다 smoke_cases.py 를 돈다)"
+else
+  echo "[pa] 3/5 A1–A3 gate (tools/pa_unit_tests.py + §9.4 합성 학습 가능성)"; "$PY" tools/pa_unit_tests.py
+  "$PY" tools/pa_synthetic_check.py --steps 1500 --n 128 || { echo "!! §9.4 합성 검사 실패 — aligner 가 알려진 shift 를 못 배운다"; exit 1; }
+  echo "[pa] 4/5 smoke"
+  # shellcheck disable=SC2086
+  "$PY" tools/smoke_cases.py $CASES
+fi
 echo "[pa] 5/5 기동"
 if [ "$START" = 0 ]; then echo "  준비 완료 — 기동: ./tools/campaign_start.sh --queue $QUEUE --hours $HOURS --label pa-$SERVER"; exit 0; fi
 if ps -eo args | grep -q '[_]run_cases\.sh'; then

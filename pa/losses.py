@@ -79,5 +79,13 @@ def direct_geometry_loss(pan_warped, pan, gt, sigma, margin):
     return per.mean(), dict(weight_sum=float(wsum.mean()), zero_weight_samples=int(zero.sum()))
 
 
+def geometry_support_margin(sigma, margin):
+    """L_geo 가 실제로 참조하는 P̃ 영역의 margin. V_g=[margin:H-margin] 의 값은 Gaussian(radius ceil(3σ)) + Scharr(1) 만큼 바깥 P̃ 에
+    의존하므로, warp support 는 margin − (r_gauss + 1) 안쪽까지 유효해야 한다 (검토 지적 1: σ=2, margin 11 → [4:60])."""
+    r = int(math.ceil(3.0 * sigma)) + 1
+    assert margin > r, f"geometry margin {margin} 이 필터 support {r} 보다 커야 한다"
+    return margin - r
+
+
 def lambda_ramp(base, step, ramp=5000):
     return base * min(step / float(ramp), 1.0) if ramp > 0 else base

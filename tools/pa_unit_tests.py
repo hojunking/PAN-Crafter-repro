@@ -98,7 +98,12 @@ with torch.no_grad():
     y_pa = pm(pan, ms, lpan)["y"]
     sw = torch.ones(2); y_b0 = torch.nn.functional.interpolate(ms, scale_factor=4, mode="bicubic") + bb(pan, lpan, ms, sw)
 check("§9.1 aligner Δ=0 == B0 forward", (y_pa - y_b0).abs().max().item() < 1e-4, f"max diff {(y_pa - y_b0).abs().max().item():.2e}")
-check("§6.2 support guard passes at Δ=0 and fails at |Δ|=12", bool(support_margin_ok(64, 64, torch.zeros(1, 2), 11).all()) and not bool(support_margin_ok(64, 64, torch.tensor([[12.0, 0.0]]), 11).all()))
+from pa.losses import geometry_support_margin
+gm = geometry_support_margin(2.0, 11)
+check("§6.2 guard margin propagates Gaussian(6)+Scharr(1): 11 -> 4", gm == 4)
+check("§6.2 guard: 2.9px passes, 4.5px and 9px fail (review item 1)",
+      bool(support_margin_ok(64, 64, torch.tensor([[2.9, 0.0]]), gm).all()) and not bool(support_margin_ok(64, 64, torch.tensor([[4.5, 0.0]]), gm).all())
+      and not bool(support_margin_ok(64, 64, torch.tensor([[9.0, 0.0]]), gm).all()))
 
 # ---------------- selector (E15/E16/E20)
 S = BestSelector("t")
@@ -113,6 +118,19 @@ check("E13/E20 ineligible candidate never selected", r["best"]["step"] == 5 and 
 S2 = BestSelector("empty"); r = S2.update(1, 1, 0.9, 0.9, False, "x", "invalid")
 check("E20 no valid candidate -> best None", S2.best is None)
 
+# ---------------- pa_diag cross_table on a trainer-format CSV (review item 2)
+import csv as _csv, tempfile
+from tools.pa_diag import cross_table
+_td = tempfile.mkdtemp()
+with open(os.path.join(_td, "checkpoint_metrics.csv"), "w", newline="") as f:
+    w = _csv.DictWriter(f, fieldnames=["step", "epoch", "raw_original.hqnr", "raw_original.fscc", "raw_valid.hqnr", "raw_valid.fscc", "aligned_valid.hqnr", "aligned_valid.fscc", "aligned_eligible", "invalid_reasons"])
+    w.writeheader(); w.writerow(dict(step=100, epoch=5, **{"raw_original.hqnr": 0.95, "raw_original.fscc": 0.88, "raw_valid.hqnr": 0.951, "raw_valid.fscc": 0.881, "aligned_valid.hqnr": 0.952, "aligned_valid.fscc": 0.882}, aligned_eligible="True", invalid_reasons=""))
+json.dump(dict(step=100, epoch=5), open(os.path.join(_td, "best_hqnr_meta.json"), "w"))
+try:
+    ct = cross_table(_td); check("E-diag cross_table parses trainer CSV (True/False strings)", ct["best_hqnr"]["raw_original.hqnr"] == 0.95 and ct["best_hqnr"]["aligned_eligible"] in (True, "True", 1))
+except Exception as e:
+    check("E-diag cross_table parses trainer CSV (True/False strings)", False, repr(e))
+
 # ---------------- evaluator gates on real data (E02/E03/E06/E11)
 dl = os.environ.get("PANCRAFTER_DLPAN")
 if dl and os.path.exists(os.path.join(ROOT, "data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5")):
@@ -122,13 +140,32 @@ if dl and os.path.exists(os.path.join(ROOT, "data/PanCollection/WV3/full_example
     with h5py.File(os.path.join(ROOT, "data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5")) as f:
         lms = np.asarray(f["lms"], dtype=np.float64)[0].transpose(1, 2, 0); pan_np = np.asarray(f["pan"], dtype=np.float64)[0, 0]
     sr = loadmat(os.path.join(ROOT, "work_dir/S1_T05_W168_D123_DUAL/results/full_best_hqnr_mat20.mat"))["sr"].astype(np.float64)[0].transpose(1, 2, 0)
-    v, ok = scene_views(sr, lms, pan_np, pan_np, "wv3", wald, np.zeros(2))
+    v, ok, _reason = scene_views(sr, lms, pan_np, pan_np, "wv3", wald, np.zeros(2))
     check("E02 raw_original == B0 evaluator (d_lambda_k, d_s)", abs(v["raw_original"]["d_lambda"] - d_lambda_k(sr, lms, "wv3", 4, 32, wald)) < 1e-12 and abs(v["raw_original"]["d_s"] - d_s(sr, lms, pan_np, 4, 32, wald)) < 1e-12)
     check("E03 delta=0: raw_valid == aligned_valid", v["raw_valid"] == v["aligned_valid"])
     check("E06 D_lambda identical across valid views", v["raw_valid"]["d_lambda"] == v["aligned_valid"]["d_lambda"])
     y0, y1, x0, x1 = fixed_roi(512, 512)
     check("E11 ROI origin multiple of 4 and 32", y0 % 32 == 0 and x0 % 32 == 0 and (y1 - y0) % 32 == 0)
-    check("eligibility rule", ok and not __import__("pa.evalviews", fromlist=["eligible"]).eligible(np.array([MAX_ELIGIBLE_SHIFT + 0.5, 0.0])))
+    from pa.evalviews import eligibility, sobel_maps, fscc_from_maps
+    from utils import SCC_full_numpy
+    check("eligibility rule (shift)", ok and not eligibility(np.array([MAX_ELIGIBLE_SHIFT + 0.5, 0.0]), v)[0])
+    vn = {k: dict(d) for k, d in v.items()}; vn["aligned_valid"]["d_s"] = float("nan")
+    check("eligibility rule (NaN metric -> ineligible with reason)", eligibility(np.zeros(2), vn) == (False, "nan_metric:aligned_valid"))
+    R = 2047.0
+    check("E02 fSCC full frame == utils.SCC_full_numpy", abs(fscc_from_maps(sobel_maps(pan_np[..., None] / R), sobel_maps(sr / R)) - SCC_full_numpy(pan_np[..., None] / R, sr / R)) < 1e-12)
+    # 검토 지적 4: valid fSCC 는 전체 프레임 Sobel 후 crop (crop 후 Sobel 과 다르다)
+    y0, y1, x0, x1 = fixed_roi(512, 512); VM = (slice(y0 - 1, y1 - 1), slice(x0 - 1, x1 - 1))
+    fs_full_then_crop = fscc_from_maps(sobel_maps(pan_np[..., None] / R), sobel_maps(sr / R), VM)
+    fs_crop_then = SCC_full_numpy(pan_np[y0:y1, x0:x1, None] / R, sr[y0:y1, x0:x1] / R)
+    check("valid fSCC uses full-frame Sobel then crop", abs(v["raw_valid"]["fscc"] - fs_full_then_crop) < 1e-12 and abs(fs_full_then_crop - fs_crop_then) > 1e-6, f"full-then-crop {fs_full_then_crop:.9f} vs crop-then {fs_crop_then:.9f}")
+    # 검토 지적 3: trainer 참조 = h5 원본 float64 (feeder 왕복 없음) — 시트 evaluator 와 같은 배열
+    with h5py.File(os.path.join(ROOT, "data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5")) as f:
+        lms_raw = np.asarray(f["lms"], dtype=np.float64)[0].transpose(1, 2, 0); pan_raw = np.asarray(f["pan"], dtype=np.float64)[0, 0]
+    check("E02 references identical to sheet evaluator arrays", np.array_equal(lms_raw, lms) and np.array_equal(pan_raw, pan_np))
+    # P̃_eval = W(P_raw, 0) 이 float64 로 원본과 정확히 같다 (E03 exact)
+    from pa.warp import warp_pan as _wp
+    pe = _wp(torch.from_numpy(pan_raw)[None, None], torch.zeros(1, 2, dtype=torch.float64))[0, 0].numpy()
+    check("E03 float64 zero-warp of raw PAN is exact", np.array_equal(pe, pan_raw))
 else:
     print("  SKIP evaluator gates (PANCRAFTER_DLPAN or paper set missing)")
 
