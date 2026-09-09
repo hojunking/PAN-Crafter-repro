@@ -46,6 +46,7 @@ else
 fi
 if [ "$START" = 1 ]; then
   echo "[base96] 5/5 체인 기동 (${HOURS}h)"; ./tools/campaign_start.sh --queue "$QUEUE" --hours "$HOURS" --label base-w96-mspan
+  ./tools/_watchdog.sh --install && echo "  감시자 cron 등록 (PANCRAFTER-WATCHDOG, 15분)"
   echo "  진행: tail -n +1 -f work_dir/cases_chain.log | grep --line-buffered '\[cases\]\|핵심'"
 else
   echo "[base96] 준비 완료 — 기동: ./tools/campaign_start.sh --queue $QUEUE --hours $HOURS --label base-w96-mspan"
