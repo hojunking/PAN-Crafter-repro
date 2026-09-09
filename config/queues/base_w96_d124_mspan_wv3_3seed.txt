@@ -1,0 +1,4 @@
+# 새 baseline W96·D124·MS+PAN 9ch·단일 task — WV3 3-seed (s3). 선택·보고 = 논문 세트 20장 전체.
+BASE_W96_D124_MSPAN_WV3_S2025
+BASE_W96_D124_MSPAN_WV3_S1234
+BASE_W96_D124_MSPAN_WV3_S7777

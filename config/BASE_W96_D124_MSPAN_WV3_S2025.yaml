@@ -1,0 +1,83 @@
+# 새 baseline W96·D124 · MS+PAN 9ch · 단일 HRMS task — WV3 seed 2025 (s3 3-seed)
+# 생성: tools/gen_w96_d124_mspan_configs.py (템플릿 MS1_w96_9ch_msonly). 손으로 고치지 말 것.
+# 기준 문서: research_log/PAN_research_baseline_W96_D124_2026-09-09.md §1·§3
+# 공통: W96 · depth [1,2,4] · in_mode paper(9ch: PAN, ↑MS) · LPAN/HPAN 없음 · mars ms(PAN task·loss·batch 복제 없음)
+#       mode_modulation false(MARs γ/β 제거) · attention 없음 · crop=False · 50K AdamW 1e-4/wd0.01 cosine
+#       best 선택 = 공식 HQNR, 논문 세트(.mat 20장 전체, full_examples_mat20) · 보고도 같은 세트
+expect_params_m: 2.123
+seed: 2025
+num_worker: 4
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/BASE_W96_D124_MSPAN_WV3_S2025
+
+phase: train
+
+mars: ms                      # PAN mode·loss·batch 복제 제거 (단일 task)
+
+# KNOWN_ISSUES.md E-1: 검증셋으로 best 를 고른다. 테스트셋은 곡선 기록용으로만 본다.
+select_on: hqnr
+fr_select_indices: "0-19"   # 논문 세트 20장 전체로 선택 (부분집합 없음)
+
+# feeder
+feeder: feeders.feeder.PanFeeder
+train_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5
+  crop: False
+  hflip: True
+  vflip: True
+  rot: True
+  crop_ratio: 0.75
+  ms_size: 16
+
+val_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5
+
+test_reduced_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5
+
+test_full_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5
+
+# data
+num_bands: 8
+max_pixel: 2047.0
+
+# model
+model: model.pancrafter_paper.PANCrafterPaper
+model_args:
+  in_channels: 1
+  out_channels: 8
+  hidden_size: 96
+  depth: [1, 2, 4]          # full-res / H/2 / H/4(bottleneck)
+  dropout: 0.0
+  num_heads: 8
+  mlp_ratio: 4.0
+  ks: 3                     # 논문: "local attention kernel size to k = 3" (bottleneck 포함)
+  ka: 3
+  norm: ln                  # 논문 Eq (5): x <- Conv(SiLU(LN(x)))
+  in_mode: paper            # 논문 9ch: concat(PAN, ↑MS)
+  attn_locations: []
+  mode_modulation: false   # MARs mode 조건 γ/β 제거 (단일 task)
+  n_attn: 3                 # Figure 3: AttnBlock 3개 (H/2 enc, H/4 bottleneck, H/2 dec)
+
+# optim
+optimizer: AdamW
+learning_rate: 1e-4
+weight_decay: 0.01
+lr_scheduler: cosine
+num_iter: 50000
+num_warmup: 100
+
+# loss
+res: True
+w_off: 1.0
+
+# logging
+log_iter: 100
+save_iter: 10000
+save_epoch: 25
+eval_epoch: 5
+
+# training
+gpu: 0
+batch_size: 48  # duplicate
+test_batch_size: 1

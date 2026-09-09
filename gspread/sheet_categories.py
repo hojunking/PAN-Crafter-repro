@@ -29,6 +29,8 @@ CATS = [
   lambda t: t.startswith(("SR_", "AF_"))),
  ("UVS", "⑭ UVS-KD (s2) — uncertainty routing · GT residual variance · shift-token KD · teacher forcing (teacher c0_hqnr → d122)",
   lambda t: t.startswith("UVS_")),
+ ("BASE96", "⑰ 새 baseline W96·D124 U-Net — MS+PAN 9ch · LPAN/HPAN 없음 · PAN task 없음(단일 HRMS) · MARs γ/β 제거 · WV3 3-seed (s3)",
+  lambda t: t.startswith("BASE_W96_D124_MSPAN_")),
  ("MULTISET", "⑯ 아키텍처 고정 다중 데이터셋 3-seed — W168·d123·dual·11ch·nocrop·attn 없음, WV3/QB/GF2 학습(seed 2025·1234·7777) + WV2 zero-shot",
   lambda t: t.startswith("ARCH_W168_D123_DUAL_") or "_zs_" in t),
  ("S1GRID", "⑮ Teacher 후보 격자 (S1 계열) — 폭 W·깊이 D·MS2/DUAL 스크리닝, HQNR 선택 (S1_T05_W168_D123_DUAL 이 SR anchor)",
@@ -43,6 +45,11 @@ SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload �
 # 캠페인 설명 — 구분행의 Notes 에 들어간다. 여기 있는 범주만 업로드 시 구분행을 자동으로 넣는다
 # (업로드는 시트 맨 아래에 덧붙이므로, 새 캠페인이 지난 실험과 섞여 보이지 않게 한다).
 DESC = {
+ "BASE96": ("[캠페인] 새 baseline W96·D124 WV3 3-seed · s3 · 2026-09-09 · research_log/PAN_research_baseline_W96_D124_2026-09-09.md 의 고정 기준: "
+            "U-Net W96 · depth [1,2,4] · 입력 MS+PAN 만(9ch, in_mode paper) · LPAN/HPAN 채널 없음 · PAN reconstruction task·loss 없음(mars ms) · "
+            "MARs mode γ/β 제거(mode_modulation false) · attention 없음 · crop=False · bicubic 잔차 base · 50K AdamW 1e-4/wd0.01 cosine · "
+            "seed 2025·1234·7777. best 선택·보고 = 논문 세트(.mat 20장 전체) HQNR. config: tools/gen_w96_d124_mspan_configs.py · "
+            "큐 config/queues/base_w96_d124_mspan_wv3_3seed.txt. 과거 W168·d123 dual 결과는 직접 대조군이 아니다(문서 §7)"),
  "MULTISET": ("[캠페인] 아키텍처 고정 다중 데이터셋 3-seed · 2026-09-08/09 · S1_T05_W168_D123_DUAL 구조(W168 · depth [1,2,3] · dual MARs · 11ch · "
               "crop=False · attention 없음 · 50K · AdamW 1e-4/wd0.01 cosine) 그대로, 데이터셋만 바꾼다: WV3(seed 2025·1234·7777) · "
               "QB(4밴드, 학습셋 ms 복구본 F-3, FR lpan 복구본) · GF2(4밴드, max_pixel 1023) 각 3 seed + WV3 checkpoint 의 WV2 zero-shot(_zs_wv2). "
