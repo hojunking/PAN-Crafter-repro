@@ -169,3 +169,8 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
 2026-09-08 부터: **아키텍처 고정(S1_T05_W168_D123_DUAL) 다중 데이터셋 3-seed** — WV3/QB/GF2 × seed 2025·1234·7777 +
 WV2 zero-shot, 서버 3대가 같은 큐(`config/queues/arch_w168_multiset_3seed.txt`). 준비·기동은 `./tools/arch_multiset_prepare.sh`,
 계획은 `research_log/2026-09-08_arch-w168-multiset-3seed-plan.md`. config 는 `tools/gen_arch_multiset_configs.py` 가 만든다.
+
+2026-09-09 결정: **새 mainline 은 W96·D124 U-Net · MS+PAN 9ch · 단일 HRMS task(PAN 재구성·dual MARs·LPAN/HPAN 제거)** —
+`research_log/PAN_research_baseline_W96_D124_2026-09-09.md`. 과거 W168·d123 dual 은 직접 대조군이 아니다. 첫 실행은 WV3 3-seed(s3):
+config `BASE_W96_D124_MSPAN_WV3_S*`(`tools/gen_w96_d124_mspan_configs.py`), 기동 `./tools/base_w96_prepare.sh`,
+준비 문서 `research_log/2026-09-09_w96-d124-mspan-wv3-3seed-launch.md`.

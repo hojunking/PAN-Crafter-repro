@@ -30,14 +30,17 @@ smoke(`tools/smoke_cases.py`)는 s1 에서 3벌 모두 통과했다(build·param
 git pull
 cat gspread/server.txt                      # s3 여야 한다 (시트 탭 WV3-s3)
 export PANCRAFTER_DLPAN=/path/to/DLPan-Toolbox
-./tools/metric_v2_prepare.sh                # 아직이면 — 지표 v2 + 논문 세트 h5(full_examples_mat20). 이미 했으면 생략
-python tools/smoke_cases.py BASE_W96_D124_MSPAN_WV3_S2025 BASE_W96_D124_MSPAN_WV3_S1234 BASE_W96_D124_MSPAN_WV3_S7777
-./tools/campaign_start.sh --queue config/queues/base_w96_d124_mspan_wv3_3seed.txt --hours 24 --label base-w96-mspan
+./tools/base_w96_prepare.sh                 # 점검(데이터·논문 세트·지표·smoke) → 체인 기동 (24h 마감). --no-start 면 점검만
 ```
 
-- s3 에 arch-multiset 체인이 아직 돌고 있으면 그것이 `[cases] DONE` 을 찍은 뒤 기동한다(체인은 하나씩).
+스크립트가 하는 일: WV3 데이터·논문 FR 세트(`full_examples_mat20`, 없으면 `build_paperset_all.sh wv3`)·`verify_metrics.py`·
+config 3벌 smoke → 다른 체인이 돌고 있으면 기동하지 않고 종료 → `campaign_start.sh --queue config/queues/base_w96_d124_mspan_wv3_3seed.txt`.
+`metric_v2_prepare.sh` 를 이미 돌린 서버면 2·3 단계는 "있음" 으로 지나간다.
+
+- s3 에 arch-multiset 체인이 아직 돌고 있으면 그것이 `[cases] DONE` 을 찍은 뒤 실행한다(스크립트가 막는다).
 - run 이 끝날 때마다 `tools/_upload.sh` 가 논문 세트 평가(`fr_mat20.json`) → 시트 `WV3-s3` 업로드를 한다. WV2 zero-shot 은 이 계열에 만들지 않는다.
-- 소요: W96 단일 mode 는 W168 dual(≈3.2 h/run, s1)의 절반 이하 연산이다. s1 기준 run 당 1~1.5 h 추정, 3벌 ≈ 4~5 h. s3(5090)은 더 빠르다. 기동 시 `results_log/` 에 WIP 문서를 만든다.
+- 소요: 같은 골격의 `MS1_w96_9ch_msonly`(s1, 2026-09-01) 가 50K 에 약 1 h 15 m(17:48 → 19:02, mode γ/β 만 켜진 같은 W96·9ch·mars ms) 였다. s3(5090)은 그보다 빠르다. 3벌 순차.
+- 기동한 세션이 `results_log/` 에 그날 WIP 문서를 만든다(CONVENTION §2; 하루 한 문건이면 그날 문서에 절로 넣는다).
 
 ## 3. 해석 원칙 (기준 문서 §7)
 
