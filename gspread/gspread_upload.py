@@ -553,6 +553,9 @@ def collect(tag, want_profile, server, peer=None):
         desc = (desc + " SR " + {"j1": f"J1(random jitter ±{_r:g}px, 두 mode)", "j2": f"J2(random jitter ±{_r:g}px, MS mode 만)",
                                   "j3": "J3(matched blur control)", "j4": f"J4(clean+jitter ±{_r:g}px consistency)",
                                   "g1": "G1(global PAN-feature correlator)"}.get(_v, _v)).strip()
+    elif _tr == "pa":
+        _p = getattr(a, "pa", {}) or {}; _c = _p.get("case", "?")
+        desc = (desc + " PA " + {"A1": "A1(aligner, L_rec)", "A2": "A2(aligner, L_rec+edge)", "A3": "A3(aligner, L_rec+geo)"}.get(_c, _c)).strip()
     elif _tr == "uvs":
         _u = getattr(a, "uvs", {}) or {}; _v = _u.get("variant", "?")
         desc = (desc + " UVS " + {"b0": "B0(lms baseline)", "k0": "K0(output KD)", "k1": "K1(U routing)", "k2": "K2(U+GT var)",
@@ -660,6 +663,9 @@ def collect(tag, want_profile, server, peer=None):
         bits.extend(_ga_notes(getattr(a, "alignment", {}) or {}))   # 맞춤 세팅 설명 (family 무관)
     elif _tr == "sr":
         bits.extend(_sr_notes(getattr(a, "sr", {}) or {}))
+    elif _tr == "pa":
+        _p = getattr(a, "pa", {}) or {}; _c = _p.get("case", "?")
+        desc = (desc + " PA " + {"A1": "A1(aligner, L_rec)", "A2": "A2(aligner, L_rec+edge)", "A3": "A3(aligner, L_rec+geo)"}.get(_c, _c)).strip()
     elif _tr == "uvs":
         _u = getattr(a, "uvs", {}) or {}; _v = _u.get("variant", "?"); _l = _u.get("loss") or {}; _s = _u.get("shift") or {}
         _q = {"b0": "phase-correct 공통 baseline(제공 lms)", "k0": "일반 output KD 대조", "k1": "U-KD > plain KD?", "k2": "UV-KD > U-KD?",

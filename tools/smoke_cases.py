@@ -192,6 +192,47 @@ def check_trainer_extras(cfg):
         if dev.type == "cuda":
             torch.cuda.empty_cache()
         return note
+    if tr == "pa":
+        from pa.aligner import PANGlobalAligner
+        from pa.model import PAModel
+        from pa.losses import output_edge_loss, direct_geometry_loss
+        from pa.warp import support_margin_ok
+        pa = cfg.get("pa") or {}; case = pa.get("case"); assert case in ("A1", "A2", "A3"), f"pa.case {case}"
+        assert cfg.get("mars") == "ms" and cfg["model_args"].get("in_mode") == "paper" and cfg["model_args"].get("mode_modulation") is False, "pa 는 B0(9ch·mars ms·γβ 제거) 위"
+        dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        bb = build(cfg).to(dev); randomize_zero_params(bb)
+        al = PANGlobalAligner(int(cfg["num_bands"])).to(dev)
+        n_al = sum(p.numel() for p in al.parameters()); assert n_al == 105330 or int(cfg["num_bands"]) != 8, f"aligner params {n_al}"
+        m = PAModel(bb, al); note = f" PA:{case} aligner {n_al / 1e6:.4f}M"
+        B = int(cfg.get("batch_size", 48)); nb = int(cfg["num_bands"])
+        if dev.type == "cuda":
+            torch.cuda.empty_cache(); torch.cuda.reset_peak_memory_stats(dev)
+        opt = torch.optim.AdamW(m.parameters(), lr=1e-4)
+        pan, lpan = torch.randn(B, 1, 64, 64, device=dev), torch.randn(B, 1, 16, 16, device=dev)
+        ms, gt = torch.randn(B, nb, 16, 16, device=dev), torch.randn(B, nb, 64, 64, device=dev)
+        o = m(pan, ms, lpan)
+        assert o["y"].shape == (B, nb, 64, 64) and o["delta"].shape == (B, 2)
+        assert bool(support_margin_ok(64, 64, o["delta"].detach(), int(pa.get("geometry_margin_hr", 11))).all())
+        loss = (gt - o["y"]).abs().mean()
+        if case == "A2":
+            loss = loss + 0.1 * output_edge_loss(o["y"], gt)
+        if case == "A3":
+            lg, _ = direct_geometry_loss(o["pan_aligned"], pan, gt, float(pa.get("geometry_sigma_hr", 2.0)), int(pa.get("geometry_margin_hr", 11))); loss = loss + 0.01 * lg
+        assert torch.isfinite(loss)
+        loss.backward()
+        assert al.fc2.weight.grad is not None and torch.isfinite(al.fc2.weight.grad).all(), "zero-head 에 gradient 가 없다 (§4.2 bypass?)"
+        opt.step()
+        if dev.type == "cuda":
+            _ALIGN_PEAK = torch.cuda.max_memory_allocated(dev) / 2**20
+            note += f" trainPeak {_ALIGN_PEAK:.0f}MB"
+        m.eval()
+        with torch.no_grad():
+            of = m(torch.randn(1, 1, 512, 512, device=dev), torch.randn(1, nb, 128, 128, device=dev), torch.randn(1, 1, 128, 128, device=dev))
+        assert of["y"].shape[-2:] == (512, 512) and torch.isfinite(of["y"]).all() and torch.isfinite(of["delta"]).all()
+        del m, bb, al, opt, o, loss, of
+        if dev.type == "cuda":
+            torch.cuda.empty_cache()
+        return note
     if tr == "uvs":
         import json
         from train_uvs import UVSModel, VARIANTS, USES_SHIFT, USES_V, build_inputs, x11

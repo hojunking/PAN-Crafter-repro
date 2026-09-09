@@ -38,3 +38,18 @@ params 2.123 M. seed 2025 · 1234 · 7777.
 ## 결과 (채워 넣는다)
 
 run 이 끝나면 여기에 HQNR / D_λ / D_s / fSCC / SCC / ERGAS 와 학습 시간을 적고, 3 seed 의 평균·N−1 표준편차를 낸다.
+
+## 추기 (같은 날 20:52) — 다음 캠페인: A1–A3 PAN 앞단 전역 정합, B0 체인 뒤 자동 기동
+
+사용자 지시 정정: 진행할 실험은 [`research_log/PAN_A1_A3_Global_PAN_Alignment_W96_D124_2026-09-09_v2.md`](../research_log/PAN_A1_A3_Global_PAN_Alignment_W96_D124_2026-09-09_v2.md) 다.
+위 B0 3벌은 그 대조군이므로 그대로 완주시키고, 끝나면 `config/queues/pa_s1.txt`(seed 2025: A1 → A2 → A3) 가 자동 기동된다
+(`tools/_chain_after.sh`, 로그 `work_dir/chain_after.log`). 구현·검토 노트: [`research_log/2026-09-09_pa-a1-a3-implementation.md`](../research_log/2026-09-09_pa-a1-a3-implementation.md).
+
+| 실행명 | case | loss | 상태 |
+|---|---|---|---|
+| `PA_A1_REC_W96_D124_9CH_S2025` | A1 | L_rec | 대기 (B0 체인 뒤) |
+| `PA_A2_OUTEDGE_W96_D124_9CH_S2025` | A2 | L_rec + 0.1·L_edge (5K ramp) | 대기 |
+| `PA_A3_GEO_W96_D124_9CH_S2025` | A3 | L_rec + 0.01·L_geo (5K ramp) | 대기 |
+
+s2(seed 1234: B0 → A2→A3→A1) · s3(seed 7777: B0 → A3→A1→A2) 는 `./tools/pa_prepare.sh` 한 줄. 시트 HQNR = best_raw 의 raw_original(원 PAN, 전체 프레임).
+raw_valid / aligned_valid / best_aligned / Δ̂ 통계는 run 폴더 `checkpoint_metrics.csv` 와 `results/pa_diag.json`. 판정 규칙(§12): 같은 (server, seed) block 안의 대응 차이 A2−A1, A3−A1, Ak−B0.

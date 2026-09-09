@@ -29,6 +29,8 @@ CATS = [
   lambda t: t.startswith(("SR_", "AF_"))),
  ("UVS", "⑭ UVS-KD (s2) — uncertainty routing · GT residual variance · shift-token KD · teacher forcing (teacher c0_hqnr → d122)",
   lambda t: t.startswith("UVS_")),
+ ("PA", "⑱ PAN 앞단 전역 정합 A1–A3 (PA 계열) — 학습되는 global shift CNN 이 PAN 만 MS 프레임으로 sampling, W96·D124 B0 위 · A1 recon / A2 +edge / A3 +geo",
+  lambda t: t.startswith("PA_A")),
  ("BASE96", "⑰ 새 baseline W96·D124 U-Net — MS+PAN 9ch · LPAN/HPAN 없음 · PAN task 없음(단일 HRMS) · MARs γ/β 제거 · WV3 3-seed (s3)",
   lambda t: t.startswith("BASE_W96_D124_MSPAN_")),
  ("MULTISET", "⑯ 아키텍처 고정 다중 데이터셋 3-seed — W168·d123·dual·11ch·nocrop·attn 없음, WV3/QB/GF2 학습(seed 2025·1234·7777) + WV2 zero-shot",
@@ -45,6 +47,11 @@ SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload �
 # 캠페인 설명 — 구분행의 Notes 에 들어간다. 여기 있는 범주만 업로드 시 구분행을 자동으로 넣는다
 # (업로드는 시트 맨 아래에 덧붙이므로, 새 캠페인이 지난 실험과 섞여 보이지 않게 한다).
 DESC = {
+ "PA": ("[캠페인] PAN 앞단 전역 정합 A1–A3 · 2026-09-09 · research_log/PAN_A1_A3_Global_PAN_Alignment_W96_D124_2026-09-09_v2.md. "
+        "B0(BASE_W96_D124_MSPAN) 골격·학습 조건 그대로, 앞에 dual-stem global shift CNN(0.105M, zero-init head) 을 붙여 PAN 만 Δ̂ 로 bicubic sampling(P̃). "
+        "MS base·GT·출력은 M-frame 고정. A1 L_rec / A2 +0.1·L_edge(Scharr) / A3 +0.01·L_geo(normalized gradient outer product), 5K ramp. "
+        "서버-seed block: s1 2025 (A1→A2→A3) · s2 1234 (A2→A3→A1) · s3 7777 (A3→A1→A2). 시트 HQNR 은 best_raw 의 raw_original view(원 PAN, 전체 프레임). "
+        "raw_valid·aligned_valid·best_aligned 는 run 폴더 checkpoint_metrics.csv / pa_diag.json"),
  "BASE96": ("[캠페인] 새 baseline W96·D124 WV3 3-seed · s3 · 2026-09-09 · research_log/PAN_research_baseline_W96_D124_2026-09-09.md 의 고정 기준: "
             "U-Net W96 · depth [1,2,4] · 입력 MS+PAN 만(9ch, in_mode paper) · LPAN/HPAN 채널 없음 · PAN reconstruction task·loss 없음(mars ms) · "
             "MARs mode γ/β 제거(mode_modulation false) · attention 없음 · crop=False · bicubic 잔차 base · 50K AdamW 1e-4/wd0.01 cosine · "

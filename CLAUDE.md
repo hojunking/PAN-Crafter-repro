@@ -177,3 +177,7 @@ WV2 zero-shot, 서버 3대가 같은 큐(`config/queues/arch_w168_multiset_3seed
 `research_log/PAN_research_baseline_W96_D124_2026-09-09.md`. 과거 W168·d123 dual 은 직접 대조군이 아니다. 첫 실행은 WV3 3-seed(s3):
 config `BASE_W96_D124_MSPAN_WV3_S*`(`tools/gen_w96_d124_mspan_configs.py`), 기동 `./tools/base_w96_prepare.sh`,
 준비 문서 `research_log/2026-09-09_w96-d124-mspan-wv3-3seed-launch.md`.
+
+그 다음 캠페인(2026-09-09 결정): **A1–A3 PAN 앞단 전역 정합** — 명세 `research_log/PAN_A1_A3_Global_PAN_Alignment_W96_D124_2026-09-09_v2.md`,
+구현 `pa/` + `train_pa.py`(trainer: pa), 검토·구현 노트 `research_log/2026-09-09_pa-a1-a3-implementation.md`. 서버-seed block: s1 2025 · s2 1234 · s3 7777,
+각 서버 `./tools/pa_prepare.sh`(gate `tools/pa_unit_tests.py` 포함). `best_hqnr/` 는 best_raw(raw_original HQNR) 의 alias, `best_aligned/`·`last/` 별도.

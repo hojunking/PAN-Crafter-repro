@@ -140,6 +140,14 @@ def build(cfg, wd, ckpt, peer=None):
         def fwd(pan, lpan, ms, lms):
             return sr_infer(m, v, pan, lpan, ms)["y"]
         return m, fwd, f"sr/{v}: sr_infer (jitter 0)"
+    if tr == "pa":
+        from pa.aligner import PANGlobalAligner
+        from pa.model import PAModel
+        bb = Model(**cfg["model_args"]); m = PAModel(bb, PANGlobalAligner(int(cfg["num_bands"]))); m.load_state_dict(sd, strict=True)
+
+        def fwd(pan, lpan, ms, lms):
+            return m(pan, ms, lpan)["y"]
+        return m, fwd, f"pa/{(cfg.get('pa') or {}).get('case')}: aligner on (learned Δ), raw_original view"
     raise NotImplementedError(f"trainer={tr} 는 이 스크립트가 다루지 않는다")
 
 

@@ -96,7 +96,7 @@ def get_parser():
     # KD·mutual learning (research_log/s1_mutual_and_kd_implementation_spec.md).
     # best 선택 기준은 trainer 와 무관하게 기존 그대로다 (공식 HQNR).
     parser.add_argument('--trainer', type=str, default='default',
-                        choices=['default', 'teacher', 'kd', 'mutual', 'align', 'sr', 'uvs'],
+                        choices=['default', 'teacher', 'kd', 'mutual', 'align', 'sr', 'uvs', 'pa'],
                         help='default=기존 MARs / teacher=uncertainty teacher(T1·T2) / '
                              'kd=frozen teacher KD(K0~K5) / mutual=2-peer(M0~M3) / '
                              'align=global alignment wrapper (align/, train_align.py) / '
@@ -106,6 +106,8 @@ def get_parser():
                         help='uvs trainer 인자 (variant b0|k0|k1|k2|s0|m1|m2|m3, loss, variance, shift, teacher_forcing, teacher_norm)')
     parser.add_argument('--sr', action=YamlAction, default=dict(),
                         help='sr trainer 인자 (variant j1|j2|j3|j4|g1, jitter, blur, cons, g1, inference) — train_sr.py')
+    parser.add_argument('--pa', action=YamlAction, default=dict(),
+                        help='pa trainer 인자 (case A1|A2|A3, lambda_edge, lambda_geo, ramp_steps, geometry_sigma_hr, geometry_margin_hr, init_dir, diag_iter) — train_pa.py')
     parser.add_argument('--alignment', action=YamlAction, default=dict(),
                         help='align trainer 인자 (upsampler, delta_source, alpha, output_frame, '
                              'inverse_location, trainable_shift_net, cache_dir ...) — align/model.py AlignCfg')
@@ -204,6 +206,8 @@ def train(args):
         from train_sr import ShiftRobustTrainer as TrainerCls
     elif kind == 'uvs':
         from train_uvs import UVSTrainer as TrainerCls
+    elif kind == 'pa':
+        from train_pa import PATrainer as TrainerCls
     else:
         TrainerCls = Trainer
     trainer = TrainerCls(args=args, data_loader=data_loader, model=model)
@@ -273,7 +277,12 @@ def train(args):
             # align trainer: HQNR 차이 <= 1e-4 면 fSCC(12-19), 그것도 <= 1e-4 면 나중 iteration
             # (global alignment 계획 §17.2). 다른 trainer 는 기존 strict '>' 그대로.
             fscc = getattr(trainer, 'last_fscc_official', None)
-            if kind == 'align' and best_hqnr > 0:
+            if kind == 'pa':
+                # PA: 선택은 trainer 의 running-max·tie-band·later-step 선택기(pa/selector.py)가 한다. best 는 과거 후보일 수 있다.
+                is_best = bool(getattr(trainer, 'raw_is_best', False))
+                if is_best:
+                    _b = trainer.sel_raw.best; hqnr, fscc = _b['hqnr'], _b['fscc']; epoch = _b['epoch'] - 1
+            elif kind == 'align' and best_hqnr > 0:
                 # tie band 의 기준은 **지금까지의 최대 HQNR**(anchor) 이다. 현재 best 의 HQNR 을
                 # 기준으로 하면 동률 교체가 반복될 때 기준이 조금씩 내려가 최대값보다 1e-4 넘게
                 # 낮은 checkpoint 까지 best 가 될 수 있다 (2026-09-05 검증 지적).
@@ -341,6 +350,8 @@ def train(args):
     # checkpoint 에서만 내보낸다. 임의 checkpoint 는 tools/export_mat.py 로 처리한다.
     tags = {'val': ['best_val'], 'hqnr': ['best_hqnr'],
             'test': ['best_reduced', 'best_full']}[args.select_on]
+    if hasattr(trainer, 'export_tags'):
+        tags = trainer.export_tags()               # pa: best_hqnr(=best_raw) · best_aligned · last
     for tag in tags:
         ckpt = os.path.join(args.work_dir, tag)
         if not os.path.isdir(ckpt):
