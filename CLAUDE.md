@@ -79,9 +79,13 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지 
 - **논문 비교 FR 세트는 PanCollection `.mat` 형식 20장이다 — 배포 H5 의 20장이 아니다** (KNOWN_ISSUES F-2,
   `2026-09-07_metric-comparability-audit.md`). H5 12-19 는 그중 6장만 겹친다. **시트의 FR 은
   `results/fr_mat20.json`(`tools/eval_fr_paperset.py`) = FR·paper mat20 열뿐이다** (2026-09-07 사용자 결정).
-  H5 12-19 는 학습 중 best 선택에만 쓴다. 새 서버·다른 서버 재측정은 `./tools/metric_v2_prepare.sh` 한 번.
+  **2026-09-09 부터 학습 중 best 선택도 논문 세트 20장 전체다** (`fr_select_indices` 기본 `0-19`, FR feeder 는
+  `full_examples_mat20`). 12-19 같은 부분집합은 어디에도 쓰지 않는다 — 논문 프로토콜을 따른다. 그 전에 H5 12-19 로
+  고른 ARCH run 은 `*_sel1219` 로 격리돼 시트·배치에서 빠진다. 새 서버·다른 서버 재측정은 `./tools/metric_v2_prepare.sh` 한 번.
 - **JQM(Palubinskas 2015, `tools/metrics/jqm.py`)은 추가 지표다** — 두 논문이 보고하지 않으며 판정 기준이 아니다(HQNR→SCC 유지).
-  전역 CMSC, lpf=genMTF, 분광 가중 NNLS 라는 우리 선택이 들어 있으니 인용할 때 그 사실을 적는다. 시트 FR·paper 의 JQM↑ 열.
+  규약은 **SIPSA-Net 보충자료**(QLR 밴드 균등평균, QHR 은 SRF 가중 intensity, v=0.5)를 따르되 SRF 가 없어 **NNLS 정규화 대체
+  가중치**를 쓴다 → 인용할 때 "SRF 대체(회귀) JQM 변형" 이라고 적고 SIPSA 보고값과 같은 조건이라 하지 않는다. 입력 [0,R] 클립·
+  볼록 가중으로 [0,1] 을 보장한다(합이 제한되지 않은 회귀 가중치는 1 을 넘긴다). 시트 FR·paper 의 JQM↑ 열.
 - **시트·보고용 SCC 는 SCC.m(zero-padding), SSIM 은 Gaussian 11×11** (KNOWN_ISSUES D-7). 2026-09-07 이전
   문서의 SCC 는 약 +0.004, SSIM 은 약 +0.002 높은 옛 정의다. 학습 로그의 SCC 는 여전히 옛 정의(상대 비교용).
 - **평가기는 MATLAB 소스를 파이썬으로 재구현한 것이지 MATLAB 실행이 아니다.** 비트 동일을 주장하지 않는다.
@@ -115,9 +119,10 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
   격차의 최대 원인은 배포 코드의 `crop`(실은 scale jitter, −3.63%)이었다.
 - **best 선택 기준이 HQNR 로 바뀌었다** (`select_on: hqnr`). FR 검증 split 이 없어 FR
   테스트셋으로 고른다 — no-reference 라 GT 누출은 없지만 선택 편향은 있다. 산출물은
-  `best_hqnr` / `reduced_best_hqnr.mat` 이고, 체인 완료 판정도 이 파일이다.
+  `best_hqnr` / `reduced_best_hqnr.mat` 이고, 체인 완료 판정도 이 파일이다. 2026-09-09 부터 그 FR 테스트셋은
+  **논문 세트(.mat 20장) 전체**다.
 - 학습 로그에 매 eval epoch `[핵심] HQNR / SCC / ERGAS` 가 찍힌다.
-- **지표 우선순위: HQNR > SCC > ERGAS.** best 선택은 HQNR(공식 12-19), 동률이면
+- **지표 우선순위: HQNR > SCC > ERGAS.** best 선택은 HQNR(논문 세트 20장 전체; 2026-09-09 이전 run 은 H5 12-19), 동률이면
   SCC, 그 다음 ERGAS 로 가른다. 단 SCC 는 이 실험 범위에서 포화(0.9887~0.9914)라
   실질 tie-break 는 대부분 ERGAS 가 맡는다.
 - **HQNR 시드 2σ ≈ 1.18%** (ERGAS 0.11%). HQNR 차이가 이보다 작으면 위 순위의

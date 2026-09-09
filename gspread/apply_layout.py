@@ -61,6 +61,12 @@ def main():
 
     # 행은 메인 탭 + (있으면) extra 탭에서 모으고, 열은 (그룹, 라벨) 이름으로 코드 COLUMNS 에 다시 맞춘다.
     # 그래서 시트에서 열을 지우거나(예: 2026-09-07 FR·H5 열 삭제) 코드에서 열을 바꿔도 값이 어긋나지 않는다.
+    # 열 라벨 별칭 — 이름이 바뀐 열도 같은 값으로 잇는다 (2026-09-08: Q2n↑ → Q4/Q8↑ → Q4↑/Q8↑ 로 두 번 바뀌었다).
+    # 검증 지적: 별칭 없이 이름만 맞추면 옛 탭의 Q 값 65/65 가 빈칸이 된다.
+    ALIAS = {"Q2n↑": "q2n", "Q4/Q8↑": "q2n", "Q4↑": "q2n", "Q8↑": "q2n"}
+    def canon(g, h):
+        return (g, ALIAS.get(h, h))
+
     def keyed_rows(v):
         if len(v) < 3 or not any(c.strip() for c in v[2]):
             print("  [경고] 헤더가 비어 있는 원본은 건너뛴다 (값을 열에 대응시킬 수 없다)")
@@ -69,7 +75,7 @@ def main():
         keys, g = [], ""
         for i, h in enumerate(hdr):
             g = grp[i] if i < len(grp) and grp[i].strip() else (g if h.strip() and h not in ("Run", "Date", "Notes") else "")
-            keys.append((g, h))
+            keys.append(canon(g, h))
         out = {}
         for r in datarows(v):
             out[run_tag(r[1])] = {keys[i]: r[i] for i in range(min(len(keys), len(r)))}
@@ -84,8 +90,8 @@ def main():
     for p in (a.src_json or []):                       # 백업 JSON 에서도 보충 (탭이 손상됐을 때)
         for t, d in keyed_rows(json.load(open(p))).items():
             src.setdefault(t, d)
-    want = [("", "Run")] + [(c[0], c[1]) for c in cols[1:]]
-    key_of = {(c[0], c[1]): c[2] for c in cols}          # (그룹, 라벨) -> row 키
+    want = [("", "Run")] + [canon(c[0], c[1]) for c in cols[1:]]
+    key_of = {canon(c[0], c[1]): c[2] for c in cols}          # (그룹, 정규 라벨) -> row 키
     def to_row(t, d):
         r = [""] * (len(want) + 1)
         # 시트에 없던 FR·paper 열(예: 2026-09-08 JQM 추가)은 run 의 fr_mat20.json 에서 채운다 (검증된 JSON 만)
@@ -93,11 +99,23 @@ def main():
         fresh = gu._fr_paper(wd) if os.path.isdir(wd) else {}
         for j, k in enumerate(want):
             v = d.get(k, "")
-            if v == "" and key_of.get(k, "").startswith("p_") and key_of[k] in fresh:
+            # FR·paper 열은 검증된 JSON 이 원천이다 — 있으면 시트 값 대신 JSON 값으로 갱신(지표 정의 변경 시 최신값 반영)
+            if key_of.get(k, "").startswith("p_") and key_of[k] in fresh:
                 v = round(float(fresh[key_of[k]]), 4)
             r[j + 1] = v
         return r
     rows = {t: to_row(t, d) for t, d in src.items()}
+    # 값 보존 검사: 원본에 있던 숫자 셀이 새 배치에서 사라지면 안 된다 (이름만 맞추는 검증의 허점 — 검증 지적)
+    def n_num(vals):
+        n = 0
+        for x in vals:
+            try: float(str(x).replace(",", "")); n += 1
+            except ValueError: pass
+        return n
+    dropped = [(t, n_num(d.values()), n_num(rows[t][1:])) for t, d in src.items() if n_num(rows[t][1:]) < n_num(d.values())]
+    if dropped:
+        print(f"!! 값 손실 — {len(dropped)}개 run 에서 숫자 셀이 줄었다 (예: {dropped[:3]}). 헤더 별칭(ALIAS)을 확인할 것. 중단.")
+        return 1
     # 헤더는 코드 기준으로 다시 만든다
     header = [[""] * (len(want) + 1) for _ in range(3)]
     header[1] = [""] + [c[0] if (i == 0 or cols[i - 1][0] != c[0]) else "" for i, c in enumerate(cols)]

@@ -39,7 +39,9 @@ EXPECTED = {
     # 2026-09-07.2: genMTF.m 충실 커널(정규화 없음) + imresize symmetric 경계 + HQNR 장면별 평균
     "full": {"D_lambda": 0.04961858766027322,
              "D_s": 0.015746757806697133,
-             "HQNR": 0.9354159689306566},
+             "HQNR": 0.9354159689306566,
+             # 2026-09-08.4: JQM (SIPSA 규약, SRF 대체 NNLS 정규화, 입력 [0,R] 클립)
+             "JQM": 0.9745742539730871},
 }
 
 
@@ -100,6 +102,9 @@ def run_full():
     dls, dss = np.array(dls), np.array(dss)
     out["D_lambda"], out["D_s"] = float(dls.mean()), float(dss.mean())
     out["HQNR"] = float(((1 - dls) * (1 - dss)).mean())     # 장면별 HQNR 평균 (보고·선택과 같은 식)
+    from tools.metrics.jqm import jqm                         # SIPSA 규약 JQM (SRF 대체 NNLS 정규화)
+    ms = np.stack([lms[i][2::4, 2::4, :] for i in range(len(sr))])   # 합성 데이터의 LR MS 는 lms 의 (2,2) 표본
+    out["JQM"] = float(np.mean([jqm(sr[i], ms[i], pan[i], "WV3", 4, SCALE)["JQM"] for i in range(len(sr))]))
     return out
 
 

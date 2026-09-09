@@ -972,8 +972,8 @@ def main():
     if a.all:
         tags = [os.path.basename(os.path.dirname(os.path.dirname(p)))
                 for p in glob.glob(f"{ROOT}/work_dir/*/results/reduced_*.mat")]
-        # 무효 run 은 --all 에서 뺀다: _INVALID_*(증강 위상 버그), *_msbug(QB 배포 ms 결함, KNOWN_ISSUES F-3)
-        tags = [t for t in tags if not t.startswith("_INVALID") and not t.endswith("_msbug")]
+        # 무효·옛 프로토콜 run 은 --all 에서 뺀다: _INVALID_*(증강 위상 버그), *_msbug(QB 배포 ms 결함, F-3), *_sel1219(12-19 선택, 2026-09-09 폐기)
+        tags = [t for t in tags if not t.startswith("_INVALID") and not t.endswith(("_msbug", "_sel1219"))]   # _sel1219: H5 12-19 로 선택한 옛 프로토콜 run
     for pat in a.pattern:
         tags += [os.path.basename(d) for d in glob.glob(f"{ROOT}/work_dir/{pat}") if os.path.isdir(d)]
     seen = set(); ordered = []

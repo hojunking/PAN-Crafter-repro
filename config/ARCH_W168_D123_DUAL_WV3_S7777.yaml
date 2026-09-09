@@ -1,7 +1,7 @@
 # 아키텍처 고정 다중 데이터셋 3-seed — WV3 seed 7777
 # 생성: tools/gen_arch_multiset_configs.py (템플릿 S1_T05_W168_D123_DUAL). 손으로 고치지 말 것.
 # 공통: W168 · depth [1,2,3] · dual MARs · 11ch · crop=False · attention 없음 · 50K · AdamW 1e-4/wd0.01
-#       best 선택 = 공식 HQNR(FR H5 12-19) · 보고 = 논문 세트(.mat 20, results/fr_mat20.json)
+#       best 선택 = 공식 HQNR, 논문 세트(.mat 20장 전체, full_examples_mat20) · 보고도 같은 세트(results/fr_mat20.json)
 expect_params_m: 5.9731
 seed: 7777
 num_worker: 4
@@ -13,6 +13,7 @@ mars: dual                    # PAN reconstruction 복원 (dual MARs 대조)
 
 # KNOWN_ISSUES.md E-1: 검증셋으로 best 를 고른다. 테스트셋은 곡선 기록용으로만 본다.
 select_on: hqnr
+fr_select_indices: "0-19"   # 논문 세트 20장 전체로 선택 (부분집합 없음)
 
 # feeder
 feeder: feeders.feeder.PanFeeder
@@ -32,7 +33,7 @@ test_reduced_feeder_args:
   dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5
 
 test_full_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5_repaired/test_wv3_OrigScale_multiExm1.h5
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5
 
 # data
 num_bands: 8

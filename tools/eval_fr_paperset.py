@@ -48,8 +48,9 @@ CKPTS = ("best_hqnr", "best_val", "best_reduced")
 #   2026-09-07.2  genMTF.m 충실 커널(정규화 없음)·imresize symmetric·std N-1·provenance 필드·uvs/mutual 지원
 #   2026-09-08.3  JQM(Palubinskas 2015; tools/metrics/jqm.py) 추가 — D_λ/D_s/HQNR 은 .2 와 같으므로 .2 JSON 은 저장된
 #                 mat 에서 JQM 만 계산해 올린다(재추론 없음)
-EVAL_VERSION = "2026-09-08.3"
-JQM_COMPATIBLE = ("2026-09-07.2",)
+#   2026-09-08.4  JQM 을 SIPSA-Net 규약(QLR 균등평균·QHR 볼록 가중)으로, 범위 정책 추가 — .2/.3 JSON 도 mat 에서 JQM 만 갱신
+EVAL_VERSION = "2026-09-08.4"
+JQM_COMPATIBLE = ("2026-09-07.2", "2026-09-08.3")
 
 _SHA = {}
 
@@ -156,8 +157,9 @@ def jqm_fields(sr_hwc_list, ms_all, pan_all, sensor, R):
     J = np.array([x["JQM"] for x in r]); L = np.array([x["QLR"] for x in r]); H = np.array([x["QHR"] for x in r])
     sd = (lambda v: float(v.std(ddof=1))) if len(J) > 1 else (lambda v: 0.0)
     return dict(jqm=float(J.mean()), jqm_sd=sd(J), qlr=float(L.mean()), qhr=float(H.mean()),
-                per_scene_jqm=[round(float(x), 6) for x in J],
-                jqm_protocol="Palubinskas 2015 Eq.4/6/8/9/11: CMSC 전역 통계, lpf=genMTF(sensor)+(2,2) 데시메이션, w=NNLS(MTF_PAN↓PAN~MS), v1=v2=0.5, R=2^L-1")
+                per_scene_jqm=[round(float(x), 6) for x in J], jqm_w_source=r[0]["w_source"],
+                jqm_protocol="SIPSA-Net supp Eq.3-9 규약: CMSC 전역 통계(Palubinskas Eq.4), QLR 밴드 균등평균, QHR 볼록 가중 intensity"
+                             "(w=" + r[0]["w_source"] + "; SRF 없어 NNLS 정규화 대체), lpf=genMTF(sensor)+(2,2) 데시메이션, 입력 [0,R] 클립, v1=v2=0.5, R=2^L-1")
 
 
 def run_one(tag, h5, wald, dev, force, peer=None):
@@ -259,7 +261,7 @@ def main():
         tags = sorted({os.path.basename(os.path.dirname(d)) for d in glob.glob(os.path.join(ROOT, "work_dir", "*", "results"))})
     for pat in a.pattern:
         tags += [os.path.basename(d) for d in sorted(glob.glob(os.path.join(ROOT, "work_dir", pat))) if os.path.isdir(d)]
-    seen = set(); tags = [t for t in tags if not (t in seen or seen.add(t)) and not t.startswith("_INVALID") and not t.endswith("_msbug")]
+    seen = set(); tags = [t for t in tags if not (t in seen or seen.add(t)) and not t.startswith("_INVALID") and not t.endswith(("_msbug", "_sel1219"))]
     if a.shard:
         i, n = (int(x) for x in a.shard.split("/")); tags = tags[i::n]
     if not tags:

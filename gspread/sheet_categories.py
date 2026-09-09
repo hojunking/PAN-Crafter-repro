@@ -43,10 +43,10 @@ SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload �
 # 캠페인 설명 — 구분행의 Notes 에 들어간다. 여기 있는 범주만 업로드 시 구분행을 자동으로 넣는다
 # (업로드는 시트 맨 아래에 덧붙이므로, 새 캠페인이 지난 실험과 섞여 보이지 않게 한다).
 DESC = {
- "MULTISET": ("[캠페인] 아키텍처 고정 다중 데이터셋 3-seed · 2026-09-08 · S1_T05_W168_D123_DUAL 구조(W168 · depth [1,2,3] · dual MARs · 11ch · "
-              "crop=False · attention 없음 · 50K · AdamW 1e-4/wd0.01 cosine) 그대로, 데이터셋만 바꾼다: WV3(seed 2025=S1_T05_W168_D123_DUAL, 1234, 7777) · "
-              "QB(4밴드, FR lpan 복구본) · GF2(4밴드, max_pixel 1023) 각 3 seed + WV3 checkpoint 의 WV2 zero-shot(_zs_wv2). "
-              "best 선택 = FR H5 12-19 HQNR, 보고 = 논문 세트(.mat 20, 지표 v2). 각 서버(s1/s2/s3)가 같은 큐(config/queues/arch_w168_multiset_3seed.txt)를 돈다. "
+ "MULTISET": ("[캠페인] 아키텍처 고정 다중 데이터셋 3-seed · 2026-09-08/09 · S1_T05_W168_D123_DUAL 구조(W168 · depth [1,2,3] · dual MARs · 11ch · "
+              "crop=False · attention 없음 · 50K · AdamW 1e-4/wd0.01 cosine) 그대로, 데이터셋만 바꾼다: WV3(seed 2025·1234·7777) · "
+              "QB(4밴드, 학습셋 ms 복구본 F-3, FR lpan 복구본) · GF2(4밴드, max_pixel 1023) 각 3 seed + WV3 checkpoint 의 WV2 zero-shot(_zs_wv2). "
+              "best 선택·보고 모두 논문 세트(.mat 20장 전체, 지표 v2) HQNR — 12-19 부분집합 없음. 각 서버(s1/s2/s3)가 같은 큐(config/queues/arch_w168_multiset_3seed.txt)를 돈다. "
               "tools/arch_multiset_prepare.sh 로 준비·기동"),
  "UVS": ("[캠페인] UVS-KD 30h · s2 · 2026-09-06 · teacher c0_hqnr(7.17M, CM3A 3) → student d122(3.18M). 공통: 입력·잔차 base = 제공 lms, "
          "PAN 3ch 는 δ(LR px)×4 강체 warp, PAN mode 는 raw. teacher 신호(R_T·U_T·δ_T·c_T)는 cache. "

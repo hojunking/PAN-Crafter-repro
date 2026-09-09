@@ -1,11 +1,11 @@
-# 아키텍처 고정 다중 데이터셋 3-seed — GF2 seed 2025
+# 아키텍처 고정 다중 데이터셋 3-seed — WV3 seed 2025
 # 생성: tools/gen_arch_multiset_configs.py (템플릿 S1_T05_W168_D123_DUAL). 손으로 고치지 말 것.
 # 공통: W168 · depth [1,2,3] · dual MARs · 11ch · crop=False · attention 없음 · 50K · AdamW 1e-4/wd0.01
 #       best 선택 = 공식 HQNR, 논문 세트(.mat 20장 전체, full_examples_mat20) · 보고도 같은 세트(results/fr_mat20.json)
-expect_params_m: 5.961
+expect_params_m: 5.9731
 seed: 2025
 num_worker: 4
-work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/ARCH_W168_D123_DUAL_GF2_S2025
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/ARCH_W168_D123_DUAL_WV3_S2025
 
 phase: train
 
@@ -18,7 +18,7 @@ fr_select_indices: "0-19"   # 논문 세트 20장 전체로 선택 (부분집합
 # feeder
 feeder: feeders.feeder.PanFeeder
 train_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/train_gf2.h5
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5
   crop: False
   hflip: True
   vflip: True
@@ -27,23 +27,23 @@ train_feeder_args:
   ms_size: 16
 
 val_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/valid_gf2.h5
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5
 
 test_reduced_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/reduced_examples_h5/test_gf2_multiExm1.h5
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5
 
 test_full_feeder_args:
-  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/full_examples_mat20/test_gf2_OrigScale_mat20.h5
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5
 
 # data
-num_bands: 4
-max_pixel: 1023.0
+num_bands: 8
+max_pixel: 2047.0
 
 # model
 model: model.pancrafter_paper.PANCrafterPaper
 model_args:
   in_channels: 1
-  out_channels: 4
+  out_channels: 8
   hidden_size: 168
   depth: [1, 2, 3]          # full-res / H/2 / H/4(bottleneck)
   dropout: 0.0

@@ -313,7 +313,8 @@ class Trainer:
                                           "/home/knuvi/Desktop/song/DLPan-Toolbox"))
         root = self.args.test_full_feeder_args.get("dataroot", "")
         sensor = next((s for s in ("wv3", "qb", "gf2", "wv2") if s in _os.path.basename(root)), "wv3")
-        lo, hi = (int(x) for x in getattr(self.args, "fr_select_indices", "12-19").split("-"))
+        # 2026-09-09: 기본값 0-19 — 논문 세트(.mat 20장) 전체로 선택한다. 12-19 부분집합은 폐기 (CLAUDE.md).
+        lo, hi = (int(x) for x in getattr(self.args, "fr_select_indices", "0-19").split("-"))
         self._fr_official = (wald, d_lambda_k, d_s, sensor, lo, hi)
         return self._fr_official
 

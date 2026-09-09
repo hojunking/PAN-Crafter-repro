@@ -10,8 +10,7 @@
 #   2. WV2 zero-shot 데이터 (없으면 PanCollection Drive 에서 H5 를 받아 lpan 생성 — tools/setup_wv2.py)
 #   3. 센서별 논문 FR 세트 h5 (tools/build_paperset_all.sh: wv3 qb gf2 wv2)
 #   4. 지표 이식 검사 (tools/verify_metrics.py) · config 8벌 smoke (tools/smoke_cases.py)
-#   5. 체인 기동: config/queues/arch_w168_multiset_3seed.txt (QB×3 → GF2×3 → WV3 seed 1234·7777).
-#      WV3 seed 2025 는 기존 S1_T05_W168_D123_DUAL 을 그대로 쓴다 (없는 서버는 큐에 추가할 것).
+#   5. 체인 기동: config/queues/arch_w168_multiset_3seed.txt (GF2×3 → QB×3 → WV3×3). 선택·보고 모두 논문 세트 20장 전체.
 #      run 이 끝날 때마다 tools/_upload.sh 가 논문 세트 평가 → 시트 업로드, WV3 run 은 WV2 zero-shot 까지 만든다.
 # 전제: 지표 v2 준비(tools/metric_v2_prepare.sh)가 끝나 있고, gspread/server.txt · PANCRAFTER_DLPAN 이 있다.
 set -euo pipefail
@@ -31,8 +30,13 @@ echo "[arch] 1/5 QB full-res lpan 복구 (F-1) + QB 학습·검증 ms 복구 (F-
 if [ -f data/PanCollection/QB/train_qb_msfix.h5 ] && [ -f data/PanCollection/QB/valid_qb_msfix.h5 ]; then echo "  ms 복구본 있음"; else "$PY" tools/repair_qb_ms.py; fi
 # 배포 ms 로 학습한 QB run 이 있으면 결과가 무효다 — 옆으로 치운다 (F-3)
 for d in work_dir/ARCH_W168_D123_DUAL_QB_S*; do
-  [ -d "$d" ] || continue; case "$d" in *_msbug) continue;; esac
+  [ -d "$d" ] || continue; case "$d" in *_msbug|*_sel1219) continue;; esac
   if grep -q "train_qb.h5" "$d/meta/config.yaml" 2>/dev/null; then mv "$d" "${d}_msbug"; echo "  $d -> ${d}_msbug (배포 ms 로 학습한 run, 무효)"; fi
+done
+# 2026-09-09: best 선택은 논문 세트(.mat 20장 전체)로 한다. H5 12-19 로 선택한 ARCH run 은 옛 프로토콜 — 옆으로 치운다
+for d in work_dir/ARCH_W168_D123_DUAL_*_S*; do
+  [ -d "$d" ] || continue; case "$d" in *_msbug|*_sel1219|*_zs_*) continue;; esac
+  if ! grep -q "full_examples_mat20" "$d/meta/config.yaml" 2>/dev/null; then mv "$d" "${d}_sel1219"; echo "  $d -> ${d}_sel1219 (H5 12-19 선택, 옛 프로토콜)"; fi
 done
 echo "[arch] 2/5 WV2 zero-shot 데이터"
 if [ -f data/PanCollection/WV2/reduced_examples_h5/test_wv2_multiExm1_pan.h5 ] && [ -f data/PanCollection/WV2/full_examples_h5/test_wv2_OrigScale_multiExm1_pan.h5 ]; then

@@ -78,7 +78,7 @@ def get_parser():
     parser.add_argument('--pretrained-path', type=str, default='/model.safetensors', help='path for test')
     parser.add_argument('--residual-base', type=str, default='bicubic', choices=['bicubic','lms'],
                         help="잔차 기준선. 'bicubic'은 배포본 동작(bicubic(ms,x4)), 'lms'는 데이터셋 제공 보간")
-    parser.add_argument('--fr-select-indices', type=str, default='12-19',
+    parser.add_argument('--fr-select-indices', type=str, default='0-19',
                         help="공식 HQNR 선택에 쓰는 FR index 범위 (논문 대조 프로토콜)")
     parser.add_argument('--mars', type=str, default='dual', choices=['dual', 'ms'],
                         help="MARs mode. 'dual'=배포본(MS+PAN 복제 학습), 'ms'=단일 mode (M1 실험)")
@@ -258,7 +258,7 @@ def train(args):
         ds, hqnr = trainer.test_full(test_log, epoch + 1)
         scc = trainer.last_reduced_metrics.get('scc', float('nan'))
         # 핵심 3지표는 어느 모드에서든 반드시 로그에 남긴다.
-        # HQNR 은 공식 DLPan 프로토콜(D_lambda_K + block-UQI D_s, index 12-19)이다.
+        # HQNR 은 공식 DLPan 프로토콜(D_lambda_K + block-UQI D_s)이다. index 는 fr_select_indices (기본 0-19 = 20장 전체).
         core = f'[핵심] HQNR(공식 {args.fr_select_indices}): {hqnr:.6f}\tSCC: {scc:.6f}\tERGAS: {ergas:.6f}'
         test_log.write(core)
         train_log.write(core)

@@ -606,10 +606,13 @@ PAN-Crafter(README: "official MATLAB code from the DLPan-Toolbox")·U-Know-DiffP
 **적용**: `tools/build_fr_paperset.py` 가 .mat 20장을 PAN-Crafter 입력 h5
 (`data/PanCollection/WV3/full_examples_mat20/`, lpan 은 F-1 레시피로 생성)로 만들고,
 `tools/eval_fr_paperset.py` 가 run 마다 `results/fr_mat20.json` 을 낸다. 시트의 FR 은 **FR·paper mat20**
-열뿐이다 (같은 날 사용자 결정으로 H5 12-19 열은 시트에서 뺐다). best checkpoint 선택은 종전대로
-H5 12-19 (`fr_select_indices`) — 선택 세트와 보고 세트를 분리해 선택 편향이 논문 비교 수치에
-들어가지 않게 한다. 다른 서버는 `./tools/metric_v2_prepare.sh` 한 번으로 .mat 다운로드 → h5 생성 →
-이식 검사 → 전 run 재평가 → 시트 업로드 → 옛 탭 순서 재배치까지 끝난다.
+열뿐이다 (같은 날 사용자 결정으로 H5 12-19 열은 시트에서 뺐다). **2026-09-09 결정: best checkpoint 선택도
+논문 세트 20장 전체로 한다** (`fr_select_indices` 기본 `0-19`, FR feeder dataroot = `full_examples_mat20`).
+12-19 같은 부분집합은 어디에도 쓰지 않는다 — 논문 프로토콜. 선택 세트 = 보고 세트이므로 no-reference 지표의
+선택 편향은 남는다(논문들도 FR 검증 split 을 밝히지 않았다). 그 전에 H5 12-19 로 고른 ARCH run 은
+`*_sel1219` 로 격리해 시트·배치에서 뺐다(2026-09-09 이전 캠페인의 run 들은 12-19 선택 그대로이며 문서에 그렇게 적혀 있다).
+다른 서버는 `./tools/metric_v2_prepare.sh` 한 번으로 .mat 다운로드 → h5 생성 → 이식 검사 → 전 run 재평가 →
+시트 업로드 → 옛 탭 순서 재배치까지 끝난다.
 
 ### F-3. PanCollection QB 학습·검증셋의 `ms` 가 패치의 2/3 에서 `gt` 와 LR 1픽셀 어긋나 있다 {#f-3}
 
