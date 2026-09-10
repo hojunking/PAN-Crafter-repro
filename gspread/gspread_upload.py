@@ -248,9 +248,12 @@ def _cost_model(args_ns):
     from main import import_class
     Model = import_class(args_ns.model)
     m = Model(**args_ns.model_args)
-    if getattr(args_ns, "trainer", "default") == "pa":
+    tr = getattr(args_ns, "trainer", "default")
+    if tr in ("pa", "po"):
         from pa.aligner import PANGlobalAligner
         from pa.model import PAModel
+        from pa.offset import aligner_margin
+        mg = aligner_margin(float((getattr(args_ns, "po", {}) or {}).get("radius_hr", 1.0))) if tr == "po" else 0
 
         class _PA(torch.nn.Module):
             def __init__(self, pm):
@@ -258,7 +261,7 @@ def _cost_model(args_ns):
 
             def forward(self, pan, lpan, ms, s):
                 return self.pm(pan, ms, lpan)["y"]
-        return _PA(PAModel(m, PANGlobalAligner(int(getattr(args_ns, "num_bands", 8)))))
+        return _PA(PAModel(m, PANGlobalAligner(int(getattr(args_ns, "num_bands", 8))), aligner_margin=mg))
     return m
 
 
