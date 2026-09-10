@@ -7,14 +7,14 @@ REC_CASES = {'N0': 'gt', 'R0': 'fixed_kd', 'R1': 'hard_only', 'R2': 'teacher_err
 STAT_KINDS = {'OFF': None, 'IV': 'image_var', 'GV': 'grad_var', 'GC': 'grad_cov', 'SC': 'spectral_cov', 'EDGE': 'edge'}
 STAT_MODES = ('H', 'T', 'FIX', 'WH', 'AD')
 POLICIES = ('A-FR', 'A-FT', 'A-SC', 'A-ID')                 # A-FTW 는 phase(warm freeze→unfreeze) 로 표현한다
-PROTOCOLS = ('I-A', 'I-N', 'I-NATIVE-TRANSFER')
+PROTOCOLS = ('I-A', 'I-N', 'I-NATIVE-TRANSFER', 'I-AEQ')
 GEOM_KD = {'G0': 'none', 'G1': 'mean_kd_scalar_k0', 'G2': 'scalar_trace_precision', 'G3': 'full_precision', 'G4': 'diagonal_precision', 'G5': 'gaussian_distribution_kd', 'G-STRUCT': 'gt_structure_tensor'}
 COV_SOURCES = ('none', 'eq_closure', 'geo_curvature', 'struct')      # Π_T 출처 (§11.2 geo · §11.4 eq · §11.7 struct) — 모두 frozen Teacher 에서 계산
 GEOM_PENDING = ('G-CORR', 'G-XVIEW')                                  # corrupted correction 까지의 KD (§12) — 미구현
 SOURCE_TAG = {'none': '', 'eq_closure': 'EQ', 'geo_curvature': 'GEO', 'struct': ''}
 RECIPES = ('A1', 'A2', 'A3', 'N1', 'N2_SG', 'N3_NOSG', 'T112DFR', 'NOALIGN')     # T112DFR = T112_DONORFROZEN_REC (§3.3)
 POLICY_TAG = {'A-FR': 'AFR', 'A-FT': 'AFT', 'A-SC': 'ASC', 'A-ID': 'AID'}
-PROTOCOL_TAG = {'I-A': 'IA', 'I-N': 'IN', 'I-NATIVE-TRANSFER': 'INT'}
+PROTOCOL_TAG = {'I-A': 'IA', 'I-N': 'IN', 'I-NATIVE-TRANSFER': 'INT', 'I-AEQ': 'IAEQ'}
 RECIPE_AUX = {'A1': {}, 'A2': dict(edge_weight=0.1), 'A3': dict(geometry_weight=0.01), 'N1': {}, 'N2_SG': dict(offset_weight=0.01, offset_stop_reference=True),
               'N3_NOSG': dict(offset_weight=0.01, offset_stop_reference=False), 'T112DFR': {}, 'NOALIGN': {}}
 
@@ -87,16 +87,19 @@ def resolve(k):
     if recipe in ('N1', 'N2_SG', 'N3_NOSG') and protocol == 'I-A':
         _bad("N donor 에 I-A 를 붙이지 않는다 — I-N(corruption 유지) 또는 I-NATIVE-TRANSFER(명시적 domain-transfer 대조) (§5.4)")
     corr = dict(k.get('corruption') or {}); radius = float(corr.get('radius_hr', 0.0) or 0.0)
-    if protocol == 'I-N' and radius <= 0:
-        _bad("I-N 은 corruption.radius_hr > 0 이 필요하다 (출처·단위 확인, §5.4)")
-    if protocol != 'I-N' and radius > 0:
+    if protocol in ('I-N', 'I-AEQ') and radius <= 0:
+        _bad(f"{protocol} 은 corruption.radius_hr > 0 이 필요하다 (출처·단위 확인, §5.4 / NF16 §4.3)")
+    if protocol not in ('I-N', 'I-AEQ') and radius > 0:
         _bad(f"{protocol} 에 corruption.radius_hr 를 주지 않는다")
     aux = dict(RECIPE_AUX[recipe]); aux.update({kk: v for kk, v in (k.get('aux') or {}).items() if v is not None})
     edge_w = float(aux.get('edge_weight', 0.0)); geo_w = float(aux.get('geometry_weight', 0.0)); off_w = float(aux.get('offset_weight', 0.0))
     trainable = policy in ('A-FT', 'A-SC')
     disabled = []
-    if off_w > 0 and protocol != 'I-N':
-        _bad("offset consistency 는 I-N 에서만 정의된다")
+    if off_w > 0 and protocol not in ('I-N', 'I-AEQ'):
+        _bad("offset consistency 는 I-N(corrupted U-Net step) 또는 I-AEQ(aligner 전용 연습) 에서만 정의된다")
+    if protocol == 'I-AEQ' and (off_w <= 0 or policy not in ('A-FT', 'A-SC')):
+        _bad("I-AEQ 는 trainable aligner(A-FT/A-SC) + offset_weight > 0 일 때만 뜻이 있다 (P0–P2 는 I-A)")
+    offset_ramp = int(aux.get('offset_ramp_updates', 5000 if protocol == 'I-N' else 0))     # NF16 §4.2: I-AEQ 는 ramp 없이 즉시 λ_off
     if geo_w > 0 and policy == 'A-ID':
         _bad("A-ID 에 PAN–GT geometry 항을 넣을 수 없다 (aligner 없음)")
     if geo_w > 0 and not trainable:
@@ -159,7 +162,7 @@ def resolve(k):
                 geom=geom, geom_outer_weight=lam_gkd, geom_r_gkd=r_gkd, geom_k0=k0, cov_source=cov_src, probes=probes, geo=geo, eq_sigma_min=eq_sigma_min,
                 covhead_epochs=int(g.get('covhead_epochs', 3)), needs_teacher=needs_teacher, has_teacher=has_teacher, teacher_id=teacher.get('id'),
                 aligner_trainable=trainable, edge_weight=edge_w, geometry_weight=geo_w, geometry_weight_effective=geo_w_eff,
-                offset_weight=off_w, offset_weight_effective=off_w_eff, offset_stop_reference=bool(aux.get('offset_stop_reference', True)),
+                offset_weight=off_w, offset_weight_effective=off_w_eff, offset_stop_reference=bool(aux.get('offset_stop_reference', True)), offset_ramp_updates=offset_ramp,
                 aux_ramp_updates=int(aux.get('ramp_updates', 5000)), geometry_sigma_hr=float(aux.get('geometry_sigma_hr', 2.0)),
                 geometry_margin_hr=int(aux.get('geometry_margin_hr', 11)), disabled_terms=disabled, radius_hr=radius)
 

@@ -200,3 +200,7 @@ donor aligner 는 `assets/donor_aligner/`(s1 PA_A1 seed 2025 의 aligner.*, stri
 
 2026-09-11 **시트 정리**: WV3 본 탭(WV3-s1/s2/s3(5090))에는 현 접근 범주만(REF · BASE_W*_MSPAN · PA · PO10 · KDV) 남긴다. 나머지 범주는 `WV3-<server>_v1` 탭 맨 아래로 옮겼다(`gspread/archive_to_v1.py`, 백업 `gspread/_sheet_backup/*.before_archive_2026-09-11.json`).
 `gspread_upload.py --all` 은 옮긴 범주(`sheet_categories.ARCHIVED`)를 다시 올리지 않는다. 시트의 HQNR↑ = 전체 프레임(논문 프로토콜), HQNR(V64)↑ = 가장자리 64 px 제외 고정 영역 — `results_log/2026-09-11_sheet-cleanup-and-hqnr-views.md`.
+
+2026-09-11 **NF16** (`research_log/PAN_N2_NativeFitting_16GPUh_W112_D123_2026-09-11.md`, 노트 `research_log/2026-09-11_nf16-implementation.md`): N2 R200 `last` aligner 재사용 + native fitting P0–P4, s1, 16 GPU-h.
+구현은 KDV trainer 위 — 새 프로토콜 `I-AEQ`(복원은 매 update native, 홀수 update 에 P_ε 를 aligner 에만), `kdv.aligner_lr`, donor `expected_step`, 고정 donor 참조 view `aligned_fixed_v64`, 예산 gate(`kdv.budget`). config `NF16_P{0..4}_W112_D123_WV3_S{1234,7777}_N2LAST_v1`(`tools/gen_nf16_configs.py`),
+큐 `config/queues/nf16_s1.txt`, gate `tools/nf16_unit_tests.py`, 기동 `./tools/nf16_prepare.sh`. 진단은 `po10_diag.py --ckpt last --native-reference`(참조 = 원 P / 고정 donor). 시트 범주 ㉑ NF16.

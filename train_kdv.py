@@ -35,12 +35,12 @@ from kdv.protocol import prepare_view
 from kdv.registry import resolve, run_name, describe, stat_tag, arch_prefix
 from kdv.teacher_assets import load_donor_aligner, load_run_model, load_state, freeze, state_hash, assert_param_disjoint, sha256_file, tensors_sha
 from pa.aligner import PANGlobalAligner
-from pa.evalviews import PROTOCOL_ID, evaluator_hash, fixed_roi, VIEWS
+from pa.evalviews import PROTOCOL_ID, evaluator_hash, fixed_roi, VIEWS, scene_views
 from pa.losses import output_edge_loss, direct_geometry_loss, lambda_ramp, geometry_support_margin, scharr
 from pa.model import PAModel
-from pa.offset import offset_loss, predict_c, lambda_off
+from pa.offset import offset_loss, predict_c, lambda_off, sample_offsets
 from pa.selector import BestSelector
-from pa.warp import support_margin_ok, warp_support_mask
+from pa.warp import support_margin_ok, warp_support_mask, warp_pan
 from train_pa import PATrainer, ROOT, EXIT_SUPPORT_FAIL, sha256_file as sha_cached
 from train_po import RNGState
 from utils import Train_Report, Test_Reduced_Report, reduced_metrics
@@ -101,6 +101,16 @@ class KDVTrainer(PATrainer):
         if pol in ("A-FR", "A-FT"):
             d = k["donor"]; aligner, self.donor_manifest = load_donor_aligner(d["source"], nb, d.get("expected_sha256"))
             margin = int(d.get("view_margin_hr", 0) or 0)
+            src_dir = d["source"] if os.path.isdir(d["source"] if os.path.isabs(d["source"]) else os.path.join(ROOT, d["source"])) else None
+            if src_dir:                                                      # donor 가 <run>/<tag> 폴더면 그 tag 의 정확한 update 를 manifest 에서 읽어 대조 (NF16 G0)
+                mp = os.path.join(src_dir if os.path.isabs(src_dir) else os.path.join(ROOT, src_dir), "..", f"{os.path.basename(src_dir.rstrip('/'))}_meta.json")
+                self.donor_manifest["donor_step"] = (json.load(open(mp)).get("step") if os.path.exists(mp) else None)
+            if d.get("expected_step") is not None and self.donor_manifest.get("donor_step") != int(d["expected_step"]):
+                raise ValueError(f"donor step {self.donor_manifest.get('donor_step')} ≠ 기대 {d['expected_step']} (이름만 last 인 파일을 믿지 않는다, NF16 §2.2)")
+        self.aligner_lr = float(k.get("aligner_lr", args.learning_rate))          # NF16 §2.3: trainable aligner LR 1e-5 (backbone 1e-4), 같은 scheduler 배율
+        ev = dict(k.get("eval") or {}); self.ref_aligner = None
+        if ev.get("fixed_reference_from_donor") and aligner is not None:
+            self.ref_aligner = copy.deepcopy(aligner); freeze(self.ref_aligner)   # aligned_fixedN2_v64: 모든 case 에 같은 donor 보정 참조 (NF16 §6.1)
         elif pol == "A-SC":
             aligner = scratch; margin = int(k.get("aligner_view_margin_hr", 0) or 0)
         else:
@@ -125,10 +135,12 @@ class KDVTrainer(PATrainer):
         # --- optimizer: backbone (+ trainable aligner, 같은 LR §17.2)
         groups = [dict(params=[p for p in self.model.backbone.parameters() if p.requires_grad], name="backbone")]
         if self.aligner_trainable:
-            groups.append(dict(params=list(self.model.aligner.parameters()) + (list(self.model.cov_head.parameters()) if self.model.cov_head is not None else []), name="aligner"))
+            groups.append(dict(params=list(self.model.aligner.parameters()) + (list(self.model.cov_head.parameters()) if self.model.cov_head is not None else []), name="aligner", lr=self.aligner_lr))
         self.optimizer = torch.optim.AdamW(groups, lr=args.learning_rate, weight_decay=args.weight_decay)
         self.lr_scheduler = get_scheduler(args.lr_scheduler, optimizer=self.optimizer, num_warmup_steps=args.num_warmup, num_training_steps=args.num_iter)
         self.model, self.optimizer, self.lr_scheduler = self.accelerator.prepare(self.model, self.optimizer, self.lr_scheduler)
+        if self.ref_aligner is not None:
+            self.ref_aligner.to(self.accelerator.device); self.ref_aligner_hash0 = state_hash(self.ref_aligner)
         if self.teacher is not None:
             self.teacher.to(self.accelerator.device); assert_param_disjoint(self.optimizer, self.teacher)
             if self.M.cov_head is not None:
@@ -158,6 +170,36 @@ class KDVTrainer(PATrainer):
             self._write_manifests(); self._write_kdv_manifests()
         if k.get("phase"):
             self._warm_start(k["phase"])
+        self.budget = dict(k.get("budget") or {})
+        if self.budget and self.accelerator.is_main_process:
+            self._budget_gate()
+
+    # ------------------------------------------------------------------ 예산 ledger (NF16 §10: used + 1.2·proj + reserve ≤ total)
+    def _ledger(self):
+        p = self.budget.get("ledger", "work_dir/_kdv_budget/ledger.json"); p = p if os.path.isabs(p) else os.path.join(ROOT, p)
+        d = json.load(open(p)) if os.path.exists(p) else dict(total_gpu_hours=float(self.budget.get("total_gpu_hours", 16.0)), entries={})
+        return p, d
+
+    def _budget_gate(self):
+        p, d = self._ledger(); used = sum(float(e.get("hours", 0.0)) for e in d["entries"].values()); required = bool(self.budget.get("required", True))
+        reserve = float(self.budget.get("reserve_hours", 1.0)); rec = dict(started=time.strftime("%Y-%m-%dT%H:%M:%S"), required=required, case=self.case, kind="run", status="RUNNING", used_hours_before=used)
+        if not required:
+            done = [e["hours"] for e in d["entries"].values() if e.get("kind") == "run" and e.get("status", "").startswith("FINISHED")]
+            proj = float(self.budget.get("projected_hours") or (float(np.mean(done)) if done else float("nan")))
+            ok = np.isfinite(proj) and (used + 1.2 * proj + reserve <= float(d["total_gpu_hours"]))
+            rec.update(projected_hours=proj, eligible=bool(ok))
+            if not ok:
+                rec["status"] = "DEFERRED_BUDGET"; d["entries"][self.run_id] = rec; os.makedirs(os.path.dirname(p), exist_ok=True); json.dump(d, open(p, "w"), indent=1)
+                json.dump(rec, open(os.path.join(self.args.work_dir, "budget_status.json"), "w"), indent=1)
+                print(f"[kdv] DEFERRED_BUDGET: used {used:.2f}h + 1.2×{proj:.2f}h + reserve {reserve}h > {d['total_gpu_hours']}h"); sys.exit(EXIT_GATE)
+        d["entries"][self.run_id] = rec; os.makedirs(os.path.dirname(p), exist_ok=True); json.dump(d, open(p, "w"), indent=1)
+        json.dump(rec, open(os.path.join(self.args.work_dir, "budget_status.json"), "w"), indent=1)
+
+    def _finish_ledger(self, status):
+        if not self.budget:
+            return
+        p, d = self._ledger(); e = d["entries"].get(self.run_id, {}); e.update(status=status, finished=time.strftime("%Y-%m-%dT%H:%M:%S"), hours=(time.time() - self._t_run0) / 3600.0)
+        d["entries"][self.run_id] = e; json.dump(d, open(p, "w"), indent=1); json.dump(e, open(os.path.join(self.args.work_dir, "budget_status.json"), "w"), indent=1)
 
     # ------------------------------------------------------------------ selectors (+ rr_val)
     def _init_selectors(self):
@@ -528,13 +570,21 @@ class KDVTrainer(PATrainer):
             with torch.autocast(device_type=dev.type, enabled=False):
                 loss_geo, geo_info = direct_geometry_loss(o["pan_aligned"], pan_view, gt, self.geo_sigma, self.geo_margin)
         loss_off = torch.zeros((), device=dev); lam_off = 0.0
-        if corrupted and sp["offset_weight_effective"] > 0:
+        if self.protocol == "I-AEQ" and sp["offset_weight_effective"] > 0 and step % 2 == 1:
+            # NF16 §4.2: 홀수 update 에 P_ε 를 **aligner 에만** 넣어 |ĉε + ε − sg(ĉ0)|. ĉ0 는 native forward 의 값 재사용(target 만 detach). U-Net 은 native P̃0 만 본다.
+            eps = sample_offsets(pan.shape[0], self.radius_hr, self.gen).to(dev)
+            with torch.no_grad(), torch.autocast(device_type=dev.type, enabled=False):
+                p_eps = warp_pan(pan.float(), eps)
+            c_eps = predict_c(M.aligner, p_eps, o["ms_base"], self.aligner_view_margin)
+            loss_off = offset_loss(c_eps, delta, eps, stop_reference=True); lam_off = lambda_off(step, sp["offset_weight_effective"], sp["offset_ramp_updates"])
+            info["closure"] = float((c_eps.detach() + eps - delta.detach()).norm(dim=1).mean()); info["eps"] = eps; info["eq_exercise"] = 1.0; info["_c_eps"] = c_eps
+        elif corrupted and sp["offset_weight_effective"] > 0:
             if sp["offset_stop_reference"]:
                 with torch.no_grad():
                     c0 = predict_c(M.aligner, pan, o["ms_base"], self.aligner_view_margin)
             else:
                 c0 = predict_c(M.aligner, pan, o["ms_base"], self.aligner_view_margin)
-            loss_off = offset_loss(delta, c0, eps, stop_reference=sp["offset_stop_reference"]); lam_off = lambda_off(step, sp["offset_weight_effective"], self.ramp)
+            loss_off = offset_loss(delta, c0, eps, stop_reference=sp["offset_stop_reference"]); lam_off = lambda_off(step, sp["offset_weight_effective"], sp["offset_ramp_updates"])
             info["closure"] = float((delta.detach() + eps - c0.detach()).norm(dim=1).mean())
         # alignment KD G1–G5 / G-STRUCT (§11.5–11.7, native step · trainable aligner 만; Π_T 는 frozen Teacher 에서 no_grad)
         loss_gkd = torch.zeros((), device=dev); lam_gkd = 0.0; gk = {}
@@ -562,14 +612,14 @@ class KDVTrainer(PATrainer):
         loss_aux = lam_e * loss_edge + lam_g * loss_geo + lam_off * loss_off + lam_gkd * loss_gkd
         info.update(gk)
         total = loss_rec + lam_v * loss_stat_raw + loss_aux
-        info.update(loss_rec=loss_rec, loss_stat_raw=loss_stat_raw, lam_v=lam_v, loss_edge=float(loss_edge), loss_geo=float(loss_geo), loss_off=float(loss_off), loss_gkd=float(loss_gkd),
+        info.update(loss_rec=loss_rec, loss_stat_raw=loss_stat_raw, lam_v=lam_v, loss_edge=float(loss_edge), loss_geo=float(loss_geo), _loss_geo=loss_geo, loss_off=loss_off, loss_gkd=float(loss_gkd),
                     lam_e=lam_e, lam_g=lam_g, lam_off=lam_off, lam_gkd=lam_gkd, loss_aux=loss_aux, geo_info=geo_info)
         return total, info
 
     def _support_fail(self, step, mx, why):
         self.train_log_ref.write(f'[SUPPORT_FAIL] step {step}: |Δ| max {mx:.2f} px — {why}')
         json.dump(dict(status="SUPPORT_FAIL", step=int(step), max_abs_delta=mx, why=why), open(os.path.join(self.args.work_dir, "support_fail.json"), "w"))
-        self._runs_csv("SUPPORT_FAIL"); sys.exit(EXIT_SUPPORT_FAIL)
+        self._runs_csv("SUPPORT_FAIL"); self._finish_ledger("SUPPORT_FAIL"); sys.exit(EXIT_SUPPORT_FAIL)
 
     # ------------------------------------------------------------------ gradient 진단 (§16.6, §21.2)
     def _gnorm(self, loss, params):
@@ -588,6 +638,10 @@ class KDVTrainer(PATrainer):
             out["cos_rec_stat_F"] = (float((v_rec * v_st).sum() / (v_rec.norm() * v_st.norm())) if v_rec is not None and v_st is not None and n_st > 0 and out["grad_rec_F"] > 0 else None)
         if ap:
             _, out["grad_rec_A"] = self._gnorm(info["loss_rec"], ap)
+            if info.get("eq_exercise"):
+                _, out["grad_off_A"] = self._gnorm(info["loss_off"] if torch.is_tensor(info["loss_off"]) else torch.zeros(()), ap) if torch.is_tensor(info.get("loss_off")) else (None, 0.0)
+            if self.lam_geo > 0 and torch.is_tensor(info.get("_loss_geo")):
+                _, out["grad_geo_A"] = self._gnorm(info["_loss_geo"], ap); _, out["grad_geo_F"] = self._gnorm(info["_loss_geo"], bp)
             if self.spec["stat_enabled"]:
                 _, out["grad_stat_A_raw"] = self._gnorm(info["loss_stat_raw"], ap)
             if info["loss_aux"].requires_grad:
@@ -661,7 +715,7 @@ class KDVTrainer(PATrainer):
                 gt, ms, lpan, pan = (t.to(dev, dtype=dt) for t in (gt, ms, lpan, pan))
                 total, info = self._step(gt, ms, lpan, pan, global_step)
                 if not torch.isfinite(total):
-                    train_log.write(f'[abort] non-finite loss at step {global_step}: {total.item()}'); self._runs_csv("NAN"); sys.exit(3)
+                    train_log.write(f'[abort] non-finite loss at step {global_step}: {total.item()}'); self._runs_csv("NAN"); self._finish_ledger("NAN"); sys.exit(3)
                 dmax = float(info["delta"].detach().abs().max())
                 if dmax > MAX_ABS_DELTA_TRAIN:
                     self._support_fail(global_step, dmax, f"|Δ| > {MAX_ABS_DELTA_TRAIN} (학습 patch 에서 정의 불가능한 보정)")
@@ -677,7 +731,7 @@ class KDVTrainer(PATrainer):
                     with torch.no_grad():
                         d = info["delta"].detach().float(); key = "corrupt" if info["corrupt"] else "native"
                         vals = dict(loss_rec=float(info["loss_rec"]), stat_raw=float(info["loss_stat_raw"]), lam_v=info["lam_v"],
-                                    loss_edge=info["loss_edge"], loss_geo=info["loss_geo"], loss_off=info["loss_off"], loss_gkd=info["loss_gkd"], lam_e=info["lam_e"], lam_g=info["lam_g"],
+                                    loss_edge=info["loss_edge"], loss_geo=info["loss_geo"], loss_off=float(info["loss_off"]), loss_gkd=info["loss_gkd"], lam_e=info["lam_e"], lam_g=info["lam_g"], eq_exercise=float(info.get("eq_exercise", 0.0)),
                                     lam_off=info["lam_off"], lam_gkd=info["lam_gkd"], aux_ratio=float(info["loss_aux"]) / (float(info["loss_rec"]) + 1e-12),
                                     **{f"{key}_dy": d[:, 0].mean().item(), f"{key}_dx": d[:, 1].mean().item(), f"{key}_dnorm_p50": d.norm(dim=1).median().item(), "abs_max": d.abs().max().item()},
                                     **{kk: v for kk, v in info.items() if kk.startswith(("rec_", "stat_", "gkd_", "tri_")) and isinstance(v, float)}, t_probe=float(info.get("t_probe", 0.0)))
@@ -724,7 +778,7 @@ class KDVTrainer(PATrainer):
                 self.accelerator.save_state(os.path.join(self.args.work_dir, 'last'))
                 json.dump(dict(step=int(global_step), kind="last"), open(os.path.join(self.args.work_dir, "last_meta.json"), "w"))
                 if self.accelerator.is_main_process:
-                    self._runs_csv("FINISHED_TRAIN")
+                    self._runs_csv("FINISHED_TRAIN"); self._finish_ledger("FINISHED_TRAIN")
                 self.accelerator.end_training()
                 return global_step
         return global_step
@@ -737,6 +791,8 @@ class KDVTrainer(PATrainer):
             raise RuntimeError("frozen aligner(A-FR) state 가 바뀌었다 (gate L03)")
         if self.cov_head_t is not None and state_hash(self.cov_head_t) != self.cov_head_t_hash:
             raise RuntimeError("Teacher covariance head 가 바뀌었다 (gate M03)")
+        if self.ref_aligner is not None and state_hash(self.ref_aligner) != self.ref_aligner_hash0:
+            raise RuntimeError("고정 참조 aligner(donor) 가 바뀌었다")
 
     def test_reduced(self, test_log, epoch):
         self._check_fixed()
@@ -799,12 +855,27 @@ class KDVTrainer(PATrainer):
         self._check_fixed()
         return super().test_full(test_log, epoch)
 
+    def extra_view_names(self):
+        return ["aligned_fixed_v64"] if self.ref_aligner is not None else []
+
+    @torch.no_grad()
+    def _extra_views(self, idx, sr, lm, p, o, sensor, wald):
+        """NF16 §6.1 aligned_fixedN2_v64: 참조 = W(P_raw, c_D), c_D = 고정 donor aligner 의 native 예측 (모든 case 동일 참조, 같은 V64)."""
+        if self.ref_aligner is None:
+            return {}
+        with torch.autocast(device_type=o["pan"].device.type, enabled=False):
+            from pa.offset import valid_view
+            c_d = self.ref_aligner(valid_view(o["pan"].float(), self.aligner_view_margin), valid_view(o["ms_base"].float(), self.aligner_view_margin))[0].double().cpu().numpy()
+        pa_fixed = warp_pan(torch.from_numpy(p)[None, None], torch.from_numpy(c_d)[None])[0, 0].numpy()
+        v, ok, reason = scene_views(sr, lm, p, pa_fixed, sensor, wald, c_d, 4, float(self.args.max_pixel))
+        return {"aligned_fixed_v64": dict(v["aligned_valid"], eligible=bool(ok), reason=reason, ref_dy=float(c_d[0]), ref_dx=float(c_d[1]))}
+
     def _record(self, step, epoch, rows, agg, D, all_ok, n_bad, bad_reasons):
         self._csv_append("scene_metrics.csv", rows)
         rec = dict(step=step, epoch=epoch)
-        for v in VIEWS:
+        for v in list(VIEWS) + [x for x in agg if x not in VIEWS]:
             for kk in ("hqnr", "d_lambda", "d_s", "fscc"):
-                rec[f"{v}.{kk}"] = agg[v][kk]
+                rec[f"{v}.{kk}"] = agg[v].get(kk)
         rec.update(dy_median=float(np.median(D[:, 0])), dx_median=float(np.median(D[:, 1])), delta_norm_median=float(np.median(np.linalg.norm(D, axis=1))),
                    delta_abs_max=float(np.abs(D).max()), aligned_eligible=int(all_ok), n_invalid_scenes=n_bad, invalid_reasons="|".join(bad_reasons),
                    region_effect=agg["raw_valid"]["hqnr"] - agg["raw_original"]["hqnr"], reference_effect=agg["aligned_valid"]["hqnr"] - agg["raw_valid"]["hqnr"],

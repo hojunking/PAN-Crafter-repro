@@ -5,7 +5,7 @@ import torch
 from pa.offset import sample_offsets
 from pa.warp import warp_pan
 
-PROTOCOLS = ('I-A', 'I-N', 'I-NATIVE-TRANSFER')
+PROTOCOLS = ('I-A', 'I-N', 'I-NATIVE-TRANSFER', 'I-AEQ')   # I-AEQ (NF16 §4.2): 복원은 매 update native, 홀수 update 에 aligner 전용 offset 연습 (P_ε 는 U-Net 에 가지 않는다)
 
 
 def is_corrupt_update(protocol, update_index):

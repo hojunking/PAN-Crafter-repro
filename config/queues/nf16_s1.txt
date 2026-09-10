@@ -1,0 +1,9 @@
+# NF16 (명세 §10 순서): gate → P0 → P1 → P2 → P3 → P4 → (P3, P4 seed 7777 반복; 예산 gate) · s1 · 50000 updates · 예산 16 GPU-h (work_dir/_nf16_budget/ledger.json)
+# P0·P1(s1234) 은 필수(required), 나머지는 시작 시 used + 1.2·proj + 1h ≤ 16h 를 확인한다 (train_kdv._budget_gate). P4 geometry gate 실패 시 반복 pair 는 P1/P3 로 바꾼다(수동)
+NF16_P0_W112_D123_WV3_S1234_N2LAST_v1
+NF16_P1_W112_D123_WV3_S1234_N2LAST_v1
+NF16_P2_W112_D123_WV3_S1234_N2LAST_v1
+NF16_P3_W112_D123_WV3_S1234_N2LAST_v1
+NF16_P4_W112_D123_WV3_S1234_N2LAST_v1
+NF16_P3_W112_D123_WV3_S7777_N2LAST_v1
+NF16_P4_W112_D123_WV3_S7777_N2LAST_v1

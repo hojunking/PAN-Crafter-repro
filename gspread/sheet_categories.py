@@ -29,6 +29,8 @@ CATS = [
   lambda t: t.startswith(("SR_", "AF_"))),
  ("UVS", "⑭ UVS-KD (s2) — uncertainty routing · GT residual variance · shift-token KD · teacher forcing (teacher c0_hqnr → d122)",
   lambda t: t.startswith("UVS_")),
+ ("NF16", "㉑ N2 정합 능력 보존 + native HRMS fitting (NF16, P0–P4, s1) — N2 R200 last aligner 재사용: P0 aligner 없음 / P1 frozen / P2 fine-tune / P3 +aligner 전용 offset 연습 / P4 +GT 구조(A3 geometry)",
+  lambda t: t.startswith("NF16_")),
  ("KDV", "⑳ s2 W112·D123 GT-anchored adaptive KD · 출력 통계 variance · aligner 재사용 (S2W112D123 계열) — REC N0/R1/R3, STAT GV-H/AD, aligner A-FR/A-FT/A-SC/A-ID, Teacher T112",
   lambda t: t.startswith("S2W112")),
  ("PO10", "⑲ PAN 추가 변위 + offset consistency (PO10, N1–N3) — 학습 PAN 에 원판 R=1 HR px 무작위 변위, ĉε+ε≈ĉ0 감독, aligner 고정 내부 view 4px",
@@ -47,7 +49,7 @@ CATS = [
 ORDER = [c[0] for c in CATS]
 # 2026-09-11 시트 정리: 현 접근(BASE/PA/PO10/KDV)과 무관한 범주는 WV3-<server>_v1 탭으로 옮겼다 (gspread/archive_to_v1.py).
 # gspread_upload.py --all 은 이 범주의 run 을 다시 올리지 않는다 (--include-archived 로만).
-KEEP = ("REF", "BASE96", "PA", "PO10", "KDV")
+KEEP = ("REF", "BASE96", "PA", "PO10", "KDV", "NF16")
 ARCHIVED = tuple(k for k in ORDER if k not in KEEP)
 NAME  = {c[0]: c[1] for c in CATS}
 SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload 가 같이 쓴다
@@ -55,6 +57,10 @@ SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload �
 # 캠페인 설명 — 구분행의 Notes 에 들어간다. 여기 있는 범주만 업로드 시 구분행을 자동으로 넣는다
 # (업로드는 시트 맨 아래에 덧붙이므로, 새 캠페인이 지난 실험과 섞여 보이지 않게 한다).
 DESC = {
+ "NF16": ("[캠페인] NF16 (N2 정합 능력 보존 + native fitting, 16 GPU-h) · s1 · seed 1234(반복 7777) · 2026-09-11 · research_log/PAN_N2_NativeFitting_16GPUh_W112_D123_2026-09-11.md. "
+          "W112·D123 U-Net 을 같은 저장 초기값에서 새로 학습, aligner 는 PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT 의 정확한 50K last(내부 view 4px) 재사용. "
+          "복원은 매 update native(추가 jitter 없음). P0 NOALIGN(aligner·sampler 없음) / P1 FROZEN / P2 FT-REC(aligner LR 1e-5) / P3 FT-EQ(홀수 update 에 P_ε 를 aligner 에만 넣어 |ĉε+ε−sg ĉ0|, λ 0.01 즉시) / P4 FT-EQ-GEO(+A3 geometry λ 0.01, 5K ramp). "
+          "시트 HQNR = best_raw 의 raw_original (초기 checkpoint 일 수 있음 — 인과 비교는 last 끼리, run 폴더 checkpoint_metrics.csv 의 aligned_valid·aligned_fixed_v64 참조)"),
  "KDV": ("[캠페인] s2 W112·D123 KD·variance·aligner 재사용 · seed 1234(Teacher 2025) · 2026-09-10 · research_log/PAN_S2_W112_KD_Variance_Plan_and_References_2026-09-10/. "
          "Student/Teacher 모두 W112·D123 U-Net(9ch, 단일 HRMS, γβ 제거; 계획 원안 D124 → 사용자 결정 D123, s1 PO10 R200 과 같은 골격). 이름 S2W112D123_<recipe>_<input>_<aligner>_<rec>_<stat>_<geomKD>_s<seed>_<ver>: "
          "recipe NOALIGN(aligner 없음)/A1(donor = s1 PA_A1 seed2025 aligner)/T112DFR(donor frozen + 복원 supervised Teacher) · input IA(native) · "

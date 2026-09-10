@@ -55,7 +55,8 @@ def offset_loss(c_eps, c0, eps, stop_reference):
 
 
 def lambda_off(update_index, lam_max, ramp):
-    return lam_max * min(1.0, (update_index + 1) / float(ramp))
+    """ramp ≤ 0 이면 처음부터 lam_max (NF16 §4.2: 0→0.01/5K ramp 없이 즉시 활성)."""
+    return lam_max if ramp <= 0 else lam_max * min(1.0, (update_index + 1) / float(ramp))
 
 
 def po_step(model, pan, ms, lpan, gt, *, case, update_index, radius_hr, generator, lam_max=0.01, ramp=5000, margin=None):

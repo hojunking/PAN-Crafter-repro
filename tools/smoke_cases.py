@@ -278,7 +278,7 @@ def check_trainer_extras(cfg):
         scrit = GTAnchoredReconstructionKD(0.05, mode=MODE_TO_CRITERION[sp["stat_mode"]]).to(dev) if (sp["stat_enabled"] and sp["stat_mode"] in MODE_TO_CRITERION and teacher is not None) else None
         import time as _t; times = {}
         for kind, upd in (("native", 0), ("corrupt", 1)):
-            if kind == "corrupt" and sp["protocol"] != "I-N":
+            if kind == "corrupt" and sp["protocol"] not in ("I-N", "I-AEQ"):
                 continue
             for rep in range(3):
                 t0 = _t.time(); pv, eps, cor = prepare_view(pan, sp["protocol"], upd, sp["radius_hr"], g)
@@ -304,6 +304,16 @@ def check_trainer_extras(cfg):
                 if sp["stat_enabled"]:
                     from pa.losses import output_edge_loss
                     loss = loss + 0.1 * (output_edge_loss(o["y"], gt) if sp["stat_kind"] == "edge" else stat_term(o["y"], (o["y_t"] if o["y_t"] is not None else None), gt, kind=sp["stat_kind"], window=sp["stat_window"], mode=sp["stat_mode"], criterion=scrit).loss)
+                if sp["protocol"] == "I-AEQ" and kind == "corrupt" and sp["offset_weight_effective"] > 0:      # NF16: aligner 전용 offset 연습 (U-Net 입력은 native)
+                    from pa.offset import sample_offsets as _so, offset_loss as _ol, predict_c as _pc
+                    from pa.warp import warp_pan as _wp
+                    eps = _so(B, sp["radius_hr"], g).to(dev)
+                    with torch.no_grad():
+                        pe = _wp(pan.float(), eps)
+                    loss = loss + 0.01 * _ol(_pc(m.aligner, pe, o["ms_base"], m.aligner_margin), o["delta"], eps, stop_reference=True)
+                if sp["geometry_weight_effective"] > 0:
+                    from pa.losses import direct_geometry_loss as _dg
+                    loss = loss + 0.01 * _dg(o["pan_aligned"], pv, gt, sp["geometry_sigma_hr"], sp["geometry_margin_hr"])[0]
                 assert torch.isfinite(loss) and o["y"].shape == (B, nb, 64, 64)
                 opt.zero_grad(); loss.backward(); opt.step()
                 if dev.type == "cuda": torch.cuda.synchronize()

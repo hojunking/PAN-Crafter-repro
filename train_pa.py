@@ -335,7 +335,8 @@ class PATrainer(Trainer):
         wald, _, _, sensor, lo, hi = self._fr_official_setup()
         step = self._global_step
         report = Test_Full_Report(); self.model.eval(); self.model.requires_grad_(False)
-        per = {v: dict(d_lambda=[], d_s=[], hqnr=[], fscc=[]) for v in VIEWS}
+        extra_names = self.extra_view_names() if hasattr(self, "extra_view_names") else []
+        per = {v: dict(d_lambda=[], d_s=[], hqnr=[], fscc=[]) for v in list(VIEWS) + extra_names}; extra_ok = {v: [] for v in extra_names}
         deltas, elig, reasons, rows = [], [], [], []
         for idx, (lms, ms, lpan, pan) in tqdm(enumerate(self.test_full_data_loader)):
             o = self._infer(pan, lpan, ms)
@@ -360,15 +361,28 @@ class PATrainer(Trainer):
                                  pan_reference=("P_aligned" if v == "aligned_valid" else "P"), d_lambda=views[v]["d_lambda"], d_s=views[v]["d_s"],
                                  hqnr=views[v]["hqnr"], fscc=views[v]["fscc"], dy_hr=float(d[0]), dx_hr=float(d[1]), delta_norm_hr=float(np.hypot(*d)),
                                  selection_eligible=bool(ok), invalid_reason=reason, roi_hash=self._roi["roi_hash"]))
-        agg = {v: {k: float(np.mean(per[v][k])) for k in per[v]} for v in VIEWS}       # HQNR = 장면별 곱의 평균 (§10.4)
+            if extra_names:                                                  # KDV/NF16: 고정 donor 참조 view 등 (train_kdv._extra_views)
+                ex = self._extra_views(idx, sr, lm, p, o, sensor, wald)
+                for v in extra_names:
+                    for k in per[v]:
+                        per[v][k].append(ex[v][k])
+                    extra_ok[v].append(ex[v]["eligible"])
+                    rows.append(dict(step=step, epoch=epoch, scene=idx, view=v, roi_scope="selection_fixed_V", pan_reference="P_aligned_fixed_donor", d_lambda=ex[v]["d_lambda"], d_s=ex[v]["d_s"],
+                                     hqnr=ex[v]["hqnr"], fscc=ex[v]["fscc"], dy_hr=ex[v]["ref_dy"], dx_hr=ex[v]["ref_dx"], delta_norm_hr=float(np.hypot(ex[v]["ref_dy"], ex[v]["ref_dx"])),
+                                     selection_eligible=bool(ex[v]["eligible"]), invalid_reason=ex[v]["reason"], roi_hash=self._roi["roi_hash"]))
+        agg = {v: {k: float(np.mean(per[v][k])) for k in per[v]} for v in per}          # HQNR = 장면별 곱의 평균 (§10.4); extra view 포함
+        for v in extra_names:
+            agg[v]["eligible_all"] = float(all(extra_ok[v])); self.last_full_metrics_extra = {f"hqnr_{v}": agg[v]["hqnr"], f"fscc_{v}": agg[v]["fscc"]}
         D = np.array(deltas); all_ok = bool(np.all(elig)); n_bad = int(np.sum(~np.array(elig)))
         bad_reasons = sorted({r for r in reasons if r})
         hqnr, fscc = agg["raw_original"]["hqnr"], agg["raw_original"]["fscc"]
         line = (report.result_str() + f'\tHQNR_official({lo}-{hi}): {hqnr:.6f}\tfSCC({lo}-{hi}): {fscc:.6f}\tD_l_off {agg["raw_original"]["d_lambda"]:.5f} D_s_off {agg["raw_original"]["d_s"]:.5f}'
                 f'\t[views] raw_valid HQNR {agg["raw_valid"]["hqnr"]:.6f} fSCC {agg["raw_valid"]["fscc"]:.4f} | aligned_valid HQNR {agg["aligned_valid"]["hqnr"]:.6f} fSCC {agg["aligned_valid"]["fscc"]:.4f}'
                 f' eligible {"all" if all_ok else f"INVALID({n_bad} scenes: {bad_reasons})"}'
-                f'\tΔ median ({np.median(D[:, 0]):+.3f},{np.median(D[:, 1]):+.3f}) |Δ| median {np.median(np.linalg.norm(D, axis=1)):.3f} max {np.abs(D).max():.3f}')
+                f'\tΔ median ({np.median(D[:, 0]):+.3f},{np.median(D[:, 1]):+.3f}) |Δ| median {np.median(np.linalg.norm(D, axis=1)):.3f} max {np.abs(D).max():.3f}'
+                + "".join(f' | {v} HQNR {agg[v]["hqnr"]:.6f} fSCC {agg[v]["fscc"]:.4f}{"" if agg[v]["eligible_all"] else " INVALID"}' for v in extra_names))
         self.last_full_metrics = report.as_dict()
+        self.last_full_metrics.update(getattr(self, "last_full_metrics_extra", {}))
         self.last_full_metrics.update(hqnr_official=hqnr, d_lambda_official=agg["raw_original"]["d_lambda"], d_s_official=agg["raw_original"]["d_s"], fscc_official=fscc,
                                       hqnr_raw_valid=agg["raw_valid"]["hqnr"], hqnr_aligned_valid=agg["aligned_valid"]["hqnr"], fscc_raw_valid=agg["raw_valid"]["fscc"],
                                       fscc_aligned_valid=agg["aligned_valid"]["fscc"], d_s_aligned_valid=agg["aligned_valid"]["d_s"], aligned_eligible=float(all_ok),

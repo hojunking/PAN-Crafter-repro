@@ -33,7 +33,7 @@ LOG="$REPO/work_dir/gspread_upload.log"
   set -- "$@" "${ZS[@]}"
   # PA(A1–A3) run: 명세 §10.10·§11 진단 (교차 평가 · learned/zero/wrong-sign · known-shift 반응 · tile vs full) → results/pa_diag.json
   for t in "$@"; do
-    case "$t" in PA_A*|PO10_*|S2W112_*)
+    case "$t" in PA_A*|PO10_*|S2W112*|NF16_*)
       set +e; python tools/pa_diag.py --run "$t" > "$REPO/work_dir/$t/results/pa_diag.log" 2>&1; rc=$?; set -e
       grep -v Warning "$REPO/work_dir/$t/results/pa_diag.log" | tail -25
       [ $rc -eq 0 ] || echo "[upload] !! pa_diag 실패 (rc=$rc): $t — work_dir/$t/results/pa_diag.log";;
@@ -43,6 +43,11 @@ LOG="$REPO/work_dir/gspread_upload.log"
       set +e; python tools/po10_diag.py --run "$t" > "$REPO/work_dir/$t/results/po10_diag.log" 2>&1; rc=$?; set -e
       grep -v Warning "$REPO/work_dir/$t/results/po10_diag.log" | tail -12
       [ $rc -eq 0 ] || echo "[upload] !! po10_diag 실패 (rc=$rc): $t — work_dir/$t/results/po10_diag.log";;
+    NF16_*)
+      # NF16 §8: 반응·closure·shortcut 대조·stress 를 **last(정확한 50K)** 에서, 참조는 native P / 고정 donor(N2 last) 로 (§8.4)
+      set +e; python tools/po10_diag.py --run "$t" --ckpt last --out po10_diag_last --native-reference --ref-run PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT --ref-ckpt last > "$REPO/work_dir/$t/results/po10_diag_last.log" 2>&1; rc=$?; set -e
+      grep -v Warning "$REPO/work_dir/$t/results/po10_diag_last.log" | tail -12
+      [ $rc -eq 0 ] || echo "[upload] !! po10_diag(last) 실패 (rc=$rc): $t — work_dir/$t/results/po10_diag_last.log";;
     esac
   done
   # 구글 API 가 간헐적으로 503 을 낸다. 몇 번 다시 시도한다.

@@ -1,0 +1,122 @@
+# NF16_P2_W112_D123_WV3_S1234_N2LAST_v1 — P2 FT-REC — aligner 를 L_rec 로만 공동 미세조정 (P2−P1: 망각). 생성: tools/gen_nf16_configs.py. 손으로 고치지 말 것.
+# 명세: research_log/PAN_N2_NativeFitting_16GPUh_W112_D123_2026-09-11.md · 구현 train_kdv.py(trainer kdv, protocol I-AEQ) · 노트 research_log/2026-09-11_nf16-implementation.md
+# 세팅: I-NATIVE-TRANSFER · aligner donor 초기화 후 학습 · rec L1(GT) · stat OFF · geomKD 없음 (no Teacher)
+# 골격 W112·D123(2.6589 M) · 9ch · 단일 HRMS · AdamW 1e-4(backbone)/1e-5(aligner)/wd 0.01 cosine warmup100 · batch 48 · 50000 updates · seed 1234 · init work_dir/_kdv_init_w112_d123
+# donor aligner = PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT/last (step 50000, file sha256 9d4cbf218cd8f674…), 내부 view margin 4, strict load, head 재초기화 없음, donor optimizer state 미사용
+# 평가: raw_original · raw_valid(V64) · aligned_valid(self, V64) · aligned_fixed_v64(고정 donor 참조) · best_raw=best_hqnr · best_aligned · best_rr_val · last(정확한 50000)
+expect_params_m: 2.6589     # backbone 만 (aligner 0.1053M 은 smoke 가 따로 확인)
+seed: 1234
+num_worker: 4
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/NF16_P2_W112_D123_WV3_S1234_N2LAST_v1
+
+phase: train
+
+mars: ms                      # PAN mode·loss·batch 복제 제거 (단일 task)
+trainer: kdv
+kdv:
+  campaign_id: NF16_W112D123_N2LAST_v1
+  run_kind: CONTROLLED
+  version: v1
+  check_run_name: false
+  input_protocol: I-NATIVE-TRANSFER
+  aligner_policy: A-FT
+  diag_every: 1000
+  calibration:
+    n_patches: 3072
+    seed: 1234
+  aligner_lr: 1.0e-05
+  rec:
+    case: N0
+  stat:
+    enabled: false
+  geom_kd:
+    mode: G0
+  eval:
+    fixed_reference_from_donor: true
+  budget:
+    ledger: work_dir/_nf16_budget/ledger.json
+    total_gpu_hours: 16.0
+    reserve_hours: 1.0
+    required: false
+    projected_hours: null
+  recipe: N2_SG
+  donor:
+    source: work_dir/PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT/last
+    view_margin_hr: 4
+    expected_sha256: 9d4cbf218cd8f6743942115e882d87d664d663935a1a1ba295a9903e27f3f816
+    expected_step: 50000
+  aux:
+    offset_weight: 0.0
+    geometry_weight: 0.0
+
+
+
+
+# KNOWN_ISSUES.md E-1: 검증셋으로 best 를 고른다. 테스트셋은 곡선 기록용으로만 본다.
+select_on: hqnr
+fr_select_indices: "0-19"   # 논문 세트 20장 전체로 선택 (부분집합 없음)
+
+# feeder
+feeder: feeders.feeder.PanFeeder
+train_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5
+  crop: False
+  hflip: True
+  vflip: True
+  rot: True
+  crop_ratio: 0.75
+  ms_size: 16
+
+val_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5
+
+test_reduced_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5
+
+test_full_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5
+
+# data
+num_bands: 8
+max_pixel: 2047.0
+
+# model
+model: model.pancrafter_paper.PANCrafterPaper
+model_args:
+  in_channels: 1
+  out_channels: 8
+  hidden_size: 112
+  depth: [1, 2, 3]          # full-res / H/2 / H/4(bottleneck)
+  dropout: 0.0
+  num_heads: 8
+  mlp_ratio: 4.0
+  ks: 3                     # 논문: "local attention kernel size to k = 3" (bottleneck 포함)
+  ka: 3
+  norm: ln                  # 논문 Eq (5): x <- Conv(SiLU(LN(x)))
+  in_mode: paper            # 논문 9ch: concat(PAN, ↑MS)
+  attn_locations: []
+  mode_modulation: false   # MARs mode 조건 γ/β 제거 (단일 task)
+  n_attn: 3                 # Figure 3: AttnBlock 3개 (H/2 enc, H/4 bottleneck, H/2 dec)
+
+# optim
+optimizer: AdamW
+learning_rate: 1e-4
+weight_decay: 0.01
+lr_scheduler: cosine
+num_iter: 50000
+num_warmup: 100
+
+# loss
+res: True
+w_off: 1.0
+
+# logging
+log_iter: 100
+save_iter: 10000
+save_epoch: 25
+eval_epoch: 5
+
+# training
+gpu: 0
+batch_size: 48  # duplicate
+test_batch_size: 1

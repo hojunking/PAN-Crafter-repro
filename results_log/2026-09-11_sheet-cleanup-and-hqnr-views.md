@@ -18,3 +18,19 @@
 
 - V64 는 **shift 나 예측값에 따라 바뀌는 마스킹이 아니다.** 어느 run 이든 같은 V 를 자르므로 aligner 가 없는 run 에도 정의되고 전 행에 채워져 있다. 필터·저해상도 참조를 전체 프레임에서 만든 뒤 자르므로 위상·블록 타일링이 전체 프레임 계산과 같다.
 - 정합 방법에서 **"warp 한 PAN 을 참조로 쓰는" aligned_valid** 는 세 번째 view 이며 시트에 올리지 않는다 — 참조 자체가 바뀌어 논문 프로토콜과 비교할 수 없기 때문. run 폴더 `checkpoint_metrics.csv`·`results/pa_diag.json` 에만 있다. PO10 결과(2026-09-10 §10)에서 논문 HQNR 이 내려간 것은 출력이 MS 프레임으로 옮겨간 탓이며, V64 가 아니라 이 aligned_valid 가 그 상황을 보여준다.
+
+## 3. 추기 [WIP] — NF16: N2 정합 능력 보존 + native HRMS fitting (s1, 16 GPU-h, 구현 완료·기동 대기)
+
+명세 `research_log/PAN_N2_NativeFitting_16GPUh_W112_D123_2026-09-11.md` 를 현 workspace(KDV trainer) 위에 구현했다 — 검토표·구현 지도·gate 는 [구현 노트](../research_log/2026-09-11_nf16-implementation.md).
+donor = `PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT` 의 정확한 50K `last` aligner(내부 view 4 px; 어제 §10.5 에서 반응 B ≈ −I, closure 0.06 px 확인). U-Net 은 seed 별 저장 초기값에서 새로.
+
+| run | case | aligner | 복원 입력 | loss |
+|---|---|---|---|---|
+| `NF16_P0_W112_D123_WV3_S1234_N2LAST_v1` | NOALIGN | 없음 | 원 PAN | L_rec |
+| `NF16_P1_…_S1234_…` | FROZEN | N2 last 고정 | native 보정 PAN | L_rec |
+| `NF16_P2_…_S1234_…` | FT-REC | 학습 (LR 1e-5) | native | L_rec |
+| `NF16_P3_…_S1234_…` | FT-EQ | 학습 | native (홀수 update 에 P_ε 는 aligner 에만) | L_rec + 0.01·\|ĉε+ε−sg ĉ0\| |
+| `NF16_P4_…_S1234_…` | FT-EQ-GEO | 학습 | native | + λ_geo(t)·L_geo(A3, aligner 에만) |
+| `NF16_P3/P4_…_S7777_…` | 반복 pair | | | 예산 gate 통과 시 |
+
+핵심 비교(명세): P1−P0 재사용 / P2−P1 공동 미세조정·망각 / P3−P2 반응 보존 / P4−P3 GT 구조 감독. 인과 비교는 **last(정확한 50K)** 끼리, 시트 best_raw 는 기록용. 네 view(raw_original · raw_valid V64 · aligned_valid(self) · **aligned_fixed_v64(고정 donor 참조)**) 와 last 의 반응·closure·native 참조 stress(`results/po10_diag_last.json`)를 run 마다 남긴다. 기동: s1 `./tools/nf16_prepare.sh`. 예산 ledger `work_dir/_nf16_budget/ledger.json`.
