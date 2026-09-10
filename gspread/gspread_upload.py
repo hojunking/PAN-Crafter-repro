@@ -1022,6 +1022,8 @@ def main():
                          "gspread/server.txt 를 본다. 셋 다 없으면 올리지 않는다")
     ap.add_argument("--replace", action="store_true",
                     help="기존 데이터 행을 비우고 주어진 순서대로 다시 쓴다")
+    ap.add_argument("--include-archived", action="store_true",
+                    help="2026-09-11 에 _v1 탭으로 옮긴 범주(sheet_categories.ARCHIVED)의 run 도 --all 에 포함한다 (기본: 뺀다)")
     a = ap.parse_args()
 
     tags = []
@@ -1030,6 +1032,10 @@ def main():
                 for p in glob.glob(f"{ROOT}/work_dir/*/results/reduced_*.mat")]
         # 무효·옛 프로토콜 run 은 --all 에서 뺀다: _INVALID_*(증강 위상 버그), *_msbug(QB 배포 ms 결함, F-3), *_sel1219(12-19 선택, 2026-09-09 폐기)
         tags = [t for t in tags if not t.startswith("_INVALID") and not t.endswith(("_msbug", "_sel1219"))]   # _sel1219: H5 12-19 로 선택한 옛 프로토콜 run
+        if not a.include_archived:                       # 2026-09-11 시트 정리: 현 접근과 무관한 범주는 본 탭에 다시 올리지 않는다 (gspread/archive_to_v1.py)
+            from sheet_categories import classify as _cls, ARCHIVED as _arch
+            n0 = len(tags); tags = [t for t in tags if _cls(t) not in _arch]
+            print(f"  --all: 이전 범주(_v1 탭) run {n0 - len(tags)}개 제외 (--include-archived 로 포함)")
     for pat in a.pattern:
         tags += [os.path.basename(d) for d in glob.glob(f"{ROOT}/work_dir/{pat}") if os.path.isdir(d)]
     seen = set(); ordered = []

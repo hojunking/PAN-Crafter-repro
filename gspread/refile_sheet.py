@@ -23,7 +23,8 @@ from sheet_categories import classify, run_tag, NAME, DESC, SEP as _SEP  # noqa:
 CRED = os.path.join(ROOT, "gspread", "account.json")
 BK = os.path.join(ROOT, "gspread", "_sheet_backup")
 SHEET = "pan-cvpr27"
-DISPLAY = ["REF", "SEED", "P25", "SUBMOD", "ARCH", "ATTN", "KD", "SE", "MS", "S1GRID", "MUT", "GA", "SR", "UVS", "MULTISET", "MISC"]
+# 표시 순서. 2026-09-11: 현 접근 범주(BASE96·PA·PO10·KDV)를 REF 다음에 두고, 여기 없는 범주도 절대 버리지 않는다(regroup 이 ORDER 로 보충).
+DISPLAY = ["REF", "BASE96", "PA", "PO10", "KDV", "SEED", "P25", "SUBMOD", "ARCH", "ATTN", "KD", "SE", "MS", "S1GRID", "MUT", "GA", "SR", "UVS", "MULTISET", "MISC"]
 SEP = _SEP
 
 
@@ -59,7 +60,8 @@ def regroup(vals, ref_order=None):
                                             r[date_i] if len(r) > date_i else ""))
     out = [list(x) for x in header]
     sep = []
-    for k in DISPLAY:
+    from sheet_categories import ORDER as _ORDER
+    for k in DISPLAY + [k for k in _ORDER if k not in DISPLAY] + [k for k in buckets if k not in DISPLAY and k not in _ORDER]:
         if not buckets.get(k):
             continue
         row = [""] * max(len(header[2]), ncol + 1)

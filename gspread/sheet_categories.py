@@ -35,8 +35,8 @@ CATS = [
   lambda t: t.startswith("PO10_")),
  ("PA", "⑱ PAN 앞단 전역 정합 A1–A3 (PA 계열) — 학습되는 global shift CNN 이 PAN 만 MS 프레임으로 sampling, W96·D124 B0 위 · A1 recon / A2 +edge / A3 +geo",
   lambda t: t.startswith("PA_A")),
- ("BASE96", "⑰ 새 baseline W96·D124 U-Net — MS+PAN 9ch · LPAN/HPAN 없음 · PAN task 없음(단일 HRMS) · MARs γ/β 제거 · WV3 3-seed (s3)",
-  lambda t: t.startswith("BASE_W96_D124_MSPAN_")),
+ ("BASE96", "⑰ 새 baseline U-Net (BASE_W*_D*_MSPAN) — MS+PAN 9ch · LPAN/HPAN 없음 · PAN task 없음(단일 HRMS) · MARs γ/β 제거 · W96·D124 3-seed(s3) + W112·D124 / W96·D123 / W112·D123 변형(s3)",
+  lambda t: t.startswith("BASE_W") and "_MSPAN_" in t),
  ("MULTISET", "⑯ 아키텍처 고정 다중 데이터셋 3-seed — W168·d123·dual·11ch·nocrop·attn 없음, WV3/QB/GF2 학습(seed 2025·1234·7777) + WV2 zero-shot",
   lambda t: t.startswith("ARCH_W168_D123_DUAL_") or "_zs_" in t),
  ("S1GRID", "⑮ Teacher 후보 격자 (S1 계열) — 폭 W·깊이 D·MS2/DUAL 스크리닝, HQNR 선택 (S1_T05_W168_D123_DUAL 이 SR anchor)",
@@ -45,6 +45,10 @@ CATS = [
   lambda t: True),
 ]
 ORDER = [c[0] for c in CATS]
+# 2026-09-11 시트 정리: 현 접근(BASE/PA/PO10/KDV)과 무관한 범주는 WV3-<server>_v1 탭으로 옮겼다 (gspread/archive_to_v1.py).
+# gspread_upload.py --all 은 이 범주의 run 을 다시 올리지 않는다 (--include-archived 로만).
+KEEP = ("REF", "BASE96", "PA", "PO10", "KDV")
+ARCHIVED = tuple(k for k in ORDER if k not in KEEP)
 NAME  = {c[0]: c[1] for c in CATS}
 SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload 가 같이 쓴다
 

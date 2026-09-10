@@ -197,3 +197,6 @@ donor aligner 는 `assets/donor_aligner/`(s1 PA_A1 seed 2025 의 aligner.*, stri
 실행은 보류 큐 `config/queues/kdv_s2_geomkd.txt`(`gen_kdv_configs.py --geomkd`): PO10 N2/N3(반응하는 aligner) 와 Q07/Q08 결과 뒤에 기동한다. 현재 A1 donor 는 무반응이라 G-EQ precision 이 낮다.
 **TRI-A/B/C**(addendum `research_log/PAN_S2_W112_D124_TGeo_ABC_Addendum_2026-09-10.md`: R3 soft 의 band/통계 성분 방향 gate, Teacher 출력의 correction 민감도 감쇠) 도 구현(`kdv/tri.py`, 구현 노트 §10) —
 큐 `config/queues/kdv_s2_triabc.txt`(`--triabc`, 22 run, P1 → MASS/SHUFFLE/GV-WH 대조 → P2/P3), 본 큐 뒤 기동. 이름 토큰 `TRI_A*_B*_C*`. C-DIAG(EQ) 는 현 donor 에서 C-SENS 와 정보가 같다(등방 Σ).
+
+2026-09-11 **시트 정리**: WV3 본 탭(WV3-s1/s2/s3(5090))에는 현 접근 범주만(REF · BASE_W*_MSPAN · PA · PO10 · KDV) 남긴다. 나머지 범주는 `WV3-<server>_v1` 탭 맨 아래로 옮겼다(`gspread/archive_to_v1.py`, 백업 `gspread/_sheet_backup/*.before_archive_2026-09-11.json`).
+`gspread_upload.py --all` 은 옮긴 범주(`sheet_categories.ARCHIVED`)를 다시 올리지 않는다. 시트의 HQNR↑ = 전체 프레임(논문 프로토콜), HQNR(V64)↑ = 가장자리 64 px 제외 고정 영역 — `results_log/2026-09-11_sheet-cleanup-and-hqnr-views.md`.
