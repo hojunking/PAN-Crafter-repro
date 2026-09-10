@@ -1,13 +1,14 @@
 # PO10 N3_NOSG [R200_FRSTAT, b=2.0 HR px] — PAN 추가 변위 + offset consistency, seed 2025, 50000 updates. 생성: tools/gen_po10_configs.py (템플릿 PA_A1_REC_W96_D124_9CH_S2025). 손으로 고치지 말 것.
 # 변경 명세: research_log/PAN_OffsetConsistency_ChangeNote_R100_to_R200_2026-09-10.md — 반경 1.0→2.0, 근거는 FR 논문 세트 입력 통계(P95 1.98). 옛 R100 run 과 별개의 새 독립 학습
 # 명세: research_log/PAN_OffsetConsistency_10GPUh_W96_D124_2026-09-10.md · 구현 train_po.py / pa/offset.py
-# A1 과 같은 골격·9ch·mars ms·γβ 제거·AdamW 1e-4/wd0.01 cosine·batch 48·init(work_dir/_pa_init seed 2025) · aligner 고정 내부 view margin 4
+# 골격 W112_D123(hidden 112, depth [1, 2, 3]) · 9ch·mars ms·γβ 제거·AdamW 1e-4/wd0.01 cosine·batch 48·init(work_dir/_pa_init_w112_d123 seed 2025) · aligner 고정 내부 view margin 4
+# 2026-09-10 사용자 결정: R200 부터 골격을 W112·D123 으로 — W96·D124 B0/A1/R100 과 골격이 다르므로 그 run 들과의 직접 대응 비교는 하지 않는다 (block 안 N2−N1, N3−N2 만)
 # native/corrupt 1:1 (update 짝/홀). corrupt: ε ~ disk b=2.0 HR px. L_rec + 0.01·|ĉε+ε−ĉ0| (양쪽 gradient, 5K ramp)
 # best_hqnr = best_raw(raw_original HQNR → fSCC → later step) · best_aligned · last 보존. 시트 = raw_original(HQNR↑) + V64(HQNR(V64)↑)
-expect_params_m: 2.123     # backbone 만 (aligner 0.1053M 은 smoke 가 따로 확인)
+expect_params_m: 2.6589     # backbone 만 (aligner 0.1053M 은 smoke 가 따로 확인)
 seed: 2025
 num_worker: 4
-work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/PO10_N3_OFFNOSG_W96_D124_WV3_S2025_R200_FRSTAT
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/PO10_N3_OFFNOSG_W112_D123_WV3_S2025_R200_FRSTAT
 
 phase: train
 
@@ -44,7 +45,7 @@ po:
   corruption_seed_offset: 2000
   budget_total_gpu_hours: 10.0
   budget_diag_reserve_hours: 1.0
-  init_dir: work_dir/_pa_init
+  init_dir: work_dir/_pa_init_w112_d123
 
 
 
@@ -81,8 +82,8 @@ model: model.pancrafter_paper.PANCrafterPaper
 model_args:
   in_channels: 1
   out_channels: 8
-  hidden_size: 96
-  depth: [1, 2, 4]          # full-res / H/2 / H/4(bottleneck)
+  hidden_size: 112
+  depth: [1, 2, 3]          # full-res / H/2 / H/4(bottleneck)
   dropout: 0.0
   num_heads: 8
   mlp_ratio: 4.0

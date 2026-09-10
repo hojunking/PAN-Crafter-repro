@@ -85,12 +85,14 @@ N1 은 11:33 에 옛 코드로 시작돼 있었다 — 세 run 이 같은 코드
 | 구분 | R100 (옛 protocol `pan_offset_rel_10h_v1`) | R200 (새 protocol `pan_offset_rel_10h_v2_wv3_r200_frstat`) |
 |---|---|---|
 | 반경 b | 1.0 HR px (audit 부록 E train P90 0.250 LR px × 4, train_aggregate_proxy) | **2.0 HR px** (09-10 §7 WV3 FR \|δ\| P95 1.98 HR px, `fr_input_statistics_informed_development`) |
-| run | `PO10_N1_REC_W96_D124_WV3_S2025` — 13:16 기동, **완주시켜 R100 기록으로 보존**. R100 N2/N3 는 **실행하지 않음**(큐에서 제거, 옛 체인 스케줄러 중지) | `PO10_{N1_REC,N2_OFFSG,N3_OFFNOSG}_W96_D124_WV3_S2025_R200_FRSTAT` — 같은 init snapshot 에서 **새 독립 학습**(restart_pure), N3 는 예산 gate |
-| 큐 | `config/queues/po10_s1.txt` (기록용) | `config/queues/po10_s1_r200_frstat.txt` — 첫 줄은 R100 N1(완료분 업로드용) |
+| 골격 | W96 · D124 (B0/A1 과 동일) | **W112 · D123** (사용자 결정 2026-09-10 오후, "변경된 실험은 width/depth 도 바꾼다"). backbone 2.6589 M (+aligner 0.1053 M). init snapshot 은 별도(`work_dir/_pa_init_w112_d123`) |
+| run | `PO10_N1_REC_W96_D124_WV3_S2025` — 13:16 기동, **완주시켜 R100 기록으로 보존**. R100 N2/N3 는 **실행하지 않음**(큐에서 제거, 옛 체인 스케줄러 중지) | `PO10_{N1_REC,N2_OFFSG,N3_OFFNOSG}_W112_D123_WV3_S2025_R200_FRSTAT` — 새 골격의 **새 독립 학습**(restart_pure), N3 는 예산 gate |
+| 큐 | `config/queues/po10_s1.txt` (기록용) | `config/queues/po10_s1_r200_frstat_w112_d123.txt` — 첫 줄은 R100 N1(완료분 업로드용). (W96·D124 R200 config 는 만들었다가 폐기) |
+| 대응 비교 | — | 골격이 B0/A1/R100 과 다르므로 **그 run 들과의 직접 대응(Ak−B0, N−A1)은 하지 않는다**. block 안 N2−N1, N3−N2 만. W112·D123 의 B0(aligner 없음)는 이번 예산에 없다 — 필요하면 후속 |
 | 그 밖 | 원판 uniform·1:1 교대·λ 0.01/5K·margin 4·loss·평가 전부 동일 | 동일 (변경 명세 §3 대조표) |
 | manifest | `corruption_scale_manifest.json`: radius_profile R100_TRAINP90 | radius_profile R200_FRSTAT + `radius_provenance`(uses_evaluation_input_statistics **true**), training_regime restart_pure, parent_run_id null |
 | 진단 | probe 0·±0.5·±1 (in-range) + stress ±1.5·±2 | probe 0·±0.5·±1·±1.5·±2 전부 in-range — 같은 절대 변위 구간에서 R100 과 비교. \|ε\| 0.5 px 구간별 closure 기록 |
-| 예산 | 같은 10 GPU-h ledger 에 profile 표시. 사용: gate 0.3 + 폐기 1.65 + R100 N1 ≈1.55 | 남은 ≈ 6.5 h → R200 N1·N2 확실, N3 는 gate(6.6 + 1.2×1.55 + 1 ≈ 9.5 ≤ 10 → 통과 예상) |
+| 예산 | 같은 10 GPU-h ledger 에 profile 표시. 사용: gate 0.3 + 폐기 1.65 + R100 N1 ≈1.55 | 남은 ≈ 6.5 h. W112·D123 은 step 이 길어져(smoke 실측 참조) run 당 ≈ 1.8~2 h → N1·N2 는 들어가고 **N3 는 gate 에서 DEFERRED_BUDGET 이 될 가능성이 높다**(3.5 + 2×1.9 + 1.2×1.9 + 1 ≈ 10.6 h). 그 경우 예산 증액은 사용자 결정 |
 
 R100 N1 은 옛 코드가 아니라 2차 검토까지 반영된 코드(13:16 기동)로 완주하므로 R100 기록으로 유효하다. 다만 R100 은 N1 하나뿐이라 R100 안의 N2−N1 대응은 없다 — R200 block 이 주 비교다.
 

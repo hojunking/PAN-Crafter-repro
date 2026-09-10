@@ -140,5 +140,6 @@ corrupt 에서는 PAN 에만 원판 R=1 HR px(audit 부록 E train P90 0.25 LR p
 
 **추기(13:5x) — R100 → R200 전환** ([변경 명세](../research_log/PAN_OffsetConsistency_ChangeNote_R100_to_R200_2026-09-10.md), 사용자 지시 "다음 실험부터"):
 위 표의 R100(b=1.0) 은 **N1 만 완주**시켜 기록으로 보존하고 N2/N3 는 실행하지 않는다. 다음 실험부터 b=2.0 (FR 입력 통계 참고, `_R200_FRSTAT` 접미사) 로
-`PO10_N1_REC / N2_OFFSG / N3_OFFNOSG ..._R200_FRSTAT` 세 run 을 같은 init 에서 새로 학습한다(주 비교). 상세는 구현 노트 §7. 시트에는 HQNR↑(전체 프레임)과 HQNR(V64)↑(가장자리 64 px 제외) 두 열이 모두 오른다.
+`PO10_N1_REC / N2_OFFSG / N3_OFFNOSG _W112_D123_..._R200_FRSTAT` 세 run 을 새로 학습한다(주 비교). **골격도 W112·D123 으로 바꾼다**(사용자 결정) — B0/A1/R100(W96·D124)과는 골격이 달라 직접 대응하지 않고 block 안 N2−N1·N3−N2 만 본다.
+상세는 구현 노트 §7. 시트에는 HQNR↑(전체 프레임)과 HQNR(V64)↑(가장자리 64 px 제외) 두 열이 모두 오른다.
 결과·진단은 run 폴더 `checkpoint_metrics.csv`, `offset_response_*.csv`, `interpolation_controls.json`, `results/{pa_diag,po10_diag}.json`, 예산은 `work_dir/_po10_budget/ledger.json`.
