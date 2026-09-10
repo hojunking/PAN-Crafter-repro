@@ -1,13 +1,13 @@
-# S2W112_T112DFR_IA_AFR_N0_OFF_G0_s2025_v01 — Q01 W112 Teacher 확보: donor aligner frozen + 복원 supervised (T112_DONORFROZEN_REC), seed 2025. 생성: tools/gen_kdv_configs.py (템플릿 PA_A1_REC_W96_D124_9CH_S2025). 손으로 고치지 말 것.
+# S2W112D123_A1_IA_ASC_R3_GVAD_G0_s1234_v01 — Q08 A-SC + REC-R3 + GV-AD: aligner 독립 초기화 — Teacher 초기값의 제약 확인. 생성: tools/gen_kdv_configs.py (템플릿 PA_A1_REC_W96_D124_9CH_S1234). 손으로 고치지 말 것.
 # 계획: research_log/PAN_S2_W112_KD_Variance_Plan_and_References_2026-09-10/ · 구현 train_kdv.py / kdv/ · 노트 research_log/2026-09-10_s2-w112-kdv-implementation.md
-# 세팅: I-A · aligner frozen(donor 복사, 학습 없음) · rec L1(GT) · stat OFF · geomKD G0 (no Teacher)
-# 골격 W112_D124(hidden 112, depth [1, 2, 4]) · 9ch·mars ms·γβ 제거 · AdamW 1e-4/wd0.01 cosine warmup100 · batch 48 · 50000 updates · seed 2025 · init work_dir/_kdv_init_w112_d124
-# donor aligner = assets/donor_aligner/PA_A1_REC_W96_D124_9CH_S2025_best_hqnr_aligner.pt (s1 PA_A1 seed 2025 best_hqnr 의 aligner.*, 전체 view, strict load) · Teacher = S2W112_T112DFR_IA_AFR_N0_OFF_G0_s2025_v01/best_hqnr (id T112_v01)
+# 세팅: I-A · aligner 독립 초기화 학습 · rec (1+α d_T)·L1 + β(1−d_T)a_T|S−T| (adaptive) · stat grad_var w5 mode AD · geomKD G0 Teacher T112_v01
+# 골격 W112_D123(hidden 112, depth [1, 2, 3]) · 9ch·mars ms·γβ 제거 · AdamW 1e-4/wd0.01 cosine warmup100 · batch 48 · 50000 updates · seed 1234 · init work_dir/_kdv_init_w112_d123
+# donor aligner = assets/donor_aligner/PA_A1_REC_W96_D124_9CH_S2025_best_hqnr_aligner.pt (s1 PA_A1 seed 2025 best_hqnr 의 aligner.*, 전체 view, strict load) · Teacher = S2W112D123_T112DFR_IA_AFR_N0_OFF_G0_s2025_v01/best_hqnr (id T112_v01)
 # best_hqnr = best_raw(raw_original HQNR → fSCC → later step) · best_aligned · best_rr_val(검증셋 plain ERGAS) · last. 시트 = raw_original(HQNR↑) + V64(HQNR(V64)↑)
-expect_params_m: 2.8854     # backbone 만 (aligner 0.1053M 은 smoke 가 따로 확인)
-seed: 2025
+expect_params_m: 2.6589     # backbone 만 (aligner 0.1053M 은 smoke 가 따로 확인)
+seed: 1234
 num_worker: 4
-work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/S2W112_T112DFR_IA_AFR_N0_OFF_G0_s2025_v01
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/S2W112D123_A1_IA_ASC_R3_GVAD_G0_s1234_v01
 
 phase: train
 
@@ -23,19 +23,37 @@ kdv:
     seed: 1234
   corruption:
     corruption_seed_offset: 2000
-  recipe: T112DFR
-  aligner_policy: A-FR
-  donor:
-    source: assets/donor_aligner/PA_A1_REC_W96_D124_9CH_S2025_best_hqnr_aligner.pt
-    view_margin_hr: 0
+  recipe: A1
+  aligner_policy: A-SC
+  aligner_view_margin_hr: 0
+  teacher:
+    id: T112_v01
+    run: work_dir/S2W112D123_T112DFR_IA_AFR_N0_OFF_G0_s2025_v01
+    tag: best_hqnr
     expected_sha256: null
+    bridge: false
   rec:
-    case: N0
+    case: R3
+    alpha: 1.0
+    kd_weight: 0.1
+    eps: 1.0e-06
+    tau: calibrate
+    eps_scale: 1.0e-06
   stat:
-    enabled: false
+    enabled: true
+    kind: GV
+    mode: AD
+    window: 5
+    alpha: 1.0
+    kd_weight: 0.1
+    tau: calibrate
+    outer_weight: calibrate
+    lambda_pilot: S2W112D123_A1_IA_AFR_N0_OFF_G0_s1234_v01/last
+    r_grad: 0.05
+    ramp_updates: 0
   geom_kd:
     mode: G0
-  init_dir: work_dir/_kdv_init_w112_d124
+  init_dir: work_dir/_kdv_init_w112_d123
   version: v01
 
 
@@ -74,7 +92,7 @@ model_args:
   in_channels: 1
   out_channels: 8
   hidden_size: 112
-  depth: [1, 2, 4]          # full-res / H/2 / H/4(bottleneck)
+  depth: [1, 2, 3]          # full-res / H/2 / H/4(bottleneck)
   dropout: 0.0
   num_heads: 8
   mlp_ratio: 4.0

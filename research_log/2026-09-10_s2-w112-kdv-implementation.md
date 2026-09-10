@@ -1,4 +1,6 @@
-# s2 W112·D124 KD·variance·aligner 재사용 — 계획 검토와 구현 노트 (2026-09-10)
+# s2 W112·D123 KD·variance·aligner 재사용 — 계획 검토와 구현 노트 (2026-09-10)
+
+> **2026-09-10 저녁 사용자 결정: depth [1,2,3]** (계획 원안 [1,2,4]). 이 노트의 W112·D124 표기는 계획 원안·dry run 시점의 것이고, 실행 config·큐·이름(`S2W112D123_*`)은 D123 이다. backbone 2.6589 M (s1 PO10 R200 block 과 같은 골격).
 
 계획 묶음: `research_log/PAN_S2_W112_KD_Variance_Plan_and_References_2026-09-10/`
 (캠페인 문서 `PAN_S2_W112_D124_KD_Variance_Adaptive_Campaign_2026-09-10.md`, 참조 구현 `pan_gt_anchored_kd.py` · `pan_s2_w112_stat_kd_reference.py`, README, 검사 JSON).
@@ -10,8 +12,8 @@
 
 | 계획 항목 | 저장소 실제 (2026-09-10) | 처리 |
 |---|---|---|
-| backbone class·폭·깊이 (§2.2 REQUIRED) | `model.pancrafter_paper.PANCrafterPaper`, `hidden_size 112`, `depth [1,2,4]`, `in_mode paper`(cat(PAN, ↑MS) 9ch), `mode_modulation false`, `attn_locations []`, norm **LN** → GN 나눗셈 문제 없음. backbone **2.8854 M** (W96·D124 2.123 M 대비 +35.9%). aligner GN4/GN8 은 폭과 무관 | `architecture_manifest.json` 을 run 마다 자동 기록 (M01) |
-| **depth** | 계획 §0.2 "Depth [1,2,4] **유지**". 그러나 같은 날 사용자 결정으로 s1 PO10 R200 block 은 **W112·D123**(2.6589 M) 이다 | **계획대로 D124 로 구현**(생성기 `--depth 1,2,4` 기본). s1 PO10 R200(W112·D123) 과는 골격이 달라 직접 대응 비교가 아니다. D123 으로 맞추려면 `tools/gen_kdv_configs.py --depth 1,2,3` 한 번이면 된다 — **사용자 확인 필요 항목** |
+| backbone class·폭·깊이 (§2.2 REQUIRED) | `model.pancrafter_paper.PANCrafterPaper`, `hidden_size 112`, `in_mode paper`(cat(PAN, ↑MS) 9ch), `mode_modulation false`, `attn_locations []`, norm **LN** → GN 나눗셈 문제 없음. backbone **D123 2.6589 M**(실행) / D124 2.8854 M(계획 원안). aligner GN4/GN8 은 폭과 무관 | `architecture_manifest.json` 을 run 마다 자동 기록 (M01) |
+| **depth** | 계획 §0.2 "Depth [1,2,4] **유지**". 그러나 같은 날 사용자 결정으로 s1 PO10 R200 block 은 **W112·D123**(2.6589 M) 이다 | **사용자 결정(2026-09-10 저녁): D123.** 생성기 기본 `--depth 1,2,3`, init `work_dir/_kdv_init_w112_d123`, 이름 접두 `S2W112D123`(계획의 `S2W112` 에 depth 를 붙여 D124 와 구분). s1 PO10 R200 과 같은 골격 |
 | W112 Teacher checkpoint (§3.2 REQUIRED) | **없다.** 저장소의 W112 run 은 s1 PO10 R200 block(진행 중, W112·D123, N 계열) 뿐 | Q01 에서 **새로 학습**: `T112_DONORFROZEN_REC`(donor aligner frozen + W112·D124 복원 supervised, §3.3). Student 와 seed 가 같으면 Q02 와 동일 모델이 되므로 Teacher 는 **seed 2025**, Student 는 **seed 1234** (계획 §17.2 "우선 1234"). teacher_id `T112_v01` |
 | aligner donor (§3.1) | s1 `PA_A1_REC_W96_D124_9CH_S2025/best_hqnr`(step 34,340, HQNR 0.9492) 의 `aligner.*` 22 tensor·105,330 params. 독립 dual-stem 구조라 폭과 무관. s2 에는 없으므로 저장소에 asset 으로 넣었다: `assets/donor_aligner/PA_A1_REC_W96_D124_9CH_S2025_best_hqnr_aligner.pt`(0.43 MB, manifest json 동봉, sha256 기록) | strict load (key·shape). 알려진 성질(입력 무반응 상수 보정 ~0.2 px, 반응 기울기 −0.02~−0.09)을 manifest 에 적었다 — 계획 §3.4 "상수라는 것만으로 실패 확정 않음" |
 | Teacher/donor 출처 분리 (§3.1) | donor = W96 A1 aligner, KD Teacher = Q01 W112 (같은 donor 를 frozen 으로 씀) | `init_and_teacher_hashes.json`·`teacher_registry.json` 에 별도 기록 |
@@ -47,10 +49,10 @@
 | phase_manager | `train_kdv.KDVTrainer._warm_start` + `main.py` warm-start 분기 | `kdv.phase{parent_run, parent_tag, parent_step, optimizer_state_policy}` → backbone/optimizer(backbone group 위치 대응)/scheduler 위치 복원, `parent_and_phase.yaml`(config diff·inherited cost) |
 | run_registry | `kdv/registry.py` | case 등록·resolver(잘못된 조합 오류)·이름 규칙·서술 |
 | trainer | `train_kdv.py` `KDVTrainer` (`trainer: kdv`, `--kdv` YamlAction) | 아래 §3 |
-| config/queue | `tools/gen_kdv_configs.py` → `config/S2W112_*.yaml` 9벌, `config/queues/kdv_s2.txt` | §4 |
+| config/queue | `tools/gen_kdv_configs.py` → `config/S2W112D123_*.yaml` 9벌, `config/queues/kdv_s2.txt` | §4 |
 | gates | `tools/kdv_unit_tests.py`, `tools/smoke_cases.py`(kdv 분기), `tools/pa_unit_tests.py`(evaluator·selector) | §5 |
 | 기동 | `tools/kdv_prepare.sh` | 환경 json → 데이터·donor·지표·gate → config → smoke(Q00–Q02) → 캠페인 manifest → `campaign_start.sh` + 감시자 |
-| 시트·평가기 | `tools/eval_fr_paperset.py`, `tools/pa_diag.py`, `gspread/gspread_upload.py`(비용·descriptor·notes), `gspread/sheet_categories.py`(⑳ KDV), `tools/_upload.sh`(S2W112_* → pa_diag) | |
+| 시트·평가기 | `tools/eval_fr_paperset.py`, `tools/pa_diag.py`, `gspread/gspread_upload.py`(비용·descriptor·notes), `gspread/sheet_categories.py`(⑳ KDV), `tools/_upload.sh`(S2W112D123_* → pa_diag) | |
 
 ### 2.1 run 폴더 산출물 (계획 §21.1 대응)
 
@@ -85,19 +87,19 @@ L     = L_R + λ_V·L_V + L_aux
 
 ## 4. 큐 (계획 §13.2 Q00–Q08) — 약명 → 세팅
 
-이름 규칙 `S2W112_<recipe>_<input>_<aligner>_<rec>_<stat>_<geomKD>_s<seed>_<version>`. 공통: W112·D124 · 9ch · I-A(native) · 50K · AdamW 1e-4 · batch 48 · fp32 · 평가 eval_epoch 5.
+이름 규칙 `S2W112D123_<recipe>_<input>_<aligner>_<rec>_<stat>_<geomKD>_s<seed>_<version>`(접두 = 서버+폭+depth, `kdv.registry.arch_prefix`). 공통: **W112·D123**(2.6589 M) · 9ch · I-A(native) · 50K · AdamW 1e-4 · batch 48 · fp32 · 평가 eval_epoch 5.
 
 | Q | run | recipe / aligner | rec | stat | Teacher | 목적 |
 |---|---|---|---|---|---|---|
-| Q00 | `S2W112_NOALIGN_IA_AID_N0_OFF_G0_s1234_v01` | aligner·sampler 없음 | N0 (L1) | OFF | — | 새 폭 독립 baseline |
-| Q01 | `S2W112_T112DFR_IA_AFR_N0_OFF_G0_s2025_v01` | donor frozen (T112_DONORFROZEN_REC) | N0 | OFF | — | **Teacher** (seed 2025) → `T112_v01` |
-| Q02 | `S2W112_A1_IA_AFR_N0_OFF_G0_s1234_v01` | donor frozen | N0 | OFF | — | frozen aligner GT-only 기준 (Teacher 와 seed 만 다름) · λ_V pilot |
-| Q03 | `S2W112_A1_IA_AFR_R1_OFF_G0_s1234_v01` | donor frozen | R1 hard-only | OFF | T112_v01 | Teacher-error hard 재가중 |
-| Q04 | `S2W112_A1_IA_AFR_R3_OFF_G0_s1234_v01` | donor frozen | R3 adaptive | OFF | T112_v01 | adaptive rec 기준 |
-| Q05 | `S2W112_A1_IA_AFR_R3_GVH_G0_s1234_v01` | donor frozen | R3 | GV-H (GT gradient-variance 5×5) | T112_v01 | GT 구조 통계 추가 |
-| Q06 | `S2W112_A1_IA_AFR_R3_GVAD_G0_s1234_v01` | donor frozen | R3 | GV-AD | T112_v01 | **첫 주력 후보** |
-| Q07 | `S2W112_A1_IA_AFT_R3_GVAD_G0_s1234_v01` | donor 초기화 후 학습 | R3 | GV-AD | T112_v01 | aligner fine-tune |
-| Q08 | `S2W112_A1_IA_ASC_R3_GVAD_G0_s1234_v01` | 독립 초기화 학습 | R3 | GV-AD | T112_v01 | 초기값 제약 확인 |
+| Q00 | `S2W112D123_NOALIGN_IA_AID_N0_OFF_G0_s1234_v01` | aligner·sampler 없음 | N0 (L1) | OFF | — | 새 폭 독립 baseline |
+| Q01 | `S2W112D123_T112DFR_IA_AFR_N0_OFF_G0_s2025_v01` | donor frozen (T112_DONORFROZEN_REC) | N0 | OFF | — | **Teacher** (seed 2025) → `T112_v01` |
+| Q02 | `S2W112D123_A1_IA_AFR_N0_OFF_G0_s1234_v01` | donor frozen | N0 | OFF | — | frozen aligner GT-only 기준 (Teacher 와 seed 만 다름) · λ_V pilot |
+| Q03 | `S2W112D123_A1_IA_AFR_R1_OFF_G0_s1234_v01` | donor frozen | R1 hard-only | OFF | T112_v01 | Teacher-error hard 재가중 |
+| Q04 | `S2W112D123_A1_IA_AFR_R3_OFF_G0_s1234_v01` | donor frozen | R3 adaptive | OFF | T112_v01 | adaptive rec 기준 |
+| Q05 | `S2W112D123_A1_IA_AFR_R3_GVH_G0_s1234_v01` | donor frozen | R3 | GV-H (GT gradient-variance 5×5) | T112_v01 | GT 구조 통계 추가 |
+| Q06 | `S2W112D123_A1_IA_AFR_R3_GVAD_G0_s1234_v01` | donor frozen | R3 | GV-AD | T112_v01 | **첫 주력 후보** |
+| Q07 | `S2W112D123_A1_IA_AFT_R3_GVAD_G0_s1234_v01` | donor 초기화 후 학습 | R3 | GV-AD | T112_v01 | aligner fine-tune |
+| Q08 | `S2W112D123_A1_IA_ASC_R3_GVAD_G0_s1234_v01` | 독립 초기화 학습 | R3 | GV-AD | T112_v01 | 초기값 제약 확인 |
 
 Q07/Q08 의 `STAT-*` 는 계획 "Q04~06 중 고정 선택" → **GV-AD**(§1 첫 주력 후보) 로 정했다. 순서 의존: Q01 → Q03–Q08(Teacher), Q02 → Q05–Q08(λ_V pilot). 체인(`_run_cases.sh`)이 큐 순서대로 돌고 case 직전 smoke 가 Teacher 존재를 확인한다.
 Q09–Q25(R0/R2, GV-T/FIX/WH, IV/GC/SC/EDGE, G1, I-N, seed 반복 …)는 `tools/gen_kdv_configs.py build_kdv()` 에 case 를 더해 만든다(resolver 가 조합을 검사).
@@ -112,7 +114,7 @@ Q09–Q25(R0/R2, GV-T/FIX/WH, IV/GC/SC/EDGE, G1, I-N, seed 반복 …)는 `tools
 |---|---|---|
 | L01 | 참조 rec 10 검사 + 8-band gradient 방향 | `tools/kdv_unit_tests.py` 전부 OK |
 | L02/L04 | 참조 stat 12 검사 + spectral cov row-chunking = explicit unfold, 음의 off-diagonal 보존 | OK |
-| M01 | W112·D124 2.8854 M, 첫 conv 9ch, GN 없음 | OK |
+| M01 | W112·D123 2.6589 M(캠페인 골격; D124 2.8854 M 참고), 첫 conv 9ch, GN 없음, 이름 접두 S2W112D123 | OK |
 | M02 | donor strict(105,330·22 key) · W96→W112 strict load RuntimeError · non-aligner state KeyError | OK |
 | M03 | Student step 뒤 Teacher hash 불변 · optimizer ∩ Teacher → RuntimeError | OK |
 | M04 | y = base + residual(1회) · A-ID == B0 forward | OK |
@@ -121,12 +123,14 @@ Q09–Q25(R0/R2, GV-T/FIX/WH, IV/GC/SC/EDGE, G1, I-N, seed 반복 …)는 `tools
 | E01 | 학습 forward == 평가 forward(PAModel) | OK |
 | resolver | 9개 잘못된 조합 오류, A-FR 의 geo 항 진단 전용 | OK |
 | calibration | λ_V 규칙·degenerate 판정·v_scale | OK |
-| P01 smoke | Q00/Q01/Q02: peak 2.69 GB, step 52–94 ms (PO10 학습과 GPU 공유 중 측정) | OK |
+| P01 smoke | D124 dry config Q00/Q01/Q02: peak 2.69 GB, step 52–94 ms · **D123 실행 config Q00/Q01/Q02: peak 2.66 GB, step 53–58 ms** (PO10 학습과 GPU 공유 중 측정) | OK |
 | dry run (300 updates) | §6 | 아래 |
 
 ---
 
 ## 6. s1 dry run (300 updates, 평가 1회, export 4 tag)
+
+**dry run 은 depth 결정 전 D124 골격(`S2W112_*_dry`)으로 돌렸다.** 경로 검증 목적이라 D123 에서 반복하지 않았고, D123 실행 config 는 §5 P01 smoke 로 확인했다.
 
 s1(RTX 4090, PO10 N1 학습과 GPU 공유 중) 에서 `tools/gen_kdv_configs.py --updates 300 --version dry` 로 만든 7 run 을 순서대로 돌렸다(15:03–15:21, run 당 2.5 min: 학습 20–60 s + FR 평가 1회 + export 4 tag ×2 mat).
 전부 rc=0, `results/{reduced,full}_{best_hqnr,best_aligned,best_rr_val,last}.mat` 생성, `tools/eval_fr_paperset.py`(HQNR·V64·JQM)·`tools/pa_diag.py`·시트 `--dry-run`(범주 ⑳ KDV, 비용 2.8854 M, descriptor) 동작 확인.
@@ -159,7 +163,7 @@ Teacher 가 바뀌면(teacher_id) 새 cohort — 기존 run 의 target 을 덮�
 
 ## 8. 미결·후속
 
-- **depth D124 vs D123**: s1 PO10 R200 은 W112·D123 — s2 를 D123 으로 맞출지 사용자 확인(§1 표).
+- depth: **D123 으로 확정**(사용자, 2026-09-10 저녁). Teacher seed 2025 / Student 1234 도 확정.
 - 이동량 covariance KD(G2–G5·G-EQ·G-STRUCT)·G-CORR/XVIEW·Teacher cache·activation checkpointing: 미구현(PENDING), 필요 시점에 구현.
 - A-FTW(warm freeze→unfreeze)는 `kdv.phase` 로 표현 가능하나 dry run 하지 않았다.
 - RR-val ERGAS 는 plain 정의(선택 전용). 시트 수치는 기존 evaluator.

@@ -28,7 +28,7 @@ from kdv.forward import kdv_forward
 from kdv.losses_rec import GTAnchoredReconstructionKD
 from kdv.losses_stat import stat_term, statistic_map, MODE_TO_CRITERION
 from kdv.protocol import prepare_view
-from kdv.registry import resolve, run_name, describe, stat_tag
+from kdv.registry import resolve, run_name, describe, stat_tag, arch_prefix
 from kdv.teacher_assets import load_donor_aligner, load_run_model, load_state, freeze, state_hash, assert_param_disjoint, sha256_file, tensors_sha
 from pa.aligner import PANGlobalAligner
 from pa.evalviews import PROTOCOL_ID, evaluator_hash, fixed_roi, VIEWS
@@ -66,7 +66,7 @@ class KDVTrainer(PATrainer):
         self.k = k; self.spec = resolve(k); sp = self.spec
         self.campaign_id = k.get("campaign_id", "S2_W112_KDV_20260910"); self.run_kind = k.get("run_kind", "CONTROLLED"); self.version = k.get("version", "v01")
         self.run_id = os.path.basename(args.work_dir.rstrip("/"))
-        expected = run_name(sp, args.seed, self.version)
+        self.prefix = arch_prefix(args.model_args); expected = run_name(sp, args.seed, self.version, self.prefix)
         if k.get("check_run_name", True) and self.run_id != expected:
             raise ValueError(f"work_dir 이름 {self.run_id} ≠ 규칙 이름 {expected} (§13.1) — kdv.check_run_name: false 로 끌 수 있다")
         self.case = f"{sp['policy']}/{sp['rec_case']}/{stat_tag(sp)}/{sp['geom']}"
@@ -245,7 +245,7 @@ class KDVTrainer(PATrainer):
                 ds[kk + "_pan"] = dict(path=pp, sha256=sha_cached(pp, self.init_dir))
         json.dump(ds, open(os.path.join(wd, "dataset_hashes.json"), "w"), indent=1)
         spec0 = dict(self.spec); spec0.update(recipe="NOALIGN", policy="A-ID", rec_case="N0", stat_enabled=False, stat_key="OFF", geom="G0")
-        b0 = run_name(spec0, a.seed, self.version); b0d = os.path.join(ROOT, "work_dir", b0)
+        b0 = run_name(spec0, a.seed, self.version, self.prefix); b0d = os.path.join(ROOT, "work_dir", b0)
         json.dump(dict(baseline_run_id=b0, baseline_exists=os.path.isdir(b0d), baseline_finished=os.path.exists(os.path.join(b0d, "finished_at.txt")), init_hashes=self.init_hashes,
                        selection_scene_ids=list(range(20)), report_scene_ids=list(range(20)), fr_h5=self.fr_h5, fr_h5_sha256=self.fr_h5_sha, protocol_id=PROTOCOL_ID),
                   open(os.path.join(wd, "baseline_manifest.json"), "w"), indent=1)

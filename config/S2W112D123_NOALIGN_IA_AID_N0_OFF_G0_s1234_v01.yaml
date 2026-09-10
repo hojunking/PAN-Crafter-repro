@@ -1,13 +1,13 @@
-# S2W112_A1_IA_AFR_N0_OFF_G0_s1234_v01 — Q02 A-FR + REC-N0: frozen aligner 의 GT-only 기준 (Teacher 와 seed 만 다른 대응). 생성: tools/gen_kdv_configs.py (템플릿 PA_A1_REC_W96_D124_9CH_S1234). 손으로 고치지 말 것.
+# S2W112D123_NOALIGN_IA_AID_N0_OFF_G0_s1234_v01 — Q00 새 폭(W112) 의 독립 baseline: aligner·sampler·KD 없음 (B0 와 같은 그래프). 생성: tools/gen_kdv_configs.py (템플릿 PA_A1_REC_W96_D124_9CH_S1234). 손으로 고치지 말 것.
 # 계획: research_log/PAN_S2_W112_KD_Variance_Plan_and_References_2026-09-10/ · 구현 train_kdv.py / kdv/ · 노트 research_log/2026-09-10_s2-w112-kdv-implementation.md
-# 세팅: I-A · aligner frozen(donor 복사, 학습 없음) · rec L1(GT) · stat OFF · geomKD G0 (no Teacher)
-# 골격 W112_D124(hidden 112, depth [1, 2, 4]) · 9ch·mars ms·γβ 제거 · AdamW 1e-4/wd0.01 cosine warmup100 · batch 48 · 50000 updates · seed 1234 · init work_dir/_kdv_init_w112_d124
-# donor aligner = assets/donor_aligner/PA_A1_REC_W96_D124_9CH_S2025_best_hqnr_aligner.pt (s1 PA_A1 seed 2025 best_hqnr 의 aligner.*, 전체 view, strict load) · Teacher = S2W112_T112DFR_IA_AFR_N0_OFF_G0_s2025_v01/best_hqnr (id T112_v01)
+# 세팅: I-A · aligner 없음(raw PAN, sampler 없음) · rec L1(GT) · stat OFF · geomKD G0 (no Teacher)
+# 골격 W112_D123(hidden 112, depth [1, 2, 3]) · 9ch·mars ms·γβ 제거 · AdamW 1e-4/wd0.01 cosine warmup100 · batch 48 · 50000 updates · seed 1234 · init work_dir/_kdv_init_w112_d123
+# donor aligner = assets/donor_aligner/PA_A1_REC_W96_D124_9CH_S2025_best_hqnr_aligner.pt (s1 PA_A1 seed 2025 best_hqnr 의 aligner.*, 전체 view, strict load) · Teacher = S2W112D123_T112DFR_IA_AFR_N0_OFF_G0_s2025_v01/best_hqnr (id T112_v01)
 # best_hqnr = best_raw(raw_original HQNR → fSCC → later step) · best_aligned · best_rr_val(검증셋 plain ERGAS) · last. 시트 = raw_original(HQNR↑) + V64(HQNR(V64)↑)
-expect_params_m: 2.8854     # backbone 만 (aligner 0.1053M 은 smoke 가 따로 확인)
+expect_params_m: 2.6589     # backbone 만 (aligner 0.1053M 은 smoke 가 따로 확인)
 seed: 1234
 num_worker: 4
-work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/S2W112_A1_IA_AFR_N0_OFF_G0_s1234_v01
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/S2W112D123_NOALIGN_IA_AID_N0_OFF_G0_s1234_v01
 
 phase: train
 
@@ -23,19 +23,15 @@ kdv:
     seed: 1234
   corruption:
     corruption_seed_offset: 2000
-  recipe: A1
-  aligner_policy: A-FR
-  donor:
-    source: assets/donor_aligner/PA_A1_REC_W96_D124_9CH_S2025_best_hqnr_aligner.pt
-    view_margin_hr: 0
-    expected_sha256: null
+  recipe: NOALIGN
+  aligner_policy: A-ID
   rec:
     case: N0
   stat:
     enabled: false
   geom_kd:
     mode: G0
-  init_dir: work_dir/_kdv_init_w112_d124
+  init_dir: work_dir/_kdv_init_w112_d123
   version: v01
 
 
@@ -74,7 +70,7 @@ model_args:
   in_channels: 1
   out_channels: 8
   hidden_size: 112
-  depth: [1, 2, 4]          # full-res / H/2 / H/4(bottleneck)
+  depth: [1, 2, 3]          # full-res / H/2 / H/4(bottleneck)
   dropout: 0.0
   num_heads: 8
   mlp_ratio: 4.0

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-"""s2 W112·D124 KDV config 생성 (plan §13.2 Q00–Q08 · §22 config 계약 · 이름 규칙 §13.1).
+"""s2 W112·D123 KDV config 생성 (plan §13.2 Q00–Q08 · §22 config 계약 · 이름 규칙 §13.1).
 
     python tools/gen_kdv_configs.py                    # config/S2W112_*.yaml 9벌 + config/queues/kdv_s2.txt
     python tools/gen_kdv_configs.py --updates 300 --version dry   # s1 dry run 용 (짧은 학습)
 
-템플릿 = config/PA_A1_REC_W96_D124_9CH_S<seed>.yaml (골격·입력·optimizer·평가 주기 그대로), trainer 만 kdv, 폭 112 · depth [1,2,4].
+템플릿 = config/PA_A1_REC_W96_D124_9CH_S<seed>.yaml (골격·입력·optimizer·평가 주기 그대로), trainer 만 kdv, 폭 112 · depth [1,2,3] (2026-09-10 사용자 결정 — 계획 원안 [1,2,4] 는 --depth 1,2,4).
 Teacher(Q01) 는 seed --teacher-seed(기본 2025) 의 독립 초기값·데이터 순서로 학습한 T112_DONORFROZEN_REC — Student 와 seed 가 같으면 Q02 와 같은 모델이 되므로 다르게 둔다.
-Student(Q00·Q02–Q08) 는 seed --seed(기본 1234) 의 저장된 같은 초기값(work_dir/_kdv_init_w112_d124/init_unet_seed1234.pt) 을 공유한다 (§4.3).
+Student(Q00·Q02–Q08) 는 seed --seed(기본 1234) 의 저장된 같은 초기값(work_dir/_kdv_init_w112_d123/init_unet_seed1234.pt) 을 공유한다 (§4.3).
 """
 import argparse, os, re, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0, ROOT)
@@ -59,11 +59,11 @@ def dump_kdv(d, indent=2):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--seed", type=int, default=1234); ap.add_argument("--teacher-seed", type=int, default=2025)
-    ap.add_argument("--updates", type=int, default=50000); ap.add_argument("--width", type=int, default=112); ap.add_argument("--depth", default="1,2,4")
+    ap.add_argument("--updates", type=int, default=50000); ap.add_argument("--width", type=int, default=112); ap.add_argument("--depth", default="1,2,3")
     ap.add_argument("--donor", default=DONOR); ap.add_argument("--version", default="v01"); ap.add_argument("--teacher-id", default=None)
     ap.add_argument("--params", type=float, default=None); ap.add_argument("--queue", default=None); ap.add_argument("--only", default=None, help="예: 0,1,2")
     a = ap.parse_args()
-    depth = [int(x) for x in a.depth.split(",")]; arch = f"W{a.width}_D{''.join(map(str, depth))}"; prefix = f"S2{arch.split('_')[0]}"
+    depth = [int(x) for x in a.depth.split(",")]; arch = f"W{a.width}_D{''.join(map(str, depth))}"; prefix = f"S2W{a.width}D{''.join(map(str, depth))}"
     teacher_id = a.teacher_id or f"T{a.width}_{a.version}"
     if a.params is None:
         import yaml
@@ -102,7 +102,7 @@ def main():
         open(os.path.join(ROOT, "config", tag + ".yaml"), "w").write(head + t); made.append(tag)
     q = a.queue or os.path.join(ROOT, "config", "queues", f"kdv_s2{'' if a.version == 'v01' else '_' + a.version}.txt")
     with open(q, "w") as f:
-        f.write(f"# s2 W112·D124 KDV 우선 queue Q00–Q08 (plan §13.2) · {arch} · Student seed {a.seed} · Teacher seed {a.teacher_seed} · {a.updates} updates\n"
+        f.write(f"# s2 KDV 우선 queue Q00–Q08 (plan §13.2) · {arch} · Student seed {a.seed} · Teacher seed {a.teacher_seed} · {a.updates} updates\n"
                 "# 순서 의존: Q01(Teacher) 가 Q03–Q08 의 KD target, Q02(A-FR N0) 가 Q05–Q08 의 λ_V pilot(<run>/last) — 체인이 순서대로 돈다\n")
         for i, tag in enumerate(made):
             f.write(f"{tag}\n")

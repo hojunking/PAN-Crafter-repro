@@ -29,8 +29,8 @@ CATS = [
   lambda t: t.startswith(("SR_", "AF_"))),
  ("UVS", "⑭ UVS-KD (s2) — uncertainty routing · GT residual variance · shift-token KD · teacher forcing (teacher c0_hqnr → d122)",
   lambda t: t.startswith("UVS_")),
- ("KDV", "⑳ s2 W112·D124 GT-anchored adaptive KD · 출력 통계 variance · aligner 재사용 (S2W112 계열) — REC N0/R1/R3, STAT GV-H/AD, aligner A-FR/A-FT/A-SC/A-ID, Teacher T112",
-  lambda t: t.startswith("S2W112_")),
+ ("KDV", "⑳ s2 W112·D123 GT-anchored adaptive KD · 출력 통계 variance · aligner 재사용 (S2W112D123 계열) — REC N0/R1/R3, STAT GV-H/AD, aligner A-FR/A-FT/A-SC/A-ID, Teacher T112",
+  lambda t: t.startswith("S2W112")),
  ("PO10", "⑲ PAN 추가 변위 + offset consistency (PO10, N1–N3) — 학습 PAN 에 원판 R=1 HR px 무작위 변위, ĉε+ε≈ĉ0 감독, aligner 고정 내부 view 4px",
   lambda t: t.startswith("PO10_")),
  ("PA", "⑱ PAN 앞단 전역 정합 A1–A3 (PA 계열) — 학습되는 global shift CNN 이 PAN 만 MS 프레임으로 sampling, W96·D124 B0 위 · A1 recon / A2 +edge / A3 +geo",
@@ -51,8 +51,8 @@ SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload �
 # 캠페인 설명 — 구분행의 Notes 에 들어간다. 여기 있는 범주만 업로드 시 구분행을 자동으로 넣는다
 # (업로드는 시트 맨 아래에 덧붙이므로, 새 캠페인이 지난 실험과 섞여 보이지 않게 한다).
 DESC = {
- "KDV": ("[캠페인] s2 W112·D124 KD·variance·aligner 재사용 · seed 1234(Teacher 2025) · 2026-09-10 · research_log/PAN_S2_W112_KD_Variance_Plan_and_References_2026-09-10/. "
-         "Student/Teacher 모두 W112·D124 U-Net(9ch, 단일 HRMS, γβ 제거). 이름 S2W112_<recipe>_<input>_<aligner>_<rec>_<stat>_<geomKD>_s<seed>_<ver>: "
+ "KDV": ("[캠페인] s2 W112·D123 KD·variance·aligner 재사용 · seed 1234(Teacher 2025) · 2026-09-10 · research_log/PAN_S2_W112_KD_Variance_Plan_and_References_2026-09-10/. "
+         "Student/Teacher 모두 W112·D123 U-Net(9ch, 단일 HRMS, γβ 제거; 계획 원안 D124 → 사용자 결정 D123, s1 PO10 R200 과 같은 골격). 이름 S2W112D123_<recipe>_<input>_<aligner>_<rec>_<stat>_<geomKD>_s<seed>_<ver>: "
          "recipe NOALIGN(aligner 없음)/A1(donor = s1 PA_A1 seed2025 aligner)/T112DFR(donor frozen + 복원 supervised Teacher) · input IA(native) · "
          "aligner AID(없음)/AFR(donor frozen, Teacher 와 correction 공유)/AFT(donor 초기화 후 학습)/ASC(독립 초기화 학습) · "
          "rec N0(L1)/R1((1+d_T)L1)/R3(adaptive hard/soft, τ_R train calibration) · stat OFF/GVH(GT gradient-variance 5×5)/GVAD(GT+Teacher adaptive, τ_V·λ_V calibration) · G0(alignment KD 없음). "

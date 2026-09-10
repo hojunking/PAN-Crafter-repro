@@ -233,7 +233,7 @@ def check_trainer_extras(cfg):
         return note
     if tr == "kdv":
         # s2 W112 KDV: skeleton(정책별 aligner/sampler) + donor strict + Teacher strict(존재해야 한다) + 실제 loss 조합으로 실배치 1 step (peak·시간) + FR 512² forward
-        from kdv.registry import resolve, run_name
+        from kdv.registry import resolve, run_name, arch_prefix
         from kdv.teacher_assets import skeleton_from_cfg, load_donor_aligner, load_run_model, freeze
         from kdv.forward import kdv_forward
         from kdv.losses_rec import GTAnchoredReconstructionKD
@@ -241,7 +241,7 @@ def check_trainer_extras(cfg):
         from kdv.protocol import prepare_view
         k = cfg.get("kdv") or {}; sp = resolve(k)
         assert cfg.get("mars") == "ms" and cfg["model_args"].get("in_mode") == "paper" and cfg["model_args"].get("mode_modulation") is False, "kdv 는 9ch·mars ms·γβ 제거 위"
-        exp_name = run_name(sp, int(cfg["seed"]), k.get("version", "v01"))
+        exp_name = run_name(sp, int(cfg["seed"]), k.get("version", "v01"), arch_prefix(cfg["model_args"]))
         assert not k.get("check_run_name", True) or os.path.basename(cfg["work_dir"].rstrip("/")) == exp_name, f"run 이름 규칙 불일치: {exp_name}"
         dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         mod, cls = cfg["model"].rsplit(".", 1); Model = getattr(importlib.import_module(mod), cls)

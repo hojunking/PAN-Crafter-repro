@@ -189,8 +189,8 @@ R100(b=1.0, W96·D124)은 N1 만 기록으로 보존, 다음 실험부터 **R200
 큐 `config/queues/po10_s1_r200_frstat_w112_d123.txt`, 생성 `tools/gen_po10_configs.py --radius 2.0 --width 112 --depth 1,2,3`. 골격이 달라 B0/A1/R100 과 직접 대응하지 않는다.
 시트 FR·paper 에 **HQNR↑(전체 프레임, 논문 프로토콜)** 과 **HQNR(V64)↑(가장자리 64px 제외)** 두 열 — 비교표는 HQNR↑. evaluator 2026-09-10.5.
 
-2026-09-10 저녁: **s2 캠페인 — W112·D124 GT-anchored adaptive KD · 출력 통계 variance · aligner 재사용** (계획 `research_log/PAN_S2_W112_KD_Variance_Plan_and_References_2026-09-10/`,
-검토·구현 노트 `research_log/2026-09-10_s2-w112-kdv-implementation.md`). 구현 `kdv/` + `train_kdv.py`(trainer: kdv), config `config/S2W112_*.yaml`(`tools/gen_kdv_configs.py`),
+2026-09-10 저녁: **s2 캠페인 — W112·D123 GT-anchored adaptive KD · 출력 통계 variance · aligner 재사용** (계획 `research_log/PAN_S2_W112_KD_Variance_Plan_and_References_2026-09-10/`,
+검토·구현 노트 `research_log/2026-09-10_s2-w112-kdv-implementation.md`). 구현 `kdv/` + `train_kdv.py`(trainer: kdv), config `config/S2W112D123_*.yaml`(`tools/gen_kdv_configs.py`, depth 1,2,3),
 큐 `config/queues/kdv_s2.txt`(Q00 baseline → Q01 Teacher seed 2025 → Q02–Q08 Student seed 1234), 기동 `./tools/kdv_prepare.sh`(gate `tools/kdv_unit_tests.py` 포함), 시트 범주 ⑳ KDV.
-donor aligner 는 `assets/donor_aligner/`(s1 PA_A1 seed 2025 의 aligner.*, strict load). 이름 규칙 `S2W112_<recipe>_<input>_<aligner>_<rec>_<stat>_<geomKD>_s<seed>_<ver>` —
-약명은 구현 노트 §4 표로만 읽는다. **계획은 depth [1,2,4] 유지**(s1 PO10 R200 의 W112·D123 과 다름 — 사용자 확인 항목). 이동량 covariance KD(G2+)는 미구현(resolver 가 막는다).
+donor aligner 는 `assets/donor_aligner/`(s1 PA_A1 seed 2025 의 aligner.*, strict load). 이름 규칙 `S2W112D123_<recipe>_<input>_<aligner>_<rec>_<stat>_<geomKD>_s<seed>_<ver>` —
+약명은 구현 노트 §4 표로만 읽는다. **depth 는 사용자 결정으로 [1,2,3]**(계획 원안 [1,2,4]; s1 PO10 R200 과 같은 골격 2.6589 M). Teacher seed 2025 · Student 1234. 이동량 covariance KD(G2+)는 미구현(resolver 가 막는다).

@@ -109,8 +109,13 @@ def stat_tag(spec):
     return 'OFF' if not spec['stat_enabled'] else f"{spec['stat_key']}{spec['stat_mode']}"
 
 
-def run_name(spec, seed, version='v01', prefix='S2W112'):
-    """S2W112_<recipe>_<input>_<aligner>_<rec>_<stat>_<geomKD>_s<seed>_<version> (§13.1)."""
+def arch_prefix(model_args, server='S2'):
+    """이름 접두 = 서버 + 골격: S2W112D123 (계획 §13.1 의 S2W112 에 depth 를 붙였다 — 2026-09-10 depth [1,2,3] 결정 뒤 D124 와 구분)."""
+    return f"{server}W{int(model_args['hidden_size'])}D{''.join(str(d) for d in model_args['depth'])}"
+
+
+def run_name(spec, seed, version='v01', prefix='S2W112D123'):
+    """<prefix>_<recipe>_<input>_<aligner>_<rec>_<stat>_<geomKD>_s<seed>_<version> (§13.1 + depth)."""
     return f"{prefix}_{spec['recipe']}_{PROTOCOL_TAG[spec['protocol']]}_{POLICY_TAG[spec['policy']]}_{spec['rec_case']}_{stat_tag(spec)}_{spec['geom'].replace('-', '')}_s{int(seed)}_{version}"
 
 

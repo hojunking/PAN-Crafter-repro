@@ -105,7 +105,7 @@ check("stat_term guards (no teacher AD / wrong criterion mode)", bad == 2)
 def ok_spec(**kw):
     base = dict(recipe='A1', input_protocol='I-A', aligner_policy='A-FR', donor=dict(source='x'), teacher=dict(run='y', id='T112_v01'), rec=dict(case='R3'), stat=dict(enabled=True, kind='GV', mode='AD'))
     base.update(kw); return base
-check("resolver run name", run_name(resolve(ok_spec()), 1234) == "S2W112_A1_IA_AFR_R3_GVAD_G0_s1234_v01")
+check("resolver run name", run_name(resolve(ok_spec()), 1234) == "S2W112D123_A1_IA_AFR_R3_GVAD_G0_s1234_v01")
 bad = 0
 for kw in (dict(geom_kd=dict(mode='G1', outer_weight=1.0)), dict(teacher={}), dict(aligner_policy='A-SC'), dict(recipe='N2_SG'), dict(input_protocol='I-N'), dict(geom_kd=dict(mode='G3')),
            dict(aligner_policy='A-ID'), dict(stat=dict(enabled=True, kind='EDGE', mode='AD')), dict(aux=dict(offset_weight=0.01))):
@@ -114,14 +114,16 @@ for kw in (dict(geom_kd=dict(mode='G1', outer_weight=1.0)), dict(teacher={}), di
 check("resolver rejects 9 invalid combos", bad == 9)
 sp = resolve(ok_spec(recipe='A3', aligner_policy='A-FR'))
 check("resolver: A-FR disables geometry term (diag only)", sp['geometry_weight'] == 0.01 and sp['geometry_weight_effective'] == 0.0 and 'geometry' in sp['disabled_terms'])
-sp = resolve(dict(recipe='NOALIGN', aligner_policy='A-ID', rec=dict(case='N0'))); check("resolver: Q00 no teacher needed", not sp['needs_teacher'] and run_name(sp, 1234) == "S2W112_NOALIGN_IA_AID_N0_OFF_G0_s1234_v01")
+sp = resolve(dict(recipe='NOALIGN', aligner_policy='A-ID', rec=dict(case='N0'))); check("resolver: Q00 no teacher needed", not sp['needs_teacher'] and run_name(sp, 1234) == "S2W112D123_NOALIGN_IA_AID_N0_OFF_G0_s1234_v01")
 
 # ---------------- M01/M02/M04: W112·D124 골격 · donor strict · W96→W112 partial load 불가 · residual base 1회
 Model = import_class("model.pancrafter_paper.PANCrafterPaper")
-MA = dict(in_channels=1, out_channels=8, hidden_size=112, depth=[1, 2, 4], dropout=0.0, num_heads=8, mlp_ratio=4.0, ks=3, ka=3, norm="ln", in_mode="paper", attn_locations=[], mode_modulation=False, n_attn=3)
+MA = dict(in_channels=1, out_channels=8, hidden_size=112, depth=[1, 2, 3], dropout=0.0, num_heads=8, mlp_ratio=4.0, ks=3, ka=3, norm="ln", in_mode="paper", attn_locations=[], mode_modulation=False, n_attn=3)
 bb = Model(**MA); n_bb = sum(p.numel() for p in bb.parameters())
 gn = [m for m in bb.modules() if isinstance(m, torch.nn.GroupNorm)]
-check("M01 W112·D124 backbone 2.8854 M, no GroupNorm (LN) → divisibility n/a", abs(n_bb / 1e6 - 2.8854) < 1e-3 and not gn, f"{n_bb / 1e6:.4f} M, GN layers {len(gn)}")
+check("M01 W112·D123 backbone 2.6589 M (캠페인 골격), no GroupNorm (LN) → divisibility n/a", abs(n_bb / 1e6 - 2.6589) < 1e-3 and not gn, f"{n_bb / 1e6:.4f} M, GN layers {len(gn)}")
+n124 = sum(p.numel() for p in Model(**dict(MA, depth=[1, 2, 4])).parameters()); check("M01 (참고) W112·D124 = 2.8854 M (계획 원안)", abs(n124 / 1e6 - 2.8854) < 1e-3, f"{n124 / 1e6:.4f} M")
+from kdv.registry import arch_prefix; check("M01 run prefix from model_args = S2W112D123", arch_prefix(MA) == "S2W112D123" and run_name(resolve(ok_spec()), 1234, 'v01', arch_prefix(MA)) == "S2W112D123_A1_IA_AFR_R3_GVAD_G0_s1234_v01")
 first = next(m for m in bb.modules() if isinstance(m, torch.nn.Conv2d)); check("M01 first conv 9→? (PAN 1 + MS 8)", first.in_channels == 9, f"in {first.in_channels}")
 donor = os.path.join(ROOT, "assets/donor_aligner/PA_A1_REC_W96_D124_9CH_S2025_best_hqnr_aligner.pt")
 al, man = load_donor_aligner(donor, 8); check("M02 donor aligner strict load (105,330 params, 22 keys)", man['n_params'] == 105330 and man['n_keys'] == 22, man['aligner_tensors_sha256_16'])
