@@ -204,3 +204,9 @@ donor aligner 는 `assets/donor_aligner/`(s1 PA_A1 seed 2025 의 aligner.*, stri
 2026-09-11 **NF16** (`research_log/PAN_N2_NativeFitting_16GPUh_W112_D123_2026-09-11.md`, 노트 `research_log/2026-09-11_nf16-implementation.md`): N2 R200 `last` aligner 재사용 + native fitting P0–P4, s1, 16 GPU-h.
 구현은 KDV trainer 위 — 새 프로토콜 `I-AEQ`(복원은 매 update native, 홀수 update 에 P_ε 를 aligner 에만), `kdv.aligner_lr`, donor `expected_step`, 고정 donor 참조 view `aligned_fixed_v64`, 예산 gate(`kdv.budget`). config `NF16_P{0..4}_W112_D123_WV3_S{1234,7777}_N2LAST_v1`(`tools/gen_nf16_configs.py`),
 큐 `config/queues/nf16_s1.txt`, gate `tools/nf16_unit_tests.py`, 기동 `./tools/nf16_prepare.sh`. 진단은 `po10_diag.py --ckpt last --native-reference`(참조 = 원 P / 고정 donor). 시트 범주 ㉑ NF16.
+
+2026-09-11 **NA104** (`research_log/PAN_S2_W104_D122_NoAlign_KD_Experiment_Plan_2026-09-11.md`, 노트 `research_log/2026-09-11_na104-implementation.md`): **s2·s3 두 서버**의 새 캠페인 —
+**정합 모듈이 전혀 없는** W104·depth[1,2,2](2.0989 M) 동일 골격에서 GT-anchored KD(REC N0/R0/R1/R2/R3) · 출력 통계(IV/GV/GC/SC/**M2** × H/T/FIX/WH/AD) · 방향 gate(TRI-A/B) · 필수 대조군(CTL) 을 87 case 로 분해한다.
+구현은 기존 kdv trainer 위 — 새 키 `na_protocol`(NA-STRICT: 학습 forward 에 PAN warp 금지 / NA-TSENS: Teacher 입력 민감도 probe 만 별도 cohort), `rec.control`(hscale·rshuffle), `stat.transform/domain/windows/extra`, `select.primary`, `teacher.eval_only`.
+config `NA104_*`(`tools/gen_na104_configs.py`), 큐 `config/queues/na104_s2.txt`·`na104_s3.txt`, gate `tools/na104_unit_tests.py`, 기동 `./tools/na104_prepare.sh`, 시트 범주 ㉒ NA104.
+**주 selector 는 best_rr_val(검증 ERGAS) + 고정 final-N**, best_hqnr 는 exploratory 로만 기록하고 aligned view/selector 는 만들지 않는다(aligner 가 없으면 raw_valid 와 같다). 정합 축(PA/PO10/NF16/KDV) 과 직접 대응하지 않는 별개 골격이다.

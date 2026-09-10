@@ -24,7 +24,7 @@ CRED = os.path.join(ROOT, "gspread", "account.json")
 BK = os.path.join(ROOT, "gspread", "_sheet_backup")
 SHEET = "pan-cvpr27"
 # 표시 순서. 2026-09-11: 현 접근 범주(BASE96·PA·PO10·KDV)를 REF 다음에 두고, 여기 없는 범주도 절대 버리지 않는다(regroup 이 ORDER 로 보충).
-DISPLAY = ["REF", "BASE96", "PA", "PO10", "KDV", "SEED", "P25", "SUBMOD", "ARCH", "ATTN", "KD", "SE", "MS", "S1GRID", "MUT", "GA", "SR", "UVS", "MULTISET", "MISC"]
+DISPLAY = ["REF", "BASE96", "PA", "PO10", "KDV", "NF16", "NA104", "SEED", "P25", "SUBMOD", "ARCH", "ATTN", "KD", "SE", "MS", "S1GRID", "MUT", "GA", "SR", "UVS", "MULTISET", "MISC"]
 SEP = _SEP
 
 

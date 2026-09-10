@@ -5,7 +5,9 @@ statistic_map(image, kind, window): population moment(correction=0), 유효 창 
   grad_var     : 2C  [dy 전 밴드, dx 전 밴드]   (STAT-GV, Scharr/32 valid conv)
   grad_cov     : 4C  [cyy, cyx, cxy, cxx] / band  (STAT-GC, 중심화 covariance, 대칭 off-diagonal 두 번 등장)
   spectral_cov : C·C row-major                     (STAT-SC)
+  grad_moment2 : 4C  [myy, myx, mxy, mxx] / band  (STAT-M2, **비중심** E[g gᵀ] — 국소 평균을 빼지 않는다. W104 계획 §5.3 의 새 ID)
 공분산 비교는 모든 원소 평균 L1 — Frobenius / Gaussian KL 이 아니다. 대각의 음수 roundoff 만 clamp, off-diagonal 음수는 보존.
+표현 변환(REP-STD/LOGVAR, W104 §5.3): stat_transform(v, 'std'|'logvar') 은 **비음수 표현(IV/GV)** 에만 — 공분산 원소에 elementwise sqrt/log 를 적용하지 않는다.
 stat_term(): H = <E_S^V> · T = <E_ST^V> (hard 없음) · FIX = criterion fixed_kd · WH = hard_only · AD = adaptive (criterion 은 tau_V·eps_V 로 calibration)."""
 from __future__ import annotations
 
@@ -15,7 +17,10 @@ from torch import Tensor
 
 from kdv.losses_rec import GTAnchoredReconstructionKD, ReconstructionKDResult
 
-KINDS = ('image_var', 'grad_var', 'grad_cov', 'spectral_cov')
+KINDS = ('image_var', 'grad_var', 'grad_cov', 'spectral_cov', 'grad_moment2')
+NONNEGATIVE_KINDS = ('image_var', 'grad_var')          # 원소가 분산(≥0) 인 표현 — std/logvar 변환이 정의되는 곳
+STAT_TRANSFORMS = ('none', 'std', 'logvar')
+STAT_DOMAINS = ('final_hrms', 'residual')              # residual = Z − M (bicubic MS base); 픽셀 L1 과 달리 분산은 같지 않다 (§5.3)
 STAT_MODES = ('H', 'T', 'FIX', 'WH', 'AD')
 MODE_TO_CRITERION = {'H': 'gt', 'FIX': 'fixed_kd', 'WH': 'hard_only', 'AD': 'adaptive'}     # T 는 criterion 을 쓰지 않는다
 
@@ -47,6 +52,27 @@ def _covariance(x: Tensor, window: int) -> Tensor:
     return torch.where(diag, cov.clamp_min(0), cov)
 
 
+def _moment2(x: Tensor, window: int) -> Tensor:
+    """[B,C,C,Hv,Wv] 비중심 이차 모멘트 B_k(z zᵀ). 중심화하지 않는 것이 정의이므로 공간 상수 제거(_center_for_numerics) 도 하지 않는다."""
+    rows = [_pool(x[:, i:i + 1] * x, window) for i in range(x.shape[1])]
+    m = torch.stack(rows, dim=1)
+    c = x.shape[1]
+    diag = torch.eye(c, dtype=torch.bool, device=x.device)[None, :, :, None, None]
+    return torch.where(diag, m.clamp_min(0), m)                  # 대각(제곱 평균) 의 음수 roundoff 만 clamp
+
+
+def stat_transform(v: Tensor, mode: str = 'none', eps: float = 1e-12) -> Tensor:
+    """REP-STD/LOGVAR (§5.3). 호출자가 kind ∈ NONNEGATIVE_KINDS 임을 보장한다 (resolver 가 막는다)."""
+    if mode not in STAT_TRANSFORMS:
+        raise ValueError(f'stat transform {mode}')
+    if mode == 'none':
+        return v
+    if not (eps > 0):
+        raise ValueError('transform eps must be positive')
+    z = v.clamp_min(0) + eps
+    return z.sqrt() if mode == 'std' else z.log()
+
+
 def statistic_map(image: Tensor, kind: str = 'grad_var', window: int = 5) -> Tensor:
     if kind not in KINDS:
         raise ValueError(f'Unsupported statistic kind: {kind}')
@@ -76,7 +102,7 @@ def statistic_map(image: Tensor, kind: str = 'grad_var', window: int = 5) -> Ten
         entries = []
         for band in range(c):
             xy = torch.cat((gy[:, band:band + 1], gx[:, band:band + 1]), dim=1)
-            cv = _covariance(xy, window)
+            cv = _covariance(xy, window) if kind == 'grad_cov' else _moment2(xy, window)
             entries.append(cv.reshape(b, 4, cv.shape[-2], cv.shape[-1]))
         return torch.cat(entries, dim=1)
 
@@ -91,16 +117,23 @@ def statistic_loss(student: Tensor, teacher: Tensor, gt: Tensor, *, kind: str, w
     return criterion(v_s, v_t, v_g, return_maps=True)
 
 
-def stat_term(student: Tensor, teacher, gt: Tensor, *, kind: str, window: int, mode: str, criterion=None, return_maps: bool = False) -> ReconstructionKDResult:
+def stat_maps(student: Tensor, teacher, gt: Tensor, *, kind: str, window: int, transform: str = 'none', transform_eps: float = 1e-12):
+    """(v_S live, v_T detached|None, v_G detached) — 같은 창·중심·변환. TRI-B/C 경로도 이걸 쓴다."""
+    v_s = stat_transform(statistic_map(student, kind, window), transform, transform_eps)
+    with torch.no_grad():
+        v_g = stat_transform(statistic_map(gt.detach(), kind, window), transform, transform_eps)
+        v_t = stat_transform(statistic_map(teacher.detach(), kind, window), transform, transform_eps) if teacher is not None else None
+    return v_s, v_t, v_g
+
+
+def stat_term(student: Tensor, teacher, gt: Tensor, *, kind: str, window: int, mode: str, criterion=None, return_maps: bool = False,
+              transform: str = 'none', transform_eps: float = 1e-12) -> ReconstructionKDResult:
     """통계 항 L_V (plan §9.1). teacher=None 은 H 만 허용. 반환은 ReconstructionKDResult (T: hard=0, soft=loss)."""
     if mode not in STAT_MODES:
         raise ValueError(f'stat mode {mode}')
     if teacher is None and mode != 'H':
         raise ValueError(f'STAT-{mode} 는 Teacher 통계가 필요하다')
-    v_s = statistic_map(student, kind, window)
-    with torch.no_grad():
-        v_g = statistic_map(gt.detach(), kind, window)
-        v_t = statistic_map(teacher.detach(), kind, window) if teacher is not None else None
+    v_s, v_t, v_g = stat_maps(student, teacher, gt, kind=kind, window=window, transform=transform, transform_eps=transform_eps)
     if mode == 'T':
         soft = (v_s - v_t).abs().mean(); zero = soft.detach() * 0
         with torch.no_grad():

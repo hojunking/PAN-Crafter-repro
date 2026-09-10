@@ -44,7 +44,10 @@ class BestSelector:
     @classmethod
     def load(cls, path, expect_protocol=None, expect=None):
         """expect: {protocol_id, evaluator_hash, fr_h5_sha256, n_scenes, ...} — 하나라도 다르면 이어 쓰지 않는다 (§13, 검토 지적 5)."""
-        s = json.load(open(path)); o = cls(s["name"], s["tol_hqnr"], s["tol_fscc"])
+        s = json.load(open(path))
+        if "name" not in s or "cands" not in s:            # selector state 가 아닌 표식 파일(예: not_applicable) 은 재개를 깨뜨리지 않는다
+            raise FileNotFoundError(f"selector state 형식이 아니다: {path} ({sorted(s)[:4]})")
+        o = cls(s["name"], s["tol_hqnr"], s["tol_fscc"])
         exp = dict(expect or {})
         if expect_protocol is not None:
             exp["protocol_id"] = expect_protocol

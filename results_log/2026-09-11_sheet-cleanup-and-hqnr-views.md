@@ -34,3 +34,22 @@ donor = `PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT` 의 정확한 50K `last`
 | `NF16_P3/P4_…_S7777_…` | 반복 pair | | | 예산 gate 통과 시 |
 
 핵심 비교(명세): P1−P0 재사용 / P2−P1 공동 미세조정·망각 / P3−P2 반응 보존 / P4−P3 GT 구조 감독. 인과 비교는 **last(정확한 50K)** 끼리, 시트 best_raw 는 기록용. 네 view(raw_original · raw_valid V64 · aligned_valid(self) · **aligned_fixed_v64(고정 donor 참조)**) 와 last 의 반응·closure·native 참조 stress(`results/po10_diag_last.json`)를 run 마다 남긴다. 기동: s1 `./tools/nf16_prepare.sh`. 예산 ledger `work_dir/_nf16_budget/ledger.json`.
+
+---
+
+## 4. 추기 [WIP] — NA104: W104·D122 no-align KD (s2·s3, 구현 완료·기동 대기)
+
+명세 `research_log/PAN_S2_W104_D122_NoAlign_KD_Experiment_Plan_2026-09-11.md`, 구현·gate 노트 `research_log/2026-09-11_na104-implementation.md`.
+
+**무엇을 묻는 실험인가.** 정합 모듈(aligner·PAN warp)이 **전혀 없는** 동일 골격 W104·depth[1,2,2](실측 2.0989 M)에서,
+Teacher 가 남긴 복원·구조 오차를 GT 중심으로 더 fitting 하는 KD 가 실제로 이득인지만 본다. 지금까지의 정합 축(PA·PO10·NF16·KDV)과
+**직접 대응하지 않는다** — 골격도 조건도 다르므로 과거 수치를 이 표로 옮기지 않는다.
+
+- 축: reconstruction 5종(N0/R0/R1/R2/R3) × 출력 통계 5표현(IV/GV/GC/SC/M2) × 5방식(H/T/FIX/WH/AD) × 방향 gate(TRI-A/B) + 필수 대조군(총계수·위치 섞기·τ·β·λ 의존성).
+- 총 87 case(약명→세팅은 구현 노트 §3 표), Teacher T00 은 같은 골격 plain GT L1(seed 2025), Student 공유 초기값(seed 1234).
+- **주 selector 는 `best_rr_val`**(검증셋 plain ERGAS) + 고정 final-N. `best_hqnr` 는 FR test 로 고르는 exploratory 라고 못박아 기록한다(독립 hold-out 아님).
+- aligner 가 없으므로 `aligned_valid` view·`best_aligned` selector 는 만들지 않는다(같은 ROI 에서 raw_valid 와 동일).
+- 시간 제한 없음. N = 50,000(새 실행 제안값; 과거 다른 구조에서 확인된 값이 아니다).
+
+**현재 상태**: 구현·gate 완료(`tools/na104_unit_tests.py` 전부 통과 — 골격·warp 0회·MS base 1회·중복 case 동일성·통계 항등식·방향 gate 손계산·민감도 유한차분),
+config 87벌과 두 서버 큐 생성, s1 에서 200-update dry 체인으로 T00→Q00→… 경로 확인 중. **결과 수치는 아직 없다** — 기동은 s2·s3 에서 `./tools/na104_prepare.sh`.

@@ -173,7 +173,10 @@ class PATrainer(Trainer):
             expect = dict(protocol_id=PROTOCOL_ID, evaluator_hash=evaluator_hash(), fr_h5_sha256=self.fr_h5_sha, n_scenes=len(self._fr_pan))
             for s, p in zip((self.sel_raw, self.sel_aligned), paths):
                 if os.path.exists(p):
-                    loaded = BestSelector.load(p, expect=expect)
+                    try:
+                        loaded = BestSelector.load(p, expect=expect)
+                    except FileNotFoundError as e:          # selector 를 쓰지 않는 run 의 표식 파일 — 재개를 막지 않는다
+                        print(f"[pa] {e} — 이 selector 는 이 run 에서 쓰지 않는다"); continue
                     s.max_hqnr, s.cands, s.best, s.history = loaded.max_hqnr, loaded.cands, loaded.best, loaded.history
             rp = os.path.join(wd, "selection_roi_manifest.json")
             if os.path.exists(rp):

@@ -25,12 +25,12 @@ from tqdm import tqdm
 
 from kdv.calibration import calibration_batches, calibrate_rec, calibrate_stat, calibrate_lambda, cached, calibrate_covariance, teacher_precision_fn, calibrate_covhead
 from kdv.alignment_kd import CovHead, kd_matrix, mean_kd_loss, gaussian_kl, precision_stats, geo_autograd_grad
-from kdv.tri import (direction_mask, mass_kappa, shuffle_mask, component_weights, masked_l1, masked_l1_componentwise, routing_stats, teacher_fd_jacobian, teacher_eval,
+from kdv.tri import (direction_mask, mass_kappa, shuffle_mask, roi_gate, component_weights, masked_l1, masked_l1_componentwise, routing_stats, teacher_fd_jacobian, teacher_eval,
                      sens_q, sens_risk, diag_risk, lowrank_quad, iso_quad, scalar_quad, sigma_from_precision, sigma_control, linearization_check)
 from kdv.calibration import calibrate_component_tau, calibrate_sens, calibrate_lambda_q
 from kdv.forward import kdv_forward
 from kdv.losses_rec import GTAnchoredReconstructionKD
-from kdv.losses_stat import stat_term, statistic_map, MODE_TO_CRITERION
+from kdv.losses_stat import stat_term, stat_maps, stat_transform, statistic_map, MODE_TO_CRITERION
 from kdv.protocol import prepare_view
 from kdv.registry import resolve, run_name, describe, stat_tag, arch_prefix
 from kdv.teacher_assets import load_donor_aligner, load_run_model, load_state, freeze, state_hash, assert_param_disjoint, sha256_file, tensors_sha
@@ -74,6 +74,12 @@ class KDVTrainer(PATrainer):
         if k.get("check_run_name", True) and self.run_id != expected:
             raise ValueError(f"work_dir 이름 {self.run_id} ≠ 규칙 이름 {expected} (§13.1) — kdv.check_run_name: false 로 끌 수 있다")
         self.case = f"{sp['policy']}/{sp['rec_case']}/{stat_tag(sp)}/{sp['geom']}"
+        ea = sp.get("expect_arch")
+        if ea is not None:                                                    # §20: 캠페인이 강제하는 골격 (손으로 고친 config 가 다른 폭으로 도는 것을 막는다)
+            got = (int(args.model_args["hidden_size"]), list(args.model_args["depth"]), bool(sp["policy"] == "A-ID"))
+            want = (int(ea["width"]), list(ea["depth"]), bool(ea.get("noalign", True)))
+            if got != want:
+                raise ValueError(f"kdv.expect_arch 불일치: config 는 width/depth/noalign {got}, 캠페인 계약은 {want}")
         hidden = int(args.model_args.get("hidden_size")); depth = "".join(str(d) for d in args.model_args.get("depth"))
         self.init_dir = os.path.join(ROOT, k.get("init_dir", f"work_dir/_kdv_init_w{hidden}_d{depth}"))
         self.diag_every = int(k.get("diag_every", 1000)); self.diag_iter = self.diag_every
@@ -154,6 +160,8 @@ class KDVTrainer(PATrainer):
         self.corr_seed = int(args.seed) + int((k.get("corruption") or {}).get("corruption_seed_offset", 2000))
         self.gen = torch.Generator(device="cpu"); self.gen.manual_seed(self.corr_seed)
         self.accelerator.register_for_checkpointing(RNGState(self.gen))
+        self.tri_gen = torch.Generator(device="cpu"); self.tri_gen.manual_seed(int((k.get("tri") or {}).get("shuffle_seed", 4321)))
+        self.accelerator.register_for_checkpointing(RNGState(self.tri_gen))    # SHUFFLE/MASS 대조군이 재개 후에도 같은 열을 쓰게
         # --- 평가 참조·선택기 (PATrainer)
         self.last_reduced_metrics, self.last_full_metrics, self.last_val_metrics = {}, {}, {}
         self.last_fscc_official = float("nan"); self.raw_is_best = False
@@ -163,7 +171,7 @@ class KDVTrainer(PATrainer):
         import h5py
         with h5py.File(self.fr_h5) as f:
             self._fr_lms = np.asarray(f["lms"], dtype=np.float64); self._fr_pan = np.asarray(f["pan"], dtype=np.float64)[:, 0]
-        self._roi = None; self._rr_val_last = float("nan")
+        self._roi = None; self._rr_val_last = float("nan"); self._rr_val_fit = {}
         self._init_selectors()
         # --- calibration → criteria
         self._calib = {}; self._calibrate_and_build()
@@ -293,24 +301,33 @@ class KDVTrainer(PATrainer):
                 tau = r["tau_R"]; self.calibration["rec"] = dict(r, from_cache=hit, source="calibrate")
             else:
                 self.calibration["rec"] = dict(tau_R=float(tau), source="config")
-            self.rec_crit = GTAnchoredReconstructionKD(float(tau), alpha=float(rec.get("alpha", 1.0)), kd_weight=float(rec.get("kd_weight", 0.1)),
+            tau_used = float(tau) * sp["rec_tau_scale"]                      # CTL-TAU: calibration 값은 그대로 두고 배율만 (cache 는 공유)
+            self.calibration["rec"] = dict(self.calibration["rec"], tau_scale=sp["rec_tau_scale"], tau_R_used=tau_used)
+            self.rec_crit = GTAnchoredReconstructionKD(tau_used, alpha=float(rec.get("alpha", 1.0)), kd_weight=float(rec.get("kd_weight", 0.1)),
                                                        eps=float(rec.get("eps", 1e-6)), mode=sp["rec_mode"]).to(dev)
+        self.stat_crits = {}
         if sp["stat_enabled"]:
-            kind, w, mode = sp["stat_kind"], sp["stat_window"], sp["stat_mode"]
-            sid = f"{kind}_w{w}"
+            kind, mode = sp["stat_kind"], sp["stat_mode"]; ws = sp["stat_windows"]; w = ws[0]
+            tf, tfe, dom = sp["stat_transform"], sp["stat_transform_eps"], sp["stat_domain"]
+            rep = f"{kind}_w{'-'.join(str(x) for x in ws)}" + ("" if tf == "none" else f"_{tf}") + ("" if dom == "final_hrms" else "_res")
+            sid = rep
             if self.teacher is not None:
-                tv = st.get("tau", "calibrate")
-                if tv == "calibrate":
-                    key = dict(tkey, set=self._calib_set_key(), kind=kind, window=w)
-                    r, hit = cached(os.path.join(croot, f"stat_{sid}.json"), key, lambda: calibrate_stat(self.teacher, self._batches(), kind, w, dev))
-                    if r.get("degenerate"):
-                        self._gate_fail("CALIBRATION_DEGENERATE", dict(stage="tau_V", result=r))
-                    tau_v, eps_v = r["tau_V"], r["eps_V"]; self.calibration["stat"] = dict(r, from_cache=hit, source="calibrate")
-                else:
-                    tau_v, eps_v = float(tv), float(st.get("eps", 1e-6)); self.calibration["stat"] = dict(tau_V=tau_v, eps_V=eps_v, source="config")
-                if mode in MODE_TO_CRITERION:
-                    self.stat_crit = GTAnchoredReconstructionKD(tau_v, alpha=float(st.get("alpha", 1.0)), kd_weight=float(st.get("kd_weight", 0.1)), eps=eps_v,
-                                                                mode=MODE_TO_CRITERION[mode]).to(dev)
+                tv = st.get("tau", "calibrate"); percal = {}
+                for wi in ws:                                                # 표현(창·변환·도메인) 마다 τ_V 를 따로 (REP-MULTI357 은 창별 loss 의 평균)
+                    if tv == "calibrate":
+                        key = dict(tkey, set=self._calib_set_key(), kind=kind, window=wi, transform=tf, transform_eps=tfe, domain=dom)
+                        r, hit = cached(os.path.join(croot, f"stat_{kind}_w{wi}{'' if tf == 'none' else '_' + tf}{'' if dom == 'final_hrms' else '_res'}.json"), key,
+                                        lambda wi=wi: calibrate_stat(self.teacher, self._batches(), kind, wi, dev, transform=tf, transform_eps=tfe, domain=dom))
+                        if r.get("degenerate"):
+                            self._gate_fail("CALIBRATION_DEGENERATE", dict(stage="tau_V", window=wi, result=r))
+                        percal[wi] = dict(r, from_cache=hit, source="calibrate")
+                    else:
+                        percal[wi] = dict(tau_V=float(tv), eps_V=float(st.get("eps", 1e-6)), source="config", window=wi)
+                    if mode in MODE_TO_CRITERION:
+                        self.stat_crits[wi] = GTAnchoredReconstructionKD(percal[wi]["tau_V"], alpha=float(st.get("alpha", 1.0)), kd_weight=float(st.get("kd_weight", 0.1)),
+                                                                         eps=percal[wi]["eps_V"], mode=MODE_TO_CRITERION[mode]).to(dev)
+                self.calibration["stat"] = dict(percal[w], windows=ws, transform=tf, transform_eps=tfe, domain=dom, per_window={str(x): percal[x] for x in ws})
+                self.stat_crit = self.stat_crits.get(w)
             lam = st.get("outer_weight", "calibrate")
             if lam == "calibrate":
                 pilot = st.get("lambda_pilot")
@@ -323,18 +340,61 @@ class KDVTrainer(PATrainer):
                     prun, ptag = pilot.rsplit("/", 1)
                     pm, pman = load_run_model(os.path.join("work_dir", prun), ptag, type(self.M.backbone)); freeze(pm); pm.to(dev)
                     pkey = dict(pilot=pilot, sha=pman["tensors_sha256_16"])
-                key = dict(pkey, set=self._calib_set_key(), kind=kind, window=w, r_grad=r_grad)
+                key = dict(pkey, set=self._calib_set_key(), kind=kind, window=w, windows=ws, transform=tf, transform_eps=tfe, domain=dom, r_grad=r_grad)
                 was_training = self.M.training; self.M.eval()
-                r, hit = cached(os.path.join(croot, f"lambda_{sid}_{pkey['pilot'].replace('/', '_')}.json"), key, lambda: calibrate_lambda(pm, self._batches(), kind, w, r_grad, dev))
+                r, hit = cached(os.path.join(croot, f"lambda_{sid}_{pkey['pilot'].replace('/', '_')}.json"), key,
+                                lambda: calibrate_lambda(pm, self._batches(), kind, w, r_grad, dev, windows=ws, transform=tf, transform_eps=tfe, domain=dom))
                 self.M.train(was_training)
                 if pilot != "init":
                     del pm
                 if r.get("degenerate"):
                     self._gate_fail("CALIBRATION_DEGENERATE", dict(stage="lambda_V", result=r))
-                self.lam_V = float(r["lambda_V"]); self.calibration["lambda"] = dict(r, from_cache=hit, source="calibrate", pilot=pilot)
+                self.lam_V = float(r["lambda_V"]) * sp["stat_lambda_scale"]                 # CTL-LAMBDA-V: ×0.3/1/3
+                self.calibration["lambda"] = dict(r, from_cache=hit, source="calibrate", pilot=pilot, lambda_scale=sp["stat_lambda_scale"], lambda_V_used=self.lam_V)
             else:
-                self.lam_V = float(lam); self.calibration["lambda"] = dict(lambda_V=self.lam_V, source="config")
-        # 이동량 covariance KD (§11): Π_T 출처 calibration → k0·임계·C01 판정, G5 는 Teacher cov head
+                self.lam_V = float(lam) * sp["stat_lambda_scale"]; self.calibration["lambda"] = dict(lambda_V=self.lam_V, source="config", lambda_scale=sp["stat_lambda_scale"])
+        # 보조 통계 항 (§11.4 GV+SC): 항마다 τ_V·λ_V 를 따로 calibration 한다 (결합 전용 재calibration 금지)
+        self.stat_extra = []
+        for i, e in enumerate(sp["stat_extra"]):
+            ekind, ews, etf, etfe, edom = e["kind"], e["windows"], e["transform"], e["transform_eps"], e["domain"]
+            crits = {}; ecal = {}
+            if self.teacher is not None and e["mode"] in MODE_TO_CRITERION:
+                for wi in ews:
+                    if e["tau"] == "calibrate":
+                        key = dict(tkey, set=self._calib_set_key(), kind=ekind, window=wi, transform=etf, transform_eps=etfe, domain=edom)
+                        r, hit = cached(os.path.join(croot, f"stat_{ekind}_w{wi}{'' if etf == 'none' else '_' + etf}{'' if edom == 'final_hrms' else '_res'}.json"), key,
+                                        lambda wi=wi: calibrate_stat(self.teacher, self._batches(), ekind, wi, dev, transform=etf, transform_eps=etfe, domain=edom))
+                        if r.get("degenerate"):
+                            self._gate_fail("CALIBRATION_DEGENERATE", dict(stage=f"tau_V_extra{i}", window=wi, result=r))
+                        ecal[wi] = dict(r, from_cache=hit)
+                    else:
+                        ecal[wi] = dict(tau_V=float(e["tau"]), eps_V=float(e["eps"] or 1e-6), source="config")
+                    crits[wi] = GTAnchoredReconstructionKD(ecal[wi]["tau_V"], alpha=e["alpha"], kd_weight=e["kd_weight"], eps=ecal[wi]["eps_V"], mode=MODE_TO_CRITERION[e["mode"]]).to(dev)
+            lam_e_ = e["outer_weight"]
+            if lam_e_ == "calibrate":
+                pilot = e["lambda_pilot"] or (k.get("stat") or {}).get("lambda_pilot")
+                if not pilot:
+                    raise ValueError(f"stat.extra[{i}].outer_weight: calibrate 는 lambda_pilot 이 필요하다")
+                if pilot == "init":
+                    pm, pkey = self.M, dict(pilot="init", init=self.init_hashes.get("unet_init_sha256_16"))
+                else:
+                    prun, ptag = pilot.rsplit("/", 1); pm, pman = load_run_model(os.path.join("work_dir", prun), ptag, type(self.M.backbone)); freeze(pm); pm.to(dev); pkey = dict(pilot=pilot, sha=pman["tensors_sha256_16"])
+                key = dict(pkey, set=self._calib_set_key(), kind=ekind, window=ews[0], windows=ews, transform=etf, transform_eps=etfe, domain=edom, r_grad=e["r_grad"])
+                was_training = self.M.training; self.M.eval()
+                r, hit = cached(os.path.join(croot, f"lambda_{ekind}_w{'-'.join(str(x) for x in ews)}{'' if etf == 'none' else '_' + etf}{'' if edom == 'final_hrms' else '_res'}_{pkey['pilot'].replace('/', '_')}.json"), key,
+                                lambda: calibrate_lambda(pm, self._batches(), ekind, ews[0], e["r_grad"], dev, windows=ews, transform=etf, transform_eps=etfe, domain=edom))
+                self.M.train(was_training)
+                if pilot != "init":
+                    del pm
+                if r.get("degenerate"):
+                    self._gate_fail("CALIBRATION_DEGENERATE", dict(stage=f"lambda_V_extra{i}", result=r))
+                lam_i = float(r["lambda_V"]) * e["lambda_scale"]; ecal["lambda"] = dict(r, from_cache=hit, pilot=pilot, lambda_scale=e["lambda_scale"], lambda_V_used=lam_i)
+            else:
+                lam_i = float(lam_e_) * e["lambda_scale"]; ecal["lambda"] = dict(lambda_V=lam_i, source="config", lambda_scale=e["lambda_scale"])
+            self.stat_extra.append(dict(spec=e, crits=crits, lam=lam_i))
+            self.calibration[f"stat_extra_{i}"] = dict(key=e["key"], mode=e["mode"], windows=ews, transform=etf, domain=edom, lambda_V=lam_i,
+                                                       per_window={str(x): ecal[x] for x in ews if x in ecal}, **{kk: v for kk, v in ecal.items() if kk == "lambda"})
+        # 이동량 covariance KD (§11): Π_T 출처 calibration → k0·임계·G5 는 Teacher cov head
         self.prec_fn = None; self.cov = None; self.lam_gkd = 0.0; self.k0 = None; self.cov_head_t = None; self.cov_head_t_hash = None
         if sp["geom"] != "G0":
             g = dict(k.get("geom_kd") or {}); src = sp["cov_source"]
@@ -361,21 +421,27 @@ class KDVTrainer(PATrainer):
                     self.calibration["covhead"]["student_init"] = "identity_sigma"
             self.M.train(was_training)
         # TRI-A/B/C (addendum §10): 성분별 τ · s_sens · λ_Q · C 의 covariance 출처
-        tri = sp["tri"]; self.tri = tri; self.tri_state = {}; self.tri_gen = torch.Generator(device="cpu"); self.tri_gen.manual_seed(int(tri["shuffle_seed"]))
+        tri = sp["tri"]; self.tri = tri; self.tri_state = {}
         if tri["enabled"]:
             was_training = self.M.training; self.M.eval(); cal = {}
-            kind, w = sp["stat_kind"], sp["stat_window"]; sid = f"{kind}_w{w}" if kind else None
+            kind, w = sp["stat_kind"], sp["stat_window"]; sid = (f"{kind}_w{w}" + ("" if sp["stat_transform"] == "none" else f"_{sp['stat_transform']}") + ("" if sp["stat_domain"] == "final_hrms" else "_res")) if kind else None
             if tri["a_mode"] == "band_adv":
                 r, hit = cached(os.path.join(croot, "rec_components.json"), dict(tkey, set=self._calib_set_key(), kind="rec_components"), lambda: calibrate_component_tau(self.teacher, self._batches(), dev, kind=None))
-                self.tri_state["tau_R_c"] = torch.tensor(r["tau"], dtype=torch.float64, device=dev); cal["rec_components"] = dict(r, from_cache=hit)
+                self.tri_state["tau_R_c"] = torch.tensor(r["tau"], dtype=torch.float64, device=dev) * sp["rec_tau_scale"]      # CTL-TAU 는 성분별 τ 에도 같은 배율
+                cal["rec_components"] = dict(r, from_cache=hit, tau_scale=sp["rec_tau_scale"])
             if tri["b_mode"] == "comp_adv":
-                r, hit = cached(os.path.join(croot, f"stat_components_{sid}.json"), dict(tkey, set=self._calib_set_key(), kind=kind, window=w), lambda: calibrate_component_tau(self.teacher, self._batches(), dev, kind=kind, window=w))
+                r, hit = cached(os.path.join(croot, f"stat_components_{sid}.json"), dict(tkey, set=self._calib_set_key(), kind=kind, window=w, transform=sp["stat_transform"], domain=sp["stat_domain"]),
+                                lambda: calibrate_component_tau(self.teacher, self._batches(), dev, kind=kind, window=w, transform=sp["stat_transform"], transform_eps=sp["stat_transform_eps"], domain=sp["stat_domain"]))
                 self.tri_state["tau_V_j"] = torch.tensor(r["tau"], dtype=torch.float64, device=dev); self.tri_state["eps_V_j"] = torch.tensor(r["eps"], dtype=torch.float64, device=dev); cal["stat_components"] = dict(r, from_cache=hit)
             if tri["c_mode"] != "off":
                 phi = tri["c_phi"]; ck = dict(tkey, set=self._calib_set_key(), h=tri["c_h"], phi=phi, kind=(kind if phi == "stat" else None), window=(w if phi == "stat" else None))
                 sens, hit = cached(os.path.join(croot, f"sens_{phi}{'_' + sid if phi == 'stat' else ''}.json"), ck, lambda: calibrate_sens(self.teacher, self._batches(), dev, h=tri["c_h"], phi=phi, stat_kind=(kind if phi == "stat" else None), window=w or 5))
                 cal["sens"] = dict(sens, from_cache=hit)
-                if sens["status"] != "OK":
+                if sens["status"] == "SOURCE_UNRESPONSIVE":
+                    # 계획 §9.2: 양의 q 가 전혀 없으면 이 추가 감쇠를 적용하지 않고 원래 soft 로 되돌리며 비율을 기록한다 (중단하지 않는다)
+                    cal["sens"]["fallback"] = "no positive q → r = 1 (원래 soft 유지)"
+                    print(f"[kdv] TRI-C: Teacher 가 입력 변위에 무반응 (positive_fraction {sens.get('positive_fraction')}) — 감쇠 없이 진행한다")
+                elif sens["status"] != "OK":
                     self._gate_fail(sens["status"], dict(stage="tri_c_fd", result={kk: v for kk, v in sens.items() if kk != "fd_checks"}, fd_checks=sens["fd_checks"]))
                 self.tri_state["s_sens"] = float(sens["s_sens"])
                 sc = tri["c_s_c"]
@@ -425,8 +491,8 @@ class KDVTrainer(PATrainer):
             if os.path.exists(pp):
                 ds[kk + "_pan"] = dict(path=pp, sha256=sha_cached(pp, self.init_dir))
         json.dump(ds, open(os.path.join(wd, "dataset_hashes.json"), "w"), indent=1)
-        spec0 = dict(self.spec); spec0.update(recipe="NOALIGN", policy="A-ID", rec_case="N0", stat_enabled=False, stat_key="OFF", geom="G0")
-        b0 = run_name(spec0, a.seed, self.version, self.prefix); b0d = os.path.join(ROOT, "work_dir", b0)
+        spec0 = dict(self.spec); spec0.update(recipe="NOALIGN", policy="A-ID", rec_case="N0", rec_control="none", stat_enabled=False, stat_key="OFF", geom="G0")
+        b0 = self.k.get("baseline_run") or run_name(spec0, a.seed, self.version, self.prefix); b0d = os.path.join(ROOT, "work_dir", b0)
         json.dump(dict(baseline_run_id=b0, baseline_exists=os.path.isdir(b0d), baseline_finished=os.path.exists(os.path.join(b0d, "finished_at.txt")), init_hashes=self.init_hashes,
                        selection_scene_ids=list(range(20)), report_scene_ids=list(range(20)), fr_h5=self.fr_h5, fr_h5_sha256=self.fr_h5_sha, protocol_id=PROTOCOL_ID),
                   open(os.path.join(wd, "baseline_manifest.json"), "w"), indent=1)
@@ -457,6 +523,11 @@ class KDVTrainer(PATrainer):
                        teacher_hash0=getattr(self, "teacher_hash0", None), share_correction=self.share_correction),
                   open(os.path.join(wd, "init_and_teacher_hashes.json"), "w"), indent=1)
         json.dump(dict(campaign_id=self.campaign_id, run_id=self.run_id, run_kind=self.run_kind, version=self.version, spec=sp, description=describe(sp), case=self.case,
+                       selection=dict(primary=sp.get("select_primary", "best_raw"), exploratory=[t for t in self.export_tags() if t != {"best_raw": "best_hqnr"}.get(sp.get("select_primary", "best_raw"), sp.get("select_primary"))],
+                                      aligned_selector=sp.get("aligned_selector", True), keep_exact_final_n=True, fr_test_used_for_selection=True,
+                                      note="best_hqnr(=best_raw) 는 FR test 로 고른 test-adaptive exploratory selector — 독립 hold-out 이 아니다 (§14.2). best_rr_val 은 valid_wv3.h5 plain ERGAS."),
+                       na_protocol=sp.get("na_protocol"), rec_control=sp.get("rec_control"), stat_axes=dict(windows=sp.get("stat_windows"), transform=sp.get("stat_transform"), domain=sp.get("stat_domain"),
+                                                                                                            transform_eps=sp.get("stat_transform_eps"), lambda_scale=sp.get("stat_lambda_scale"), tau_scale=sp.get("rec_tau_scale")),
                        lambda_V=self.lam_V, stat_ramp_updates=self.stat_ramp, lambda_GKD=self.lam_gkd, k0=self.k0, cov_source=sp["cov_source"], cov_status=(self.cov or {}).get("status"),
                        tri=sp["tri"], tri_state={kk: (v.tolist() if torch.is_tensor(v) else v) for kk, v in self.tri_state.items() if kk != "prec_fn"},
                        aligner_view_margin=self.aligner_view_margin, guard_margin_hr=self.guard_margin,
@@ -479,12 +550,46 @@ class KDVTrainer(PATrainer):
             json.dump(reg, open(reg_p, "w"), indent=1)
         self._runs_csv(status="RUNNING")
 
+    def _write_cost(self, status):
+        """§13.4 학습시간 공정성: Teacher 준비비(cost_teacher)·Student 온라인 비용(cost_student)·총계를 분리해 남긴다. 공유 Teacher 는 amortized 도 같이 적되 최초 준비비를 숨기지 않는다."""
+        if not self.accelerator.is_main_process:
+            return
+        th, tsrc = None, None
+        if self.teacher_manifest:
+            for cand, key in ((os.path.join(self.teacher_manifest["run_dir"], "cost_manifest.json"), "cost_student_hours"),      # Teacher run 의 최종 실비(학습+평가+export)
+                              (os.path.join(self.teacher_manifest["run_dir"], "memory_and_throughput.json"), "elapsed_hours")):  # 없으면 학습 중 마지막 기록
+                if th is None and os.path.exists(cand):
+                    try:
+                        th = float(json.load(open(cand)).get(key) or 0.0) or None; tsrc = os.path.relpath(cand, ROOT)
+                    except Exception:
+                        th = None
+        reg_p = os.path.join(CAMPAIGN_ROOT, self.campaign_id, "teacher_registry.json"); shared = 1
+        if self.teacher_id and os.path.exists(reg_p):
+            try:
+                shared = max(1, len((json.load(open(reg_p)).get(self.teacher_id, {}) or {}).get("used_by") or []))
+            except Exception:
+                shared = 1
+        cs = (time.time() - self._t_run0) / 3600.0
+        cal = {kk: v.get("from_cache") for kk, v in self.calibration.items() if isinstance(v, dict) and "from_cache" in v}
+        role = "none" if not self.teacher_manifest else ("eval_only" if self.spec.get("teacher_eval_only") else "training")
+        # 학습에 Teacher 를 쓰지 않는 arm(GT-only) 은 KD 준비비를 총계에 넣지 않는다 — 대신 평가 bin 용으로 쓴 사실과 시간을 그대로 남긴다
+        total = cs + (th if (th and role == "training") else 0.0)
+        json.dump(dict(run_id=self.run_id, status=status, updates_done=int(self._global_step), updates_budget=int(self.args.num_iter),
+                       cost_student_hours=cs, cost_teacher_hours=th, cost_teacher_source=tsrc, cost_teacher_role=role, cost_total_hours=total,
+                       teacher_id=self.teacher_id, teacher_run=(self.teacher_manifest or {}).get("run"), teacher_shared_by=shared,
+                       cost_teacher_amortized_hours=(th / shared if (th and role == "training") else None), calibration_from_cache=cal,
+                       note=("cost_teacher 는 Teacher 학습 run 의 실측 시간이다. 여러 Student 가 공유해도 최초 준비비는 숨기지 않는다 (§13.4). "
+                             "role=eval_only 이면 학습 loss 에는 Teacher 를 쓰지 않았고(평가 bin 전용) 총계에서 제외한다.")),
+                  open(os.path.join(self.args.work_dir, "cost_manifest.json"), "w"), indent=1)
+
     def _runs_csv(self, status, extra=None):
         p = os.path.join(CAMPAIGN_ROOT, self.campaign_id, "runs.csv"); sp = self.spec
         row = dict(run_id=self.run_id, time=time.strftime("%Y-%m-%dT%H:%M:%S"), status=status, recipe=sp["recipe"], input_protocol=sp["protocol"], teacher_id=self.teacher_id or "",
                    W_T=(self.teacher_manifest or {}).get("width", ""), W_S=self.args.model_args.get("hidden_size"), aligner_policy=sp["policy"], rec=sp["rec_case"], stat_kind=sp["stat_key"],
                    stat_mode=sp["stat_mode"] or "", G_mode=sp["geom"], seed=self.args.seed, init_id=self.init_hashes.get("unet_init_sha256_16"), budget_updates=self.args.num_iter,
-                   parent=(self.k.get("phase") or {}).get("parent_run", ""), last_step=int(self._global_step), elapsed_h=round((time.time() - self._t_run0) / 3600, 3), lambda_V=self.lam_V, **(extra or {}))
+                   parent=(self.k.get("phase") or {}).get("parent_run", ""), last_step=int(self._global_step), elapsed_h=round((time.time() - self._t_run0) / 3600, 3), lambda_V=self.lam_V,
+                   rec_control=sp.get("rec_control", "none"), stat_transform=sp.get("stat_transform", "none"), stat_domain=sp.get("stat_domain", "final_hrms"),
+                   stat_windows="-".join(str(x) for x in (sp.get("stat_windows") or [])), na_protocol=sp.get("na_protocol") or "", select_primary=sp.get("select_primary", "best_raw"), **(extra or {}))
         new = not os.path.exists(p)
         with open(p, "a", newline="") as f:
             w = csv.DictWriter(f, fieldnames=list(row.keys()))
@@ -532,9 +637,15 @@ class KDVTrainer(PATrainer):
         info = dict(corrupt=corrupted, eps=eps, delta=delta, delta_t=o["delta_t"], pan_aligned=o["pan_aligned"], pan_view=pan_view, y=y, y_t=y_t, t_forward=time.time() - t0, _gt=gt, feat_t=o["feat_t"], _ms=ms, _lpan=lpan)
         # reconstruction (§6) — TRI-A/C (addendum §4·§6·§7): parent 의 w_H/w_K 그대로, soft 에 band gate m_A · risk r_C 만 곱한다
         tri = self.tri; tri_rec = tri["enabled"] and (tri["a_mode"] != "off" or (tri["c_mode"] != "off" and tri["c_phi"] == "identity"))
-        if y_t is not None and self.rec_crit is not None and tri_rec:
+        ctl_rec = sp["rec_control"] != "none"                                  # §12 CTL-HSCALE / CTL-RSHUFFLE — soft·hard 계수만 바꾸는 인과 대조
+        if y_t is not None and self.rec_crit is not None and (tri_rec or ctl_rec):
             with torch.autocast(device_type=dev.type, enabled=False):
                 r = self.rec_crit(y.float(), y_t.float(), gt.float(), return_maps=True); w_h, w_k = r.maps["hard_weight"], r.maps["soft_weight"]
+                if sp["rec_control"] == "hscale":                               # 공간 지도 없이 batch 평균 배율만 (어려운 위치 지도 vs 단순 loss scale)
+                    w_h = w_h.mean().expand_as(w_h); info["ctl_hard_weight_scalar"] = float(w_h.flatten()[0])
+                elif sp["rec_control"] == "rshuffle":                           # d_T·a_T 를 **함께** 공간 permutation (w_H, w_K 는 그 pointwise 함수다)
+                    _wc = shuffle_mask(torch.cat((w_h, w_k), dim=1), self.tri_gen); w_h, w_k = _wc[:, :1], _wc[:, 1:]
+                    info["ctl_shuffled_pairs"] = 1.0
                 yd, ytf, gf = y.detach().float(), y_t.float(), gt.float(); mask = None; risk = None; wk_band = None; J = None
                 if tri["a_mode"] in ("sign", "sign_cap", "cosine"):
                     mask = direction_mask(yd, ytf, gf, mode=tri["a_mode"], eps=tri["a_eps"])
@@ -554,6 +665,14 @@ class KDVTrainer(PATrainer):
                         Sig = sigma_control(Sig, tri["c_sigma_control"], self.tri_gen); info["_Sig"] = Sig; info["_valid"] = valid; info["tri_c_valid_frac"] = float(valid.double().mean())
                         if tri["c_mode"] == "diag":
                             dr = diag_risk(J, Sig, valid, s_c=self.tri_state["s_c"]); risk = dr["risk"]; info["_q_report"] = dr["q_report"]
+                    if risk is not None:
+                        risk = roi_gate(risk, tri["c_roi_margin"])              # §9.2: 경계 margin 에서는 감쇠 없음 (r=1)
+                        info["tri_c_roi_margin"] = float(tri["c_roi_margin"])
+                        if tri["c_control"] == "mass":                          # CTL-CMASS: 민감도 정보 없이 같은 soft 총계수만 (감쇠량 대조)
+                            risk = mass_kappa(w_k, risk).expand_as(risk); info["tri_c_kappa"] = float(risk.flatten()[0])
+                        info["tri_c_risk_mean"] = float(risk.mean())
+                        if not tri["c_apply"]:                                  # CS00: 학습은 parent(Q04) 와 동일 — 진단만 남긴다
+                            info["tri_c_applied"] = 0.0; risk = None
                 if tri["c_mode"] in ("full", "qiso", "qscalar") and tri["c_phi"] == "identity":
                     d = y.float() - ytf; s_c = self.tri_state["s_c"]
                     if tri["c_mode"] == "qiso":
@@ -570,7 +689,7 @@ class KDVTrainer(PATrainer):
                 else:
                     res = masked_l1(y.float(), ytf, gf, w_h, w_k, mask=mask, risk=risk); loss_rec = res["loss"]
                     info.update(rec_hard=float(res["hard"]), rec_soft=float(res["soft"]), rec_soft_original=float(r.soft), tri_gate_mean=float(res["gate_mean"]))
-                info.update(**{f"rec_{kk}": float(v) for kk, v in r.stats.items()}); info["_tri_rec"] = (yd, ytf, gf, mask, risk, w_k)
+                info.update(**{f"rec_{kk}": float(v) for kk, v in r.stats.items()}); info["_tri_rec"] = (yd, ytf, gf, mask, risk, w_k); info["rec_control"] = sp["rec_control"]
         elif y_t is not None and self.rec_crit is not None:
             r = self.rec_crit(y, y_t, gt); loss_rec = r.loss
             info.update(rec_hard=float(r.hard), rec_soft=float(r.soft), **{f"rec_{kk}": float(v) for kk, v in r.stats.items()})
@@ -580,13 +699,17 @@ class KDVTrainer(PATrainer):
         loss_stat_raw = torch.zeros((), device=dev); lam_v = 0.0
         if sp["stat_enabled"]:
             with torch.autocast(device_type=dev.type, enabled=False):
+                tf, tfe = sp["stat_transform"], sp["stat_transform_eps"]
+                # 통계 도메인 (§5.3 REP-RESIDUAL): 같은 M 을 세 tensor 에서 뺀다 — 픽셀 L1 과 달리 분산은 cross term 때문에 같지 않다
+                _res = sp["stat_domain"] == "residual"; _mb = o["ms_base"].float()
+                ys = (y.float() - _mb) if _res else y.float()
+                yts = ((y_t.float() - _mb) if _res else y_t.float()) if y_t is not None else None
+                gts = (gt.float() - _mb) if _res else gt.float()
                 if sp["stat_kind"] == "edge":
                     loss_stat_raw = output_edge_loss(y.float(), gt.float()); info["stat_hard"] = float(loss_stat_raw)
                 elif tri["enabled"] and (tri["b_mode"] != "off" or (tri["c_mode"] != "off" and tri["c_phi"] == "stat")):
                     kind, w = sp["stat_kind"], sp["stat_window"]
-                    v_s = statistic_map(y.float(), kind, w)
-                    with torch.no_grad():
-                        v_t = statistic_map(y_t.float(), kind, w); v_g = statistic_map(gt.float(), kind, w)
+                    v_s, v_t, v_g = stat_maps(ys, yts, gts, kind=kind, window=w, transform=tf, transform_eps=tfe)
                     if sp["stat_mode"] == "T":
                         w_hV = torch.zeros(v_s.shape[0], 1, *v_s.shape[-2:], device=dev); w_kV = torch.ones_like(w_hV); s_orig = (v_s.detach() - v_t).abs().mean()
                     else:
@@ -600,7 +723,7 @@ class KDVTrainer(PATrainer):
                     elif tri["b_mode"] == "shuffle":
                         mask_b = shuffle_mask(direction_mask(vsd, v_t, v_g, mode="sign", eps=float(self.calibration["stat"]["eps_V"])), self.tri_gen)
                     elif tri["b_mode"] == "comp_adv":
-                        wk_comp = component_weights(vsd, v_t, v_g, self.tri_state["tau_V_j"], alpha=self.stat_crit.alpha, kd_weight=self.stat_crit.kd_weight, eps=float(self.tri_state["eps_V_j"].mean()))
+                        wk_comp = component_weights(vsd, v_t, v_g, self.tri_state["tau_V_j"], alpha=self.stat_crit.alpha, kd_weight=self.stat_crit.kd_weight, eps=self.tri_state["eps_V_j"])
                     if tri["c_mode"] != "off" and tri["c_phi"] == "stat":
                         tj = time.time(); JV = teacher_fd_jacobian(self.teacher, pan_view, ms, lpan, o["delta_t"], h=tri["c_h"], phi="stat", stat_kind=kind, window=w); info["t_probe"] = time.time() - tj; info["_JV"] = JV
                         if tri["c_mode"] == "sens":
@@ -608,6 +731,13 @@ class KDVTrainer(PATrainer):
                         elif tri["c_mode"] == "diag":
                             Pi, valid_p, pinfo = self.tri_state["prec_fn"](pan_view, o["ms_base"], gt, o["delta_t"]); Sig, valid_s = sigma_from_precision(Pi, pinfo); valid = valid_p & valid_s
                             Sig = sigma_control(Sig, tri["c_sigma_control"], self.tri_gen); dr = diag_risk(JV, Sig, valid, s_c=self.tri_state["s_c"]); risk_v = dr["risk"]; info["tri_c_valid_frac"] = float(valid.double().mean()); info["_Sig"] = Sig
+                        if risk_v is not None:
+                            risk_v = roi_gate(risk_v, tri["c_roi_margin"]); info["tri_c_roi_margin"] = float(tri["c_roi_margin"])
+                            if tri["c_control"] == "mass":
+                                risk_v = mass_kappa(w_kV, risk_v).expand_as(risk_v); info["tri_c_kappa"] = float(risk_v.flatten()[0])
+                            info["tri_c_risk_mean"] = float(risk_v.mean())
+                            if not tri["c_apply"]:
+                                info["tri_c_applied"] = 0.0; risk_v = None
                         else:
                             raise NotImplementedError("통계 표현의 quadratic C(full/qiso/qscalar) 는 첫 구현 범위 밖 (addendum §6.7: B 결합은 r_C^V 곱)")
                     if wk_comp is not None:
@@ -617,9 +747,30 @@ class KDVTrainer(PATrainer):
                     loss_stat_raw = res["loss"]; info.update(stat_hard=float(res["hard"]), stat_soft=float(res["soft"]), stat_soft_original=float(s_orig), tri_b_gate_mean=float(res["gate_mean"]))
                     info["_tri_stat"] = (vsd, v_t, v_g, mask_b, risk_v, w_kV)
                 else:
-                    s = stat_term(y.float(), (y_t.float() if y_t is not None else None), gt.float(), kind=sp["stat_kind"], window=sp["stat_window"], mode=sp["stat_mode"], criterion=self.stat_crit)
-                    loss_stat_raw = s.loss; info.update(stat_hard=float(s.hard), stat_soft=float(s.soft), **{f"stat_{kk}": float(v) for kk, v in s.stats.items()})
+                    parts = [stat_term(ys, yts, gts, kind=sp["stat_kind"], window=wi, mode=sp["stat_mode"], criterion=self.stat_crits.get(wi), transform=tf, transform_eps=tfe)
+                             for wi in sp["stat_windows"]]                       # REP-MULTI357: 창별 loss 를 평균 (창마다 τ_V 를 따로 calibration 했다)
+                    loss_stat_raw = sum(pp.loss for pp in parts) / len(parts)
+                    info.update(stat_hard=float(sum(float(pp.hard) for pp in parts) / len(parts)), stat_soft=float(sum(float(pp.soft) for pp in parts) / len(parts)),
+                                **{f"stat_{kk}": float(v) for kk, v in parts[0].stats.items()})
+                    if len(parts) > 1:
+                        info.update(**{f"stat_w{wi}": float(pp.loss) for wi, pp in zip(sp["stat_windows"], parts)})
             lam_v = self.lam_V * (min(1.0, (step + 1) / float(self.stat_ramp)) if self.stat_ramp > 0 else 1.0)
+        loss_stat_extra = torch.zeros((), device=dev)
+        if self.stat_extra and y is not None:
+            ramp = (min(1.0, (step + 1) / float(self.stat_ramp)) if self.stat_ramp > 0 else 1.0)
+            with torch.autocast(device_type=dev.type, enabled=False):
+                for i, ex in enumerate(self.stat_extra):
+                    e = ex["spec"]; _r = e["domain"] == "residual"; _mb = o["ms_base"].float()
+                    ysi = (y.float() - _mb) if _r else y.float()
+                    ytsi = ((y_t.float() - _mb) if _r else y_t.float()) if y_t is not None else None
+                    gtsi = (gt.float() - _mb) if _r else gt.float()
+                    if e["kind"] == "edge":
+                        li = output_edge_loss(y.float(), gt.float())
+                    else:
+                        pl = [stat_term(ysi, ytsi, gtsi, kind=e["kind"], window=wi, mode=e["mode"], criterion=ex["crits"].get(wi), transform=e["transform"], transform_eps=e["transform_eps"]) for wi in e["windows"]]
+                        li = sum(pp.loss for pp in pl) / len(pl)
+                    loss_stat_extra = loss_stat_extra + ex["lam"] * ramp * li
+                    info[f"stat_extra{i}_raw"] = float(li); info[f"stat_extra{i}_lam"] = ex["lam"] * ramp
         # inherited auxiliary (§10)
         lam_e, lam_g = lambda_ramp(self.lam_edge, step, self.ramp), lambda_ramp(self.lam_geo, step, self.ramp)
         loss_edge = output_edge_loss(y, gt) if self.lam_edge > 0 else torch.zeros((), device=dev)
@@ -670,7 +821,7 @@ class KDVTrainer(PATrainer):
             info["_Pi"] = Pi; info["_pinfo"] = pinfo; info["_valid"] = valid
         if sp["geom"] != "G0":
             gk["gkd_applied"] = float((y_t is not None) and (not corrupted))                     # §12: native-only 적용 빈도 (EMA) — 2× 보상 없음
-        loss_aux = lam_e * loss_edge + lam_g * loss_geo + lam_off * loss_off + lam_gkd * loss_gkd
+        loss_aux = lam_e * loss_edge + lam_g * loss_geo + lam_off * loss_off + lam_gkd * loss_gkd + loss_stat_extra
         info.update(gk)
         total = loss_rec + lam_v * loss_stat_raw + loss_aux
         info.update(loss_rec=loss_rec, loss_stat_raw=loss_stat_raw, lam_v=lam_v, loss_edge=float(loss_edge), loss_geo=float(loss_geo), _loss_geo=loss_geo, loss_off=loss_off, loss_gkd=float(loss_gkd),
@@ -843,7 +994,7 @@ class KDVTrainer(PATrainer):
                 self.accelerator.save_state(os.path.join(self.args.work_dir, 'last'))
                 json.dump(dict(step=int(global_step), kind="last"), open(os.path.join(self.args.work_dir, "last_meta.json"), "w"))
                 if self.accelerator.is_main_process:
-                    self._runs_csv("FINISHED_TRAIN"); self._finish_ledger("FINISHED_TRAIN")
+                    self._runs_csv("FINISHED_TRAIN"); self._finish_ledger("FINISHED_TRAIN"); self._write_cost("FINISHED_TRAIN")
                 self.accelerator.end_training()
                 return global_step
         return global_step
@@ -879,15 +1030,19 @@ class KDVTrainer(PATrainer):
                     y_t = self.teacher(o["pan"], o["ms"], lpan.to(self.accelerator.device, dtype=self.weight_dtype))["y"]
                     eT.append((y_t - gt).abs().mean(1).flatten().float().cpu()); eS.append((o["y"] - gt).abs().mean(1).flatten().float().cpu())
                     if sp["stat_enabled"] and sp["stat_kind"] != "edge":
-                        vg = statistic_map(gt.float(), sp["stat_kind"], sp["stat_window"])
-                        vT.append((statistic_map(y_t.float(), sp["stat_kind"], sp["stat_window"]) - vg).abs().mean(1).flatten().cpu())
-                        vS.append((statistic_map(o["y"].float(), sp["stat_kind"], sp["stat_window"]) - vg).abs().mean(1).flatten().cpu())
+                        # 통계 fitting bin 도 학습과 같은 표현(창·변환·도메인) 으로 잰다 (§15.2: pixel bin 과 통계 bin 은 별도)
+                        _mb = o["ms_base"].float(); _r = sp["stat_domain"] == "residual"
+                        _S = lambda x: stat_transform(statistic_map((x.float() - _mb) if _r else x.float(), sp["stat_kind"], sp["stat_window"]), sp["stat_transform"], sp["stat_transform_eps"])
+                        vg = _S(gt)
+                        vT.append((_S(y_t) - vg).abs().mean(1).flatten().cpu()); vS.append((_S(o["y"]) - vg).abs().mean(1).flatten().cpu())
         d = np.array(ds)
         rr_val = self._rr_val()
         test_log.write(f'Epoch[{epoch}]\t' + report.result_str() + f'\tRR Δ median ({np.median(d[:, 0]):+.3f},{np.median(d[:, 1]):+.3f}) |Δ| median {np.median(np.linalg.norm(d, axis=1)):.3f}'
-                       + (f'\t[RR-valid] ' + rep_v.result_str() if rep_v.num_examples else '') + f'\t[RR-val] ERGAS(plain) {rr_val:.4f}')
+                       + (f'\t[RR-valid] ' + rep_v.result_str() if rep_v.num_examples else '')
+                       + f'\t[RR-val] ERGAS(plain) {rr_val:.4f} MAE {self._rr_val_fit["rr_val_mae"]:.5f} edge {self._rr_val_fit["rr_val_edge_l1"]:.5f}'
+                       + (f' stat({self._rr_val_fit["rr_val_stat_kind"]}) {self._rr_val_fit["rr_val_stat_l1"]:.4g}' if self._rr_val_fit.get("rr_val_stat_l1") is not None else ''))
         self.last_reduced_metrics = report.as_dict()
-        self.last_reduced_metrics.update(rr_dy_median=float(np.median(d[:, 0])), rr_dx_median=float(np.median(d[:, 1])), rr_val_ergas=rr_val)
+        self.last_reduced_metrics.update(rr_dy_median=float(np.median(d[:, 0])), rr_dx_median=float(np.median(d[:, 1])), rr_val_ergas=rr_val, **{kk: v for kk, v in getattr(self, "_rr_val_fit", {}).items() if kk.startswith("rr_val_") and isinstance(v, float)})
         if rep_v.num_examples:
             self.last_reduced_metrics.update({f"valid_{kk}": v for kk, v in rep_v.as_dict().items()})
         if eT and self.accelerator.is_main_process:
@@ -907,13 +1062,33 @@ class KDVTrainer(PATrainer):
 
     @torch.no_grad()
     def _rr_val(self):
-        """검증셋(valid_*.h5) plain ERGAS 평균 — best_rr_val 선택 전용 (§18.1)."""
+        """검증셋(valid_*.h5): best_rr_val 선택용 plain ERGAS + fitting 지표 (§14.3 — 가중치 없는 MAE, GT 통계 오차, signed edge 오차)."""
         tot, n = 0.0, 0; dev, dt = self.accelerator.device, self.weight_dtype; mp = float(self.args.max_pixel)
+        mae, edge, stat_e, nb = 0.0, 0.0, 0.0, 0
+        sp = self.spec
+        # 통계 항이 꺼져 있어도 **기준 표현(GV w5)** 의 GT 통계 오차는 남긴다 — 모든 arm 을 같은 자로 비교해야 한다 (§14.3)
+        kind = sp["stat_kind"] if (sp["stat_enabled"] and sp["stat_kind"] != "edge") else "grad_var"
+        kw = sp["stat_window"] if (sp["stat_enabled"] and sp["stat_kind"] != "edge") else 5
+        ktf = sp["stat_transform"] if (sp["stat_enabled"] and sp["stat_kind"] != "edge") else "none"
+        kdom = sp["stat_domain"] if (sp["stat_enabled"] and sp["stat_kind"] != "edge") else "final_hrms"
         for gt, lms, ms, lpan, pan in self.val_data_loader:
             o = self._infer(pan, lpan, ms); gt = gt.to(dev)
             pred = ((o["y"].clip(-1, 1).double() + 1) / 2 * mp); g = ((gt.double() + 1) / 2 * mp)
             e = ergas_per_sample(g, pred); tot += float(e.sum()); n += int(e.numel())
+            with torch.autocast(device_type=dev.type, enabled=False):
+                y_f, g_f = o["y"].float(), gt.float()
+                mae += float((y_f - g_f).abs().mean()) * y_f.shape[0]                       # 가중치 없는 검증 MAE (학습 loss 의 w_H·w_K 와 무관)
+                edge += float(output_edge_loss(y_f, g_f)) * y_f.shape[0]                     # signed Scharr edge 오차
+                if kind:
+                    _mb = o["ms_base"].float(); _r = kdom == "residual"
+                    _S = lambda x: stat_transform(statistic_map((x - _mb) if _r else x, kind, kw), ktf, sp["stat_transform_eps"])
+                    stat_e += float((_S(y_f) - _S(g_f)).abs().mean()) * y_f.shape[0]         # GT 통계 오차 (학습과 같은 표현, 통계 OFF 면 기준 GV w5)
+                nb += y_f.shape[0]
         self._rr_val_last = tot / max(1, n)
+        self._rr_val_fit = dict(rr_val_mae=mae / max(1, nb), rr_val_edge_l1=edge / max(1, nb),
+                                rr_val_stat_l1=(stat_e / max(1, nb) if kind else None),
+                                rr_val_stat_kind=(f"{kind} w{kw}" + ("" if ktf == "none" else f" {ktf}") + ("" if kdom == "final_hrms" else " residual")
+                                                  + ("" if sp["stat_enabled"] and sp["stat_kind"] != "edge" else " (기준 표현 — 이 run 의 loss 항은 아니다)")), n=nb)
         return self._rr_val_last
 
     def test_full(self, test_log, epoch):
@@ -946,6 +1121,8 @@ class KDVTrainer(PATrainer):
                    region_effect=agg["raw_valid"]["hqnr"] - agg["raw_original"]["hqnr"], reference_effect=agg["aligned_valid"]["hqnr"] - agg["raw_valid"]["hqnr"],
                    rr_ergas=self.last_reduced_metrics.get("ergas"), rr_scc=self.last_reduced_metrics.get("scc"), rr_sam=self.last_reduced_metrics.get("sam"),
                    rr_valid_ergas=self.last_reduced_metrics.get("valid_ergas"), rr_valid_scc=self.last_reduced_metrics.get("valid_scc"), rr_val_ergas=self._rr_val_last,
+                   rr_val_mae=self.last_reduced_metrics.get("rr_val_mae"), rr_val_edge_l1=self.last_reduced_metrics.get("rr_val_edge_l1"), rr_val_stat_l1=self.last_reduced_metrics.get("rr_val_stat_l1"),
+                   train_mae_ema=self._ema.get("rec_plain_gt_l1"),
                    lambda_V=self.lam_V, rec_difficulty_ema=self._ema.get("rec_difficulty_mean"), rec_student_win_ema=self._ema.get("rec_student_better_fraction"))
         self._csv_append("checkpoint_metrics.csv", [rec])
         self._csv_append("delta_predictions.csv", [dict(step=step, scene=i, dy_hr=float(D[i, 0]), dx_hr=float(D[i, 1])) for i in range(len(D))])
@@ -953,10 +1130,12 @@ class KDVTrainer(PATrainer):
     def _select(self, step, epoch, agg, all_ok, n_bad, bad_reasons, test_log):
         cand = os.path.join(self.cand_dir, f"step-{step}")
         self.accelerator.save_state(cand)
+        use_al = self.spec.get("aligned_selector", True)
         r_raw = self.sel_raw.update(step, epoch, agg["raw_original"]["hqnr"], agg["raw_original"]["fscc"], True, cand)
-        r_al = self.sel_aligned.update(step, epoch, agg["aligned_valid"]["hqnr"], agg["aligned_valid"]["fscc"], all_ok, cand, reason=("" if all_ok else f"{n_bad} scenes: {bad_reasons}"))
+        r_al = (self.sel_aligned.update(step, epoch, agg["aligned_valid"]["hqnr"], agg["aligned_valid"]["fscc"], all_ok, cand, reason=("" if all_ok else f"{n_bad} scenes: {bad_reasons}"))
+                if use_al else dict(changed=False, pruned=[]))
         r_rr = self.sel_rrval.update(step, epoch, -self._rr_val_last, 0.0, bool(np.isfinite(self._rr_val_last)), cand)
-        keep = {c["path"] for s in (self.sel_raw, self.sel_aligned, self.sel_rrval) for c in s.cands}
+        keep = {c["path"] for s in ((self.sel_raw, self.sel_aligned, self.sel_rrval) if use_al else (self.sel_raw, self.sel_rrval)) for c in s.cands}
         for p in set(r_raw["pruned"]) | set(r_al["pruned"]) | set(r_rr["pruned"]) | ({cand} if cand not in keep else set()):
             if p not in keep and os.path.isdir(p):
                 shutil.rmtree(p, ignore_errors=True)
@@ -967,21 +1146,29 @@ class KDVTrainer(PATrainer):
             self._materialize(self.sel_rrval.best, "best_rr_val", "rr_val")
         extra = dict(protocol_id=PROTOCOL_ID, roi_hash=(self._roi or {}).get("roi_hash"), evaluator_hash=evaluator_hash(), fr_h5_sha256=self.fr_h5_sha, n_scenes=len(self._fr_pan))
         self.sel_raw.save(os.path.join(self.args.work_dir, "selector_state_raw.json"), extra)
-        self.sel_aligned.save(os.path.join(self.args.work_dir, "selector_state_aligned.json"), extra)
+        if use_al:
+            self.sel_aligned.save(os.path.join(self.args.work_dir, "selector_state_aligned.json"), extra)
+        else:
+            # 표식은 **다른 파일명**으로 남긴다: selector_state_aligned.json 은 재개 시 BestSelector 로 로드되므로 만들지 않는다
+            json.dump(dict(status="not_applicable", why="aligner 없음 — aligned_valid 는 같은 ROI 의 raw_valid 와 동일 (§14.1)", primary=self.spec.get("select_primary")),
+                      open(os.path.join(self.args.work_dir, "aligned_selector_not_applicable.json"), "w"), indent=1)
         self.sel_rrval.save(os.path.join(self.args.work_dir, "selector_state_rr_val.json"), dict(protocol_id=PROTOCOL_ID, metric="-ERGAS(plain, valid h5)"))
-        if self.sel_aligned.best is None:
+        if use_al and self.sel_aligned.best is None:
             json.dump(dict(status="no_valid_candidate", history=self.sel_aligned.history[-5:]), open(os.path.join(self.args.work_dir, "best_aligned_meta.json"), "w"), indent=1)
-        b = self.sel_raw.best; a = self.sel_aligned.best; r = self.sel_rrval.best
-        test_log.write(f'[select] best_raw step {b["step"]} (HQNR {b["hqnr"]:.6f} fSCC {b["fscc"]:.4f}, anchor {self.sel_raw.max_hqnr:.6f}, band {len(self.sel_raw.cands)})'
-                       + (f' | best_aligned step {a["step"]} (HQNR_al {a["hqnr"]:.6f})' if a else ' | best_aligned: no valid candidate')
+        b = self.sel_raw.best; a = self.sel_aligned.best if use_al else None; r = self.sel_rrval.best
+        prim = self.spec.get("select_primary", "best_raw")
+        test_log.write(f'[select] (주 selector {prim}) best_raw step {b["step"]} (HQNR {b["hqnr"]:.6f} fSCC {b["fscc"]:.4f}, anchor {self.sel_raw.max_hqnr:.6f}, band {len(self.sel_raw.cands)})'
+                       + ((f' | best_aligned step {a["step"]} (HQNR_al {a["hqnr"]:.6f})' if a else ' | best_aligned: no valid candidate') if use_al else ' | best_aligned: N/A(aligner 없음)')
                        + (f' | best_rr_val step {r["step"]} (ERGAS_val {-r["hqnr"]:.4f})' if r else ''))
         if self.accelerator.is_main_process:
             self._runs_csv("EVAL", dict(best_raw_step=b["step"], best_raw_hqnr=round(b["hqnr"], 6)))
 
     def export_tags(self):
-        return ["best_hqnr", "best_aligned", "best_rr_val", "last"]
+        return ["best_hqnr", "best_rr_val", "last"] if not self.spec.get("aligned_selector", True) else ["best_hqnr", "best_aligned", "best_rr_val", "last"]
 
     def test_full_save(self, tag='best_hqnr'):
         super().test_full_save(tag=tag)
+        if self.accelerator.is_main_process:
+            self._write_cost("FINISHED_EXPORT")
         if self.accelerator.is_main_process and self.budget:
             self._finish_ledger("FINISHED_EXPORT", total=True)              # 학습 + 평가 + export 까지의 GPU 시간 (진단은 _upload.sh 가 diag_<run> 으로 더한다)

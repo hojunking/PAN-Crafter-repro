@@ -29,6 +29,8 @@ CATS = [
   lambda t: t.startswith(("SR_", "AF_"))),
  ("UVS", "⑭ UVS-KD (s2) — uncertainty routing · GT residual variance · shift-token KD · teacher forcing (teacher c0_hqnr → d122)",
   lambda t: t.startswith("UVS_")),
+ ("NA104", "㉒ W104·D122 no-align KD (NA104, s2·s3) — aligner·PAN warp 없는 같은 골격에서 GT-anchored KD(REC N0/R0/R1/R2/R3) · 출력 통계(IV/GV/GC/SC/M2 × H/T/FIX/WH/AD) · 방향 gate(TRI-A/B) · 필수 대조군(CTL). 주 selector 는 best_rr_val(검증 ERGAS), best_hqnr 는 exploratory",
+  lambda t: t.startswith("NA104_")),
  ("NF16", "㉑ N2 정합 능력 보존 + native HRMS fitting (NF16, P0–P4, s1) — N2 R200 last aligner 재사용: P0 aligner 없음 / P1 frozen / P2 fine-tune / P3 +aligner 전용 offset 연습 / P4 +GT 구조(A3 geometry)",
   lambda t: t.startswith("NF16_")),
  ("KDV", "⑳ s2 W112·D123 GT-anchored adaptive KD · 출력 통계 variance · aligner 재사용 (S2W112D123 계열) — REC N0/R1/R3, STAT GV-H/AD, aligner A-FR/A-FT/A-SC/A-ID, Teacher T112",
@@ -49,7 +51,7 @@ CATS = [
 ORDER = [c[0] for c in CATS]
 # 2026-09-11 시트 정리: 현 접근(BASE/PA/PO10/KDV)과 무관한 범주는 WV3-<server>_v1 탭으로 옮겼다 (gspread/archive_to_v1.py).
 # gspread_upload.py --all 은 이 범주의 run 을 다시 올리지 않는다 (--include-archived 로만).
-KEEP = ("REF", "BASE96", "PA", "PO10", "KDV", "NF16")
+KEEP = ("REF", "BASE96", "PA", "PO10", "KDV", "NF16", "NA104")
 ARCHIVED = tuple(k for k in ORDER if k not in KEEP)
 NAME  = {c[0]: c[1] for c in CATS}
 SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload 가 같이 쓴다
@@ -57,6 +59,9 @@ SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload �
 # 캠페인 설명 — 구분행의 Notes 에 들어간다. 여기 있는 범주만 업로드 시 구분행을 자동으로 넣는다
 # (업로드는 시트 맨 아래에 덧붙이므로, 새 캠페인이 지난 실험과 섞여 보이지 않게 한다).
 DESC = {
+ "NA104": ("[캠페인] W104·D122 no-align KD · s2·s3 · Teacher seed 2025 / Student seed 1234(반복 2025·777) · 2026-09-11 · research_log/PAN_S2_W104_D122_NoAlign_KD_Experiment_Plan_2026-09-11.md. "
+           "aligner 도 PAN warp 도 없는 동일 골격(2.0989 M)에서 'Teacher 가 남긴 복원·구조 오차를 GT 중심으로 더 fitting하는 KD' 만 본다 — 정합 연구(PA/PO10/NF16/KDV) 와 직접 대응하지 않는다. "
+           "실행명 토큰: <case id>_W104_D122_WV3_<rec>_<stat>[_TRI_A*_B*_C*]_S<seed>_v1. 약명→세팅은 research_log/2026-09-11_na104-implementation.md §3 표."),
  "NF16": ("[캠페인] NF16 (N2 정합 능력 보존 + native fitting, 16 GPU-h) · s1 · seed 1234(반복 7777) · 2026-09-11 · research_log/PAN_N2_NativeFitting_16GPUh_W112_D123_2026-09-11.md. "
           "W112·D123 U-Net 을 같은 저장 초기값에서 새로 학습, aligner 는 PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT 의 정확한 50K last(내부 view 4px) 재사용. "
           "복원은 매 update native(추가 jitter 없음). P0 NOALIGN(aligner·sampler 없음) / P1 FROZEN / P2 FT-REC(aligner LR 1e-5) / P3 FT-EQ(홀수 update 에 P_ε 를 aligner 에만 넣어 |ĉε+ε−sg ĉ0|, λ 0.01 즉시) / P4 FT-EQ-GEO(+A3 geometry λ 0.01, 5K ramp). "

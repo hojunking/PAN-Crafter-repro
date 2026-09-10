@@ -36,7 +36,7 @@ LOG="$REPO/work_dir/gspread_upload.log"
   # PA(A1–A3) run: 명세 §10.10·§11 진단 (교차 평가 · learned/zero/wrong-sign · known-shift 반응 · tile vs full) → results/pa_diag.json
   for t in "$@"; do
     T0=$(date +%s)                       # 이 run 의 GPU 진단 시간 (pa_diag 부터; NF16 은 ledger 에 기록한다)
-    case "$t" in PA_A*|PO10_*|S2W112*|NF16_*)
+    case "$t" in PA_A*|PO10_*|S2W112*|NF16_*|NA104_*)
       set +e; python tools/pa_diag.py --run "$t" > "$REPO/work_dir/$t/results/pa_diag.log" 2>&1; rc=$?; set -e
       grep -v Warning "$REPO/work_dir/$t/results/pa_diag.log" | tail -25
       [ $rc -eq 0 ] || echo "[upload] !! pa_diag 실패 (rc=$rc): $t — work_dir/$t/results/pa_diag.log";;
@@ -46,6 +46,14 @@ LOG="$REPO/work_dir/gspread_upload.log"
       set +e; python tools/po10_diag.py --run "$t" > "$REPO/work_dir/$t/results/po10_diag.log" 2>&1; rc=$?; set -e
       grep -v Warning "$REPO/work_dir/$t/results/po10_diag.log" | tail -12
       [ $rc -eq 0 ] || echo "[upload] !! po10_diag 실패 (rc=$rc): $t — work_dir/$t/results/po10_diag.log";;
+    NA104_*)
+      # NA104 §14.3: artifact 진단(과도한 smoothing·링잉·band bias·평탄/어두운 영역 악화) 을 **주 selector 인 best_rr_val** 과 last 에서. 선택·판정에는 쓰지 않는다
+      for CK in best_rr_val last; do
+        [ -d "$REPO/work_dir/$t/$CK" ] || continue
+        set +e; python tools/na104_diag.py --run "$t" --ckpt "$CK" --out "na104_diag_$CK" > "$REPO/work_dir/$t/results/na104_diag_$CK.log" 2>&1; rc=$?; set -e
+        grep -v Warning "$REPO/work_dir/$t/results/na104_diag_$CK.log" | tail -2
+        [ $rc -eq 0 ] || echo "[upload] !! na104_diag($CK) 실패 (rc=$rc): $t"
+      done;;
     NF16_*)
       # NF16 §8: 반응·closure·shortcut 대조·stress 를 **last(정확한 50K)** 에서, 참조는 native P / 고정 donor(N2 last) 로 (§8.4). 진단 GPU 시간은 ledger 에 diag_<run> 으로 더한다 (§10)
       set +e; python tools/po10_diag.py --run "$t" --ckpt last --out po10_diag_last --native-reference --ref-run PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT --ref-ckpt last > "$REPO/work_dir/$t/results/po10_diag_last.log" 2>&1; rc=$?; set -e

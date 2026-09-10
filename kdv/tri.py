@@ -89,13 +89,14 @@ def shuffle_mask(mask: Tensor, generator: torch.Generator) -> Tensor:
 
 
 @torch.no_grad()
-def component_weights(s: Tensor, t: Tensor, g: Tensor, tau: Tensor, *, alpha: float, kd_weight: float, eps: float) -> Tensor:
+def component_weights(s: Tensor, t: Tensor, g: Tensor, tau: Tensor, *, alpha: float, kd_weight: float, eps) -> Tensor:
     """§4.6 A-BANDADV / §5.6 B-COMPADV: 성분별 d_j = |t−g|/(|t−g|+τ_j), a_j = [|s−g|−|t−g|]_+/(|s−g|+ε) → w_K,j = β(1−d_j)a_j [B,D,H,W]. hard 는 parent 그대로."""
     _images(s, t, g)
     dt = _dtype(s, t, g)
     et = (t.to(dt) - g.to(dt)).abs(); es = (s.to(dt) - g.to(dt)).abs()
     tau = tau.to(dt).view(1, -1, 1, 1)
-    d = et / (et + tau); a = ((es - et).clamp_min(0) / (es + eps)).clamp(max=1.0)
+    ep = eps.to(dt).view(1, -1, 1, 1) if torch.is_tensor(eps) else eps          # 성분별 ε_V,j (평균으로 뭉개지 않는다)
+    d = et / (et + tau); a = ((es - et).clamp_min(0) / (es + ep)).clamp(max=1.0)
     return kd_weight * (1.0 - d) * a
 
 
@@ -194,6 +195,19 @@ def fd_jacobian(evaluate: Callable[[Tensor], Tensor], mu: Tensor, *, h: float = 
 def teacher_fd_jacobian(teacher, pan_view, ms, lpan, mu_t, *, h=0.05, phi='identity', stat_kind=None, window=5):
     """J_T [B,D,2,H',W'] (Teacher U-Net 4회 순차 forward, activation 미보존)."""
     return fd_jacobian(lambda d: teacher_eval(teacher, pan_view, ms, lpan, d, phi=phi, stat_kind=stat_kind, window=window), mu_t.detach(), h=h)
+
+
+@torch.no_grad()
+def roi_gate(risk: Tensor, margin: int) -> Tensor:
+    """W104 §9.2 / addendum §6.9: 유한차분 ROI 는 사전에 고정한 공통 내부다. 경계 margin 픽셀에서는 감쇠를 적용하지 않고(r=1) 원래 soft 로 돌아간다 — hard 는 전 영역 유지.
+    ROI 를 결과에 따라 줄이지 않는다(고정 상수). tensor 가 ROI 보다 작으면 전부 r=1."""
+    if margin <= 0:
+        return risk
+    if risk.shape[-1] <= 2 * margin or risk.shape[-2] <= 2 * margin:
+        return torch.ones_like(risk)
+    out = torch.ones_like(risk)
+    out[..., margin:-margin, margin:-margin] = risk[..., margin:-margin, margin:-margin]
+    return out
 
 
 @torch.no_grad()

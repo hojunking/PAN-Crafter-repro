@@ -13,7 +13,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from kdv.losses_stat import statistic_map, positive_median
+from kdv.losses_stat import statistic_map, positive_median, stat_transform
 from pa.losses import output_edge_loss
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -41,6 +41,17 @@ def _pred(model, pan, ms, lpan, dev):
     return model(pan, ms, lpan)['y']
 
 
+def ms_base_of(ms, dev):
+    return F.interpolate(ms.to(dev).float(), scale_factor=4, mode='bicubic')
+
+
+def stat_view(x, ms, dev, domain='final_hrms'):
+    """통계 도메인 (W104 §5.3 REP-RESIDUAL): final_hrms 는 Ŷ 그대로, residual 은 Ŷ − M. 같은 M 을 세 tensor 에서 뺀다."""
+    if domain == 'residual':
+        return x.float() - ms_base_of(ms, dev)
+    return x
+
+
 def _quant(v):
     v = v.flatten().double()
     qs = torch.tensor([0.1, 0.25, 0.5, 0.75, 0.9, 0.99], dtype=torch.float64)
@@ -60,13 +71,15 @@ def calibrate_rec(teacher, batches, dev, eps_scale=1e-6):
 
 
 @torch.no_grad()
-def calibrate_stat(teacher, batches, kind, window, dev):
+def calibrate_stat(teacher, batches, kind, window, dev, *, transform='none', transform_eps=1e-12, domain='final_hrms'):
+    """τ_V·ε_V (plan §9.2). 표현(창·변환·도메인) 이 바뀌면 반드시 다시 잰다 — cache key 에 전부 들어간다."""
     if kind == 'edge':
         return dict(tau_V=1.0, eps_V=1e-6, degenerate=False, note='signed edge: criterion 미사용(H 만)', kind=kind)
     es, vs = [], []
+    _S = lambda x: stat_transform(statistic_map(stat_view(x, ms, dev, domain).float(), kind, window), transform, transform_eps)
     for gt, lms, ms, lpan, pan in batches:
         y_t = _pred(teacher, pan, ms, lpan, dev); g = gt.to(dev)
-        v_t = statistic_map(y_t.float(), kind, window); v_g = statistic_map(g.float(), kind, window)
+        v_t = _S(y_t); v_g = _S(g)
         es.append((v_t - v_g).abs().mean(dim=1).cpu()); vs.append(v_g.cpu())
     e = torch.cat(es, 0); v = torch.cat(vs, 0)
     q = _quant(e); v_scale = positive_median(v)
@@ -75,17 +88,20 @@ def calibrate_stat(teacher, batches, kind, window, dev):
     e_scale = q['p50']
     tau_V = max(e_scale, 1e-3 * (v_scale or 0.0), 1e-12)
     return dict(tau_V=tau_V, eps_V=max(1e-3 * tau_V, 1e-12), e_scale=e_scale, v_scale=v_scale, E_T_V=q, gt_stat_positive_fraction=pos_frac,
-                degenerate=degenerate, kind=kind, window=int(window), margin=1 + (window - 1) // 2)
+                degenerate=degenerate, kind=kind, window=int(window), margin=1 + (window - 1) // 2, transform=transform, transform_eps=float(transform_eps), domain=domain)
 
 
-def calibrate_lambda(pilot, batches, kind, window, r_grad, dev):
-    """pilot(Student 후보 checkpoint) 에서 optimizer step 없이 ∂L/∂Ŷ RMS 비를 잰다."""
+def calibrate_lambda(pilot, batches, kind, window, r_grad, dev, *, windows=None, transform='none', transform_eps=1e-12, domain='final_hrms'):
+    """pilot(Student 후보 checkpoint) 에서 optimizer step 없이 ∂L/∂Ŷ RMS 비를 잰다. 여러 창이면 창별 loss 의 평균(REP-MULTI357) 에 대해 잰다."""
+    ws = [int(w) for w in (windows or [window])]
     g_rec, g_v, ratio = [], [], []
     for gt, lms, ms, lpan, pan in batches:
         pred = _pred(pilot, pan, ms, lpan, dev).float().detach().requires_grad_(True); g = gt.to(dev).float()
         l_rec = (pred - g).abs().mean()
         gr = torch.autograd.grad(l_rec, pred)[0]
-        l_v = output_edge_loss(pred, g) if kind == 'edge' else (statistic_map(pred, kind, window) - statistic_map(g, kind, window)).abs().mean()
+        ps, gs = stat_view(pred, ms, dev, domain), stat_view(g, ms, dev, domain)
+        l_v = (output_edge_loss(pred, g) if kind == 'edge' else
+               sum((stat_transform(statistic_map(ps, kind, w), transform, transform_eps) - stat_transform(statistic_map(gs, kind, w), transform, transform_eps)).abs().mean() for w in ws) / len(ws))
         gv = torch.autograd.grad(l_v, pred)[0]
         a, b = float(gr.pow(2).mean().sqrt()), float(gv.pow(2).mean().sqrt())
         g_rec.append(a); g_v.append(b); ratio.append(a / (b + 1e-30))
@@ -94,7 +110,7 @@ def calibrate_lambda(pilot, batches, kind, window, r_grad, dev):
     lam = 0.0 if degenerate else float(r_grad) * float(np.median(ratio))
     return dict(lambda_V=lam, r_grad=float(r_grad), g_rec_rms_median=med_r, g_V_rms_median=med_v, ratio_median=float(np.median(ratio)),
                 ratio_p10=float(np.percentile(ratio, 10)), ratio_p90=float(np.percentile(ratio, 90)), n_batches=len(batches), degenerate=bool(degenerate),
-                status=('CALIBRATION_DEGENERATE' if degenerate else 'OK'), kind=kind, window=int(window))
+                status=('CALIBRATION_DEGENERATE' if degenerate else 'OK'), kind=kind, window=int(window), windows=ws, transform=transform, domain=domain)
 
 
 def cached(path, key, compute):
@@ -245,7 +261,7 @@ def calibrate_covhead(teacher, batches, spec, cov, dev, epochs=3, lr=1e-2, geo_s
 
 # ------------------------------------------------------------------ TRI-A/B/C (addendum §10)
 @torch.no_grad()
-def calibrate_component_tau(teacher, batches, dev, *, kind=None, window=5):
+def calibrate_component_tau(teacher, batches, dev, *, kind=None, window=5, transform='none', transform_eps=1e-12, domain='final_hrms'):
     """성분별 τ: rec(band c) τ_R,c = median_p e_T,c (kind None) · stat τ_V,j = max(median E_T,j, 1e-3 v_scale_j, 1e-12) (§4.6 BANDADV / §5.6 COMPADV)."""
     es, vs = [], []
     for gt, lms, ms, lpan, pan in batches:
@@ -253,7 +269,8 @@ def calibrate_component_tau(teacher, batches, dev, *, kind=None, window=5):
         if kind is None:
             es.append((y_t.float() - g).abs().flatten(2).cpu())
         else:
-            vt = statistic_map(y_t.float(), kind, window); vg = statistic_map(g, kind, window)
+            _S = lambda x: stat_transform(statistic_map(stat_view(x, ms, dev, domain).float(), kind, window), transform, transform_eps)
+            vt = _S(y_t); vg = _S(g)
             es.append((vt - vg).abs().flatten(2).cpu()); vs.append(vg.abs().flatten(2).cpu())
     e = torch.cat(es, 0).permute(1, 0, 2).flatten(1)                      # [D, N]
     med = e.double().median(dim=1).values
@@ -263,7 +280,7 @@ def calibrate_component_tau(teacher, batches, dev, *, kind=None, window=5):
         v = torch.cat(vs, 0).permute(1, 0, 2).flatten(1)
         vsc = torch.stack([positive_median(v[j]) or 0.0 for j in range(v.shape[0])]).double() if False else torch.tensor([positive_median(v[j]) or 0.0 for j in range(v.shape[0])], dtype=torch.float64)
         tau = torch.maximum(torch.maximum(med, 1e-3 * vsc), torch.full_like(med, 1e-12)); eps = torch.maximum(1e-3 * tau, torch.full_like(tau, 1e-12))
-    return dict(tau=tau.tolist(), eps=eps.tolist(), median=med.tolist(), D=int(e.shape[0]), kind=kind, window=window)
+    return dict(tau=tau.tolist(), eps=eps.tolist(), median=med.tolist(), D=int(e.shape[0]), kind=kind, window=window, transform=transform, domain=domain)
 
 
 @torch.no_grad()
