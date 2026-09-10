@@ -9,7 +9,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
 START=1; HOURS=12
 while [ $# -gt 0 ]; do case "$1" in --no-start) START=0;; --hours) HOURS="$2"; shift;; *) echo "unknown arg $1" >&2; exit 2;; esac; shift; done
 : "${PANCRAFTER_DLPAN:=/home/knuvi/Desktop/song/DLPan-Toolbox}"; export PANCRAFTER_DLPAN
-PY="${PYTHON:-python}"; command -v "$PY" >/dev/null || PY=/home/knuvi/miniconda3/envs/pancrafter/bin/python
+PY="${PYTHON:-}"; [ -n "$PY" ] || { [ -x /home/knuvi/miniconda3/envs/pancrafter/bin/python ] && PY=/home/knuvi/miniconda3/envs/pancrafter/bin/python || PY=python; }   # 시스템 python 에는 torch 가 없다 — conda env 우선
 QUEUE=config/queues/po10_s1.txt; CASES=$(grep -v '^#' "$QUEUE" | grep -v '^$' | tr '\n' ' ')
 SERVER="$(tr -d '[:space:]' < gspread/server.txt)"; [ "$SERVER" = "s1" ] || echo "!! 명세 §7: 주 서버는 s1 (현재 $SERVER) — 세 case 를 같은 서버에서 돌려야 한다"
 echo "[po10] G0 provenance: A1 run·init"

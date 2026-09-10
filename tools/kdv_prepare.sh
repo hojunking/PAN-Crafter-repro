@@ -10,7 +10,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
 START=1; HOURS=36; QUEUE=config/queues/kdv_s2.txt
 while [ $# -gt 0 ]; do case "$1" in --no-start) START=0;; --hours) HOURS="$2"; shift;; --queue) QUEUE="$2"; shift;; *) echo "unknown arg $1" >&2; exit 2;; esac; shift; done
 : "${PANCRAFTER_DLPAN:=/home/knuvi/Desktop/song/DLPan-Toolbox}"; export PANCRAFTER_DLPAN
-PY="${PYTHON:-python}"; command -v "$PY" >/dev/null || PY=/home/knuvi/miniconda3/envs/pancrafter/bin/python
+PY="${PYTHON:-}"; [ -n "$PY" ] || { [ -x /home/knuvi/miniconda3/envs/pancrafter/bin/python ] && PY=/home/knuvi/miniconda3/envs/pancrafter/bin/python || PY=python; }   # 시스템 python 에는 torch 가 없다 — conda env 우선
 SERVER="$(tr -d '[:space:]' < gspread/server.txt)"; [ "$SERVER" = "s2" ] || echo "!! 계획: 주 서버는 s2 (현재 $SERVER) — 같은 서버에서 순차 실행해야 대응 비교가 된다"
 CAMP=work_dir/_kdv_campaign/S2_W112_KDV_20260910; mkdir -p "$CAMP"
 echo "[kdv] P0 환경 (§17.1) → $CAMP/environment_${SERVER}.json"
