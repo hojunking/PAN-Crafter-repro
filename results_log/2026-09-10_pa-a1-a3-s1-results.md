@@ -175,7 +175,7 @@ corrupt 에서는 PAN 에만 원판 R=1 HR px(audit 부록 E train P90 0.25 LR p
 - **corruption 학습은 aligner 를 "반응하게" 만들었지만, 논문 프로토콜 HQNR 은 수렴점에서 오히려 내려갔다.** 50K 시점 raw HQNR: A1(변위 없음) 0.948 → N1 R100 0.943 → R200 N1 0.931 / N2 0.933 / N3 0.924. D_λ 는 좋아지고(0.025 → 0.017) **D_s 가 나빠진다**(0.028 → 0.05–0.06).
 - 원인은 출력 프레임이다. FR 장면에서 aligner 의 native 보정 Δ̂ 중앙값이 A1 의 (+0.22, −0.05) px 에서 R200 은 **(+1.5, −0.6) px 규모**(N1 +1.51/−0.60, N2 +1.27/−0.79, N3 +1.89/−0.33)로 커졌다. 이는 §7 에서 잰 WV3 FR MS–PAN 어긋남(1.79 px, 방향 일치)과 같은 규모다 — 즉 PAN 을 MS 프레임으로 실제로 옮긴다. 그러면 출력은 MS 프레임에 놓이고, **원 PAN 을 참조하는 D_s 는 그 1.5 px 를 불일치로 센다.** 같은 출력의 aligned_valid HQNR(warp 한 PAN 참조)은 0.95–0.96 으로 A1 과 같거나 높다(N3 만 0.924 로 과보정).
 - **시트의 best_hqnr 값(N1 R100 0.9551, R200 N2 0.9522 …)은 방법의 품질이 아니다.** 세 R200 run 모두 best 가 **첫 평가(step 1,010, RR ERGAS 3.8–4.1)** 이고 R100 도 step 3,030(ERGAS 2.64)이다 — 출력이 흐릴수록 D_s 가 작아지는 알려진 기전(CLAUDE.md "D_s·HQNR 단독 해석 금지")이 선택을 잡았다. 판정에는 수렴점(마지막 평가)과 aligned_valid 를 함께 본다.
-- **반응(response)**: 알려진 추가 변위 ε 에 대한 기울기 B_diag(이상 −1; A1 donor −0.02~−0.09)가 R200 에서 **x 축 −0.50~−0.56 (train 64²), −0.22~−0.28 (FR 512²)** 로 커졌다. **y 축은 여전히 −0.05 이하**로 반응이 없다. N2(SG) 가 반응·closure(0.905 vs N1 0.944, N3 0.932)에서 조금 낫고, N3(no-SG)는 Δ̂ 가 가장 크며 aligned_valid 도 학습 후반에 계속 떨어진다(과보정 방향의 drift).
+- **반응(response)**: 수렴점(50K) 에서 알려진 추가 변위 ε 에 대한 기울기 B_diag(이상 −1; A1 donor −0.02~−0.09)가 **N2(SG) (−0.98, −0.99), N1 (−0.90, −0.92)** (train 64²; FR 512² 에서도 −0.7~−0.95), closure 0.06–0.3 px — corruption 학습이 aligner 를 실제 변위 추정기로 만들었다(§10.5). 시트의 best_hqnr checkpoint(step 1,010) 에서는 x 축 −0.5·y 축 0 에 불과했다(§10.3). N3(no-SG)는 Δ̂ 가 가장 크며 aligned_valid 가 학습 후반에 계속 떨어진다(과보정 방향의 drift).
 - R200 은 반경(1→2)과 골격(W96·D124 → W112·D123)을 함께 바꿨으므로 R100 과의 차이를 한 요인으로 돌리지 않는다.
 
 ### 10.2 수치 (best_hqnr = 시트, 수렴점 = 50K 마지막 평가)
@@ -210,13 +210,30 @@ RR ERGAS 수렴값(학습 로그 정의)은 A1 2.03 / R100 2.09 / R200 2.09–2.
 - closure vs |ε| 구간: 0–0.5 px 에서 0.29(=무반응선), 1.5–2 px 에서 1.45(무반응선 1.75) — 작은 변위에는 반응이 없고 큰 변위에 x 축만 부분 반응.
 
 ### 10.4 판정과 다음
-- 명세 §13.3 의 두 축 중 **반응 축은 부분 성공**(x 축 −0.5, y 축 0), **native 품질 축은 논문 프로토콜로는 후퇴**. 후퇴의 기전이 "출력이 MS 프레임으로 옮겨감"이라 **논문 프로토콜(원 PAN 참조 D_s)로는 정합 방법을 평가할 수 없다**는 §4·§5 의 논점이 수치로 확인됐다. 어느 프레임을 정답으로 볼지는 방법 설계의 결정이지 지표가 정하는 것이 아니다.
+- 명세 §13.3 의 두 축 중 **반응 축은 수렴점에서 성공**(§10.5: B ≈ −I, closure 0.06 px; §10.3 의 초기 checkpoint 는 x 축 −0.5·y 축 0 이었다), **native 품질 축은 논문 프로토콜로는 후퇴**. 후퇴의 기전이 "출력이 MS 프레임으로 옮겨감"이라 **논문 프로토콜(원 PAN 참조 D_s)로는 정합 방법을 평가할 수 없다**는 §4·§5 의 논점이 수치로 확인됐다. 어느 프레임을 정답으로 볼지는 방법 설계의 결정이지 지표가 정하는 것이 아니다.
 - N2(SG) 가 세 case 중 일관되게 낫다(closure·반응·50K HQNR·aligned_valid). N3(no-SG) 는 과보정 drift 로 불리 — no-SG 는 채택하지 않는다.
-- s2 KDV 캠페인의 aligner donor: 현재 큐는 A1 donor(무반응)다. **N2 R200 aligner(내부 view margin 4)** 를 I-N donor 로 쓰는 셀을 추가할 가치가 있다 — 단 y 축 무반응은 그대로라 G-EQ precision 은 x 축에만 실린다(비등방). 이 판단은 §10.5 의 수렴점 진단 뒤에 확정한다.
+- s2 KDV 캠페인의 aligner donor: 현재 큐는 A1 donor(무반응)다. §10.5 의 수렴점 진단에 따라 **N2 R200 `last` aligner(내부 view margin 4)** 를 I-N donor 로 쓰는 cohort 를 추가한다(반응 ≈ −1, closure 0.06 px).
 - 시트에는 R100 N1·R200 N1/N2/N3 4 행이 올라갔다(⑲ PO10). 비교표에 인용할 때는 best 가 초기 checkpoint 라는 점을 반드시 적는다.
 
-### 10.5 (추기 예정) 수렴점(last, 50K) checkpoint 의 반응 진단
-LAST_DIAG_PLACEHOLDER
+### 10.5 수렴점(last, 50K) checkpoint 의 반응 진단 — 결론이 바뀐다
+`po10_diag --ckpt last` (50K 정확한 마지막 update; 결과 `results/po10_diag_last.json`, best_hqnr 진단은 `po10_diag_best_hqnr.json` 으로 보존). **§10.3 의 초기 checkpoint 와 전혀 다르다.**
+
+| run | B_diag native64 (dy, dx) | rr256 | fr512 | closure native64 (px) | closure fr512 | stress ε=(+2,0) raw_valid / aligned_valid | ε=(0,−2) raw / aligned |
+|---|---|---|---|---:|---:|---|---|
+| N1 R100 W96·D124 | (진단 미완) | | | | | | |
+| N1 R200 | (-0.90, -0.92) | (-0.91, -0.89) | (-0.70, -0.83) | 0.26 | 0.32 | 0.9360 / 0.9478 | 0.9361 / 0.9558 |
+| N2 SG R200 | (-0.98, -0.99) | (-1.00, -0.99) | (-0.91, -0.95) | 0.06 | 0.10 | 0.9381 / 0.9567 | 0.9398 / 0.9585 |
+| N3 noSG R200 | (진단 미완) | | | | | | |
+
+- **수렴점의 R200 aligner 는 알려진 추가 변위를 거의 완전히 상쇄한다**: N2(SG) B_diag ≈ (−0.98, −0.99) (train 64²), (−1.00, −0.99) (RR 256²), (−0.91, −0.95) (FR 512²), closure 0.06 px — 이상값 −1 에 근접. N1(offset loss 없음, corruption 만)도 (−0.90, −0.92). y 축 무반응은 초기 checkpoint 의 현상이었다.
+- 따라서 §10.1 의 FR Δ̂ drift(+1.3~+1.5 px)는 "실제 센서 어긋남을 재는" 방향으로 읽는 것이 맞다: aligner 가 PAN 을 MS 프레임으로 옮기는 능력을 얻었고, 그 결과가 논문 프로토콜의 D_s 에 불리하게 작용했다.
+- stress: ε=(+2,0) 을 얹어도 raw_valid HQNR 이 0.936–0.938(무변위 0.93 대비 유지), aligned_valid 0.948–0.957 — 초기 checkpoint(0.907–0.915) 와 달리 보상이 된다.
+- 시트의 `best_hqnr`(step 1,010) 로 진단한 §10.3 값을 aligner 능력으로 인용하면 안 된다. 정합 능력은 last 로, 논문 프로토콜 품질은 두 checkpoint 를 나누어 적는다.
+
+![](assets/0910_po10_r200_response_last.png)
+(N3 의 last 진단은 작성 시점에 진행 중이라 그림·표에서 빠져 있다 — `results/po10_diag_last.json` 생성 뒤 `python outputs/po10/report_figs.py --diag po10_diag_last --suffix _last` 로 갱신)
+
+**KDV donor 결정에의 함의**: s2 KDV 의 I-N donor 로 **N2 R200 `last` aligner(내부 view margin 4)** 를 쓸 근거가 생겼다. 반응이 등방적(dy·dx 모두 ≈ −1)이라 G-EQ 는 높은 precision(closure 0.06 px → Π ≈ 1/(0.06²+0.05²) 규모)을 주고, C-DIAG(EQ) 의 Σ 도 등방·작은 값이 된다. 다만 native FR 보정이 1.3 px 로 커서 이 donor 를 frozen 으로 쓰면 Student 출력도 MS 프레임에 놓인다 — 논문 프로토콜 HQNR 로 비교할 때 A1 donor cohort 와 섞어 순위 매기지 않는다(별도 cohort, `teacher_id`·donor 분리 기록).
 
 ### 10.6 시트의 HQNR(V64) 가 뜻하는 것 (질문에 대한 답)
 - **HQNR(V64) = 같은 출력·같은 원 PAN 참조로, 프레임 가장자리 64 px 를 뺀 고정 내부 영역 V = [64:H−64]² (512² → 384², 32 px 블록 정렬) 에서 계산한 HQNR.** MTF 필터·저해상도 PAN 생성은 전체 프레임에서 하고 마지막에 잘라내므로 위상·블록 타일링이 전체 프레임 계산과 같다(`pa/evalviews.raw_views`).

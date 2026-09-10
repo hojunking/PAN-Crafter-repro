@@ -16,13 +16,14 @@ for a_, t in zip(ax.flat, ["HQNR raw_original (paper protocol, full frame)", "D_
     a_.set_title(t, fontsize=10); a_.set_xlabel("update (K)"); a_.grid(alpha=.3)
 ax[0, 0].legend(fontsize=8); ax[1, 2].set_ylim(2.0, 3.0); plt.tight_layout(); plt.savefig(f"{ROOT}/outputs/po10/0910_po10_r200_curves{a.suffix}.png", dpi=110)
 fig, ax = plt.subplots(1, 3, figsize=(15, 4.2)); names = ["N1 R200", "N2 SG", "N3 noSG"]; Ts = [r[1] for r in runs[2:]]
+keep = [i for i, T in enumerate(Ts) if os.path.exists(f"{ROOT}/work_dir/{T}/results/{a.diag}.json")]; names = [names[i] for i in keep]; Ts = [Ts[i] for i in keep]
 for scale, mk in (("native64", "o"), ("rr256", "s"), ("fr512", "^")):
     dys, dxs = [], []
     for T in Ts:
         r = json.load(open(f"{ROOT}/work_dir/{T}/results/{a.diag}.json"))["response"][scale]; dys.append(r["B_diag"][0]); dxs.append(r["B_diag"][1])
     ax[0].plot(names, dys, marker=mk, ls="-", label=f"dy slope ({scale})"); ax[0].plot(names, dxs, marker=mk, ls="--", label=f"dx slope ({scale})")
 ax[0].axhline(-1, color="k", lw=.8, ls=":"); ax[0].axhline(-0.05, color="gray", lw=.8, ls=":"); ax[0].set_title(f"Response slope B_diag ({a.diag}; ideal -1; A1 donor ~ -0.05)"); ax[0].legend(fontsize=7); ax[0].grid(alpha=.3)
-for T, name, col in zip(Ts, names, ["tab:orange", "tab:green", "tab:red"]):
+for T, name, col in zip(Ts, names, [["tab:orange", "tab:green", "tab:red"][i] for i in keep]):
     j = json.load(open(f"{ROOT}/work_dir/{T}/results/{a.diag}.json")); be = j["stress_hqnr_fr512"]["by_eps"]; ks = list(be.keys())
     ax[1].plot(ks, [be[k]["raw_valid_hqnr"] for k in ks], marker="o", color=col, label=f"{name} raw_valid"); ax[1].plot(ks, [be[k]["aligned_valid_hqnr"] for k in ks], marker="s", ls="--", color=col, label=f"{name} aligned_valid")
     cb = j["response"]["native64"]["closure_by_eps_bin"]; bins = list(cb.keys()); ax[2].plot(bins, [cb[b]["closure_mean"] for b in bins], marker="o", color=col, label=name)

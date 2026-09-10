@@ -252,7 +252,7 @@ class KDVTrainer(PATrainer):
                     torch.save(sd, hp); json.dump(dict(key=hkey, head=hman, computed_at=time.strftime("%Y-%m-%dT%H:%M:%S")), open(hj, "w"), indent=1)
                 self.cov_head_t = CovHead(); self.cov_head_t.load_state_dict(torch.load(hp, map_location="cpu")); freeze(self.cov_head_t); self.cov_head_t.to(dev)
                 self.cov_head_t_hash = state_hash(self.cov_head_t); self.calibration["covhead"] = dict(json.load(open(hj))["head"], teacher_head_sha256_16=self.cov_head_t_hash)
-                if pol == "A-FT" and not self.k.get("phase"):                                        # A-FT = Teacher 복사 → cov head 도 Teacher head 에서 시작 (검토 지적)
+                if self.spec["policy"] == "A-FT" and not self.k.get("phase"):                                        # A-FT = Teacher 복사 → cov head 도 Teacher head 에서 시작 (검토 지적)
                     self.M.cov_head.load_state_dict(self.cov_head_t.state_dict()); self.calibration["covhead"]["student_init"] = "copied_from_teacher_head"
                 else:
                     self.calibration["covhead"]["student_init"] = "identity_sigma"
