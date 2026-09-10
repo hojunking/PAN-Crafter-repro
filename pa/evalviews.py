@@ -130,3 +130,19 @@ def scene_views(sr_hwc, lms_hwc, pan_hw, pan_aligned_hw, sensor, wald, delta_dy_
                aligned_valid=dict(d_lambda=dl_V, d_s=dsa, hqnr=(1 - dl_V) * (1 - dsa), fscc=fsa))
     ok, reason = eligibility(delta_dy_dx, out)
     return out, ok, reason
+
+
+def raw_views(sr_hwc, lms_hwc, pan_hw, sensor, wald, ratio=4, R=2047.0, margin=MARGIN):
+    """aligner 와 무관한 두 HQNR: raw_original(전체 프레임, 논문 프로토콜) · raw_valid(고정 V = 가장자리 margin 제외, 블록 정렬). 모든 run 의 시트 열 HQNR↑ / HQNR(V64)↑."""
+    H, W = pan_hw.shape
+    y0, y1, x0, x1 = fixed_roi(H, W, margin); V = (slice(y0, y1), slice(x0, x1)); VM = (slice(y0 - 1, y1 - 1), slice(x0 - 1, x1 - 1))
+    fused_deg = mtf_filter(sr_hwc, sensor, ratio, wald)
+    dl_full = 1.0 - q2n(lms_hwc, fused_deg, BLOCK, BLOCK)[0]; dl_V = 1.0 - q2n(lms_hwc[V], fused_deg[V], BLOCK, BLOCK)[0]
+    pf = pan_low_reference(pan_hw, wald, ratio); m_sr = sobel_maps(sr_hwc / R); m_p = sobel_maps(pan_hw[..., None] / R)
+
+    def ds(region):
+        f, m, p, pl = sr_hwc[region], lms_hwc[region], pan_hw[region], pf[region]
+        return sum(abs(_blockproc_uqi(f[:, :, b], p, BLOCK) - _blockproc_uqi(m[:, :, b], pl, BLOCK)) for b in range(f.shape[2])) / f.shape[2]
+    ds0, dsV = ds((slice(None), slice(None))), ds(V)
+    return dict(raw_original=dict(d_lambda=dl_full, d_s=ds0, hqnr=(1 - dl_full) * (1 - ds0), fscc=fscc_from_maps(m_p, m_sr)),
+                raw_valid=dict(d_lambda=dl_V, d_s=dsV, hqnr=(1 - dl_V) * (1 - dsV), fscc=fscc_from_maps(m_p, m_sr, VM)))

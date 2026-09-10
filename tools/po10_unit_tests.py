@@ -110,5 +110,14 @@ g2 = torch.Generator(device="cpu"); g2.manual_seed(999); RNGState(g2).load_state
 check("review-① corruption RNG state save/restore continues the ε sequence", torch.equal(a_seq, b_seq))
 check("review-② diagnostic λ uses the real step (parity kept)", diag_update_index(20000, 1) == 20001 and diag_update_index(20001, 1) == 20001 and diag_update_index(20000, 0) == 20000
       and abs(lambda_off(diag_update_index(20000, 1), 0.01, 5000) - 0.01) < 1e-12)
+# ---------------- R200 (변경 명세 §4·§6·§9)
+g = torch.Generator(device="cpu"); g.manual_seed(0); e2 = sample_offsets(20000, 2.0, g)
+check("R200 disk: axis sd ≈ 1.0, mean length ≈ 1.333, max ≤ 2, P(|ε|≤1) ≈ 0.25",
+      abs(float(e2.std(0)[0]) - 1.0) < 0.03 and abs(float(e2.norm(dim=1).mean()) - 4 / 3) < 0.03 and float(e2.norm(dim=1).max()) <= 2 + 1e-6 and abs(float((e2.norm(dim=1) <= 1).float().mean()) - 0.25) < 0.02)
+check("R200 margin rule 4·ceil((2+2)/4) = 4 (train view 56², FR view 504²)", aligner_margin(2.0) == 4)
+worst2 = torch.tensor([[2.0, 0.0], [-2.0, 0.0], [0.0, 2.0], [0.0, -2.0], [2 / math.sqrt(2), 2 / math.sqrt(2)], [-2 / math.sqrt(2), -2 / math.sqrt(2)]])
+check("R200 crop [4:60] valid for all |ε| ≤ 2 (4-tap)", bool(warp_support_mask(64, 64, worst2)[:, :, 4:60, 4:60].all()))
+g.manual_seed(7); a1 = sample_offsets(48, 1.0, g); g.manual_seed(7); a2 = sample_offsets(48, 2.0, g)
+check("same seed: R200 ε = 2 × R100 ε (기초 난수 동일)", torch.allclose(a2, 2 * a1))
 print("\n" + ("전부 통과" if not FAIL else f"실패 {len(FAIL)}: {FAIL}"))
 sys.exit(1 if FAIL else 0)

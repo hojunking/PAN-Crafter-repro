@@ -70,6 +70,9 @@ COLUMNS = [
     # 값은 tools/eval_fr_paperset.py 가 쓴 results/fr_mat20.json 에서 읽는다. 없으면 빈 칸.
     ("FR·paper mat20", "D_lambda↓", "p_d_lambda", 4), ("FR·paper mat20", "D_s↓", "p_d_s", 4),
     ("FR·paper mat20", "HQNR↑", "p_hqnr", 4),
+    # masking 있는 HQNR (2026-09-10 사용자 요청): 가장자리 64 px(블록 2개) 를 뺀 고정 영역 [64:H-64,64:W-64] 의 (1-D_λ)(1-D_s) 장면 평균.
+    # 필터(MTF·imresize·interp23tap·Sobel)는 전체 프레임에서 계산한 뒤 자른다. 논문 프로토콜은 전체 프레임(HQNR↑) — 비교표에는 HQNR↑ 를 쓴다.
+    ("FR·paper mat20", "HQNR(V64)↑", "p_hqnr_valid", 4),
     # JQM (Palubinskas 2015, tools/metrics/jqm.py) — 두 논문이 보고하지 않는 추가 지표. 판정 기준이 아니다(HQNR→SCC 유지).
     ("FR·paper mat20", "JQM↑", "p_jqm", 4),
     # 배포 H5 의 12-19(8장) FR 열은 2026-09-07 시트에서 뺐다 (사용자 결정 — 논문 세트만 보고한다).
@@ -148,6 +151,8 @@ def _fr_paper(wd, peer=None):
     out = {"p_hqnr": j["hqnr"], "p_d_lambda": j["d_lambda"], "p_d_s": j["d_s"]}
     if "jqm" in j:
         out["p_jqm"] = j["jqm"]
+    if "hqnr_valid" in j:
+        out["p_hqnr_valid"] = j["hqnr_valid"]
     return out
 
 

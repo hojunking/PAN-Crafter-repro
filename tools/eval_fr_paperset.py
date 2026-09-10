@@ -49,8 +49,9 @@ CKPTS = ("best_hqnr", "best_val", "best_reduced")
 #   2026-09-08.3  JQM(Palubinskas 2015; tools/metrics/jqm.py) 추가 — D_λ/D_s/HQNR 은 .2 와 같으므로 .2 JSON 은 저장된
 #                 mat 에서 JQM 만 계산해 올린다(재추론 없음)
 #   2026-09-08.4  JQM 을 SIPSA-Net 규약(QLR 균등평균·QHR 볼록 가중)으로, 범위 정책 추가 — .2/.3 JSON 도 mat 에서 JQM 만 갱신
-EVAL_VERSION = "2026-09-08.4"
+EVAL_VERSION = "2026-09-10.5"            # .5: HQNR(V64) — 가장자리 64 px(블록 2개) 제외 고정 영역의 D_λ/D_s/HQNR/fSCC 를 함께 기록 (masking 유무 두 가지, 2026-09-10 사용자 요청)
 JQM_COMPATIBLE = ("2026-09-07.2", "2026-09-08.3")
+VIEWS_COMPATIBLE = ("2026-09-08.4",)      # JQM 까지 있는 JSON: 저장 mat 에서 V64 필드만 더한다 (재추론 없음)
 
 _SHA = {}
 
@@ -172,6 +173,18 @@ def jqm_fields(sr_hwc_list, ms_all, pan_all, sensor, R):
                              "(w=" + r[0]["w_source"] + "; SRF 없어 NNLS 정규화 대체), lpf=genMTF(sensor)+(2,2) 데시메이션, 입력 [0,R] 클립, v1=v2=0.5, R=2^L-1")
 
 
+def valid_fields(sr_hwc_list, lms_all, pan_all, sensor, wald, R):
+    """전체 프레임(raw_original)·고정 V64(raw_valid) 두 view. 전체 프레임 값은 d_lambda_k/d_s 와 동일(E02) — 여기서는 V64 와 fSCC 만 취한다."""
+    from pa.evalviews import raw_views, MARGIN
+    r = [raw_views(s, lms_all[i], pan_all[i], sensor, wald, 4, R) for i, s in enumerate(sr_hwc_list)]
+    hv = np.array([x["raw_valid"]["hqnr"] for x in r]); dlv = np.array([x["raw_valid"]["d_lambda"] for x in r]); dsv = np.array([x["raw_valid"]["d_s"] for x in r])
+    f0 = np.array([x["raw_original"]["fscc"] for x in r]); fv = np.array([x["raw_valid"]["fscc"] for x in r])
+    sd = (lambda v: float(v.std(ddof=1))) if len(hv) > 1 else (lambda v: 0.0)
+    return dict(hqnr_valid=float(hv.mean()), hqnr_valid_sd=sd(hv), d_lambda_valid=float(dlv.mean()), d_s_valid=float(dsv.mean()), fscc=float(f0.mean()), fscc_valid=float(fv.mean()),
+                per_scene_hqnr_valid=[round(float(x), 6) for x in hv], valid_roi=f"[{MARGIN}:H-{MARGIN}, {MARGIN}:W-{MARGIN}] (block-aligned; filters on full frame, then crop)",
+                valid_protocol="pa/evalviews.raw_views — masking 유무 두 HQNR: HQNR(전체 프레임, 논문 프로토콜) · HQNR(V64)(가장자리 64px 제외)")
+
+
 def run_one(tag, h5, wald, dev, force, peer=None):
     wd = os.path.join(ROOT, "work_dir", tag)
     sfx = "_peerB" if peer == "B" else ""
@@ -210,9 +223,21 @@ def run_one(tag, h5, wald, dev, force, peer=None):
                 ms_all = np.asarray(f["ms"], dtype=np.float64).transpose(0, 2, 3, 1); pan_all = np.asarray(f["pan"], dtype=np.float64)[:, 0]
             srm = loadmat(mat_prev)["sr"].astype(np.float64)
             srl = [srm[i].transpose(1, 2, 0) for i in range(len(srm))]
-            j.update(jqm_fields(srl, ms_all, pan_all, sensor, R)); j["eval_version"] = EVAL_VERSION
+            with h5py.File(h5) as f:
+                lms_all = np.asarray(f["lms"], dtype=np.float64).transpose(0, 2, 3, 1)
+            j.update(jqm_fields(srl, ms_all, pan_all, sensor, R)); j.update(valid_fields(srl, lms_all, pan_all, sensor, wald, R)); j["eval_version"] = EVAL_VERSION
             json.dump(j, open(out_json, "w"), indent=1)
-            return j, "jqm-added"
+            return j, "jqm+valid-added"
+        # JQM 까지 있는 JSON: 저장 mat 에서 V64 view 만 더한다 (재추론 없음)
+        if j.get("eval_version") in VIEWS_COMPATIBLE and cache_valid(j, ckpt, ckpt_mtime, prov, ignore_version=True) and os.path.exists(mat_prev):
+            import h5py
+            with h5py.File(h5) as f:
+                lms_all = np.asarray(f["lms"], dtype=np.float64).transpose(0, 2, 3, 1); pan_all = np.asarray(f["pan"], dtype=np.float64)[:, 0]
+            srm = loadmat(mat_prev)["sr"].astype(np.float64)
+            srl = [srm[i].transpose(1, 2, 0) for i in range(len(srm))]
+            j.update(valid_fields(srl, lms_all, pan_all, sensor, wald, R)); j["eval_version"] = EVAL_VERSION
+            json.dump(j, open(out_json, "w"), indent=1)
+            return j, "valid-added"
     try:
         m, fwd, how = build(cfg, wd, ckpt, peer)
     except NotImplementedError as e:
@@ -243,7 +268,7 @@ def run_one(tag, h5, wald, dev, force, peer=None):
         s = sr[i].astype(np.float64).transpose(1, 2, 0); srl.append(s)
         # 센서별 MTF(genMTF.m: WV3/WV2/QB 표, GF2 는 otherwise 0.3) — eval_fr.SENSOR_NAME 이 preset 키로 매핑
         dl.append(d_lambda_k(s, lms_all[i], sensor, 4, 32, wald)); dsv.append(d_s(s, lms_all[i], pan_all[i], 4, 32, wald))
-    jq = jqm_fields(srl, ms_all, pan_all, sensor, R)
+    jq = jqm_fields(srl, ms_all, pan_all, sensor, R); jq.update(valid_fields(srl, lms_all, pan_all, sensor, wald, R))
     dl, dsv = np.array(dl), np.array(dsv); h = (1 - dl) * (1 - dsv)
     sd = (lambda v: float(v.std(ddof=1))) if len(h) > 1 else (lambda v: 0.0)     # MATLAB std (N-1)
     j = dict(hqnr=float(h.mean()), hqnr_sd=sd(h), d_lambda=float(dl.mean()), d_lambda_sd=sd(dl),
@@ -291,7 +316,7 @@ def main():
                 print(f"  {lab:52s} 실패: {type(e).__name__}: {e}", flush=True); continue
             if j is None:
                 print(f"  {lab:52s} 건너뜀 ({st})", flush=True); continue
-            print(f"  {lab:52s} HQNR {j['hqnr']:.4f}±{j['hqnr_sd']:.4f}  D_l {j['d_lambda']:.4f}  D_s {j['d_s']:.4f}  JQM {j.get('jqm', float('nan')):.4f}  [{j['checkpoint']}, {st}]", flush=True)
+            print(f"  {lab:52s} HQNR {j['hqnr']:.4f}±{j['hqnr_sd']:.4f}  HQNR(V64) {j.get('hqnr_valid', float('nan')):.4f}  D_l {j['d_lambda']:.4f}  D_s {j['d_s']:.4f}  JQM {j.get('jqm', float('nan')):.4f}  [{j['checkpoint']}, {st}]", flush=True)
     return 0
 
 

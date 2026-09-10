@@ -1,12 +1,13 @@
-# PO10 N2_SG [R100_TRAINP90, b=1.0 HR px] — PAN 추가 변위 + offset consistency, seed 2025, 50000 updates. 생성: tools/gen_po10_configs.py (템플릿 PA_A1_REC_W96_D124_9CH_S2025). 손으로 고치지 말 것.
+# PO10 N2_SG [R200_FRSTAT, b=2.0 HR px] — PAN 추가 변위 + offset consistency, seed 2025, 50000 updates. 생성: tools/gen_po10_configs.py (템플릿 PA_A1_REC_W96_D124_9CH_S2025). 손으로 고치지 말 것.
+# 변경 명세: research_log/PAN_OffsetConsistency_ChangeNote_R100_to_R200_2026-09-10.md — 반경 1.0→2.0, 근거는 FR 논문 세트 입력 통계(P95 1.98). 옛 R100 run 과 별개의 새 독립 학습
 # 명세: research_log/PAN_OffsetConsistency_10GPUh_W96_D124_2026-09-10.md · 구현 train_po.py / pa/offset.py
 # A1 과 같은 골격·9ch·mars ms·γβ 제거·AdamW 1e-4/wd0.01 cosine·batch 48·init(work_dir/_pa_init seed 2025) · aligner 고정 내부 view margin 4
-# native/corrupt 1:1 (update 짝/홀). corrupt: ε ~ disk b=1.0 HR px. L_rec + 0.01·|ĉε+ε−sg(ĉ0)| (5K ramp)
+# native/corrupt 1:1 (update 짝/홀). corrupt: ε ~ disk b=2.0 HR px. L_rec + 0.01·|ĉε+ε−sg(ĉ0)| (5K ramp)
 # best_hqnr = best_raw(raw_original HQNR → fSCC → later step) · best_aligned · last 보존. 시트 = raw_original(HQNR↑) + V64(HQNR(V64)↑)
 expect_params_m: 2.123     # backbone 만 (aligner 0.1053M 은 smoke 가 따로 확인)
 seed: 2025
 num_worker: 4
-work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/PO10_N2_OFFSG_W96_D124_WV3_S2025
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/PO10_N2_OFFSG_W96_D124_WV3_S2025_R200_FRSTAT
 
 phase: train
 
@@ -14,10 +15,29 @@ mars: ms                      # PAN mode·loss·batch 복제 제거 (단일 task
 trainer: po
 po:
   case: N2_SG
-  radius_hr: 1.0                 # b (HR px), run 안에서 고정; ε 만 sample 마다 뽑는다
-  protocol_id: pan_offset_rel_10h_v1
-  radius_profile: R100_TRAINP90
-  radius_source: 'audit appendix E WV3 train global |δ| P90 0.250 LR px × 4'
+  radius_hr: 2.0                 # b (HR px), run 안에서 고정; ε 만 sample 마다 뽑는다
+  protocol_id: pan_offset_rel_10h_v2_wv3_r200_frstat
+  radius_profile: R200_FRSTAT
+  radius_source: 'results_log/2026-09-10_pa-a1-a3-s1-results.md §7 WV3 FR |δ| P95 1.98 HR px (FR-input-statistics-informed development)'
+  radius_provenance:
+    dataset: WV3
+    profile: FRSTAT_R200
+    selected_radius_hr: 2.0
+    observed_statistic: report_abs_delta_P95
+    observed_value_hr: 1.98
+    source_split: FR_paper_mat20
+    source_scene_count: 20
+    report_file: 2026-09-10_pa-a1-a3-s1-results.md
+    report_section: 7
+    reference_pair: PAN_b_from_bicubic_upsampled_MS
+    calibration_quality: fr_input_statistics_informed_development
+    uses_evaluation_input_statistics: true
+    uses_FR_HRMS_ground_truth: false
+    selection_note: nearby_execution_scale_chosen_before_new_run
+    radius_is_trainable: false
+    radius_changes_within_pure_run: false
+    runtime_recalibration: false
+  training_regime: restart_pure
   lambda_off_max: 0.01
   ramp_updates: 5000
   diag_every: 1000

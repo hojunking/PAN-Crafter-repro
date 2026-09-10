@@ -77,3 +77,31 @@
 | ② prediction_change_norm 이 이전 진단 시점 대비 | **맞음** | 같은 update 전후의 `prediction_change_norm_1step`(고정 native batch) + `prediction_change_since_last_diag` 둘 다 기록 |
 
 N1 은 11:33 에 옛 코드로 시작돼 있었다 — 세 run 이 같은 코드여야 하므로 N1 을 중단·삭제하고 고친 코드로 다시 시작한다(사용한 GPU 시간은 ledger 에 `aborted` 로 남긴다).
+
+## 7. 변경 명세 R100 → R200 적용 (2026-09-10 오후) — 다음 실험부터
+
+변경 명세: [`PAN_OffsetConsistency_ChangeNote_R100_to_R200_2026-09-10.md`](PAN_OffsetConsistency_ChangeNote_R100_to_R200_2026-09-10.md). 사용자 지시: **다음 실험부터 적용**, 노트에 구분.
+
+| 구분 | R100 (옛 protocol `pan_offset_rel_10h_v1`) | R200 (새 protocol `pan_offset_rel_10h_v2_wv3_r200_frstat`) |
+|---|---|---|
+| 반경 b | 1.0 HR px (audit 부록 E train P90 0.250 LR px × 4, train_aggregate_proxy) | **2.0 HR px** (09-10 §7 WV3 FR \|δ\| P95 1.98 HR px, `fr_input_statistics_informed_development`) |
+| run | `PO10_N1_REC_W96_D124_WV3_S2025` — 13:16 기동, **완주시켜 R100 기록으로 보존**. R100 N2/N3 는 **실행하지 않음**(큐에서 제거, 옛 체인 스케줄러 중지) | `PO10_{N1_REC,N2_OFFSG,N3_OFFNOSG}_W96_D124_WV3_S2025_R200_FRSTAT` — 같은 init snapshot 에서 **새 독립 학습**(restart_pure), N3 는 예산 gate |
+| 큐 | `config/queues/po10_s1.txt` (기록용) | `config/queues/po10_s1_r200_frstat.txt` — 첫 줄은 R100 N1(완료분 업로드용) |
+| 그 밖 | 원판 uniform·1:1 교대·λ 0.01/5K·margin 4·loss·평가 전부 동일 | 동일 (변경 명세 §3 대조표) |
+| manifest | `corruption_scale_manifest.json`: radius_profile R100_TRAINP90 | radius_profile R200_FRSTAT + `radius_provenance`(uses_evaluation_input_statistics **true**), training_regime restart_pure, parent_run_id null |
+| 진단 | probe 0·±0.5·±1 (in-range) + stress ±1.5·±2 | probe 0·±0.5·±1·±1.5·±2 전부 in-range — 같은 절대 변위 구간에서 R100 과 비교. \|ε\| 0.5 px 구간별 closure 기록 |
+| 예산 | 같은 10 GPU-h ledger 에 profile 표시. 사용: gate 0.3 + 폐기 1.65 + R100 N1 ≈1.55 | 남은 ≈ 6.5 h → R200 N1·N2 확실, N3 는 gate(6.6 + 1.2×1.55 + 1 ≈ 9.5 ≤ 10 → 통과 예상) |
+
+R100 N1 은 옛 코드가 아니라 2차 검토까지 반영된 코드(13:16 기동)로 완주하므로 R100 기록으로 유효하다. 다만 R100 은 N1 하나뿐이라 R100 안의 N2−N1 대응은 없다 — R200 block 이 주 비교다.
+
+### HQNR 두 가지 (masking 유무) — 모든 run 의 시트 열
+
+사용자 요청: masking 들어간 HQNR 과 들어가지 않은 HQNR 을 둘 다 뽑는다.
+
+| 열 | 정의 | 어디서 |
+|---|---|---|
+| `HQNR↑` | 전체 프레임(논문 프로토콜, crop 없음). 논문 비교표는 이 값 | `tools/eval_fr_paperset.py` (기존) |
+| `HQNR(V64)↑` | 가장자리 64 px(블록 2개)를 뺀 고정 영역 [64:H−64, 64:W−64] 의 장면별 (1−D_λ)(1−D_s) 평균. 필터는 전체 프레임에서 계산한 뒤 자른다 — A1–A3/PO10 의 raw_valid 와 같은 정의 | `pa/evalviews.raw_views` → `fr_mat20.json` 의 `hqnr_valid`(+ `d_lambda_valid`, `d_s_valid`, `fscc`, `fscc_valid`) |
+
+evaluator 버전 `2026-09-10.5`. 기존 run 은 저장된 `full_*_mat20.mat` 에서 재추론 없이 V64 필드만 더한다(`--all`). 시트는 `--all --replace` 로 열을 추가한다.
+09-09 문서 §7 에서 본 대로 CNN 출력의 D_λ 는 테두리 한 블록 몫이 21~64% 라 두 값의 차이가 크다 — 모델 간 비교는 각 열 안에서만 한다.

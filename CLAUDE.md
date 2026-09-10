@@ -184,4 +184,6 @@ config `BASE_W96_D124_MSPAN_WV3_S*`(`tools/gen_w96_d124_mspan_configs.py`), 기�
 
 2026-09-10 s1 결과(`results_log/2026-09-10_pa-a1-a3-s1-results.md`): aligner 는 방향은 맞지만 입력 무반응 상수(0.2 px). 후속 **PO10**(PAN 추가 변위 + offset consistency,
 명세 `research_log/PAN_OffsetConsistency_10GPUh_W96_D124_2026-09-10.md`, 구현 `pa/offset.py` + `train_po.py`(trainer: po), 노트 `research_log/2026-09-10_po10-implementation.md`):
-s1 seed 2025, 큐 `config/queues/po10_s1.txt`(N1 → N2 → N3 예산 gate), 기동 `./tools/po10_prepare.sh`, 예산 ledger `work_dir/_po10_budget/ledger.json`.
+s1 seed 2025, 예산 ledger `work_dir/_po10_budget/ledger.json`. **2026-09-10 오후 변경**(`research_log/PAN_OffsetConsistency_ChangeNote_R100_to_R200_2026-09-10.md`):
+R100(b=1.0)은 N1 만 기록으로 보존, 다음 실험부터 **R200(b=2.0, FR 입력 통계 참고, `_R200_FRSTAT`)** — 큐 `config/queues/po10_s1_r200_frstat.txt`, 생성 `tools/gen_po10_configs.py --radius 2.0`.
+시트 FR·paper 에 **HQNR↑(전체 프레임, 논문 프로토콜)** 과 **HQNR(V64)↑(가장자리 64px 제외)** 두 열 — 비교표는 HQNR↑. evaluator 2026-09-10.5.

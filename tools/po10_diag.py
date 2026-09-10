@@ -5,7 +5,7 @@
     python tools/po10_diag.py --run PA_A1_REC_W96_D124_9CH_S2025          # 과거 A1 (전체 view) 도 같은 진단 (배경 기준)
 
 산출 work_dir/<run>/{offset_response_native64.csv, offset_response_rr256.csv, offset_response_fr512.csv, interpolation_controls.json} + results/po10_diag.json
-  §10.3 반응: q(ε) = ĉε − ĉ0, 2D 선형 fit q ≈ Bε + b (목표 B≈−I, b≈0). probe 0·±R/2·±R 축 방향 + 원판 무작위 + ±2R 외삽 stress (별도 표시).
+  §10.3 반응: q(ε) = ĉε − ĉ0, 2D 선형 fit q ≈ Bε + b (목표 B≈−I, b≈0). 절대 probe 0·±0.5·±1·±1.5·±2 HR px 축 방향(|e|≤R 만 in-range, 나머지 stress) + 원판 무작위. |ε| 0.5 px 구간별 closure.
         closure error ||ĉε − ĉ0 + ε||₂ 의 mean/P50/P90, 고정 R 로 나눈 상대값. native ĉ0 mean/median/IQR.
         64² 는 학습·calibration 과 분리된 valid_wv3.h5 patch(고정 sample id), 256² 는 RR test, 512² 는 FR 논문 세트.
   §10.4 대조: (1) outer padding 변경(border→reflection)에 대한 ĉε 불변 (2) MS 교체/상수 MS 에서의 closure (3) zero/learned/wrong-sign 은 pa_diag
@@ -62,8 +62,10 @@ def datasets(cfg):
 def response(m, samples, R, mg, dev, seed=12345, kernel="bicubic", ms_mode="own"):
     """probe: 0, ±R/2, ±R 축 방향(8) + 원판 무작위 8 + ±2R 축 stress(4). 반환 rows(list of dict), fit dict."""
     g = torch.Generator(device="cpu"); g.manual_seed(seed)
-    probes = [(0.0, 0.0)] + [(s * R * f, 0.0) for s in (1, -1) for f in (0.5, 1.0)] + [(0.0, s * R * f) for s in (1, -1) for f in (0.5, 1.0)]
-    stress = [(2 * R, 0.0), (-2 * R, 0.0), (0.0, 2 * R), (0.0, -2 * R)]
+    # 절대 probe (HR px) — R100/R200 을 같은 변위 구간에서 비교 (변경 명세 §6.3). |e| ≤ R 은 in-range 'probe', 그 밖은 'stress'
+    AX = (0.5, 1.0, 1.5, 2.0)
+    probes = [(0.0, 0.0)] + [(sg * f, 0.0) for sg in (1, -1) for f in AX if f <= R + 1e-9] + [(0.0, sg * f) for sg in (1, -1) for f in AX if f <= R + 1e-9]
+    stress = [(sg * f, 0.0) for sg in (1, -1) for f in AX if f > R + 1e-9] + [(0.0, sg * f) for sg in (1, -1) for f in AX if f > R + 1e-9]
     rows = []
     for i, (pan, ms) in enumerate(samples):
         pan, ms = pan.to(dev), ms.to(dev)
@@ -75,7 +77,7 @@ def response(m, samples, R, mg, dev, seed=12345, kernel="bicubic", ms_mode="own"
         mb = F.interpolate(ms_use, scale_factor=4, mode="bicubic")
         c0 = predict_c(m.aligner, pan, mb, mg)[0].cpu().numpy()
         rnd = sample_offsets(8, R, g).numpy().tolist()
-        for kind, eps_list in (("probe", probes), ("random", rnd), ("stress2R", stress)):
+        for kind, eps_list in (("probe", probes), ("random", rnd), ("stress", stress)):
             for ey, ex in eps_list:
                 pe = warp_generic(pan, torch.tensor([[ey, ex]], device=dev), mode=kernel)
                 ce = predict_c(m.aligner, pe, mb, mg)[0].cpu().numpy()
@@ -86,15 +88,20 @@ def response(m, samples, R, mg, dev, seed=12345, kernel="bicubic", ms_mode="own"
 
 def fit(rows, R):
     """q ≈ B ε + b (least squares, in-range: probe+random)."""
-    r = [x for x in rows if x["kind"] != "stress2R"]
+    r = [x for x in rows if x["kind"] != "stress"]
     E = np.array([[x["ey"], x["ex"], 1.0] for x in r]); Q = np.array([[x["q_dy"], x["q_dx"]] for x in r])
     coef, *_ = np.linalg.lstsq(E, Q, rcond=None)                              # [3,2]: rows (ey, ex, 1), cols (q_dy, q_dx)
     B = coef[:2].T; b = coef[2]
-    cl = np.array([x["closure"] for x in r]); cs = np.array([x["closure"] for x in rows if x["kind"] == "stress2R"])
+    cl = np.array([x["closure"] for x in r]); cs = np.array([x["closure"] for x in rows if x["kind"] == "stress"])
     c0 = np.array([[x["c0_dy"], x["c0_dx"]] for x in rows if x["kind"] == "probe" and x["ey"] == 0 and x["ex"] == 0])
+    en = np.array([np.hypot(x["ey"], x["ex"]) for x in rows]); ca = np.array([x["closure"] for x in rows])
+    bins = {}
+    for lo in (0.0, 0.5, 1.0, 1.5):
+        sel = (en > lo) & (en <= lo + 0.5) if lo > 0 else (en >= 0) & (en <= 0.5)
+        bins[f"{lo:.1f}-{lo + 0.5:.1f}"] = dict(n=int(sel.sum()), closure_mean=(float(ca[sel].mean()) if sel.any() else None), in_range=bool(lo + 0.5 <= R + 1e-9))
     return dict(B=B.tolist(), b=b.tolist(), B_diag=[float(B[0, 0]), float(B[1, 1])], B_cross=[float(B[0, 1]), float(B[1, 0])], ideal_B_diag=-1.0,
                 closure_mean=float(cl.mean()), closure_p50=float(np.median(cl)), closure_p90=float(np.percentile(cl, 90)), closure_rel_R=float(cl.mean() / R),
-                stress2R_closure_mean=(float(cs.mean()) if len(cs) else None), n_in_range=int(len(r)),
+                stress_closure_mean=(float(cs.mean()) if len(cs) else None), stress_probes_abs_hr=[f for f in (0.5, 1.0, 1.5, 2.0) if f > R + 1e-9], closure_by_eps_bin=bins, n_in_range=int(len(r)),
                 native_c0_mean=c0.mean(0).tolist(), native_c0_median=np.median(c0, 0).tolist(), native_c0_iqr=[np.subtract(*np.percentile(c0[:, k], [75, 25])) for k in range(2)])
 
 
@@ -176,7 +183,7 @@ def main():
     for name, samples in ds.items():
         rows, ft = response(m, samples, R, mg, dev); write_csv(os.path.join(wd, f"offset_response_{name}.csv"), rows); out["response"][name] = ft
         print(f"  {name:9s} B diag ({ft['B_diag'][0]:+.3f}, {ft['B_diag'][1]:+.3f}) cross ({ft['B_cross'][0]:+.3f}, {ft['B_cross'][1]:+.3f}) b ({ft['b'][0]:+.3f},{ft['b'][1]:+.3f}) "
-              f"| closure mean {ft['closure_mean']:.3f} p50 {ft['closure_p50']:.3f} p90 {ft['closure_p90']:.3f} (rel R {ft['closure_rel_R']:.2f}) | ±2R stress {ft['stress2R_closure_mean']:.3f} "
+              f"| closure mean {ft['closure_mean']:.3f} p50 {ft['closure_p50']:.3f} p90 {ft['closure_p90']:.3f} (rel R {ft['closure_rel_R']:.2f}) | stress(>R) {ft['stress_closure_mean']} "
               f"| native ĉ0 median ({ft['native_c0_median'][0]:+.3f},{ft['native_c0_median'][1]:+.3f})")
     out["interpolation_controls"] = ic = interpolation_controls(m, ds["native64"], R, mg, dev)
     json.dump(ic, open(os.path.join(wd, "interpolation_controls.json"), "w"), indent=1)

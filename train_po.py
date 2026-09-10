@@ -62,6 +62,13 @@ class OffsetConsistencyTrainer(PATrainer):
         self.case = po.get("case"); assert self.case in PO_CASES, f"po.case 는 {list(PO_CASES)}"
         self.radius_hr = float(po.get("radius_hr", 1.0)); assert self.radius_hr > 0
         self.radius_source = po.get("radius_source", "audit appendix E WV3 train global |δ| P90 0.250 LR px × 4")
+        self.protocol_id = po.get("protocol_id", "pan_offset_rel_10h_v1")
+        self.radius_profile = po.get("radius_profile", "R100_TRAINP90")
+        self.radius_provenance = po.get("radius_provenance") or dict(dataset="WV3", profile=self.radius_profile, selected_radius_hr=self.radius_hr, observed_statistic="train_global_norm_P90",
+                                                                     observed_value_lr=0.250, ratio=4, source_split="train (audit appendix E)", uses_evaluation_input_statistics=False,
+                                                                     uses_FR_HRMS_ground_truth=False, radius_is_trainable=False, radius_changes_within_pure_run=False, runtime_recalibration=False)
+        self.training_regime = po.get("training_regime", "restart_pure")          # restart_pure | staged (R100→R200 단계 학습이면 parent_run_id·switch_update 를 준다)
+        self.parent_run_id = po.get("parent_run_id"); self.switch_update = po.get("switch_update")
         self.lam_off_max = 0.0 if self.case == "N1" else float(po.get("lambda_off_max", 0.01))
         self.ramp = int(po.get("ramp_updates", 5000))
         self.diag_every = int(po.get("diag_every", 1000))
@@ -92,7 +99,7 @@ class OffsetConsistencyTrainer(PATrainer):
     def _budget_gate(self):
         d = _ledger_load(); d.setdefault("total_gpu_hours", self.budget_total)
         used = budget_used_hours(d)
-        rec = dict(case=self.case, started=time.strftime("%Y-%m-%dT%H:%M:%S"), required=self.required)
+        rec = dict(case=self.case, started=time.strftime("%Y-%m-%dT%H:%M:%S"), required=self.required, profile=self.radius_profile, radius_hr=self.radius_hr, protocol_id=self.protocol_id)
         if not self.required:
             done = [e for k, e in d["entries"].items() if e.get("kind") == "run" and e.get("finished")]
             proj = float(np.mean([e["hours"] for e in done])) * 1.03 if done else float("nan")     # N3: aligner backward 한 번 더 ≈ +3%
@@ -114,8 +121,10 @@ class OffsetConsistencyTrainer(PATrainer):
 
     def _write_po_manifests(self):
         wd = self.args.work_dir; seed = int(self.args.seed)
-        m = dict(protocol_id="pan_offset_rel_10h_v1", scale_source="research_log/2026-09-03_alignment-audit-s2-detail.md appendix E — WV3 train HR-grid decomposition, global |δ| P90 = 0.250 LR px (n=199)",
-                 calibration_quality="train_aggregate_proxy", observed_value_lr=0.250, ratio=4, radius_hr=self.radius_hr, distribution="uniform_disk_area", center_yx=[0, 0],
+        m = dict(protocol_id=self.protocol_id, radius_profile=self.radius_profile, radius_provenance=self.radius_provenance,
+                 training_regime=self.training_regime, parent_run_id=self.parent_run_id, switch_update=self.switch_update,
+                 scale_source=self.radius_source, calibration_quality=self.radius_provenance.get("calibration_quality", "train_aggregate_proxy"),
+                 radius_hr=self.radius_hr, distribution="uniform_disk_area", center_yx=[0, 0],
                  expected_axis_sd=self.radius_hr / 2.0, native_corrupt_step_ratio=[1, 1], rng="dedicated CPU torch.Generator", corruption_seed=self.corr_seed,
                  aligner_view_margin_hr=self.aligner_view_margin, margin_rule="4*ceil((R+2)/4)", pass_epsilon_to_network=False,
                  corrupted_route="sequential_two_raster_warps", native_route="single_learned_warp",
