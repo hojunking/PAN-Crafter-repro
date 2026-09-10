@@ -143,3 +143,25 @@ corrupt 에서는 PAN 에만 원판 R=1 HR px(audit 부록 E train P90 0.25 LR p
 `PO10_N1_REC / N2_OFFSG / N3_OFFNOSG _W112_D123_..._R200_FRSTAT` 세 run 을 새로 학습한다(주 비교). **골격도 W112·D123 으로 바꾼다**(사용자 결정) — B0/A1/R100(W96·D124)과는 골격이 달라 직접 대응하지 않고 block 안 N2−N1·N3−N2 만 본다.
 상세는 구현 노트 §7. 시트에는 HQNR↑(전체 프레임)과 HQNR(V64)↑(가장자리 64 px 제외) 두 열이 모두 오른다.
 결과·진단은 run 폴더 `checkpoint_metrics.csv`, `offset_response_*.csv`, `interpolation_controls.json`, `results/{pa_diag,po10_diag}.json`, 예산은 `work_dir/_po10_budget/ledger.json`.
+
+## 9. 추기 [WIP] — s2: W112·D124 GT-anchored KD · 출력 통계 variance · aligner 재사용 (구현 완료, s2 기동 대기)
+
+계획 묶음 `research_log/PAN_S2_W112_KD_Variance_Plan_and_References_2026-09-10/` 를 현 workspace 기준으로 검토·구현했다 — 검토표·구현 지도·gate·실행 절차는
+[구현 노트](../research_log/2026-09-10_s2-w112-kdv-implementation.md). 실행: `trainer: kdv`(`train_kdv.py`, `kdv/`), config `config/S2W112_*.yaml`(`tools/gen_kdv_configs.py`),
+큐 `config/queues/kdv_s2.txt`, 기동 `./tools/kdv_prepare.sh`(s2). 시트 범주 ⑳ KDV(`S2W112_*`).
+
+| Q | run | 세팅 (aligner / rec / stat) | 역할 |
+|---|---|---|---|
+| Q00 | `S2W112_NOALIGN_IA_AID_N0_OFF_G0_s1234_v01` | aligner·sampler 없음 / L1 / — | W112 독립 baseline |
+| Q01 | `S2W112_T112DFR_IA_AFR_N0_OFF_G0_s2025_v01` | donor aligner frozen / L1 / — (seed 2025) | **Teacher** `T112_v01` |
+| Q02 | `S2W112_A1_IA_AFR_N0_OFF_G0_s1234_v01` | donor frozen / L1 / — | GT-only 기준, λ_V pilot |
+| Q03 | `S2W112_A1_IA_AFR_R1_OFF_G0_s1234_v01` | donor frozen / (1+d_T)·L1 / — | hard 재가중 |
+| Q04 | `S2W112_A1_IA_AFR_R3_OFF_G0_s1234_v01` | donor frozen / adaptive hard+soft / — | adaptive rec 기준 |
+| Q05 | `S2W112_A1_IA_AFR_R3_GVH_G0_s1234_v01` | donor frozen / adaptive / GT gradient-variance 5×5 (H) | GT 통계 |
+| Q06 | `S2W112_A1_IA_AFR_R3_GVAD_G0_s1234_v01` | donor frozen / adaptive / GV adaptive (AD) | 첫 주력 후보 |
+| Q07 | `S2W112_A1_IA_AFT_R3_GVAD_G0_s1234_v01` | donor 초기화 후 학습 / adaptive / GV-AD | aligner fine-tune |
+| Q08 | `S2W112_A1_IA_ASC_R3_GVAD_G0_s1234_v01` | 독립 초기화 학습 / adaptive / GV-AD | 초기값 제약 |
+
+공통: W112·D124(2.8854 M) · MS+PAN 9ch · 단일 HRMS · AdamW 1e-4/wd0.01 cosine · batch 48 · 50K · fp32 · I-A(native 입력) · donor = s1 `PA_A1_REC_W96_D124_9CH_S2025` aligner(asset).
+판정: 시트 HQNR↑(best_raw, raw_original) → SCC(ERGAS 참고). 핵심 대응: R3−R1(output target KD), R3 vs N0, GV-AD vs GV-H(Teacher 통계 KD), A-FT/A-SC vs A-FR(aligner 정책). Teacher 는 seed 2025 라 Q02(seed 1234) 와의 차이가 seed 변동의 하한 참고값.
+**주의**: 계획은 depth [1,2,4] 유지 — 같은 날 s1 PO10 R200 block 의 W112·D123 과 골격이 다르다(직접 대응 아님). s1 dry run(300 updates) 으로 전체 경로(calibration·KD·통계·세 view·best_rr_val·export·시트 evaluator)를 확인했다(구현 노트 §6).

@@ -231,6 +231,71 @@ def check_trainer_extras(cfg):
         if dev.type == "cuda":
             torch.cuda.empty_cache()
         return note
+    if tr == "kdv":
+        # s2 W112 KDV: skeleton(정책별 aligner/sampler) + donor strict + Teacher strict(존재해야 한다) + 실제 loss 조합으로 실배치 1 step (peak·시간) + FR 512² forward
+        from kdv.registry import resolve, run_name
+        from kdv.teacher_assets import skeleton_from_cfg, load_donor_aligner, load_run_model, freeze
+        from kdv.forward import kdv_forward
+        from kdv.losses_rec import GTAnchoredReconstructionKD
+        from kdv.losses_stat import stat_term, MODE_TO_CRITERION
+        from kdv.protocol import prepare_view
+        k = cfg.get("kdv") or {}; sp = resolve(k)
+        assert cfg.get("mars") == "ms" and cfg["model_args"].get("in_mode") == "paper" and cfg["model_args"].get("mode_modulation") is False, "kdv 는 9ch·mars ms·γβ 제거 위"
+        exp_name = run_name(sp, int(cfg["seed"]), k.get("version", "v01"))
+        assert not k.get("check_run_name", True) or os.path.basename(cfg["work_dir"].rstrip("/")) == exp_name, f"run 이름 규칙 불일치: {exp_name}"
+        dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        mod, cls = cfg["model"].rsplit(".", 1); Model = getattr(importlib.import_module(mod), cls)
+        m, info = skeleton_from_cfg(cfg, Model); m.to(dev); randomize_zero_params(m.backbone)
+        note = f" KDV:{sp['policy']}/{sp['rec_case']}/{'OFF' if not sp['stat_enabled'] else sp['stat_key'] + sp['stat_mode']}/{sp['geom']}"
+        if sp["policy"] in ("A-FR", "A-FT"):
+            al, dman = load_donor_aligner(k["donor"]["source"], int(cfg["num_bands"]), (k["donor"] or {}).get("expected_sha256")); m.aligner.load_state_dict(al.state_dict(), strict=True)
+            note += f" donor={dman['aligner_tensors_sha256_16'][:8]}"
+        if sp["policy"] == "A-FR":
+            freeze(m.aligner)
+        teacher = None
+        if sp["needs_teacher"]:
+            t = k["teacher"]; teacher, tman = load_run_model(t["run"], t.get("tag", "best_hqnr"), Model, t.get("expected_sha256")); freeze(teacher); teacher.to(dev)
+            assert int(tman["width"]) == int(cfg["model_args"]["hidden_size"]) or t.get("bridge"), f"Teacher width {tman['width']} ≠ Student"
+            note += f" teacher={tman['run'][:24]}…/{tman['tag']}"
+        B = int(cfg.get("batch_size", 48)); nb = int(cfg["num_bands"])
+        if dev.type == "cuda":
+            torch.cuda.empty_cache(); torch.cuda.reset_peak_memory_stats(dev)
+        params = [p for p in m.backbone.parameters()] + (list(m.aligner.parameters()) if sp["aligner_trainable"] else [])
+        opt = torch.optim.AdamW(params, lr=1e-4); g = torch.Generator(device="cpu"); g.manual_seed(0)
+        pan, lpan = torch.randn(B, 1, 64, 64, device=dev), torch.randn(B, 1, 16, 16, device=dev)
+        ms, gt = torch.randn(B, nb, 16, 16, device=dev), torch.randn(B, nb, 64, 64, device=dev)
+        crit = GTAnchoredReconstructionKD(0.05, mode=sp["rec_mode"]).to(dev) if teacher is not None else None
+        scrit = GTAnchoredReconstructionKD(0.05, mode=MODE_TO_CRITERION[sp["stat_mode"]]).to(dev) if (sp["stat_enabled"] and sp["stat_mode"] in MODE_TO_CRITERION and teacher is not None) else None
+        import time as _t; times = {}
+        for kind, upd in (("native", 0), ("corrupt", 1)):
+            if kind == "corrupt" and sp["protocol"] != "I-N":
+                continue
+            for rep in range(3):
+                t0 = _t.time(); pv, eps, cor = prepare_view(pan, sp["protocol"], upd, sp["radius_hr"], g)
+                o = kdv_forward(m, teacher, pv, ms, lpan, share_correction=(sp["policy"] == "A-FR"), teacher_needed=sp["needs_teacher"], aligner_live=sp["aligner_trainable"])
+                loss = crit(o["y"], o["y_t"], gt).loss if crit is not None else (o["y"] - gt).abs().mean()
+                if sp["stat_enabled"]:
+                    from pa.losses import output_edge_loss
+                    loss = loss + 0.1 * (output_edge_loss(o["y"], gt) if sp["stat_kind"] == "edge" else stat_term(o["y"], (o["y_t"] if o["y_t"] is not None else None), gt, kind=sp["stat_kind"], window=sp["stat_window"], mode=sp["stat_mode"], criterion=scrit).loss)
+                assert torch.isfinite(loss) and o["y"].shape == (B, nb, 64, 64)
+                opt.zero_grad(); loss.backward(); opt.step()
+                if dev.type == "cuda": torch.cuda.synchronize()
+                times[kind] = _t.time() - t0
+        if sp["aligner_trainable"]:
+            assert m.aligner.fc2.weight.grad is not None, "trainable aligner 에 gradient 가 없다"
+        if sp["policy"] == "A-FR":
+            assert all(p.grad is None for p in m.aligner.parameters()), "frozen aligner 에 gradient 가 생겼다"
+        if dev.type == "cuda":
+            _ALIGN_PEAK = torch.cuda.max_memory_allocated(dev) / 2**20
+            note += f" trainPeak {_ALIGN_PEAK:.0f}MB t_native {times['native']*1000:.0f}ms" + (f" t_corrupt {times['corrupt']*1000:.0f}ms" if "corrupt" in times else "")
+        m.eval()
+        with torch.no_grad():
+            of = m(torch.randn(1, 1, 512, 512, device=dev), torch.randn(1, nb, 128, 128, device=dev), torch.randn(1, 1, 128, 128, device=dev))
+        assert of["y"].shape[-2:] == (512, 512) and torch.isfinite(of["y"]).all()
+        del m, opt, o, loss, of, teacher
+        if dev.type == "cuda":
+            torch.cuda.empty_cache()
+        return note
     if tr == "pa":
         from pa.aligner import PANGlobalAligner
         from pa.model import PAModel

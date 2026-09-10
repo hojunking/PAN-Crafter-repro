@@ -96,7 +96,7 @@ def get_parser():
     # KD·mutual learning (research_log/s1_mutual_and_kd_implementation_spec.md).
     # best 선택 기준은 trainer 와 무관하게 기존 그대로다 (공식 HQNR).
     parser.add_argument('--trainer', type=str, default='default',
-                        choices=['default', 'teacher', 'kd', 'mutual', 'align', 'sr', 'uvs', 'pa', 'po'],
+                        choices=['default', 'teacher', 'kd', 'mutual', 'align', 'sr', 'uvs', 'pa', 'po', 'kdv'],
                         help='default=기존 MARs / teacher=uncertainty teacher(T1·T2) / '
                              'kd=frozen teacher KD(K0~K5) / mutual=2-peer(M0~M3) / '
                              'align=global alignment wrapper (align/, train_align.py) / '
@@ -110,6 +110,8 @@ def get_parser():
                         help='pa trainer 인자 (case A1|A2|A3, lambda_edge, lambda_geo, ramp_steps, geometry_sigma_hr, geometry_margin_hr, init_dir, diag_iter) — train_pa.py')
     parser.add_argument('--po', action=YamlAction, default=dict(),
                         help='po trainer 인자 (case N1|N2_SG|N3_NOSG, radius_hr, lambda_off_max, ramp_updates, diag_every, corruption_seed_offset, budget_*) — train_po.py')
+    parser.add_argument('--kdv', action=YamlAction, default=dict(),
+                        help='kdv trainer 인자 (s2 W112: recipe, input_protocol, aligner_policy, donor, teacher, rec, stat, aux, geom_kd, corruption, calibration, phase) — train_kdv.py')
     parser.add_argument('--alignment', action=YamlAction, default=dict(),
                         help='align trainer 인자 (upsampler, delta_source, alpha, output_frame, '
                              'inverse_location, trainable_shift_net, cache_dir ...) — align/model.py AlignCfg')
@@ -212,6 +214,8 @@ def train(args):
         from train_pa import PATrainer as TrainerCls
     elif kind == 'po':
         from train_po import OffsetConsistencyTrainer as TrainerCls
+    elif kind == 'kdv':
+        from train_kdv import KDVTrainer as TrainerCls
     else:
         TrainerCls = Trainer
     trainer = TrainerCls(args=args, data_loader=data_loader, model=model)
@@ -257,6 +261,11 @@ def train(args):
             last_epoch = global_step // len(data_loader['train'])
         train_log.write(f'[resume] {args.resume} 에서 재개 — global_step={global_step}, epoch={last_epoch} '
                         f'(배치 순서는 복원되지 않는 근사 재개)')
+    elif getattr(trainer, 'start_step', 0):
+        # kdv phase change(warm start): parent checkpoint 의 step 에서 이어간다 (train_kdv._warm_start, 계획 §15)
+        global_step = int(trainer.start_step)
+        last_epoch = global_step // len(data_loader['train'])
+        train_log.write(f'[warm-start] parent step {global_step} 에서 시작 — epoch={last_epoch}')
 
     def _evaluate(epoch, global_step):
         nonlocal best_hqnr, best_epoch_hqnr, best_fscc, best_hqnr_anchor
@@ -281,7 +290,7 @@ def train(args):
             # align trainer: HQNR 차이 <= 1e-4 면 fSCC(12-19), 그것도 <= 1e-4 면 나중 iteration
             # (global alignment 계획 §17.2). 다른 trainer 는 기존 strict '>' 그대로.
             fscc = getattr(trainer, 'last_fscc_official', None)
-            if kind in ('pa', 'po'):
+            if kind in ('pa', 'po', 'kdv'):
                 # PA: 선택은 trainer 의 running-max·tie-band·later-step 선택기(pa/selector.py)가 한다. best 는 과거 후보일 수 있다.
                 is_best = bool(getattr(trainer, 'raw_is_best', False))
                 if is_best:
@@ -304,7 +313,7 @@ def train(args):
                 if hasattr(trainer, 'write_best_meta'):
                     trainer.write_best_meta(epoch + 1, global_step, hqnr)
                 import json as _json
-                _rec = trainer.best_raw_record() if kind in ('pa', 'po') else None      # pa: 선택된 step(과거 후보일 수 있다)의 기록
+                _rec = trainer.best_raw_record() if kind in ('pa', 'po', 'kdv') else None      # pa: 선택된 step(과거 후보일 수 있다)의 기록
                 _json.dump({'best_hqnr': best_hqnr, 'best_epoch_hqnr': best_epoch_hqnr,
                             'scc_at_best': (_rec.get('scc') if _rec else trainer.last_reduced_metrics.get('scc')),
                             'ergas_at_best': (_rec.get('ergas') if _rec else trainer.last_reduced_metrics.get('ergas')),
@@ -334,21 +343,25 @@ def train(args):
                            f'Best D_s: {best_ds:.6f}\tBest Epoch (Full): {best_epoch_full}')
 
 
+    evaluated_at = -1; last_epoch_run = total_epoch - 1
     for epoch in range(last_epoch, total_epoch):
         train_log.write(f'========= Epoch {epoch + 1} of {total_epoch} =========')
         global_step = trainer.train(train_log, global_step)
+        last_epoch_run = epoch
 
         # KNOWN_ISSUES.md C-2: save_epoch 이 0 이면 (epoch+1) % 0 으로 ZeroDivisionError 가 났다.
         if args.save_epoch > 0 and (epoch + 1) % args.save_epoch == 0:
             trainer.save_checkpoint(epoch + 1)
 
         if (epoch + 1) % args.eval_epoch == 0:
-            _evaluate(epoch, global_step)
+            _evaluate(epoch, global_step); evaluated_at = global_step
+        if global_step >= args.num_iter:
+            break                                  # num_iter 도달 뒤 epoch 를 더 돌지 않는다 (warm start 는 마지막 epoch 이전에 도달한다)
     # 마지막 epoch(=num_iter 도달, 예: 50K)이 eval 격자에 없으면 한 번 더 평가한다 —
     # 이전엔 ep245(49,490 step)가 마지막 평가라 정확한 50K 모델은 후보에 들지 못했다 (2026-09-05).
-    if total_epoch % args.eval_epoch != 0:
-        train_log.write(f'[eval] 최종 epoch {total_epoch} (step {global_step}) 추가 평가')
-        _evaluate(total_epoch - 1, global_step)
+    if evaluated_at != global_step:
+        train_log.write(f'[eval] 최종 epoch {last_epoch_run + 1} (step {global_step}) 추가 평가')
+        _evaluate(last_epoch_run, global_step)
 
     # KNOWN_ISSUES.md D-1: 학습 중에는 .mat 을 쓰지 않는다. 배포본은 best 가 갱신될 때마다
     # 고정 파일명으로 덮어써서 후보를 사후 재평가할 수 없었다. 학습이 끝난 뒤 선택된

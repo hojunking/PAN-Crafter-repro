@@ -32,8 +32,13 @@ def load_run(run, ckpt, dev):
     wd = os.path.join(ROOT, "work_dir", run); cfg = yaml.safe_load(open(os.path.join(wd, "meta", "config.yaml")))
     from safetensors.torch import load_file
     sd = load_file(os.path.join(wd, ckpt, "model.safetensors"))
-    bb = import_class(cfg["model"])(**cfg["model_args"]); is_pa = cfg.get("trainer") in ("pa", "po")
+    bb = import_class(cfg["model"])(**cfg["model_args"]); is_pa = cfg.get("trainer") in ("pa", "po", "kdv")
     from pa.offset import aligner_margin
+    if cfg.get("trainer") == "kdv":
+        from kdv.teacher_assets import skeleton_from_cfg
+        m, _info = skeleton_from_cfg(cfg, import_class(cfg["model"])); m.load_state_dict(sd, strict=True)
+        is_pa = m.aligner is not None                                     # A-ID: aligner 없음 → B0 와 같은 진단 경로 (Δ=0)
+        return wd, cfg, m.to(dev).eval(), is_pa
     mg = aligner_margin(float((cfg.get("po") or {}).get("radius_hr", 1.0))) if cfg.get("trainer") == "po" else 0
     m = PAModel(bb, PANGlobalAligner(int(cfg["num_bands"])), aligner_margin=mg)
     if is_pa:
@@ -185,12 +190,16 @@ def main():
     ap.add_argument("--skip-controls", action="store_true")
     a = ap.parse_args(); dev = torch.device(a.device)
     wd0 = os.path.join(ROOT, "work_dir", a.run); cfg0 = yaml.safe_load(open(os.path.join(wd0, "meta", "config.yaml")))
-    is_pa = cfg0.get("trainer") in ("pa", "po")
+    is_pa = cfg0.get("trainer") in ("pa", "po") or (cfg0.get("trainer") == "kdv" and (cfg0.get("kdv") or {}).get("aligner_policy") != "A-ID")
     sensor = efp.sensor_of(cfg0); wald = load_dlpan(os.environ.get("PANCRAFTER_DLPAN", "/home/knuvi/Desktop/song/DLPan-Toolbox"))
     Feeder = import_class(cfg0["feeder"]); ds = Feeder(**cfg0["test_full_feeder_args"]); mp = float(ds.max_pixel)
     lms_raw, pan_raw = refs(cfg0)
-    out = dict(run=a.run, trainer=(cfg0.get("trainer") if is_pa else "b0"), case=((cfg0.get("pa") or cfg0.get("po") or {}).get("case")), cross_evaluation={}, training_records=cross_table(wd0) if is_pa else {})
+    _kdv = cfg0.get("kdv") or {}
+    out = dict(run=a.run, trainer=(cfg0.get("trainer") if is_pa else "b0"), case=((cfg0.get("pa") or cfg0.get("po") or {}).get("case") or (f"{_kdv.get('aligner_policy')}/{(_kdv.get('rec') or {}).get('case', 'N0')}" if _kdv else None)),
+               cross_evaluation={}, training_records=cross_table(wd0) if is_pa else {})
     tags = ["best_hqnr", "best_aligned", "last"] if is_pa else ["best_hqnr"]
+    if cfg0.get("trainer") == "kdv":
+        tags = ["best_hqnr", "best_aligned", "best_rr_val", "last"] if is_pa else ["best_hqnr", "best_rr_val", "last"]
     print(f"[{a.run}] §10.10 교차 평가 (재추론, 같은 evaluator):")
     for tag in tags:
         if not os.path.exists(os.path.join(wd0, tag, "model.safetensors")):

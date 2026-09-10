@@ -254,7 +254,7 @@ def _cost_model(args_ns):
     Model = import_class(args_ns.model)
     m = Model(**args_ns.model_args)
     tr = getattr(args_ns, "trainer", "default")
-    if tr in ("pa", "po"):
+    if tr in ("pa", "po", "kdv"):
         from pa.aligner import PANGlobalAligner
         from pa.model import PAModel
         from pa.offset import aligner_margin
@@ -266,6 +266,11 @@ def _cost_model(args_ns):
 
             def forward(self, pan, lpan, ms, s):
                 return self.pm(pan, ms, lpan)["y"]
+        if tr == "kdv":
+            from kdv.teacher_assets import skeleton_from_cfg
+            cfg = dict(model=args_ns.model, model_args=args_ns.model_args, num_bands=getattr(args_ns, "num_bands", 8), trainer="kdv", kdv=(getattr(args_ns, "kdv", {}) or {}))
+            pm, _ = skeleton_from_cfg(cfg, Model)
+            return _PA(pm)                       # A-ID 면 aligner 없음(= backbone 비용), 그 외 aligner+warp 포함
         return _PA(PAModel(m, PANGlobalAligner(int(getattr(args_ns, "num_bands", 8))), aligner_margin=mg))
     return m
 
@@ -586,6 +591,12 @@ def collect(tag, want_profile, server, peer=None):
     elif _tr == "po":
         _p = getattr(a, "po", {}) or {}; _c = _p.get("case", "?")
         desc = (desc + " PO10 " + {"N1": "N1(PAN corrupt, L_rec)", "N2_SG": "N2(corrupt + offset loss, sg)", "N3_NOSG": "N3(corrupt + offset loss, no-sg)"}.get(_c, _c) + f" R={_p.get('radius_hr', 1.0)}").strip()
+    elif _tr == "kdv":
+        from kdv.registry import resolve as _kdv_resolve, describe as _kdv_describe
+        try:
+            desc = (desc + " KDV " + _kdv_describe(_kdv_resolve(getattr(a, "kdv", {}) or {}))).strip()
+        except Exception as _e:                      # 설명 실패가 업로드를 막지 않게
+            desc = (desc + f" KDV (spec 해석 실패: {_e})").strip()
     elif _tr == "uvs":
         _u = getattr(a, "uvs", {}) or {}; _v = _u.get("variant", "?")
         desc = (desc + " UVS " + {"b0": "B0(lms baseline)", "k0": "K0(output KD)", "k1": "K1(U routing)", "k2": "K2(U+GT var)",
@@ -696,6 +707,15 @@ def collect(tag, want_profile, server, peer=None):
     elif _tr == "pa":
         _p = getattr(a, "pa", {}) or {}; _c = _p.get("case", "?")
         desc = (desc + " PA " + {"A1": "A1(aligner, L_rec)", "A2": "A2(aligner, L_rec+edge)", "A3": "A3(aligner, L_rec+geo)"}.get(_c, _c)).strip()
+    elif _tr == "kdv":
+        _k = getattr(a, "kdv", {}) or {}
+        try:
+            from kdv.registry import resolve as _kdv_resolve, describe as _kdv_describe
+            _sp = _kdv_resolve(_k)
+            bits.append(f"KDV {_sp['policy']} · REC-{_sp['rec_case']} · STAT-{('OFF' if not _sp['stat_enabled'] else _sp['stat_key'] + '-' + _sp['stat_mode'])} · {_sp['geom']} — {_kdv_describe(_sp)}")
+            bits.append(f"donor {((_k.get('donor') or {}).get('source') or 'none')} · Teacher {((_k.get('teacher') or {}).get('run') or 'none')}/{((_k.get('teacher') or {}).get('tag') or '')} · run_kind {_k.get('run_kind', 'CONTROLLED')}")
+        except Exception as _e:
+            bits.append(f"KDV (spec 해석 실패: {_e})")
     elif _tr == "uvs":
         _u = getattr(a, "uvs", {}) or {}; _v = _u.get("variant", "?"); _l = _u.get("loss") or {}; _s = _u.get("shift") or {}
         _q = {"b0": "phase-correct 공통 baseline(제공 lms)", "k0": "일반 output KD 대조", "k1": "U-KD > plain KD?", "k2": "UV-KD > U-KD?",

@@ -1,0 +1,20 @@
+{
+ "source_run": "PA_A1_REC_W96_D124_9CH_S2025",
+ "source_tag": "best_hqnr",
+ "source_file": "work_dir/PA_A1_REC_W96_D124_9CH_S2025/best_hqnr/model.safetensors",
+ "source_file_sha256": "124d2a9ced316c0551275899aeef9b2fb62e24aed5ef90f8a36572706d468168",
+ "aligner_tensors_sha256_16": "101a3ebba3732300",
+ "n_params": 105330,
+ "keys": 22,
+ "view_margin_hr": 0,
+ "recipe": "A1",
+ "input_protocol": "I-A",
+ "seed": 2025,
+ "server": "s1",
+ "selected_step": 34340,
+ "selected_hqnr_raw_original": 0.9491706061917702,
+ "hqnr_aligned_valid": 0.9543116589768612,
+ "known_behavior": "results_log/2026-09-10_pa-a1-a3-s1-results.md: correction \u2248 constant (+0.18~+0.23, \u22120.04~\u22120.07) HR px, response slope \u22120.02~\u22120.09 (input-insensitive)",
+ "normalization": "aligner-only per-sample per-channel z-score (pa.aligner.znorm); warp bicubic/border/align_corners=False; delta=(dy,dx) HR px, P~[y,x]=P[y+dy,x+dx]",
+ "file_sha256": "1bec762e22f74da07be261dc9fcaff1fa9cf62aaf3bf0e4358084d524dad466f"
+}

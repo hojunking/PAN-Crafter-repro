@@ -141,16 +141,21 @@ def build(cfg, wd, ckpt, peer=None):
         def fwd(pan, lpan, ms, lms):
             return sr_infer(m, v, pan, lpan, ms)["y"]
         return m, fwd, f"sr/{v}: sr_infer (jitter 0)"
-    if tr in ("pa", "po"):
+    if tr in ("pa", "po", "kdv"):
         from pa.aligner import PANGlobalAligner
         from pa.model import PAModel
         from pa.offset import aligner_margin
-        mg = aligner_margin(float((cfg.get("po") or {}).get("radius_hr", 1.0))) if tr == "po" else 0
-        bb = Model(**cfg["model_args"]); m = PAModel(bb, PANGlobalAligner(int(cfg["num_bands"])), aligner_margin=mg); m.load_state_dict(sd, strict=True)
+        if tr == "kdv":
+            from kdv.teacher_assets import skeleton_from_cfg
+            m, _info = skeleton_from_cfg(cfg, Model); mg = _info["margin"]; m.load_state_dict(sd, strict=True)
+        else:
+            mg = aligner_margin(float((cfg.get("po") or {}).get("radius_hr", 1.0))) if tr == "po" else 0
+            bb = Model(**cfg["model_args"]); m = PAModel(bb, PANGlobalAligner(int(cfg["num_bands"])), aligner_margin=mg); m.load_state_dict(sd, strict=True)
 
         def fwd(pan, lpan, ms, lms):
             return m(pan, ms, lpan)["y"]
-        return m, fwd, f"{tr}/{(cfg.get(tr) or {}).get('case')}: aligner on (learned Δ, view margin {mg}), raw_original view"
+        _case = (cfg.get(tr) or {}).get('case') if tr != "kdv" else f"{(cfg.get('kdv') or {}).get('aligner_policy')}/{((cfg.get('kdv') or {}).get('rec') or {}).get('case', 'N0')}"
+        return m, fwd, f"{tr}/{_case}: " + ("no aligner/sampler (A-ID)" if m.aligner is None else f"aligner on (learned Δ, view margin {mg})") + ", raw_original view"
     raise NotImplementedError(f"trainer={tr} 는 이 스크립트가 다루지 않는다")
 
 
