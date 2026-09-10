@@ -219,6 +219,7 @@ s1 (D123, 300 updates; Teacher = `S2W112D123_T112DFR_..._s2025_dry`, A-FT + R3 +
 | G3GEO | geo_curvature | k0 15.2, λ_max p50 0.075, **C01 FD↔autograd 1.6 %/0.7 %, h 일관성 4.8 %/4.2 % (통과)**, rank-deficient 0 % | λ_GKD 0.0066, q̄ 0.18 | 88 ms |
 | GSTRUCT | struct | k_struct 3.8e-3 (intensity²/px²) → Π 정규화 trΠ/2 ≈ 1 | λ_GKD 0.1, q̄ 0.012 | 78 ms |
 | G5EQ | eq_closure | Teacher cov head KL 0.112 → 0.004 → 0.003 (3 epoch), head vs 출처 KL 0.056 | KL 0.118 | 219 ms |
+| G5GEO (검토 수정 뒤) | geo_curvature | k0 15.2, rank 부족 제외 0 %, head KL 1.25 → 0.25 → 0.23, Student head 는 Teacher head 복사(A-FT) | KL 0.057, 적용 빈도 1.0 | — |
 
 읽기: (1) eq_closure 의 closure ≈ probe 는 **현재 donor 가 알려진 변위에 반응하지 않는다**는 §3.4 판정과 같다 — Π ≈ 4.3 ≪ cap 400, 즉 G-EQ 는 "Teacher 를 믿지 말라"는 값을 낸다(보류 이유). (2) geo 는 FD/autograd·h 일관성 gate 를 실데이터에서 통과했지만 H 는 영상 구조의 곡률이다. (3) 16 probe 의 eq 는 step 을 +130 ms 늘린다; geo(4 residual) 는 +10 ms.
 

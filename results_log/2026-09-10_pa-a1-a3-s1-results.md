@@ -218,20 +218,19 @@ RR ERGAS 수렴값(학습 로그 정의)은 A1 2.03 / R100 2.09 / R200 2.09–2.
 ### 10.5 수렴점(last, 50K) checkpoint 의 반응 진단 — 결론이 바뀐다
 `po10_diag --ckpt last` (50K 정확한 마지막 update; 결과 `results/po10_diag_last.json`, best_hqnr 진단은 `po10_diag_best_hqnr.json` 으로 보존). **§10.3 의 초기 checkpoint 와 전혀 다르다.**
 
-| run | B_diag native64 (dy, dx) | rr256 | fr512 | closure native64 (px) | closure fr512 | stress ε=(+2,0) raw_valid / aligned_valid | ε=(0,−2) raw / aligned |
+| run | B_diag native64 (dy, dx) | rr256 | fr512 | closure native64 (px) | closure fr512 | stress ε=(+R,0) raw_valid / aligned_valid | ε=(0,−R) raw / aligned |
 |---|---|---|---|---:|---:|---|---|
-| N1 R100 W96·D124 | (진단 미완) | | | | | | |
+| N1 R100 W96·D124 (probe ±1) | (-0.64, -0.66) | (-0.63, -0.63) | (-0.46, -0.48) | 0.26 | 0.35 | 0.9410 / 0.9534 | 0.9345 / 0.9625 |
 | N1 R200 | (-0.90, -0.92) | (-0.91, -0.89) | (-0.70, -0.83) | 0.26 | 0.32 | 0.9360 / 0.9478 | 0.9361 / 0.9558 |
 | N2 SG R200 | (-0.98, -0.99) | (-1.00, -0.99) | (-0.91, -0.95) | 0.06 | 0.10 | 0.9381 / 0.9567 | 0.9398 / 0.9585 |
-| N3 noSG R200 | (진단 미완) | | | | | | |
+| N3 noSG R200 | (-0.98, -0.99) | (-1.01, -0.99) | (-0.91, -0.95) | 0.05 | 0.09 | 0.9295 / 0.9205 | 0.9309 / 0.9257 |
 
-- **수렴점의 R200 aligner 는 알려진 추가 변위를 거의 완전히 상쇄한다**: N2(SG) B_diag ≈ (−0.98, −0.99) (train 64²), (−1.00, −0.99) (RR 256²), (−0.91, −0.95) (FR 512²), closure 0.06 px — 이상값 −1 에 근접. N1(offset loss 없음, corruption 만)도 (−0.90, −0.92). y 축 무반응은 초기 checkpoint 의 현상이었다.
+- **수렴점의 R200 aligner 는 알려진 추가 변위를 거의 완전히 상쇄한다**: N2(SG)·N3(no-SG) B_diag ≈ (−0.98, −0.99) (train 64²), (−1.00, −0.99) (RR 256²), (−0.91, −0.95) (FR 512²), closure 0.05–0.06 px — 이상값 −1 에 근접. N1(offset loss 없음, corruption 만)도 (−0.90, −0.92). R100(W96, b=1) 은 반경 안(±1 px)에서 같은 수준. y 축 무반응은 초기 checkpoint 의 현상이었다. N3 는 반응은 같지만 stress 에서 aligned_valid(0.92) 가 raw 보다 낮다 — 과보정.
 - 따라서 §10.1 의 FR Δ̂ drift(+1.3~+1.5 px)는 "실제 센서 어긋남을 재는" 방향으로 읽는 것이 맞다: aligner 가 PAN 을 MS 프레임으로 옮기는 능력을 얻었고, 그 결과가 논문 프로토콜의 D_s 에 불리하게 작용했다.
 - stress: ε=(+2,0) 을 얹어도 raw_valid HQNR 이 0.936–0.938(무변위 0.93 대비 유지), aligned_valid 0.948–0.957 — 초기 checkpoint(0.907–0.915) 와 달리 보상이 된다.
 - 시트의 `best_hqnr`(step 1,010) 로 진단한 §10.3 값을 aligner 능력으로 인용하면 안 된다. 정합 능력은 last 로, 논문 프로토콜 품질은 두 checkpoint 를 나누어 적는다.
 
 ![](assets/0910_po10_r200_response_last.png)
-(N3 의 last 진단은 작성 시점에 진행 중이라 그림·표에서 빠져 있다 — `results/po10_diag_last.json` 생성 뒤 `python outputs/po10/report_figs.py --diag po10_diag_last --suffix _last` 로 갱신)
 
 **KDV donor 결정에의 함의**: s2 KDV 의 I-N donor 로 **N2 R200 `last` aligner(내부 view margin 4)** 를 쓸 근거가 생겼다. 반응이 등방적(dy·dx 모두 ≈ −1)이라 G-EQ 는 높은 precision(closure 0.06 px → Π ≈ 1/(0.06²+0.05²) 규모)을 주고, C-DIAG(EQ) 의 Σ 도 등방·작은 값이 된다. 다만 native FR 보정이 1.3 px 로 커서 이 donor 를 frozen 으로 쓰면 Student 출력도 MS 프레임에 놓인다 — 논문 프로토콜 HQNR 로 비교할 때 A1 donor cohort 와 섞어 순위 매기지 않는다(별도 cohort, `teacher_id`·donor 분리 기록).
 
