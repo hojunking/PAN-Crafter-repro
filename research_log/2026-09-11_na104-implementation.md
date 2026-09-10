@@ -177,6 +177,10 @@
 
 dry config·work_dir 은 확인 뒤 지웠다. 실제 캠페인은 같은 코드로 `--updates 50000` 에서 돈다.
 
+**실측 (s1 4090, GPU 유휴)**: params 2.0989 M (aligner 0) · 학습 step 18–47 ms · peak VRAM 2,434 MB · CPU forward 64² 22.5 ms / 512² 1.20 s.
+50K ≈ 학습 0.3–0.7 h + 평가/export → **run 당 대략 1.2–1.5 h**. 큐는 s2 48 run · s3 47 run (공통 7: T00·Q00·Q04·Q06·Q10·Q13·Q17), 88 case 가 모두 어느 한 큐에는 들어 있다.
+s2·s3 의 GPU 가 s1 과 다르면 이 수치는 그대로 쓰지 않는다 — `na104_prepare.sh` 가 서버마다 `environment_<server>.json` 에 다시 잰다.
+
 ## 5. 실행
 
 ```bash

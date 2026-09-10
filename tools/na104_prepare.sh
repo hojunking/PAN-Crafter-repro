@@ -27,17 +27,16 @@ p = sys.argv[1]; g = lambda c: subprocess.run(c, shell=True, capture_output=True
 tpl = yaml.safe_load(open("config/PA_A1_REC_W96_D124_9CH_S1234.yaml"))
 ma = dict(tpl["model_args"], hidden_size=104, depth=[1, 2, 2]); m = import_class(tpl["model"])(**ma)
 par = sum(q.numel() for q in m.parameters()); tr = sum(q.numel() for q in m.parameters() if q.requires_grad)
-lat = {}
-m.eval()
+lat = {}; m.eval()
+import time as _t
 with torch.no_grad():
-    for hr in (64, 512):
+    for hr in (64, 512):                       # 복원망 forward 만 (PAN, LPAN, MS, mode weight) — CPU 기준 참고값
         x = (torch.randn(1, 1, hr, hr), torch.randn(1, 1, hr // 4, hr // 4), torch.randn(1, 8, hr // 4, hr // 4), torch.ones(1))
-        import time as _t
         for _ in range(2):
-            m.backbone(*x) if hasattr(m, "backbone") else None
+            m(*x)
         t0 = _t.time()
         for _ in range(3):
-            m.backbone(*x)
+            m(*x)
         lat[f"cpu_forward_{hr}px_s"] = round((_t.time() - t0) / 3, 4)
 d = dict(hostname=platform.node(), server=open("gspread/server.txt").read().strip(), python=sys.version.split()[0], torch=torch.__version__, cuda=torch.version.cuda,
          cudnn=torch.backends.cudnn.version(), gpu=(torch.cuda.get_device_name(0) if torch.cuda.is_available() else None),
