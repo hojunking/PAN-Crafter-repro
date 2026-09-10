@@ -18,7 +18,9 @@ LOG="$REPO/work_dir/gspread_upload.log"
 {
   echo "--- $(date -Iseconds)  $* ---"
   # 논문 세트(.mat FR 20장) 평가 — 시트의 FR 열. run 의 센서에 맞는 h5 가 없으면 스크립트가 건너뛴다 (KNOWN_ISSUES F-2).
+  FR_T0=$(date +%s)
   python tools/eval_fr_paperset.py "$@" 2>&1 | grep -v Warning || true
+  FR_SEC=$(( $(date +%s) - FR_T0 )); NF16_N=$(printf '%s\n' "$@" | grep -c '^NF16_' || true); [ "${NF16_N:-0}" -gt 0 ] || NF16_N=1
   # 아키텍처 고정 다중 데이터셋 캠페인: WV3 학습 run 이 끝나면 WV2 zero-shot run 도 만들어 함께 올린다
   ZS=()
   for t in "$@"; do
@@ -33,6 +35,7 @@ LOG="$REPO/work_dir/gspread_upload.log"
   set -- "$@" "${ZS[@]}"
   # PA(A1–A3) run: 명세 §10.10·§11 진단 (교차 평가 · learned/zero/wrong-sign · known-shift 반응 · tile vs full) → results/pa_diag.json
   for t in "$@"; do
+    T0=$(date +%s)                       # 이 run 의 GPU 진단 시간 (pa_diag 부터; NF16 은 ledger 에 기록한다)
     case "$t" in PA_A*|PO10_*|S2W112*|NF16_*)
       set +e; python tools/pa_diag.py --run "$t" > "$REPO/work_dir/$t/results/pa_diag.log" 2>&1; rc=$?; set -e
       grep -v Warning "$REPO/work_dir/$t/results/pa_diag.log" | tail -25
@@ -44,10 +47,19 @@ LOG="$REPO/work_dir/gspread_upload.log"
       grep -v Warning "$REPO/work_dir/$t/results/po10_diag.log" | tail -12
       [ $rc -eq 0 ] || echo "[upload] !! po10_diag 실패 (rc=$rc): $t — work_dir/$t/results/po10_diag.log";;
     NF16_*)
-      # NF16 §8: 반응·closure·shortcut 대조·stress 를 **last(정확한 50K)** 에서, 참조는 native P / 고정 donor(N2 last) 로 (§8.4)
+      # NF16 §8: 반응·closure·shortcut 대조·stress 를 **last(정확한 50K)** 에서, 참조는 native P / 고정 donor(N2 last) 로 (§8.4). 진단 GPU 시간은 ledger 에 diag_<run> 으로 더한다 (§10)
       set +e; python tools/po10_diag.py --run "$t" --ckpt last --out po10_diag_last --native-reference --ref-run PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT --ref-ckpt last > "$REPO/work_dir/$t/results/po10_diag_last.log" 2>&1; rc=$?; set -e
       grep -v Warning "$REPO/work_dir/$t/results/po10_diag_last.log" | tail -12
-      [ $rc -eq 0 ] || echo "[upload] !! po10_diag(last) 실패 (rc=$rc): $t — work_dir/$t/results/po10_diag_last.log";;
+      [ $rc -eq 0 ] || echo "[upload] !! po10_diag(last) 실패 (rc=$rc): $t — work_dir/$t/results/po10_diag_last.log"
+      python - "$t" "$(( $(date +%s) - T0 ))" "$(( FR_SEC / NF16_N ))" <<'PYEOF'
+import json, os, sys, time
+t, sec, fr = sys.argv[1], float(sys.argv[2]), float(sys.argv[3]); lp = "work_dir/_nf16_budget/ledger.json"
+if os.path.exists(lp):
+    d = json.load(open(lp)); prev = d["entries"].get(f"diag_{t}", {}); h = (sec + fr) / 3600.0 + float(prev.get("hours") or 0.0)   # 재기동 시 같은 run 을 다시 진단하면 누적한다 (검토 지적)
+    d["entries"][f"diag_{t}"] = dict(kind="diag", hours=h, runs=int(prev.get("runs", 0)) + 1, note="eval_fr_paperset(분담) + pa_diag + po10_diag(last, native-reference)", finished=time.strftime("%Y-%m-%dT%H:%M:%S"))
+    json.dump(d, open(lp, "w"), indent=1)
+PYEOF
+      ;;
     esac
   done
   # 구글 API 가 간헐적으로 503 을 낸다. 몇 번 다시 시도한다.

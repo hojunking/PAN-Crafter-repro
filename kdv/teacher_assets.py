@@ -57,7 +57,8 @@ def extract_aligner_sd(sd):
     a = {k[len('aligner.'):]: v for k, v in sd.items() if k.startswith('aligner.')}
     if a:
         return a
-    ref = set(PANGlobalAligner(8).state_dict())
+    with torch.random.fork_rng(devices=[]):
+        ref = set(PANGlobalAligner(8).state_dict())
     if set(sd) == ref:
         return dict(sd)
     raise KeyError("aligner.* 키가 없고 aligner 단독 state_dict 도 아니다")
@@ -67,7 +68,8 @@ def load_donor_aligner(source, ms_bands, expected_sha256=None):
     """strict: 모든 key 존재·shape 일치. 반환 (aligner, manifest)."""
     sd, p = load_state(source)
     asd = extract_aligner_sd(sd)
-    al = PANGlobalAligner(int(ms_bands))
+    with torch.random.fork_rng(devices=[]):                 # 모듈 생성의 난수 초기화가 전역 RNG(DataLoader 순서)를 바꾸지 않게 (검토 지적 4)
+        al = PANGlobalAligner(int(ms_bands))
     al.load_state_dict(asd, strict=True)                    # key/shape 불일치는 여기서 즉시 오류
     fsha = sha256_file(p)
     man = dict(source=source, resolved_file=p, file_sha256=fsha, aligner_tensors_sha256_16=tensors_sha(asd), n_params=sum(v.numel() for v in asd.values()),
@@ -112,7 +114,8 @@ def load_run_model(run_dir, tag, Model, expected_sha256=None):
     if not os.path.exists(cfg_p):
         raise FileNotFoundError(f"run config 없음: {cfg_p}")
     cfg = yaml.safe_load(open(cfg_p))
-    m, info = skeleton_from_cfg(cfg, Model)
+    with torch.random.fork_rng(devices=[]):
+        m, info = skeleton_from_cfg(cfg, Model)
     sd, p = load_state(os.path.join(rd, tag))
     if info['kind'] == 'b0':
         m.backbone.load_state_dict(sd, strict=True)

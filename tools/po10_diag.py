@@ -10,7 +10,7 @@
         64² 는 학습·calibration 과 분리된 valid_wv3.h5 patch(고정 sample id), 256² 는 RR test, 512² 는 FR 논문 세트.
   §10.4 대조: (1) outer padding 변경(border→reflection)에 대한 ĉε 불변 (2) MS 교체/상수 MS 에서의 closure (3) zero/learned/wrong-sign 은 pa_diag
         (4) W(W(P,ε), ĉ0−ε) vs W(P, ĉ0) 차이 — **두 단계 sampling support 의 교집합 안에서만**(두 번 보간 바닥) (5) corruption kernel 을 bilinear 로 바꿨을 때 반응 유지 여부.
-  §6.3 stress HQNR: FR 20장에 ε∈{0, ±R 축} 을 넣은 P_ε 로 추론 → 별도 stress ROI(margin 96, 두 단계 적격성 |ε|+|ĉ| ≤ 38)에서 raw_valid·aligned_valid → stress_hqnr_fr512.csv.
+  §6.3 stress HQNR: FR 20장에 ε∈{0, ±R 축} 을 넣은 P_ε 로 추론 → 별도 stress ROI(margin 96, 두 단계 적격성 |ε|+|ĉ| ≤ MAX_ELIGIBLE_TWO_STAGE = 40)에서 raw_valid·aligned_valid → stress_hqnr_fr512.csv.
 """
 import argparse, csv, json, os, sys
 import numpy as np, torch, yaml, h5py
@@ -22,7 +22,8 @@ from pa.model import PAModel                                            # noqa: 
 from pa.warp import warp_pan                                            # noqa: E402
 from pa.offset import aligner_margin, predict_c, sample_offsets         # noqa: E402
 from pa.warp import warp_support_mask, two_stage_support_mask           # noqa: E402
-from pa.evalviews import scene_views, STRESS_MARGIN, MAX_ELIGIBLE_TWO_STAGE, stress_roi_manifest, VIEWS   # noqa: E402
+from pa.evalviews import scene_views, STRESS_MARGIN, MAX_ELIGIBLE_TWO_STAGE, MAX_ELIGIBLE_SHIFT, stress_roi_manifest, VIEWS   # noqa: E402
+from pa.warp import support_margin_ok   # noqa: E402
 from tools.metrics.eval_fr import load_dlpan                            # noqa: E402
 import tools.eval_fr_paperset as efp                                    # noqa: E402
 import h5py as _h5                                                      # noqa: E402
@@ -171,7 +172,7 @@ def stress_hqnr(m, cfg, R, mg, dev, wd, probes=((0.0, 0.0), (1.0, 0.0), (-1.0, 0
     summ = {}
     for ey, ex in probes:
         r = [x for x in rows if x["ey"] == ey * R and x["ex"] == ex * R]; el = [x for x in r if x["eligible"]]
-        summ[f"({ey * R:+.1f},{ex * R:+.1f})"] = dict(n_eligible=len(el), n=len(r), raw_valid_hqnr=(float(np.mean([x["raw_valid_hqnr"] for x in el])) if el else None),
+        summ[f"({ey * R:+.1f},{ex * R:+.1f})"] = dict(n_eligible=len(el), n=len(r), eligible_all=bool(len(el) == len(r) and len(r) > 0), raw_valid_hqnr=(float(np.mean([x["raw_valid_hqnr"] for x in el])) if el else None),
                                                     aligned_valid_hqnr=(float(np.mean([x["aligned_valid_hqnr"] for x in el])) if el else None),
                                                     raw_valid_fscc=(float(np.mean([x["raw_valid_fscc"] for x in el])) if el else None), aligned_valid_fscc=(float(np.mean([x["aligned_valid_fscc"] for x in el])) if el else None),
                                                     c_median=[float(np.median([x["c_dy"] for x in r])), float(np.median([x["c_dx"] for x in r]))])
@@ -179,6 +180,13 @@ def stress_hqnr(m, cfg, R, mg, dev, wd, probes=((0.0, 0.0), (1.0, 0.0), (-1.0, 0
 
 
 @torch.no_grad()
+def native_stress_eligible(H, W, eps, c, c_d, margin=STRESS_MARGIN):
+    """NF16 §8.4 적격: (1) 모델 경로의 두 단계 sampling W(W(P,ε),ĉε) 가 ROI(margin) 안에서 관측만 읽고, (2) 고정 참조 W(P,c_D) 의 support 도 ROI 안에서 유효. 둘 다 아니면 부적격 (검토 지적 3)."""
+    e = torch.as_tensor(eps, dtype=torch.float32).view(1, 2); cc = torch.as_tensor(c, dtype=torch.float32).view(1, 2); cd = torch.as_tensor(c_d, dtype=torch.float32).view(1, 2)
+    m2 = two_stage_support_mask(H, W, e, cc)[0, 0, margin:H - margin, margin:W - margin]
+    return bool(m2.all()) and bool(support_margin_ok(H, W, cd, margin).all())
+
+
 def stress_hqnr_native(m, cfg, R, mg, dev, wd, ref_model, probes=((0.0, 0.0), (1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0))):
     """NF16 §8.4: 입력만 P_ε 로 바꾸고 **참조는 native 로 고정** — raw = 원 P, aligned = W(P_raw, c_D) (c_D = 고정 donor 의 native 예측; ref_model None 이면 자기 native 예측). ROI margin 96.
     ε 마다 참조를 따라 옮겨 손실이 줄어든 것처럼 만들지 않는다. 출력 좌표(M-frame) 도 그대로다."""
@@ -195,20 +203,33 @@ def stress_hqnr_native(m, cfg, R, mg, dev, wd, ref_model, probes=((0.0, 0.0), (1
             with torch.no_grad():
                 c_d = (predict_c(refm.aligner, pan, mb, refm.aligner_margin)[0].double().cpu() if refm.aligner is not None else torch.zeros(2, dtype=torch.float64))   # native 참조 보정 (입력 ε 와 무관)
             pe = warp_pan(pan, e).to(pan.dtype) if (ey or ex) else pan
-            o = m(pe, ms, lpan); d = o["delta"][0].double().cpu()
-            sr = ((o["y"][0].clip(-1, 1).float().cpu().numpy() + 1) / 2 * mp).astype(np.float64).transpose(1, 2, 0)
+            with torch.no_grad():
+                o = m(pe, ms, lpan); d = o["delta"][0].double().cpu()
+                sr = ((o["y"][0].clip(-1, 1).float().cpu().numpy() + 1) / 2 * mp).astype(np.float64).transpose(1, 2, 0)
             p = pan_raw[i]; pa_fixed = warp_pan(torch.from_numpy(p)[None, None], c_d[None])[0, 0].numpy()
             v, ok, _ = scene_views(sr, lms_raw[i].transpose(1, 2, 0), p, pa_fixed, sensor, wald, c_d.numpy(), 4, mp, margin=STRESS_MARGIN)
-            rows.append(dict(ey=ey * R, ex=ex * R, scene=i, c_dy=float(d[0]), c_dx=float(d[1]), ref_dy=float(c_d[0]), ref_dx=float(c_d[1]), eligible=bool(ok and np.isfinite([v[k]["hqnr"] for k in VIEWS]).all()),
+            H_, W_ = p.shape; sup = native_stress_eligible(H_, W_, [ey * R, ex * R], d.numpy(), c_d.numpy())
+            rows.append(dict(ey=ey * R, ex=ex * R, scene=i, c_dy=float(d[0]), c_dx=float(d[1]), ref_dy=float(c_d[0]), ref_dx=float(c_d[1]), eligible=bool(ok and sup and np.isfinite([v[k]["hqnr"] for k in VIEWS]).all()), support_two_stage_ok=bool(sup),
                              raw_native_hqnr=v["raw_valid"]["hqnr"], raw_native_fscc=v["raw_valid"]["fscc"], aligned_fixed_hqnr=v["aligned_valid"]["hqnr"], aligned_fixed_fscc=v["aligned_valid"]["fscc"],
                              d_lambda=v["raw_valid"]["d_lambda"], raw_native_d_s=v["raw_valid"]["d_s"], aligned_fixed_d_s=v["aligned_valid"]["d_s"]))
     write_csv(os.path.join(wd, "stress_hqnr_native_fr512.csv"), rows)
+    return dict(roi_margin=STRESS_MARGIN, reference="native P / W(P, c_D) fixed", ref_model=("donor" if ref_model is not None else "self_native"),
+                rule="model-input two-stage support(ε→ĉε) inside V96 AND fixed-reference W(P,c_D) support; scene eligible only if both hold and all view metrics finite",
+                max_eligible_two_stage=MAX_ELIGIBLE_TWO_STAGE, max_eligible_reference_shift=MAX_ELIGIBLE_SHIFT, aggregation="all-eligible-only (부분 평균은 *_eligible_subset)",
+                by_eps=aggregate_native(rows, probes, R))
+
+
+def aggregate_native(rows, probes, R):
+    """집계: 장면을 빼고 평균하지 않는다 — 전부 적격일 때만 값, 아니면 None + eligible_all False (명세 §6.2-7). 부분 평균은 *_eligible_subset 으로만 남긴다."""
     summ = {}
     for ey, ex in probes:
-        r = [x for x in rows if x["ey"] == ey * R and x["ex"] == ex * R]; el = [x for x in r if x["eligible"]]
-        summ[f"({ey * R:+.1f},{ex * R:+.1f})"] = dict(n_eligible=len(el), n=len(r), raw_native_hqnr=(float(np.mean([x["raw_native_hqnr"] for x in el])) if el else None),
-                                                    aligned_fixed_hqnr=(float(np.mean([x["aligned_fixed_hqnr"] for x in el])) if el else None), c_median=[float(np.median([x["c_dy"] for x in r])), float(np.median([x["c_dx"] for x in r]))])
-    return dict(roi_margin=STRESS_MARGIN, reference="native P / W(P, c_D) fixed", ref_model=("donor" if ref_model is not None else "self_native"), by_eps=summ)
+        r = [x for x in rows if x["ey"] == ey * R and x["ex"] == ex * R]; el = [x for x in r if x["eligible"]]; all_ok = len(el) == len(r) and len(r) > 0
+        summ[f"({ey * R:+.1f},{ex * R:+.1f})"] = dict(n_eligible=len(el), n=len(r), eligible_all=bool(all_ok), raw_native_hqnr=(float(np.mean([x["raw_native_hqnr"] for x in r])) if all_ok else None),
+                                                    aligned_fixed_hqnr=(float(np.mean([x["aligned_fixed_hqnr"] for x in r])) if all_ok else None),
+                                                    raw_native_hqnr_eligible_subset=(float(np.mean([x["raw_native_hqnr"] for x in el])) if el and not all_ok else None),
+                                                    aligned_fixed_hqnr_eligible_subset=(float(np.mean([x["aligned_fixed_hqnr"] for x in el])) if el and not all_ok else None),
+                                                    c_median=[float(np.median([x["c_dy"] for x in r])), float(np.median([x["c_dx"] for x in r]))])
+    return summ
 
 
 def main():
@@ -240,7 +261,7 @@ def main():
     if a.native_reference:
         refm = load_run(a.ref_run, a.ref_ckpt, dev)[2] if a.ref_run else None
         out["stress_hqnr_native_fr512"] = sn = stress_hqnr_native(m, cfg, R, mg, dev, wd, refm)
-        print("  NF16 §8.4 native-reference stress (raw = 원 P, aligned = W(P, c_D) 고정, V96): " + " | ".join(f"ε{k}: raw {v['raw_native_hqnr']:.4f} fixed {v['aligned_fixed_hqnr']:.4f}" for k, v in sn["by_eps"].items() if v["raw_native_hqnr"] is not None))
+        print("  NF16 §8.4 native-reference stress (raw = 원 P, aligned = W(P, c_D) 고정, V96): " + " | ".join((f"ε{k}: raw {v['raw_native_hqnr']:.4f} fixed {v['aligned_fixed_hqnr']:.4f}" if v["eligible_all"] else f"ε{k}: INELIGIBLE({v['n_eligible']}/{v['n']})") for k, v in sn["by_eps"].items()))
     os.makedirs(os.path.join(wd, "results"), exist_ok=True); json.dump(out, open(os.path.join(wd, "results", f"{a.out}.json"), "w"), indent=1)
     print(f"  -> {os.path.relpath(os.path.join(wd, 'results', a.out + '.json'), ROOT)}")
 

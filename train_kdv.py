@@ -96,31 +96,33 @@ class KDVTrainer(PATrainer):
             torch.manual_seed(int(args.seed) + 1000)
             scratch = PANGlobalAligner(nb)
         self.init_hashes = self._pair_init(model, scratch)
-        # --- aligner 정책 (§4.2)
+        # --- aligner 정책 (§4.2)  [검토 지적 1: 정책 if/elif/else 를 먼저 닫고, 참조 aligner 는 그 뒤에 별도로]
         pol = sp["policy"]; self.donor_manifest = None
         if pol in ("A-FR", "A-FT"):
             d = k["donor"]; aligner, self.donor_manifest = load_donor_aligner(d["source"], nb, d.get("expected_sha256"))
             margin = int(d.get("view_margin_hr", 0) or 0)
-            src_dir = d["source"] if os.path.isdir(d["source"] if os.path.isabs(d["source"]) else os.path.join(ROOT, d["source"])) else None
-            if src_dir:                                                      # donor 가 <run>/<tag> 폴더면 그 tag 의 정확한 update 를 manifest 에서 읽어 대조 (NF16 G0)
-                mp = os.path.join(src_dir if os.path.isabs(src_dir) else os.path.join(ROOT, src_dir), "..", f"{os.path.basename(src_dir.rstrip('/'))}_meta.json")
-                self.donor_manifest["donor_step"] = (json.load(open(mp)).get("step") if os.path.exists(mp) else None)
-            if d.get("expected_step") is not None and self.donor_manifest.get("donor_step") != int(d["expected_step"]):
-                raise ValueError(f"donor step {self.donor_manifest.get('donor_step')} ≠ 기대 {d['expected_step']} (이름만 last 인 파일을 믿지 않는다, NF16 §2.2)")
-        self.aligner_lr = float(k.get("aligner_lr", args.learning_rate))          # NF16 §2.3: trainable aligner LR 1e-5 (backbone 1e-4), 같은 scheduler 배율
-        ev = dict(k.get("eval") or {}); self.ref_aligner = None
-        if ev.get("fixed_reference_from_donor") and aligner is not None:
-            self.ref_aligner = copy.deepcopy(aligner); freeze(self.ref_aligner)   # aligned_fixedN2_v64: 모든 case 에 같은 donor 보정 참조 (NF16 §6.1)
+            self._check_donor_step(d, self.donor_manifest)
         elif pol == "A-SC":
             aligner = scratch; margin = int(k.get("aligner_view_margin_hr", 0) or 0)
         else:
             aligner = None; margin = 0
+        self.aligner_lr = float(k.get("aligner_lr", args.learning_rate))          # NF16 §2.3: trainable aligner LR 1e-5 (backbone 1e-4), 같은 scheduler 배율
+        # 평가용 고정 참조 aligner (aligned_fixedN2_v64, NF16 §6.1): 학습 donor 복사(A-FR/A-FT) 또는 eval.reference_donor 로 별도 지정(A-ID/A-SC 도 같은 참조로 비교)
+        ev = dict(k.get("eval") or {}); self.ref_aligner = None; self.ref_margin = margin; self.ref_manifest = None
+        if ev.get("reference_donor"):
+            rd = ev["reference_donor"]; self.ref_aligner, self.ref_manifest = load_donor_aligner(rd["source"], nb, rd.get("expected_sha256")); self.ref_margin = int(rd.get("view_margin_hr", 0) or 0)
+            self._check_donor_step(rd, self.ref_manifest); freeze(self.ref_aligner)
+        elif ev.get("fixed_reference_from_donor"):
+            if self.donor_manifest is None:                                  # A-ID(aligner 없음)·A-SC(scratch) 둘 다 donor 가 없다
+                raise ValueError("fixed_reference_from_donor 는 donor 가 있는 정책(A-FR/A-FT)에서만; A-ID/A-SC 는 eval.reference_donor 로 참조를 지정한다")
+            self.ref_aligner = copy.deepcopy(aligner); freeze(self.ref_aligner); self.ref_manifest = dict(self.donor_manifest, copied_from="training_donor")
         self.aligner_view_margin = margin; self.aligner_trainable = sp["aligner_trainable"]
         if pol == "A-FR":
             freeze(aligner)
         self.model = PAModel(model, aligner, aligner_margin=margin, sampler=(pol != "A-ID"))
         if sp["geom"] == "G5":
-            self.model.cov_head = CovHead()                                # Student covariance head (§11.6) — checkpoint 에 포함, aligner group 으로 학습
+            with torch.random.fork_rng(devices=[]):
+                torch.manual_seed(int(args.seed) + 3000); self.model.cov_head = CovHead()      # Student covariance head (§11.6) — 전역 RNG 미소비
         self.aligner_hash0 = state_hash(aligner) if aligner is not None else None
         # --- Teacher (§3.1): 같은 저장소 run 의 checkpoint 를 그 run 의 config 대로 strict 로드 → frozen
         self.teacher = None; self.teacher_manifest = None; self.teacher_id = sp["teacher_id"]
@@ -174,31 +176,90 @@ class KDVTrainer(PATrainer):
         if self.budget and self.accelerator.is_main_process:
             self._budget_gate()
 
-    # ------------------------------------------------------------------ 예산 ledger (NF16 §10: used + 1.2·proj + reserve ≤ total)
+    @staticmethod
+    def _check_donor_step(d, man):
+        """donor 가 <run>/<tag> 폴더면 <tag>_meta.json 의 정확한 update 를 읽어 expected_step 과 대조 (NF16 G0: 이름만 last 인 파일을 믿지 않는다)."""
+        src = d["source"] if os.path.isabs(d["source"]) else os.path.join(ROOT, d["source"])
+        if os.path.isdir(src):
+            mp = os.path.join(os.path.dirname(src.rstrip("/")), f"{os.path.basename(src.rstrip('/'))}_meta.json")
+            man["donor_step"] = (json.load(open(mp)).get("step") if os.path.exists(mp) else None)
+        if d.get("expected_step") is not None and man.get("donor_step") != int(d["expected_step"]):
+            raise ValueError(f"donor step {man.get('donor_step')} ≠ 기대 {d['expected_step']} ({d['source']})")
+
+    # ------------------------------------------------------------------ 예산 ledger (NF16 §10: used + 1.2·proj(남은 필수 + pair) + reserve ≤ total)
     def _ledger(self):
         p = self.budget.get("ledger", "work_dir/_kdv_budget/ledger.json"); p = p if os.path.isabs(p) else os.path.join(ROOT, p)
         d = json.load(open(p)) if os.path.exists(p) else dict(total_gpu_hours=float(self.budget.get("total_gpu_hours", 16.0)), entries={})
         return p, d
 
-    def _budget_gate(self):
-        p, d = self._ledger(); used = sum(float(e.get("hours", 0.0)) for e in d["entries"].values()); required = bool(self.budget.get("required", True))
-        reserve = float(self.budget.get("reserve_hours", 1.0)); rec = dict(started=time.strftime("%Y-%m-%dT%H:%M:%S"), required=required, case=self.case, kind="run", status="RUNNING", used_hours_before=used)
-        if not required:
-            done = [e["hours"] for e in d["entries"].values() if e.get("kind") == "run" and e.get("status", "").startswith("FINISHED")]
-            proj = float(self.budget.get("projected_hours") or (float(np.mean(done)) if done else float("nan")))
-            ok = np.isfinite(proj) and (used + 1.2 * proj + reserve <= float(d["total_gpu_hours"]))
-            rec.update(projected_hours=proj, eligible=bool(ok))
-            if not ok:
-                rec["status"] = "DEFERRED_BUDGET"; d["entries"][self.run_id] = rec; os.makedirs(os.path.dirname(p), exist_ok=True); json.dump(d, open(p, "w"), indent=1)
-                json.dump(rec, open(os.path.join(self.args.work_dir, "budget_status.json"), "w"), indent=1)
-                print(f"[kdv] DEFERRED_BUDGET: used {used:.2f}h + 1.2×{proj:.2f}h + reserve {reserve}h > {d['total_gpu_hours']}h"); sys.exit(EXIT_GATE)
-        d["entries"][self.run_id] = rec; os.makedirs(os.path.dirname(p), exist_ok=True); json.dump(d, open(p, "w"), indent=1)
-        json.dump(rec, open(os.path.join(self.args.work_dir, "budget_status.json"), "w"), indent=1)
+    @staticmethod
+    def budget_decision(used, proj_this, proj_remaining, reserve, total, required, proj_pair=0.0):
+        """순수 판정 (테스트 가능): projected = used + 1.2·(proj_this + Σ proj_remaining + proj_pair) + reserve. required 면 경고만, 아니면 초과 시 DEFERRED."""
+        need = 1.2 * (float(proj_this) + float(sum(proj_remaining)) + float(proj_pair))
+        projected = float(used) + need + float(reserve)
+        ok = np.isfinite(projected) and projected <= float(total)
+        return dict(projected_total_hours=projected, needed_hours=need, ok=bool(ok), decision=("RUN" if (ok or required) else "DEFERRED_BUDGET"), warn=bool(required and not ok))
 
-    def _finish_ledger(self, status):
+    def _projection(self, d, run_id=None):
+        """run 당 예상 GPU 시간: (이 run) config projected_hours → budget.projected_map[run] (명세 §10 case 별 예약) → 완료 run 평균 → prepare 의 smoke 예상(throughput) → nan.
+        지정 run 이 이미 FINISHED 면 0 — 그 실비는 used 에 들어 있다 (pair/remaining 이중 계상 금지)."""
+        rid = run_id or self.run_id
+        e = d["entries"].get(rid) or {}
+        if run_id is not None and str(e.get("status", "")).startswith("FINISHED") and (e.get("hours_total") or e.get("hours")):
+            return 0.0
+        if run_id is None and self.budget.get("projected_hours"):
+            return float(self.budget["projected_hours"])
+        if (self.budget.get("projected_map") or {}).get(rid):
+            return float(self.budget["projected_map"][rid])
+        done = [float(e["hours_total"] if e.get("hours_total") else e["hours"]) for e in d["entries"].values() if e.get("kind") == "run" and str(e.get("status", "")).startswith("FINISHED") and e.get("hours")]
+        if done:
+            return float(np.mean(done))
+        th = (d.get("throughput") or {}).get("projected_run_hours_50k")
+        return float(th) if th else float("nan")
+
+    def _crashed_hours(self, prev):
+        """죽은 시도의 GPU 시간: trainer 가 주기적으로 쓴 memory_and_throughput.json 의 elapsed_hours → 없으면 started→now 벽시계."""
+        p = os.path.join(self.args.work_dir, "memory_and_throughput.json")
+        if os.path.exists(p):
+            try:
+                h = float(json.load(open(p)).get("elapsed_hours") or 0.0)
+                if h > 0:
+                    return h
+            except Exception:
+                pass
+        try:
+            t0 = time.mktime(time.strptime(prev["started"], "%Y-%m-%dT%H:%M:%S")); return max(0.0, (time.time() - t0) / 3600.0)
+        except Exception:
+            return 0.0
+
+    def _budget_gate(self):
+        p, d = self._ledger(); reserve = float(self.budget.get("reserve_hours", 1.0)); required = bool(self.budget.get("required", True))
+        prev = d["entries"].get(self.run_id)
+        if prev:                                                            # 재시작: 이전 시도의 비용을 보존 (used 에 포함)
+            n = 1 + sum(1 for kk in d["entries"] if kk.startswith(self.run_id + "#"))
+            if prev.get("status") != "RUNNING":
+                d["entries"][f"{self.run_id}#{n}"] = dict(prev, status=f"PREV_{prev.get('status')}")
+            else:                                                           # OOM/SIGKILL/재부팅으로 _finish_ledger 가 못 돈 시도 — 실제 소요를 추정해 남긴다 (검토 지적)
+                d["entries"][f"{self.run_id}#{n}"] = dict(prev, status="PREV_CRASHED", hours=self._crashed_hours(prev), hours_estimated=True)
+
+        used = sum(float(e.get("hours_total") or e.get("hours") or 0.0) for kk, e in d["entries"].items() if kk != self.run_id)
+        proj = self._projection(d); rem = [self._projection(d, r) for r in (self.budget.get("remaining_mandatory") or [])]
+        pair = self._projection(d, self.budget["pair_with"]) if self.budget.get("pair_with") else 0.0
+        dec = self.budget_decision(used, proj, rem, reserve, float(d.get("total_gpu_hours", self.budget.get("total_gpu_hours", 16.0))), required, pair)
+        rec = dict(started=time.strftime("%Y-%m-%dT%H:%M:%S"), required=required, case=self.case, kind="run", status="RUNNING", used_hours_before=used, projected_hours=proj,
+                   remaining_mandatory=self.budget.get("remaining_mandatory") or [], pair_with=self.budget.get("pair_with"), **dec)
+        d["entries"][self.run_id] = rec if dec["decision"] == "RUN" else dict(rec, status="DEFERRED_BUDGET")
+        os.makedirs(os.path.dirname(p), exist_ok=True); json.dump(d, open(p, "w"), indent=1); json.dump(d["entries"][self.run_id], open(os.path.join(self.args.work_dir, "budget_status.json"), "w"), indent=1)
+        if dec["decision"] != "RUN":
+            print(f"[kdv] DEFERRED_BUDGET: used {used:.2f}h + 1.2×(this {proj:.2f} + remaining {sum(rem):.2f} + pair {pair:.2f})h + reserve {reserve}h = {dec['projected_total_hours']:.2f} > {d['total_gpu_hours']}h"); sys.exit(EXIT_GATE)
+        if dec["warn"]:
+            print(f"[kdv] 예산 경고 (필수 run 이라 진행): 예상 총 {dec['projected_total_hours']:.2f}h > {d['total_gpu_hours']}h")
+
+    def _finish_ledger(self, status, total=False):
         if not self.budget:
             return
-        p, d = self._ledger(); e = d["entries"].get(self.run_id, {}); e.update(status=status, finished=time.strftime("%Y-%m-%dT%H:%M:%S"), hours=(time.time() - self._t_run0) / 3600.0)
+        p, d = self._ledger(); e = d["entries"].get(self.run_id, {}); hrs = (time.time() - self._t_run0) / 3600.0
+        e.update(status=status, finished=time.strftime("%Y-%m-%dT%H:%M:%S"), **({"hours_total": hrs} if total else {"hours": hrs}))
         d["entries"][self.run_id] = e; json.dump(d, open(p, "w"), indent=1); json.dump(e, open(os.path.join(self.args.work_dir, "budget_status.json"), "w"), indent=1)
 
     # ------------------------------------------------------------------ selectors (+ rr_val)
@@ -392,7 +453,7 @@ class KDVTrainer(PATrainer):
     def _write_kdv_manifests(self):
         wd = self.args.work_dir; sp = self.spec
         json.dump(self._architecture_manifest(), open(os.path.join(wd, "architecture_manifest.json"), "w"), indent=1)
-        json.dump(dict(init_hashes=self.init_hashes, donor=self.donor_manifest, teacher=self.teacher_manifest, aligner_hash0=self.aligner_hash0,
+        json.dump(dict(init_hashes=self.init_hashes, donor=self.donor_manifest, teacher=self.teacher_manifest, aligner_hash0=self.aligner_hash0, reference_aligner=self.ref_manifest, reference_view_margin=self.ref_margin,
                        teacher_hash0=getattr(self, "teacher_hash0", None), share_correction=self.share_correction),
                   open(os.path.join(wd, "init_and_teacher_hashes.json"), "w"), indent=1)
         json.dump(dict(campaign_id=self.campaign_id, run_id=self.run_id, run_kind=self.run_kind, version=self.version, spec=sp, description=describe(sp), case=self.case,
@@ -622,6 +683,10 @@ class KDVTrainer(PATrainer):
         self._runs_csv("SUPPORT_FAIL"); self._finish_ledger("SUPPORT_FAIL"); sys.exit(EXIT_SUPPORT_FAIL)
 
     # ------------------------------------------------------------------ gradient 진단 (§16.6, §21.2)
+    def is_diag_step(self, step):
+        """진단 step: diag_every 배수 + (I-AEQ 면 그 다음 홀수 step 도 — offset 연습 gradient 를 기록, 검토 지적 5)."""
+        return step % self.diag_every == 0 or (self.protocol == "I-AEQ" and step % self.diag_every == 1)
+
     def _gnorm(self, loss, params):
         if not params or not loss.requires_grad:
             return None, 0.0
@@ -719,10 +784,10 @@ class KDVTrainer(PATrainer):
                 dmax = float(info["delta"].detach().abs().max())
                 if dmax > MAX_ABS_DELTA_TRAIN:
                     self._support_fail(global_step, dmax, f"|Δ| > {MAX_ABS_DELTA_TRAIN} (학습 patch 에서 정의 불가능한 보정)")
-                if self.accelerator.is_main_process and global_step % self.diag_every == 0:
+                if self.accelerator.is_main_process and self.is_diag_step(global_step):
                     self._diagnose(global_step, info, M)
                 self.accelerator.backward(total)
-                if self.accelerator.is_main_process and global_step % self.diag_every == 0:
+                if self.accelerator.is_main_process and self.is_diag_step(global_step):
                     self._ema["backbone_grad_norm"] = float(torch.sqrt(sum((p.grad.float() ** 2).sum() for p in M.backbone.parameters() if p.grad is not None)))
                     self._ema["aligner_grad_norm"] = (float(torch.sqrt(sum((p.grad.float() ** 2).sum() for p in M.aligner.parameters() if p.grad is not None))) if self.aligner_trainable else 0.0)
                 self.optimizer.step(); self.lr_scheduler.step(); self.optimizer.zero_grad()
@@ -865,7 +930,7 @@ class KDVTrainer(PATrainer):
             return {}
         with torch.autocast(device_type=o["pan"].device.type, enabled=False):
             from pa.offset import valid_view
-            c_d = self.ref_aligner(valid_view(o["pan"].float(), self.aligner_view_margin), valid_view(o["ms_base"].float(), self.aligner_view_margin))[0].double().cpu().numpy()
+            c_d = self.ref_aligner(valid_view(o["pan"].float(), self.ref_margin), valid_view(o["ms_base"].float(), self.ref_margin))[0].double().cpu().numpy()
         pa_fixed = warp_pan(torch.from_numpy(p)[None, None], torch.from_numpy(c_d)[None])[0, 0].numpy()
         v, ok, reason = scene_views(sr, lm, p, pa_fixed, sensor, wald, c_d, 4, float(self.args.max_pixel))
         return {"aligned_fixed_v64": dict(v["aligned_valid"], eligible=bool(ok), reason=reason, ref_dy=float(c_d[0]), ref_dx=float(c_d[1]))}
@@ -915,3 +980,8 @@ class KDVTrainer(PATrainer):
 
     def export_tags(self):
         return ["best_hqnr", "best_aligned", "best_rr_val", "last"]
+
+    def test_full_save(self, tag='best_hqnr'):
+        super().test_full_save(tag=tag)
+        if self.accelerator.is_main_process and self.budget:
+            self._finish_ledger("FINISHED_EXPORT", total=True)              # 학습 + 평가 + export 까지의 GPU 시간 (진단은 _upload.sh 가 diag_<run> 으로 더한다)

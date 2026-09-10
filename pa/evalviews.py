@@ -47,7 +47,7 @@ def fixed_roi(H, W, margin=MARGIN):
     return (margin, H - margin, margin, W - margin)
 
 
-STRESS_MARGIN = 3 * BLOCK                           # corruption stress 전용 ROI (PO10 §6.3): 두 단계 warp(ε+ĉ) + 저해상도 PAN support 54 + taps 4 ≤ 96 → |ε|+|ĉ| ≤ 38
+STRESS_MARGIN = 3 * BLOCK                           # corruption stress 전용 ROI (PO10 §6.3): 두 단계 warp(ε+ĉ): 저해상도 PAN support 52(imresize 8 + interp23 44) + 두 단계 warp taps 2×2 ≤ 96 → |ε|+|ĉ| ≤ 40
 MAX_ELIGIBLE_TWO_STAGE = STRESS_MARGIN - SUPPORT["imresize_antialias_hr"] - SUPPORT["interp23tap_hr"] - 2 * SUPPORT["warp_bicubic_taps_hr"]
 
 

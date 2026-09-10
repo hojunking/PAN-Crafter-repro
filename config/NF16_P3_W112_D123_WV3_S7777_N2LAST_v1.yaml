@@ -38,7 +38,17 @@ kdv:
     total_gpu_hours: 16.0
     reserve_hours: 1.0
     required: false
-    projected_hours: null
+    projected_hours: 1.625
+    projected_map:
+      NF16_P0_W112_D123_WV3_S1234_N2LAST_v1: 1.6
+      NF16_P1_W112_D123_WV3_S1234_N2LAST_v1: 1.6
+      NF16_P2_W112_D123_WV3_S1234_N2LAST_v1: 1.8
+      NF16_P3_W112_D123_WV3_S1234_N2LAST_v1: 2.0
+      NF16_P4_W112_D123_WV3_S1234_N2LAST_v1: 2.0
+      NF16_P3_W112_D123_WV3_S7777_N2LAST_v1: 2.0
+      NF16_P4_W112_D123_WV3_S7777_N2LAST_v1: 2.0
+    pair_with: NF16_P4_W112_D123_WV3_S7777_N2LAST_v1
+    remaining_mandatory: []
   recipe: N2_SG
   donor:
     source: work_dir/PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT/last

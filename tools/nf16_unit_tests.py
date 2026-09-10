@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """NF16 실행 전 gate (명세 §9 G0–G2 중 코드로 닫는 것). 하나라도 실패하면 exit 1.   python tools/nf16_unit_tests.py"""
-import os, sys, json, copy
+import os, sys, json, copy, yaml
 import numpy as np, torch
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0, ROOT)
 from pa.aligner import PANGlobalAligner
@@ -95,4 +95,57 @@ check("resolver: P0 A-ID·I-A / P1 A-FR / P2 A-FT / P3 I-AEQ off 0.01 ramp 0 geo
       specs[0]["policy"] == "A-ID" and specs[1]["policy"] == "A-FR" and not specs[1]["aligner_trainable"] and specs[2]["aligner_trainable"] and specs[2]["offset_weight_effective"] == 0
       and specs[3]["protocol"] == "I-AEQ" and specs[3]["offset_weight_effective"] == 0.01 and specs[3]["offset_ramp_updates"] == 0 and specs[3]["geometry_weight_effective"] == 0
       and specs[4]["geometry_weight_effective"] == 0.01 and specs[4]["aux_ramp_updates"] == 5000 and all(not s["needs_teacher"] for s in specs.values()))
+
+# ---------------- 검토(2026-09-11) 5건의 gate
+from train_kdv import KDVTrainer
+from tools.po10_diag import native_stress_eligible, aggregate_native
+# (2) 예산: 반복 pair 는 둘 다 50K 갈 예산이 있을 때만 — 사용자 반례 used 13.5h, run 당 1h: 단일 검사면 통과, pair 검사면 16.9 > 16 → DEFERRED
+d1 = KDVTrainer.budget_decision(13.5, 1.0, [], 1.0, 16.0, required=False, proj_pair=0.0); d2 = KDVTrainer.budget_decision(13.5, 1.0, [], 1.0, 16.0, required=False, proj_pair=1.0)
+check("review-2 budget: pair 검사 (P3+P4 7777) 가 단일 검사와 다르게 DEFERRED", d1["decision"] == "RUN" and d2["decision"] == "DEFERRED_BUDGET" and abs(d2["projected_total_hours"] - 16.9) < 1e-9)
+d3 = KDVTrainer.budget_decision(2.0, 1.6, [1.6, 1.6, 1.6, 1.6], 1.0, 16.0, required=True); d4 = KDVTrainer.budget_decision(9.0, 1.6, [1.6, 1.6, 1.6, 1.6], 1.0, 16.0, required=True)
+check("review-2 budget: 필수 run 은 남은 필수 사슬을 포함해 예상하고(12.6h OK), 초과면 경고만 (RUN + warn)", d3["decision"] == "RUN" and not d3["warn"] and d4["decision"] == "RUN" and d4["warn"])
+check("review-2 budget: nan 예상은 비필수 run 을 막는다", KDVTrainer.budget_decision(0.0, float("nan"), [], 1.0, 16.0, required=False)["decision"] == "DEFERRED_BUDGET")
+# (2b) 예상치 출처: 지정 run 은 projected_map(§10 예약) → 이미 끝난 run 은 0 (used 에 실비가 있으므로 이중 계상 금지) → 없으면 완료 평균 → throughput
+class _B:
+    run_id = "NF16_P3_W112_D123_WV3_S7777_N2LAST_v1"
+    budget = dict(projected_map={"NF16_P4_W112_D123_WV3_S7777_N2LAST_v1": 2.0, run_id: 2.0}, projected_hours=None)
+    _projection = KDVTrainer._projection
+_led = dict(total_gpu_hours=16.0, entries={"NF16_P0_W112_D123_WV3_S1234_N2LAST_v1": dict(kind="run", status="FINISHED_EXPORT", hours_total=1.7)}, throughput=dict(projected_run_hours_50k=1.625))
+check("review-2 budget: projected_map 이 case 별 예약을 준다 (완료 평균 1.7 이 아니라 2.0)", abs(_B._projection(_B, _led, "NF16_P4_W112_D123_WV3_S7777_N2LAST_v1") - 2.0) < 1e-12)
+check("review-2 budget: 끝난 pair 는 0 (used 이중 계상 금지)", _B._projection(_B, _led, "NF16_P0_W112_D123_WV3_S1234_N2LAST_v1") == 0.0)
+_led2 = dict(total_gpu_hours=16.0, entries={}, throughput=dict(projected_run_hours_50k=1.625))
+class _C(_B): budget = dict()
+check("review-2 budget: map·완료 run 이 없으면 smoke throughput", abs(_C._projection(_C, _led2, "X") - 1.625) < 1e-12)
+# (2c) 재시작: RUNNING 으로 남은 죽은 시도(OOM/재부팅) 도 used 에 들어간다
+import tempfile, types
+_wd = tempfile.mkdtemp(); json.dump(dict(elapsed_hours=1.3), open(os.path.join(_wd, "memory_and_throughput.json"), "w"))
+class _D:
+    args = types.SimpleNamespace(work_dir=_wd)
+    _crashed_hours = KDVTrainer._crashed_hours
+check("review-2 budget: 죽은 시도의 GPU 시간을 memory_and_throughput.json 에서 회수 (1.3h)", abs(_D._crashed_hours(_D, dict(started="2026-09-11T01:00:00")) - 1.3) < 1e-9)
+# 반복 pair 는 양쪽 config 가 서로를 가리킨다 (한쪽만 검사하면 P4 만 도는 상황이 생긴다)
+_cfgs = {q: os.path.join(ROOT, "config", f"NF16_P{q}_W112_D123_WV3_S7777_N2LAST_v1.yaml") for q in (3, 4)}
+if all(os.path.exists(v) for v in _cfgs.values()):
+    _b = {q: yaml.safe_load(open(v))["kdv"]["budget"] for q, v in _cfgs.items()}
+    check("review-2 budget: 반복 pair(P3·P4 s7777) 가 서로를 pair_with 로 가리킨다",
+          _b[3]["pair_with"].endswith("P4_W112_D123_WV3_S7777_N2LAST_v1") and _b[4]["pair_with"].endswith("P3_W112_D123_WV3_S7777_N2LAST_v1")
+          and all(_b[q]["projected_map"] for q in (3, 4)))
+# (4) donor 로드가 전역 RNG 를 소비하지 않는다 → P0(donor 없음) 과 P1–P4 의 데이터 순서가 같다
+if have_donor:
+    st0 = torch.random.get_rng_state(); _ = load_donor_aligner(dsrc, 8); st1 = torch.random.get_rng_state()
+    check("review-4 donor load leaves global torch RNG unchanged (DataLoader 순서 동일)", torch.equal(st0, st1))
+# (5) 진단 step: I-AEQ 면 diag_every 배수의 다음 홀수 step 도
+class _P: protocol = "I-AEQ"; diag_every = 1000
+class _Q: protocol = "I-A"; diag_every = 1000
+check("review-5 diag step covers the offset-exercise (odd) step for I-AEQ only", KDVTrainer.is_diag_step(_P, 1000) and KDVTrainer.is_diag_step(_P, 1001) and not KDVTrainer.is_diag_step(_P, 1002) and not KDVTrainer.is_diag_step(_Q, 1001))
+# (3) native stress 적격: 두 단계 support + 고정 참조 support; 집계는 전부 적격일 때만
+check("review-3 native stress eligibility: ε=(2,0), ĉε=(200,0) → 부적격; 작은 변위 → 적격; c_D 큰 값 → 부적격",
+      not native_stress_eligible(512, 512, (2.0, 0.0), (200.0, 0.0), (0.0, 0.0)) and native_stress_eligible(512, 512, (2.0, 0.0), (-1.5, 0.3), (1.3, -0.8)) and not native_stress_eligible(512, 512, (0.0, 0.0), (0.0, 0.0), (120.0, 0.0)))
+rows = [dict(ey=0.0, ex=0.0, scene=0, c_dy=0.1, c_dx=0.0, eligible=True, raw_native_hqnr=0.9, aligned_fixed_hqnr=0.95), dict(ey=0.0, ex=0.0, scene=1, c_dy=0.1, c_dx=0.0, eligible=False, raw_native_hqnr=0.8, aligned_fixed_hqnr=0.85)]
+ag = aggregate_native(rows, ((0.0, 0.0),), 2.0)["(+0.0,+0.0)"]
+check("review-3 aggregate: 2장 중 1장 부적격 → 값 None·eligible_all False·n 유지 (부분 평균은 subset 키로만)", ag["raw_native_hqnr"] is None and ag["eligible_all"] is False and ag["n"] == 2 and abs(ag["raw_native_hqnr_eligible_subset"] - 0.9) < 1e-12)
+# (1) 정책 블록: A-FR/A-FT 에서 fixed_reference 옵션이 없어도 aligner 가 None 이 되지 않는다 (소스 구조 검사: elif 가 정책 if 에 붙어 있는지)
+src = open(os.path.join(ROOT, "train_kdv.py")).read(); blk = src[src.index("# --- aligner 정책 (§4.2)"):src.index("self.aligner_view_margin = margin")]
+check("review-1 aligner policy if/elif/else 가 fixed_reference 분기 앞에서 닫힌다", blk.index('elif pol == "A-SC"') < blk.index("fixed_reference_from_donor") and blk.count("aligner = None; margin = 0") == 1)
+
 print(f"\n{'FAIL ' + str(FAIL) if FAIL else 'ALL OK'} ({len(FAIL)} failed)"); sys.exit(1 if FAIL else 0)
