@@ -42,3 +42,23 @@ def support_margin_ok(H, W, delta, margin):
     """고정 interior [margin:H-margin, margin:W-margin] 의 모든 sampling 이웃이 영상 안인가 (§6.2 guard). [B] bool."""
     m = warp_support_mask(H, W, delta)
     return m[:, :, margin:H - margin, margin:W - margin].flatten(1).all(dim=1)
+
+
+@torch.no_grad()
+def two_stage_support_mask(H, W, eps, c, taps=4):
+    """W(W(P, ε), c) 의 출력 (y,x) 가 실제 관측만 읽는가 (검토 지적: 두 sampling 단계 각각의 support 추적).
+    1단계: P_ε 의 유효 행/열 = warp_support_mask(ε). 2단계: 출력 (y,x) 가 읽는 P_ε 의 4-tap 이웃 floor(q)-1..floor(q)+2 가 전부 1단계 유효 영역 안이어야 한다.
+    보수적으로 1단계 유효 영역을 [r0, r1]×[c0, c1] 직사각형(유효 행/열의 연속 구간)으로 잡는다. 반환 [B,1,H,W] bool."""
+    m1 = warp_support_mask(H, W, eps, taps)                                  # [B,1,H,W]
+    B = eps.shape[0]; out = torch.zeros(B, 1, H, W, dtype=torch.bool, device=eps.device)
+    d = c.float()
+    ys = torch.arange(H, device=eps.device, dtype=torch.float32); xs = torch.arange(W, device=eps.device, dtype=torch.float32)
+    for b in range(B):
+        rows = torch.nonzero(m1[b, 0].any(1)).flatten(); cols = torch.nonzero(m1[b, 0].any(0)).flatten()
+        if rows.numel() == 0 or cols.numel() == 0:
+            continue
+        r0, r1, c0, c1 = int(rows.min()), int(rows.max()), int(cols.min()), int(cols.max())
+        fy = torch.floor(ys + d[b, 0]); fx = torch.floor(xs + d[b, 1])
+        oky = (fy - 1 >= r0) & (fy + 2 <= r1); okx = (fx - 1 >= c0) & (fx + 2 <= c1)
+        out[b, 0] = oky[:, None] & okx[None, :]
+    return out

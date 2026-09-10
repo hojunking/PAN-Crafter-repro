@@ -457,28 +457,34 @@ class PATrainer(Trainer):
         return ["best_hqnr", "best_aligned", "last"]
 
     # ------------------------------------------------------------------ export (§13 predictions: sr · pan_aligned · delta)
-    def _collect(self, loader, has_gt):
+    # 규약(검토 지적 반영): 참조(pan·lms·ms·gt)는 h5 원본 float64 그대로, `pan_aligned` 는 평가에 쓴 것과 같은 W(P_raw, Δ̂) float64(clip 없음),
+    # `pan_aligned_forward_fp32` 는 네트워크가 실제 본 P̃ 의 정확한 역변환(clip 없음), `sr` 만 clip(−1,1) 역변환 — 저장본을 다시 평가하면 기록과 같은 값이 나온다.
+    def _collect(self, loader, has_gt, h5path):
         self.model.eval(); self.model.requires_grad_(False)
-        acc = dict(pan=[], lms=[], ms=[], gt=[], sr=[], pan_aligned=[], delta=[])
-        for batch in tqdm(loader):
+        with h5py.File(h5path) as f:
+            refs = {k: np.asarray(f[k], dtype=np.float64) for k in ("pan", "lms", "ms") + (("gt",) if has_gt else ())}
+        acc = dict(sr=[], pan_aligned=[], pan_aligned_forward_fp32=[], delta=[])
+        for i, batch in enumerate(tqdm(loader)):
             gt, (lms, ms, lpan, pan) = (batch[0], batch[1:]) if has_gt else (None, batch)
             o = self._infer(pan, lpan, ms)
-            acc["pan"].append(o["pan"]); acc["lms"].append(lms.to(o["pan"].device)); acc["ms"].append(o["ms"]); acc["sr"].append(o["y"])
-            acc["pan_aligned"].append(o["pan_aligned"].to(o["pan"].dtype)); acc["delta"].append(o["delta"].float().cpu())
-            if gt is not None:
-                acc["gt"].append(gt.to(o["pan"].device))
-        return acc
+            acc["sr"].append(((o["y"].clip(-1, 1).float().cpu().numpy() + 1.0) / 2.0 * self.args.max_pixel))
+            acc["pan_aligned_forward_fp32"].append(((o["pan_aligned"].float().cpu().numpy() + 1.0) / 2.0 * self.args.max_pixel))
+            d = o["delta"].double().cpu()
+            acc["pan_aligned"].append(warp_pan(torch.from_numpy(refs["pan"][i:i + d.shape[0]]), d).numpy())
+            acc["delta"].append(d.float().numpy())
+        out = {k: np.concatenate(v, 0) for k, v in acc.items()}; out.update(refs)
+        return out
 
-    def _savemat(self, name, acc):
+    def _savemat(self, name, out):
         from scipy.io import savemat
         path = os.path.join(self.args.work_dir, 'results/'); os.makedirs(path, exist_ok=True)
-        cv = lambda L: (torch.cat(L, 0).clip(-1, 1).detach().cpu().numpy() + 1.0) / 2 * self.args.max_pixel
-        out = {k: cv(v) for k, v in acc.items() if v and k not in ("delta",)}
-        out["delta"] = torch.cat(acc["delta"], 0).numpy()
         savemat(os.path.join(path, name), out)
+        json.dump(dict(sr="clip(-1,1)->(x+1)/2*max_pixel (evaluator convention)", pan_lms_ms_gt="h5 raw float64", pan_aligned="W(P_raw, delta) float64, no clip — identical to the array used in aligned_valid evaluation",
+                       pan_aligned_forward_fp32="exact inverse of the FP32 P~ the network consumed, no clip", delta="(dy,dx) HR px, sampling convention P~[y,x]=P[y+dy,x+dx]"),
+                  open(os.path.join(path, "export_convention.json"), "w"), indent=1)
 
     def test_reduced_save(self, tag='best_hqnr'):
-        self._savemat(f'reduced_{tag}.mat', self._collect(self.test_reduced_data_loader, True))
+        self._savemat(f'reduced_{tag}.mat', self._collect(self.test_reduced_data_loader, True, self.args.test_reduced_feeder_args["dataroot"]))
 
     def test_full_save(self, tag='best_hqnr'):
-        self._savemat(f'full_{tag}.mat', self._collect(self.test_full_data_loader, False))
+        self._savemat(f'full_{tag}.mat', self._collect(self.test_full_data_loader, False, self.args.test_full_feeder_args["dataroot"]))

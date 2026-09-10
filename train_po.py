@@ -39,6 +39,23 @@ def budget_used_hours(d):
     return sum(float(e.get("hours", 0.0)) for e in d["entries"].values())
 
 
+class RNGState:
+    """전용 corruption generator 를 accelerate checkpoint 에 넣는다 (register_for_checkpointing). 재개 시 ε 열이 이어진다 (검토 지적 ①)."""
+    def __init__(self, gen):
+        self.gen = gen
+
+    def state_dict(self):
+        return {"gen": self.gen.get_state()}
+
+    def load_state_dict(self, sd):
+        self.gen.set_state(sd["gen"])
+
+
+def diag_update_index(step, parity):
+    """진단 forward 의 update_index — 실제 step 의 λ(t) 를 쓰되 native/corrupt 홀짝만 맞춘다 (검토 지적 ②)."""
+    return step if step % 2 == parity else step + 1
+
+
 class OffsetConsistencyTrainer(PATrainer):
     def _configure(self, args):
         po = getattr(args, "po", {}) or {}
@@ -60,9 +77,16 @@ class OffsetConsistencyTrainer(PATrainer):
 
     def __init__(self, args, data_loader, model):
         super().__init__(args, data_loader, model)
+        self.accelerator.register_for_checkpointing(RNGState(self.gen))      # save_state/load_state 에 generator 상태 포함
+        self._drawn = []                                                      # 실제로 뽑힌 ε (첫 1000개) → hash
         if self.accelerator.is_main_process:
             self._budget_gate()
             self._write_po_manifests()
+            if getattr(args, "resume", None):
+                # 재개: generator 는 checkpoint 에서 복원되지만 DataLoader 순서는 근사 재개(main.py)라 sample–ε 대응이 원 run 과 다르다.
+                json.dump(dict(resumed_from=args.resume, corruption_generator_restored=True, dataloader_order_restored=False, paired_epsilon_valid=False,
+                               note="같은 sample 에 같은 ε 가 들어가는 대응 실험으로 취급하지 않는다 (명세 §7-9)"),
+                          open(os.path.join(args.work_dir, "resume_manifest.json"), "w"), indent=1)
 
     # ------------------------------------------------------------------ 예산 gate · manifests
     def _budget_gate(self):
@@ -127,8 +151,12 @@ class OffsetConsistencyTrainer(PATrainer):
         for kind, idx in (("native", 0), ("corrupt", 1)):
             gt, ms, lpan, pan = (t.to(dev, dtype=dt) for t in self._fixed_batches[kind])
             g = torch.Generator(device="cpu"); g.manual_seed(self.corr_seed + 777)            # 진단 ε 는 학습 generator 를 소비하지 않는다
-            total, info = po_step(M, pan, ms, lpan, gt, case=self.case, update_index=idx, radius_hr=self.radius_hr, generator=g, lam_max=(self.lam_off_max or 0.01), ramp=self.ramp, margin=self.aligner_view_margin)
+            ui = diag_update_index(step, idx)                                                    # 실제 step 의 λ(t) (검토 지적 ②)
+            total, info = po_step(M, pan, ms, lpan, gt, case=self.case, update_index=ui, radius_hr=self.radius_hr, generator=g, lam_max=(self.lam_off_max or 0.01), ramp=self.ramp, margin=self.aligner_view_margin)
             c = info["c"]
+            if kind == "native":
+                out["native.c_before_step"] = c.detach().cpu()                                   # 1-step prediction change 용 (아래에서 제거)
+            out[f"{kind}.lambda_used"] = float(info["weight"]); out[f"{kind}.lambda_virtual_for_N1"] = bool(self.lam_off_max == 0.0)
             dl_dc = torch.autograd.grad(info["rec"], c, retain_graph=True, allow_unused=True)[0]
             out[f"{kind}.dLrec_dc_norm"] = float(dl_dc.norm()) if dl_dc is not None else 0.0
             out[f"{kind}.dLrec_dc_rms_per_sample"] = float(dl_dc.norm(dim=1).pow(2).mean().sqrt()) if dl_dc is not None else 0.0
@@ -147,6 +175,7 @@ class OffsetConsistencyTrainer(PATrainer):
             out[f"{kind}.c_mean"] = info["c"].detach().mean(0).tolist(); out[f"{kind}.c_std"] = info["c"].detach().std(0).tolist()
             out[f"{kind}.pan_border_use_frac"] = 1.0 - float(warp_support_mask(pan.shape[-2], pan.shape[-1], info["c"].detach()).float().mean())
             del total, info, c, dl_dc, v_rec
+        self._c_before = out.pop("native.c_before_step", None)
         self._jsonl("gradient_diagnostics.jsonl", out)
         self._ema["diag_last"] = step
 
@@ -187,12 +216,21 @@ class OffsetConsistencyTrainer(PATrainer):
                     with torch.no_grad():
                         upd = float(torch.sqrt(sum(((p.detach() - q) ** 2).sum() for p, q in zip(M.aligner.parameters(), snap))))
                         gt_f, ms_f, lpan_f, pan_f = (t.to(dev, dtype=dt) for t in self._fixed_batches["native"])
-                        c_new = predict_c(M.aligner, pan_f, torch.nn.functional.interpolate(ms_f, scale_factor=4, mode="bicubic"), self.aligner_view_margin)
-                        c_old = self._ema.get("_c_fixed_native")
-                        self._jsonl("gradient_diagnostics.jsonl", dict(step=int(global_step), parameter_update_norm_phi=upd,
-                                                                        prediction_change_norm=(float((c_new - c_old).norm(dim=1).mean()) if c_old is not None else None),
+                        c_new = predict_c(M.aligner, pan_f, torch.nn.functional.interpolate(ms_f, scale_factor=4, mode="bicubic"), self.aligner_view_margin).cpu()
+                        c_before = getattr(self, "_c_before", None); c_old = self._ema.get("_c_fixed_native")
+                        self._jsonl("gradient_diagnostics.jsonl", dict(step=int(global_step), parameter_update_norm_phi_1step=upd,
+                                                                        prediction_change_norm_1step=(float((c_new - c_before).norm(dim=1).mean()) if c_before is not None else None),   # 같은 update 전후 (검토 지적 ②)
+                                                                        prediction_change_since_last_diag=(float((c_new - c_old).norm(dim=1).mean()) if c_old is not None else None),
                                                                         aligner_grad_norm=self._ema.get("aligner_grad_norm"), backbone_grad_norm=self._ema.get("backbone_grad_norm")))
                         self._ema["_c_fixed_native"] = c_new
+                if self.accelerator.is_main_process and info["corrupt"] and len(self._drawn) < 1000:
+                    self._drawn.append(info["eps"].detach().cpu())
+                    if sum(x.shape[0] for x in self._drawn) >= 1000:
+                        e_all = torch.cat(self._drawn, 0)[:1000]
+                        json.dump(dict(sha256_16=hashlib.sha256(e_all.numpy().tobytes()).hexdigest()[:16], n=1000, first_update=int(global_step),
+                                       note="학습 중 실제로 뽑힌 ε (corrupt update 순서대로). N1/N2/N3 가 같아야 한다; resume 된 run 은 다르다"),
+                                  open(os.path.join(self.args.work_dir, "corruption_drawn_first1000.json"), "w"), indent=1)
+                        self._drawn = [e_all]                                  # 이후 append 안 함 (len 조건)
                 if self.accelerator.is_main_process:
                     report.update(B, total.item(), info["rec"].item(), float(info["weight"]) * float(info["off"]))
                     with torch.no_grad():

@@ -64,3 +64,16 @@
 - `tools/po10_diag.py`: 64/256/512 반응 CSV·B fit·closure·±2R stress·native ĉ0 통계, §10.4 대조(padding 불변 0.0e+0, MS swap/const, 두 번 보간 바닥 5e-3, bilinear kernel) 동작. `tools/pa_diag.py` po run 지원(교차표·RR-valid) 동작.
 - 예산 gate: ledger 에 N1 3.2 h·N2 3.4 h → N3 `DEFERRED_BUDGET`(exit 4, 체인은 재시도 없음); 1.6/1.7 h → 시작. 실측 throughput(≈47 ms/step)이면 run 당 ≈ 1.5 h 라 N3 는 예산 안에 들어갈 전망.
 - 기동: `./tools/po10_prepare.sh` (G0·G1 확인 → verify_metrics → po10/pa unit gate → smoke·throughput → ledger → `campaign_start.sh --queue config/queues/po10_s1.txt`). 큐 순서 N1 → N2 → N3(gate).
+
+## 6. 2차 검토(사용자) 반영 — 2026-09-10 낮
+
+| 지적 | 판단 | 반영 |
+|---|---|---|
+| 두 번 warp 보간 바닥 진단이 [8:-8] 고정 crop 이라 경계 복제값이 섞임 (ĉ0=(7,0) 에서 4.2%, (8,0) 에서 6.3%) | **맞음** | `pa/warp.two_stage_support_mask(ε, c)`: 1단계 P_ε 의 유효 직사각형 안에서 2단계 4-tap 이웃이 전부 유효한 픽셀만. 바닥은 두 경로 support 의 교집합 안에서만 계산하고, padding 을 바꿔도 그 안의 값이 같음을 함께 기록(`double_interp_padding_independence_inside_support_max_abs`). 테스트: 교집합 안 padding 차이 1.8e-7, 옛 [8:-8] 은 차이 있음 |
+| corruption stress HQNR·전용 mask 미구현 | **맞음** | `po10_diag.stress_hqnr`: FR 20장에 ε∈{0, ±R 축} 을 넣은 P_ε 로 추론 → **stress ROI margin 96**(블록 3개; 저해상도 PAN support 54 + 두 단계 taps 4 → 적격 \|ε\|∞+\|ĉ\|∞ ≤ 38) 에서 raw_valid·aligned_valid(P̃ε = W(W(P_raw,ε),ĉε) float64). `stress_hqnr_fr512.csv`, `stress_roi_manifest.json`. 최종 diagnostic 만, 선택 미사용 |
+| 평가용 P̃(float64 재warp)와 저장 P̃(FP32 forward + clip)가 다름 → 저장본 재평가가 기록을 재현 못 함 | **맞음** | 내보내기 규약 통일(`train_pa._collect/_savemat`): 참조 pan·lms·ms·gt 는 h5 원본 float64, `pan_aligned` 는 평가에 쓴 W(P_raw, Δ̂) float64(clip 없음), `pan_aligned_forward_fp32` 는 네트워크가 본 P̃ 의 정확한 역변환(clip 없음), `sr` 만 clip. `results/export_convention.json`. 검증: 저장 MAT 로 aligned_valid 재계산 = 기록값 (아래) |
+| ① 재개 시 corruption RNG 가 처음부터 다시 시작 | **맞음** | `RNGState` 를 `accelerator.register_for_checkpointing` → `custom_checkpoint_0.pkl` 에 generator 상태 저장·복원(테스트: 10 회 draw 후 상태 = 저장 상태). DataLoader 는 근사 재개라 sample–ε 대응은 깨진다 → 재개 run 은 `resume_manifest.json`(`paired_epsilon_valid=false`) 로 표시. 실제로 뽑힌 첫 1000 ε 의 hash(`corruption_drawn_first1000.json`)를 학습 중 기록 — N1/N2/N3 대조는 이 값으로 |
+| ② 진단의 weighted offset gradient 가 update_index=1 로 λ 를 2,500배 작게 기록 | **맞음** | `diag_update_index(step, parity)` 로 실제 step 의 λ(t) 사용, `lambda_used` 기록. N1 은 λ=0.01 을 가상으로 쓴다는 표시(`lambda_virtual_for_N1`) |
+| ② prediction_change_norm 이 이전 진단 시점 대비 | **맞음** | 같은 update 전후의 `prediction_change_norm_1step`(고정 native batch) + `prediction_change_since_last_diag` 둘 다 기록 |
+
+N1 은 11:33 에 옛 코드로 시작돼 있었다 — 세 run 이 같은 코드여야 하므로 N1 을 중단·삭제하고 고친 코드로 다시 시작한다(사용한 GPU 시간은 ledger 에 `aborted` 로 남긴다).

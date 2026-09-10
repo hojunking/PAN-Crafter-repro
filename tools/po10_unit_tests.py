@@ -90,5 +90,25 @@ with torch.no_grad():
     for H_ in (256, 512):
         o = m(torch.rand(1, 1, H_, H_), torch.rand(1, 8, H_ // 4, H_ // 4), torch.rand(1, 1, H_ // 4, H_ // 4))
         check(f"PAModel margin at {H_}² (view {H_ - 2 * mg}²) forward finite", o["y"].shape[-2:] == (H_, H_) and torch.isfinite(o["delta"]).all())
+# ---------------- 2차 검토: 두 단계 support · RNG 재개 · 진단 λ
+from pa.warp import two_stage_support_mask
+from pa.evalviews import STRESS_MARGIN, MAX_ELIGIBLE_TWO_STAGE
+def warp_pad(p, d, padding):
+    B, _, h, w = p.shape; ys = torch.arange(h, dtype=torch.float32); xs = torch.arange(w, dtype=torch.float32); yy, xx = torch.meshgrid(ys, xs, indexing="ij")
+    gx = 2.0 * (xx[None] + d[:, 1].view(B, 1, 1) + 0.5) / w - 1.0; gy = 2.0 * (yy[None] + d[:, 0].view(B, 1, 1) + 0.5) / h - 1.0
+    return F.grid_sample(p, torch.stack((gx, gy), -1), mode="bicubic", padding_mode=padding, align_corners=False)
+x = torch.rand(1, 1, 64, 64); e_ = torch.tensor([[0.7, -0.6]]); c_ = torch.tensor([[7.0, 0.0]])
+a_b = warp_pad(warp_pad(x, e_, "border"), c_ - e_, "border"); a_r = warp_pad(warp_pad(x, e_, "reflection"), c_ - e_, "reflection")
+common = two_stage_support_mask(64, 64, e_, c_ - e_)
+check("review-1 two-stage support: inside mask, padding-independent", float((a_b - a_r).abs()[common].max()) < 1e-6, f"inside {float((a_b - a_r).abs()[common].max()):.1e}, frac {float(common.float().mean()):.3f}")
+check("review-1 two-stage support: old fixed [8:-8] crop DOES contain padding-dependent pixels for c0=(7,0)", float((a_b - a_r).abs()[..., 8:-8, 8:-8].max()) > 1e-4)
+check("review-1 stress ROI eligibility bound", STRESS_MARGIN == 96 and MAX_ELIGIBLE_TWO_STAGE == 96 - 8 - 44 - 4)
+from train_po import RNGState, diag_update_index
+g1 = torch.Generator(device="cpu"); g1.manual_seed(5); _ = sample_offsets(48, R, g1)
+st = RNGState(g1).state_dict(); a_seq = sample_offsets(48, R, g1)
+g2 = torch.Generator(device="cpu"); g2.manual_seed(999); RNGState(g2).load_state_dict(st); b_seq = sample_offsets(48, R, g2)
+check("review-① corruption RNG state save/restore continues the ε sequence", torch.equal(a_seq, b_seq))
+check("review-② diagnostic λ uses the real step (parity kept)", diag_update_index(20000, 1) == 20001 and diag_update_index(20001, 1) == 20001 and diag_update_index(20000, 0) == 20000
+      and abs(lambda_off(diag_update_index(20000, 1), 0.01, 5000) - 0.01) < 1e-12)
 print("\n" + ("전부 통과" if not FAIL else f"실패 {len(FAIL)}: {FAIL}"))
 sys.exit(1 if FAIL else 0)

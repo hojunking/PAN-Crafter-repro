@@ -41,10 +41,22 @@ def evaluator_hash():
     return h.hexdigest()[:16]
 
 
-def fixed_roi(H, W):
-    """(y0, y1, x0, x1). origin 이 4 와 32 의 배수 → decimation phase·블록 타일링이 전체 프레임과 같다 (E11)."""
-    assert H > 2 * MARGIN and W > 2 * MARGIN and MARGIN % 32 == 0
-    return (MARGIN, H - MARGIN, MARGIN, W - MARGIN)
+def fixed_roi(H, W, margin=MARGIN):
+    """(y0, y1, x0, x1). origin 이 4 와 32 의 배수 → decimation phase·블록 타일링이 전체 프레임과 같다 (E11). margin 은 블록 배수."""
+    assert H > 2 * margin and W > 2 * margin and margin % 32 == 0
+    return (margin, H - margin, margin, W - margin)
+
+
+STRESS_MARGIN = 3 * BLOCK                           # corruption stress 전용 ROI (PO10 §6.3): 두 단계 warp(ε+ĉ) + 저해상도 PAN support 54 + taps 4 ≤ 96 → |ε|+|ĉ| ≤ 38
+MAX_ELIGIBLE_TWO_STAGE = STRESS_MARGIN - SUPPORT["imresize_antialias_hr"] - SUPPORT["interp23tap_hr"] - 2 * SUPPORT["warp_bicubic_taps_hr"]
+
+
+def stress_roi_manifest(H, W):
+    m = dict(protocol_id=PROTOCOL_ID + "_stress", H=H, W=W, block=BLOCK, roi=fixed_roi(H, W, STRESS_MARGIN), margin_hr=STRESS_MARGIN,
+             rule="fixed interior, block-aligned; eligibility |eps|_inf + |c_hat|_inf <= MAX_ELIGIBLE_TWO_STAGE (two sampling stages)", max_eligible_two_stage=MAX_ELIGIBLE_TWO_STAGE,
+             support=SUPPORT, note="diagnostic only — not used for checkpoint selection", evaluator_hash=evaluator_hash())
+    m["roi_hash"] = hashlib.sha256(json.dumps({k: v for k, v in m.items() if k != "roi_hash"}, sort_keys=True).encode()).hexdigest()[:16]
+    return m
 
 
 def roi_manifest(H, W, n_scenes, input_h5=None, input_sha=None):
@@ -89,10 +101,10 @@ def eligibility(delta_dy_dx, views):
     return True, ""
 
 
-def scene_views(sr_hwc, lms_hwc, pan_hw, pan_aligned_hw, sensor, wald, delta_dy_dx, ratio=4, R=2047.0):
-    """한 장면의 세 view. 반환 (dict(view -> dict(d_lambda, d_s, hqnr, fscc)), eligible: bool, reason: str)."""
+def scene_views(sr_hwc, lms_hwc, pan_hw, pan_aligned_hw, sensor, wald, delta_dy_dx, ratio=4, R=2047.0, margin=MARGIN):
+    """한 장면의 세 view. 반환 (dict(view -> dict(d_lambda, d_s, hqnr, fscc)), eligible: bool, reason: str). margin 은 선택용 V(기본) 또는 stress ROI."""
     H, W = pan_hw.shape
-    y0, y1, x0, x1 = fixed_roi(H, W)
+    y0, y1, x0, x1 = fixed_roi(H, W, margin)
     V = (slice(y0, y1), slice(x0, x1)); VM = (slice(y0 - 1, y1 - 1), slice(x0 - 1, x1 - 1))     # Sobel 맵은 [1:-1] 만큼 어긋난다
     fused_deg = mtf_filter(sr_hwc, sensor, ratio, wald)                  # 전체 프레임에서 MTF (SR 은 warp 되지 않는다)
     dl_full = 1.0 - q2n(lms_hwc, fused_deg, BLOCK, BLOCK)[0]
