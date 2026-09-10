@@ -164,4 +164,62 @@ corrupt 에서는 PAN 에만 원판 R=1 HR px(audit 부록 E train P90 0.25 LR p
 
 공통: **W112·D123**(2.6589 M; 계획 원안 D124 를 사용자 결정으로 D123 — s1 PO10 R200 과 같은 골격) · MS+PAN 9ch · 단일 HRMS · AdamW 1e-4/wd0.01 cosine · batch 48 · 50K · fp32 · I-A(native 입력) · donor = s1 `PA_A1_REC_W96_D124_9CH_S2025` aligner(asset).
 판정: 시트 HQNR↑(best_raw, raw_original) → SCC(ERGAS 참고). 핵심 대응: R3−R1(output target KD), R3 vs N0, GV-AD vs GV-H(Teacher 통계 KD), A-FT/A-SC vs A-FR(aligner 정책). Teacher 는 seed 2025 라 Q02(seed 1234) 와의 차이가 seed 변동의 하한 참고값.
-s1 dry run(300 updates, depth 결정 전 D124 골격) 으로 전체 경로(calibration·KD·통계·세 view·best_rr_val·export·시트 evaluator)를 확인했다(구현 노트 §6).
+이동량 covariance KD(G1–G5·G-STRUCT, 계획 §11)도 구현했으나 **실행 보류 큐**(`config/queues/kdv_s2_geomkd.txt`)에 두었다 — PO10 N2/N3·Q07/Q08 결과 뒤 기동(구현 노트 §9). addendum 의 TRI-A/B/C(GT 방향 band gate·통계 성분 gate·Teacher 민감도 감쇠)도 구현·gate 통과했고 큐 `config/queues/kdv_s2_triabc.txt`(22 run, P1 → MASS/SHUFFLE/GV-WH 대조 순)에 두었다 — 본 큐 뒤 기동(구현 노트 §10). s1 dry run(300 updates, depth 결정 전 D124 골격) 으로 전체 경로(calibration·KD·통계·세 view·best_rr_val·export·시트 evaluator)를 확인했다(구현 노트 §6).
+
+## 10. 추기 — PO10 결과: PAN 추가 변위 + offset consistency (R100 W96·D124 N1, R200 W112·D123 N1/N2/N3, s1 seed 2025)
+
+§8 의 WIP 를 결과로 닫는다. 체인은 2026-09-10 20:19 에 끝났다(예산 ledger: gate 0.3 h + N1 R100 1.52 h + R200 N1 1.73 / N2 1.62 / N3 1.63 h, 폐기분 1.65 h; N3 는 예산 gate 통과).
+평가는 전부 `py`(저장소 evaluator 2026-09-10.5, 논문 세트 .mat 20장), 학습 중 값은 `checkpoint_metrics.csv`(같은 evaluator·h5 float64 참조). 명세 `research_log/PAN_OffsetConsistency_10GPUh_W96_D124_2026-09-10.md`, 변경 `…ChangeNote_R100_to_R200…`, 구현 노트 `research_log/2026-09-10_po10-implementation.md`.
+
+### 10.1 요지
+- **corruption 학습은 aligner 를 "반응하게" 만들었지만, 논문 프로토콜 HQNR 은 수렴점에서 오히려 내려갔다.** 50K 시점 raw HQNR: A1(변위 없음) 0.948 → N1 R100 0.943 → R200 N1 0.931 / N2 0.933 / N3 0.924. D_λ 는 좋아지고(0.025 → 0.017) **D_s 가 나빠진다**(0.028 → 0.05–0.06).
+- 원인은 출력 프레임이다. FR 장면에서 aligner 의 native 보정 Δ̂ 중앙값이 A1 의 (+0.22, −0.05) px 에서 R200 은 **(+1.5, −0.6) px 규모**(N1 +1.51/−0.60, N2 +1.27/−0.79, N3 +1.89/−0.33)로 커졌다. 이는 §7 에서 잰 WV3 FR MS–PAN 어긋남(1.79 px, 방향 일치)과 같은 규모다 — 즉 PAN 을 MS 프레임으로 실제로 옮긴다. 그러면 출력은 MS 프레임에 놓이고, **원 PAN 을 참조하는 D_s 는 그 1.5 px 를 불일치로 센다.** 같은 출력의 aligned_valid HQNR(warp 한 PAN 참조)은 0.95–0.96 으로 A1 과 같거나 높다(N3 만 0.924 로 과보정).
+- **시트의 best_hqnr 값(N1 R100 0.9551, R200 N2 0.9522 …)은 방법의 품질이 아니다.** 세 R200 run 모두 best 가 **첫 평가(step 1,010, RR ERGAS 3.8–4.1)** 이고 R100 도 step 3,030(ERGAS 2.64)이다 — 출력이 흐릴수록 D_s 가 작아지는 알려진 기전(CLAUDE.md "D_s·HQNR 단독 해석 금지")이 선택을 잡았다. 판정에는 수렴점(마지막 평가)과 aligned_valid 를 함께 본다.
+- **반응(response)**: 알려진 추가 변위 ε 에 대한 기울기 B_diag(이상 −1; A1 donor −0.02~−0.09)가 R200 에서 **x 축 −0.50~−0.56 (train 64²), −0.22~−0.28 (FR 512²)** 로 커졌다. **y 축은 여전히 −0.05 이하**로 반응이 없다. N2(SG) 가 반응·closure(0.905 vs N1 0.944, N3 0.932)에서 조금 낫고, N3(no-SG)는 Δ̂ 가 가장 크며 aligned_valid 도 학습 후반에 계속 떨어진다(과보정 방향의 drift).
+- R200 은 반경(1→2)과 골격(W96·D124 → W112·D123)을 함께 바꿨으므로 R100 과의 차이를 한 요인으로 돌리지 않는다.
+
+### 10.2 수치 (best_hqnr = 시트, 수렴점 = 50K 마지막 평가)
+
+| run | best step | HQNR↑(시트, best) | HQNR(V64)↑ | D_λ | D_s | JQM | RR ERGAS@best | **HQNR @50K** | D_s @50K | D_λ @50K | aligned_valid @50K | FR Δ̂ 중앙값 @50K (dy,dx) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| B0 W96·D124 (aligner 없음) | — | 0.9516 | 0.9568 | 0.0244 | 0.0247 | 0.9772 | 2.079 | — | — | — | — | — |
+| A1 W96·D124 (aligner, 변위 없음) | 34,340 | 0.9492 | 0.9544 | 0.0243 | 0.0272 | 0.9771 | 2.046 | 0.9480 | 0.0279 | 0.0248 | 0.9543 | (+0.22, −0.05) |
+| N1 R100 W96·D124 (b=1) | 3,030 | 0.9551 | 0.9607 | 0.0230 | 0.0224 | 0.9691 | 2.642 | 0.9429 | 0.0391 | 0.0188 | 0.9576 | (+0.95, −0.42) |
+| N1 R200 W112·D123 (b=2) | 1,010 | 0.9437 | 0.9498 | 0.0246 | 0.0325 | 0.9599 | 4.001 | 0.9311 | 0.0524 | 0.0175 | 0.9505 | (+1.51, −0.60) |
+| N2 SG R200 W112·D123 | 1,010 | 0.9522 | 0.9581 | 0.0220 | 0.0264 | 0.9631 | 3.791 | 0.9329 | 0.0509 | 0.0172 | 0.9574 | (+1.27, −0.79) |
+| N3 noSG R200 W112·D123 | 1,010 | 0.9428 | 0.9486 | 0.0240 | 0.0341 | 0.9594 | 4.140 | 0.9238 | 0.0603 | 0.0171 | 0.9235 | (+1.89, −0.33) |
+
+RR ERGAS 수렴값(학습 로그 정의)은 A1 2.03 / R100 2.09 / R200 2.09–2.11 로 거의 같다 — 복원 품질은 유지되고 프레임만 옮겨간 것.
+
+![](assets/0910_po10_r200_curves.png)
+
+위: 학습 중 곡선. 왼쪽 위 raw HQNR 은 R200 이 처음 평가(≈1K) 뒤 내려가 0.93 에서 평탄, 아래 왼쪽 aligned_valid 는 N1/N2 가 0.95–0.96 유지. 아래 가운데 FR Δ̂ 중앙값의 drift(실선 dy, 점선 dx).
+
+### 10.3 반응·stress 진단 (`po10_diag`, best_hqnr checkpoint = step 1,010 — 초기 checkpoint 라는 점 주의; 수렴점 진단은 §10.5)
+
+![](assets/0910_po10_r200_response.png)
+
+| run | B_diag (dy, dx) native64 | rr256 | fr512 | closure 평균 (native64, |ε| 평균 1.33) | MS swap / const 대조 B_diag |
+|---|---|---|---|---:|---|
+| N1 R200 | (−0.06, −0.50) | (−0.06, −0.43) | (−0.02, −0.22) | 0.944 | ≈0 / ≈0 |
+| N2 SG | (−0.07, −0.56) | (−0.07, −0.49) | (−0.04, −0.28) | 0.905 | ≈0 / ≈0 |
+| N3 noSG | (−0.05, −0.52) | (−0.05, −0.45) | (−0.02, −0.25) | 0.932 | ≈0 / ≈0 |
+
+- MS 를 다른 장면으로 바꾸거나 상수로 두면 반응이 0 → 반응은 PAN–MS 관계에서 나온다(interpolation/padding 단서 아님). bilinear kernel 로 바꿔도 같은 기울기(−0.55). border vs reflection padding 차 0.
+- FR512 stress(ROI margin 96, 20/20 장면 적격): ε=(+2,0) 또는 (0,−2) 에서 raw_valid HQNR 이 0.95 → 0.90–0.92 로 떨어지고 aligned_valid 는 0.94–0.96 을 유지한다(부분 보상). 반대 부호(−2,0)/(0,+2)는 떨어지지 않는다 — 센서 어긋남과 같은 방향의 추가 변위는 "이미 있던" 어긋남을 줄이기 때문.
+- closure vs |ε| 구간: 0–0.5 px 에서 0.29(=무반응선), 1.5–2 px 에서 1.45(무반응선 1.75) — 작은 변위에는 반응이 없고 큰 변위에 x 축만 부분 반응.
+
+### 10.4 판정과 다음
+- 명세 §13.3 의 두 축 중 **반응 축은 부분 성공**(x 축 −0.5, y 축 0), **native 품질 축은 논문 프로토콜로는 후퇴**. 후퇴의 기전이 "출력이 MS 프레임으로 옮겨감"이라 **논문 프로토콜(원 PAN 참조 D_s)로는 정합 방법을 평가할 수 없다**는 §4·§5 의 논점이 수치로 확인됐다. 어느 프레임을 정답으로 볼지는 방법 설계의 결정이지 지표가 정하는 것이 아니다.
+- N2(SG) 가 세 case 중 일관되게 낫다(closure·반응·50K HQNR·aligned_valid). N3(no-SG) 는 과보정 drift 로 불리 — no-SG 는 채택하지 않는다.
+- s2 KDV 캠페인의 aligner donor: 현재 큐는 A1 donor(무반응)다. **N2 R200 aligner(내부 view margin 4)** 를 I-N donor 로 쓰는 셀을 추가할 가치가 있다 — 단 y 축 무반응은 그대로라 G-EQ precision 은 x 축에만 실린다(비등방). 이 판단은 §10.5 의 수렴점 진단 뒤에 확정한다.
+- 시트에는 R100 N1·R200 N1/N2/N3 4 행이 올라갔다(⑲ PO10). 비교표에 인용할 때는 best 가 초기 checkpoint 라는 점을 반드시 적는다.
+
+### 10.5 (추기 예정) 수렴점(last, 50K) checkpoint 의 반응 진단
+LAST_DIAG_PLACEHOLDER
+
+### 10.6 시트의 HQNR(V64) 가 뜻하는 것 (질문에 대한 답)
+- **HQNR(V64) = 같은 출력·같은 원 PAN 참조로, 프레임 가장자리 64 px 를 뺀 고정 내부 영역 V = [64:H−64]² (512² → 384², 32 px 블록 정렬) 에서 계산한 HQNR.** MTF 필터·저해상도 PAN 생성은 전체 프레임에서 하고 마지막에 잘라내므로 위상·블록 타일링이 전체 프레임 계산과 같다(`pa/evalviews.raw_views`).
+- **shift 나 예측값에 따라 달라지는 마스킹이 아니다.** 어느 run 이든 같은 V 를 자른다. 그래서 aligner 가 없는 과거 run(B0·W168·KD…)에도 정의되고, 2026-09-10 에 evaluator 를 2026-09-10.5 로 올리며 시트 전 행(166행)에 같이 채웠다. 이유: 정합 방법은 PAN 을 sampling 하면서 가장자리에 복제 테두리를 만들므로, 그 영역을 뺀 동일 영역에서 모든 run 을 비교하기 위한 보조 열이다.
+- 비교 기준은 여전히 **HQNR↑(전체 프레임, 논문 프로토콜)** 이고 V64 는 보조다. 위 §10.2 에서 보듯 V64 는 전체 프레임보다 0.005 정도 높을 뿐 순위를 바꾸지 않는다.
+- **"warp 한 PAN 을 참조로 쓰는" aligned_valid 는 시트에 올리지 않는다.** 참조 자체가 바뀌어 논문 프로토콜과 비교 불가이기 때문이며, run 폴더의 `checkpoint_metrics.csv`·`results/pa_diag.json` 에만 있다. 정합 방법의 프레임 문제(§10.1)에 답하는 것은 V64 가 아니라 이 aligned_valid 다.

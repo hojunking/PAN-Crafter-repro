@@ -44,10 +44,12 @@ class PANGlobalAligner(nn.Module):
         self.fc2 = nn.Linear(32, 2, bias=True)
         nn.init.zeros_(self.fc2.weight); nn.init.zeros_(self.fc2.bias)      # §3.5 identity start
 
-    def forward(self, pan, ms_up):
-        """pan [B,1,H,W], ms_up [B,C,H,W] (B0 intensity scale). 반환 Δ̂ [B,2] = (dy,dx), 현재 HR px."""
+    def forward(self, pan, ms_up, return_features=False):
+        """pan [B,1,H,W], ms_up [B,C,H,W] (B0 intensity scale). 반환 Δ̂ [B,2] = (dy,dx), 현재 HR px.
+        return_features=True 면 (Δ̂, GAP feature [B,64]) — KDV G5 covariance head 입력 (계획 §11.6). 기본 동작은 그대로."""
         p = self.pan_stem(znorm(pan)); m = self.ms_stem(znorm(ms_up))
         x = torch.cat((p, m), dim=1)                     # 같은 위치에서 결합한 뒤 joint conv (§3.3)
         x = self.res(self.joint2(self.joint1(x)))
         x = x.mean(dim=(2, 3))                            # GAP
-        return self.fc2(F.silu(self.fc1(x)))
+        d = self.fc2(F.silu(self.fc1(x)))
+        return (d, x) if return_features else d

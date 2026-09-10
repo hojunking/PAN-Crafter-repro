@@ -193,4 +193,7 @@ R100(b=1.0, W96·D124)은 N1 만 기록으로 보존, 다음 실험부터 **R200
 검토·구현 노트 `research_log/2026-09-10_s2-w112-kdv-implementation.md`). 구현 `kdv/` + `train_kdv.py`(trainer: kdv), config `config/S2W112D123_*.yaml`(`tools/gen_kdv_configs.py`, depth 1,2,3),
 큐 `config/queues/kdv_s2.txt`(Q00 baseline → Q01 Teacher seed 2025 → Q02–Q08 Student seed 1234), 기동 `./tools/kdv_prepare.sh`(gate `tools/kdv_unit_tests.py` 포함), 시트 범주 ⑳ KDV.
 donor aligner 는 `assets/donor_aligner/`(s1 PA_A1 seed 2025 의 aligner.*, strict load). 이름 규칙 `S2W112D123_<recipe>_<input>_<aligner>_<rec>_<stat>_<geomKD>_s<seed>_<ver>` —
-약명은 구현 노트 §4 표로만 읽는다. **depth 는 사용자 결정으로 [1,2,3]**(계획 원안 [1,2,4]; s1 PO10 R200 과 같은 골격 2.6589 M). Teacher seed 2025 · Student 1234. 이동량 covariance KD(G2+)는 미구현(resolver 가 막는다).
+약명은 구현 노트 §4 표로만 읽는다. **depth 는 사용자 결정으로 [1,2,3]**(계획 원안 [1,2,4]; s1 PO10 R200 과 같은 골격 2.6589 M). Teacher seed 2025 · Student 1234. **이동량 covariance KD G1–G5·G-STRUCT 는 구현됨**(`kdv/alignment_kd.py`, 출처 eq_closure/geo_curvature/struct, 구현 노트 §9) —
+실행은 보류 큐 `config/queues/kdv_s2_geomkd.txt`(`gen_kdv_configs.py --geomkd`): PO10 N2/N3(반응하는 aligner) 와 Q07/Q08 결과 뒤에 기동한다. 현재 A1 donor 는 무반응이라 G-EQ precision 이 낮다.
+**TRI-A/B/C**(addendum `research_log/PAN_S2_W112_D124_TGeo_ABC_Addendum_2026-09-10.md`: R3 soft 의 band/통계 성분 방향 gate, Teacher 출력의 correction 민감도 감쇠) 도 구현(`kdv/tri.py`, 구현 노트 §10) —
+큐 `config/queues/kdv_s2_triabc.txt`(`--triabc`, 22 run, P1 → MASS/SHUFFLE/GV-WH 대조 → P2/P3), 본 큐 뒤 기동. 이름 토큰 `TRI_A*_B*_C*`. C-DIAG(EQ) 는 현 donor 에서 C-SENS 와 정보가 같다(등방 Σ).

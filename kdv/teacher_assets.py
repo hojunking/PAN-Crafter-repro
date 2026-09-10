@@ -91,7 +91,11 @@ def skeleton_from_cfg(cfg, Model):
         if pol == 'A-ID':
             return PAModel(bb, None, aligner_margin=0, sampler=False), dict(kind='kdv', policy=pol, margin=0, has_aligner=False)
         mg = int((k.get('donor') or {}).get('view_margin_hr', k.get('aligner_view_margin_hr', 0)) or 0)
-        return PAModel(bb, PANGlobalAligner(nb), aligner_margin=mg, sampler=True), dict(kind='kdv', policy=pol, margin=mg, has_aligner=True)
+        m = PAModel(bb, PANGlobalAligner(nb), aligner_margin=mg, sampler=True)
+        if (k.get('geom_kd') or {}).get('mode') == 'G5':
+            from kdv.alignment_kd import CovHead
+            m.cov_head = CovHead()
+        return m, dict(kind='kdv', policy=pol, margin=mg, has_aligner=True)
     if tr in ('pa', 'po'):
         from pa.offset import aligner_margin
         mg = aligner_margin(float((cfg.get('po') or {}).get('radius_hr', 1.0))) if tr == 'po' else 0

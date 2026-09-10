@@ -51,9 +51,8 @@ def _zn_with(x, mu, sd):
     return (x - mu) / sd
 
 
-def direct_geometry_loss(pan_warped, pan, gt, sigma, margin):
-    """§5.3 L_geo. pan_warped=P̃ (미분 가능), pan=원본 P (척도용, detach), gt=Y (loss 전용).
-    반환 (loss [scalar], info dict: weight_sum, zero_weight_samples)."""
+def _geometry_parts(pan_warped, pan, gt, sigma, margin):
+    """§5.3 공통 계산: (q_p [B,3,1,h,w], q_y, w_y [B,1,h,w], wsum [B]). direct_geometry_loss 와 geometry_residual 이 같이 쓴다."""
     B, _, H, W = pan.shape
     pf = pan.float().detach(); pw = pan_warped.float(); y = gt.float().detach()
     mu = pf.mean(dim=(2, 3), keepdim=True); sd = torch.sqrt(pf.var(dim=(2, 3), keepdim=True, unbiased=False) + 1e-6)
@@ -71,12 +70,31 @@ def direct_geometry_loss(pan_warped, pan, gt, sigma, margin):
     q_p = orientation_tensor(gx_w[V], gy_w[V], eta_p2)                   # [B,3,1,h,w]
     q_y = orientation_tensor(gx_y[V], gy_y[V], eta_y2)
     w_y = (ey2 / (ey2 + eta_y2)).detach()                                # [B,1,h,w]
-    d2 = ((q_p - q_y) ** 2).sum(dim=1)                                   # [B,1,h,w]
     wsum = w_y.flatten(1).sum(dim=1)                                     # [B]
+    return q_p, q_y, w_y, wsum
+
+
+def direct_geometry_loss(pan_warped, pan, gt, sigma, margin):
+    """§5.3 L_geo. pan_warped=P̃ (미분 가능), pan=원본 P (척도용, detach), gt=Y (loss 전용).
+    반환 (loss [scalar], info dict: weight_sum, zero_weight_samples)."""
+    q_p, q_y, w_y, wsum = _geometry_parts(pan_warped, pan, gt, sigma, margin)
+    d2 = ((q_p - q_y) ** 2).sum(dim=1)                                   # [B,1,h,w]
     per = (w_y * d2).flatten(1).sum(dim=1) / (wsum + 1e-8)
     zero = wsum <= 1e-8
     per = torch.where(zero, torch.zeros_like(per), per)                  # GT gradient 가 없는 sample 은 0 (§5.3c)
     return per.mean(), dict(weight_sum=float(wsum.mean()), zero_weight_samples=int(zero.sum()))
+
+
+def geometry_residual(pan_warped, pan, gt, sigma, margin, eps=1e-8):
+    """KDV 계획 §11.2 의 정규화 residual 벡터 r(δ) = vec( sqrt(w_Y/(Σw_Y+eps)) · (Q(g_P̃) − Q(g_Y)) ), [B, 3·h·w].
+    ||r_b||² = direct_geometry_loss 의 sample 값 (같은 가중·정규화). 반환 (r, info: s2 [B] = 가중 평균 제곱 raw residual 의 component 평균, wsum [B])."""
+    q_p, q_y, w_y, wsum = _geometry_parts(pan_warped, pan, gt, sigma, margin)
+    B = pan.shape[0]
+    diff = (q_p - q_y)[:, :, 0]                                          # [B,3,h,w]
+    wn = torch.sqrt(w_y / (wsum.view(B, 1, 1, 1) + eps))                 # [B,1,h,w]
+    r = (diff * wn).flatten(1)
+    s2 = (w_y * diff.pow(2)).sum(dim=(1, 2, 3)) / (3.0 * wsum + eps)
+    return r, dict(s2=s2, wsum=wsum)
 
 
 def geometry_support_margin(sigma, margin):

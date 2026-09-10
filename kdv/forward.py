@@ -10,18 +10,27 @@ import torch.nn.functional as F
 from pa.warp import warp_pan
 
 
-def _correction_and_pan(model, pan_view, ms_base, live):
+def _predict(model, pan_view, ms_base, features):
+    if not features:
+        return model.predict_delta(pan_view, ms_base), None
+    with torch.autocast(device_type=pan_view.device.type, enabled=False):
+        d, f = model.aligner(model._view(pan_view.float()), model._view(ms_base.float()), return_features=True)
+    return d, f
+
+
+def _correction_and_pan(model, pan_view, ms_base, live, features=False):
+    """반환 (delta, pan_aligned, feat). feat 는 aligner GAP feature [B,64] (G5 cov head 입력) 또는 None."""
     with torch.autocast(device_type=pan_view.device.type, enabled=False):
         if model.aligner is None:
             delta = torch.zeros(pan_view.shape[0], 2, device=pan_view.device, dtype=torch.float32)
             pan_al = warp_pan(pan_view.float(), delta) if model.sampler else pan_view.float()
-            return delta, pan_al
+            return delta, pan_al, None
         if live:
-            delta = model.predict_delta(pan_view, ms_base)
-            return delta, warp_pan(pan_view.float(), delta)
+            delta, feat = _predict(model, pan_view, ms_base, features)
+            return delta, warp_pan(pan_view.float(), delta), feat
         with torch.no_grad():
-            delta = model.predict_delta(pan_view, ms_base)
-            return delta, warp_pan(pan_view.float(), delta)
+            delta, feat = _predict(model, pan_view, ms_base, features)
+            return delta, warp_pan(pan_view.float(), delta), feat
 
 
 def _restore(backbone, pan_al, lpan, ms, dtype):
@@ -30,20 +39,21 @@ def _restore(backbone, pan_al, lpan, ms, dtype):
     return backbone(p, lpan if lpan is not None else p, ms, sw)
 
 
-def kdv_forward(student, teacher, pan_view, ms, lpan, *, share_correction, teacher_needed, aligner_live):
-    """반환 dict(y, residual, delta, pan_aligned, ms_base, y_t, delta_t, pan_t). y_t 등은 teacher_needed=False 면 None."""
+def kdv_forward(student, teacher, pan_view, ms, lpan, *, share_correction, teacher_needed, aligner_live, features=False):
+    """반환 dict(y, residual, delta, pan_aligned, ms_base, y_t, delta_t, pan_t, feat, feat_t). y_t 등은 teacher_needed=False 면 None.
+    features=True 면 aligner GAP feature 도 돌려준다 (Student live graph, Teacher no_grad; G5)."""
     ms_base = F.interpolate(ms, scale_factor=4, mode='bicubic')
-    delta_s, pan_s = _correction_and_pan(student, pan_view, ms_base, live=(aligner_live and student.aligner is not None))
+    delta_s, pan_s, feat_s = _correction_and_pan(student, pan_view, ms_base, live=(aligner_live and student.aligner is not None), features=features)
     res_s = _restore(student.backbone, pan_s, lpan, ms, pan_view.dtype)
-    out = dict(y=ms_base + res_s, residual=res_s, delta=delta_s, pan_aligned=pan_s, ms_base=ms_base, y_t=None, delta_t=None, pan_t=None)
+    out = dict(y=ms_base + res_s, residual=res_s, delta=delta_s, pan_aligned=pan_s, ms_base=ms_base, y_t=None, delta_t=None, pan_t=None, feat=feat_s, feat_t=None)
     if teacher_needed:
         if teacher is None:
             raise RuntimeError('teacher_needed but teacher is None')
         with torch.no_grad():
             if share_correction:
-                delta_t, pan_t = delta_s.detach(), pan_s.detach()
+                delta_t, pan_t, feat_t = delta_s.detach(), pan_s.detach(), (feat_s.detach() if feat_s is not None else None)
             else:
-                delta_t, pan_t = _correction_and_pan(teacher, pan_view, ms_base, live=False)
+                delta_t, pan_t, feat_t = _correction_and_pan(teacher, pan_view, ms_base, live=False, features=features)
             res_t = _restore(teacher.backbone, pan_t, lpan, ms, pan_view.dtype)
-            out.update(y_t=ms_base + res_t, delta_t=delta_t, pan_t=pan_t)
+            out.update(y_t=ms_base + res_t, delta_t=delta_t, pan_t=pan_t, feat_t=feat_t)
     return out

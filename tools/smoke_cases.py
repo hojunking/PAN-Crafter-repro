@@ -261,9 +261,19 @@ def check_trainer_extras(cfg):
         if dev.type == "cuda":
             torch.cuda.empty_cache(); torch.cuda.reset_peak_memory_stats(dev)
         params = [p for p in m.backbone.parameters()] + (list(m.aligner.parameters()) if sp["aligner_trainable"] else [])
-        opt = torch.optim.AdamW(params, lr=1e-4); g = torch.Generator(device="cpu"); g.manual_seed(0)
+        g = torch.Generator(device="cpu"); g.manual_seed(0)
         pan, lpan = torch.randn(B, 1, 64, 64, device=dev), torch.randn(B, 1, 16, 16, device=dev)
         ms, gt = torch.randn(B, nb, 16, 16, device=dev), torch.randn(B, nb, 64, 64, device=dev)
+        prec_fn = None; cov_head_t = None
+        if sp["geom"] != "G0":                       # alignment KD: 임시 상수로 경로만 (calibration 은 trainer 가 한다)
+            from kdv.calibration import teacher_precision_fn
+            from kdv.alignment_kd import CovHead, kd_matrix, mean_kd_loss, gaussian_kl
+            cov0 = dict(k_struct=1.0, gamma=1e-3, sigma_min=0.05, tau_abs=1e-6, tau_rel=1e-3, s2_bounds=[1e-6, 1.0], k0=1.0)
+            prec_fn = teacher_precision_fn(teacher, sp, cov0, 2.0, 11)
+            if sp["geom"] == "G5":
+                m.cov_head = CovHead().to(dev); cov_head_t = CovHead().to(dev); params += list(m.cov_head.parameters())
+            note += f" geomKD {sp['geom']}/{sp['cov_source']}"
+        opt = torch.optim.AdamW(params, lr=1e-4)
         crit = GTAnchoredReconstructionKD(0.05, mode=sp["rec_mode"]).to(dev) if teacher is not None else None
         scrit = GTAnchoredReconstructionKD(0.05, mode=MODE_TO_CRITERION[sp["stat_mode"]]).to(dev) if (sp["stat_enabled"] and sp["stat_mode"] in MODE_TO_CRITERION and teacher is not None) else None
         import time as _t; times = {}
@@ -272,8 +282,25 @@ def check_trainer_extras(cfg):
                 continue
             for rep in range(3):
                 t0 = _t.time(); pv, eps, cor = prepare_view(pan, sp["protocol"], upd, sp["radius_hr"], g)
-                o = kdv_forward(m, teacher, pv, ms, lpan, share_correction=(sp["policy"] == "A-FR"), teacher_needed=sp["needs_teacher"], aligner_live=sp["aligner_trainable"])
+                o = kdv_forward(m, teacher, pv, ms, lpan, share_correction=(sp["policy"] == "A-FR"), teacher_needed=sp["needs_teacher"], aligner_live=sp["aligner_trainable"], features=(sp["geom"] == "G5"))
                 loss = crit(o["y"], o["y_t"], gt).loss if crit is not None else (o["y"] - gt).abs().mean()
+                tri = sp["tri"]
+                if tri["enabled"] and o["y_t"] is not None:                 # TRI-A/B/C: gate·(C 면 Teacher probe 4회) 경로만 — calibration 은 trainer
+                    from kdv.tri import direction_mask, masked_l1, teacher_fd_jacobian, sens_q, sens_risk, diag_risk
+                    rr = crit(o["y"], o["y_t"], gt, return_maps=True); mask = direction_mask(o["y"].detach(), o["y_t"], gt) if tri["a_mode"] != "off" else None; risk = None
+                    if tri["c_mode"] != "off" and tri["c_phi"] == "identity":
+                        import time as _t2; tj = _t2.time(); J = teacher_fd_jacobian(teacher, pv, ms, lpan, o["delta_t"], h=tri["c_h"]); tprobe = _t2.time() - tj
+                        risk = sens_risk(sens_q(J), 1.0) if tri["c_mode"] == "sens" else diag_risk(J, 0.3 * torch.eye(2, dtype=torch.float64, device=dev).expand(B, 2, 2), torch.ones(B, dtype=torch.bool, device=dev), s_c=0.02)["risk"]
+                        note += f" probe {tprobe*1000:.0f}ms"
+                    loss = loss - rr.loss + masked_l1(o["y"], o["y_t"], gt, rr.maps["hard_weight"], rr.maps["soft_weight"], mask=mask, risk=risk)["loss"]
+                if prec_fn is not None and not cor:
+                    with torch.no_grad():
+                        Pi, valid, _ = prec_fn(pv, o["ms_base"], gt, o["delta_t"])
+                    if sp["geom"] == "G5":
+                        lg = (gaussian_kl(o["delta"], m.cov_head(o["feat"]), o["delta_t"], cov_head_t(o["feat_t"])) * valid.double()).mean().float()
+                    else:
+                        lg, _ = mean_kd_loss(o["delta"], o["delta_t"], kd_matrix(Pi, sp["geom"], 1.0), valid); lg = lg.float()
+                    assert torch.isfinite(lg); loss = loss + 0.1 * lg
                 if sp["stat_enabled"]:
                     from pa.losses import output_edge_loss
                     loss = loss + 0.1 * (output_edge_loss(o["y"], gt) if sp["stat_kind"] == "edge" else stat_term(o["y"], (o["y_t"] if o["y_t"] is not None else None), gt, kind=sp["stat_kind"], window=sp["stat_window"], mode=sp["stat_mode"], criterion=scrit).loss)

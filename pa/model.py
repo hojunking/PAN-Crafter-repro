@@ -17,6 +17,7 @@ class PAModel(nn.Module):
         self.aligner = aligner
         self.aligner_margin = int(aligner_margin)
         self.sampler = bool(sampler)
+        self.cov_head = None                       # KDV G5: Student covariance head (계획 §11.6) — trainer 가 붙인다. 평가 forward 에는 쓰이지 않는다
 
     def _view(self, x):
         m = self.aligner_margin
