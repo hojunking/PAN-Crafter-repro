@@ -181,3 +181,7 @@ config `BASE_W96_D124_MSPAN_WV3_S*`(`tools/gen_w96_d124_mspan_configs.py`), 기�
 그 다음 캠페인(2026-09-09 결정): **A1–A3 PAN 앞단 전역 정합** — 명세 `research_log/PAN_A1_A3_Global_PAN_Alignment_W96_D124_2026-09-09_v2.md`,
 구현 `pa/` + `train_pa.py`(trainer: pa), 검토·구현 노트 `research_log/2026-09-09_pa-a1-a3-implementation.md`. 서버-seed block: s1 2025 · s2 1234 · s3 7777,
 각 서버 `./tools/pa_prepare.sh`(gate `tools/pa_unit_tests.py` 포함). `best_hqnr/` 는 best_raw(raw_original HQNR) 의 alias, `best_aligned/`·`last/` 별도.
+
+2026-09-10 s1 결과(`results_log/2026-09-10_pa-a1-a3-s1-results.md`): aligner 는 방향은 맞지만 입력 무반응 상수(0.2 px). 후속 **PO10**(PAN 추가 변위 + offset consistency,
+명세 `research_log/PAN_OffsetConsistency_10GPUh_W96_D124_2026-09-10.md`, 구현 `pa/offset.py` + `train_po.py`(trainer: po), 노트 `research_log/2026-09-10_po10-implementation.md`):
+s1 seed 2025, 큐 `config/queues/po10_s1.txt`(N1 → N2 → N3 예산 gate), 기동 `./tools/po10_prepare.sh`, 예산 ledger `work_dir/_po10_budget/ledger.json`.

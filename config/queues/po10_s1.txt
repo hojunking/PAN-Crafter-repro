@@ -1,0 +1,4 @@
+# PO10 offset consistency, s1 seed 2025, 50000 updates. N1·N2 필수, N3 는 예산 gate(train_po._budget_gate) 통과 시. 명세 §11
+PO10_N1_REC_W96_D124_WV3_S2025
+PO10_N2_OFFSG_W96_D124_WV3_S2025
+PO10_N3_OFFNOSG_W96_D124_WV3_S2025

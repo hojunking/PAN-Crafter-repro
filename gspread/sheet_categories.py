@@ -29,6 +29,8 @@ CATS = [
   lambda t: t.startswith(("SR_", "AF_"))),
  ("UVS", "⑭ UVS-KD (s2) — uncertainty routing · GT residual variance · shift-token KD · teacher forcing (teacher c0_hqnr → d122)",
   lambda t: t.startswith("UVS_")),
+ ("PO10", "⑲ PAN 추가 변위 + offset consistency (PO10, N1–N3) — 학습 PAN 에 원판 R=1 HR px 무작위 변위, ĉε+ε≈ĉ0 감독, aligner 고정 내부 view 4px",
+  lambda t: t.startswith("PO10_")),
  ("PA", "⑱ PAN 앞단 전역 정합 A1–A3 (PA 계열) — 학습되는 global shift CNN 이 PAN 만 MS 프레임으로 sampling, W96·D124 B0 위 · A1 recon / A2 +edge / A3 +geo",
   lambda t: t.startswith("PA_A")),
  ("BASE96", "⑰ 새 baseline W96·D124 U-Net — MS+PAN 9ch · LPAN/HPAN 없음 · PAN task 없음(단일 HRMS) · MARs γ/β 제거 · WV3 3-seed (s3)",
@@ -47,6 +49,10 @@ SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload �
 # 캠페인 설명 — 구분행의 Notes 에 들어간다. 여기 있는 범주만 업로드 시 구분행을 자동으로 넣는다
 # (업로드는 시트 맨 아래에 덧붙이므로, 새 캠페인이 지난 실험과 섞여 보이지 않게 한다).
 DESC = {
+ "PO10": ("[캠페인] PO10 offset consistency 10 GPU-h · s1 seed 2025 · 2026-09-10 · research_log/PAN_OffsetConsistency_10GPUh_W96_D124_2026-09-10.md. "
+          "A1 골격·aligner·init 그대로, optimizer update 를 native/corrupt 1:1 교대: corrupt 는 PAN 에만 원판(R=1 HR px, audit 부록 E train P90 0.25 LR px×4) 무작위 변위 ε. "
+          "N1 L_rec / N2 +0.01·|ĉε+ε−sg(ĉ0)| (5K ramp) / N3 같은 loss, stop-gradient 없음. aligner 는 고정 내부 crop(4 px) 만 본다. "
+          "시트 HQNR = best_raw 의 raw_original. 반응 진단(offset_response_*.csv)·gradient 진단은 run 폴더. 과거 A1 은 전체 view 라 배경 기준"),
  "PA": ("[캠페인] PAN 앞단 전역 정합 A1–A3 · 2026-09-09 · research_log/PAN_A1_A3_Global_PAN_Alignment_W96_D124_2026-09-09_v2.md. "
         "B0(BASE_W96_D124_MSPAN) 골격·학습 조건 그대로, 앞에 dual-stem global shift CNN(0.105M, zero-init head) 을 붙여 PAN 만 Δ̂ 로 bicubic sampling(P̃). "
         "MS base·GT·출력은 M-frame 고정. A1 L_rec / A2 +0.1·L_edge(Scharr) / A3 +0.01·L_geo(normalized gradient outer product), 5K ramp. "

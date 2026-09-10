@@ -8,10 +8,16 @@ from pa.warp import warp_pan
 
 
 class PAModel(nn.Module):
-    def __init__(self, backbone, aligner):
+    def __init__(self, backbone, aligner, aligner_margin=0):
+        """aligner_margin: aligner 입력만 고정 내부 crop (PO10 §5, A1–A3 는 0 = 전체 view). U-Net·잔차 base 는 전체 프레임."""
         super().__init__()
         self.backbone = backbone
         self.aligner = aligner
+        self.aligner_margin = int(aligner_margin)
+
+    def _view(self, x):
+        m = self.aligner_margin
+        return x if m == 0 else x[..., m:-m, m:-m]
 
     def forward(self, pan, ms, lpan=None, aligner_enabled=True, delta_override=None):
         """반환 dict(y, ms_base, delta, pan_aligned). delta_override: 진단용(§11.1 zero/wrong-sign) — 학습에서는 None."""
@@ -20,7 +26,7 @@ class PAModel(nn.Module):
             if delta_override is not None:
                 delta = delta_override.float()
             elif aligner_enabled:
-                delta = self.aligner(pan.float(), ms_base.float())
+                delta = self.aligner(self._view(pan.float()), self._view(ms_base.float()))
             else:
                 delta = torch.zeros(pan.shape[0], 2, device=pan.device, dtype=torch.float32)
             pan_aligned = warp_pan(pan, delta)                                      # Δ=0 이어도 항상 sampling (§4.2)

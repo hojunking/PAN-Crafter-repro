@@ -123,3 +123,18 @@ train 의 **노이즈 하한**은 같은 GT 의 짝수/홀수 band 평균 쌍(�
 
 **정리.** 센서당 상수 하나가 FR 어긋남의 90% 이상을 설명하고, 그 상수는 RR/train 에서 관측되는 상수와 다르다(크기 4~6배, 방향 상이). 장면·영상 단위 변동은 FR ±0.2~0.4 px, train 0.5~0.7 px 규모다.
 따라서 "매 영상 예측" 의 가치는 그 잔여 변동에 한정되고, 지금 학습 방식으로는 그 잔여마저 배우지 못했다. FR 규모의 상수를 넣는 대조(§5 (iii))가 먼저다.
+
+## 8. 추기 [WIP] — PO10: PAN 추가 변위 + offset consistency, s1 기동
+
+명세 [`research_log/PAN_OffsetConsistency_10GPUh_W96_D124_2026-09-10.md`](../research_log/PAN_OffsetConsistency_10GPUh_W96_D124_2026-09-10.md), 구현·검토 노트
+[`research_log/2026-09-10_po10-implementation.md`](../research_log/2026-09-10_po10-implementation.md). A1 골격·init 그대로, 학습 update 를 native/corrupt 1:1 로 교대하고
+corrupt 에서는 PAN 에만 원판 R=1 HR px(audit 부록 E train P90 0.25 LR px × 4) 무작위 변위 ε 를 넣는다. aligner 는 고정 내부 view(4 px crop)만 본다.
+
+| 실행명 | case | loss | 예산 |
+|---|---|---|---|
+| `PO10_N1_REC_W96_D124_WV3_S2025` | N1 | L_rec (offset loss 계수 0, 진단값만) | 필수 |
+| `PO10_N2_OFFSG_W96_D124_WV3_S2025` | N2 | L_rec + 0.01·\|ĉε + ε − sg(ĉ0)\| (5K ramp) | 필수 |
+| `PO10_N3_OFFNOSG_W96_D124_WV3_S2025` | N3 | 같은 loss, stop-gradient 없음 | 예산 gate 통과 시 (used + 1.2×proj + 1 h ≤ 10 h) |
+
+판정(§13.3): 반응 B≈−I(추가 변위 상쇄)와 native 품질(세 view HQNR·fSCC) 두 축. 핵심 대응은 N2−N1, N3−N2. 과거 A1(전체 view)은 배경 기준.
+결과·진단은 run 폴더 `checkpoint_metrics.csv`, `offset_response_*.csv`, `interpolation_controls.json`, `results/{pa_diag,po10_diag}.json`, 예산은 `work_dir/_po10_budget/ledger.json`.

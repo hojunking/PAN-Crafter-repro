@@ -96,7 +96,7 @@ def get_parser():
     # KD·mutual learning (research_log/s1_mutual_and_kd_implementation_spec.md).
     # best 선택 기준은 trainer 와 무관하게 기존 그대로다 (공식 HQNR).
     parser.add_argument('--trainer', type=str, default='default',
-                        choices=['default', 'teacher', 'kd', 'mutual', 'align', 'sr', 'uvs', 'pa'],
+                        choices=['default', 'teacher', 'kd', 'mutual', 'align', 'sr', 'uvs', 'pa', 'po'],
                         help='default=기존 MARs / teacher=uncertainty teacher(T1·T2) / '
                              'kd=frozen teacher KD(K0~K5) / mutual=2-peer(M0~M3) / '
                              'align=global alignment wrapper (align/, train_align.py) / '
@@ -108,6 +108,8 @@ def get_parser():
                         help='sr trainer 인자 (variant j1|j2|j3|j4|g1, jitter, blur, cons, g1, inference) — train_sr.py')
     parser.add_argument('--pa', action=YamlAction, default=dict(),
                         help='pa trainer 인자 (case A1|A2|A3, lambda_edge, lambda_geo, ramp_steps, geometry_sigma_hr, geometry_margin_hr, init_dir, diag_iter) — train_pa.py')
+    parser.add_argument('--po', action=YamlAction, default=dict(),
+                        help='po trainer 인자 (case N1|N2_SG|N3_NOSG, radius_hr, lambda_off_max, ramp_updates, diag_every, corruption_seed_offset, budget_*) — train_po.py')
     parser.add_argument('--alignment', action=YamlAction, default=dict(),
                         help='align trainer 인자 (upsampler, delta_source, alpha, output_frame, '
                              'inverse_location, trainable_shift_net, cache_dir ...) — align/model.py AlignCfg')
@@ -208,6 +210,8 @@ def train(args):
         from train_uvs import UVSTrainer as TrainerCls
     elif kind == 'pa':
         from train_pa import PATrainer as TrainerCls
+    elif kind == 'po':
+        from train_po import OffsetConsistencyTrainer as TrainerCls
     else:
         TrainerCls = Trainer
     trainer = TrainerCls(args=args, data_loader=data_loader, model=model)
@@ -277,7 +281,7 @@ def train(args):
             # align trainer: HQNR 차이 <= 1e-4 면 fSCC(12-19), 그것도 <= 1e-4 면 나중 iteration
             # (global alignment 계획 §17.2). 다른 trainer 는 기존 strict '>' 그대로.
             fscc = getattr(trainer, 'last_fscc_official', None)
-            if kind == 'pa':
+            if kind in ('pa', 'po'):
                 # PA: 선택은 trainer 의 running-max·tie-band·later-step 선택기(pa/selector.py)가 한다. best 는 과거 후보일 수 있다.
                 is_best = bool(getattr(trainer, 'raw_is_best', False))
                 if is_best:
@@ -300,7 +304,7 @@ def train(args):
                 if hasattr(trainer, 'write_best_meta'):
                     trainer.write_best_meta(epoch + 1, global_step, hqnr)
                 import json as _json
-                _rec = trainer.best_raw_record() if kind == 'pa' else None      # pa: 선택된 step(과거 후보일 수 있다)의 기록
+                _rec = trainer.best_raw_record() if kind in ('pa', 'po') else None      # pa: 선택된 step(과거 후보일 수 있다)의 기록
                 _json.dump({'best_hqnr': best_hqnr, 'best_epoch_hqnr': best_epoch_hqnr,
                             'scc_at_best': (_rec.get('scc') if _rec else trainer.last_reduced_metrics.get('scc')),
                             'ergas_at_best': (_rec.get('ergas') if _rec else trainer.last_reduced_metrics.get('ergas')),

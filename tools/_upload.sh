@@ -33,10 +33,16 @@ LOG="$REPO/work_dir/gspread_upload.log"
   set -- "$@" "${ZS[@]}"
   # PA(A1–A3) run: 명세 §10.10·§11 진단 (교차 평가 · learned/zero/wrong-sign · known-shift 반응 · tile vs full) → results/pa_diag.json
   for t in "$@"; do
-    case "$t" in PA_A*)
+    case "$t" in PA_A*|PO10_*)
       set +e; python tools/pa_diag.py --run "$t" > "$REPO/work_dir/$t/results/pa_diag.log" 2>&1; rc=$?; set -e
       grep -v Warning "$REPO/work_dir/$t/results/pa_diag.log" | tail -25
       [ $rc -eq 0 ] || echo "[upload] !! pa_diag 실패 (rc=$rc): $t — work_dir/$t/results/pa_diag.log";;
+    esac
+    case "$t" in PO10_*)
+      # PO10 §10.3–10.4: 추가 변위 반응(64/256/512)·보간 대조 → offset_response_*.csv, interpolation_controls.json
+      set +e; python tools/po10_diag.py --run "$t" > "$REPO/work_dir/$t/results/po10_diag.log" 2>&1; rc=$?; set -e
+      grep -v Warning "$REPO/work_dir/$t/results/po10_diag.log" | tail -12
+      [ $rc -eq 0 ] || echo "[upload] !! po10_diag 실패 (rc=$rc): $t — work_dir/$t/results/po10_diag.log";;
     esac
   done
   # 구글 API 가 간헐적으로 503 을 낸다. 몇 번 다시 시도한다.

@@ -71,18 +71,7 @@ class PATrainer(Trainer):
         assert getattr(args, "mars", "dual") == "ms" and args.res, "PA 는 단일 HRMS task(mars: ms) · 잔차 base 고정 (§0.1)"
         assert args.model_args.get("in_mode") == "paper" and not args.model_args.get("attn_locations"), "입력 9ch(in_mode paper) · attention 없음"
         assert args.model_args.get("mode_modulation", True) is False, "MARs γ/β 제거본(mode_modulation false) 위에서만 (§9.1)"
-        pa = getattr(args, "pa", {}) or {}
-        self.case = pa.get("case"); assert self.case in CASES, f"pa.case 는 {list(CASES)}"
-        self.lam_edge = float(pa.get("lambda_edge", CASES[self.case]["lambda_edge"]))
-        self.lam_geo = float(pa.get("lambda_geo", CASES[self.case]["lambda_geo"]))
-        assert (self.case == "A1") == (self.lam_edge == 0.0 and self.lam_geo == 0.0), "A1 은 보조 loss 없음"
-        assert not (self.lam_edge > 0 and self.lam_geo > 0), "A3 에 A2 loss 를 함께 넣지 않는다 (§5.4)"
-        self.ramp = int(pa.get("ramp_steps", 5000))
-        self.geo_sigma = float(pa.get("geometry_sigma_hr", 2.0))            # r/2, WV3 r=4
-        self.geo_margin = int(pa.get("geometry_margin_hr", 11))
-        self.guard_margin = geometry_support_margin(self.geo_sigma, self.geo_margin)     # 11 − (6+1) = 4
-        self.diag_iter = int(pa.get("diag_iter", 500))
-        self.init_dir = os.path.join(ROOT, pa.get("init_dir", "work_dir/_pa_init"))
+        self._configure(args)
 
         self.accelerator_project_config = ProjectConfiguration(project_dir=args.work_dir)
         self.accelerator = Accelerator(mixed_precision=args.mixed_precision, project_config=self.accelerator_project_config)
@@ -100,7 +89,7 @@ class PATrainer(Trainer):
             torch.manual_seed(int(args.seed) + 1000)
             aligner = PANGlobalAligner(int(args.num_bands))
         self.init_hashes = self._pair_init(model, aligner)
-        self.model = PAModel(model, aligner)
+        self.model = PAModel(model, aligner, aligner_margin=self.aligner_view_margin)
         groups = [dict(params=[p for p in self.model.backbone.parameters() if p.requires_grad], name="backbone"),
                   dict(params=list(self.model.aligner.parameters()), name="aligner")]      # 같은 LR/scheduler (§7.2)
         self.optimizer = torch.optim.AdamW(groups, lr=args.learning_rate, weight_decay=args.weight_decay)
@@ -123,6 +112,22 @@ class PATrainer(Trainer):
                            loss_domain="L_rec full frame (B0)", aligner_params=sum(p.numel() for p in aligner.parameters()), evaluator_hash=evaluator_hash()),
                       open(os.path.join(args.work_dir, "pa_config_resolved.json"), "w"), indent=1)
             self._write_manifests()
+
+    # ------------------------------------------------------------------ 설정 (subclass 가 override: train_po.py)
+    def _configure(self, args):
+        pa = getattr(args, "pa", {}) or {}
+        self.case = pa.get("case"); assert self.case in CASES, f"pa.case 는 {list(CASES)}"
+        self.lam_edge = float(pa.get("lambda_edge", CASES[self.case]["lambda_edge"]))
+        self.lam_geo = float(pa.get("lambda_geo", CASES[self.case]["lambda_geo"]))
+        assert (self.case == "A1") == (self.lam_edge == 0.0 and self.lam_geo == 0.0), "A1 은 보조 loss 없음"
+        assert not (self.lam_edge > 0 and self.lam_geo > 0), "A3 에 A2 loss 를 함께 넣지 않는다 (§5.4)"
+        self.ramp = int(pa.get("ramp_steps", 5000))
+        self.geo_sigma = float(pa.get("geometry_sigma_hr", 2.0))            # r/2, WV3 r=4
+        self.geo_margin = int(pa.get("geometry_margin_hr", 11))
+        self.guard_margin = geometry_support_margin(self.geo_sigma, self.geo_margin)     # 11 − (6+1) = 4
+        self.diag_iter = int(pa.get("diag_iter", 500))
+        self.init_dir = os.path.join(ROOT, pa.get("init_dir", "work_dir/_pa_init"))
+        self.aligner_view_margin = 0                                          # A1–A3: aligner 는 전체 view
 
     # ------------------------------------------------------------------ init pairing · manifests · selectors
     def _pair_init(self, unet, aligner):

@@ -192,6 +192,45 @@ def check_trainer_extras(cfg):
         if dev.type == "cuda":
             torch.cuda.empty_cache()
         return note
+    if tr == "po":
+        from pa.aligner import PANGlobalAligner
+        from pa.model import PAModel
+        from pa.offset import po_step, aligner_margin, CASES as PO_CASES
+        po = cfg.get("po") or {}; case = po.get("case"); assert case in PO_CASES, f"po.case {case}"
+        assert cfg.get("mars") == "ms" and cfg["model_args"].get("in_mode") == "paper" and cfg["model_args"].get("mode_modulation") is False, "po 는 B0(9ch·mars ms·γβ 제거) 위"
+        R = float(po.get("radius_hr", 1.0)); mg = aligner_margin(R)
+        dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        bb = build(cfg).to(dev); randomize_zero_params(bb)
+        al = PANGlobalAligner(int(cfg["num_bands"])).to(dev); m = PAModel(bb, al, aligner_margin=mg)
+        B = int(cfg.get("batch_size", 48)); nb = int(cfg["num_bands"]); note = f" PO:{case} R={R} view-margin {mg}"
+        if dev.type == "cuda":
+            torch.cuda.empty_cache(); torch.cuda.reset_peak_memory_stats(dev)
+        opt = torch.optim.AdamW(m.parameters(), lr=1e-4); g = torch.Generator(device="cpu"); g.manual_seed(0)
+        pan, lpan = torch.randn(B, 1, 64, 64, device=dev), torch.randn(B, 1, 16, 16, device=dev)
+        ms, gt = torch.randn(B, nb, 16, 16, device=dev), torch.randn(B, nb, 64, 64, device=dev)
+        import time as _t; times = {}
+        for k, upd in (("native", 0), ("corrupt", 1)):
+            for rep in range(3):
+                t0 = _t.time(); total, info = po_step(m, pan, ms, lpan, gt, case=case, update_index=upd, radius_hr=R, generator=g, lam_max=0.01, ramp=1)
+                assert torch.isfinite(total) and info["pred"].shape == (B, nb, 64, 64)
+                opt.zero_grad(); total.backward(); opt.step()
+                if dev.type == "cuda": torch.cuda.synchronize()
+                times[k] = _t.time() - t0
+            if k == "corrupt":
+                assert info["corrupt"] and float(info["eps"].norm(dim=1).max()) <= R + 1e-6
+                if case == "N1": assert info["weight"] == 0.0
+        assert al.fc2.weight.grad is not None
+        if dev.type == "cuda":
+            _ALIGN_PEAK = torch.cuda.max_memory_allocated(dev) / 2**20
+            note += f" trainPeak {_ALIGN_PEAK:.0f}MB t_native {times['native']*1000:.0f}ms t_corrupt {times['corrupt']*1000:.0f}ms"
+        m.eval()
+        with torch.no_grad():
+            of = m(torch.randn(1, 1, 512, 512, device=dev), torch.randn(1, nb, 128, 128, device=dev), torch.randn(1, 1, 128, 128, device=dev))
+        assert of["y"].shape[-2:] == (512, 512) and torch.isfinite(of["y"]).all()
+        del m, bb, al, opt, total, info, of
+        if dev.type == "cuda":
+            torch.cuda.empty_cache()
+        return note
     if tr == "pa":
         from pa.aligner import PANGlobalAligner
         from pa.model import PAModel

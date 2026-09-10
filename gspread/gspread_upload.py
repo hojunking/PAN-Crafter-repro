@@ -575,6 +575,9 @@ def collect(tag, want_profile, server, peer=None):
     elif _tr == "pa":
         _p = getattr(a, "pa", {}) or {}; _c = _p.get("case", "?")
         desc = (desc + " PA " + {"A1": "A1(aligner, L_rec)", "A2": "A2(aligner, L_rec+edge)", "A3": "A3(aligner, L_rec+geo)"}.get(_c, _c)).strip()
+    elif _tr == "po":
+        _p = getattr(a, "po", {}) or {}; _c = _p.get("case", "?")
+        desc = (desc + " PO10 " + {"N1": "N1(PAN corrupt, L_rec)", "N2_SG": "N2(corrupt + offset loss, sg)", "N3_NOSG": "N3(corrupt + offset loss, no-sg)"}.get(_c, _c) + f" R={_p.get('radius_hr', 1.0)}").strip()
     elif _tr == "uvs":
         _u = getattr(a, "uvs", {}) or {}; _v = _u.get("variant", "?")
         desc = (desc + " UVS " + {"b0": "B0(lms baseline)", "k0": "K0(output KD)", "k1": "K1(U routing)", "k2": "K2(U+GT var)",

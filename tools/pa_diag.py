@@ -32,8 +32,10 @@ def load_run(run, ckpt, dev):
     wd = os.path.join(ROOT, "work_dir", run); cfg = yaml.safe_load(open(os.path.join(wd, "meta", "config.yaml")))
     from safetensors.torch import load_file
     sd = load_file(os.path.join(wd, ckpt, "model.safetensors"))
-    bb = import_class(cfg["model"])(**cfg["model_args"]); is_pa = cfg.get("trainer") == "pa"
-    m = PAModel(bb, PANGlobalAligner(int(cfg["num_bands"])))
+    bb = import_class(cfg["model"])(**cfg["model_args"]); is_pa = cfg.get("trainer") in ("pa", "po")
+    from pa.offset import aligner_margin
+    mg = aligner_margin(float((cfg.get("po") or {}).get("radius_hr", 1.0))) if cfg.get("trainer") == "po" else 0
+    m = PAModel(bb, PANGlobalAligner(int(cfg["num_bands"])), aligner_margin=mg)
     if is_pa:
         m.load_state_dict(sd, strict=True)
     else:
@@ -120,11 +122,11 @@ def tile_vs_full(m, ds, dev, tile=128):
     for i in range(len(ds)):
         lms, ms, lpan, pan = (t.unsqueeze(0).to(dev) for t in ds[i])
         ms_up = torch.nn.functional.interpolate(ms, scale_factor=4, mode="bicubic")
-        full = m.aligner(pan.float(), ms_up.float())[0].float().cpu().numpy()
+        full = m.aligner(m._view(pan.float()), m._view(ms_up.float()))[0].float().cpu().numpy()      # po: 고정 내부 view 적용
         H, W = pan.shape[-2:]; ts = []
         for y in range(0, H - tile + 1, tile):
             for x in range(0, W - tile + 1, tile):
-                ts.append(m.aligner(pan[:, :, y:y + tile, x:x + tile].float(), ms_up[:, :, y:y + tile, x:x + tile].float())[0].float().cpu().numpy())
+                ts.append(m.aligner(m._view(pan[:, :, y:y + tile, x:x + tile].float()), m._view(ms_up[:, :, y:y + tile, x:x + tile].float()))[0].float().cpu().numpy())
         ts = np.array(ts)
         out.append(dict(scene=i, full_dy=float(full[0]), full_dx=float(full[1]), tile_dy_median=float(np.median(ts[:, 0])), tile_dx_median=float(np.median(ts[:, 1])),
                         tile_dy_iqr=float(np.subtract(*np.percentile(ts[:, 0], [75, 25]))), tile_dx_iqr=float(np.subtract(*np.percentile(ts[:, 1], [75, 25]))),
@@ -183,11 +185,11 @@ def main():
     ap.add_argument("--skip-controls", action="store_true")
     a = ap.parse_args(); dev = torch.device(a.device)
     wd0 = os.path.join(ROOT, "work_dir", a.run); cfg0 = yaml.safe_load(open(os.path.join(wd0, "meta", "config.yaml")))
-    is_pa = cfg0.get("trainer") == "pa"
+    is_pa = cfg0.get("trainer") in ("pa", "po")
     sensor = efp.sensor_of(cfg0); wald = load_dlpan(os.environ.get("PANCRAFTER_DLPAN", "/home/knuvi/Desktop/song/DLPan-Toolbox"))
     Feeder = import_class(cfg0["feeder"]); ds = Feeder(**cfg0["test_full_feeder_args"]); mp = float(ds.max_pixel)
     lms_raw, pan_raw = refs(cfg0)
-    out = dict(run=a.run, trainer=("pa" if is_pa else "b0"), case=(cfg0.get("pa") or {}).get("case"), cross_evaluation={}, training_records=cross_table(wd0) if is_pa else {})
+    out = dict(run=a.run, trainer=(cfg0.get("trainer") if is_pa else "b0"), case=((cfg0.get("pa") or cfg0.get("po") or {}).get("case")), cross_evaluation={}, training_records=cross_table(wd0) if is_pa else {})
     tags = ["best_hqnr", "best_aligned", "last"] if is_pa else ["best_hqnr"]
     print(f"[{a.run}] §10.10 교차 평가 (재추론, 같은 evaluator):")
     for tag in tags:
