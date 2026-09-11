@@ -129,7 +129,7 @@ w_off: 1.0
 log_iter: 100
 save_iter: 10000
 save_epoch: 25
-eval_epoch: 5
+eval_epoch: 10
 
 # training
 gpu: 0

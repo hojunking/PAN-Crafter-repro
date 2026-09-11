@@ -187,6 +187,10 @@ def main():
     ap.add_argument("--updates", type=int, default=50000, help="N (§13.1: 새 실행 제안 50,000 — 과거 다른 구조의 확인값이 아니다)")
     ap.add_argument("--tail-updates", type=int, default=25000, help="CONTINUATION 의 tail update 수 (양쪽에 같게)")
     ap.add_argument("--cost-match-updates", type=int, default=None, help="COSTMATCH 의 update 수 (KD run 의 실측 시간에서 정한다; 없으면 COSTMATCH 를 만들지 않는다)")
+    ap.add_argument("--eval-epoch", type=int, default=10,
+                    help="평가 주기(epoch). 2026-09-11 에 5->10 — 평가가 wall-clock 의 53% 였다. "
+                         "best 재선택 영향 실측(65 run): 중앙 0.00000·평균 -0.00030, "
+                         "판정선 초과 142쌍 중 순위 반전 2쌍(둘 다 '차이 있음->구분 안 됨' 방향)")
     ap.add_argument("--version", default="v1"); ap.add_argument("--template", default="config/PA_A1_REC_W96_D124_9CH_S1234.yaml")
     ap.add_argument("--params", type=float, default=None)
     a = ap.parse_args()
@@ -238,7 +242,8 @@ def main():
                 f"# 골격 {ARCH}(hidden {WIDTH}, depth {DEPTH}, {a.params} M) · 9ch→8ch · **aligner·sampler 없음, PAN warp 없음** · MS base 1회 합산 · AdamW 1e-4/wd 0.01 cosine warmup100 · batch 48 · {upd} updates · seed {seed}\n"
                 f"# 초기값 work_dir/_kdv_init_w104_d122 (같은 seed 의 Student 가 공유) · Teacher = {teacher_run}/best_hqnr (id {TEACHER_ID}) · λ_V pilot = {pilot}\n"
                 f"# 선택: 주 selector best_hqnr(raw_original HQNR→fSCC; 저장소 확정 지시) · 보조 best_rr_val(valid_wv3.h5 plain ERGAS)·last. Teacher·시트·진단 모두 best_hqnr. aligned view/selector 없음\n")
-        t = re.sub(r"work_dir: .*", f"work_dir: {ROOT}/work_dir/{tag}", tpl)
+        t = re.sub(r"^eval_epoch: \d+$", f"eval_epoch: {a.eval_epoch}", tpl, flags=re.M)   # 템플릿 파일은 건드리지 않는다
+        t = re.sub(r"work_dir: .*", f"work_dir: {ROOT}/work_dir/{tag}", t)
         t = re.sub(r"^trainer: pa\npa:\n(  .*\n)+", "", t, flags=re.M)
         t = t.replace("mars: ms                      # PAN mode·loss·batch 복제 제거 (단일 task)",
                       "mars: ms                      # PAN mode·loss·batch 복제 제거 (단일 task)\ntrainer: kdv\nkdv:\n"
@@ -263,6 +268,12 @@ def main():
             f.write(f"# NA104 (W104·D122 no-align KD) {srv} block · 계획 §10 우선순위 순서 · {a.updates} updates · Teacher seed {a.teacher_seed} / Student seed {a.seed} · 시간 제한 없음\n"
                     f"# 순서 의존: T00(Teacher) → Q00(독립 baseline, λ_V pilot = {pilot}) → 나머지. CONT* 는 Q00/last, TCOPY* 는 T00/best_rr_val 에서 분기한다\n"
                     "# 약명 → 세팅은 research_log/2026-09-11_na104-implementation.md §3 표. 실행명 자체에 rec·stat·tri 토큰이 들어 있다\n"
+                    f"# eval_epoch = {a.eval_epoch}. 2026-09-11 에 5->10 (s1 NF16 과 같은 정책) — 평가가 wall-clock 의 53% 였다\n"
+                    "#   (s1 실측: 학습 5ep 72s vs 평가 1회 67s = reduced 10s + full 53s). run 당 약 26% 단축.\n"
+                    "#   best 재선택 영향 실측(기존 65 run): 중앙 0.00000 · 평균 -0.00030(판정선 0.0027 의 1/9).\n"
+                    "#   순위는 판정선 초과 142쌍 중 2쌍만 반전, 둘 다 '차이 있음 -> 구분 안 됨' 방향이라\n"
+                    "#   주장이 반대로 뒤집힌 사례는 없었다. NA104 는 미시작이라 캠페인 내부 비대칭도 없다.\n"
+                    "#   eval_epoch 가 다른 run 과 대조할 때는: python tools/best_on_grid.py --grid 10 <run>\n"
                     + "\n".join(qs) + "\n")
         print(f"queue {srv}: {os.path.relpath(qp, ROOT)} ({len(qs)} run)")
     print(f"config {len(made)}벌 · params {a.params} M · Teacher {teacher_run} · pilot {pilot}")

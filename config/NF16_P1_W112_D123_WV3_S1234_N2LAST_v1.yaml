@@ -1,6 +1,6 @@
 # NF16_P1_W112_D123_WV3_S1234_N2LAST_v1 — P1 FROZEN — N2 last aligner 고정 재사용 (P1−P0: 재사용 효과). 생성: tools/gen_nf16_configs.py. 손으로 고치지 말 것.
 # 명세: research_log/PAN_N2_NativeFitting_16GPUh_W112_D123_2026-09-11.md · 구현 train_kdv.py(trainer kdv, protocol I-AEQ) · 노트 research_log/2026-09-11_nf16-implementation.md
-# 세팅: I-NATIVE-TRANSFER · aligner frozen(donor 복사, 학습 없음) · rec L1(GT) · stat OFF · geomKD 없음 (no Teacher)
+# 세팅: I-NATIVE-TRANSFER · aligner frozen(donor 복사, 학습 없음) · rec L1(GT) · stat OFF · geomKD 없음 (Teacher 없음) · 주 selector best_hqnr
 # 골격 W112·D123(2.6589 M) · 9ch · 단일 HRMS · AdamW 1e-4(backbone)/1e-5(aligner)/wd 0.01 cosine warmup100 · batch 48 · 50000 updates · seed 1234 · init work_dir/_kdv_init_w112_d123
 # donor aligner = PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT/last (step 50000, file sha256 9d4cbf218cd8f674…), 내부 view margin 4, strict load, head 재초기화 없음, donor optimizer state 미사용
 # 평가: raw_original · raw_valid(V64) · aligned_valid(self, V64) · aligned_fixed_v64(고정 donor 참조) · best_raw=best_hqnr · best_aligned · best_rr_val · last(정확한 50000)
@@ -38,7 +38,7 @@ kdv:
     total_gpu_hours: 16.0
     reserve_hours: 1.0
     required: true
-    projected_hours: 1.625
+    projected_hours: 1.2
     projected_map:
       NF16_P0_W112_D123_WV3_S1234_N2LAST_v1: 1.6
       NF16_P1_W112_D123_WV3_S1234_N2LAST_v1: 1.6
@@ -126,7 +126,7 @@ w_off: 1.0
 log_iter: 100
 save_iter: 10000
 save_epoch: 25
-eval_epoch: 5
+eval_epoch: 10
 
 # training
 gpu: 0

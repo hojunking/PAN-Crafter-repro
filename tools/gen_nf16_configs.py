@@ -44,6 +44,9 @@ def build(q, seed, donor_sha, donor_step, required, projected, projected_map=Non
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--updates", type=int, default=50000); ap.add_argument("--version", default="v1"); ap.add_argument("--only", default=None)
+    ap.add_argument("--eval-epoch", type=int, default=10,
+                    help="평가 주기(epoch). 2026-09-11 에 5->10 — 평가가 wall-clock 의 53% 였고, "
+                         "10 격자 재선택의 best HQNR 영향은 65 run 중앙 0.00000·평균 -0.00030 이었다")
     ap.add_argument("--projected-hours", type=float, default=None, help="예산 gate 용 run 당 예상 GPU 시간 (smoke 로 잰 값; 없으면 ledger 의 완료 run 평균)")
     ap.add_argument("--ledger", default="work_dir/_nf16_budget/ledger.json"); ap.add_argument("--total-hours", type=float, default=16.0)
     a = ap.parse_args()
@@ -77,6 +80,7 @@ def main():
                 f"# 골격 W112·D123(2.6589 M) · 9ch · 단일 HRMS · AdamW 1e-4(backbone)/1e-5(aligner)/wd 0.01 cosine warmup100 · batch 48 · {a.updates} updates · seed {seed} · init work_dir/_kdv_init_w112_d123\n"
                 f"# donor aligner = {DONOR_RUN}/last (step {donor_step}, file sha256 {(donor_sha or '?')[:16]}…), 내부 view margin 4, strict load, head 재초기화 없음, donor optimizer state 미사용\n"
                 f"# 평가: raw_original · raw_valid(V64) · aligned_valid(self, V64) · aligned_fixed_v64(고정 donor 참조) · best_raw=best_hqnr · best_aligned · best_rr_val · last(정확한 {a.updates})\n")
+        t = re.sub(r"^eval_epoch: \d+$", f"eval_epoch: {a.eval_epoch}", t, flags=re.M)   # 템플릿(이미 돈 run 의 config)은 그대로 두고 여기서만 바꾼다
         t = re.sub(r"work_dir: .*", f"work_dir: {ROOT}/work_dir/{tag}", t)
         t = re.sub(r"^trainer: po\npo:\n(  .*\n)+", "", t, flags=re.M)
         t = t.replace("mars: ms                      # PAN mode·loss·batch 복제 제거 (단일 task)",
@@ -89,7 +93,16 @@ def main():
         f.write(f"# NF16 (명세 §10 순서): gate → P0 → P1 → P2 → P3 → P4 → (P3, P4 seed 7777 반복; 예산 gate) · s1 · {a.updates} updates · 예산 16 GPU-h (work_dir/_nf16_budget/ledger.json)\n"
                 "# s1234 사슬 P0–P4 는 전부 required(초과해도 경고만 — 명세 §10 '필수 case 학습량 유지'), 반복 pair(s7777) 만 예산으로 막힌다(DEFERRED_BUDGET, exit 4 → 체인은 다음으로 넘어간다).\n"
                 "# gate 식: used + 1.2·(이 run + 남은 필수 사슬 + pair) + reserve 1h ≤ 16h. 예상치는 config projected_hours → budget.projected_map(§10 예약 1.6/1.6/1.8/2.0/2.0) → 완료 run 평균 → smoke throughput.\n"
-                "# P4 geometry gate 실패 시 반복 pair 는 P1/P3 로 바꾼다(수동)\n" + "\n".join(made) + "\n")
+                "# P4 geometry gate 실패 시 반복 pair 는 P1/P3 로 바꾼다(수동)\n"
+                f"# eval_epoch = {a.eval_epoch}. 2026-09-11 에 5->10 — 평가가 wall-clock 의 53% 였다\n"
+                "#   (학습 5ep 72s vs 평가 1회 67s = reduced 10s + full 53s; full 의 측정된 CPU 지표는\n"
+                "#    공식 FR 13.2s + proxy full_metrics 5.3s + PNG 1.9s). 50K 기준 1.8h -> 1.3h.\n"
+                "#   best 재선택 영향 실측: 기존 65 run 을 10 격자로 재선택 시 중앙 0.00000 · 평균 -0.00030\n"
+                "#   (판정선 0.0027 의 1/9), 판정선 초과 1/65.\n"
+                "# *** P0 는 eval_epoch 5 로 이미 돌았다 (실행 중이라 config 를 고치지 않았다). ***\n"
+                "#   P0 는 기준선이라 후보 checkpoint 가 2배여서 미세하게 유리하다. P1~P4 와 대조할 때는\n"
+                "#   P0 의 best 를 10 배수 epoch 으로 다시 골라 맞춘다:\n"
+                "#     python tools/best_on_grid.py --grid 10 NF16_P0_W112_D123_WV3_S1234_N2LAST_v1\n" + "\n".join(made) + "\n")
     print("\n".join(made)); print("queue:", os.path.relpath(q, ROOT), "| donor step", donor_step, "sha", (donor_sha or "?")[:16])
 
 

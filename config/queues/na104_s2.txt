@@ -1,6 +1,12 @@
 # NA104 (W104·D122 no-align KD) s2 block · 계획 §10 우선순위 순서 · 50000 updates · Teacher seed 2025 / Student seed 1234 · 시간 제한 없음
 # 순서 의존: T00(Teacher) → Q00(독립 baseline, λ_V pilot = NA104_Q00_W104_D122_WV3_N0_OFF_S1234_v1/last) → 나머지. CONT* 는 Q00/last, TCOPY* 는 T00/best_rr_val 에서 분기한다
 # 약명 → 세팅은 research_log/2026-09-11_na104-implementation.md §3 표. 실행명 자체에 rec·stat·tri 토큰이 들어 있다
+# eval_epoch = 10. 2026-09-11 에 5->10 (s1 NF16 과 같은 정책) — 평가가 wall-clock 의 53% 였다
+#   (s1 실측: 학습 5ep 72s vs 평가 1회 67s = reduced 10s + full 53s). run 당 약 26% 단축.
+#   best 재선택 영향 실측(기존 65 run): 중앙 0.00000 · 평균 -0.00030(판정선 0.0027 의 1/9).
+#   순위는 판정선 초과 142쌍 중 2쌍만 반전, 둘 다 '차이 있음 -> 구분 안 됨' 방향이라
+#   주장이 반대로 뒤집힌 사례는 없었다. NA104 는 미시작이라 캠페인 내부 비대칭도 없다.
+#   eval_epoch 가 다른 run 과 대조할 때는: python tools/best_on_grid.py --grid 10 <run>
 NA104_T00_W104_D122_WV3_N0_OFF_S2025_v1
 NA104_Q00_W104_D122_WV3_N0_OFF_S1234_v1
 NA104_Q01_W104_D122_WV3_R0_OFF_S1234_v1

@@ -2,7 +2,15 @@
 # s1234 사슬 P0–P4 는 전부 required(초과해도 경고만 — 명세 §10 '필수 case 학습량 유지'), 반복 pair(s7777) 만 예산으로 막힌다(DEFERRED_BUDGET, exit 4 → 체인은 다음으로 넘어간다).
 # gate 식: used + 1.2·(이 run + 남은 필수 사슬 + pair) + reserve 1h ≤ 16h. 예상치는 config projected_hours → budget.projected_map(§10 예약 1.6/1.6/1.8/2.0/2.0) → 완료 run 평균 → smoke throughput.
 # P4 geometry gate 실패 시 반복 pair 는 P1/P3 로 바꾼다(수동)
-NF16_P0_W112_D123_WV3_S1234_N2LAST_v1
+# eval_epoch = 10. 2026-09-11 에 5->10 — 평가가 wall-clock 의 53% 였다
+#   (학습 5ep 72s vs 평가 1회 67s = reduced 10s + full 53s; full 의 측정된 CPU 지표는
+#    공식 FR 13.2s + proxy full_metrics 5.3s + PNG 1.9s). 50K 기준 1.8h -> 1.3h.
+#   best 재선택 영향 실측: 기존 65 run 을 10 격자로 재선택 시 중앙 0.00000 · 평균 -0.00030
+#   (판정선 0.0027 의 1/9), 판정선 초과 1/65.
+# *** P0 는 eval_epoch 5 로 이미 돌았다 (실행 중이라 config 를 고치지 않았다). ***
+#   P0 는 기준선이라 후보 checkpoint 가 2배여서 미세하게 유리하다. P1~P4 와 대조할 때는
+#   P0 의 best 를 10 배수 epoch 으로 다시 골라 맞춘다:
+#     python tools/best_on_grid.py --grid 10 NF16_P0_W112_D123_WV3_S1234_N2LAST_v1
 NF16_P1_W112_D123_WV3_S1234_N2LAST_v1
 NF16_P2_W112_D123_WV3_S1234_N2LAST_v1
 NF16_P3_W112_D123_WV3_S1234_N2LAST_v1
