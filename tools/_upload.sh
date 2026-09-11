@@ -47,8 +47,8 @@ LOG="$REPO/work_dir/gspread_upload.log"
       grep -v Warning "$REPO/work_dir/$t/results/po10_diag.log" | tail -12
       [ $rc -eq 0 ] || echo "[upload] !! po10_diag 실패 (rc=$rc): $t — work_dir/$t/results/po10_diag.log";;
     NA104_*)
-      # NA104 §14.3: artifact 진단(과도한 smoothing·링잉·band bias·평탄/어두운 영역 악화) 을 **주 selector 인 best_rr_val** 과 last 에서. 선택·판정에는 쓰지 않는다
-      for CK in best_rr_val last; do
+      # NA104 §14.3: artifact 진단(과도한 smoothing·링잉·band bias·평탄/어두운 영역 악화) 을 **주 selector(best_hqnr)** 와 보조(best_rr_val)·last 에서. 선택·판정에는 쓰지 않는다
+      for CK in best_hqnr best_rr_val last; do
         [ -d "$REPO/work_dir/$t/$CK" ] || continue
         set +e; python tools/na104_diag.py --run "$t" --ckpt "$CK" --out "na104_diag_$CK" > "$REPO/work_dir/$t/results/na104_diag_$CK.log" 2>&1; rc=$?; set -e
         grep -v Warning "$REPO/work_dir/$t/results/na104_diag_$CK.log" | tail -2

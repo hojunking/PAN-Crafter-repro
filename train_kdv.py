@@ -166,6 +166,7 @@ class KDVTrainer(PATrainer):
         self.last_reduced_metrics, self.last_full_metrics, self.last_val_metrics = {}, {}, {}
         self.last_fscc_official = float("nan"); self.raw_is_best = False
         self._ema = {}; self._global_step = 0; self.step_records = {}; self.start_step = 0
+        self.resumed_from = getattr(args, "resume", None)
         self.cand_dir = os.path.join(args.work_dir, "candidates")
         self.fr_h5 = args.test_full_feeder_args["dataroot"]; self.fr_h5_sha = sha_cached(self.fr_h5, self.init_dir)
         import h5py
@@ -288,6 +289,13 @@ class KDVTrainer(PATrainer):
         return self._calib["batches"]
 
     def _calibrate_and_build(self):
+        """calibration 전 구간을 RNG 격리 안에서 수행한다 — 캐시 적중/미적중이 학습 배치 순서를 바꾸면
+        같은 seed 의 대조군끼리 데이터 순서가 달라져 비교가 성립하지 않는다 (사용자 검토 2026-09-11)."""
+        dev0 = self.accelerator.device
+        with torch.random.fork_rng(devices=([dev0] if dev0.type == "cuda" else [])):
+            self._calibrate_and_build_inner()
+
+    def _calibrate_and_build_inner(self):
         sp = self.spec; dev = self.accelerator.device; k = self.k
         rec = dict(k.get("rec") or {}); st = dict(k.get("stat") or {})
         tid = self.teacher_id or "no_teacher"; croot = os.path.join(CALIB_ROOT, tid)
@@ -434,8 +442,9 @@ class KDVTrainer(PATrainer):
                                 lambda: calibrate_component_tau(self.teacher, self._batches(), dev, kind=kind, window=w, transform=sp["stat_transform"], transform_eps=sp["stat_transform_eps"], domain=sp["stat_domain"]))
                 self.tri_state["tau_V_j"] = torch.tensor(r["tau"], dtype=torch.float64, device=dev); self.tri_state["eps_V_j"] = torch.tensor(r["eps"], dtype=torch.float64, device=dev); cal["stat_components"] = dict(r, from_cache=hit)
             if tri["c_mode"] != "off":
-                phi = tri["c_phi"]; ck = dict(tkey, set=self._calib_set_key(), h=tri["c_h"], phi=phi, kind=(kind if phi == "stat" else None), window=(w if phi == "stat" else None))
-                sens, hit = cached(os.path.join(croot, f"sens_{phi}{'_' + sid if phi == 'stat' else ''}.json"), ck, lambda: calibrate_sens(self.teacher, self._batches(), dev, h=tri["c_h"], phi=phi, stat_kind=(kind if phi == "stat" else None), window=w or 5))
+                phi = tri["c_phi"]; ck = dict(tkey, set=self._calib_set_key(), h=tri["c_h"], phi=phi, kind=(kind if phi == "stat" else None), window=(w if phi == "stat" else None), roi_margin=tri["c_roi_margin"])
+                sens, hit = cached(os.path.join(croot, f"sens_{phi}{'_' + sid if phi == 'stat' else ''}_roi{tri['c_roi_margin']}.json"), ck,
+                                   lambda: calibrate_sens(self.teacher, self._batches(), dev, h=tri["c_h"], phi=phi, stat_kind=(kind if phi == "stat" else None), window=w or 5, roi_margin=tri["c_roi_margin"]))
                 cal["sens"] = dict(sens, from_cache=hit)
                 if sens["status"] == "SOURCE_UNRESPONSIVE":
                     # 계획 §9.2: 양의 q 가 전혀 없으면 이 추가 감쇠를 적용하지 않고 원래 soft 로 되돌리며 비율을 기록한다 (중단하지 않는다)
@@ -523,10 +532,13 @@ class KDVTrainer(PATrainer):
                        teacher_hash0=getattr(self, "teacher_hash0", None), share_correction=self.share_correction),
                   open(os.path.join(wd, "init_and_teacher_hashes.json"), "w"), indent=1)
         json.dump(dict(campaign_id=self.campaign_id, run_id=self.run_id, run_kind=self.run_kind, version=self.version, spec=sp, description=describe(sp), case=self.case,
-                       selection=dict(primary=sp.get("select_primary", "best_raw"), exploratory=[t for t in self.export_tags() if t != {"best_raw": "best_hqnr"}.get(sp.get("select_primary", "best_raw"), sp.get("select_primary"))],
+                       selection=dict(primary=sp.get("select_primary", "best_hqnr"), secondary=sp.get("select_secondary") or [],
+                                      others=[t for t in self.export_tags() if t != sp.get("select_primary", "best_hqnr")],
                                       aligned_selector=sp.get("aligned_selector", True), keep_exact_final_n=True, fr_test_used_for_selection=True,
-                                      note="best_hqnr(=best_raw) 는 FR test 로 고른 test-adaptive exploratory selector — 독립 hold-out 이 아니다 (§14.2). best_rr_val 은 valid_wv3.h5 plain ERGAS."),
-                       na_protocol=sp.get("na_protocol"), rec_control=sp.get("rec_control"), stat_axes=dict(windows=sp.get("stat_windows"), transform=sp.get("stat_transform"), domain=sp.get("stat_domain"),
+                                      note=("판정·시트·Teacher·진단이 모두 같은 checkpoint 를 쓴다 (저장소 확정 지시: 무조건 HQNR→SCC). "
+                                            "best_hqnr(=best_raw) 는 FR test 로 매 평가 고르므로 test-adaptive 다 — 독립 hold-out 이 아니라는 점은 그대로 기록한다. "
+                                            "계획 §14.2 의 독립 RR-validation 선택(best_rr_val, valid_wv3.h5 plain ERGAS) 은 **보조**로 함께 저장·평가한다.")),
+                       na_protocol=sp.get("na_protocol"), rec_control=sp.get("rec_control"), resumed=bool(self.resumed_from), resumed_from=(str(self.resumed_from) if self.resumed_from else None), stat_axes=dict(windows=sp.get("stat_windows"), transform=sp.get("stat_transform"), domain=sp.get("stat_domain"),
                                                                                                             transform_eps=sp.get("stat_transform_eps"), lambda_scale=sp.get("stat_lambda_scale"), tau_scale=sp.get("rec_tau_scale")),
                        lambda_V=self.lam_V, stat_ramp_updates=self.stat_ramp, lambda_GKD=self.lam_gkd, k0=self.k0, cov_source=sp["cov_source"], cov_status=(self.cov or {}).get("status"),
                        tri=sp["tri"], tri_state={kk: (v.tolist() if torch.is_tensor(v) else v) for kk, v in self.tri_state.items() if kk != "prec_fn"},
@@ -541,12 +553,25 @@ class KDVTrainer(PATrainer):
                   open(os.path.join(wd, "pa_config_resolved.json"), "w"), indent=1)
         if not self.k.get("phase"):
             yaml.safe_dump(dict(run_kind=self.run_kind, start="from_init", parent_run=None, parent_step=0, inherited_cost_hours=0.0, teacher_id=self.teacher_id), open(os.path.join(wd, "parent_and_phase.yaml"), "w"))
+        if self.resumed_from:
+            # 재개는 optimizer/scheduler/scaler/RNG 를 복원하지만 **data sampler 순서는 복원하지 않는다** (main.py C-1 주석).
+            # 즉 재개한 run 은 중단 없는 대응 run 과 배치 열이 다르다 — 엄밀 대조에서는 제외하거나 처음부터 다시 돌린다.
+            self._jsonl("resume_events.jsonl", dict(time=time.strftime("%Y-%m-%dT%H:%M:%S"), resume_from=str(self.resumed_from),
+                                                    restored="optimizer·scheduler·scaler·RNG(corruption/TRI)", not_restored="data sampler 배치 순서",
+                                                    consequence="중단 없는 run 과 배치 열이 다르다 — 통제 비교에서 표시하거나 재실행"))
+            print(f"[kdv] 재개: {self.resumed_from} — 배치 순서는 복원되지 않는다 (resume_events.jsonl 에 기록)")
         os.makedirs(os.path.join(CAMPAIGN_ROOT, self.campaign_id), exist_ok=True)
         reg_p = os.path.join(CAMPAIGN_ROOT, self.campaign_id, "teacher_registry.json")
         reg = json.load(open(reg_p)) if os.path.exists(reg_p) else {}
         if self.teacher_manifest:
-            reg[self.teacher_id] = dict(run=self.teacher_manifest["run"], tag=self.teacher_manifest["tag"], file_sha256=self.teacher_manifest["file_sha256"], width=self.teacher_manifest["width"],
-                                       depth=self.teacher_manifest["depth"], recipe=((self.teacher_manifest.get("kdv") or {}).get("recipe")), seed=self.teacher_manifest.get("seed"), used_by=sorted(set((reg.get(self.teacher_id, {}).get("used_by") or []) + [self.run_id])))
+            _tm = self.teacher_manifest.get("tag_meta") or {}; _tstep = _tm.get("step")
+            if _tstep is not None and self.args.num_iter and int(_tstep) < 0.2 * int(self.args.num_iter):
+                print(f"[kdv] 주의: Teacher checkpoint 가 이른 step({_tstep}) 에서 선택됐다 — 품질이 아니라 초기 변동으로 뽑혔을 수 있다 (§3.2 확인 항목)")
+            reg[self.teacher_id] = dict(run=self.teacher_manifest["run"], tag=self.teacher_manifest["tag"], selected_step=_tstep, file_sha256=self.teacher_manifest["file_sha256"], width=self.teacher_manifest["width"],
+                                       depth=self.teacher_manifest["depth"], recipe=((self.teacher_manifest.get("kdv") or {}).get("recipe")), seed=self.teacher_manifest.get("seed"),
+                                       used_by=sorted(set((reg.get(self.teacher_id, {}).get("used_by") or []) + [self.run_id])),
+                                       # 분담 분모는 **학습에 실제로 Teacher 를 쓴 run** 만 — 평가 bin 전용 arm 이 KD 준비비 분담액을 낮추면 안 된다
+                                       used_by_training=sorted(set((reg.get(self.teacher_id, {}).get("used_by_training") or []) + ([self.run_id] if not self.spec.get("teacher_eval_only") else []))))
             json.dump(reg, open(reg_p, "w"), indent=1)
         self._runs_csv(status="RUNNING")
 
@@ -566,7 +591,8 @@ class KDVTrainer(PATrainer):
         reg_p = os.path.join(CAMPAIGN_ROOT, self.campaign_id, "teacher_registry.json"); shared = 1
         if self.teacher_id and os.path.exists(reg_p):
             try:
-                shared = max(1, len((json.load(open(reg_p)).get(self.teacher_id, {}) or {}).get("used_by") or []))
+                _e = json.load(open(reg_p)).get(self.teacher_id, {}) or {}
+                shared = max(1, len(_e.get("used_by_training") or []))          # 학습에 쓴 run 수 (평가 전용 제외)
             except Exception:
                 shared = 1
         cs = (time.time() - self._t_run0) / 3600.0
@@ -576,7 +602,7 @@ class KDVTrainer(PATrainer):
         total = cs + (th if (th and role == "training") else 0.0)
         json.dump(dict(run_id=self.run_id, status=status, updates_done=int(self._global_step), updates_budget=int(self.args.num_iter),
                        cost_student_hours=cs, cost_teacher_hours=th, cost_teacher_source=tsrc, cost_teacher_role=role, cost_total_hours=total,
-                       teacher_id=self.teacher_id, teacher_run=(self.teacher_manifest or {}).get("run"), teacher_shared_by=shared,
+                       teacher_id=self.teacher_id, teacher_run=(self.teacher_manifest or {}).get("run"), teacher_shared_by_training_runs=shared,
                        cost_teacher_amortized_hours=(th / shared if (th and role == "training") else None), calibration_from_cache=cal,
                        note=("cost_teacher 는 Teacher 학습 run 의 실측 시간이다. 여러 Student 가 공유해도 최초 준비비는 숨기지 않는다 (§13.4). "
                              "role=eval_only 이면 학습 loss 에는 Teacher 를 쓰지 않았고(평가 bin 전용) 총계에서 제외한다.")),
@@ -588,7 +614,7 @@ class KDVTrainer(PATrainer):
                    W_T=(self.teacher_manifest or {}).get("width", ""), W_S=self.args.model_args.get("hidden_size"), aligner_policy=sp["policy"], rec=sp["rec_case"], stat_kind=sp["stat_key"],
                    stat_mode=sp["stat_mode"] or "", G_mode=sp["geom"], seed=self.args.seed, init_id=self.init_hashes.get("unet_init_sha256_16"), budget_updates=self.args.num_iter,
                    parent=(self.k.get("phase") or {}).get("parent_run", ""), last_step=int(self._global_step), elapsed_h=round((time.time() - self._t_run0) / 3600, 3), lambda_V=self.lam_V,
-                   rec_control=sp.get("rec_control", "none"), stat_transform=sp.get("stat_transform", "none"), stat_domain=sp.get("stat_domain", "final_hrms"),
+                   resumed=int(bool(self.resumed_from)), rec_control=sp.get("rec_control", "none"), stat_transform=sp.get("stat_transform", "none"), stat_domain=sp.get("stat_domain", "final_hrms"),
                    stat_windows="-".join(str(x) for x in (sp.get("stat_windows") or [])), na_protocol=sp.get("na_protocol") or "", select_primary=sp.get("select_primary", "best_raw"), **(extra or {}))
         new = not os.path.exists(p)
         with open(p, "a", newline="") as f:
@@ -1013,8 +1039,8 @@ class KDVTrainer(PATrainer):
     def test_reduced(self, test_log, epoch):
         self._check_fixed()
         report = Test_Reduced_Report(); rep_v = Test_Reduced_Report(); self.model.eval(); self.model.requires_grad_(False)
-        ds, eT, eS, vT, vS = [], [], [], [], []
-        sp = self.spec
+        ds, eT, eS = [], [], []
+        sp = self.spec; reps = self._stat_reps(); V = {lb: ([], []) for lb, *_ in reps}
         for idx, (gt, lms, ms, lpan, pan) in tqdm(enumerate(self.test_reduced_data_loader)):
             o = self._infer(pan, lpan, ms)
             gt = gt.to(self.accelerator.device, dtype=self.weight_dtype)
@@ -1029,12 +1055,12 @@ class KDVTrainer(PATrainer):
                 with torch.no_grad():
                     y_t = self.teacher(o["pan"], o["ms"], lpan.to(self.accelerator.device, dtype=self.weight_dtype))["y"]
                     eT.append((y_t - gt).abs().mean(1).flatten().float().cpu()); eS.append((o["y"] - gt).abs().mean(1).flatten().float().cpu())
-                    if sp["stat_enabled"] and sp["stat_kind"] != "edge":
-                        # 통계 fitting bin 도 학습과 같은 표현(창·변환·도메인) 으로 잰다 (§15.2: pixel bin 과 통계 bin 은 별도)
-                        _mb = o["ms_base"].float(); _r = sp["stat_domain"] == "residual"
-                        _S = lambda x: stat_transform(statistic_map((x.float() - _mb) if _r else x.float(), sp["stat_kind"], sp["stat_window"]), sp["stat_transform"], sp["stat_transform_eps"])
+                    # 통계 fitting bin: 학습에서 쓰는 표현 **전부**(다중 창·보조 항 포함) + 모든 arm 공통 기준 GV w5 (§15.2 교차 비교)
+                    _mb = o["ms_base"].float()
+                    for lb, kd, wi, tf, dom in reps:
+                        _S = lambda x: stat_transform(statistic_map((x.float() - _mb) if dom == "residual" else x.float(), kd, wi), tf, sp["stat_transform_eps"])
                         vg = _S(gt)
-                        vT.append((_S(y_t) - vg).abs().mean(1).flatten().cpu()); vS.append((_S(o["y"]) - vg).abs().mean(1).flatten().cpu())
+                        V[lb][0].append((_S(y_t) - vg).abs().mean(1).flatten().cpu()); V[lb][1].append((_S(o["y"]) - vg).abs().mean(1).flatten().cpu())
         d = np.array(ds)
         rr_val = self._rr_val()
         test_log.write(f'Epoch[{epoch}]\t' + report.result_str() + f'\tRR Δ median ({np.median(d[:, 0]):+.3f},{np.median(d[:, 1]):+.3f}) |Δ| median {np.median(np.linalg.norm(d, axis=1)):.3f}'
@@ -1047,17 +1073,45 @@ class KDVTrainer(PATrainer):
             self.last_reduced_metrics.update({f"valid_{kk}": v for kk, v in rep_v.as_dict().items()})
         if eT and self.accelerator.is_main_process:
             self._fitting_bins(self._global_step, epoch, torch.cat(eT), torch.cat(eS), "pixel")
-            if vT:
-                self._fitting_bins(self._global_step, epoch, torch.cat(vT), torch.cat(vS), f"stat_{sp['stat_kind']}")
+            for lb, *_ in reps:
+                if V[lb][0]:
+                    self._fitting_bins(self._global_step, epoch, torch.cat(V[lb][0]), torch.cat(V[lb][1]), f"stat_{lb}")
         return report.ergas
 
+    def _stat_reps(self):
+        """fitting bin 을 남길 통계 표현 목록 (label, kind, window, transform, domain).
+        label 은 **표현으로만** 정해진다(mode 는 run 의 속성) — 서로 다른 arm 의 같은 표현을 한 자로 비교하기 위해서다.
+        모든 arm 이 기준 GV w5 를 남기고(통계 항이 꺼진 N0 arm 포함), 그 run 이 실제로 쓰는 표현(다중 창·보조 항)도 각각 남긴다."""
+        sp = self.spec; out, seen = [], set()
+
+        def add(kd, wi, tf, dom):
+            if kd is None or kd == "edge":
+                return
+            key = (kd, int(wi), tf, dom)
+            if key in seen:
+                return
+            seen.add(key)
+            out.append((f"{kd}_w{int(wi)}" + ("" if tf == "none" else f"_{tf}") + ("" if dom == "final_hrms" else "_res"), kd, int(wi), tf, dom))
+
+        if sp["stat_enabled"]:
+            for wi in sp["stat_windows"]:
+                add(sp["stat_kind"], wi, sp["stat_transform"], sp["stat_domain"])
+        for e in sp["stat_extra"]:
+            for wi in e["windows"]:
+                add(e["kind"], wi, e["transform"], e["domain"])
+        add("grad_var", 5, "none", "final_hrms")                     # 공통 기준 표현
+        return out
+
     def _fitting_bins(self, step, epoch, e_t, e_s, kind):
+        """고정 Teacher 오차 구간별 기록 (§15.2). **delta_e_T_minus_S = e_Teacher − e_Student** 이며,
+        계획의 Δe(q) = e_control − e_candidate (두 Student 의 비교) 는 같은 bin 정의 아래 run 끼리 e_S_mean 을 빼서 분석 시점에 계산한다."""
         q50, q90 = torch.quantile(e_t, torch.tensor([0.5, 0.9])).tolist()
         rows = []
         for name, m in (("Q0-50", e_t <= q50), ("Q50-90", (e_t > q50) & (e_t <= q90)), ("Q90-100", e_t > q90), ("ALL", torch.ones_like(e_t, dtype=torch.bool))):
             a, b = e_t[m], e_s[m]
-            rows.append(dict(step=int(step), epoch=int(epoch), kind=kind, bin=name, n=int(m.sum()), e_T_mean=float(a.mean()), e_S_mean=float(b.mean()), delta_e=float((a - b).mean()),
-                             win_rate=float((b < a).float().mean()), q50=q50, q90=q90))
+            rows.append(dict(step=int(step), epoch=int(epoch), kind=kind, bin=name, n=int(m.sum()), e_T_mean=float(a.mean()), e_S_mean=float(b.mean()),
+                             delta_e_T_minus_S=float((a - b).mean()), win_rate_vs_teacher=float((b < a).float().mean()), q50=q50, q90=q90,
+                             bin_source="fixed teacher error (같은 Teacher·같은 평가셋 → run 간 bin 경계 동일)"))
         self._csv_append("fitting_bins.csv", rows)
 
     @torch.no_grad()
@@ -1156,7 +1210,7 @@ class KDVTrainer(PATrainer):
         if use_al and self.sel_aligned.best is None:
             json.dump(dict(status="no_valid_candidate", history=self.sel_aligned.history[-5:]), open(os.path.join(self.args.work_dir, "best_aligned_meta.json"), "w"), indent=1)
         b = self.sel_raw.best; a = self.sel_aligned.best if use_al else None; r = self.sel_rrval.best
-        prim = self.spec.get("select_primary", "best_raw")
+        prim = self.spec.get("select_primary", "best_hqnr")
         test_log.write(f'[select] (주 selector {prim}) best_raw step {b["step"]} (HQNR {b["hqnr"]:.6f} fSCC {b["fscc"]:.4f}, anchor {self.sel_raw.max_hqnr:.6f}, band {len(self.sel_raw.cands)})'
                        + ((f' | best_aligned step {a["step"]} (HQNR_al {a["hqnr"]:.6f})' if a else ' | best_aligned: no valid candidate') if use_al else ' | best_aligned: N/A(aligner 없음)')
                        + (f' | best_rr_val step {r["step"]} (ERGAS_val {-r["hqnr"]:.4f})' if r else ''))

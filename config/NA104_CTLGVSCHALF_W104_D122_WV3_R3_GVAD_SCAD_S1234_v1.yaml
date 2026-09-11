@@ -1,9 +1,9 @@
 # NA104_CTLGVSCHALF_W104_D122_WV3_R3_GVAD_SCAD_S1234_v1 — [CTLGVSCHALF] 대조: Q43(GV-AD + SC-AD) 과 같은 두 항이되 **합의 전체 배율만** ×0.5 — 결합의 이득이 단순 gradient 증가인지 가른다. 생성: tools/gen_na104_configs.py. 손으로 고치지 말 것.
 # 계획: research_log/PAN_S2_W104_D122_NoAlign_KD_Experiment_Plan_2026-09-11.md · 구현 train_kdv.py(trainer kdv) + kdv/ · 노트 research_log/2026-09-11_na104-implementation.md
-# 세팅: I-A · aligner 없음(raw PAN, sampler 없음) · rec (1+α d_T)·L1 + β(1−d_T)a_T|S−T| (adaptive) · stat grad_var w5 mode AD λ_V ×0.5 + stat spectral_cov w5 mode AD λ ×0.5 · geomKD 없음 Teacher T104_v1 · NA-STRICT(학습 forward 에 PAN warp 없음) · 주 selector best_rr_val
+# 세팅: I-A · aligner 없음(raw PAN, sampler 없음) · rec (1+α d_T)·L1 + β(1−d_T)a_T|S−T| (adaptive) · stat grad_var w5 mode AD λ_V ×0.5 + stat spectral_cov w5 mode AD λ ×0.5 · geomKD 없음 Teacher T104_v1 · NA-STRICT(학습 forward 에 PAN warp 없음) · 주 selector best_hqnr (보조 best_rr_val·last)
 # 골격 W104_D122(hidden 104, depth [1, 2, 2], 2.0989 M) · 9ch→8ch · **aligner·sampler 없음, PAN warp 없음** · MS base 1회 합산 · AdamW 1e-4/wd 0.01 cosine warmup100 · batch 48 · 50000 updates · seed 1234
-# 초기값 work_dir/_kdv_init_w104_d122 (같은 seed 의 Student 가 공유) · Teacher = NA104_T00_W104_D122_WV3_N0_OFF_S2025_v1/best_rr_val (id T104_v1) · λ_V pilot = NA104_Q00_W104_D122_WV3_N0_OFF_S1234_v1/last
-# 선택: 주 selector best_rr_val(valid_wv3.h5 plain ERGAS) + 고정 final-N(last). best_hqnr(=best_raw) 는 FR test 로 고른 exploratory (독립 hold-out 아님). aligned view/selector 없음
+# 초기값 work_dir/_kdv_init_w104_d122 (같은 seed 의 Student 가 공유) · Teacher = NA104_T00_W104_D122_WV3_N0_OFF_S2025_v1/best_hqnr (id T104_v1) · λ_V pilot = NA104_Q00_W104_D122_WV3_N0_OFF_S1234_v1/last
+# 선택: 주 selector best_hqnr(raw_original HQNR→fSCC; 저장소 확정 지시) · 보조 best_rr_val(valid_wv3.h5 plain ERGAS)·last. Teacher·시트·진단 모두 best_hqnr. aligned view/selector 없음
 expect_params_m: 2.0989     # backbone 만 (aligner 0.1053M 은 smoke 가 따로 확인)
 seed: 1234
 num_worker: 4
@@ -27,7 +27,10 @@ kdv:
     n_patches: 3072
     seed: 1234
   select:
-    primary: best_rr_val
+    primary: best_hqnr
+    secondary:
+    - best_rr_val
+    - last
     aligned_selector: false
   expect_arch:
     width: 104
@@ -74,7 +77,7 @@ kdv:
   teacher:
     id: T104_v1
     run: work_dir/NA104_T00_W104_D122_WV3_N0_OFF_S2025_v1
-    tag: best_rr_val
+    tag: best_hqnr
     expected_sha256: null
     bridge: false
   baseline_run: NA104_Q00_W104_D122_WV3_N0_OFF_S1234_v1

@@ -58,6 +58,7 @@
 | `CTLBMASS` | R3 | GV-AD | B:mass | 학습 | 50000 | 1234 | s2 | 대조: B mask 의 soft 총계수 대응 |
 | `CTLBSHUF` | R3 | GV-AD | B:shuffle | 학습 | 50000 | 1234 | s2 | 대조: B mask 위치 섞음 |
 | `CTLCMASS` | R3 | OFF | C:sens(총계수 대조) | 학습 | 50000 | 1234 | s2 | 대조: C-NASENS 와 soft 총계수 대응 (민감도 정보 vs KD 감소) |
+| `CTLGVSCHALF` | R3 | GV-AD λ×0.5 + SC-AD λ×0.5 | — | 학습 | 50000 | 1234 | s3 | 대조: Q43(GV-AD + SC-AD) 과 같은 두 항이되 **합의 전체 배율만** ×0.5 — 결합의 이득이 단 |
 | `CTLHSCALE` | R1 [hscale] | OFF | — | 학습 | 50000 | 1234 | s2 | 대조: R1 의 공간 w_H 를 batch 평균 스칼라로 (어려운 위치 지도 vs 단순 loss scale) |
 | `CTLLAMV03` | R3 | GV-AD λ×0.3 | — | 학습 | 50000 | 1234 | s2 | 의존성: λ_V ×0.3 (통계 loss scale) |
 | `CTLLAMV30` | R3 | GV-AD λ×3.0 | — | 학습 | 50000 | 1234 | s2 | 의존성: λ_V ×3 |
@@ -74,18 +75,18 @@
 | `Q03` | R2 | OFF | — | 학습 | 50000 | 1234 | s2 | Teacher 오차로 hard/soft 배분 (R2) — Q02 대비 Teacher output 추가 |
 | `Q04` | R3 | OFF | — | 학습 | 50000 | 1234 | s2/s3 | adaptive: Student 우위 영역의 모방 해제까지 (R3) — Q03 대비 a_T gate, Q02 대비  |
 | `Q05` | N0 | GV-H | — | 평가 bin 전용 | 50000 | 1234 | s2 | Teacher 없이 GT gradient-variance 통계만 (N0+GV-H) — 통계 supervision 과 |
-| `Q06` | R3 | GV-H | — | 학습 | 50000 | 1234 | s2 | R3 + GT 구조 통계 (GV-H) |
+| `Q06` | R3 | GV-H | — | 학습 | 50000 | 1234 | s2/s3 | R3 + GT 구조 통계 (GV-H) |
 | `Q07` | R3 | GV-WH | — | 학습 | 50000 | 1234 | s2 | R3 + Teacher 통계 실패 지도로 GT 통계 hard 재가중 (GV-WH) |
 | `Q08` | R3 | GV-T | — | 학습 | 50000 | 1234 | s2 | R3 + Teacher 통계만 (GV-T) — 픽셀 GT hard 는 유지 |
 | `Q09` | R3 | GV-FIX | — | 학습 | 50000 | 1234 | s2 | R3 + 고정 hard/soft 통계 KD (GV-FIX) |
 | `Q10` | R3 | GV-AD | — | 학습 | 50000 | 1234 | s2/s3 | R3 + adaptive 통계 KD (GV-AD) — 통계 축의 주력 후보 |
 | `Q11` | N0 | EDGE-H | — | 평가 bin 전용 | 50000 | 1234 | s2 | Teacher 없이 signed Scharr edge L1 (N0+EDGE-H) — variance 고유 효과와 가 |
 | `Q12` | R3 | EDGE-H | — | 학습 | 50000 | 1234 | s2 | R3 + signed edge (EDGE-H) — Q06 대비 일반 edge 대조 |
-| `Q13` | R3 | OFF | A:sign | 학습 | 50000 | 1234 | s2 | R3 soft 에 band 별 GT-방향 gate (TRI-A-SIGN) — GT 와 충돌하는 band 의 모방 해 |
+| `Q13` | R3 | OFF | A:sign | 학습 | 50000 | 1234 | s2/s3 | R3 soft 에 band 별 GT-방향 gate (TRI-A-SIGN) — GT 와 충돌하는 band 의 모방 해 |
 | `Q14` | R3 | OFF | A:cosine | 학습 | 50000 | 1234 | s2 | R3 soft 에 pixel cosine 감쇠 (TRI-A-COS) — scalar 방향 대조 |
 | `Q15` | R3 | OFF | A:sign_cap | 학습 | 50000 | 1234 | s2 | R3 soft 에 sign + 크기비 cap (TRI-A-CAP) |
 | `Q16` | R3 | OFF | A:band_adv | 학습 | 50000 | 1234 | s2 | R3 soft 를 band 별 (1−d_c)a_c 로 세분 (TRI-A-BANDADV) — 평균 gate 가 놓친  |
-| `Q17` | R3 | GV-AD | B:sign | 학습 | 50000 | 1234 | s2 | GV-AD 통계 soft 에 성분별 방향 gate (TRI-B-SIGN) |
+| `Q17` | R3 | GV-AD | B:sign | 학습 | 50000 | 1234 | s2/s3 | GV-AD 통계 soft 에 성분별 방향 gate (TRI-B-SIGN) |
 | `Q18` | R3 | GV-AD | B:sign_cap | 학습 | 50000 | 1234 | s2 | GV-AD 통계 soft 에 sign + 크기비 (TRI-B-CAP) |
 | `Q19` | R3 | GV-AD | B:comp_adv | 학습 | 50000 | 1234 | s2 | GV-AD 통계 soft 를 성분별 τ_V,j·a_j 로 (TRI-B-COMPADV) |
 | `Q20` | R3 | IV-H | — | 학습 | 50000 | 1234 | s3 | R3 + 국소 밝기 분산 통계 (IV-H) |
@@ -132,7 +133,7 @@
 | `VXW7AD` | R3 | GV-AD w7 | — | 학습 | 50000 | 1234 | s3 | 표현: GV-AD 창 7×7 |
 | `VXW7H` | R3 | GV-H w7 | — | 학습 | 50000 | 1234 | s3 | 표현: GV-H 창 7×7 |
 
-총 87 case
+총 88 case
 
 **같은 것을 두 번 세지 않는다** (§12.2): `TRI-A-BASE` = Q04, `TRI-B-BASE` = Q10, `R3(β=0)` = Q02(R1) — 별도 case 로 만들지 않았고 gate KD04 가 수치로 확인한다. `GC` 대각은 `GV` 와 같은 통계이므로 GC 의 기여는 **off-diagonal + all-entry reduction** 으로만 해석한다.
 
@@ -235,11 +236,38 @@ s2·s3 의 GPU 가 s1 과 다르면 이 수치는 그대로 쓰지 않는다 —
 
 ## 7. 판정·기록 규약
 
-- **주 selector 는 `best_rr_val`**(검증셋 `valid_wv3.h5` plain ERGAS) + 고정 final-N(`last`). `best_hqnr`(=best_raw) 는 FR test 로 매 평가 고르는 **test-adaptive exploratory** 라고 manifest·문서에 적는다 — 독립 hold-out 이 아니다.
-- 판정 지표 우선순위는 저장소 규약대로 **HQNR → SCC**, ERGAS·SAM 은 참고. 단 이 캠페인의 selector 는 위와 같이 별도로 선언한다.
+- **주 selector 는 `best_hqnr`**(raw_original HQNR → fSCC). 저장소 확정 지시(판정은 무조건 HQNR → SCC, ERGAS·SAM 은 참고)가 계획 §14.2 의 ERGAS 선택 **제안**보다 우선한다.
+  **시트·Teacher·artifact 진단이 모두 같은 checkpoint 를 쓴다** — 서로 다른 모델을 섞지 않는다.
+- 계획이 요구한 독립 RR-validation 선택(`best_rr_val`, 검증셋 plain ERGAS)과 고정 final-N(`last`)은 **보조**로 계속 저장·평가하고 manifest 에 `selection.secondary` 로 선언한다.
+- `best_hqnr` 는 FR test 로 매 평가 고르므로 **test-adaptive** 다. 독립 hold-out 이 아니라는 사실은 manifest 와 보고서에 그대로 적는다.
+- Teacher checkpoint 가 지나치게 이른 step 에서 뽑히면(전체의 20% 미만) 학습 로그와 teacher_registry 에 경고를 남긴다 (PO10 에서 best_hqnr 가 step 1010 에 잡힌 전례).
 - **aligned view 는 만들지 않는다.** aligner 가 없으면 같은 ROI 에서 `aligned_valid == raw_valid` 다. 시트에는 `HQNR↑`(전체 프레임)·`HQNR(V64)↑` 두 열만.
 - Teacher 오차 bin(0–50 / 50–90 / 상위 10%)은 **고정 Teacher** 로 정의하고 모든 Student(GT-only 포함)를 같은 구간에서 비교한다.
 - 비용은 `cost_teacher`·`cost_student`·`cost_total` 로 나눠 적고, 같은 update 비교와 같은 wall-time 비교를 **둘 다** 남긴다.
+
+## 7.1 사용자 검토 2차 (2026-09-11, HEAD a80f378) 와 반영
+
+“W104·D122 NoAlign 과 주요 KD loss 는 제대로 구현됐지만 실험 통제·검증 장치에 문제가 남아 있다”는 지적 6건 + 부수 3건. 전부 코드에서 재현해 확인했고 아래와 같이 고쳤다.
+
+| # | 지적 | 확인 | 반영 |
+|---|---|---|---|
+| 1 | **calibration 캐시 유무가 학습 배치를 바꾼다** — `calibration_batches` 의 DataLoader 가 전용 generator 없이 전역 RNG 를 소비(iterator 생성 시 base_seed 를 뽑는다). 같은 seed·같은 초기 가중치여도 캐시 적중/미적중에 따라 이후 데이터 순서가 달라져 Q00·R3·통계 KD 대조가 흔들린다 | 재현됨 (generator 없는 DataLoader 는 전역 RNG state 를 바꾼다) | DataLoader 에 전용 generator(seed+1) 를 주고, **calibration 전 구간을 `fork_rng` 로 격리**했다. gate: calibration 실행 전후 전역 RNG state 동일 + 실행 여부와 무관하게 다음 데이터 순열 동일 |
+| 2 | **HQNR 우선 지시와 실제 선택이 다르다** — 시트는 `best_hqnr`, 주 선언은 `best_rr_val`, Teacher 는 `best_rr_val`, 진단은 `best_rr_val`/`last` | 맞음 (계획 §14.2 는 '제안'인데 구현에 이미 반영돼 있었다) | **전부 `best_hqnr` 로 통일**: 주 selector·Teacher tag·artifact 진단. `best_rr_val`·`last` 는 `selection.secondary` 로 선언해 계속 저장·평가한다. Teacher 가 이른 step 에서 뽑히면 경고 |
+| 3 | **RS01 이 재개 동일성을 검증하지 않는다** — 문자열 두 개(`register_for_checkpointing`, `for _ in range(step):`) 존재만 확인했고, 실제 재개는 data sampler 순서를 복원하지 않는 근사 재개다 | 맞음 | gate 를 실측으로 바꿨다: corruption/TRI RNG 의 state round-trip 확인, **train DataLoader 가 accelerate 에 prepare 되지 않아 배치 순서가 복원되지 않는다는 한계를 gate 가 명시적으로 확인**, 그리고 **재개 사실을 run 에 기록**(`resume_events.jsonl` + manifest·runs.csv 의 `resumed`)하게 했다. 감시자 자동 재개가 있으므로 통제 비교에서 이 표시를 보고 가려낸다. 배치 순서까지 복원하는 재개는 별건이며 지금 고치지 않았다 |
+| 4 | **큐 종료 후 과거 캠페인이 자동 실행될 수 있다** — 러너가 캠페인 구분 없이 `campaign_gate.py` 를 부르고, 그 안에서 UVS·shift-robust·s2 KD 게이트가 돈다 | 맞음 (경로가 열려 있다) | `campaign_gate.py` 를 **기본 전부 닫힘**으로 바꿨다. 열려면 `PANCRAFTER_CAMPAIGN_GATES=uvs,sr` 또는 `work_dir/campaign_gates_enabled.txt` 로 명시해야 한다. 실행 중인 체인(`_run_cases.sh`)은 건드리지 않았다 — 돌고 있는 bash 파일을 수정하면 실행이 깨진다 |
+| 5 | **NASENS 의 제외 경계가 내부 KD 강도를 바꾼다** — calibration 은 전체 영상의 q 로 s_sens 를 재는데 학습은 margin 4 밖을 r=1 로 되돌린다 (경계만 바꿔도 s_sens 34 → 95, 내부 risk 0.43 → 0.63) | 맞음 | `calibrate_sens(roi_margin=…)` 로 **q·J·h/2·2h·선형화 검사를 전부 학습과 같은 내부 ROI 에서** 재고, cache key·파일명에도 ROI 를 넣었다. CS 계열·CTLCMASS 에만 해당하고 NA-STRICT 본선에는 영향이 없다 |
+| 6 | **fitting_bins 의 Δe 정의가 계획과 다르고 통계 bin 이 누락된다** — 계획 §15.2 의 Δe = e_control − e_candidate 인데 기록은 e_Teacher − e_Student. Q00 은 통계 bin 이 없고, MULTI357 은 w5 만, GV+SC 는 SC 가 빠진다 | 맞음 | 열 이름을 **`delta_e_T_minus_S`·`win_rate_vs_teacher`** 로 바꿔 정의를 이름에 박았다(계획의 Δe(q) 는 같은 bin 아래 run 끼리 `e_S_mean` 을 빼서 분석 시점에 낸다). 통계 bin 은 **모든 arm 이 기준 표현 `grad_var_w5` 를 남기고**, 그 run 이 실제로 쓰는 표현(다중 창 3/5/7, 보조 항 SC, residual)도 각각 남긴다 |
+
+부수 항목
+
+- **학습 RR 로그와 시트는 같은 프로토콜이 아니다.** 학습 로그는 `utils.reduced_metrics`(DN 반올림·전체 프레임·저장소 SCC/Q4), 시트는 `[20:-21]` crop·무반올림·DLPan SCC/Q8 이다. 두 수치를 같은 평가값으로 나란히 두지 않는다. 판정·보고는 시트(논문 프로토콜) 쪽을 쓴다.
+- **Teacher 비용 분담 분모**에서 평가 전용 arm 을 뺐다. `teacher_registry` 에 `used_by_training` 을 따로 쌓고 그것으로 나눈다 (`cost_teacher_shared_by_training_runs`). Q00 이 KD 준비비를 부담하지 않으면서 남의 분담액만 낮추던 구조를 없앴다.
+- **'시간 제한 없음' 과 실행 설정.** `na104_prepare.sh` 의 기본 마감을 240 h → 2000 h 로 올렸다. 마감은 감시자 만료가 아니라 **미시작 run 을 실제로 건너뛰는 선**이므로, 무제한 캠페인에서는 사실상 걸리지 않는 값이어야 한다.
+
+남은 한계(고치지 않음, 기록)
+
+- 재개는 여전히 **근사 재개**다. 배치 순서까지 복원하려면 train DataLoader 를 seed 고정 + 재개 시 배치 skip 으로 바꿔야 하는데, 이는 모든 trainer 의 데이터 순서 의미를 바꾸고 **지금 돌고 있는 NF16** 과 이미 끝난 run 들의 비교 조건을 건드린다. 별건으로 분리한다. 그 전까지 재개된 run 은 `resumed` 표시로 구분한다.
+- 신선한(중단 없는) run 들 사이의 데이터 순서는 seed 로 결정되며, 검토 1 을 고친 뒤로는 calibration 캐시 상태와 무관하다.
 
 ## 8. 두 서버 배치 (§13.4)
 

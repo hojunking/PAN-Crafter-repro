@@ -288,11 +288,35 @@ def gate_uvs():
         emit("UVS_M3_uvs_tf_warp_d122", "M2 가 품질 미개선 → shift-effect loss 추가 (§10.1)")
 
 
+GATES = {"uvs": ("gate_uvs", "UVS-KD (2026-09-01 s2)"), "sr": ("gate_sr", "shift-robust (SR/AF)"),
+         "s2cal": ("gate_s2_calibrate", "s2 uncertainty calibration"), "s2gtvar": ("gate_s2_gtvar", "s2 GT-variance KD")}
+
+
+def enabled_gates():
+    """**캠페인 격리** (2026-09-11 사용자 검토 4): 러너는 큐가 끝나면 캠페인 구분 없이 이 파일을 부른다.
+    아무 것도 켜지 않으면 과거 캠페인(UVS·shift-robust·s2 KD) 의 조건부 실행이 지금 캠페인 뒤에 열릴 수 있다.
+    기본값은 **전부 닫힘**이고, 켜려면 명시해야 한다:
+        PANCRAFTER_CAMPAIGN_GATES=uvs,sr  (환경변수)  또는  work_dir/campaign_gates_enabled.txt (한 줄에 하나)
+    'all' 이면 전부 연다."""
+    raw = os.environ.get("PANCRAFTER_CAMPAIGN_GATES", "")
+    fp = os.path.join(ROOT, "work_dir", "campaign_gates_enabled.txt")
+    if not raw and os.path.exists(fp):
+        raw = ",".join(l.strip() for l in open(fp) if l.strip() and not l.startswith("#"))
+    names = [x.strip().lower() for x in raw.split(",") if x.strip()]
+    if "all" in names:
+        return list(GATES)
+    return [n for n in names if n in GATES]
+
+
 def main():
-    gate_uvs()
-    gate_sr()
-    gate_s2_calibrate()
-    gate_s2_gtvar()
+    on = enabled_gates()
+    if not on:
+        log("캠페인 게이트 비활성 — 이 큐의 캠페인에 속하지 않는 과거 조건부 실행(UVS·shift-robust·s2 KD)을 열지 않는다. "
+            "필요하면 PANCRAFTER_CAMPAIGN_GATES=uvs,sr 또는 work_dir/campaign_gates_enabled.txt 로 명시한다.")
+        return
+    log(f"캠페인 게이트 활성: {', '.join(GATES[n][1] for n in on)}")
+    for n in on:
+        globals()[GATES[n][0]]()
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@
 이전 캠페인(W96/W112) 의 CPU 통과 기록을 이 골격의 통과로 쓰지 않는다 (§16.1) — 여기서 W104·D122 로 다시 확인한다.
 gate 실패는 IMPLEMENTATION_ERROR 로 분류한다 (성능 비개선 NEGATIVE, 의존성 미충족 BLOCKED_INPUT 와 구분, §18).
 """
-import os, sys, json, copy, glob, math
+import os, sys, json, copy, glob, math, re, types
 import numpy as np, torch, yaml
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0, ROOT)
 import torch.nn.functional as F                                            # noqa: E402
@@ -20,6 +20,7 @@ from kdv.tri import (direction_mask, masked_l1, masked_l1_componentwise, compone
 from kdv.forward import kdv_forward                                       # noqa: E402
 from kdv.teacher_assets import state_hash, freeze                         # noqa: E402
 from main import import_class                                             # noqa: E402
+from train_kdv import KDVTrainer                                           # noqa: E402
 
 FAIL = []
 
@@ -239,8 +240,8 @@ check("REQ 모든 case 가 W104·D122·A-ID·G0·offset0·geometry0 를 강제�
           and sp["policy"] == "A-ID" and sp["recipe"] == "NOALIGN" and sp["geom"] == "G0"
           and sp["offset_weight_effective"] == 0 and sp["geometry_weight_effective"] == 0 and sp["protocol"] == "I-A"
           for c, sp in specs.values()))
-check("EV01 주 selector 는 best_rr_val, aligned selector 는 만들지 않는다 (aligner 없음 → aligned_valid == raw_valid)",
-      all(sp["select_primary"] == "best_rr_val" and sp["aligned_selector"] is False for _, sp in specs.values()))
+check("EV01 aligned selector 를 만들지 않는다 (aligner 없음 → aligned_valid == raw_valid)",
+      all(sp["aligned_selector"] is False for _, sp in specs.values()))
 check("EV01 평가 view/scene 설정 공통: FR 논문 세트 20장·같은 evaluator",
       all(c["test_full_feeder_args"]["dataroot"] == list(specs.values())[0][0]["test_full_feeder_args"]["dataroot"] for c, _ in specs.values())
       and all(str(c.get("fr_select_indices", "0-19")) == str(list(specs.values())[0][0].get("fr_select_indices", "0-19")) for c, _ in specs.values()))
@@ -259,9 +260,99 @@ check("§8.1 A/B 2×2 네 셀(Q10 base · Q40 A · Q17 B · Q41 AB) 이 **한 �
       all(_has(q3, c) for c in ("Q10", "Q40", "Q17", "Q41")), "s3")
 check("큐 순서 의존: 각 큐에서 T00 이 Teacher 사용 run 보다 앞, Q00 이 λ pilot 사용 run 보다 앞",
       all(q.index([t for t in q if t.split("_")[1] == "T00"][0]) == 0 and q.index([t for t in q if t.split("_")[1] == "Q00"][0]) <= 1 for q in (q2, q3)))
-check("RS01 corruption RNG 를 checkpoint 에 등록하는 경로가 유지된다 (재개 동일성)", "register_for_checkpointing" in open(os.path.join(ROOT, "train_kdv.py")).read())
-check("RS01 warm start 는 parent step 만큼 scheduler 를 진행시킨다 (CONT/TCOPY 는 step 0 = 새 tail)",
-      "for _ in range(step):" in open(os.path.join(ROOT, "train_kdv.py")).read())
+# ---- RS01: 재개에서 **무엇이 복원되고 무엇이 복원되지 않는지**를 실제로 확인한다 (문자열 검사 아님)
+from train_po import RNGState                                              # noqa: E402
+g1 = torch.Generator(); g1.manual_seed(2000); [torch.randperm(8, generator=g1) for _ in range(3)]
+st = RNGState(g1).state_dict(); before = [torch.randperm(8, generator=g1).tolist() for _ in range(2)]
+g2 = torch.Generator(); g2.manual_seed(2000); r2 = RNGState(g2); r2.load_state_dict(st)
+check("RS01 corruption/TRI RNG 는 checkpoint 로 정확히 복원된다 (같은 다음 열)",
+      [torch.randperm(8, generator=g2).tolist() for _ in range(2)] == before)
+_sch_src = open(os.path.join(ROOT, "train_kdv.py")).read()
+check("RS01 warm start 는 parent step 만큼 scheduler 를 진행시킨다 (CONT/TCOPY 는 step 0 = 새 tail)", "for _ in range(step):" in _sch_src)
+# 알려진 한계: train DataLoader 는 accelerate 에 prepare 되지 않아 **배치 순서가 복원되지 않는다** (main.py C-1).
+_main_src = open(os.path.join(ROOT, "main.py")).read()
+_prep = re.search(r"accelerator\.prepare\(([^)]*)\)", open(os.path.join(ROOT, "train_kdv.py")).read())
+check("RS01 [알려진 한계] train DataLoader 는 prepare 되지 않는다 → 재개 시 배치 순서 미복원 (근사 재개)",
+      _prep is not None and "data_loader" not in _prep.group(1) and "근사 재개" in _main_src, _prep.group(1) if _prep else "?")
+check("RS01 그래서 **재개 사실을 run 에 기록**한다 (resume_events.jsonl + manifest resumed 플래그) — 통제 비교에서 가려낼 수 있어야 한다",
+      "resume_events.jsonl" in _sch_src and "resumed=bool(self.resumed_from)" in _sch_src)
+_g = torch.Generator(); _g.manual_seed(7)
+_d0 = [b[0].flatten().tolist() for b in torch.utils.data.DataLoader(torch.utils.data.TensorDataset(torch.arange(8.).view(8, 1)), batch_size=2, shuffle=True, generator=_g)]
+_g.manual_seed(7)
+_d1 = [b[0].flatten().tolist() for b in torch.utils.data.DataLoader(torch.utils.data.TensorDataset(torch.arange(8.).view(8, 1)), batch_size=2, shuffle=True, generator=_g)]
+check("RS01 (참고) 같은 generator 상태에서만 배치 열이 같다 — 상태가 다르면 다른 열이 나온다", _d0 == _d1)
+
+# ---- 검토 1: calibration 이 전역 RNG 를 소비하면 캐시 적중 여부로 학습 배치가 달라진다
+import main as _mainmod                                                   # noqa: E402
+from kdv.calibration import calibration_batches                           # noqa: E402
+
+
+class _DummyFeeder(torch.utils.data.Dataset):
+    def __init__(self, **kw):
+        self.n = 64
+    def __len__(self):
+        return self.n
+    def __getitem__(self, i):
+        t = torch.full((1,), float(i))
+        return t, t, t, t, t
+
+
+_orig_ic = _mainmod.import_class; _mainmod.import_class = lambda path: _DummyFeeder
+_args = types.SimpleNamespace(feeder="dummy", train_feeder_args=dict(dataroot="x"), batch_size=8)
+torch.manual_seed(1234); _s_before = torch.random.get_rng_state()
+_b, _man = calibration_batches(_args, n_patches=16, seed=1234, batch_size=8)
+_s_after = torch.random.get_rng_state()
+_mainmod.import_class = _orig_ic
+check("검토1 calibration 이 전역 RNG 를 건드리지 않는다 (캐시 적중/미적중이 학습 배치를 바꾸지 않는다)",
+      torch.equal(_s_before, _s_after), f"batches {len(_b)}")
+torch.manual_seed(1234); _n0 = torch.randperm(64).tolist()[:4]
+torch.manual_seed(1234); _mainmod.import_class = lambda path: _DummyFeeder
+calibration_batches(_args, n_patches=16, seed=1234, batch_size=8); _n1 = torch.randperm(64).tolist()[:4]
+_mainmod.import_class = _orig_ic
+check("검토1 calibration 실행 여부와 무관하게 다음 데이터 순열이 같다", _n0 == _n1, f"{_n0} vs {_n1}")
+check("검토1 trainer 는 calibration 전 구간을 fork_rng 로 격리한다", "with torch.random.fork_rng(devices=" in _sch_src and "_calibrate_and_build_inner" in _sch_src)
+
+# ---- 검토 2: 판정·시트·Teacher·진단이 같은 checkpoint (저장소 확정 지시: 무조건 HQNR)
+check("검토2 주 selector 는 best_hqnr 이고 Teacher tag 도 best_hqnr (보조로 best_rr_val·last 선언)",
+      all(sp["select_primary"] == "best_hqnr" and "best_rr_val" in (sp.get("select_secondary") or []) for _, sp in specs.values())
+      and all((c["kdv"].get("teacher") or {}).get("tag", "best_hqnr") == "best_hqnr" for c, _ in specs.values()))
+_up = open(os.path.join(ROOT, "tools", "_upload.sh")).read()
+check("검토2 artifact 진단도 주 selector(best_hqnr) 에서 돈다", "for CK in best_hqnr best_rr_val last" in _up)
+
+# ---- 검토 5: NASENS 의 calibration·FD 검사·학습이 같은 ROI
+from kdv.calibration import _roi as _roi_fn                               # noqa: E402
+_q = torch.zeros(1, 2, 64, 64); _q[..., :4, :] = 100.0; _q[..., 4:-4, 4:-4] = 1.0
+check("검토5 calibration 이 학습과 같은 내부 ROI 에서만 q 를 잰다 (경계가 s_sens 를 바꾸지 못한다)",
+      float(_roi_fn(_q, 4).max()) == 1.0 and tuple(_roi_fn(_q, 4).shape[-2:]) == (56, 56) and float(_q.max()) == 100.0)
+check("검토5 trainer 가 roi_margin 을 calibration 과 cache key 에 넘긴다", "roi_margin=tri[\"c_roi_margin\"]" in _sch_src and "_roi{tri['c_roi_margin']}" in _sch_src)
+
+# ---- 검토 6: fitting bin 의 정의와 표현 범위
+check("검토6 Δe 열 이름이 정의를 담는다 (Teacher−Student; 계획의 Δe(q) 는 run 간 비교라 분석 시점 계산)",
+      "delta_e_T_minus_S" in _sch_src and "win_rate_vs_teacher" in _sch_src and "delta_e=float" not in _sch_src)
+
+
+def _reps(kdv_dict):
+    return [r[0] for r in KDVTrainer._stat_reps(types.SimpleNamespace(spec=resolve(kdv_dict)))]
+
+
+_base = dict(recipe="NOALIGN", aligner_policy="A-ID", na_protocol="NA-STRICT", select=dict(primary="best_hqnr", aligned_selector=False),
+             teacher=dict(id="T", run="w/x"), rec=dict(case="R3"), geom_kd=dict(mode="G0"))
+check("검토6 통계 OFF arm(N0·R3) 도 기준 표현(GV w5) bin 을 남긴다", _reps(dict(_base, stat=dict(enabled=False))) == ["grad_var_w5"])
+check("검토6 다중 창은 3/5/7 을 각각 남긴다", _reps(dict(_base, stat=dict(enabled=True, kind="GV", mode="H", windows=[3, 5, 7], lambda_pilot="x/l"))) == ["grad_var_w3", "grad_var_w5", "grad_var_w7"])
+check("검토6 GV+SC 결합은 SC 도 남긴다",
+      _reps(dict(_base, stat=dict(enabled=True, kind="GV", mode="H", lambda_pilot="x/l", extra=[dict(kind="SC", mode="H", lambda_pilot="x/l")]))) == ["grad_var_w5", "spectral_cov_w5"])
+check("검토6 residual 표현은 자기 표현과 기준 표현을 함께 남긴다",
+      _reps(dict(_base, stat=dict(enabled=True, kind="GV", mode="AD", domain="residual", lambda_pilot="x/l"))) == ["grad_var_w5_res", "grad_var_w5"])
+
+# ---- 검토 4: 캠페인 게이트 격리 (큐가 끝난 뒤 과거 캠페인이 열리지 않는다)
+import subprocess                                                         # noqa: E402
+_env = dict(os.environ); _env.pop("PANCRAFTER_CAMPAIGN_GATES", None)
+_r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "campaign_gate.py")], capture_output=True, text=True, env=_env, cwd=ROOT)
+check("검토4 캠페인 게이트는 기본적으로 아무 것도 열지 않는다 (과거 UVS·SR·s2 KD 자동 실행 차단)",
+      _r.returncode == 0 and _r.stdout.strip() == "" and "비활성" in _r.stderr)
+_env["PANCRAFTER_CAMPAIGN_GATES"] = "sr"
+_r2 = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "campaign_gate.py")], capture_output=True, text=True, env=_env, cwd=ROOT)
+check("검토4 명시하면 그 캠페인만 열린다", _r2.returncode == 0 and "활성" in _r2.stderr)
 n0 = [n for n, (c, sp) in specs.items() if sp["rec_case"] == "N0" and not sp["stat_enabled"]]
 check("§15.2 GT-only arm 도 같은 고정 Teacher 를 평가 bin 용으로 싣는다 (학습 loss 에는 미사용)",
       all(specs[n][1]["has_teacher"] and specs[n][1]["teacher_eval_only"] and not specs[n][1]["needs_teacher"] for n in n0 if "T00" not in n))

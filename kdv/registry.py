@@ -12,7 +12,10 @@ STAT_TRANSFORMS = ('none', 'std', 'logvar')            # §5.3 REP-STD/LOGVAR �
 STAT_DOMAINS = ('final_hrms', 'residual')              # §5.3 REP-RESIDUAL — Z − M 에서 통계 (선형 항인 EDGE 는 M 이 소거돼 의미 없음)
 C_CONTROLS = ('none', 'mass')                          # §12 CTL-CMASS — C 의 감쇠와 soft 총계수량만 맞춘 스칼라 대조
 NA_PROTOCOLS = (None, 'NA-STRICT', 'NA-TSENS')         # §9: 주 실험은 학습 forward 에 PAN warp 가 전혀 없다(STRICT). Teacher 입력 민감도 probe 는 별도 cohort(TSENS)
-SELECTORS = ('best_raw', 'best_rr_val', 'last')        # §14.2 주 selector 선언 (기록용 — 산출물은 넷 다 남는다)
+# 주 selector 선언 (기록용 — 산출물은 넷 다 남는다). best_hqnr 는 best_raw(raw_original HQNR) 의 alias 이고,
+# 저장소 확정 지시(판정은 무조건 HQNR→SCC) 가 계획 §14.2 의 ERGAS 선택 '제안' 보다 우선한다 — 후자는 secondary 로 함께 기록한다.
+SELECTORS = ('best_hqnr', 'best_raw', 'best_rr_val', 'last')
+SELECTOR_ALIAS = {'best_raw': 'best_hqnr'}
 POLICIES = ('A-FR', 'A-FT', 'A-SC', 'A-ID')                 # A-FTW 는 phase(warm freeze→unfreeze) 로 표현한다
 PROTOCOLS = ('I-A', 'I-N', 'I-NATIVE-TRANSFER', 'I-AEQ')
 GEOM_KD = {'G0': 'none', 'G1': 'mean_kd_scalar_k0', 'G2': 'scalar_trace_precision', 'G3': 'full_precision', 'G4': 'diagonal_precision', 'G5': 'gaussian_distribution_kd', 'G-STRUCT': 'gt_structure_tensor'}
@@ -261,14 +264,17 @@ def resolve(k):
     ea = k.get('expect_arch')                       # 캠페인이 골격을 강제한다 (§20: 모든 Q 는 width104/depth122/noalign 검사)
     if ea is not None and not (isinstance(ea, dict) and 'width' in ea and 'depth' in ea):
         _bad("expect_arch 는 {width: …, depth: […]} 형식")
-    sel = dict(k.get('select') or {}); primary = sel.get('primary', 'best_raw')
+    sel = dict(k.get('select') or {}); primary = SELECTOR_ALIAS.get(sel.get('primary', 'best_hqnr'), sel.get('primary', 'best_hqnr'))
     if primary not in SELECTORS:
         _bad(f"select.primary {primary!r} ∉ {SELECTORS}")
+    secondary = [x for x in (sel.get('secondary') or []) if x]
+    if any(x not in SELECTORS for x in secondary):
+        _bad(f"select.secondary {secondary} ⊄ {SELECTORS}")
     aligned_selector = bool(sel.get('aligned_selector', True))
     if aligned_selector and policy == 'A-ID' and na is not None:
         _bad("aligner 가 없으면 aligned_valid 는 raw_valid 와 같다 — select.aligned_selector: false 로 명시한다 (§14.1)")
     return dict(recipe=recipe, protocol=protocol, policy=policy, rec_case=rec_case, rec_mode=REC_CASES[rec_case], tri=tri_spec,
-                rec_control=rec_control, rec_tau_scale=rec_tau_scale, na_protocol=na, expect_arch=ea, select_primary=primary, aligned_selector=aligned_selector,
+                rec_control=rec_control, rec_tau_scale=rec_tau_scale, na_protocol=na, expect_arch=ea, select_secondary=secondary, select_primary=primary, aligned_selector=aligned_selector,
                 stat_windows=windows, stat_transform=stat_transform, stat_transform_eps=stat_transform_eps, stat_domain=stat_domain, stat_lambda_scale=stat_lambda_scale, stat_extra=extra,
                 stat_enabled=stat_enabled, stat_key=stat_key, stat_kind=STAT_KINDS[stat_key], stat_mode=stat_mode, stat_window=window,
                 geom=geom, geom_outer_weight=lam_gkd, geom_r_gkd=r_gkd, geom_k0=k0, cov_source=cov_src, probes=probes, geo=geo, eq_sigma_min=eq_sigma_min,
@@ -365,4 +371,5 @@ def describe(spec, k=None):
         tr = f" · TRI A={tri['a_mode']} B={tri['b_mode']} C={tri['c_mode']}" + (f"({tri['c_src']},{tri['c_phi']}, ROI margin {tri.get('c_roi_margin')}"
              + (', 진단만 — soft 미적용' if not tri.get('c_apply', True) else '') + (', 총계수 대조' if tri.get('c_control') == 'mass' else '') + ')' if tri['c_mode'] != 'off' else '')
     na = '' if not spec.get('na_protocol') else f" · {spec['na_protocol']}(" + ('학습 forward 에 PAN warp 없음' if spec['na_protocol'] == 'NA-STRICT' else 'Teacher 입력 민감도 probe 별도 cohort') + ')'
-    return f"{spec['protocol']} · {pol} · rec {rec} · {st} · {gk}{src}{t}{tr}{na} · 주 selector {spec.get('select_primary', 'best_raw')}"
+    sel = f" · 주 selector {spec.get('select_primary', 'best_hqnr')}" + (f" (보조 {'·'.join(spec.get('select_secondary') or [])})" if spec.get('select_secondary') else '')
+    return f"{spec['protocol']} · {pol} · rec {rec} · {st} · {gk}{src}{t}{tr}{na}{sel}"

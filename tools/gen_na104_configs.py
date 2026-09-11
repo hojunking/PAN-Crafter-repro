@@ -9,7 +9,8 @@
 골격: **W104 · depth [1,2,2] · 9ch → 8ch · aligner 없음(A-ID, sampler 없음) · PAN warp 없음(na_protocol NA-STRICT)**.
 trainer 는 기존 kdv (train_kdv.py) 를 그대로 쓴다 — 정합 항(G·offset·geometry) 은 resolver 가 A-ID 에서 막는다.
 Teacher T00 은 같은 골격의 plain GT L1(seed 2025), Student 는 저장된 같은 초기값(seed 1234, work_dir/_kdv_init_w104_d122) 을 공유한다.
-선택: **주 selector = best_rr_val(valid_wv3.h5 plain ERGAS)** + 고정 final-N(last); best_hqnr(=best_raw) 는 FR test 로 고른 exploratory 로만 남긴다 (계획 §14.2).
+선택: **주 selector = best_hqnr(raw_original HQNR → fSCC)** — 저장소 확정 지시(판정은 무조건 HQNR→SCC) 를 따른다. 계획 §14.2 의 독립 RR-validation 선택(best_rr_val)과 고정 final-N(last) 은 **보조**로 함께 저장·평가한다.
+Teacher·시트·artifact 진단도 같은 best_hqnr 를 쓴다 (서로 다른 checkpoint 를 섞지 않는다). best_hqnr 는 FR test 로 매 평가 고르므로 test-adaptive 라는 점은 manifest 에 그대로 남긴다.
 aligned view/selector 는 만들지 않는다 — aligner 가 없으면 같은 ROI 에서 raw_valid 와 같다 (§14.1).
 약명(T00/Q00/CTL…) 은 노트 research_log/2026-09-11_na104-implementation.md 의 표로만 읽는다 — 실행명에 rec·stat·tri 설정 토큰이 함께 들어간다.
 """
@@ -149,22 +150,24 @@ def build(cid, spec_tuple, seed, teacher_run, pilot, updates, version, teacher_s
     k = dict(campaign_id=CAMPAIGN, run_kind="CONTROLLED", version=version, check_run_name=False,
              recipe="NOALIGN", aligner_policy="A-ID", input_protocol="I-A", na_protocol=extra.get("na_protocol", "NA-STRICT"),
              diag_every=1000, calibration=dict(n_patches=3072, seed=1234),
-             select=dict(primary="best_rr_val", aligned_selector=False),
+             # 판정·시트·Teacher·진단이 같은 checkpoint 를 쓴다 — 저장소 확정 지시(무조건 HQNR→SCC) 가 계획 §14.2 의 ERGAS 선택 '제안' 보다 우선한다.
+             # 계획이 요구한 독립 RR-validation 선택은 **보조**로 계속 저장·평가한다(best_rr_val) + 고정 final-N(last).
+             select=dict(primary="best_hqnr", secondary=["best_rr_val", "last"], aligned_selector=False),
              expect_arch=dict(width=WIDTH, depth=list(DEPTH), noalign=True),      # §20: 손으로 고친 config 가 다른 폭으로 도는 것을 trainer 가 막는다
              rec=dict(rc), stat=dict(st), geom_kd=dict(mode="G0"))
     if tri:
         k["tri"] = dict({kk: dict(v) for kk, v in tri.items()}, shuffle_seed=4321)
-    sp0 = resolve(dict(k, teacher=dict(id=TEACHER_ID, run=f"work_dir/{teacher_run}", tag="best_rr_val")))     # Teacher 가 학습 loss 에 필요한지 판정용
+    sp0 = resolve(dict(k, teacher=dict(id=TEACHER_ID, run=f"work_dir/{teacher_run}", tag="best_hqnr")))     # Teacher 가 학습 loss 에 필요한지 판정용
     if cid != "T00":
         # GT-only arm(N0·통계 H) 도 **평가 전용**으로 같은 고정 Teacher 를 싣는다 — 모든 Student 를 같은 Teacher 오차 bin 에서 비교하기 위해서다 (§15.2).
         # eval_only=True 면 학습 forward·loss 에는 전혀 쓰이지 않는다 (resolver 가 모순을 막는다).
-        k["teacher"] = dict(id=TEACHER_ID, run=f"work_dir/{teacher_run}", tag="best_rr_val", expected_sha256=None, bridge=False,
+        k["teacher"] = dict(id=TEACHER_ID, run=f"work_dir/{teacher_run}", tag="best_hqnr", expected_sha256=None, bridge=False,
                             **({} if sp0["needs_teacher"] else dict(eval_only=True)))
     if cid != "T00":
         k["baseline_run"] = pilot.rsplit("/", 1)[0]
     if extra.get("_tcopy"):                              # §13.3 Teacher-copy: 가중치만 T00 에서, optimizer·schedule 은 새로 (step 0)
         k["run_kind"] = "ADAPTIVE_PATH"
-        k["phase"] = dict(parent_run=teacher_run, parent_tag="best_rr_val", parent_step=0, optimizer_state_policy="fresh",
+        k["phase"] = dict(parent_run=teacher_run, parent_tag="best_hqnr", parent_step=0, optimizer_state_policy="fresh",
                           reason="INIT_TCOPY (§13.3): 같은 가중치에서 KD 없음/R1/R3 를 비교한다", matched_continuation="TCOPYN0")
     if extra.get("_cont"):                               # §13.2 CONTINUATION: 공통 N checkpoint 에서 같은 tail schedule
         k["run_kind"] = "ADAPTIVE_PATH"
@@ -233,8 +236,8 @@ def main():
                 f"# 계획: research_log/PAN_S2_W104_D122_NoAlign_KD_Experiment_Plan_2026-09-11.md · 구현 train_kdv.py(trainer kdv) + kdv/ · 노트 research_log/2026-09-11_na104-implementation.md\n"
                 f"# 세팅: {describe(sp)}\n"
                 f"# 골격 {ARCH}(hidden {WIDTH}, depth {DEPTH}, {a.params} M) · 9ch→8ch · **aligner·sampler 없음, PAN warp 없음** · MS base 1회 합산 · AdamW 1e-4/wd 0.01 cosine warmup100 · batch 48 · {upd} updates · seed {seed}\n"
-                f"# 초기값 work_dir/_kdv_init_w104_d122 (같은 seed 의 Student 가 공유) · Teacher = {teacher_run}/best_rr_val (id {TEACHER_ID}) · λ_V pilot = {pilot}\n"
-                f"# 선택: 주 selector best_rr_val(valid_wv3.h5 plain ERGAS) + 고정 final-N(last). best_hqnr(=best_raw) 는 FR test 로 고른 exploratory (독립 hold-out 아님). aligned view/selector 없음\n")
+                f"# 초기값 work_dir/_kdv_init_w104_d122 (같은 seed 의 Student 가 공유) · Teacher = {teacher_run}/best_hqnr (id {TEACHER_ID}) · λ_V pilot = {pilot}\n"
+                f"# 선택: 주 selector best_hqnr(raw_original HQNR→fSCC; 저장소 확정 지시) · 보조 best_rr_val(valid_wv3.h5 plain ERGAS)·last. Teacher·시트·진단 모두 best_hqnr. aligned view/selector 없음\n")
         t = re.sub(r"work_dir: .*", f"work_dir: {ROOT}/work_dir/{tag}", tpl)
         t = re.sub(r"^trainer: pa\npa:\n(  .*\n)+", "", t, flags=re.M)
         t = t.replace("mars: ms                      # PAN mode·loss·batch 복제 제거 (단일 task)",

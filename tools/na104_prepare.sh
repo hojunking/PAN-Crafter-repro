@@ -9,7 +9,7 @@
 # 시간 제한을 두지 않는 캠페인이다 — --hours 는 체인 감시자의 마감일 뿐 실험 예산이 아니다.
 set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
-START=1; HOURS=240; SERVER=""
+START=1; HOURS=2000; SERVER=""    # 시간 제한 없는 캠페인 — 마감은 체인 감시자용 상한일 뿐이다 (마감을 넘기면 미시작 run 은 실제로 건너뛴다)
 while [ $# -gt 0 ]; do case "$1" in --no-start) START=0;; --hours) HOURS="$2"; shift;; --server) SERVER="$2"; shift;; *) echo "unknown arg $1" >&2; exit 2;; esac; shift; done
 : "${PANCRAFTER_DLPAN:=/home/knuvi/Desktop/song/DLPan-Toolbox}"; export PANCRAFTER_DLPAN
 PY="${PYTHON:-}"; [ -n "$PY" ] || { [ -x /home/knuvi/miniconda3/envs/pancrafter/bin/python ] && PY=/home/knuvi/miniconda3/envs/pancrafter/bin/python || PY=python; }

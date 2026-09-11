@@ -28,7 +28,10 @@ def calibration_batches(args, n_patches=3072, seed=1234, batch_size=48):
     g = torch.Generator(device='cpu'); g.manual_seed(int(seed))
     n = min(int(n_patches), len(ds))
     idx = torch.randperm(len(ds), generator=g)[:n].sort().values.tolist()
-    loader = torch.utils.data.DataLoader(torch.utils.data.Subset(ds, idx), batch_size=int(batch_size), shuffle=False, num_workers=0, drop_last=False)
+    # DataLoader 는 iterator 를 만들 때 base_seed 를 뽑는다 — generator 를 주지 않으면 **전역 RNG 를 소비**해
+    # calibration 캐시 적중 여부에 따라 이후 학습 배치 순서가 달라진다 (같은 seed 인데 대조군끼리 다른 데이터 순서)
+    lg = torch.Generator(device='cpu'); lg.manual_seed(int(seed) + 1)
+    loader = torch.utils.data.DataLoader(torch.utils.data.Subset(ds, idx), batch_size=int(batch_size), shuffle=False, num_workers=0, drop_last=False, generator=lg)
     batches = [tuple(t.clone() for t in b) for b in loader]
     man = dict(dataroot=fa['dataroot'], n_patches=n, dataset_len=len(ds), seed=int(seed), batch_size=int(batch_size), augmentation='none',
                index_sha256_16=hashlib.sha256(np.array(idx, dtype=np.int64).tobytes()).hexdigest()[:16], first_indices=idx[:8])
@@ -283,20 +286,28 @@ def calibrate_component_tau(teacher, batches, dev, *, kind=None, window=5, trans
     return dict(tau=tau.tolist(), eps=eps.tolist(), median=med.tolist(), D=int(e.shape[0]), kind=kind, window=window, transform=transform, domain=domain)
 
 
+def _roi(x, m):
+    """학습에서 감쇠를 적용하는 영역과 같은 내부만 남긴다 (경계는 r=1 로 되돌리므로 calibration 에도 넣지 않는다)."""
+    return x if (m <= 0 or x.shape[-1] <= 2 * m or x.shape[-2] <= 2 * m) else x[..., m:-m, m:-m]
+
+
 @torch.no_grad()
-def calibrate_sens(teacher, batches, dev, *, h=0.05, phi='identity', stat_kind=None, window=5, n_check=2):
-    """§6.6 s_sens = median(양의 q_sens) · §6.9-1/2 h/2·h·2h J RMS 와 선형화 잔차 (fixed native train)."""
+def calibrate_sens(teacher, batches, dev, *, h=0.05, phi='identity', stat_kind=None, window=5, n_check=2, roi_margin=0):
+    """§6.6 s_sens = median(양의 q_sens) · §6.9-1/2 h/2·h·2h J RMS 와 선형화 잔차 (fixed native train).
+    **roi_margin**: 학습이 감쇠를 적용하는 내부와 같은 영역에서만 잰다 — 제외하기로 한 경계가 s_sens 를 통해
+    내부 모방 강도를 바꾸면 안 된다 (사용자 검토 2026-09-11: 경계만 바꿔도 s_sens 34 → 95, 내부 risk 0.43 → 0.63)."""
     from kdv.tri import teacher_fd_jacobian, sens_q, linearization_check, teacher_eval
-    qs, checks = [], []
+    qs, checks = [], []; m = int(roi_margin)
     for i, (gt, lms, ms, lpan, pan) in enumerate(batches):
         pan, ms, lpan = pan.to(dev), ms.to(dev), lpan.to(dev); mb = F.interpolate(ms, scale_factor=4, mode='bicubic')
         mu_t = teacher.predict_delta(pan, mb)
         J = teacher_fd_jacobian(teacher, pan, ms, lpan, mu_t, h=h, phi=phi, stat_kind=stat_kind, window=window)
-        qs.append(sens_q(J).flatten().cpu())
+        qs.append(_roi(sens_q(J), m).flatten().cpu())
         if i < n_check:
-            ev = lambda d: teacher_eval(teacher, pan, ms, lpan, d, phi=phi, stat_kind=stat_kind, window=window)
+            ev = lambda d: _roi(teacher_eval(teacher, pan, ms, lpan, d, phi=phi, stat_kind=stat_kind, window=window), m)
             J2 = teacher_fd_jacobian(teacher, pan, ms, lpan, mu_t, h=h / 2, phi=phi, stat_kind=stat_kind, window=window)
             J3 = teacher_fd_jacobian(teacher, pan, ms, lpan, mu_t, h=2 * h, phi=phi, stat_kind=stat_kind, window=window)
+            J, J2, J3 = _roi(J, m), _roi(J2, m), _roi(J3, m)
             lin = linearization_check(ev, mu_t, J, torch.tensor([[0.1, -0.05]], device=dev).expand(mu_t.shape[0], 2))
             checks.append(dict(h=h, J_rms=float(J.pow(2).mean().sqrt()), J_rms_half=float(J2.pow(2).mean().sqrt()), J_rms_double=float(J3.pow(2).mean().sqrt()),
                                rel_half=float((J2 - J).norm() / (J.norm() + 1e-30)), rel_double=float((J3 - J).norm() / (J.norm() + 1e-30)), finite=bool(torch.isfinite(J).all()), **lin))
@@ -307,7 +318,8 @@ def calibrate_sens(teacher, batches, dev, *, h=0.05, phi='identity', stat_kind=N
         status = 'SOURCE_UNRESPONSIVE'
     elif any((not c['finite']) or c['rel_half'] > 0.2 or c['rel_double'] > 0.5 for c in checks):
         status = 'BLOCKED_NUMERICS'
-    return dict(status=status, s_sens=s_sens, q_quantiles=_quant(q), positive_fraction=float((q > 0).double().mean()), fd_checks=checks, h=h, phi=phi, stat_kind=stat_kind, window=window)
+    return dict(status=status, s_sens=s_sens, q_quantiles=_quant(q), positive_fraction=float((q > 0).double().mean()), fd_checks=checks, h=h, phi=phi,
+                stat_kind=stat_kind, window=window, roi_margin=m, roi_note='q·J·선형화 검사 모두 학습과 같은 내부 ROI 에서 (경계는 r=1)')
 
 
 def calibrate_lambda_q(pilot, teacher, batches, dev, criterion, *, s_c):
