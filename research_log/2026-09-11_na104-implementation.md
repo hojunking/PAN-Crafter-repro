@@ -272,3 +272,75 @@ s2·s3 의 GPU 가 s1 과 다르면 이 수치는 그대로 쓰지 않는다 —
 ## 8. 두 서버 배치 (§13.4)
 
 대응 비교는 **한 서버 안에서 끝난다**. s2 는 P1/P2 핵심 축(Q00–Q19)과 필수 대조군·C 계열·장기/초기화 갈래를, s3 는 P3 표현 확장(Q20–Q47·VX)을 맡되 그 비교에 필요한 anchor(Q00·Q04·Q10)와 Teacher(T00)를 같은 서버에서 함께 돈다. 서버마다 자기 T00 을 학습하므로 **cohort 도 서버별로 분리**된다 — 서버 간 수치를 한 표에서 섞지 않는다(시트는 서버 식별자로 구분).
+
+---
+
+## 9. HQNR 조정 지시(2026-09-11) 반영
+
+지시서: `research_log/PAN_NA104_S2_S3_HQNR_Experiment_Amendment_2026-09-11.md` (s2·s3 전달용).
+**골격·loss 정의·진행 중 run 은 건드리지 않았다.** 바꾼 것은 큐 우선순위, 진단 계측, 분석 도구뿐이다.
+
+| 지시 | 반영 |
+|---|---|
+| §3.1 주 지표는 원본 FR 20장 HQNR, `best_hqnr` 선택 | 이미 반영돼 있다 (§7.1 2차 검토). 시트·Teacher·진단이 같은 checkpoint 를 쓴다 |
+| §3.2 세 가지 HQNR (original · **common-grid** · plateau · last) | `tools/na104_hqnr_report.py` 가 네 가지를 한 표로 낸다. plateau 는 40K–50K 공통 평가 시점 |
+| §3.3 공통 격자 절차 | 같은 도구가 **실제 평가 시점**(`checkpoint_metrics.csv`)을 읽어 격자 배수의 공통 epoch 에서 같은 tie-break(HQNR→fSCC→늦은 step)로 재선택한다. 보간하지 않는다. 선택 시점의 가중치가 없으면 `score_only` 로 표시한다. **원래 best 파일·manifest 는 그대로 둔다** |
+| §5.2 s2 우선순위 | 큐를 `T00 → Q00–Q04 → Q05·Q11 → Q06·Q07·Q10·Q09 → Q08·Q12` 로 재배열 |
+| §6.2·§6.3 s3 우선순위 | R 사다리의 빈 칸(**Q01·Q02·Q03**)을 s3 큐에 추가하고, **Q35–Q37** 을 R3 기반 전수 확장 앞으로. 지역 대조 Q07·Q05·Q11 포함 |
+| §8·§9·§12.1 보류 | `config/queues/na104_<srv>_deferred.txt` 로 분리 (s2 34 · s3 39). 방향 gate·CTL·C 계열·VX·장기/초기화·전수 통계 모드. **case 정의는 하나도 지우지 않았다** |
+| §10.3 세 비율 분리 | 진단에 `r_coef`(mean w_K / mean w_H) · `r_loss`(L_K/L_H) · `r_grad`(‖∇θL_K‖/‖∇θL_H‖) · `cos_hard_soft` 와 집계 정의 문자열을 남긴다. 통계 항은 `λ_V·L_hard` / `λ_V·L_soft` 로 나눠 기록 |
+| §10.4 안전한 gradient 진단 | diag step 에서만, `autograd.grad(retain_graph=True)` 로 계산하고 optimizer step·`.grad` 버퍼 오염 없이. 학습 경로·loss 는 불변이며 `diag_version` 을 기록한다 |
+| §10.5 difficulty 분포 | d·a·soft_weight 의 p10/p50/p90/p99·평균·표준편차, 우세 마진 `A_T`·`A_S`, Teacher 우세 비율 |
+| §11 HQNR 분해 | 같은 checkpoint 정책의 **장면별** spectral/spatial/interaction 항을 계산해 `hqnr_per_scene.csv` 와 요약 열로 남긴다 (평균 Dλ·Ds 의 곱으로 복원하지 않는다) |
+| §12.2 결과 key | run 마다 `run_key.json` — server·campaign·run·version·seed·Teacher checkpoint sha·init sha·calibration sha·selector·evaluator·데이터 hash. 이름이 같아도 서버가 다르면 다른 결과임을 못박는다 |
+| §10.2 N0 fitting bin | 이미 반영돼 있다 — `teacher.eval_only` 로 GT-only arm 도 같은 고정 Teacher bin 을 남긴다 (학습 loss 에는 미사용) |
+
+### 9.1 큐를 적용하는 방법 (돌고 있는 체인을 끊지 않는다)
+
+체인은 기동 시 큐를 `work_dir/cases_queue.txt` 로 **복사**해 읽는다. 따라서 git 의 큐 파일을 바꿔도 돌고 있는 run 은 영향을 받지 않는다.
+새 순서는 **run 경계에서** 적용한다. 완료된 run 은 체인이 건너뛴다.
+
+```bash
+git pull
+./tools/na104_prepare.sh --no-start        # gate·config 확인만 (진행 중이면 체인 감지로 멈춘다)
+# 현재 run 이 끝난 뒤:
+./tools/campaign_start.sh --queue config/queues/na104_<srv>.txt --hours 2000 --label na104-<srv>
+```
+
+분석은 학습과 무관하게 지금 돌려도 된다 (읽기 전용).
+
+```bash
+python tools/na104_hqnr_report.py --grid 10 --baseline NA104_Q00_W104_D122_WV3_N0_OFF_S1234_v1 "NA104_*_v1"
+```
+
+진행 중 run 이 섞이면 공통 구간이 horizon 쪽에서 잘린다 — 도구가 경고를 출력한다. 완료 run 끼리 다시 내는 것이 맞다.
+
+### 9.2 적용 회신 서식 (§13)
+
+각 서버에서 아래를 채워 회신한다. 빈 값은 추측하지 말고 `미확인` 으로 둔다.
+
+```text
+[NA104 HQNR 조정 적용 회신 / s2 또는 s3]
+적용 시각:
+저장소 commit / pending queue hash:
+현재 RUNNING / update:
+완료 case:
+원본 best 보존 여부:
+실제 evaluator / FR dataset / scene list hash:      ← run_key.json 의 evaluator_hash·fr_dataset_sha256
+기존 eval 간격과 적용할 common grid:                 ← run_inventory.csv 의 eval_epoch_stride
+Teacher run / tag / checkpoint hash:                ← run_key.json
+Student init / calibration hash:                    ← run_key.json
+Q00 fitting_bins 존재 및 공통 Teacher 확인:
+공통10격자 HQNR 표 생성 여부:                        ← analysis/hqnr_revision_20260911/hqnr_comparison.csv
+재선택 checkpoint 의 Dλ/Ds 연결 여부:                 ← 같은 표의 d_lambda_at_common·d_s_at_common·checkpoint_at_common
+추가한 local 대조 case:
+다음 실행 case(최대 5개):
+후속 review 전 보류 묶음:                            ← config/queues/na104_<srv>_deferred.txt
+확인된 문제 또는 재학습이 필요한 예외:
+```
+
+### 9.3 이번에 하지 않은 것
+
+- **loss·α/β/τ·Teacher·표현 정의는 그대로다.** R3 를 다른 R 로 바꾸거나 β 를 올리는 변경은 없다.
+- 진행 중 run 을 중단하거나 재시작하지 않았다. 계측 추가는 학습 경로를 바꾸지 않으며, 재시작하는 run 부터 새 진단 열이 생긴다(`diag_version` 으로 구분).
+- s2·s3 의 work_dir·시트·프로세스를 이 저장소에서 건드리지 않았다. 큐 적용과 분석 실행은 각 서버 운영자 몫이다.

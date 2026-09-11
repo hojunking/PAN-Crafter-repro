@@ -252,14 +252,50 @@ check("EV01 NA-STRICT 가 기본이고 NA-TSENS 는 **C 를 쓰는 case 에 한�
       and all(sp["tri"]["c_mode"] != "off" for sp in tsens.values()), f"NA-TSENS {len(tsens)}벌")
 check("EV01 모든 case 가 expect_arch 로 골격을 강제한다 (§20)",
       all((sp.get("expect_arch") or {}).get("width") == 104 and list((sp.get("expect_arch") or {}).get("depth") or []) == [1, 2, 2] for _, sp in specs.values()))
-q2 = [l.strip() for l in open(os.path.join(ROOT, "config", "queues", "na104_s2.txt")) if l.strip() and not l.startswith("#")]
-q3 = [l.strip() for l in open(os.path.join(ROOT, "config", "queues", "na104_s3.txt")) if l.strip() and not l.startswith("#")]
-def _has(q, cid):
-    return any(t.split("_")[1] == cid for t in q)
-check("§8.1 A/B 2×2 네 셀(Q10 base · Q40 A · Q17 B · Q41 AB) 이 **한 서버 안에** 모두 있다",
-      all(_has(q3, c) for c in ("Q10", "Q40", "Q17", "Q41")), "s3")
-check("큐 순서 의존: 각 큐에서 T00 이 Teacher 사용 run 보다 앞, Q00 이 λ pilot 사용 run 보다 앞",
-      all(q.index([t for t in q if t.split("_")[1] == "T00"][0]) == 0 and q.index([t for t in q if t.split("_")[1] == "Q00"][0]) <= 1 for q in (q2, q3)))
+_sch_src = open(os.path.join(ROOT, "train_kdv.py")).read()
+
+
+def _q(name):
+    p_ = os.path.join(ROOT, "config", "queues", f"na104_{name}.txt")
+    return [l.strip() for l in open(p_)] if os.path.exists(p_) else []
+
+
+def _ids(name):
+    return [l.split("_")[1] for l in _q(name) if l and not l.startswith("#")]
+
+
+q2, q3 = [l for l in _q("s2") if l and not l.startswith("#")], [l for l in _q("s3") if l and not l.startswith("#")]
+i2, i3 = _ids("s2"), _ids("s3")
+d2, d3 = _ids("s2_deferred"), _ids("s3_deferred")
+check("§8.1 A/B 2×2 네 셀(Q10 base · Q40 A · Q17 B · Q41 AB) 이 **한 서버 안에** 모두 있다 (우선순위+보류 합쳐서)",
+      all(c in (i3 + d3) for c in ("Q10", "Q40", "Q17", "Q41")), "s3")
+check("큐 순서 의존: 각 큐에서 T00 이 맨 앞, Q00 이 두 번째 (Teacher·λ pilot 선행)",
+      all(q[0].split("_")[1] == "T00" and q[1].split("_")[1] == "Q00" for q in (q2, q3)))
+# ---- 2026-09-11 HQNR 조정 지시: 큐 우선순위·보류 분리
+check("조정 §5.2 s2 우선순위 = 기본 R 사다리 → Teacher-free 통계/edge → R3 위 GV 대표 → Teacher-only·edge",
+      i2 == ["T00", "Q00", "Q01", "Q02", "Q03", "Q04", "Q05", "Q11", "Q06", "Q07", "Q10", "Q09", "Q08", "Q12"], str(i2))
+check("조정 §6.2 s3 우선순위에 R 사다리 빈 칸(Q01·Q02·Q03) 이 채워지고 Q35–Q37 이 R3 전수 확장(Q20–Q34) 앞에 온다",
+      all(c in i3 for c in ("Q01", "Q02", "Q03", "Q35", "Q36", "Q37", "Q07"))
+      and all(c not in i3 for c in ("Q20", "Q25", "Q30")) and all(c in d3 for c in ("Q20", "Q34", "Q40", "Q41")), str(i3))
+check("조정 §8·§12.1 보류 큐가 방향 gate·CTL·C 계열·VX 를 담고, **case 정의는 하나도 사라지지 않는다**",
+      all(c in d2 for c in ("Q13", "CTLHSCALE", "CS01", "LONG2NR3")) and all(c in d3 for c in ("VXM2H", "CTLGVSCHALF"))
+      and len(set(i2 + d2 + i3 + d3)) == len(specs), f"{len(set(i2 + d2 + i3 + d3))} case")
+# ---- 조정 §10.3·§10.5 진단 계측
+check("조정 §10.3 계수비·loss비·gradient비를 따로 기록하고 집계 정의를 남긴다",
+      all(k in _sch_src for k in ("r_coef=", "r_loss=", "r_grad=", "ratio_definition=", "cos_hard_soft=")))
+check("조정 §10.3 통계 항도 hard/soft 를 λ_V 를 곱한 값으로 나눠 남긴다", "stat_L_hard_weighted" in _sch_src and "stat_L_soft_weighted" in _sch_src)
+check("조정 §10.5 d·a 는 평균뿐 아니라 분위·표준편차, 우세 마진(A_T·A_S) 까지",
+      all(k in _sch_src for k in ("difficulty=dict(_q(", "advantage=dict(_q(", "A_T=float(", "A_S=float(", "teacher_better_fraction")))
+check("조정 §10.4 진단은 diag step 에서만·optimizer step 없이 (autograd.grad·retain_graph)",
+      "retain_graph=True" in open(os.path.join(ROOT, "train_kdv.py")).read() and "self.is_diag_step(global_step)" in _sch_src)
+# ---- 조정 §12.2 결과 key
+check("조정 §12.2 run_key.json 에 서버·Teacher·init·calibration·selector·evaluator·데이터 hash 를 모은다",
+      all(k in _sch_src for k in ("run_key.json", "server_id=", "teacher_checkpoint_sha=", "calibration_sha=", "selection_policy_id=", "fr_dataset_sha256=")))
+# ---- 조정 §3.2·§3.3·§11 분석 도구
+_rep = os.path.join(ROOT, "tools", "na104_hqnr_report.py")
+check("조정 §3.2/§3.3/§11 분석 도구가 있고 읽기 전용이다 (학습 산출물을 쓰지 않는다)",
+      os.path.exists(_rep) and all(k in open(_rep).read() for k in ("hqnr_best_common_grid", "hqnr_plateau", "spectral_contribution", "score_only"))
+      and "accelerator" not in open(_rep).read())
 # ---- RS01: 재개에서 **무엇이 복원되고 무엇이 복원되지 않는지**를 실제로 확인한다 (문자열 검사 아님)
 from train_po import RNGState                                              # noqa: E402
 g1 = torch.Generator(); g1.manual_seed(2000); [torch.randperm(8, generator=g1) for _ in range(3)]
@@ -267,7 +303,6 @@ st = RNGState(g1).state_dict(); before = [torch.randperm(8, generator=g1).tolist
 g2 = torch.Generator(); g2.manual_seed(2000); r2 = RNGState(g2); r2.load_state_dict(st)
 check("RS01 corruption/TRI RNG 는 checkpoint 로 정확히 복원된다 (같은 다음 열)",
       [torch.randperm(8, generator=g2).tolist() for _ in range(2)] == before)
-_sch_src = open(os.path.join(ROOT, "train_kdv.py")).read()
 check("RS01 warm start 는 parent step 만큼 scheduler 를 진행시킨다 (CONT/TCOPY 는 step 0 = 새 tail)", "for _ in range(step):" in _sch_src)
 # 알려진 한계: train DataLoader 는 accelerate 에 prepare 되지 않아 **배치 순서가 복원되지 않는다** (main.py C-1).
 _main_src = open(os.path.join(ROOT, "main.py")).read()

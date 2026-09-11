@@ -92,6 +92,7 @@ PYEOF
 cp -f research_log/2026-09-11_na104-implementation.md "$CAMP/implementation_map.md" 2>/dev/null || true
 
 if ps -eo args | grep -q '[_]run_cases\.sh'; then echo "!! 다른 체인이 돌고 있다 — 끝난 뒤 다시 실행"; exit 1; fi
+echo "[na104] 큐: $QUEUE ($(grep -vc '^#\|^$' "$QUEUE") run, HQNR 우선순위) · 보류: config/queues/na104_${SERVER}_deferred.txt ($(grep -vc '^#\|^$' "config/queues/na104_${SERVER}_deferred.txt" 2>/dev/null || echo 0) run, R/V 판정 뒤 승인분만 이동)"
 [ "$START" = 1 ] || { echo "[na104] 준비 완료 — 기동: ./tools/campaign_start.sh --queue $QUEUE --hours $HOURS --label na104-$SERVER"; exit 0; }
 ./tools/campaign_start.sh --queue "$QUEUE" --hours "$HOURS" --label "na104-$SERVER"
 ./tools/_watchdog.sh --install && echo "  감시자 cron 등록"

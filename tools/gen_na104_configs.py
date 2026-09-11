@@ -132,16 +132,33 @@ def cases(pilot):
     return C
 
 
-# 서버 block (§13.4: 대응 비교는 같은 서버 안에서 끝난다). s3 는 P3 표현 확장을 맡되 그 비교에 필요한 anchor(Q00/Q04/Q10) 를 같이 돈다.
-S2_IDS = (["T00", "Q00"] + [f"Q{i:02d}" for i in range(1, 20)]
-          + ["CTLHSCALE", "CTLRSHUF", "CTLAMASS", "CTLASHUF", "CTLBMASS", "CTLBSHUF", "CTLTAU05", "CTLTAU20", "CTLBETA03", "CTLBETA05", "CTLLAMV03", "CTLLAMV30"]
-          + ["CS00", "CS01", "CS02", "CS03", "CTLCMASS"]
-          + ["TCOPYN0", "TCOPYR1", "TCOPYR3", "CONTN0", "CONTR3", "CONTGVAD", "LONG2NN0", "LONG2NR1", "LONG2NR3", "LONG2NGVAD", "COSTMATCH"])
-# s3 는 P3 표현 확장을 맡되, 그 비교에 필요한 anchor 를 같은 서버에서 함께 돈다:
-#   Q00(독립 baseline·λ pilot) · Q04(R3) · Q06(R3+GV-H) · Q10(R3+GV-AD) · Q13(A-SIGN) · Q17(GV-B-SIGN) — Q10/Q40/Q17/Q41 이 §8.1 의 A/B 2×2 네 셀이다
-S3_IDS = (["T00", "Q00", "Q04", "Q06", "Q10", "Q13", "Q17"] + [f"Q{i:02d}" for i in range(20, 48)]
-          + ["CTLGVSCHALF"]                                      # Q43 의 총배율 대조는 Q43 과 같은 서버에
-          + ["VXW3AD", "VXW7AD", "VXW3H", "VXW7H", "VXM357AD", "VXM357H", "VXSTD", "VXLOG", "VXRES", "VXM2H", "VXM2AD"])
+# 서버 block (§13.4: 대응 비교는 같은 서버 안에서 끝난다) + **2026-09-11 HQNR 조정 지시**
+# (research_log/PAN_NA104_S2_S3_HQNR_Experiment_Amendment_2026-09-11.md §5.2·§6.2·§6.3·§8·§12.1)
+#   - 주 지표는 원본 FR 20장 HQNR. 큐는 "HQNR 우선순위" 와 "판정 회의 뒤 보류" 로 나눈다 — case 정의는 하나도 버리지 않는다.
+#   - s2: 기본 R 사다리(Q00–Q04) → GT 통계·edge 의 Teacher-free anchor(Q05·Q11) → R3 위 GV 대표 block(Q06·Q07·Q10·Q09) → Q08·Q12.
+#   - s3: R 사다리의 빈 칸(Q01·Q02·Q03) 을 그 서버에 채우고, Q35–Q37(N0+IV/GC/SC-H) 을 R3 기반 전수 확장보다 앞으로.
+#   - A/B/C gate·window·결합·CTL·장기/초기화는 **정의를 보존한 채** R/V 판정 뒤로 미룬다 (deferred 큐).
+S2_PRIORITY = ["T00", "Q00", "Q01", "Q02", "Q03", "Q04",        # S2-1 기본 R 사다리 (같은 50K)
+               "Q05", "Q11",                                     # S2-2 Teacher 없는 GT 통계·edge (정보원 분리)
+               "Q06", "Q07", "Q10", "Q09",                       # S2-3 R3 위 GV 대표: H → WH → AD → FIX
+               "Q08", "Q12"]                                     # S2-4 Teacher-only 통계·직접 edge
+S2_DEFERRED = ([f"Q{i:02d}" for i in range(13, 20)]              # TRI-A/B gate (§8: 보존·조건부)
+               + ["CTLHSCALE", "CTLRSHUF", "CTLAMASS", "CTLASHUF", "CTLBMASS", "CTLBSHUF", "CTLTAU05", "CTLTAU20", "CTLBETA03", "CTLBETA05", "CTLLAMV03", "CTLLAMV30"]
+               + ["CS00", "CS01", "CS02", "CS03", "CTLCMASS"]
+               + ["TCOPYN0", "TCOPYR1", "TCOPYR3", "CONTN0", "CONTR3", "CONTGVAD", "LONG2NN0", "LONG2NR1", "LONG2NR3", "LONG2NGVAD", "COSTMATCH"])
+S3_PRIORITY = ["T00", "Q00", "Q04", "Q06", "Q10",                # 이미 돌고 있는 anchor (유지·완료)
+               "Q01", "Q02", "Q03",                              # §6.2: R 사다리의 빈 칸을 s3 안에서 채운다
+               "Q35", "Q36", "Q37",                              # §6.2 앞당김: Teacher 없는 IV/GC/SC 통계 anchor
+               "Q07",                                            # §6.2: Q06↔Q10 사이 hard 재가중/Teacher 통계 분리
+               "Q05", "Q11"]                                     # 선택적 지역 기준 (s2 값을 s3 대조로 쓰지 않기 위해)
+S3_DEFERRED = ([f"Q{i:02d}" for i in range(20, 35)]              # IV/GC/SC × 5 mode 전수 — 표현 anchor 결과 뒤
+               + ["Q13", "Q17"] + [f"Q{i:02d}" for i in range(38, 48)]   # 방향 gate·결합 (2×2 네 셀은 전부 s3 안에 남는다)
+               + ["CTLGVSCHALF"]
+               + ["VXW3AD", "VXW7AD", "VXW3H", "VXW7H", "VXM357AD", "VXM357H", "VXSTD", "VXLOG", "VXRES", "VXM2H", "VXM2AD"])
+S2_IDS = S2_PRIORITY + S2_DEFERRED
+S3_IDS = S3_PRIORITY + S3_DEFERRED
+PRIORITY = {"s2": S2_PRIORITY, "s3": S3_PRIORITY}
+DEFERRED = {"s2": S2_DEFERRED, "s3": S3_DEFERRED}
 REPEAT_IDS = ["Q00", "Q04", "Q10"]                       # §11.6 REPEAT-S3: 핵심 대응을 Student seed 3개로
 
 
@@ -257,25 +274,29 @@ def main():
         open(os.path.join(ROOT, "config", tag + ".yaml"), "w").write(head + t)
         made.append(tag); rows.append((cid, tag, purpose, describe(sp), upd, seed))
 
-    for srv, wanted in (("s2", S2_IDS), ("s3", S3_IDS)):
+    for srv in ("s2", "s3"):
         if not (a.all or a.server == srv):
             continue
-        qs = [t for cid, t, *_ in rows if cid in wanted and (cid != "T00" or True)]
-        order = {cid: i for i, cid in enumerate(wanted)}
-        qs = [t for _, t in sorted(((order.get(cid, 999), t) for cid, t, *_ in rows if cid in wanted))]
-        qp = os.path.join(ROOT, "config", "queues", f"na104_{srv}{'' if a.version == 'v1' else '_' + a.version}.txt")
-        with open(qp, "w") as f:
-            f.write(f"# NA104 (W104·D122 no-align KD) {srv} block · 계획 §10 우선순위 순서 · {a.updates} updates · Teacher seed {a.teacher_seed} / Student seed {a.seed} · 시간 제한 없음\n"
-                    f"# 순서 의존: T00(Teacher) → Q00(독립 baseline, λ_V pilot = {pilot}) → 나머지. CONT* 는 Q00/last, TCOPY* 는 T00/best_rr_val 에서 분기한다\n"
-                    "# 약명 → 세팅은 research_log/2026-09-11_na104-implementation.md §3 표. 실행명 자체에 rec·stat·tri 토큰이 들어 있다\n"
-                    f"# eval_epoch = {a.eval_epoch}. 2026-09-11 에 5->10 (s1 NF16 과 같은 정책) — 평가가 wall-clock 의 53% 였다\n"
-                    "#   (s1 실측: 학습 5ep 72s vs 평가 1회 67s = reduced 10s + full 53s). run 당 약 26% 단축.\n"
-                    "#   best 재선택 영향 실측(기존 65 run): 중앙 0.00000 · 평균 -0.00030(판정선 0.0027 의 1/9).\n"
-                    "#   순위는 판정선 초과 142쌍 중 2쌍만 반전, 둘 다 '차이 있음 -> 구분 안 됨' 방향이라\n"
-                    "#   주장이 반대로 뒤집힌 사례는 없었다. NA104 는 미시작이라 캠페인 내부 비대칭도 없다.\n"
-                    "#   eval_epoch 가 다른 run 과 대조할 때는: python tools/best_on_grid.py --grid 10 <run>\n"
-                    + "\n".join(qs) + "\n")
-        print(f"queue {srv}: {os.path.relpath(qp, ROOT)} ({len(qs)} run)")
+        for kind, wanted in (("", PRIORITY[srv]), ("_deferred", DEFERRED[srv])):
+            order = {cid: i for i, cid in enumerate(wanted)}
+            qs = [t for _, t in sorted(((order[cid], t) for cid, t, *_ in rows if cid in order))]
+            qp = os.path.join(ROOT, "config", "queues", f"na104_{srv}{kind}{'' if a.version == 'v1' else '_' + a.version}.txt")
+            with open(qp, "w") as f:
+                if kind == "":
+                    f.write(f"# NA104 {srv} **HQNR 우선순위 큐** — 2026-09-11 조정 지시 (research_log/PAN_NA104_S2_S3_HQNR_Experiment_Amendment_2026-09-11.md §5.2·§6.3)\n"
+                            f"# 주 지표는 원본 FR 논문 세트 20장의 HQNR (raw_original, 장면별 계산 후 평균). ERGAS·학습 L1 은 보조 진단이다.\n"
+                            f"# 순서: {' → '.join(wanted)}\n"
+                            f"# 순서 의존: T00(Teacher) → Q00(독립 baseline, λ_V pilot = {pilot}) → 나머지.\n"
+                            f"# **진행 중 run 은 원래 설정대로 완료한다.** 이 파일은 아직 시작하지 않은 case 의 순서만 바꾼다 —\n"
+                            f"# 돌고 있는 체인은 work_dir/cases_queue.txt(복사본) 를 보므로, 새 순서는 run 경계에서 campaign_start.sh 로 적용한다(완료분은 건너뛴다).\n"
+                            f"# 보류 묶음은 na104_{srv}_deferred.txt — R/V 판정(§9) 뒤에 승인된 것만 옮겨 실행한다.\n")
+                else:
+                    f.write(f"# NA104 {srv} **보류 큐 (deferred_after_review)** — 2026-09-11 조정 지시 §8·§9·§12.1\n"
+                            f"# case 정의는 하나도 버리지 않는다. 부모 방법(R 사다리)·표현(통계 anchor)의 HQNR 결과가 나온 뒤\n"
+                            f"# 승인된 것만 우선순위 큐로 옮긴다. R3 가 검증되기 전에 R3 기반 조합을 자동 소진하지 않는다.\n"
+                            f"# 포함: 방향 gate(TRI-A/B)·CTL 대조군·C 계열(NA-TSENS)·표현 변형(VX)·장기/초기화·전수 통계 모드\n")
+                f.write("\n".join(qs) + "\n")
+            print(f"queue {srv}{kind}: {os.path.relpath(qp, ROOT)} ({len(qs)} run)")
     print(f"config {len(made)}벌 · params {a.params} M · Teacher {teacher_run} · pilot {pilot}")
     for cid, tag, purpose, desc, upd, seed in rows[:6]:
         print(f"  {cid:10s} {tag}")

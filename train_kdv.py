@@ -8,6 +8,7 @@ Teacher(F_T+A_T) 는 frozen·no_grad·optimizer 밖(gate M03: state hash 불변�
 평가·선택·산출물은 train_pa.PATrainer(세 view · best_raw=best_hqnr · best_aligned · last) 에 best_rr_val(검증셋 ERGAS) 을 더한다 (§18)."""
 import copy
 import csv
+import hashlib
 import json
 import os
 import shutil
@@ -560,6 +561,22 @@ class KDVTrainer(PATrainer):
                                                     restored="optimizer·scheduler·scaler·RNG(corruption/TRI)", not_restored="data sampler 배치 순서",
                                                     consequence="중단 없는 run 과 배치 열이 다르다 — 통제 비교에서 표시하거나 재실행"))
             print(f"[kdv] 재개: {self.resumed_from} — 배치 순서는 복원되지 않는다 (resume_events.jsonl 에 기록)")
+        # §12.2 결과 key — 이름이 같아도 서버가 다르면 다른 결과다. 시트·분석에서 덮어쓰지 않도록 식별자를 한곳에 모은다
+        try:
+            _srv = open(os.path.join(ROOT, "gspread", "server.txt")).read().strip()
+        except Exception:
+            _srv = "unknown"
+        _ds = json.load(open(os.path.join(wd, "dataset_hashes.json"))) if os.path.exists(os.path.join(wd, "dataset_hashes.json")) else {}
+        _cal = hashlib.sha256(json.dumps(self.calibration, sort_keys=True, default=str).encode()).hexdigest()[:16]
+        json.dump(dict(server_id=_srv, campaign_id=self.campaign_id, run_id=self.run_id, version=self.version, student_seed=self.args.seed,
+                       teacher_id=self.teacher_id, teacher_run=(self.teacher_manifest or {}).get("run"), teacher_tag=(self.teacher_manifest or {}).get("tag"),
+                       teacher_checkpoint_sha=(self.teacher_manifest or {}).get("file_sha256"), teacher_tensors_sha16=(self.teacher_manifest or {}).get("tensors_sha256_16"),
+                       init_sha=self.init_hashes.get("unet_init_sha256_16"), calibration_sha=_cal,
+                       selection_policy_id=f"{sp.get('select_primary')}+secondary({'·'.join(sp.get('select_secondary') or [])})",
+                       evaluator_hash=evaluator_hash(), protocol_id=PROTOCOL_ID, view="raw_original", fr_dataset_sha256=self.fr_h5_sha,
+                       train_dataset_sha256=((_ds.get("train_feeder_args") or {}).get("sha256")), grid_id="per-run eval schedule (공통 격자는 분석 도구가 별도로 만든다)",
+                       note="같은 run_id 라도 server_id·teacher_checkpoint_sha 가 다르면 다른 결과다 — 시트·분석에서 서로 덮어쓰지 않는다 (§12.2)"),
+                  open(os.path.join(wd, "run_key.json"), "w"), indent=1, ensure_ascii=False)
         os.makedirs(os.path.join(CAMPAIGN_ROOT, self.campaign_id), exist_ok=True)
         reg_p = os.path.join(CAMPAIGN_ROOT, self.campaign_id, "teacher_registry.json")
         reg = json.load(open(reg_p)) if os.path.exists(reg_p) else {}
@@ -709,16 +726,20 @@ class KDVTrainer(PATrainer):
                         lq = scalar_quad(d, J, Sig, s_c=s_c); lq = torch.where(valid[:, None, None, None], lq, iso_quad(d, s_c=s_c))
                     soft = self.tri_state["lambda_q"] * (w_k * lq).mean(); loss_rec = r.hard + soft
                     info.update(rec_hard=float(r.hard), rec_soft=float(soft), rec_soft_original=float(r.soft), tri_gate_mean=1.0)
+                    info["_rec_hard_t"], info["_rec_soft_t"] = r.hard, soft
                 elif wk_band is not None:
                     res = masked_l1_componentwise(y.float(), ytf, gf, w_h, wk_band, risk=risk); loss_rec = res["loss"]
                     info.update(rec_hard=float(res["hard"]), rec_soft=float(res["soft"]), rec_soft_original=float(r.soft), tri_gate_mean=float(res["gate_mean"]))
+                    info["_rec_hard_t"], info["_rec_soft_t"] = res["hard"], res["soft"]
                 else:
                     res = masked_l1(y.float(), ytf, gf, w_h, w_k, mask=mask, risk=risk); loss_rec = res["loss"]
                     info.update(rec_hard=float(res["hard"]), rec_soft=float(res["soft"]), rec_soft_original=float(r.soft), tri_gate_mean=float(res["gate_mean"]))
-                info.update(**{f"rec_{kk}": float(v) for kk, v in r.stats.items()}); info["_tri_rec"] = (yd, ytf, gf, mask, risk, w_k); info["rec_control"] = sp["rec_control"]
+                    info["_rec_hard_t"], info["_rec_soft_t"] = res["hard"], res["soft"]
+                info.update(**{f"rec_{kk}": float(v) for kk, v in r.stats.items()}); info["_tri_rec"] = (yd, ytf, gf, mask, risk, w_k); info["rec_control"] = sp["rec_control"]; info["_rec_maps"] = r.maps
         elif y_t is not None and self.rec_crit is not None:
-            r = self.rec_crit(y, y_t, gt); loss_rec = r.loss
+            r = self.rec_crit(y, y_t, gt, return_maps=self.is_diag_step(step)); loss_rec = r.loss
             info.update(rec_hard=float(r.hard), rec_soft=float(r.soft), **{f"rec_{kk}": float(v) for kk, v in r.stats.items()})
+            info["_rec_hard_t"], info["_rec_soft_t"], info["_rec_maps"] = r.hard, r.soft, r.maps
         else:
             loss_rec = (y - gt).abs().mean(); info.update(rec_hard=float(loss_rec), rec_soft=0.0, rec_plain_gt_l1=float(loss_rec))
         # output statistics (§9)
@@ -771,11 +792,13 @@ class KDVTrainer(PATrainer):
                     else:
                         res = masked_l1(v_s, v_t, v_g, w_hV, w_kV, mask=mask_b, risk=risk_v)
                     loss_stat_raw = res["loss"]; info.update(stat_hard=float(res["hard"]), stat_soft=float(res["soft"]), stat_soft_original=float(s_orig), tri_b_gate_mean=float(res["gate_mean"]))
+                    info["_stat_hard_t"], info["_stat_soft_t"] = res["hard"], res["soft"]
                     info["_tri_stat"] = (vsd, v_t, v_g, mask_b, risk_v, w_kV)
                 else:
                     parts = [stat_term(ys, yts, gts, kind=sp["stat_kind"], window=wi, mode=sp["stat_mode"], criterion=self.stat_crits.get(wi), transform=tf, transform_eps=tfe)
                              for wi in sp["stat_windows"]]                       # REP-MULTI357: 창별 loss 를 평균 (창마다 τ_V 를 따로 calibration 했다)
                     loss_stat_raw = sum(pp.loss for pp in parts) / len(parts)
+                    info["_stat_hard_t"] = sum(pp.hard for pp in parts) / len(parts); info["_stat_soft_t"] = sum(pp.soft for pp in parts) / len(parts)
                     info.update(stat_hard=float(sum(float(pp.hard) for pp in parts) / len(parts)), stat_soft=float(sum(float(pp.soft) for pp in parts) / len(parts)),
                                 **{f"stat_{kk}": float(v) for kk, v in parts[0].stats.items()})
                     if len(parts) > 1:
@@ -933,6 +956,36 @@ class KDVTrainer(PATrainer):
                     cd["kl_teacher_head_vs_source"] = float((gaussian_kl(info["delta_t"], Sig_t, info["delta_t"], Sig_src) * info["_valid"].double()).sum() / max(1, int(info["_valid"].sum())))
                     cd["logdet_sigma_s_mean"] = info.get("gkd_logdet_s"); cd["logdet_sigma_t_mean"] = info.get("gkd_logdet_t")
             self._jsonl("covariance_diagnostics.jsonl", cd)
+        # ---- 2026-09-11 조정 §10.3: **계수비·loss비·gradient비는 서로 다른 수다.** 집계 정의를 필드에 적는다.
+        def _q(t, ks=(0.1, 0.5, 0.9, 0.99)):
+            f = t.detach().flatten().float()
+            f = f[:2_000_000]
+            return {f"p{int(k * 100)}": float(torch.quantile(f, k)) for k in ks}
+
+        lh, lk = info.get("_rec_hard_t"), info.get("_rec_soft_t")
+        if lh is not None and lk is not None:
+            v_h, n_h = self._gnorm(lh, bp); v_k, n_k = self._gnorm(lk, bp)
+            out.update(rec_L_hard=float(lh), rec_L_soft=float(lk), rec_grad_hard_F=n_h, rec_grad_soft_F=n_k,
+                       r_coef=(info.get("rec_soft_weight_mean", 0.0) / (info.get("rec_hard_weight_mean", 1.0) + 1e-12)),
+                       r_loss=float(lk) / (float(lh) + 1e-12), r_grad=(n_k / (n_h + 1e-12)) if n_h > 0 else None,
+                       cos_hard_soft=(float((v_h * v_k).sum() / (v_h.norm() * v_k.norm())) if (v_h is not None and v_k is not None and n_h > 0 and n_k > 0) else None),
+                       ratio_definition="ratio of batch means (mean-of-ratios 아님) · 분모는 hard 항 · gradient 는 Student backbone 파라미터 기준 (AdamW 실제 update 기여율이 아니다)")
+        sh, sk = info.get("_stat_hard_t"), info.get("_stat_soft_t")
+        if sh is not None:
+            _, n_sh = self._gnorm(sh, bp); _, n_sk = self._gnorm(sk, bp) if sk is not None else (None, 0.0)
+            out.update(stat_L_hard_weighted=float(sh) * info["lam_v"], stat_L_soft_weighted=(float(sk) * info["lam_v"] if sk is not None else 0.0),
+                       stat_grad_hard_F=n_sh * info["lam_v"], stat_grad_soft_F=n_sk * info["lam_v"], lambda_V=info["lam_v"])
+        # ---- §10.5: d·a 는 평균만으로 보지 않는다. 분위·표준편차와 Teacher/Student 우세 마진을 따로 남긴다.
+        m = info.get("_rec_maps")
+        if m:
+            eT, eS = m["teacher_error"], m["student_error"]
+            out.update(difficulty=dict(_q(m["difficulty"]), mean=float(m["difficulty"].mean()), std=float(m["difficulty"].std())),
+                       advantage=dict(_q(m["advantage"]), mean=float(m["advantage"].mean()), std=float(m["advantage"].std())),
+                       soft_weight=dict(_q(m["soft_weight"]), mean=float(m["soft_weight"].mean())),
+                       A_T=float((eS - eT).clamp_min(0).mean()), A_S=float((eT - eS).clamp_min(0).mean()),
+                       teacher_better_fraction=float((eT < eS).double().mean()),
+                       margin_note="A_T=mean[(e_S−e_T)_+], A_S=mean[(e_T−e_S)_+] — 우세 비율과 우세 마진은 다른 수다. 학습 신호 진단이며 HQNR 성능의 대체 판정식이 아니다.")
+        out["diag_version"] = "2026-09-11 (HQNR 조정 §10.3·§10.5 계측 추가; 학습 경로·loss 는 불변, 진단은 diag step 에서만 autograd.grad 로 계산하고 optimizer step 을 하지 않는다)"
         out["delta_mean"] = info["delta"].detach().mean(0).tolist(); out["delta_std"] = info["delta"].detach().std(0).tolist()
         if info["delta_t"] is not None:
             out["delta_teacher_mean"] = info["delta_t"].mean(0).tolist(); out["delta_drift_vs_teacher"] = float((info["delta"].detach() - info["delta_t"]).norm(dim=1).mean())
