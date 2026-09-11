@@ -27,7 +27,7 @@ report(){  # 논문 2.040 대조를 로그에 바로 남긴다
     python tools/eval_dlpan.py "work_dir/$t/results/reduced_best_val.mat" --preset wv3 2>/dev/null \
       | grep -E "$t|PSNR" || true
 }
-collect(){ python tools/collect_exp.py "paper*" results_log/2026-08-25_WIP_paper.md \
+collect(){ python tools/collect_exp.py "paper*" results_log/2026-08-25_divergences-and-tuning-review.md \
            > work_dir/priority_collect.log 2>&1 || echo "[pri] collect 실패"; }
 i=0
 for TAG in "${ORDER[@]}"; do

@@ -36,4 +36,4 @@ WV3 seed 2025 가 없는 서버는 큐 맨 앞에 `S1_T05_W168_D123_DUAL` 을 �
 ## 판정
 
 HQNR(논문 세트) 3 seed 평균 ± 표준편차(N−1). seed 간 폭이 방법 간 차이의 척도. 20장 표본 표준오차 ≈ 0.002 이므로 그 안쪽은 구분하지 않는다.
-결과 문서: `results_log/2026-09-08_WIP_arch-w168-multiset-3seed.md` → 완료 시 확정 문서로 대체.
+결과 문서: `results_log/2026-09-08_metric-v2-and-multiset-3seed.md` → 완료 시 확정 문서로 대체.

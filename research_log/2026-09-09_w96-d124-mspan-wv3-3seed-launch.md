@@ -46,4 +46,4 @@ config 3벌 smoke → 다른 체인이 돌고 있으면 기동하지 않고 종�
 
 - 이 3벌은 새 기준의 **일반 HRMS 복원 baseline** 이다. 이후 정합/fitting 후보는 이 3벌과 비교한다.
 - 과거 W168·d123 dual(`S1_T05_W168_D123_DUAL`, ARCH 캠페인) 결과를 새 방법의 직접 대조군으로 쓰지 않는다.
-- 판정은 HQNR → SCC. 정렬 축의 실험은 `results_log/2026-09-09_alignment-after-training-analysis.md` §3 에 따라 fSCC·δ_out 을 병기한다.
+- 판정은 HQNR → SCC. 정렬 축의 실험은 `results_log/2026-09-09_alignment-analysis-and-new-baseline.md` §3 에 따라 fSCC·δ_out 을 병기한다.

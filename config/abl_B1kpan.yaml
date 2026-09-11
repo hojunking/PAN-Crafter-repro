@@ -1,4 +1,4 @@
-# 서브모듈 제거 진단 실험. results_log/2026-08-20_submodule-removal-analysis.md 4절.
+# 서브모듈 제거 진단 실험. results_log/2026-08-20_submodule-sweep-and-mutual-nogo.md 4절.
 # A3 − k_pan. 기준은 sweep_W128D2222A3 (A3) 이며 그 외 설정은 전부 동일하다.
 # Student 아키텍처 스윕. research_log/pancrafter_student_first_strategy_v0.1.md 기반.
 # W128D2222A3: width 128 / depth [2, 2, 2, 2] / CM3A 3개

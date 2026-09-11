@@ -1,5 +1,5 @@
 # S1 — W136·d[2,3,4] : 고해상도 양쪽 +1, 폭을 낮춰 예산 유지
-# 근거: results_log/2026-09-03_teacher-arch-4to6m-results.md §3 — dual 골격 고정(MS-only 는 D_λ 붕괴)
+# 근거: results_log/2026-09-03_teacher-arch-4to6m.md §3 — dual 골격 고정(MS-only 는 D_λ 붕괴)
 # 공통: 11ch · crop=False · attention 없음 · 50K · AdamW 1e-4/wd0.01 cosine warmup100
 #       best 선택 = 공식 HQNR(FR 12-19)
 expect_params_m: 5.5929

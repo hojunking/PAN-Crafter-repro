@@ -437,7 +437,7 @@ str += f'SAM: {self.sam:.6f}\tQ4(first4): {self.q4:.6f}\tERGAS: {self.ergas:.6f}
 ### D-7. 시트·보고용 SCC 와 SSIM 의 구현 관례가 MATLAB 과 달랐다 (2026-09-07 교정) {#d-7}
 
 `tools/eval_dlpan.py` — 시트(`gspread_upload.py`)와 보고서가 쓰는 함수다.
-`results_log/2026-09-07_metric-comparability-audit.md` 에 근거와 수치가 있다.
+`results_log/2026-09-07_alignment-shift-robust-and-metric-v2.md` 에 근거와 수치가 있다.
 
 - **SCC**: DLPan `SCC.m` 은 `imfilter(fspecial('sobel'))` 이고 imfilter 기본값은 **zero padding** 이다.
   이전 구현은 `scipy.ndimage.sobel`(reflect 패딩)이라 잘린 영상의 가장자리 1px 링에서 값이 달라
@@ -527,7 +527,7 @@ GF2 만 정확히 일치한다(1.000). 근거 그림: `results_log/assets/lpan_m
 평가식에는 등장하지 않는다. 엉뚱한 장면이 입력으로 들어가 출력이 망가진 것이다.
 
 FR 테스트셋 장면 불일치와 같은 뿌리일 가능성이 높다
-(`results_log/2026-08-19_metric-and-dataset-audit.md` ④). lpan 이 어긋난 WV3·QB 가
+(`results_log/2026-08-19_metric-audit-and-wv3-four-runs.md` ④). lpan 이 어긋난 WV3·QB 가
 논문 EXP 기준선과도 어긋나고, lpan 이 맞는 GF2 는 둘 다 정상이다.
 저자의 `pan_h5.zip` 이 교체 전 FR 테스트셋으로 만들어졌다면 두 현상이 함께 설명된다.
 PanCollection README 가 "Dec. 11, 2022: we updated full-resolution test examples that contain
@@ -572,7 +572,7 @@ Gaussian(sigma=1.98, N=41, BORDER_REPLICATE) 후 [2::4, 2::4] 데시메이션
 ### F-2. PanCollection WV3 full-res 테스트셋은 H5 와 .mat 이 **다른 장면 20장**이다 {#f-2}
 
 README 는 "H5 files have same data with mat files" 라고 하지만, 2026-09-07 에 Google Drive 에서
-직접 받아 대조한 결과 WV3 FR 은 그렇지 않다 (`results_log/2026-09-07_metric-comparability-audit.md`).
+직접 받아 대조한 결과 WV3 FR 은 그렇지 않다 (`results_log/2026-09-07_alignment-shift-robust-and-metric-v2.md`).
 
 | | 장면 수 | 성격 | 우리 H5 와 겹침 |
 |---|---:|---|---|

@@ -5,7 +5,7 @@
 #   ./tools/metric_v2_prepare.sh --no-upload     # 시트는 올리지 않고 fr_mat20.json 까지만
 #   ./tools/metric_v2_prepare.sh --shards 4      # 논문 세트 평가를 4 프로세스로 (GPU 가 비어 있을 때)
 #
-# 하는 일 (results_log/2026-09-07_metric-comparability-audit.md · KNOWN_ISSUES D-7 / F-2):
+# 하는 일 (results_log/2026-09-07_alignment-shift-robust-and-metric-v2.md · KNOWN_ISSUES D-7 / F-2):
 #   1. PanCollection **.mat 형식** WV3 FR 테스트셋 20장(= 논문 세트) 을 받아 입력 h5 로 만든다
 #      (Google Drive 폴더 16pGIqvwWfyQVvkk3s1xrwLpavqQd0Bv7, gdown). 이미 있으면 건너뛴다.
 #   2. python tools/verify_metrics.py — 지표 이식 검사 (SCC/SSIM/PSNR/D_λ/D_s/HQNR 기대값과 상대오차 0)

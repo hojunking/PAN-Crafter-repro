@@ -18,7 +18,7 @@
 
 ## 2026-09-03 — 고해상도 배치 축 + 7M 상한 + 스케줄
 - s1_teacher_placement.txt : 6벌(~19h). 근거는
-  results_log/2026-09-03_teacher-arch-4to6m-results.md §3.
+  results_log/2026-09-03_teacher-arch-4to6m.md §3.
   ① 배치 축(d0/d1 을 처음 움직임) 4벌 — W144·d224 와 W144·d134 는 params 동일(5.5181M)
      한 짝이라 full-res vs H/2 를 순수 대조한다
   ② 7M 상한 1벌(W168·d124 6.48M) — params↔D_λ 추세(r=0.922) 반전 여부

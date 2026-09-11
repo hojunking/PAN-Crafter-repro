@@ -1,6 +1,6 @@
 """PanCollection 의 **.mat 형식** WV3 full-resolution 테스트셋(20장)을 PAN-Crafter 입력 h5 로 만든다.
 
-왜 필요한가 (results_log/2026-09-07_metric-comparability-audit.md):
+왜 필요한가 (results_log/2026-09-07_alignment-shift-robust-and-metric-v2.md):
   배포 H5 `test_wv3_OrigScale_multiExm1.h5` 의 20장과 .mat 형식 `Test(HxWxC)_wv3_data_fr{1..20}.mat`
   의 20장은 **다른 장면 집합**이다 (겹치는 장면 6장뿐). PAN-Crafter / U-Know-DiffPAN / CANConv 가
   보고한 FR 수치는 .mat 쪽(MATLAB DLPan-Toolbox 입력)과 일치한다 — EXP 기준선이 평균·표준편차까지

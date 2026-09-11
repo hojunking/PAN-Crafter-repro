@@ -1,5 +1,5 @@
 # S1 — W160·d[1,2,4] 를 **25K 스케줄**로. 50K 판(S1_T05_W160_D124_DUAL, plateau 0.9540)과 구조·시드 동일하고 스케줄만 다른 대조 — 큰 모델이 일찍 정점(ep75~130/248) 찍고 하락하는 것이 스케줄 과다 때문인지 검증
-# 근거: results_log/2026-09-03_teacher-arch-4to6m-results.md §3 — dual 골격 고정(MS-only 는 D_λ 붕괴)
+# 근거: results_log/2026-09-03_teacher-arch-4to6m.md §3 — dual 골격 고정(MS-only 는 D_λ 붕괴)
 # 공통: 11ch · crop=False · attention 없음 · 50K · AdamW 1e-4/wd0.01 cosine warmup100
 #       best 선택 = 공식 HQNR(FR 12-19)
 expect_params_m: 5.8822

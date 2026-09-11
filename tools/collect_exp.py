@@ -56,9 +56,9 @@ def eval_one(wd, gt, lms_f, pan_f, wald):
 # 문서별 머리말. WIP 문서는 매번 통째로 덮어쓰이므로, CONVENTION.md §2 가 요구하는
 # "이 실험으로 확인하려는 것" 을 여기 둬야 갱신돼도 살아남는다. 키는 문서 파일명이다.
 INTRO = {
-    "2026-08-24_WIP_running.md": (
+    "2026-08-24_paper-rebuild-and-reproduction-audit.md": (
         "[WIP] 진행 중인 실험 — 두 축 결합 + 논문 격차 진단 (2026-08-24)",
-        ["두 갈래가 순차로 돈다. 결과는 [재현 감사 보고서](2026-08-24_reproduction-audit.md)에 합류한다.",
+        ["두 갈래가 순차로 돈다. 결과는 [재현 감사 보고서](2026-08-24_paper-rebuild-and-reproduction-audit.md)에 합류한다.",
          "",
          "### A. 두 축(폭 × CM3A 개수) 결합 — `y_*`, `z_*` (8종, ≈16:28 종료)",
          "",
@@ -69,7 +69,7 @@ INTRO = {
          "",
          "### B. 논문 격차 원인 진단 — `d1_nocrop`, `d2_lmsbase` (2종, ≈21:10 종료)",
          "",
-         "[재현 감사](2026-08-24_reproduction-audit.md) 의 후보 B·C 검증이다.",
+         "[재현 감사](2026-08-24_paper-rebuild-and-reproduction-audit.md) 의 후보 B·C 검증이다.",
          "대조군은 아래 **[기준] A5 Teacher (9.969M)** 행(`sweep_W128D2222A5`, 25K, ERGAS 2.2598)이고,",
          "두 실행은 거기서 argparse 파싱 기준 **정확히 한 항목만** 다르다.",
          "",
@@ -92,8 +92,8 @@ INTRO = {
 # 08-24 두 체인(_run_twoaxis.sh, _run_diag.sh)은 각자 다른 문서를 쓰도록 짜여 있는데,
 # 실행 중이라 스크립트를 고칠 수 없다. 여기서 경로/패턴을 하나로 돌려 문서를 합친다.
 # 두 체인은 순차 실행(diag 가 twoaxis 종료를 기다림)이라 경합하지 않는다.
-MERGE = {"2026-08-24_WIP_twoaxis.md": ("2026-08-24_WIP_running.md", "[yzd]*"),
-         "2026-08-24_WIP_diag.md":    ("2026-08-24_WIP_running.md", "[yzd]*")}
+MERGE = {"2026-08-24_WIP_twoaxis.md": ("2026-08-24_paper-rebuild-and-reproduction-audit.md", "[yzd]*"),
+         "2026-08-24_WIP_diag.md":    ("2026-08-24_paper-rebuild-and-reproduction-audit.md", "[yzd]*")}
 
 
 def main():

@@ -23,7 +23,7 @@
 **검토 의견 (명세 자체).**
 
 - §5.3 L_geo 의 `V_g` margin 11 은 64 patch 에서 42² 만 남긴다. 명세가 인정한 operational constraint 다. 구현은 그대로 두되 **guard 는 모든 case 에 같은 조건**으로 걸었다(|Δ| 이 margin support 를 깨면 `SUPPORT_FAIL`, exit 4).
-- `results_log/2026-09-09_alignment-after-training-analysis.md` §8: B0 골격은 학습 규모의 GT–PAN 어긋남(0.37 px)을 **이미 암묵적으로 보정**한다. 따라서 A1 의 Δ̂ 는 "총 어긋남" 이 아니라 backbone 과 나눠 가진 몫이고, FR(1.79 px)에서 필요한 양의 1/4 규모에서 학습된다. 명세 §12.3 의 "Δ≈상수/bias" 해석과 §11.2 known-shift 반응 진단이 이 점을 가른다. 결과 해석 시 이 사실을 전제로 둔다.
+- `results_log/2026-09-09_alignment-analysis-and-new-baseline.md` §8: B0 골격은 학습 규모의 GT–PAN 어긋남(0.37 px)을 **이미 암묵적으로 보정**한다. 따라서 A1 의 Δ̂ 는 "총 어긋남" 이 아니라 backbone 과 나눠 가진 몫이고, FR(1.79 px)에서 필요한 양의 1/4 규모에서 학습된다. 명세 §12.3 의 "Δ≈상수/bias" 해석과 §11.2 known-shift 반응 진단이 이 점을 가른다. 결과 해석 시 이 사실을 전제로 둔다.
 - 명세의 stand-in 검사(아래 §3)에서 보이듯 **PAN 을 M-frame 쪽으로 옮기면 raw HQNR 은 오르고 fSCC 는 내린다**(D_s 기전, 같은 문서 §3). best_raw 는 raw_original HQNR 로 고르므로 이 방향을 선호한다. 명세가 best_raw 를 주 비교로 둔 것은 그대로 따르되, §11.1 대조(learned/zero/wrong-sign)와 fSCC 를 반드시 같이 본다.
 
 ## 2. 명세 → 코드

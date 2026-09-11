@@ -1,5 +1,5 @@
 # S1 — W168·d[1,2,4] 6.48M : 폭·bottleneck 축의 7M 이하 상한. params↔D_λ 추세(r=0.922)가 꺾이는지
-# 근거: results_log/2026-09-03_teacher-arch-4to6m-results.md §3 — dual 골격 고정(MS-only 는 D_λ 붕괴)
+# 근거: results_log/2026-09-03_teacher-arch-4to6m.md §3 — dual 골격 고정(MS-only 는 D_λ 붕괴)
 # 공통: 11ch · crop=False · attention 없음 · 50K · AdamW 1e-4/wd0.01 cosine warmup100
 #       best 선택 = 공식 HQNR(FR 12-19)
 expect_params_m: 6.4828

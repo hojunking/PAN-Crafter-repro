@@ -2,7 +2,7 @@
 
 대상은 `model/pancrafter_paper.py` / `config/paper_wv3.yaml` — **7.1707 M**
 (논문 주장 7.170 M, +0.01%). 근거와 배포 코드와의 차이는
-[재구성 보고서](../results_log/2026-08-24_paper-faithful-rebuild.md) 참고.
+[재구성 보고서](../results_log/2026-08-24_paper-rebuild-and-reproduction-audit.md) 참고.
 
 ## 0. 왜 이 순서인가
 
@@ -106,7 +106,7 @@ setsid nohup ./tools/_run_priority.sh > work_dir/priority_chain.log 2>&1 < /dev/
 ```
 
 2축 체인(`z_seed7777`) 종료를 기다렸다 자동 시작한다. 진행 상황은
-`results_log/2026-08-25_WIP_paper.md` 에 자동 적재된다.
+`results_log/2026-08-25_divergences-and-tuning-review.md` 에 자동 적재된다.
 
 | Phase | 실행 | 시간 | 누적 |
 |---|---:|---:|---:|

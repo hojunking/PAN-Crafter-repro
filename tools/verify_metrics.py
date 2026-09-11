@@ -11,7 +11,7 @@ full-resolution 은 DLPan-Toolbox 의 wald_utilities.py(interp23tap) 를 런타�
 PANCRAFTER_DLPAN 이 필요하다. 없으면 reduced 만 검사한다.
 
 **이 검사는 서버 간 이식·회귀 검사다. MATLAB 과의 동치 검사가 아니다.** 기대값은 이 파이썬 구현이
-낸 값이다. MATLAB 원본과의 대조는 results_log/2026-09-07_metric-comparability-audit.md 의 anchor
+낸 값이다. MATLAB 원본과의 대조는 results_log/2026-09-07_alignment-shift-robust-and-metric-v2.md 의 anchor
 (EXP·CANConv 배포 가중치) 로 했고, MATLAB 실행 없이는 비트 동일을 주장하지 않는다.
 """
 import os

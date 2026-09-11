@@ -1,4 +1,20 @@
-# 2026-09-09 — 학습만으로 정렬 문제가 얼마나 풀리는가: 재구성 loss 만으로 학습한 W168·d123 모델의 출력 기하
+# 2026-09-09 — 학습 후 정렬 분석 + 새 baseline(W96·D124) 기동
+
+이 날의 두 문건을 하나로 합쳤다. **mainline 이 바뀐 날이다.**
+
+| 갈래 | 결론 |
+|---|---|
+| **학습만으로 정렬이 얼마나 풀리는가** | ① **구조(edge)는 학습만으로 PAN 을 따라간다** — 출력 전역 shift 가 WV3 1.79→0.55, QB 2.78→0.18 px. CANConv 도 같은 정도라 **잔차 구조의 일반 성질**이지 우리 모델 고유가 아니다. **GF2 만 절반**(1.62→1.04, 3 seed 일관) ② **색(저주파)은 해결되지 않는다** — MTF 로 다시 흐리면 PAN 에서 여전히 1.2~1.6 px. **출력 안에서 구조와 색의 기하가 ~1px 어긋나 있다.** jitter 학습본도 CANConv 도 동일 → 학습·jitter 어느 쪽도 이 축을 못 건드린다 |
+| **새 mainline 확정 + WV3 3-seed 기동** | 사용자 결정으로 **W96·D124 U-Net · MS+PAN 9ch · 단일 HRMS task**(PAN 재구성·dual MARs·LPAN/HPAN 제거, mode γβ 없음, attention 없음) 로 전환. params 2.123 M, seed 2025·1234·7777. 과거 W168·d123 dual 은 **직접 대조군이 아니다** |
+
+> 이 날 **best 선택 FR 세트가 논문 20장 전체**로 바뀌었다(`fr_select_indices` 기본 `0-19`).
+> 부분집합 12-19 는 어디에도 쓰지 않는다 — 논문 프로토콜을 따른다.
+
+---
+
+## 2026-09-09 — 학습만으로 정렬 문제가 얼마나 풀리는가: 재구성 loss 만으로 학습한 W168·d123 모델의 출력 기하
+
+> 원문: `2026-09-09_alignment-after-training-analysis.md`
 
 > 질문: jitter branch(shift-robust, `research_log/s1_w168_d123_shift_robust_alignment_30h_plan.md`) 없이
 > **단순 재구성 loss 로만 학습한 모델**(`S1_T05_W168_D123_DUAL` 구조 — W168 · depth [1,2,3] · dual MARs ·
@@ -8,7 +24,7 @@
 > 실행: 전부 재구성본(`fixed` 계열) · 측정: 지표 v2(`py`, DLPan 프로토콜 재구현) · FR 세트: 논문 `.mat` 20장(`fr_mat20`).
 > 도구: `tools/align_after_training_diag.py` (Part A/B) · CSV `outputs/align_after_training/` · 요약 `outputs/align_after_training/summarize.py`.
 
-## 요지
+### 요지
 
 1. **구조(edge)는 학습만으로 PAN 을 따라간다.** 출력의 전역 shift(PAN 기준, HR px 중앙값)는 입력 up(MS) 의
    어긋남 대비 WV3 1.79 → **0.55**, QB 2.78 → **0.18**, WV2 0.36 → **0.06** 으로 줄었다(20장 중 19~20장에서 감소).
@@ -32,9 +48,9 @@
    나란히 둬야 한다. HQNR 우선 판정 규칙 자체를 바꾸자는 것이 아니라, 이 축에서 HQNR 이 무엇을 재지 못하는지를 확정한 것이다.
    기존 shift-robust 캠페인의 "best HQNR 동급" 결론도 이 기전 위에 있다 — 같은 run 을 fSCC 로 보면 J4 +0.018, δ_out 0.55 → 0.42 다.
 
-## 0. 대상과 방법
+### 0. 대상과 방법
 
-### 0.1 대상 모델 (전부 논문 FR 세트 20장 출력 `results/full_best_hqnr_mat20.mat`)
+#### 0.1 대상 모델 (전부 논문 FR 세트 20장 출력 `results/full_best_hqnr_mat20.mat`)
 
 | 센서 | run | 설명 | HQNR(v2) | 비고 |
 |---|---|---|---:|---|
@@ -46,7 +62,7 @@
 | WV3 | `SR_J2_C2RAND_MSONLY_R050_W168_D123_DUAL` | 대조: MS mode 만 ±0.5px jitter | 0.9598 | 〃 |
 | WV3/QB/GF2/WV2 | `_ref_cannet*` | 대조: CANConv 배포 가중치 (컨테이너 출력) | 0.9511 / 0.8941 / 0.9189 / 0.8770 | 외부 anchor |
 
-### 0.2 Part A — 출력은 어디에 있는가 (저장된 출력만, 추론 없음)
+#### 0.2 Part A — 출력은 어디에 있는가 (저장된 출력만, 추론 없음)
 
 audit 과 같은 추정기(`align/estimator.py`: Scharr → median/MAD 정규화 → 참조 상위 30% edge 마스크 → 정수 ZNCC 탐색 →
 quadratic 부화소; HR 격자라 탐색 ±4 px)로 장면마다 전역 shift 를 잰다. 부호 규약은 audit 그대로
@@ -64,7 +80,7 @@ quadratic 부화소; HR 격자라 탐색 ±4 px)로 장면마다 전역 shift �
 
 fSCC 는 `utils.SCC_full_numpy`(출력 vs PAN, 옛 정의·상대 비교용). 장면별 D_λ/D_s/HQNR 은 각 run 의 `fr_mat20.json`.
 
-### 0.3 Part B — 조건 MS 를 통제 이동한 추론
+#### 0.3 Part B — 조건 MS 를 통제 이동한 추론
 
 shift-robust 캠페인의 jitter 경로 그대로(`sr/forward.sr_infer`, `translate_hr`): **조건 채널의 MS 만** ε(HR px) 옮기고
 잔차 base(`ms_base`, M-frame)는 두지 않는다. plain 모델은 `SRModel(backbone)` 로 감싸 같은 경로를 탄다
@@ -75,7 +91,7 @@ shift-robust 캠페인의 jitter 경로 그대로(`sr/forward.sr_infer`, `transl
 
 지표는 HQNR(D_λ·D_s, `tools/metrics/eval_fr.py`, 20장 평균) · fSCC · δ_out.
 
-## 1. Part A — 출력은 어디에 있는가
+### 1. Part A — 출력은 어디에 있는가
 
 ![](assets/0909_align_after_training_A.png)
 
@@ -119,11 +135,11 @@ shift-robust 캠페인의 jitter 경로 그대로(`sr/forward.sr_infer`, `transl
   를 남긴다. 출력은 PAN 기하의 edge 위에 MS 와 PAN 사이 어딘가의 색을 얹은 상태다. 이것이 audit 이 문제 삼은 "정렬 문제"의
   학습 후 잔여이고, jitter 학습은 이 축을 전혀 바꾸지 않았다(1.29 → 1.19/1.23).
 
-## 2. Part B — 조건 MS 를 옮기면
+### 2. Part B — 조건 MS 를 옮기면
 
 ![](assets/0909_align_after_training_B.png)
 
-### 2.1 uniform ε — 민감도 (Δ = ε=0 대비)
+#### 2.1 uniform ε — 민감도 (Δ = ε=0 대비)
 
 | 센서 | 모델 | ΔfSCC ±0.5 | ΔfSCC ±1 | ΔfSCC +2 | ΔHQNR ±0.5 | ΔHQNR ±1 | ΔHQNR +2 | δ_out (0 → +2) |
 |---|---|---|---|---:|---|---|---:|---|
@@ -141,7 +157,7 @@ shift-robust 캠페인의 jitter 경로 그대로(`sr/forward.sr_infer`, `transl
 - HQNR 은 ±1 px 안에서 어느 모델도 ±0.002 를 넘지 않는다 — **HQNR 은 이 범위의 조건 어긋남을 거의 못 본다** (fSCC 는 본다).
 - QB 는 어느 방향으로 흔들어도 fSCC 가 오른다(단일 seed, 해석 보류 — 조건이 PAN 과 안 맞을수록 PAN 구조에 더 기대는 것으로 보인다).
 
-### 2.2 alpha — 정렬해 주기(+1) vs 어긋남 2배(−1)
+#### 2.2 alpha — 정렬해 주기(+1) vs 어긋남 2배(−1)
 
 | 센서 | 모델 | α=+1 (조건 MS 를 PAN 에 정렬) | | | α=−1 (어긋남 2배) | | α=+0.5 | |
 |---|---|---:|---:|---|---:|---:|---:|---:|
@@ -159,7 +175,7 @@ shift-robust 캠페인의 jitter 경로 그대로(`sr/forward.sr_infer`, `transl
   GF2 의 D_s 는 0.0258(정렬) ↔ 0.0162(그대로) ↔ 0.0112(2배) 로 **어긋날수록 단조 감소**한다.
 - GF2 α=+1 에서 dy 는 잡히고 dx(+0.74)는 그대로다 — GF2 잔여 δ_out 의 dx 성분은 조건 MS 가 아니라 다른 경로(잔차 base 추정)에서 온다.
 
-## 3. 해석 — 왜 HQNR 은 정렬 개선을 벌점 주는가
+### 3. 해석 — 왜 HQNR 은 정렬 개선을 벌점 주는가
 
 D_s 는 장면마다 밴드별 |Q(fused_k, PAN) − Q(MS_k, PAN_LR)| 의 평균이다. 기준쌍 (MS_k, PAN_LR) 은 데이터의 어긋남을 그대로 안고 있어
 Q 가 낮다. 출력이 PAN 에 잘 정렬될수록 Q(fused_k, PAN) 은 오르고 차이는 벌어진다 — **D_s 는 출력이 MS–PAN 어긋남을 재현할 때
@@ -185,7 +201,7 @@ HQNR 이 0.046 좋다고 말하는 모델이 PAN 을 훨씬 덜 따르고, 색�
   이 도구가 그 값을 저장된 출력만으로 낸다(추론 불필요, run 당 30초).
 - 정렬을 실제로 고치는 방법이 나오면 D_s 가 오르는 것은 예정된 일이다. 그때 HQNR 이 내려가는 것을 "품질 저하" 로 읽으면 안 된다.
 
-## 4. 질문에 대한 답
+### 4. 질문에 대한 답
 
 **"단순 recon loss 로 학습한 모델은 정렬 문제를 어느 정도 해결했는가?"**
 
@@ -196,7 +212,7 @@ HQNR 이 0.046 좋다고 말하는 모델이 PAN 을 훨씬 덜 따르고, 색�
   ~1 px 어긋난 채다. jitter 학습도 이 축은 못 바꿨다.
 - 여지: 입력을 정렬해 주는 것만으로 fSCC +0.02~0.04 가 나온다. 정렬은 풀 가치가 있는 문제다. 단, 그 이득을 HQNR 로는 볼 수 없다.
 
-## 5. 한계·주의
+### 5. 한계·주의
 
 - δ_out 은 잔차 구조에서 어느 정도 자동으로 작다(PAN 고주파 복사). 정보량은 δ_out_low 와 Part B 에 있다.
 - PAN_b 기반 쌍(δ_in·δ_exp·δ_out_low)에는 audit §3(b) 의 스펙트럼 하한이 똑같이 들어간다. 같은 쌍끼리(δ_in ↔ δ_out_low) 비교하라.
@@ -206,7 +222,7 @@ HQNR 이 0.046 좋다고 말하는 모델이 PAN 을 훨씬 덜 따르고, 색�
 - 장면별 상관(Spearman)은 FR 어긋남이 센서 수준 상수라 분산이 없어 판별력이 없다. RR 세트나 합성 shift 로 해야 의미가 있다.
 - 추정기의 PAN blur 는 `tools/metrics/jqm._pan_kernel`(GNYQ_PAN) 이고 audit 의 열화 경로와 완전히 같지는 않다(+0.2 px 차이).
 
-## 6. 재현
+### 6. 재현
 
 ```bash
 export PANCRAFTER_DLPAN=/home/knuvi/Desktop/song/DLPan-Toolbox
@@ -217,7 +233,7 @@ python outputs/align_after_training/summarize.py     # 표 + results_log/assets/
 
 CSV: `outputs/align_after_training/<run>_A.csv`(장면별 δ·D_λ/D_s/HQNR·fSCC), `<run>_B.csv`(ε 별 HQNR·D_λ·D_s·fSCC·δ_out).
 
-## 7. 추기 (같은 날) — 조건 MS 를 옮길 때 생기는 테두리와 HQNR 측정 시점
+### 7. 추기 (같은 날) — 조건 MS 를 옮길 때 생기는 테두리와 HQNR 측정 시점
 
 질문: shift 로 생긴 "보이지 않는" 테두리를 HQNR 측정에서 마스킹해야 하지 않는가. 확인한 사실과 실측.
 
@@ -273,7 +289,7 @@ GF2 D_s 의 우리 0.022 vs CANConv 0.070 격차는 내부에서도 그대로다
 잘라내는 것이다(블록 타일링이 어긋나지 않게). 추론·학습 코드에서 할 일은 없다. MS 자체를 옮겨 "정합 후 분광 일관성" 을 잴 때도 같은 자리에서
 같은 crop 을 적용한다 — 그때는 무효 띠가 기준(MS) 쪽에 생기므로 crop 없이는 테두리 링 23% 블록이 오염된다.
 
-## 8. 추기 (같은 날) — 학습 규모(RR)에서는 출력이 GT 프레임에 정확히 놓인다: 잔여 어긋남의 기전
+### 8. 추기 (같은 날) — 학습 규모(RR)에서는 출력이 GT 프레임에 정확히 놓인다: 잔여 어긋남의 기전
 
 질문: recon loss 의 GT(원 MS)는 PAN 과 어긋난 채 수집된 것이고, 학습 입력 ms 는 GT 를 내린 것이라 GT 와 정합돼 있다. 그러면
 GT–PAN 어긋남이 loss 를 키우고, 흔들어야 할 쪽은 MS 가 아니라 PAN 아닌가.
@@ -297,3 +313,63 @@ GT–PAN 어긋남이 loss 를 키우고, 흔들어야 할 쪽은 MS 가 아니�
   RR 학습에서 나올 수 없으므로 (a) 시험 규모에서 추정한 offset 으로 PAN 을 명시적으로 옮기거나 (b) 학습 PAN 에 FR 규모의 추가 shift 를
   넣어 그 범위를 배우게 해야 한다. 평가 프레임 주의: D_s·D_λ 는 M-frame 출력에 유리하고 fSCC(원 PAN 기준)는 P-frame 에 유리하다 —
   PAN 쪽을 옮기는 방법은 fSCC 로는 벌점을 받는다(과거 G1·GA 의 "실패" 판정에도 이 요인이 섞여 있다).
+
+---
+
+## 2026-09-09 [WIP] 새 baseline W96·D124 · MS+PAN 9ch · 단일 HRMS task — WV3 3-seed (s1)
+
+> 원문: `2026-09-09_WIP_base-w96-d124-mspan-wv3-3seed.md`
+
+> **진행 중.** 기동 2026-09-09 19:58 (s1), 마감 09-10 19:58. 큐 `config/queues/base_w96_d124_mspan_wv3_3seed.txt` 3건 순차.
+> 기준 문서 `research_log/PAN_research_baseline_W96_D124_2026-09-09.md` · 실행 준비 `research_log/2026-09-09_w96-d124-mspan-wv3-3seed-launch.md`.
+> 진행 확인: `tail -n +1 -f work_dir/cases_chain.log | grep --line-buffered '\[cases\]\|핵심'` · 결과는 시트 `WV3-s1` 범주 ⑰.
+> 실행: 재구성본(`fixed`) · 측정: 지표 v2(`py`, DLPan 프로토콜 재구현) · FR: 논문 `.mat` 20장(`fr_mat20`), best 선택도 같은 세트.
+
+### 무엇을 돌리는가
+
+사용자 결정(2026-09-09)으로 mainline 이 바뀌었다. **U-Net W96 · depth [1,2,4] · 입력 MS+PAN 만(9ch = concat(PAN, bicubic↑MS)) ·
+LPAN/HPAN 채널 없음 · PAN reconstruction task·loss 없음(`mars: ms`, batch 복제·PAN forward 자체 없음) · MARs mode γ/β 제거
+(`mode_modulation: false`) · attention 없음 · crop=False · bicubic 잔차 base(M-frame) · 50K AdamW 1e-4/wd0.01 cosine · batch 48.**
+params 2.123 M. seed 2025 · 1234 · 7777.
+
+| 실행명 | seed | 상태 |
+|---|---:|---|
+| `BASE_W96_D124_MSPAN_WV3_S2025` | 2025 | 19:58 시작 — 18 it/s, 248 epoch. run 당 약 1 h 예상(같은 골격 `MS1_w96_9ch_msonly` 가 1 h 15 m) |
+| `BASE_W96_D124_MSPAN_WV3_S1234` | 1234 | 대기 |
+| `BASE_W96_D124_MSPAN_WV3_S7777` | 7777 | 대기 |
+
+이 3벌은 새 기준의 **일반 HRMS 복원 baseline** 이다. 이후 정합/fitting 후보(기준 문서 §4)는 이 3벌과 비교한다.
+과거 W168·d123 dual(`S1_T05_W168_D123_DUAL`, ARCH 캠페인)은 직접 대조군이 아니다. 판정 HQNR → SCC; 정렬 축은
+`2026-09-09_alignment-after-training-analysis.md` §3 에 따라 fSCC·δ_out 병기.
+
+### 이 캠페인을 위해 멈춘 것
+
+아키텍처 고정 다중 데이터셋 캠페인(`config/queues/arch_w168_multiset_3seed.txt`, 09-09 09:04 기동)을 19:57 에 중지했다.
+
+| run | 상태 |
+|---|---|
+| `ARCH_W168_D123_DUAL_GF2_S{2025,1234,7777}` | **완료** — HQNR 0.9576 / 0.9625 / 0.9594 (논문 세트 20장, 시트 GF2-s1 업로드됨) |
+| `ARCH_W168_D123_DUAL_QB_S2025` | 중단 (약 80분, epoch ckpt 2개 남음; finished_at 없음 → 시트·`--all` 에 안 잡힌다) |
+| QB S1234·S7777, WV3 ×3 | 미실행 |
+
+재개하려면 이 캠페인이 `[cases] DONE` 을 찍은 뒤 `./tools/campaign_start.sh --queue config/queues/arch_w168_multiset_3seed.txt --hours 30 --label arch-multiset-resume`.
+체인은 완료분(GF2 ×3)을 건너뛰고 QB S2025 는 최신 체크포인트에서 `--resume` 을 먼저 시도한다.
+
+### 결과 (채워 넣는다)
+
+run 이 끝나면 여기에 HQNR / D_λ / D_s / fSCC / SCC / ERGAS 와 학습 시간을 적고, 3 seed 의 평균·N−1 표준편차를 낸다.
+
+### 추기 (같은 날 20:52) — 다음 캠페인: A1–A3 PAN 앞단 전역 정합, B0 체인 뒤 자동 기동
+
+사용자 지시 정정: 진행할 실험은 [`research_log/PAN_A1_A3_Global_PAN_Alignment_W96_D124_2026-09-09_v2.md`](../research_log/PAN_A1_A3_Global_PAN_Alignment_W96_D124_2026-09-09_v2.md) 다.
+위 B0 3벌은 그 대조군이므로 그대로 완주시키고, 끝나면 `config/queues/pa_s1.txt`(seed 2025: A1 → A2 → A3) 가 자동 기동된다
+(`tools/_chain_after.sh`, 로그 `work_dir/chain_after.log`). 구현·검토 노트: [`research_log/2026-09-09_pa-a1-a3-implementation.md`](../research_log/2026-09-09_pa-a1-a3-implementation.md).
+
+| 실행명 | case | loss | 상태 |
+|---|---|---|---|
+| `PA_A1_REC_W96_D124_9CH_S2025` | A1 | L_rec | 대기 (B0 체인 뒤) |
+| `PA_A2_OUTEDGE_W96_D124_9CH_S2025` | A2 | L_rec + 0.1·L_edge (5K ramp) | 대기 |
+| `PA_A3_GEO_W96_D124_9CH_S2025` | A3 | L_rec + 0.01·L_geo (5K ramp) | 대기 |
+
+s2(seed 1234: B0 → A2→A3→A1) · s3(seed 7777: B0 → A3→A1→A2) 는 `./tools/pa_prepare.sh` 한 줄. 시트 HQNR = best_raw 의 raw_original(원 PAN, 전체 프레임).
+raw_valid / aligned_valid / best_aligned / Δ̂ 통계는 run 폴더 `checkpoint_metrics.csv` 와 `results/pa_diag.json`. 판정 규칙(§12): 같은 (server, seed) block 안의 대응 차이 A2−A1, A3−A1, Ak−B0.

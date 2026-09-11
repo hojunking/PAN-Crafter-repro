@@ -29,7 +29,7 @@ def scc_dlpan(F, G):
     MATLAB imfilter 의 기본값은 **zero padding + correlation** 이라 잘린 영상의 가장자리 1px 링이
     0 과 맞닿는다 — 이 링이 값을 좌우한다.
 
-    2026-09-07 교정 (results_log/2026-09-07_metric-comparability-audit.md): 이전 구현은
+    2026-09-07 교정 (results_log/2026-09-07_alignment-shift-robust-and-metric-v2.md): 이전 구현은
     scipy.ndimage.sobel(reflect 패딩)이라 링에서 값이 달라 SCC 가 약 +0.004 높게 나왔다.
     CANConv 배포 가중치로 논문 CANConv 행(0.985)과 대조하면 reflect 0.9897(+0.48%) 대 zero padding
     0.9854(+0.04%) 다. 146개 run 에서 두 정의의 Spearman 은 0.992 — 순위는 거의 보존되지만

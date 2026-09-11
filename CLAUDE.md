@@ -62,22 +62,22 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지 
 - **재현 성립.** WV3 reduced ERGAS **2.1633** (배포본 그대로, 50K). 논문 2.040 대비 +6.09%
 - **그 격차는 우리 잘못이 아니다.** 평가기는 CANConv 배포 가중치로 논문 행을 6지표 0.5% 이내
   재현하고, 논문 명시 설정은 시드 2,025 까지 전부 일치한다.
-  → `results_log/2026-08-24_reproduction-audit.md`
+  → `results_log/2026-08-24_paper-rebuild-and-reproduction-audit.md`
 - **논문의 CANConv 대비 우위는 재현되지 않는다** (주장 −5.69% vs 재현 −0.34%, p=0.667).
 - **배포 코드는 논문이 기술한 모델이 아니다 — 재구성으로 확인했다.**
   논문 본문·Figure 3 대로 다시 구현하니 params 가 **7.1707 M** 으로 논문 주장 7.170 M 과
   **+0.01%** 로 맞았다(배포 코드 9.969 M). 되돌린 것 셋 다 논문 본문이다 —
   mode modulation 을 Eq (6) 의 직접 학습 γ,β 로(블록당 33,024→512), bottleneck 도 k=3
   (배포본만 k=1), 입력 9ch. 구조는 **3-scale / Down·Up 2 / AttnBlock 3**.
-  → `model/pancrafter_paper.py`, `results_log/2026-08-24_paper-faithful-rebuild.md`
+  → `model/pancrafter_paper.py`, `results_log/2026-08-24_paper-rebuild-and-reproduction-audit.md`
 - **FLOPs 79.03 G 는 미해결.** 재구성본도 161.9 G 이고, 어텐션을 전부 빼도 125.9 G 다.
   "어텐션 미집계" 가설은 기각했다(배포 구조에서 79.2 G 가 나온 것은 무관한 우연).
 - **지표 선택**: ERGAS·SAM 만 판별력이 있다. Q8·SSIM·SCC 는 이 범위에서 포화(±0.15%)라
   판별 근거로 인용하면 안 된다. D_s·HQNR 은 축소하면 거의 항상 좋아지는 기전이 있어 단독 해석 금지.
-- **양방향 mutual learning 은 no-go** (`2026-08-20_mutual-learning-go-no-go.md`).
+- **양방향 mutual learning 은 no-go** (`2026-08-20_submodule-sweep-and-mutual-nogo.md`).
   단방향 T→S 증류는 별개이고 유효하다.
 - **논문 비교 FR 세트는 PanCollection `.mat` 형식 20장이다 — 배포 H5 의 20장이 아니다** (KNOWN_ISSUES F-2,
-  `2026-09-07_metric-comparability-audit.md`). H5 12-19 는 그중 6장만 겹친다. **시트의 FR 은
+  `2026-09-07_alignment-shift-robust-and-metric-v2.md`). H5 12-19 는 그중 6장만 겹친다. **시트의 FR 은
   `results/fr_mat20.json`(`tools/eval_fr_paperset.py`) = FR·paper mat20 열뿐이다** (2026-09-07 사용자 결정).
   **2026-09-09 부터 학습 중 best 선택도 논문 세트 20장 전체다** (`fr_select_indices` 기본 `0-19`, FR feeder 는
   `full_examples_mat20`). 12-19 같은 부분집합은 어디에도 쓰지 않는다 — 논문 프로토콜을 따른다. 그 전에 H5 12-19 로

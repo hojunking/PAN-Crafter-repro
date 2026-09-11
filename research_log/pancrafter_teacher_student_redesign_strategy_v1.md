@@ -883,14 +883,14 @@ Q8, SSIM, SCC는 현재 축소 범위에서 포화되어 있으므로 Student �
 
 이 문서는 다음 자료를 기준으로 작성했다.
 
-- `2026-08-24_reproduction-audit.md`
+- `2026-08-24_paper-rebuild-and-reproduction-audit.md`
   - 공개 코드와 논문 수치의 불일치
   - PAN-Crafter와 CANConv 비교
   - 6.694M/6.041M 구조 경계
   - 다중 지표 및 통계 검정
-- `2026-08-24_WIP_running.md`
+- `2026-08-24_paper-rebuild-and-reproduction-audit.md`
   - crop 및 LMS residual baseline 진단 진행 상황
-- `2026-08-20_student-architecture-sweep.md`
+- `2026-08-20_submodule-sweep-and-mutual-nogo.md`
   - width/depth/CM3A 스윕
   - CM3A 축소와 width 축소의 효율 차이
 - `PAN-Crafter: Learning Modality-Consistent Alignment for PAN-Sharpening`

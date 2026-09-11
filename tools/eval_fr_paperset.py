@@ -4,7 +4,7 @@
     python tools/eval_fr_paperset.py c0_hqnr d122 "SR_J4*"      # work_dir 이름 또는 glob
     python tools/eval_fr_paperset.py --all                       # results/ 가 있는 run 전부 (없는 것만)
 
-배경: results_log/2026-09-07_metric-comparability-audit.md. 배포 H5 의 FR 20장은 논문 세트와
+배경: results_log/2026-09-07_alignment-shift-robust-and-metric-v2.md. 배포 H5 의 FR 20장은 논문 세트와
 다른 장면 집합이라(겹침 6장) 시트의 FR(12-19) 열은 논문 표와 직접 비교할 수 없다. 이 스크립트가
 내는 값이 논문 Table 의 FR 행과 같은 데이터·같은 프로토콜(D_lambda_K + block-UQI D_s, S=32,
 HQNR=장면별 (1-D_λ)(1-D_s) 평균)이다. 입력 h5 는 tools/build_fr_paperset.py 로 만든다.

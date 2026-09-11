@@ -1,6 +1,6 @@
 # [실행] 압축 귀속·9ch 통일 20h 캠페인 — Student 확정 (2026-08-30)
 
-근거: [Swin 캠페인 결과](../results_log/2026-08-30_swin-campaign-results.md).
+근거: [Swin 캠페인 결과](../results_log/2026-08-30_swin-campaign-and-compression-attribution.md).
 목표는 하나다 — **KD 의 Student 를 확정한다.** 그러려면 §4 의 귀속 공백을 메워야 한다:
 
 > Efficiency winner `SW2_d122_w96`(1.95M, +1.95%)의 "우아한 압축"이

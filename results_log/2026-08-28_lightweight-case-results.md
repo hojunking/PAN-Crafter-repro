@@ -29,7 +29,7 @@ WV3 50K, 재구성본(LN·nocrop·11ch) 계열. 캠페인 완결(13:42), c7·c8 
 | c5 | enc+btl + depth(1,2,4) | 0.9523 | 0.9905 | 2.1045 | 5.01 | 100.8 | 332.0 |
 | c2 | PAN K/V 제거 + enc+btl | 0.9520 | 0.9905 | 2.0908 | 5.60 | 139.6 | 334.3 |
 
-\* 논문 FLOPs 는 미해결 수치([재구성 보고서](2026-08-24_paper-faithful-rebuild.md) §2). FLOPs 는 thop 실측.
+\* 논문 FLOPs 는 미해결 수치([재구성 보고서](2026-08-24_paper-rebuild-and-reproduction-audit.md) §2). FLOPs 는 thop 실측.
 
 ---
 
@@ -38,7 +38,7 @@ WV3 50K, 재구성본(LN·nocrop·11ch) 계열. 캠페인 완결(13:42), c7·c8 
 ### 2.1 HQNR 은 구조 차이를 가리지 못한다 — tie-break 가 전부를 결정한다
 
 10벌의 HQNR 폭이 **0.40%** 로, 기존에 측정한 반복 변동 판정선(2σ≈1.18%,
-[검토 보고서](2026-08-25_architecture-tuning-review.md) §2)에 한참 못 미친다.
+[검토 보고서](2026-08-25_divergences-and-tuning-review.md) §2)에 한참 못 미친다.
 SCC 도 0.9902~0.9908 로 포화다. **우선순위 HQNR > SCC > ERGAS 에서 실질 판별은
 ERGAS 와 파라미터가 맡는다.**
 
