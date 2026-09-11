@@ -8,7 +8,7 @@
 지표는 tools/metrics/ 의 DLPan 프로토콜 구현을 그대로 쓴다. 학습 중 metrics.csv 값이
 아니라 .mat 을 다시 평가한 값이라, 논문 Table 과 비교 가능한 수치다.
 
-측정 규약 (results_log/2026-09-07_metric-comparability-audit.md — 논문 표와 맞춘 근거):
+측정 규약 (results_log/2026-09-07_alignment-shift-robust-and-metric-v2.md — 논문 표와 맞춘 근거):
   RR  : 20장, dim_cut=21, thvalues=0. SAM/ERGAS/Q2n 은 MATLAB 원본 포팅, SCC 는 SCC.m(zero-padding Sobel),
         PSNR 은 전 밴드 통합 MSE, SSIM 은 11×11 Gaussian σ1.5 (Wang/MATLAB). RMSE/CC 는 논문에 없는 자체 정의.
   FR·paper mat20 : PanCollection **.mat 형식** FR 20장 (= 논문들이 MATLAB DLPan 으로 평가한 세트).
@@ -60,6 +60,9 @@ ORIGIN_ROW, ORIGIN_COL = 2, 2
 # (그룹, 표시명, 키, 소수자리)
 COLUMNS = [
     ("", "Run", "tag", None),
+    # 캠페인 키 — sheet_categories.classify() 가 실행명에서 정한다(구분행과 같은 단일 소스).
+    # 시트에서 필터·정렬로 "지금 무슨 실험인가" 를 열 하나로 가른다. 구분행은 그대로 둔다(둘은 보완).
+    ("", "캠페인", "campaign", None),
     # reduced-resolution (테스트 20장)
     ("RR", "ERGAS↓", "ergas", 4), ("RR", "SAM↓", "sam", 4),
     ("RR", "PSNR↑", "psnr", 4),   ("RR", "SSIM↑", "ssim", 4),
@@ -498,7 +501,8 @@ def collect(tag, want_profile, server, peer=None):
     wd = os.path.join(ROOT, "work_dir", tag)
     if tag in EXTERNAL:                       # config 가 없는 외부 참조
         label, ds, note, extra = EXTERNAL[tag]   # 외부 참조는 서버와 무관하다
-        row = {"tag": label, "_ds": ds.upper(), "note": note, "date": ""}
+        row = {"tag": label, "_ds": ds.upper(), "note": note, "date": "",
+               "campaign": classify(label)}
         row.update(extra)
         rr = os.path.join(wd, "results", "reduced_best_val.mat")
         if os.path.exists(rr):
@@ -521,6 +525,8 @@ def collect(tag, want_profile, server, peer=None):
     ma = a.model_args
     hs = ma.get("hidden_size")
     row = {
+        # 캠페인은 **꾸미기 전 실행명**으로 정한다 — tag 는 뒤에서 "(50K) · w96 …"·"·peerB" 가 붙는다
+        "campaign": classify(tag),
         "tag": tag, "_ds": ds.upper(),
         "model": a.model.rsplit(".", 1)[-1],
         "seed": a.seed, "iter": a.num_iter,   # iter 는 비고와 실행명 양쪽에 들어간다
