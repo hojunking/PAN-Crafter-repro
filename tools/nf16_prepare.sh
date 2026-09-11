@@ -20,7 +20,9 @@ PYEOF
 echo "[nf16] 지표 이식"; "$PY" tools/verify_metrics.py | tail -1
 echo "[nf16] A1–A3 / PO10 / KDV gate"; "$PY" tools/pa_unit_tests.py | tail -1; PO10_LEDGER=/tmp/_po10_gate_ledger.json "$PY" tools/po10_unit_tests.py | tail -1; "$PY" tools/kdv_unit_tests.py | tail -1
 echo "[nf16] G1/G2 gate"; "$PY" tools/nf16_unit_tests.py | tail -1
-echo "[nf16] config"; "$PY" tools/gen_nf16_configs.py | tail -1
+# 이미 잰 처리량이 있으면 그 값을 config 의 projected_hours 로 넘긴다 (없으면 null → 예산 gate 가 명세 §10 예약표 projected_map 을 쓴다)
+PROJ=$("$PY" -c "import json,os;p='work_dir/_nf16_budget/ledger.json';print((json.load(open(p)).get('throughput') or {}).get('projected_run_hours_50k') or '') if os.path.exists(p) else print('')" 2>/dev/null || echo "")
+echo "[nf16] config (run 당 예상 ${PROJ:-미측정} h)"; "$PY" tools/gen_nf16_configs.py ${PROJ:+--projected-hours "$PROJ"} | tail -1
 CASES=$(grep -v '^#' "$QUEUE" | grep -v '^$' | tr '\n' ' ')
 echo "[nf16] G3 smoke (실배치·시간)"
 # shellcheck disable=SC2086
