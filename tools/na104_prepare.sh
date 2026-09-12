@@ -5,7 +5,7 @@
 #   ./tools/na104_prepare.sh                     # gate + 기동 (해당 서버 큐)
 #   ./tools/na104_prepare.sh --server s3 --hours 200
 #
-# 계획 research_log/PAN_S2_W104_D122_NoAlign_KD_Experiment_Plan_2026-09-11.md · 노트 research_log/2026-09-11_na104-implementation.md
+# 계획 research_log/01_S2_FINAL_EXPERIMENT_PLAN.md · 02_S3_FINAL_EXPERIMENT_PLAN.md (2026-09-12 FINAL) · 원 계획 PAN_S2_W104_D122_NoAlign_KD_Experiment_Plan_2026-09-11.md · 노트 research_log/2026-09-11_na104-implementation.md
 # 시간 제한을 두지 않는 캠페인이다 — --hours 는 체인 감시자의 마감일 뿐 실험 예산이 아니다.
 set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
@@ -92,7 +92,7 @@ PYEOF
 cp -f research_log/2026-09-11_na104-implementation.md "$CAMP/implementation_map.md" 2>/dev/null || true
 
 if ps -eo args | grep -q '[_]run_cases\.sh'; then echo "!! 다른 체인이 돌고 있다 — 끝난 뒤 다시 실행"; exit 1; fi
-echo "[na104] 큐: $QUEUE ($(grep -vc '^#\|^$' "$QUEUE") run, HQNR 우선순위) · 보류: config/queues/na104_${SERVER}_deferred.txt ($(grep -vc '^#\|^$' "config/queues/na104_${SERVER}_deferred.txt" 2>/dev/null || echo 0) run, R/V 판정 뒤 승인분만 이동)"
+echo "[na104] 큐: $QUEUE ($(grep -vc '^#\|^$' "$QUEUE") run, FINAL 단계별: P0_DONE(완료분·건너뜀) → P1 → P2 → R1(seed777) → … ) · 구조·직접 대조: config/queues/na104_${SERVER}_stage_plan.json"
 [ "$START" = 1 ] || { echo "[na104] 준비 완료 — 기동: ./tools/campaign_start.sh --queue $QUEUE --hours $HOURS --label na104-$SERVER"; exit 0; }
 ./tools/campaign_start.sh --queue "$QUEUE" --hours "$HOURS" --label "na104-$SERVER"
 ./tools/_watchdog.sh --install && echo "  감시자 cron 등록"

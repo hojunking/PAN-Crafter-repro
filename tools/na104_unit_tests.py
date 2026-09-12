@@ -266,20 +266,78 @@ def _ids(name):
 
 q2, q3 = [l for l in _q("s2") if l and not l.startswith("#")], [l for l in _q("s3") if l and not l.startswith("#")]
 i2, i3 = _ids("s2"), _ids("s3")
-d2, d3 = _ids("s2_deferred"), _ids("s3_deferred")
-check("§8.1 A/B 2×2 네 셀(Q10 base · Q40 A · Q17 B · Q41 AB) 이 **한 서버 안에** 모두 있다 (우선순위+보류 합쳐서)",
-      all(c in (i3 + d3) for c in ("Q10", "Q40", "Q17", "Q41")), "s3")
-check("큐 순서 의존: 각 큐에서 T00 이 맨 앞, Q00 이 두 번째 (Teacher·λ pilot 선행)",
-      all(q[0].split("_")[1] == "T00" and q[1].split("_")[1] == "Q00" for q in (q2, q3)))
-# ---- 2026-09-11 HQNR 조정 지시: 큐 우선순위·보류 분리
-check("조정 §5.2 s2 우선순위 = 기본 R 사다리 → Teacher-free 통계/edge → R3 위 GV 대표 → Teacher-only·edge",
-      i2 == ["T00", "Q00", "Q01", "Q02", "Q03", "Q04", "Q05", "Q11", "Q06", "Q07", "Q10", "Q09", "Q08", "Q12"], str(i2))
-check("조정 §6.2 s3 우선순위에 R 사다리 빈 칸(Q01·Q02·Q03) 이 채워지고 Q35–Q37 이 R3 전수 확장(Q20–Q34) 앞에 온다",
-      all(c in i3 for c in ("Q01", "Q02", "Q03", "Q35", "Q36", "Q37", "Q07"))
-      and all(c not in i3 for c in ("Q20", "Q25", "Q30")) and all(c in d3 for c in ("Q20", "Q34", "Q40", "Q41")), str(i3))
-check("조정 §8·§12.1 보류 큐가 방향 gate·CTL·C 계열·VX 를 담고, **case 정의는 하나도 사라지지 않는다**",
-      all(c in d2 for c in ("Q13", "CTLHSCALE", "CS01", "LONG2NR3")) and all(c in d3 for c in ("VXM2H", "CTLGVSCHALF"))
-      and len(set(i2 + d2 + i3 + d3)) == len(specs), f"{len(set(i2 + d2 + i3 + d3))} case")
+# ==== FINAL 계획(2026-09-12, 01_S2/02_S3_FINAL_EXPERIMENT_PLAN.md) — 단계별 큐·신규 18 정의·v1/v2·Teacher/pilot 고정·core10 반복
+_T = "NA104_T00_W104_D122_WV3_N0_OFF_S2025_v1"; _P = "NA104_Q00_W104_D122_WV3_N0_OFF_S1234_v1/last"
+_all = {os.path.basename(f)[:-5]: yaml.safe_load(open(f)) for f in glob.glob(os.path.join(ROOT, "config", "NA104_*.yaml")) if not f.endswith("_dry.yaml")}
+_sp = {n: resolve(c["kdv"]) for n, c in _all.items()}
+_cid = lambda n: n.split("_")[1]
+_ver = lambda n: n.rsplit("_", 1)[1]
+_seed = lambda n: int(n.rsplit("_", 2)[1][1:])
+NEW18 = {"X01", "X02", "X03", "X04", "X05", "X06", "X07", "X08", "X09", "X10", "X11", "X12", "PX01", "PX02", "CX01", "CX02", "LX01", "LX02"}
+check("FINAL §4 신규 18 정의가 전부 존재하고 v2 다", sorted({_cid(n) for n in _all if _cid(n) in NEW18}) == sorted(NEW18) and all(_ver(n) == "v2" for n in _all if _cid(n) in NEW18))
+check("FINAL §8 기존 case 의 seed1234(T00 는 2025) 는 v1 이름을 유지하고, 추가 seed 는 v2 다",
+      all(_ver(n) == ("v1" if (_seed(n) == 1234 or _cid(n) == "T00") and _cid(n) not in NEW18 else "v2") for n in _all))
+check("FINAL 부록 §6.2 Teacher 는 항상 T00 S2025 v1/best_hqnr — --version/--seed 로 바뀌지 않는다",
+      all((c["kdv"].get("teacher") or {}).get("run") == f"work_dir/{_T}" and (c["kdv"].get("teacher") or {}).get("tag") == "best_hqnr" for n, c in _all.items() if _cid(n) != "T00"))
+check("FINAL 부록 §3.4/§6.2 λ pilot 은 항상 Q00 S1234 v1/last — 반복 seed 의 Q00 이 pilot 이 되지 않는다",
+      all(c["kdv"]["stat"].get("lambda_pilot") == _P and all(e.get("lambda_pilot") == _P for e in (c["kdv"]["stat"].get("extra") or []))
+          for n, c in _all.items() if c["kdv"]["stat"].get("enabled")))
+check("FINAL 부록 §6.2 비교 baseline 은 같은 Student seed 의 Q00 (pilot 과 별개 identity)",
+      all(c["kdv"].get("baseline_run") == f"NA104_Q00_W104_D122_WV3_N0_OFF_S{_seed(n)}_{'v1' if _seed(n) == 1234 else 'v2'}" for n, c in _all.items() if _cid(n) != "T00"))
+check("FINAL §6.3 TCOPY/PX parent = T00 v1/best_hqnr · CONT/CX parent = Q00 S1234 v1/last (schedule step 0, fresh optimizer)",
+      all((c["kdv"].get("phase") or {}).get("parent_run") == _T and c["kdv"]["phase"]["parent_tag"] == "best_hqnr" for n, c in _all.items() if _cid(n).startswith(("TCOPY", "PX")))
+      and all((c["kdv"].get("phase") or {}).get("parent_run") == _P.split("/")[0] and c["kdv"]["phase"]["parent_step"] == 0 and c["kdv"]["phase"]["optimizer_state_policy"] == "fresh"
+              for n, c in _all.items() if _cid(n).startswith(("CONT", "CX"))))
+check("FINAL §6.3 horizon: 일반/TCOPY/PX 50K · CONT/CX 25K tail · LONG/LX 100K",
+      all(c["num_iter"] == (100000 if _cid(n).startswith(("LONG", "LX")) else 25000 if _cid(n).startswith(("CONT", "CX")) else 50000) for n, c in _all.items()))
+core10 = ["Q00", "Q01", "Q02", "Q03", "Q04", "Q05", "Q06", "Q09", "Q11", "Q12"]
+check("FINAL §R1/R2 core10 × seed 777·2026 가 전부 생성됐다 (--repeat 로는 안 나오던 것)",
+      all(f"NA104_{cid}_" in " ".join(n for n in _all if _seed(n) == sd and _cid(n) == cid) for sd in (777, 2026) for cid in core10)
+      and sum(1 for n in _all if _seed(n) in (777, 2026) and _cid(n) in core10) == 20)
+check("FINAL §R3 원 반복안 보존: Q00/Q04/Q10@2025 · Q10@777 (TIED_TO_TEACHER_SEED 표시 대상)",
+      all(any(_cid(n) == c and _seed(n) == sd for n in _all) for c, sd in (("Q00", 2025), ("Q04", 2025), ("Q10", 2025), ("Q10", 777))))
+check("FINAL 부록 §5.2 새 run 의 평가 주기는 10 epoch", all(c.get("eval_epoch") == 10 for c in _all.values()))
+check("FINAL §4.1 X05/X06/X08 토큰 GVHAD/GVWFIX/GVTMATCH · X07 = R1RSHUF · X03 = N0+GVFIX(Teacher 학습 사용)",
+      any("_R3_GVHAD_" in n for n in _all) and any("_R3_GVWFIX_" in n for n in _all) and any("_R3_GVTMATCH_" in n for n in _all)
+      and any("_R1RSHUF_OFF_" in n for n in _all) and any(_cid(n) == "X03" and not _sp[n]["teacher_eval_only"] and _sp[n]["needs_teacher"] for n in _all))
+# 단계별 큐와 stage plan
+for srv, n_new, n_rep in (("s2", 73, 14), ("s3", 83, 14)):
+    qq = [l for l in _q(srv) if l and not l.startswith("#")]
+    pj = json.load(open(os.path.join(ROOT, "config", "queues", f"na104_{srv}_stage_plan.json")))
+    check(f"FINAL {srv} 큐: 완료분 {n_rep} 이 맨 앞(체인이 건너뜀) + 신규/확인 {n_new} = {n_rep + n_new} (계획 S{srv[1]}-C 슬롯), 중복 없음, 모두 config 존재",
+          len(qq) == n_rep + n_new and len(set(qq)) == len(qq) and all(x in _all for x in qq) and pj["slots"]["new_or_verify"] == n_new
+          and pj["stages"][0]["stage"] == "P0_DONE" and len(pj["stages"][0]["runs"]) == n_rep, f"{len(qq)} run")
+    check(f"FINAL {srv} 큐: T00 → Q00 이 맨 앞이고 R1/R2 반복 block 은 그 seed 의 Q00 부터 시작한다",
+          _cid(qq[0]) == "T00" and _cid(qq[1]) == "Q00" and all(_cid(next(x for x in qq if _seed(x) == sd)) == "Q00" for sd in (777, 2026)))
+    check(f"FINAL {srv} stage plan 이 execute:false 이고 직접 대조·Teacher·pilot 을 담는다",
+          pj["execute"] is False and pj["teacher_run"] == _T and pj["lambda_pilot"] == _P and all("contrasts" in r for st_ in pj["stages"] for r in st_["runs"] if r.get("run_id")))
+q3f = [l for l in _q("s3") if l and not l.startswith("#")]
+check("§8.1 A/B 2×2 네 셀(Q10 base · Q40 A · Q17 B · Q41 AB) 이 s3 한 큐 안에 모두 있다", all(any(_cid(x) == c and _seed(x) == 1234 for x in q3f) for c in ("Q10", "Q40", "Q17", "Q41")))
+q2f = [l for l in _q("s2") if l and not l.startswith("#")]
+check("FINAL S2-A/S3-A 원 보류 목록(s2 34 · s3 39) 이 각 서버 큐에 빠짐없이 있다",
+      all(any(_cid(x) == c for x in q2f) for c in ["Q13", "Q14", "Q15", "Q16", "Q17", "Q18", "Q19", "CTLHSCALE", "CTLRSHUF", "CTLAMASS", "CTLASHUF", "CTLBMASS", "CTLBSHUF", "CTLTAU05", "CTLTAU20", "CTLBETA03", "CTLBETA05", "CTLLAMV03", "CTLLAMV30", "CS00", "CS01", "CS02", "CS03", "CTLCMASS", "TCOPYN0", "TCOPYR1", "TCOPYR3", "CONTN0", "CONTR3", "CONTGVAD", "LONG2NN0", "LONG2NR1", "LONG2NR3", "LONG2NGVAD"])
+      and all(any(_cid(x) == c for x in q3f) for c in [f"Q{i:02d}" for i in range(20, 35)] + ["Q13", "Q17", "Q38", "Q39", "Q40", "Q41", "Q42", "Q43", "Q44", "Q45", "Q46", "Q47", "CTLGVSCHALF", "VXW3AD", "VXW7AD", "VXW3H", "VXW7H", "VXM357AD", "VXM357H", "VXSTD", "VXLOG", "VXRES", "VXM2H", "VXM2AD"]))
+check("FINAL §6.4 COSTMATCH 는 N 이 측정되기 전에는 큐에 없고 stage plan 에 BLOCKED_COST_MEASUREMENT 로 남는다",
+      not any(_cid(x) == "COSTMATCH" for x in q2f) and "COSTMATCH" in json.load(open(os.path.join(ROOT, "config", "queues", "na104_s2_stage_plan.json")))["slots"]["blocked"])
+# 새 통계 모드의 항등식 (부록 §3.3)
+_g = torch.Generator().manual_seed(11); _r = lambda: torch.rand(2, NB, 13, 15, generator=_g, dtype=torch.float64)
+_s, _t, _y = _r(), _r(), _r()
+_had = GTAnchoredReconstructionKD(1e-3, eps=1e-8, mode="plain_hard_adaptive_kd")(_s, _t, _y); _ad0 = GTAnchoredReconstructionKD(1e-3, eps=1e-8, alpha=0.0, mode="adaptive")(_s, _t, _y)
+check("FINAL X05 HAD = plain hard + adaptive soft (= adaptive 의 α=0 과 수치 동일, hard 는 plain L1)",
+      abs(float(_had.loss) - float(_ad0.loss)) < 1e-12 and abs(float(_had.hard) - float((_s - _y).abs().mean())) < 1e-12)
+_wf = GTAnchoredReconstructionKD(1e-3, eps=1e-8, mode="weighted_hard_fixed_kd")(_s, _t, _y, return_maps=True)
+check("FINAL X06 WFIX = weighted hard(WH 와 동일) + fixed soft(FIX 와 동일), soft 가중치는 상수 β",
+      abs(float(_wf.hard) - float(GTAnchoredReconstructionKD(1e-3, eps=1e-8, mode="hard_only")(_s, _t, _y).hard)) < 1e-12
+      and abs(float(_wf.soft) - float(GTAnchoredReconstructionKD(1e-3, eps=1e-8, mode="fixed_kd")(_s, _t, _y).soft)) < 1e-12
+      and float(_wf.maps["soft_weight"].max() - _wf.maps["soft_weight"].min()) == 0.0)
+_tm = stat_term(_s, _t, _y, kind="grad_var", window=5, mode="TMATCH", kd_weight=0.1); _tt = stat_term(_s, _t, _y, kind="grad_var", window=5, mode="T")
+check("FINAL X08 TMATCH = β_V·(T 의 K_V), hard 0 — T(계수 1) 와 강도만 다르다", abs(float(_tm.loss) - 0.1 * float(_tt.loss)) < 1e-12 and float(_tm.hard) == 0.0)
+try:
+    resolve(dict(recipe="NOALIGN", aligner_policy="A-ID", na_protocol="NA-STRICT", select=dict(primary="best_hqnr", aligned_selector=False), teacher=dict(id="T", run="w/x"),
+                 rec=dict(case="R3"), geom_kd=dict(mode="G0"), stat=dict(enabled=True, kind="GV", mode="GVHAD", lambda_pilot="x/l"))); _bad_mode = False
+except ValueError:
+    _bad_mode = True
+check("FINAL §4.1 미정의 모드 문자열(예: 'GVHAD' 를 mode 로) 은 오류로 막힌다 — 조용히 다른 모드로 돌지 않는다", _bad_mode)
 # ---- 조정 §10.3·§10.5 진단 계측
 check("조정 §10.3 계수비·loss비·gradient비를 따로 기록하고 집계 정의를 남긴다",
       all(k in _sch_src for k in ("r_coef=", "r_loss=", "r_grad=", "ratio_definition=", "cos_hard_soft=")))

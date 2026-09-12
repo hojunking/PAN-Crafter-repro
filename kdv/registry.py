@@ -5,7 +5,7 @@ resolver 는 잘못된 조합을 warning 이 아니라 오류로 막는다:
 frozen aligner(A-FR) 에서는 geometry/offset 항이 Student 에 gradient 를 주지 않으므로 optimizer loss 에서 제외하고 진단만 남긴다 (§10.3)."""
 REC_CASES = {'N0': 'gt', 'R0': 'fixed_kd', 'R1': 'hard_only', 'R2': 'teacher_error', 'R3': 'adaptive'}
 STAT_KINDS = {'OFF': None, 'IV': 'image_var', 'GV': 'grad_var', 'GC': 'grad_cov', 'SC': 'spectral_cov', 'M2': 'grad_moment2', 'EDGE': 'edge'}
-STAT_MODES = ('H', 'T', 'FIX', 'WH', 'AD')
+STAT_MODES = ('H', 'T', 'FIX', 'WH', 'AD', 'HAD', 'WFIX', 'TMATCH')     # HAD/WFIX/TMATCH: FINAL plan 2026-09-12 §4.1 (X05/X06/X08)
 # --- W104·D122 no-align 계획(2026-09-11) 이 더한 축 —— 기존 config 는 전부 기본값이라 이름·동작이 바뀌지 않는다
 REC_CONTROLS = ('none', 'hscale', 'rshuffle')          # §12 CTL-HSCALE(공간 w_H → batch 평균) · CTL-RSHUFFLE(d_T·a_T 를 함께 공간 permutation)
 STAT_TRANSFORMS = ('none', 'std', 'logvar')            # §5.3 REP-STD/LOGVAR — 비음수 표현(IV/GV) 에만
@@ -213,8 +213,9 @@ def resolve(k):
         _bad("TRI-A/B/C 는 Teacher 가 필요하다")
     if a_mode != 'off' and rec_case not in ('R0', 'R2', 'R3'):
         _bad("TRI-A 는 soft 항이 있는 rec(R0/R2/R3) 위에서만 (N0/R1 은 soft 가 없다)")
-    if b_mode != 'off' and not (stat_enabled and stat_mode in ('AD', 'FIX', 'T')):
-        _bad("TRI-B 는 통계 soft 항이 있는 stat(AD/FIX/T) 위에서만 (statistics=OFF·H·WH 에 B 를 켜지 않는다)")
+    SOFT_MODES = ('AD', 'FIX', 'T', 'HAD', 'WFIX', 'TMATCH')                  # 통계 soft 항이 있는 모드
+    if b_mode != 'off' and not (stat_enabled and stat_mode in SOFT_MODES):
+        _bad("TRI-B 는 통계 soft 항이 있는 stat(AD/FIX/T/HAD/WFIX/TMATCH) 위에서만 (statistics=OFF·H·WH 에 B 를 켜지 않는다)")
     c_phi = tc.get('phi', 'identity'); c_src = tc.get('covariance_source', 'none'); c_sig_ctrl = tc.get('sigma_control', 'none'); c_ctrl = tc.get('control', 'none')
     if c_phi not in C_PHI or c_sig_ctrl not in C_SIGMA_CONTROLS:
         _bad(f"tri.c phi {c_phi} / sigma_control {c_sig_ctrl}")
@@ -231,7 +232,7 @@ def resolve(k):
     if c_mode != 'off':
         if c_phi == 'identity' and rec_case not in ('R0', 'R2', 'R3'):
             _bad("TRI-C(identity) 는 rec soft 가 있어야 한다")
-        if c_phi == 'stat' and not (stat_enabled and stat_mode in ('AD', 'FIX', 'T')):
+        if c_phi == 'stat' and not (stat_enabled and stat_mode in SOFT_MODES):
             _bad("TRI-C(stat) 는 통계 soft 가 있어야 한다")
         if c_phi == 'stat' and (stat_domain != 'final_hrms' or stat_transform != 'none'):
             _bad("TRI-C(stat) 의 Jacobian 은 최종 HRMS 통계에서 계산한다 — residual/변환 표현과 섞지 않는다 (다른 표현의 J 를 재사용하는 셈이 된다)")
@@ -357,7 +358,8 @@ def describe(spec, k=None):
     rec += ('' if spec.get('rec_tau_scale', 1.0) == 1.0 else f" [CTL-TAU τ_R ×{spec['rec_tau_scale']}]")
     _b = float((k.get('rec') or {}).get('kd_weight', 0.1)); _a = float((k.get('rec') or {}).get('alpha', 1.0))
     rec += ('' if _b == 0.1 else f" [CTL-BETA β_R={_b}]") + ('' if _a == 1.0 else f" [α_R={_a}]")
-    st = 'stat OFF' if not spec['stat_enabled'] else (f"stat {spec['stat_kind']} w{'/'.join(str(w) for w in (spec.get('stat_windows') or [spec['stat_window']]))} mode {spec['stat_mode']}"
+    _mode_note = {'HAD': '(hard plain + soft adaptive)', 'WFIX': '(hard weighted + soft fixed)', 'TMATCH': '(Teacher-only, β_V 대응)'}.get(spec.get('stat_mode'), '')
+    st = 'stat OFF' if not spec['stat_enabled'] else (f"stat {spec['stat_kind']} w{'/'.join(str(w) for w in (spec.get('stat_windows') or [spec['stat_window']]))} mode {spec['stat_mode']}{_mode_note}"
                                                      + ('' if spec.get('stat_transform', 'none') == 'none' else f" 변환 {spec['stat_transform']}(eps {spec.get('stat_transform_eps')})")
                                                      + ('' if spec.get('stat_domain', 'final_hrms') == 'final_hrms' else ' residual(Z−M) 에서')
                                                      + ('' if spec.get('stat_lambda_scale', 1.0) == 1.0 else f" λ_V ×{spec['stat_lambda_scale']}")

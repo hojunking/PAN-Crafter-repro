@@ -1,0 +1,130 @@
+# NA104_Q04_W104_D122_WV3_R3_OFF_S777_v2 — [Q04] adaptive: Student 우위 영역의 모방 해제까지 (R3) — Q03 대비 a_T gate, Q02 대비 KD 고유 효과. 생성: tools/gen_na104_configs.py. 손으로 고치지 말 것.
+# 계획: research_log/01_S2_FINAL_EXPERIMENT_PLAN.md · research_log/02_S3_FINAL_EXPERIMENT_PLAN.md (FINAL 2026-09-12) · 원 계획 research_log/PAN_S2_W104_D122_NoAlign_KD_Experiment_Plan_2026-09-11.md · 구현 train_kdv.py + kdv/ · 노트 research_log/2026-09-11_na104-implementation.md
+# 세팅: I-A · aligner 없음(raw PAN, sampler 없음) · rec (1+α d_T)·L1 + β(1−d_T)a_T|S−T| (adaptive) · stat OFF · geomKD 없음 Teacher T104_v1 · NA-STRICT(학습 forward 에 PAN warp 없음) · 주 selector best_hqnr (보조 best_rr_val·last)
+# 골격 W104_D122(hidden 104, depth [1, 2, 2], 2.0989 M) · 9ch→8ch · **aligner·sampler 없음, PAN warp 없음** · MS base 1회 합산 · AdamW 1e-4/wd 0.01 cosine warmup100 · batch 48 · 50000 updates · seed 777 · version v2
+# 초기값 work_dir/_kdv_init_w104_d122 (같은 seed 의 Student 가 공유) · Teacher = NA104_T00_W104_D122_WV3_N0_OFF_S2025_v1/best_hqnr (id T104_v1, 고정) · λ_V pilot = NA104_Q00_W104_D122_WV3_N0_OFF_S1234_v1/last (고정) · baseline = NA104_Q00_W104_D122_WV3_N0_OFF_S777_v2
+# 선택: 주 selector best_hqnr(raw_original HQNR→fSCC→늦은 step; 저장소 확정 지시) · 보조 best_rr_val·last. Teacher·시트·진단 모두 best_hqnr. aligned view/selector 없음. eval_epoch 10
+expect_params_m: 2.0989     # backbone 만 (aligner 0.1053M 은 smoke 가 따로 확인)
+seed: 777
+num_worker: 4
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/NA104_Q04_W104_D122_WV3_R3_OFF_S777_v2
+
+phase: train
+
+mars: ms                      # PAN mode·loss·batch 복제 제거 (단일 task)
+trainer: kdv
+kdv:
+  campaign_id: S2_W104_D122_NOALIGN_KD_20260911
+  run_kind: CONTROLLED
+  version: v2
+  check_run_name: false
+  recipe: NOALIGN
+  aligner_policy: A-ID
+  input_protocol: I-A
+  na_protocol: NA-STRICT
+  diag_every: 1000
+  calibration:
+    n_patches: 3072
+    seed: 1234
+  select:
+    primary: best_hqnr
+    secondary:
+    - best_rr_val
+    - last
+    aligned_selector: false
+  expect_arch:
+    width: 104
+    depth:
+    - 1
+    - 2
+    - 2
+    noalign: true
+  rec:
+    case: R3
+    alpha: 1.0
+    kd_weight: 0.1
+    eps: 1.0e-06
+    tau: calibrate
+    eps_scale: 1.0e-06
+  stat:
+    enabled: false
+  geom_kd:
+    mode: G0
+  teacher:
+    id: T104_v1
+    run: work_dir/NA104_T00_W104_D122_WV3_N0_OFF_S2025_v1
+    tag: best_hqnr
+    expected_sha256: null
+    bridge: false
+  baseline_run: NA104_Q00_W104_D122_WV3_N0_OFF_S777_v2
+
+
+
+# KNOWN_ISSUES.md E-1: 검증셋으로 best 를 고른다. 테스트셋은 곡선 기록용으로만 본다.
+select_on: hqnr
+fr_select_indices: "0-19"   # 논문 세트 20장 전체로 선택 (부분집합 없음)
+
+# feeder
+feeder: feeders.feeder.PanFeeder
+train_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5
+  crop: False
+  hflip: True
+  vflip: True
+  rot: True
+  crop_ratio: 0.75
+  ms_size: 16
+
+val_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5
+
+test_reduced_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5
+
+test_full_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5
+
+# data
+num_bands: 8
+max_pixel: 2047.0
+
+# model
+model: model.pancrafter_paper.PANCrafterPaper
+model_args:
+  in_channels: 1
+  out_channels: 8
+  hidden_size: 104
+  depth: [1, 2, 2]          # full-res / H/2 / H/4(bottleneck)
+  dropout: 0.0
+  num_heads: 8
+  mlp_ratio: 4.0
+  ks: 3                     # 논문: "local attention kernel size to k = 3" (bottleneck 포함)
+  ka: 3
+  norm: ln                  # 논문 Eq (5): x <- Conv(SiLU(LN(x)))
+  in_mode: paper            # 논문 9ch: concat(PAN, ↑MS)
+  attn_locations: []
+  mode_modulation: false   # MARs mode 조건 γ/β 제거 (단일 task)
+  n_attn: 3                 # Figure 3: AttnBlock 3개 (H/2 enc, H/4 bottleneck, H/2 dec)
+
+# optim
+optimizer: AdamW
+learning_rate: 1e-4
+weight_decay: 0.01
+lr_scheduler: cosine
+num_iter: 50000
+num_warmup: 100
+
+# loss
+res: True
+w_off: 1.0
+
+# logging
+log_iter: 100
+save_iter: 10000
+save_epoch: 25
+eval_epoch: 10
+
+# training
+gpu: 0
+batch_size: 48  # duplicate
+test_batch_size: 1

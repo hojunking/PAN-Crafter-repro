@@ -16,7 +16,9 @@ from typing import Dict, Optional
 import torch
 from torch import Tensor, nn
 
-MODES = ('gt', 'fixed_kd', 'hard_only', 'teacher_error', 'adaptive')
+MODES = ('gt', 'fixed_kd', 'hard_only', 'teacher_error', 'adaptive',
+         'plain_hard_adaptive_kd',      # X05 (통계 HAD): w_H = 1, w_K = β(1−d)a  — hard 는 plain, soft 만 adaptive
+         'weighted_hard_fixed_kd')      # X06 (통계 WFIX): w_H = 1+αd, w_K = β  — hard 는 실패 지도 가중, soft 는 고정
 
 
 @dataclass
@@ -72,12 +74,16 @@ class GTAnchoredReconstructionKD(nn.Module):
                 w_h, w_k = one, zero
             elif self.mode == 'fixed_kd':
                 w_h, w_k = one, self.kd_weight * one
+            elif self.mode == 'plain_hard_adaptive_kd':                        # X05: hard 는 재가중하지 않고 soft 만 (1−d)a 로 gate
+                w_h, w_k = one, self.kd_weight * (one - difficulty) * advantage
             else:
                 w_h = one + self.alpha * difficulty
                 if self.mode == 'hard_only':
                     w_k = zero
                 elif self.mode == 'teacher_error':
                     w_k = self.kd_weight * (one - difficulty)
+                elif self.mode == 'weighted_hard_fixed_kd':                     # X06: hard 는 (1+αd), soft 는 고정 β (gate 없음)
+                    w_k = self.kd_weight * one
                 else:
                     w_k = self.kd_weight * (one - difficulty) * advantage
         hard = (w_h * err_gt).mean()                                 # 모든 픽셀 평균 (soft active 수로 재정규화하지 않는다)

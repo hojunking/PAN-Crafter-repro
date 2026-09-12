@@ -344,3 +344,75 @@ Q00 fitting_bins 존재 및 공통 Teacher 확인:
 - **loss·α/β/τ·Teacher·표현 정의는 그대로다.** R3 를 다른 R 로 바꾸거나 β 를 올리는 변경은 없다.
 - 진행 중 run 을 중단하거나 재시작하지 않았다. 계측 추가는 학습 경로를 바꾸지 않으며, 재시작하는 run 부터 새 진단 열이 생긴다(`diag_version` 으로 구분).
 - s2·s3 의 work_dir·시트·프로세스를 이 저장소에서 건드리지 않았다. 큐 적용과 분석 실행은 각 서버 운영자 몫이다.
+
+---
+
+## 10. FINAL 계획(2026-09-12) 반영 — s2·s3 전달본
+
+계획: `research_log/01_S2_FINAL_EXPERIMENT_PLAN.md` · `research_log/02_S3_FINAL_EXPERIMENT_PLAN.md` (부록 = 공통 규약, 두 파일 동일).
+**골격·기존 loss 정의·완료 run·진행 중 run 은 그대로다.** 바꾼 것은 (a) 통계 모드 3종 추가, (b) 신규 18 정의와 반복 seed 의 config, (c) v1/v2 이름 규칙과 Teacher/pilot 고정, (d) 단계별 큐와 stage plan, (e) parent 실제 학습량 기록이다.
+
+### 10.1 코드 변경
+
+| 계획 | 반영 |
+|---|---|
+| 부록 §4.1 X05 `GVHAD` = H_V + β_V(1−d_V)a_V K_V | criterion 모드 `plain_hard_adaptive_kd` (w_H=1, w_K=β(1−d)a) → 통계 모드 **HAD**. adaptive 의 α=0 과 수치 동일함을 gate 로 확인 |
+| 부록 §4.1 X06 `GVWFIX` = (1+α_V d_V)H_V + β_V K_V | criterion 모드 `weighted_hard_fixed_kd` (w_H=1+αd, w_K=β) → 통계 모드 **WFIX**. hard 는 WH 와, soft 는 FIX 와 동일 |
+| 부록 §4.1 X08 `GVTMATCH` = β_V K_V | 통계 모드 **TMATCH** — T(계수 1) 의 K_V 에 β_V(0.1) 를 곱한다. base λ_V 는 그대로, 계수만 T 와 다르다 (`soft_coefficient` 기록) |
+| 미정의 모드 문자열 | resolver 가 오류로 막는다 (조용히 다른 모드로 돌지 않는다). TRI-B/C(stat) 자격에 HAD/WFIX/TMATCH 포함 |
+| 부록 §6.3 parent 실제 update | `parent_and_phase.yaml` 에 `parent_step`(schedule 시작 = 0) 과 **`parent_trained_updates`**(parent checkpoint meta 의 실제 step) 를 따로 적는다 |
+| 부록 §7.4 재개 | `resumed_nonexact: true` (배치 순서 미복원) 를 resume 기록·manifest 에 명시 |
+
+### 10.2 생성기 (`tools/gen_na104_configs.py`)
+
+- **신규 18 정의**: X01–X04(R1/N0 + GV-H/EDGE-H/GV-FIX), X05/X06/X08(새 모드), X07(R1 의 d 만 shuffle = `rec.control: rshuffle` on R1, soft 0), X09–X12(GC/SC-AD 의 B-MASS/SHUF), PX01/02(Teacher-copy + GV-FIX/EDGE-H), CX01/02(공통 parent 25K tail), LX01/02(100K horizon). 전부 **v2**.
+- **이름 규칙**: 기존 88 case 의 seed 1234(T00 는 2025) 는 v1 그대로, 신규 정의·추가 seed 는 v2.
+- **고정 identity**: Teacher 는 항상 `NA104_T00_…_S2025_v1/best_hqnr`, λ pilot 은 항상 `NA104_Q00_…_S1234_v1/last`. `--seed`·`--version` 이 이를 바꾸지 못한다 (계획이 경고한 함정). 반복 seed 의 비교 baseline 은 그 seed 의 Q00(v2).
+- **core10 반복**: `Q00 Q01 Q02 Q03 Q04 Q05 Q06 Q09 Q11 Q12` × seed **777**(R1, P2 뒤) · **2026**(R2, P4 뒤). 매 seed 에서 Q00 이 먼저 돈다. 원 반복안 Q00/Q04/Q10@2025·Q10@777 은 `LEGACY_SEED_CHECK` 로 보존(seed 2025 의 N0 는 Teacher 를 재현할 수 있어 TIED_TO_TEACHER_SEED).
+- **COSTMATCH** 는 `--cost-match-updates <N>` 없이는 만들지 않고 stage plan 에 `BLOCKED_COST_MEASUREMENT` 로 남긴다 (50K 로 채우지 않는다).
+- `--only` 에 없는 id 를 주면 오류로 알린다 (조용히 빠지지 않는다).
+
+| 산출 | s2 | s3 |
+|---|---:|---:|
+| 완료 보고분(P0_DONE, 체인이 건너뜀) | 14 | 14 |
+| 신규/확인 편성 | 73 (+COSTMATCH BLOCKED = 74) | 83 |
+| 합계 | 87 | 97 |
+
+config 130벌(v1 88 · v2 42). 단계 순서는 계획 S2-1/S3-1 그대로이며 `config/queues/na104_<srv>_stage_plan.json`(execute:false) 에 단계·seed·version·update·parent·**직접 대조**를 실었다. 종전 `_deferred` 큐는 FINAL 계획이 전수 편성으로 대체해 삭제했다.
+
+### 10.3 적용 방법 (s2·s3)
+
+```bash
+git pull
+./tools/na104_prepare.sh --no-start                    # gate(FINAL 검사 포함)·config 재생성·smoke
+# 현재 run 이 끝난 뒤 (돌고 있는 체인은 work_dir/cases_queue.txt 복사본을 본다):
+./tools/campaign_start.sh --queue config/queues/na104_<srv>.txt --hours 2000 --label na104-<srv>-final
+```
+
+큐 맨 앞의 완료분 14건은 `reduced_best_hqnr.mat`·`full_best_hqnr.mat` 이 있으면 체인이 "완료됨 — 업로드만 확인"으로 건너뛴다. 재학습하지 않는다.
+P0 분석은 학습과 무관하게 지금 돌린다 — 완료·같은 horizon 묶음만 넣는다.
+
+```bash
+python tools/na104_hqnr_report.py --grid 10 --baseline NA104_Q00_W104_D122_WV3_N0_OFF_S1234_v1 --out analysis/final_<srv>_20260912_core <완료 run 들>
+```
+
+### 10.4 검증
+
+- gate `tools/na104_unit_tests.py`: 신규 18 존재·v2, v1/v2 규칙, Teacher/pilot/baseline 고정, TCOPY/CONT parent, horizon(50K/25K/100K), core10×2 seed, legacy seed, eval_epoch 10, 토큰(GVHAD/GVWFIX/GVTMATCH/R1RSHUF), 큐 슬롯 수(s2 14+73, s3 14+83)·중복 없음·T00→Q00 선행·R block 은 Q00 부터, 2×2 네 셀 s3 안, 원 보류 34/39 전부 포함, COSTMATCH BLOCKED, 세 모드의 항등식, 미정의 모드 거부 — **전부 통과**.
+- s1 dry 체인(200 update, 실데이터): T00 → Q00 → X05(HAD) → X06(WFIX) → X08(TMATCH) → X07(R1 shuffle) → X03(N0+GV-FIX) — 결과는 아래 10.5.
+- 동봉으로 언급된 `NA104_FINAL_REGISTRY.json`·`NA104_S*_FINAL_STAGE_PLAN.json`·`check_plan_coverage.py` 는 저장소에 없었다. 같은 역할을 생성기의 `na104_<srv>_stage_plan.json` 과 gate 의 coverage 검사가 한다.
+
+### 10.5 dry 체인 (s1, 200 update, 2026-09-12 11:51–12:03)
+
+`T00 → Q00 → X05 → X06 → X08 → X07 → X03` 7건 전부 rc=0. **수치는 결과가 아니다** — 새 모드가 정의대로 도는지만 확인했다.
+
+| run | 확인 |
+|---|---|
+| X05 GV-HAD | `stat_hard_weight_mean 1.000`(plain hard) · soft 가중 평균 0.006(adaptive gate) · τ_V·λ_V 는 Q06/Q10 과 같은 pilot 값 |
+| X06 GV-WFIX | hard 가중 평균 1.486(=1+α d 재가중) · soft 가중 **상수 0.1**(FIX) |
+| X08 GV-TMATCH | hard 0 · `soft_coefficient 0.1` · soft = 0.1 × T 의 K_V. base λ_V 는 그대로 |
+| X07 R1RSHUF | `rec_soft 0`(R1 은 soft 없음) · hard 가중 평균 1.497 그대로, d 지도만 위치 permutation (`rec_control rshuffle`) |
+| X03 N0+GV-FIX | `needs_teacher True`(Teacher 가 통계 soft 에 쓰인다, eval_only 아님) · rec_soft 0 · stat soft 가중 0.1 · cost role `training` |
+| 공통 | Teacher 는 T00 dry/best_hqnr, λ pilot 은 Q00 S1234 dry/last — `--version dry` 가 둘 다 dry 로 일관되게 가리켰다 |
+
+dry config·work_dir·dry calibration cache 는 확인 뒤 지웠다.

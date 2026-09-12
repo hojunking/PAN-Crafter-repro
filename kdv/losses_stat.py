@@ -21,8 +21,12 @@ KINDS = ('image_var', 'grad_var', 'grad_cov', 'spectral_cov', 'grad_moment2')
 NONNEGATIVE_KINDS = ('image_var', 'grad_var')          # 원소가 분산(≥0) 인 표현 — std/logvar 변환이 정의되는 곳
 STAT_TRANSFORMS = ('none', 'std', 'logvar')
 STAT_DOMAINS = ('final_hrms', 'residual')              # residual = Z − M (bicubic MS base); 픽셀 L1 과 달리 분산은 같지 않다 (§5.3)
-STAT_MODES = ('H', 'T', 'FIX', 'WH', 'AD')
-MODE_TO_CRITERION = {'H': 'gt', 'FIX': 'fixed_kd', 'WH': 'hard_only', 'AD': 'adaptive'}     # T 는 criterion 을 쓰지 않는다
+STAT_MODES = ('H', 'T', 'FIX', 'WH', 'AD',
+              'HAD',      # FINAL plan(2026-09-12) X05: H_V + β_V(1−d_V)a_V K_V — 통계 hard 는 plain, soft 만 adaptive
+              'WFIX',     # X06: (1+α_V d_V)H_V + β_V K_V — 통계 hard 는 weighted, soft 는 fixed
+              'TMATCH')   # X08: β_V·K_V — Teacher-only 통계를 FIX 와 같은 β_V(0.1) 로 대응 (T 의 계수는 원 정의상 1)
+MODE_TO_CRITERION = {'H': 'gt', 'FIX': 'fixed_kd', 'WH': 'hard_only', 'AD': 'adaptive',
+                     'HAD': 'plain_hard_adaptive_kd', 'WFIX': 'weighted_hard_fixed_kd'}      # T·TMATCH 는 criterion 을 쓰지 않는다
 
 
 def stat_margin(window: int) -> int:
@@ -127,17 +131,20 @@ def stat_maps(student: Tensor, teacher, gt: Tensor, *, kind: str, window: int, t
 
 
 def stat_term(student: Tensor, teacher, gt: Tensor, *, kind: str, window: int, mode: str, criterion=None, return_maps: bool = False,
-              transform: str = 'none', transform_eps: float = 1e-12) -> ReconstructionKDResult:
-    """통계 항 L_V (plan §9.1). teacher=None 은 H 만 허용. 반환은 ReconstructionKDResult (T: hard=0, soft=loss)."""
+              transform: str = 'none', transform_eps: float = 1e-12, kd_weight: float = 0.1) -> ReconstructionKDResult:
+    """통계 항 L_V (plan §9.1). teacher=None 은 H 만 허용. 반환은 ReconstructionKDResult (T·TMATCH: hard=0, soft=loss).
+    kd_weight 는 TMATCH(β_V·K_V) 에만 쓴다 — T 의 계수는 원 정의상 1 이라 FIX/AD 의 β_V 와 강도가 다르다 (X08 이 그 혼동을 분리)."""
     if mode not in STAT_MODES:
         raise ValueError(f'stat mode {mode}')
     if teacher is None and mode != 'H':
         raise ValueError(f'STAT-{mode} 는 Teacher 통계가 필요하다')
     v_s, v_t, v_g = stat_maps(student, teacher, gt, kind=kind, window=window, transform=transform, transform_eps=transform_eps)
-    if mode == 'T':
-        soft = (v_s - v_t).abs().mean(); zero = soft.detach() * 0
+    if mode in ('T', 'TMATCH'):
+        coef = 1.0 if mode == 'T' else float(kd_weight)
+        soft = coef * (v_s - v_t).abs().mean(); zero = soft.detach() * 0
         with torch.no_grad():
-            st = {'plain_gt_l1': (v_s - v_g).abs().mean(), 'plain_teacher_l1': soft.detach(), 'teacher_gt_l1': (v_t - v_g).abs().mean()}
+            st = {'plain_gt_l1': (v_s - v_g).abs().mean(), 'plain_teacher_l1': (v_s - v_t).abs().mean(), 'teacher_gt_l1': (v_t - v_g).abs().mean(),
+                  'soft_coefficient': torch.tensor(coef, dtype=v_s.dtype, device=v_s.device)}
         return ReconstructionKDResult(soft, zero, soft, st, None)
     if teacher is None:                                              # H without Teacher: <E_S^V>
         hard = (v_s - v_g).abs().mean(); zero = hard.detach() * 0

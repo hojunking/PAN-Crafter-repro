@@ -539,7 +539,7 @@ class KDVTrainer(PATrainer):
                                       note=("판정·시트·Teacher·진단이 모두 같은 checkpoint 를 쓴다 (저장소 확정 지시: 무조건 HQNR→SCC). "
                                             "best_hqnr(=best_raw) 는 FR test 로 매 평가 고르므로 test-adaptive 다 — 독립 hold-out 이 아니라는 점은 그대로 기록한다. "
                                             "계획 §14.2 의 독립 RR-validation 선택(best_rr_val, valid_wv3.h5 plain ERGAS) 은 **보조**로 함께 저장·평가한다.")),
-                       na_protocol=sp.get("na_protocol"), rec_control=sp.get("rec_control"), resumed=bool(self.resumed_from), resumed_from=(str(self.resumed_from) if self.resumed_from else None), stat_axes=dict(windows=sp.get("stat_windows"), transform=sp.get("stat_transform"), domain=sp.get("stat_domain"),
+                       na_protocol=sp.get("na_protocol"), rec_control=sp.get("rec_control"), resumed=bool(self.resumed_from), resumed_nonexact=bool(self.resumed_from), resumed_from=(str(self.resumed_from) if self.resumed_from else None), stat_axes=dict(windows=sp.get("stat_windows"), transform=sp.get("stat_transform"), domain=sp.get("stat_domain"),
                                                                                                             transform_eps=sp.get("stat_transform_eps"), lambda_scale=sp.get("stat_lambda_scale"), tau_scale=sp.get("rec_tau_scale")),
                        lambda_V=self.lam_V, stat_ramp_updates=self.stat_ramp, lambda_GKD=self.lam_gkd, k0=self.k0, cov_source=sp["cov_source"], cov_status=(self.cov or {}).get("status"),
                        tri=sp["tri"], tri_state={kk: (v.tolist() if torch.is_tensor(v) else v) for kk, v in self.tri_state.items() if kk != "prec_fn"},
@@ -557,7 +557,7 @@ class KDVTrainer(PATrainer):
         if self.resumed_from:
             # 재개는 optimizer/scheduler/scaler/RNG 를 복원하지만 **data sampler 순서는 복원하지 않는다** (main.py C-1 주석).
             # 즉 재개한 run 은 중단 없는 대응 run 과 배치 열이 다르다 — 엄밀 대조에서는 제외하거나 처음부터 다시 돌린다.
-            self._jsonl("resume_events.jsonl", dict(time=time.strftime("%Y-%m-%dT%H:%M:%S"), resume_from=str(self.resumed_from),
+            self._jsonl("resume_events.jsonl", dict(time=time.strftime("%Y-%m-%dT%H:%M:%S"), resume_from=str(self.resumed_from), resumed_nonexact=True,
                                                     restored="optimizer·scheduler·scaler·RNG(corruption/TRI)", not_restored="data sampler 배치 순서",
                                                     consequence="중단 없는 run 과 배치 열이 다르다 — 통제 비교에서 표시하거나 재실행"))
             print(f"[kdv] 재개: {self.resumed_from} — 배치 순서는 복원되지 않는다 (resume_events.jsonl 에 기록)")
@@ -663,7 +663,12 @@ class KDVTrainer(PATrainer):
         pcfg = yaml.safe_load(open(os.path.join(ROOT, "work_dir", parent, "meta", "config.yaml")))
         diff = {kk: dict(old=pcfg.get("kdv", {}).get(kk), new=self.k.get(kk)) for kk in set(pcfg.get("kdv", {})) | set(self.k) if pcfg.get("kdv", {}).get(kk) != self.k.get(kk) and kk != "phase"}
         pcost = os.path.join(ROOT, "work_dir", parent, "memory_and_throughput.json")
-        yaml.safe_dump(dict(run_kind="ADAPTIVE_PATH", start="warm_start", parent_run=parent, parent_tag=tag, parent_step=step, parent_checkpoint_sha256=sha256_file(p),
+        pmeta = os.path.join(ROOT, "work_dir", parent, f"{tag}_meta.json")
+        parent_trained = (json.load(open(pmeta)).get("step") if os.path.exists(pmeta) else None)      # parent 가 실제로 학습한 update (schedule 시작점 parent_step 과 다르다)
+        yaml.safe_dump(dict(run_kind="ADAPTIVE_PATH", start="warm_start", parent_run=parent, parent_tag=tag,
+                            parent_step=step, parent_step_meaning="이 run 의 schedule 시작 global step (0 = 새 tail/fresh optimizer)",
+                            parent_trained_updates=parent_trained, parent_trained_meaning=f"parent checkpoint({tag}) 가 실제로 학습한 update — 누적 학습량 = 이 값 + 이 run 의 update",
+                            parent_checkpoint_sha256=sha256_file(p),
                             config_diff=diff, optimizer_state_policy=opol, optimizer_states_loaded=loaded, scheduler_policy="inherit_full_N_global_step",
                             teacher_id_before=pcfg.get("kdv", {}).get("teacher", {}).get("id"), teacher_id_after=self.teacher_id, reason=ph.get("reason", "REQUIRED_OBSERVATION"),
                             matched_continuation=ph.get("matched_continuation", "REQUIRED_CONTROL_ID"), formal_one_factor_ablation=(len(diff) == 1),
@@ -757,8 +762,9 @@ class KDVTrainer(PATrainer):
                 elif tri["enabled"] and (tri["b_mode"] != "off" or (tri["c_mode"] != "off" and tri["c_phi"] == "stat")):
                     kind, w = sp["stat_kind"], sp["stat_window"]
                     v_s, v_t, v_g = stat_maps(ys, yts, gts, kind=kind, window=w, transform=tf, transform_eps=tfe)
-                    if sp["stat_mode"] == "T":
-                        w_hV = torch.zeros(v_s.shape[0], 1, *v_s.shape[-2:], device=dev); w_kV = torch.ones_like(w_hV); s_orig = (v_s.detach() - v_t).abs().mean()
+                    if sp["stat_mode"] in ("T", "TMATCH"):                       # T: 계수 1 · TMATCH(X08): 계수 β_V (FIX 와 같은 강도)
+                        _coef = 1.0 if sp["stat_mode"] == "T" else float((self.k.get("stat") or {}).get("kd_weight", 0.1))
+                        w_hV = torch.zeros(v_s.shape[0], 1, *v_s.shape[-2:], device=dev); w_kV = torch.full_like(w_hV, _coef); s_orig = _coef * (v_s.detach() - v_t).abs().mean()
                     else:
                         sr = self.stat_crit(v_s.detach(), v_t, v_g, return_maps=True); w_hV, w_kV = sr.maps["hard_weight"], sr.maps["soft_weight"]; s_orig = sr.soft
                         info.update(**{f"stat_{kk}": float(v) for kk, v in sr.stats.items()})
@@ -795,7 +801,8 @@ class KDVTrainer(PATrainer):
                     info["_stat_hard_t"], info["_stat_soft_t"] = res["hard"], res["soft"]
                     info["_tri_stat"] = (vsd, v_t, v_g, mask_b, risk_v, w_kV)
                 else:
-                    parts = [stat_term(ys, yts, gts, kind=sp["stat_kind"], window=wi, mode=sp["stat_mode"], criterion=self.stat_crits.get(wi), transform=tf, transform_eps=tfe)
+                    parts = [stat_term(ys, yts, gts, kind=sp["stat_kind"], window=wi, mode=sp["stat_mode"], criterion=self.stat_crits.get(wi), transform=tf, transform_eps=tfe,
+                                       kd_weight=float((self.k.get("stat") or {}).get("kd_weight", 0.1)))
                              for wi in sp["stat_windows"]]                       # REP-MULTI357: 창별 loss 를 평균 (창마다 τ_V 를 따로 calibration 했다)
                     loss_stat_raw = sum(pp.loss for pp in parts) / len(parts)
                     info["_stat_hard_t"] = sum(pp.hard for pp in parts) / len(parts); info["_stat_soft_t"] = sum(pp.soft for pp in parts) / len(parts)
@@ -816,7 +823,7 @@ class KDVTrainer(PATrainer):
                     if e["kind"] == "edge":
                         li = output_edge_loss(y.float(), gt.float())
                     else:
-                        pl = [stat_term(ysi, ytsi, gtsi, kind=e["kind"], window=wi, mode=e["mode"], criterion=ex["crits"].get(wi), transform=e["transform"], transform_eps=e["transform_eps"]) for wi in e["windows"]]
+                        pl = [stat_term(ysi, ytsi, gtsi, kind=e["kind"], window=wi, mode=e["mode"], criterion=ex["crits"].get(wi), transform=e["transform"], transform_eps=e["transform_eps"], kd_weight=e["kd_weight"]) for wi in e["windows"]]
                         li = sum(pp.loss for pp in pl) / len(pl)
                     loss_stat_extra = loss_stat_extra + ex["lam"] * ramp * li
                     info[f"stat_extra{i}_raw"] = float(li); info[f"stat_extra{i}_lam"] = ex["lam"] * ramp
@@ -1029,7 +1036,7 @@ class KDVTrainer(PATrainer):
                                     loss_edge=info["loss_edge"], loss_geo=info["loss_geo"], loss_off=float(info["loss_off"]), loss_gkd=info["loss_gkd"], lam_e=info["lam_e"], lam_g=info["lam_g"], eq_exercise=float(info.get("eq_exercise", 0.0)),
                                     lam_off=info["lam_off"], lam_gkd=info["lam_gkd"], aux_ratio=float(info["loss_aux"]) / (float(info["loss_rec"]) + 1e-12),
                                     **{f"{key}_dy": d[:, 0].mean().item(), f"{key}_dx": d[:, 1].mean().item(), f"{key}_dnorm_p50": d.norm(dim=1).median().item(), "abs_max": d.abs().max().item()},
-                                    **{kk: v for kk, v in info.items() if kk.startswith(("rec_", "stat_", "gkd_", "tri_")) and isinstance(v, float)}, t_probe=float(info.get("t_probe", 0.0)))
+                                    **{kk: v for kk, v in info.items() if kk.startswith(("rec_", "stat_", "gkd_", "tri_", "ctl_")) and isinstance(v, float)}, t_probe=float(info.get("t_probe", 0.0)))
                         if info["delta_t"] is not None:
                             vals["delta_drift"] = float((d - info["delta_t"].float()).norm(dim=1).mean())
                         if "closure" in info:
