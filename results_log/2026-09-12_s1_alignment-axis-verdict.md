@@ -177,3 +177,22 @@ SCC 는 0.9904~0.9914 로 포화라 (σ 배수는 sd 0.00153 기준) tie-break �
   (P0: 0.95316@ep165 → 0.95275@ep240, −0.00041).
 - 진단 출처: `work_dir/<run>/results/pa_diag.json` 의 `training_records.last`
   (`delta_norm_median`, `raw_original.*`). 그림 재현은 이 문서와 같은 커밋의 스크립트.
+
+## 8. (같은 날 추가, WIP) PALS24 — P2 기반 λ_off 비교 캠페인 기동 (s1, 13:00)
+
+위 판정과 별개로 사용자 결정에 따른 **제한적 λ 확인 캠페인**을 s1 에서 시작했다 (계획 [`PAN_P2_P3_LambdaSweep_MetricAware_24GPUh_Plan_2026-09-12_v2.md`](../research_log/PAN_P2_P3_LambdaSweep_MetricAware_24GPUh_Plan_2026-09-12_v2.md),
+구현 노트 [`2026-09-12_pals24-implementation.md`](../research_log/2026-09-12_pals24-implementation.md)). NF16 P2(λ 0)/P3(λ 0.01) recipe 에서 **λ_off 만** 0.001 / 0.0001 / 0.003 으로 바꾼 3벌(seed 1234, 50K)을 먼저 돌리고,
+규칙(raw best HQNR → fSCC → 더 작은 λ)으로 λ* 를 한 번 고정한 뒤 seed 7777·2025 에서 **CTRL-P0 · L000(λ 0) · λ*** 를 대응 비교한다(각 3벌). 24 GPU-h 상한.
+
+| 항목 | 값 |
+|---|---|
+| 기동 | 2026-09-12 13:00 (체인 마감 09-14 05:00) · 큐 `config/queues/pals24_s1.txt` = A1 L1E3 → A2 L1E4 → A3 L3E3 |
+| stage 2 | 큐가 끝나면 `tools/campaign_gate.py` 의 `pals24` gate 가 λ* 를 고정하고 B1–B3(seed 7777: P0 → L000 → λ*) · C1–C3(seed 2025: L000 → λ* → P0) 를 연다. 세 λ 가 모두 P2(0.95389) 보다 0.0031 초과 낮으면 열지 않는다(TERMINATE) |
+| 재사용 | seed 1234 의 CTRL-P0/L000/L1E2 = NF16 P0/P2/P3 (G-M1 재평가 Δ 0.0, 초기값·donor hash 일치 → 승인; `work_dir/_pals24_campaign/reuse_registry.json`) |
+| 예산 | ledger `work_dir/_pals24_budget/ledger.json`: gate 실측 0.1 h(예약 2.0), smoke 예상 1.22 h/run(NF16 실측 1.43–1.52 h + 진단 0.14 h), 첫 run gate `0.1 + 1.1×(1.24 + 2.0 + 2.0) + 4.0 = 9.86 ≤ 24` → RUN |
+| 예상 | A block ≈ 5 h(~18:00) → λ* 선택 → stage 2 6벌 ≈ 10 h(09-13 새벽) — 전부 돌아도 ≈ 15 GPU-h |
+| 판정 | best_raw raw_original HQNR → fSCC(원 PAN 참조), 판정선 0.0031 은 raw HQNR 에만. aligned/V64/last 는 진단. seed 1234 는 탐색(선택에 씀), 7777·2025 는 확인 |
+| 결과 확인 | `python tools/pals24_report.py` → `work_dir/_pals24_campaign/{report.md, table_A/B/C, paired_seed_results.csv}` · 시트 범주 ㉓ PALS24 |
+
+**§3 의 판정("PAN 을 옮기는 접근은 성립하지 않는다")과 충돌하지 않는다** — 이 캠페인은 그 판정을 뒤집으려는 새 방법이 아니라, P2–P3 사이의 λ 구간에서 복원 유지와 반응 보존이 양립하는지를 seed 반복으로 확인하는 것이다.
+결과는 이 문서가 아니라 **다음 날짜의 s1 문서**에 쓴다(캠페인 종료 예상 09-13).

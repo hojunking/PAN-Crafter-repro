@@ -64,14 +64,25 @@ def datasets(cfg):
     return out
 
 
-@torch.no_grad()
-def response(m, samples, R, mg, dev, seed=12345, kernel="bicubic", ms_mode="own"):
-    """probe: 0, ±R/2, ±R 축 방향(8) + 원판 무작위 8 + ±2R 축 stress(4). 반환 rows(list of dict), fit dict."""
-    g = torch.Generator(device="cpu"); g.manual_seed(seed)
-    # 절대 probe (HR px) — R100/R200 을 같은 변위 구간에서 비교 (변경 명세 §6.3). |e| ≤ R 은 in-range 'probe', 그 밖은 'stress'
+def fixed_probes(R, probe_set="po10"):
+    """(probes, stress) — HR px (dy, dx). po10: 0, ±0.5/1/1.5/2 축 방향 (|e|≤R 만 probe, 나머지 stress).
+    pals24 (계획 §9.2): 0 + 반경 {0.5, 1, 2} × 8 방향(축 4 + 대각 4) = 25 고정 probe, stress 없음 — 64²/256²/512² 에 같은 집합."""
+    if probe_set == "pals24":
+        import math
+        dirs = [(round(math.sin(k * math.pi / 4), 12), round(math.cos(k * math.pi / 4), 12)) for k in range(8)]   # (dy, dx), 0°=+x, 45° 간격
+        return [(0.0, 0.0)] + [(r * dy, r * dx) for r in (0.5, 1.0, 2.0) for dy, dx in dirs], []
     AX = (0.5, 1.0, 1.5, 2.0)
     probes = [(0.0, 0.0)] + [(sg * f, 0.0) for sg in (1, -1) for f in AX if f <= R + 1e-9] + [(0.0, sg * f) for sg in (1, -1) for f in AX if f <= R + 1e-9]
     stress = [(sg * f, 0.0) for sg in (1, -1) for f in AX if f > R + 1e-9] + [(0.0, sg * f) for sg in (1, -1) for f in AX if f > R + 1e-9]
+    return probes, stress
+
+
+@torch.no_grad()
+def response(m, samples, R, mg, dev, seed=12345, kernel="bicubic", ms_mode="own", probe_set="po10"):
+    """probe: 0, ±R/2, ±R 축 방향(8) + 원판 무작위 8 + ±2R 축 stress(4). 반환 rows(list of dict), fit dict. probe_set='pals24' 는 fixed_probes 참조."""
+    g = torch.Generator(device="cpu"); g.manual_seed(seed)
+    # 절대 probe (HR px) — R100/R200 을 같은 변위 구간에서 비교 (변경 명세 §6.3). |e| ≤ R 은 in-range 'probe', 그 밖은 'stress'
+    probes, stress = fixed_probes(R, probe_set)
     rows = []
     for i, (pan, ms) in enumerate(samples):
         pan, ms = pan.to(dev), ms.to(dev)
@@ -105,10 +116,27 @@ def fit(rows, R):
     for lo in (0.0, 0.5, 1.0, 1.5):
         sel = (en > lo) & (en <= lo + 0.5) if lo > 0 else (en >= 0) & (en <= 0.5)
         bins[f"{lo:.1f}-{lo + 0.5:.1f}"] = dict(n=int(sel.sum()), closure_mean=(float(ca[sel].mean()) if sel.any() else None), in_range=bool(lo + 0.5 <= R + 1e-9))
-    return dict(B=B.tolist(), b=b.tolist(), B_diag=[float(B[0, 0]), float(B[1, 1])], B_cross=[float(B[0, 1]), float(B[1, 0])], ideal_B_diag=-1.0,
+    pr = [x for x in rows if x["kind"] == "probe" and not (x["ey"] == 0 and x["ex"] == 0)]
+    re_ = np.array([[x["q_dy"] + x["ey"], x["q_dx"] + x["ex"]] for x in pr]) if pr else np.zeros((0, 2))        # r_ε = ĉε + ε − ĉ0 (HR px, 성분)
+    c0n = np.linalg.norm(c0, axis=1) if len(c0) else np.zeros(0)
+    extra = dict(offset_mae_component=(float(np.abs(re_).mean()) if len(re_) else None), offset_epe=(float(np.linalg.norm(re_, axis=1).mean()) if len(re_) else None),
+                 n_fixed_probe=int(len(pr)), fixed_probe_note="r_eps = c_hat(eps) + eps - c_hat(0) over the fixed probe set (excluding eps=0); legacy closure_* = mean ||r_eps|| over probe+random",
+                 native_c0_norm_median=(float(np.median(c0n)) if len(c0n) else None), native_c0_norm_p90=(float(np.percentile(c0n, 90)) if len(c0n) else None))
+    return dict(B=B.tolist(), b=b.tolist(), B_diag=[float(B[0, 0]), float(B[1, 1])], B_cross=[float(B[0, 1]), float(B[1, 0])], ideal_B_diag=-1.0, **extra,
                 closure_mean=float(cl.mean()), closure_p50=float(np.median(cl)), closure_p90=float(np.percentile(cl, 90)), closure_rel_R=float(cl.mean() / R),
                 stress_closure_mean=(float(cs.mean()) if len(cs) else None), stress_probes_abs_hr=[f for f in (0.5, 1.0, 1.5, 2.0) if f > R + 1e-9], closure_by_eps_bin=bins, n_in_range=int(len(r)),
                 native_c0_mean=c0.mean(0).tolist(), native_c0_median=np.median(c0, 0).tolist(), native_c0_iqr=[np.subtract(*np.percentile(c0[:, k], [75, 25])) for k in range(2)])
+
+
+@torch.no_grad()
+def drift_vs_reference(m, refm, samples, mg, dev):
+    """native ĉ0 의 donor 대비 drift (계획 §9.2): 같은 sample·같은 view 에서 ‖ĉ0 − ĉ0^ref‖ 의 중앙값/P90 과 성분 평균."""
+    d = []
+    for pan, ms in samples:
+        pan, ms = pan.to(dev), ms.to(dev); mb = F.interpolate(ms, scale_factor=4, mode="bicubic")
+        c0 = predict_c(m.aligner, pan, mb, mg)[0].cpu().numpy(); cr = predict_c(refm.aligner, pan, mb, mg)[0].cpu().numpy(); d.append(c0 - cr)
+    d = np.array(d); n = np.linalg.norm(d, axis=1)
+    return dict(n=int(len(d)), drift_norm_median=float(np.median(n)), drift_norm_p90=float(np.percentile(n, 90)), drift_mean_dy_dx=d.mean(0).tolist())
 
 
 def write_csv(path, rows):
@@ -238,6 +266,8 @@ def main():
     ap.add_argument("--native-reference", action="store_true", help="NF16 §8.4: 참조를 native P / 고정 donor 보정으로 고정한 stress 도 계산")
     ap.add_argument("--ref-run", default=None); ap.add_argument("--ref-ckpt", default="last")
     ap.add_argument("--out", default="po10_diag", help="results/<out>.json (기본 po10_diag; last 진단은 po10_diag_last 권장)")
+    ap.add_argument("--probe-set", default="po10", choices=("po10", "pals24"), help="pals24: 반경 {0.5,1,2} × 8 방향 고정 probe (계획 §9.2), csv 는 offset_response_<set>_<ckpt>.csv")
+    ap.add_argument("--response-only", action="store_true", help="반응·drift 만 (stress HQNR·보간 대조 생략) — best/중간 checkpoint 의 저비용 진단")
     a = ap.parse_args(); dev = torch.device(a.device)
     wd, cfg, m, R, mg = load_run(a.run, a.ckpt, dev)
     if m.aligner is None:                                                    # A-ID(P0): 반응 진단 없음, native stress 만 (참조 = donor 필요)
@@ -247,11 +277,20 @@ def main():
         os.makedirs(os.path.join(wd, "results"), exist_ok=True); json.dump(out, open(os.path.join(wd, "results", f"{a.out}.json"), "w"), indent=1); print("  aligner 없음 — native stress 만 기록"); return
     ds = datasets(cfg); out = dict(run=a.run, ckpt=a.ckpt, radius_hr=R, view_margin=mg, response={})
     print(f"[{a.run}] §10.3 추가 변위 반응 (R={R}, view margin {mg}, ckpt {a.ckpt})")
+    refm = load_run(a.ref_run, a.ref_ckpt, dev)[2] if a.ref_run else None
+    out["probe_set"] = a.probe_set
     for name, samples in ds.items():
-        rows, ft = response(m, samples, R, mg, dev); write_csv(os.path.join(wd, f"offset_response_{name}.csv"), rows); out["response"][name] = ft
+        rows, ft = response(m, samples, R, mg, dev, probe_set=a.probe_set)
+        csv_name = f"offset_response_{name}.csv" if a.probe_set == "po10" else f"offset_response_{name}_{a.probe_set}_{a.ckpt}.csv"
+        write_csv(os.path.join(wd, csv_name), rows); out["response"][name] = ft
+        if refm is not None and refm.aligner is not None:
+            out["response"][name]["drift_vs_reference"] = dict(reference=f"{a.ref_run}/{a.ref_ckpt}", **drift_vs_reference(m, refm, samples, mg, dev))
         print(f"  {name:9s} B diag ({ft['B_diag'][0]:+.3f}, {ft['B_diag'][1]:+.3f}) cross ({ft['B_cross'][0]:+.3f}, {ft['B_cross'][1]:+.3f}) b ({ft['b'][0]:+.3f},{ft['b'][1]:+.3f}) "
               f"| closure mean {ft['closure_mean']:.3f} p50 {ft['closure_p50']:.3f} p90 {ft['closure_p90']:.3f} (rel R {ft['closure_rel_R']:.2f}) | stress(>R) {ft['stress_closure_mean']} "
               f"| native ĉ0 median ({ft['native_c0_median'][0]:+.3f},{ft['native_c0_median'][1]:+.3f})")
+    if a.response_only:
+        os.makedirs(os.path.join(wd, "results"), exist_ok=True); json.dump(out, open(os.path.join(wd, "results", f"{a.out}.json"), "w"), indent=1)
+        print(f"  (response-only) -> {os.path.relpath(os.path.join(wd, 'results', a.out + '.json'), ROOT)}"); return
     out["interpolation_controls"] = ic = interpolation_controls(m, ds["native64"], R, mg, dev)
     json.dump(ic, open(os.path.join(wd, "interpolation_controls.json"), "w"), indent=1)
     print(f"  §10.4 padding border→reflection |Δĉ| {ic['padding_border_vs_reflection_max_abs_diff']:.2e} | MS swap B diag {ic['ms_swap']['B_diag']} | MS const {ic['ms_const']['B_diag']} "
@@ -259,7 +298,6 @@ def main():
     out["stress_hqnr_fr512"] = st = stress_hqnr(m, cfg, R, mg, dev, wd)
     print("  §6.3/§10.3 stress HQNR (FR, ROI margin 96, 두 단계 적격): " + " | ".join(f"ε{k}: raw_valid {v['raw_valid_hqnr']:.4f} aligned_valid {v['aligned_valid_hqnr']:.4f} ({v['n_eligible']}/{v['n']})" for k, v in st["by_eps"].items() if v["raw_valid_hqnr"] is not None))
     if a.native_reference:
-        refm = load_run(a.ref_run, a.ref_ckpt, dev)[2] if a.ref_run else None
         out["stress_hqnr_native_fr512"] = sn = stress_hqnr_native(m, cfg, R, mg, dev, wd, refm)
         print("  NF16 §8.4 native-reference stress (raw = 원 P, aligned = W(P, c_D) 고정, V96): " + " | ".join((f"ε{k}: raw {v['raw_native_hqnr']:.4f} fixed {v['aligned_fixed_hqnr']:.4f}" if v["eligible_all"] else f"ε{k}: INELIGIBLE({v['n_eligible']}/{v['n']})") for k, v in sn["by_eps"].items()))
     os.makedirs(os.path.join(wd, "results"), exist_ok=True); json.dump(out, open(os.path.join(wd, "results", f"{a.out}.json"), "w"), indent=1)

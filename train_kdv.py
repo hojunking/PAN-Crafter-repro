@@ -203,9 +203,10 @@ class KDVTrainer(PATrainer):
         return p, d
 
     @staticmethod
-    def budget_decision(used, proj_this, proj_remaining, reserve, total, required, proj_pair=0.0):
-        """순수 판정 (테스트 가능): projected = used + 1.2·(proj_this + Σ proj_remaining + proj_pair) + reserve. required 면 경고만, 아니면 초과 시 DEFERRED."""
-        need = 1.2 * (float(proj_this) + float(sum(proj_remaining)) + float(proj_pair))
+    def budget_decision(used, proj_this, proj_remaining, reserve, total, required, proj_pair=0.0, margin=1.2):
+        """순수 판정 (테스트 가능): projected = used + margin·(proj_this + Σ proj_remaining + proj_pair) + reserve. required 면 경고만, 아니면 초과 시 DEFERRED.
+        margin: NF16 1.2 (기본) · PALS24 1.1 (계획 §11.6 '실측 추정치에 10% 여유', config kdv.budget.margin)."""
+        need = float(margin) * (float(proj_this) + float(sum(proj_remaining)) + float(proj_pair))
         projected = float(used) + need + float(reserve)
         ok = np.isfinite(projected) and projected <= float(total)
         return dict(projected_total_hours=projected, needed_hours=need, ok=bool(ok), decision=("RUN" if (ok or required) else "DEFERRED_BUDGET"), warn=bool(required and not ok))
@@ -255,13 +256,14 @@ class KDVTrainer(PATrainer):
         used = sum(float(e.get("hours_total") or e.get("hours") or 0.0) for kk, e in d["entries"].items() if kk != self.run_id)
         proj = self._projection(d); rem = [self._projection(d, r) for r in (self.budget.get("remaining_mandatory") or [])]
         pair = self._projection(d, self.budget["pair_with"]) if self.budget.get("pair_with") else 0.0
-        dec = self.budget_decision(used, proj, rem, reserve, float(d.get("total_gpu_hours", self.budget.get("total_gpu_hours", 16.0))), required, pair)
-        rec = dict(started=time.strftime("%Y-%m-%dT%H:%M:%S"), required=required, case=self.case, kind="run", status="RUNNING", used_hours_before=used, projected_hours=proj,
+        margin = float(self.budget.get("margin", 1.2))
+        dec = self.budget_decision(used, proj, rem, reserve, float(d.get("total_gpu_hours", self.budget.get("total_gpu_hours", 16.0))), required, pair, margin)
+        rec = dict(started=time.strftime("%Y-%m-%dT%H:%M:%S"), required=required, case=self.case, kind="run", status="RUNNING", used_hours_before=used, projected_hours=proj, margin=margin,
                    remaining_mandatory=self.budget.get("remaining_mandatory") or [], pair_with=self.budget.get("pair_with"), **dec)
         d["entries"][self.run_id] = rec if dec["decision"] == "RUN" else dict(rec, status="DEFERRED_BUDGET")
         os.makedirs(os.path.dirname(p), exist_ok=True); json.dump(d, open(p, "w"), indent=1); json.dump(d["entries"][self.run_id], open(os.path.join(self.args.work_dir, "budget_status.json"), "w"), indent=1)
         if dec["decision"] != "RUN":
-            print(f"[kdv] DEFERRED_BUDGET: used {used:.2f}h + 1.2×(this {proj:.2f} + remaining {sum(rem):.2f} + pair {pair:.2f})h + reserve {reserve}h = {dec['projected_total_hours']:.2f} > {d['total_gpu_hours']}h"); sys.exit(EXIT_GATE)
+            print(f"[kdv] DEFERRED_BUDGET: used {used:.2f}h + {margin}×(this {proj:.2f} + remaining {sum(rem):.2f} + pair {pair:.2f})h + reserve {reserve}h = {dec['projected_total_hours']:.2f} > {d['total_gpu_hours']}h"); sys.exit(EXIT_GATE)
         if dec["warn"]:
             print(f"[kdv] 예산 경고 (필수 run 이라 진행): 예상 총 {dec['projected_total_hours']:.2f}h > {d['total_gpu_hours']}h")
 
@@ -909,9 +911,20 @@ class KDVTrainer(PATrainer):
             v_st, n_st = self._gnorm(info["loss_stat_raw"], bp); out["grad_stat_F_raw"] = n_st; out["grad_stat_F_weighted"] = n_st * info["lam_v"]
             out["cos_rec_stat_F"] = (float((v_rec * v_st).sum() / (v_rec.norm() * v_st.norm())) if v_rec is not None and v_st is not None and n_st > 0 and out["grad_rec_F"] > 0 else None)
         if ap:
-            _, out["grad_rec_A"] = self._gnorm(info["loss_rec"], ap)
+            v_ra, out["grad_rec_A"] = self._gnorm(info["loss_rec"], ap)
             if info.get("eq_exercise"):
-                _, out["grad_off_A"] = self._gnorm(info["loss_off"] if torch.is_tensor(info["loss_off"]) else torch.zeros(()), ap) if torch.is_tensor(info.get("loss_off")) else (None, 0.0)
+                has_off = torch.is_tensor(info.get("loss_off")) and info["loss_off"].requires_grad
+                v_oa, out["grad_off_A"] = self._gnorm(info["loss_off"], ap) if has_off else (None, 0.0)
+                # PALS24 §9.3: λ 가 실제로 전달된 양 — ρ_g = λ‖g_off‖/(‖g_rec‖+1e-12), cos ψ = ⟨g_rec, λ g_off⟩/(‖g_rec‖·‖λ g_off‖+1e-12); norm 0 이면 undefined(None)
+                lam = float(info.get("lam_off", 0.0)); out["lambda_off"] = lam
+                out["loss_off_raw"] = float(info["loss_off"]) if torch.is_tensor(info.get("loss_off")) else None
+                out["loss_off_weighted"] = (lam * out["loss_off_raw"]) if out["loss_off_raw"] is not None else None
+                out["grad_off_A_weighted"] = lam * out["grad_off_A"]
+                out["rho_g"] = lam * out["grad_off_A"] / (out["grad_rec_A"] + 1e-12)
+                out["cos_psi"] = (float((v_ra * v_oa).sum() / (v_ra.norm() * v_oa.norm() + 1e-12)) if v_ra is not None and v_oa is not None and out["grad_rec_A"] > 0 and lam * out["grad_off_A"] > 0 else None)
+                if has_off and bp:                                          # §9.4: L_off 는 aligner 전용 — U-Net θ 로의 직접 gradient 가 없어야 한다
+                    gb = torch.autograd.grad(info["loss_off"], bp, retain_graph=True, allow_unused=True)
+                    out["off_unet_grad_absent"] = bool(all(x is None or float(x.abs().sum()) == 0.0 for x in gb))
             if self.lam_geo > 0 and torch.is_tensor(info.get("_loss_geo")):
                 _, out["grad_geo_A"] = self._gnorm(info["_loss_geo"], ap); _, out["grad_geo_F"] = self._gnorm(info["_loss_geo"], bp)
             if self.spec["stat_enabled"]:

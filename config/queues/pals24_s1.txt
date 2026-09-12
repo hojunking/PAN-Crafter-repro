@@ -1,0 +1,10 @@
+# PALS24 (계획 §11.5): stage 1 = seed 1234 신규 λ 3벌 (A1 L1E3 → A2 L1E4 → A3 L3E3) · s1 · 50000 updates · 예산 24.0 GPU-h (work_dir/_pals24_budget/ledger.json)
+# seed 1234 의 CTRL-P0 / L000 / L1E2 는 NF16 P0 / P2 / P3 재사용 (tools/pals24_metric_gate.py 의 reuse_registry.json 승인) — 다시 학습하지 않는다.
+# stage 2 (B1–B3 seed 7777: P0 → L000 → λ* · C1–C3 seed 2025: L000 → λ* → P0) 는 큐가 끝난 뒤 tools/campaign_gate.py 의 pals24 gate 가 연다:
+#   A1–A3 완료 → tools/pals24_select_lambda.py 가 λ* 를 한 번 고정(raw best HQNR → fSCC(1e-4) → 더 작은 λ, work_dir/_pals24_campaign/selected_lambda.json)
+#   → gen_pals24_configs.py --stage2 --lambda-star <id> → 6 run 을 순서대로. 세 신규 λ 가 모두 P2 보다 0.0031 초과 낮으면(§10.3/§11.5) stage 2 를 열지 않는다.
+# gate 식(run 마다): used + 1.1·(이 run + 같은 block 의 나머지) + reserve 4.0h ≤ 24.0h — block(P0·L000·λ*) 전체가 완결 가능할 때만 (§11.6). 초과면 DEFERRED_BUDGET(exit 4), 체인은 다음으로.
+# eval_epoch 10 (NF16 P1–P4 와 같은 격자) · 약명→세팅은 config 머리 주석 / research_log/2026-09-12_pals24-implementation.md §2
+PALS24_L1E3_W112_D123_WV3_S1234_N2LAST_R200_v1
+PALS24_L1E4_W112_D123_WV3_S1234_N2LAST_R200_v1
+PALS24_L3E3_W112_D123_WV3_S1234_N2LAST_R200_v1

@@ -288,8 +288,35 @@ def gate_uvs():
         emit("UVS_M3_uvs_tf_warp_d122", "M2 가 품질 미개선 → shift-effect loss 추가 (§10.1)")
 
 
+# ================================================================= PALS24 λ_off sweep (s1, 2026-09-12)
+def gate_pals24():
+    """계획 §11.5: A1–A3(seed 1234 신규 λ) 가 끝나면 λ* 를 한 번 고정(tools/pals24_select_lambda.py) 하고 stage 2 (B1–B3 seed 7777, C1–C3 seed 2025) 를 연다.
+    세 λ 가 모두 P2 보다 0.0031 초과 낮으면(TERMINATE) 열지 않는다. run 마다의 예산 gate 는 trainer(kdv.budget) 가 본다."""
+    if ROOT not in sys.path:
+        sys.path.insert(0, ROOT)                                        # python tools/campaign_gate.py 로 불리면 tools/ 만 path 에 있다
+    from tools.gen_pals24_configs import run_name, NEW_LAMBDAS
+    a_runs = [run_name(c, 1234) for c in NEW_LAMBDAS]
+    if not all(terminal(t) for t in a_runs):
+        log(f"PALS24: 탐색 run 미완 ({sum(1 for t in a_runs if terminal(t))}/{len(a_runs)}) — stage 2 닫힘"); return
+    if not any(complete(t) for t in a_runs):
+        log("PALS24: 탐색 run 이 전부 실패 — λ* 선택 불가"); return
+    sel = os.path.join(ROOT, "work_dir", "_pals24_campaign", "selected_lambda.json")
+    if not os.path.exists(sel):
+        r = subprocess.run([PY, os.path.join(ROOT, "tools", "pals24_select_lambda.py")], cwd=ROOT, capture_output=True, text=True)
+        for line in (r.stdout + r.stderr).splitlines():
+            log(line)
+        if r.returncode != 0 or not os.path.exists(sel):
+            log("PALS24: λ* 선택 실패 — stage 2 닫힘"); return
+    info = json.load(open(sel))
+    if info.get("confirmation") != "PROCEED":
+        log(f"PALS24: λ* {info.get('selected_case')} 고정됐으나 confirmation={info.get('confirmation')} — {info.get('confirmation_reason')}"); return
+    for tag in info["stage2_runs"]:
+        emit(tag, f"PALS24 stage 2 · λ* = {info['selected_case']} (λ {info['selected_lambda']}) · {info['why'].get('rule')}")
+
+
 GATES = {"uvs": ("gate_uvs", "UVS-KD (2026-09-01 s2)"), "sr": ("gate_sr", "shift-robust (SR/AF)"),
-         "s2cal": ("gate_s2_calibrate", "s2 uncertainty calibration"), "s2gtvar": ("gate_s2_gtvar", "s2 GT-variance KD")}
+         "s2cal": ("gate_s2_calibrate", "s2 uncertainty calibration"), "s2gtvar": ("gate_s2_gtvar", "s2 GT-variance KD"),
+         "pals24": ("gate_pals24", "PALS24 λ_off sweep stage 2 (s1, 2026-09-12)")}
 
 
 def enabled_gates():
@@ -312,7 +339,7 @@ def main():
     on = enabled_gates()
     if not on:
         log("캠페인 게이트 비활성 — 이 큐의 캠페인에 속하지 않는 과거 조건부 실행(UVS·shift-robust·s2 KD)을 열지 않는다. "
-            "필요하면 PANCRAFTER_CAMPAIGN_GATES=uvs,sr 또는 work_dir/campaign_gates_enabled.txt 로 명시한다.")
+            "필요하면 PANCRAFTER_CAMPAIGN_GATES=uvs,sr,pals24 또는 work_dir/campaign_gates_enabled.txt 로 명시한다.")
         return
     log(f"캠페인 게이트 활성: {', '.join(GATES[n][1] for n in on)}")
     for n in on:
