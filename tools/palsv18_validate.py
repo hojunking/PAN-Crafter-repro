@@ -24,7 +24,7 @@ from align.estimator import estimate_shift, GATES                               
 from tools.metrics.jqm import _pan_kernel                                                                   # noqa: E402
 from main import import_class                                                                               # noqa: E402
 
-TOOL_VERSION = "2026-09-13.2"          # 리뷰 반영: canonical proxy 방향, 적격 장면만 평균, shortcut 대조 best/last, stress 8 방향 + c0−ε 기준선 + RR GT stress
+TOOL_VERSION = "2026-09-13.3"          # .3: known-shift 검사를 실제 사용 방향(reference=PAN 을 옮김) 으로          # 리뷰 반영: canonical proxy 방향, 적격 장면만 평균, shortcut 대조 best/last, stress 8 방향 + c0−ε 기준선 + RR GT stress
 CAMP = os.path.join(ROOT, "work_dir", "_palsv18_campaign"); RR_STRESS_MARGIN = 32
 KX = np.array([[-3., 0., 3.], [-10., 0., 10.], [-3., 0., 3.]]) / 32.0; KY = KX.T.copy()
 SIGMAS = (0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.75, 1.0); BLUR_TOL = 0.02; EDGE_TOP = 0.30; CELL = 16; PROF_T = np.linspace(-4, 4, 33)
@@ -85,7 +85,7 @@ def _est(ref, mov, G):
 def native_proxy(m, ds, pan_raw, sensor, dev):
     G = dict(GATES, search_int=4, max_magnitude=4.0); kp = _pan_kernel(sensor.upper(), 4); rows = []
     p0 = pan_raw[0]; ident = _est(blur_hr(p0, kp), blur_hr(p0, kp), G)
-    known = _est(blur_hr(p0, kp), blur_hr(warp_pan(torch.from_numpy(p0)[None, None], torch.tensor([[1.0, 0.0]], dtype=torch.float64))[0, 0].numpy(), kp), G)
+    known = _est(blur_hr(warp_pan(torch.from_numpy(p0)[None, None], torch.tensor([[1.0, 0.0]], dtype=torch.float64))[0, 0].numpy(), kp), blur_hr(p0, kp), G)   # reference(PAN) 쪽을 +1 옮긴다 = P = W(M,(+1,0)) 상황 → audit ≈ +1, canonical −1
     for i in range(len(ds)):
         lms, ms, lpan, pan = (t.unsqueeze(0).to(dev) for t in ds[i]); d = m(pan, ms, lpan)["delta"][0].double().cpu()
         p = pan_raw[i]; pt = warp_pan(torch.from_numpy(p)[None, None], d[None])[0, 0].numpy(); up = up_bicubic(((ms[0].float().cpu().numpy() + 1) / 2 * 2047.0).transpose(1, 2, 0)).mean(2)
@@ -101,8 +101,9 @@ def native_proxy(m, ds, pan_raw, sensor, dev):
                 n_improved=int(sum(r["improved"] for r in rows)), n_improved_accepted=int(sum(r["improved"] for r in acc)),
                 estimator="align/estimator.estimate_shift (Scharr -> median/MAD -> top-30% edge -> ZNCC -> quadratic subpixel; secondary census5 gate inside)", secondary_independent_estimator="not_available (census is a gate of the same estimator, not an independent phase-correlation)",
                 cos_canon_before_vs_model_c_mean=(float(np.mean([r["cos_canon_before_vs_model_c"] for r in rows if r["cos_canon_before_vs_model_c"] is not None])) if any(r["cos_canon_before_vs_model_c"] is not None for r in rows) else None),
-                identity_check=ident, known_shift_check=dict(applied_pan_shift_dy_dx=[1.0, 0.0], audit_measured=known, canonical_pan_to_ms_of_audit=[-known["dy"], -known["dx"]],
-                                                            note="audit = shift of moving(MS) w.r.t. reference(PAN_b); P = W(M,(+1,0)) gives audit ≈ (+1,0) while the PAN correction needed is (−1,0) → canonical = −audit (plan §9.1)"),
+                identity_check=ident, known_shift_check=dict(applied_pan_shift_dy_dx=[1.0, 0.0], audit_measured=known, canonical_pan_to_ms_of_audit=[-known["dy"], -known["dx"]], expected_canonical=[-1.0, 0.0],
+                                                            sign_ok=bool(abs(-known["dy"] + 1.0) < 0.25 and abs(known["dx"]) < 0.25),
+                                                            note="reference PAN shifted by (+1,0) (i.e. P = W(M,(+1,0))): audit ≈ (+1,0), needed PAN correction (−1,0) → canonical = −audit (plan §9.1)"),
                 note="proxy evidence for native position; not a sensor ground truth. 0.557 / 1.79 px are never substituted as per-scene GT")
     return rows, summ
 
