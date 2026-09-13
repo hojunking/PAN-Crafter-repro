@@ -182,3 +182,5 @@ PALS24 recipe 에서 λ 만 바뀐다(gate 가 config 동치 확인). 대조군 
 | 결과 확인 | `python tools/palsv18_report.py` → `work_dir/_palsv18_campaign/final_report.md` (표 A–D, csv 13종) |
 
 결과는 **09-14 s1 문서**에 쓴다.
+
+**같은 날 추가(19:54–20:49):** 사용자 리뷰 7건(평가 checkpoint 삭제, matched-grid selector, 진단 원자료·idempotency, V2/V4 보강, proxy 방향, 18h guard, 고정 batch 진단) 을 반영하느라 첫 run(L3E5 S1234, 14.5K) 을 중단하고 처음부터 다시 돈다. 중단분 0.42 h 는 예산에 계상. 계획 순서대로 대조군 V-pre(V1+V2, 0.13 h) 를 먼저 끝내고 **20:49 재기동**(마감 09-15 02:49). 예상 완료 09-14 07:00 전후. 상세는 구현 노트 §4.1–4.2.

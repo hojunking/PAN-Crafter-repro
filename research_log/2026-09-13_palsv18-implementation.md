@@ -69,6 +69,10 @@ PALS24(`2026-09-12_pals24-implementation.md`) 위에 **λ 값·예산 상수·�
 `fixed_batch` on / off / off(재실행) 세 벌: 마지막 가중치 sha 가 셋 다 다르고, 진단 값의 run 간 차이는 **on–off 와 off–off 가 같은 크기**(step 1 에서 3e-8, 23 에서 1e-5~3e-5)다 — 이 GPU 에서 학습 자체가 bit-identical 하지 않으며(CUDA grid_sample backward 비결정성, 계획 §13.3), 고정 batch 진단이 그 잡음 위에 추가 편차를 만들지 않는다.
 고정 batch 기록은 diag step 전부(0,1,4,5,…,num_iter−1) 에 남고 `sum_rule_max_abs_err` 0.0, `off_unet_grad_absent` True. 후보 checkpoint 는 selector 동률 밖이어도 남는다(`candidates/step-24`). ledger lock 파일 생성 확인.
 
+### 4.3 재기동
+
+V-pre(대조군 11 checkpoint 쌍의 V1+V2, 0.13 h; 이미 계산된 것은 sha·도구 버전 확인 뒤 생략) → `palsv18_prepare.sh` → **2026-09-13 20:49 재기동**(마감 09-15 02:49). 첫 run gate: used 0.61(gate 0.06 + 중단분 0.42 + V-pre 0.13) + 1.1×(1.7+1.7) + 5.0 = 9.35 ≤ 18 → RUN. prepare 는 `nf16_unit_tests` 의 stub 객체가 `args` 를 갖지 않아 두 번 실패했다(`is_diag_step` 을 stub-safe 로 고침).
+
 ## 5. 판정 규약·주의
 
 - 주 판정 best_raw raw_original HQNR → fSCC(원 PAN 참조), 판정선 0.0031 은 raw HQNR 에만. `performance_leader`(3-seed 평균 선두)·`working_reference`(L1E4)·`alignment_evidence`(V1–V4 근거 범위) 를 분리한다(§12.1). 판정선 안이면 L1E4 를 바꾸지 않는다.
