@@ -301,6 +301,10 @@ def check_trainer_extras(cfg):
                     else:
                         lg, _ = mean_kd_loss(o["delta"], o["delta_t"], kd_matrix(Pi, sp["geom"], 1.0), valid); lg = lg.float()
                     assert torch.isfinite(lg); loss = loss + 0.1 * lg
+                if sp["stat_enabled"] and sp.get("stat_lambda_from_run"):         # 20H CF01: λ_V 출처 파일·종류·창·유한 양수 검증 (없으면 smoke 실패 → 전환 스크립트가 기동을 막는다)
+                    from kdv.calibration import load_lambda_from_run
+                    _lam, _li = load_lambda_from_run(sp["stat_lambda_from_run"], sp["stat_kind"], int(sp["stat_windows"][0]), sp.get("stat_transform", "none"), sp.get("stat_domain", "final_hrms"))
+                    note += f" λ_V from {sp['stat_lambda_from_run'][:28]}…={_lam:.4g}"
                 if sp["stat_enabled"]:
                     from pa.losses import output_edge_loss
                     loss = loss + 0.1 * (output_edge_loss(o["y"], gt) if sp["stat_kind"] == "edge" else stat_term(o["y"], (o["y_t"] if o["y_t"] is not None else None), gt, kind=sp["stat_kind"], window=sp["stat_window"], mode=sp["stat_mode"], criterion=scrit).loss)

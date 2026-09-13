@@ -6,7 +6,7 @@
 
 판정 축: 원본 FR 논문 세트 20장 HQNR(raw_original, best_raw), **common grid** = 비교 두 run 의 실제 평가 update 교집합 위에서 pa/selector.BestSelector 규칙(HQNR 1e-4 band → fSCC 1e-4 → 늦은 update) 을 재생.
 3-seed 기준(§6): 같은 서버의 N0(Q00) 대비 seed 1234·777·2026 의 Δ 가 평균 > 0 이고 최소 2/3 양수. plateau/last 는 안정성 설명, ERGAS 는 보조. 원래 best 는 보존한다(§2)."""
-import argparse, csv, hashlib, json, os, subprocess, sys, time
+import argparse, csv, glob, hashlib, json, os, subprocess, sys, time
 import numpy as np
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0, ROOT)
 from pa.selector import BestSelector
@@ -42,9 +42,59 @@ def evals(run):
     return sorted(out, key=lambda x: x["step"])
 
 
-def finished(run):
-    p = os.path.join(ROOT, "work_dir", run, "last_meta.json"); r = os.path.join(ROOT, "work_dir", run, "results", "reduced_best_hqnr.mat")
-    return os.path.exists(p) and os.path.exists(r)
+def finished(run, why=False):
+    """완료 = last_meta.step 50000 · last/model.safetensors 존재 · 평가 마지막 행이 50000 이고 HQNR 유한 · best_hqnr_meta · reduced/full_best_hqnr.mat · finished_at (리뷰 P1/P2-3)."""
+    wd = os.path.join(ROOT, "work_dir", run); reasons = []
+    lm = os.path.join(wd, "last_meta.json")
+    if not os.path.exists(lm):
+        reasons.append("last_meta 없음")
+    else:
+        try:
+            if int(json.load(open(lm)).get("step", -1)) != 50000:
+                reasons.append("last step ≠ 50000")
+        except Exception:
+            reasons.append("last_meta 손상")
+    if not os.path.exists(os.path.join(wd, "last", "model.safetensors")):
+        reasons.append("last 가중치 없음")
+    ev = evals(run)
+    if not ev or ev[-1]["step"] != 50000 or not np.isfinite(ev[-1]["hqnr"]):
+        reasons.append("exact-50K FR 평가 없음/비유한")
+    if not os.path.exists(os.path.join(wd, "best_hqnr_meta.json")):
+        reasons.append("best_hqnr_meta 없음")
+    for f in ("reduced_best_hqnr.mat", "full_best_hqnr.mat"):
+        if not os.path.exists(os.path.join(wd, "results", f)):
+            reasons.append(f"{f} 없음")
+    if not os.path.exists(os.path.join(wd, "meta", "finished_at.txt")):
+        reasons.append("finished_at 없음")
+    return (not reasons, reasons) if why else not reasons
+
+
+def _hashes(run):
+    wd = os.path.join(ROOT, "work_dir", run)
+    h = json.load(open(os.path.join(wd, "init_and_teacher_hashes.json"))) if os.path.exists(os.path.join(wd, "init_and_teacher_hashes.json")) else {}
+    ds = json.load(open(os.path.join(wd, "dataset_hashes.json"))) if os.path.exists(os.path.join(wd, "dataset_hashes.json")) else {}
+    am = json.load(open(os.path.join(wd, "architecture_manifest.json"))) if os.path.exists(os.path.join(wd, "architecture_manifest.json")) else {}
+    ss = json.load(open(os.path.join(wd, "selector_state_raw.json"))) if os.path.exists(os.path.join(wd, "selector_state_raw.json")) else {}
+    sm = os.path.join(wd, "scene_metrics.csv"); roi = None
+    if os.path.exists(sm):
+        with open(sm) as fh:
+            r = next(csv.DictReader(fh), None); roi = (r or {}).get("roi_hash")
+    return dict(teacher=(h.get("teacher") or {}).get("tensors_sha256_16") if isinstance(h.get("teacher"), dict) else h.get("teacher"), init=(h.get("init_hashes") or {}).get("unet_init_sha256_16"), seed=(h.get("init_hashes") or {}).get("seed"),
+                data=json.dumps({k: v for k, v in ds.items() if k != "computed_at"}, sort_keys=True) if ds else None, arch=json.dumps({k: am.get(k) for k in ("width", "depth", "params_m", "in_channels", "class_path") if k in am}, sort_keys=True) if am else None,
+                evaluator=(ss.get("evaluator_hash") or (ss.get("extra") or {}).get("evaluator_hash")), roi=roi)
+
+
+def comparable(run_a, run_b, same_seed=True):
+    """같은 비교 조건인가 (리뷰 P2-3): Teacher sha · 데이터 hash · 골격 · evaluator/ROI hash 가 같고, same_seed 면 U-Net 초기 tensor sha 도 같아야 한다. 반환 (ok, mismatches)."""
+    ha, hb = _hashes(run_a), _hashes(run_b); bad = []
+    for k in ("data", "arch", "evaluator", "roi") + (("init", "seed") if same_seed else ()):
+        if ha.get(k) is None or hb.get(k) is None:
+            bad.append(f"{k}: 기록 없음")
+        elif ha[k] != hb[k]:
+            bad.append(f"{k}: 불일치")
+    if (ha.get("teacher") or hb.get("teacher")) and ha.get("teacher") != hb.get("teacher"):
+        bad.append("teacher: 불일치")          # Teacher 가 없는 run(Q00 은 eval_only 라도 싣는다) 끼리는 None==None
+    return (not bad, bad)
 
 
 def running(run):
@@ -60,12 +110,16 @@ def replay_best(ev, steps, tol_h=1e-4, tol_f=1e-4):
     return sel.best
 
 
-def common_grid_pair(run_a, run_b):
-    """두 run 의 공통 평가 update 위에서 각각 재선택 → Δ = a − b. 원래 best(각자 best_hqnr_meta) 도 병기."""
+def common_grid_pair(run_a, run_b, require_comparable=True):
+    """두 run 이 **둘 다 유효한**(HQNR·fSCC 유한) 평가 update 의 교집합 위에서 각각 재선택 → Δ = a − b (리뷰 P2-3: 한쪽만 유효한 시점은 선택 기회에서 뺀다). 원래 best 도 병기.
+    require_comparable: Teacher/데이터/골격/evaluator/초기 tensor 가 같지 않으면 None (사유는 comparable() 로)."""
+    if require_comparable and not comparable(run_a, run_b)[0]:
+        return None
     ea, eb = evals(run_a), evals(run_b)
     if not ea or not eb:
         return None
-    common = sorted({e["step"] for e in ea} & {e["step"] for e in eb})
+    valid = lambda ev: {e["step"] for e in ev if np.isfinite(e["hqnr"]) and np.isfinite(e["fscc"])}
+    common = sorted(valid(ea) & valid(eb))
     if not common:
         return None
     ba, bb = replay_best(ea, common), replay_best(eb, common)
@@ -74,7 +128,7 @@ def common_grid_pair(run_a, run_b):
     oa = json.load(open(os.path.join(ROOT, "work_dir", run_a, "best_hqnr_meta.json"))) if os.path.exists(os.path.join(ROOT, "work_dir", run_a, "best_hqnr_meta.json")) else {}
     ob = json.load(open(os.path.join(ROOT, "work_dir", run_b, "best_hqnr_meta.json"))) if os.path.exists(os.path.join(ROOT, "work_dir", run_b, "best_hqnr_meta.json")) else {}
     la, lb = ea[-1], eb[-1]; pa_ = [e["hqnr"] for e in ea if 40000 <= e["step"] <= 50000]; pb = [e["hqnr"] for e in eb if 40000 <= e["step"] <= 50000]
-    return dict(a=run_a, b=run_b, n_common=len(common), grid_note=("same grid" if len(common) == len(ea) == len(eb) else f"intersection {len(common)} of {len(ea)}/{len(eb)}"),
+    return dict(a=run_a, b=run_b, n_common=len(common), grid_note=("same grid" if len(common) == len(ea) == len(eb) else f"intersection(valid both) {len(common)} of {len(ea)}/{len(eb)}"),
                 a_best=dict(step=ba["step"], hqnr=ba["hqnr"], fscc=ba["fscc"]), b_best=dict(step=bb["step"], hqnr=bb["hqnr"], fscc=bb["fscc"]), delta_common=ba["hqnr"] - bb["hqnr"],
                 a_original=oa.get("hqnr"), b_original=ob.get("hqnr"), delta_original=((oa.get("hqnr") - ob.get("hqnr")) if oa.get("hqnr") is not None and ob.get("hqnr") is not None else None),
                 a_last=la["hqnr"], b_last=lb["hqnr"], delta_last=la["hqnr"] - lb["hqnr"], a_plateau=(float(np.mean(pa_)) if pa_ else None), b_plateau=(float(np.mean(pb)) if pb else None),
@@ -87,7 +141,10 @@ def three_seed(case, ref="Q00", seeds=SEEDS):
     for s in seeds:
         ra, rb = RUN.get((case, s)), RUN.get((ref, s))
         if not ra or not rb or not finished(ra) or not finished(rb):
-            rows.append(dict(seed=s, status="MISSING", a=ra, b=rb)); continue
+            rows.append(dict(seed=s, status="MISSING", a=ra, b=rb, why=(finished(ra, True)[1] if ra and os.path.isdir(os.path.join(ROOT, "work_dir", ra)) else ["run 없음"]))); continue
+        ok, bad = comparable(ra, rb)
+        if not ok:
+            rows.append(dict(seed=s, status="NOT_COMPARABLE", a=ra, b=rb, why=bad)); continue
         cg = common_grid_pair(ra, rb); rows.append(dict(seed=s, status="OK", **cg) if cg else dict(seed=s, status="NO_COMMON_GRID", a=ra, b=rb))
     ok = [r for r in rows if r["status"] == "OK"]; deltas = [r["delta_common"] for r in ok]
     complete = len(ok) == len(seeds)
@@ -99,33 +156,58 @@ def ledger_path():
     return os.path.join(CAMP, "ledger.json")
 
 
+def _ts(s_):
+    return time.mktime(time.strptime(s_.strip()[:19], "%Y-%m-%dT%H:%M:%S"))
+
+
 def budget():
-    """20h 예산: switch 시각부터 whitelist run 들의 실측 소요(meta/started_at→finished_at) 합 + 현재 run 경과. 예약(잔여 run × 실측 평균) 과 함께."""
+    """20h 예산 (리뷰 P1-2): 시계는 switch 시각. 계상 = ① 전환 전 run 의 switch 이후 잔여 시간 ② switch 이후 시작한 모든 run(whitelist 밖·실패·중단 포함) 의 실측(진행 중이면 경과)
+    ③ 준비·smoke(ledger overhead_hours) ④ 완료 run 당 export/업로드 overhead(ledger post_run_overhead_hours, 기본 0.1). 예약(잔여 run × 실측 평균×1.1) 은 decide 가 더한다."""
     lp = ledger_path(); d = json.load(open(lp)) if os.path.exists(lp) else {}
-    t0 = d.get("start"); used = 0.0; per = {}
-    def hours(run):
+    t0s = d.get("start"); t0 = _ts(t0s) if t0s else None; items = {}
+    def span(run):
         wd = os.path.join(ROOT, "work_dir", run, "meta")
         try:
-            a = time.mktime(time.strptime(open(os.path.join(wd, "started_at.txt")).read().strip()[:19], "%Y-%m-%dT%H:%M:%S"))
-            b = time.mktime(time.strptime(open(os.path.join(wd, "finished_at.txt")).read().strip()[:19], "%Y-%m-%dT%H:%M:%S")) if os.path.exists(os.path.join(wd, "finished_at.txt")) else time.time()
-            return (b - a) / 3600.0
+            a = _ts(open(os.path.join(wd, "started_at.txt")).read()); b = _ts(open(os.path.join(wd, "finished_at.txt")).read()) if os.path.exists(os.path.join(wd, "finished_at.txt")) else time.time(); return a, b
         except Exception:
             return None
-    for key, run in RUN.items():
-        h = hours(run)
-        if h is not None and (running(run) or finished(run)):
-            per[run] = round(h, 3)
-    counted = {r: h for r, h in per.items() if d.get("start") is None or os.path.exists(os.path.join(ROOT, "work_dir", r, "meta", "started_at.txt")) and open(os.path.join(ROOT, "work_dir", r, "meta", "started_at.txt")).read().strip() >= t0}
-    used = sum(counted.values()); avg = (float(np.mean([h for r, h in counted.items() if finished(r)])) if any(finished(r) for r in counted) else d.get("est_run_hours", 1.5))
-    return dict(start=t0, cap_hours=BUDGET_H, used_hours=round(used, 3), counted_runs=counted, est_run_hours=round(avg, 3), remaining_hours=round(BUDGET_H - used, 3), note="switch 이후 시작한 whitelist run 만 계상 (현재 run 경과 포함); 완료 시간 보장이 아니라 실측 갱신")
+    if t0 is not None:
+        for wdp in sorted(glob.glob(os.path.join(ROOT, "work_dir", "NA104_*"))):
+            run = os.path.basename(wdp); sp_ = span(run)
+            if not sp_:
+                continue
+            a, b = sp_
+            if run == d.get("pre_switch_run") and a < t0 < b + 1:
+                items[run] = dict(hours=round((b - t0) / 3600.0, 3), kind="pre_switch_remainder")        # ① 전환 전 run 의 잔여 (계획 §2)
+            elif a >= t0:
+                items[run] = dict(hours=round((b - a) / 3600.0, 3), kind=("run" if finished(run) else "running" if running(run) else "failed_or_partial"))   # ② 실패·중단 시도도 계상
+        post = float(d.get("post_run_overhead_hours", 0.1)) * sum(1 for r, v in items.items() if v["kind"] == "run")
+        overhead = float(d.get("overhead_hours", 0.0))
+    else:
+        post = overhead = 0.0
+    used = sum(v["hours"] for v in items.values()) + post + overhead
+    done = [v["hours"] for r, v in items.items() if v["kind"] == "run" and r in RUN.values()]
+    avg = float(np.mean(done)) if done else float(d.get("est_run_hours", 1.5))
+    return dict(start=t0s, cap_hours=BUDGET_H, used_hours=round(used, 3), items=items, post_run_overhead_hours=round(post, 3), prep_overhead_hours=overhead, est_run_hours=round(avg, 3), n_measured=len(done),
+                remaining_hours=round(BUDGET_H - used, 3), elapsed_wallclock_hours=(round((time.time() - t0) / 3600.0, 3) if t0 else None),
+                note="switch 시계 기준. 전환 전 run 잔여·실패/중단 시도·준비·export overhead 포함 (계획 §2·§6). 완료 시간 보장이 아니라 실측 갱신")
 
 
 def decide(srv):
-    """조건부 분기 (§4·§5). 반환 dict(open=[run...], reasons=[...], q36=..., q12=..., cf01_pilots=...)."""
+    """조건부 분기 (§4·§5·§6). 반환 dict(open=[run...], reasons=[...], q36, q12, cf01_pilots, cf01_final, budget, planned_hours).
+    예산은 **승인할 때마다 누적**한다(리뷰 P1-2): 같은 잔여시간을 CF01 과 X02 에 중복 승인하지 않는다."""
     out = dict(server=srv, open=[], reasons=[]); q36 = three_seed("Q36"); q12 = three_seed("Q12"); out["q36"] = q36; out["q12"] = q12
-    bud = budget(); out["budget"] = bud
+    bud = budget(); out["budget"] = bud; planned = [0.0]
     def affordable(n):
-        need = bud["used_hours"] + n * bud["est_run_hours"] * 1.1; ok = need <= BUDGET_H; out["reasons"].append(f"예산: used {bud['used_hours']:.2f} + {n}×{bud['est_run_hours']:.2f}×1.1 = {need:.2f} ≤ 20 → {'OK' if ok else 'STOP'}"); return ok
+        need = bud["used_hours"] + planned[0] + n * bud["est_run_hours"] * 1.1; ok = need <= BUDGET_H
+        out["reasons"].append(f"예산: used {bud['used_hours']:.2f} + 이미 승인 {planned[0]:.2f} + {n}×{bud['est_run_hours']:.2f}×1.1 = {need:.2f} ≤ 20 → {'OK' if ok else 'STOP'}")
+        if ok:
+            planned[0] += n * bud["est_run_hours"] * 1.1
+        return ok
+    # CF01 최종 판정 (§6): pilot(S777·S1234 vs Q36) 과 별개로, 3 seed 완료 뒤 N0 대비·Q36 대비 둘 다 3-seed 기준
+    cf_n0, cf_q36 = three_seed("CF01", "Q00"), three_seed("CF01", "Q36")
+    out["cf01_final"] = dict(vs_N0=dict(passed=cf_n0["passed"], mean_delta=cf_n0["mean_delta"], n_positive=cf_n0["n_positive"], n_ok=cf_n0["n_ok"]), vs_Q36=dict(passed=cf_q36["passed"], mean_delta=cf_q36["mean_delta"], n_positive=cf_q36["n_positive"], n_ok=cf_q36["n_ok"]),
+                            passed=((cf_n0["passed"] and cf_q36["passed"]) if (cf_n0["complete"] and cf_q36["complete"]) else None), rule="both: mean Δ > 0 and ≥ 2/3 seeds positive (vs N0 and vs Q36), common grid")
     # P2 CF01
     if q36["passed"]:
         if srv == "s3":
@@ -158,6 +240,7 @@ def decide(srv):
             out["open"] += todo; out["reasons"].append("§5: Q12 3-seed 통과 → X02 S777·S2026 (Q12 와 같은 Teacher/λ_E/seed/update/eval)")
     else:
         out["reasons"].append(f"Q12 3-seed 기준 {'미완' if q12['passed'] is None else '불통과'} → X02 닫힘")
+    out["planned_hours"] = planned[0]; out["remaining_after_plan"] = BUDGET_H - bud["used_hours"] - planned[0]
     return out
 
 
@@ -169,7 +252,7 @@ def report(srv):
     q = os.path.join(ROOT, "config", "queues", f"na104_20h_{srv}.txt"); qs = [l.strip() for l in open(q) if l.strip() and not l.startswith("#")] if os.path.exists(q) else []
     cur = [r for r in RUN.values() if running(r)]; done = [r for r in RUN.values() if finished(r)]
     core = {}
-    for c in ("Q00", "Q36", "Q12"):
+    for c in ("Q00", "Q36", "Q12", "CF01", "X02"):
         core[c] = {}
         for s in SEEDS:
             r = RUN.get((c, s))
@@ -186,13 +269,14 @@ def report(srv):
     dec = decide(srv)
     out = dict(server=srv, generated=time.strftime("%Y-%m-%dT%H:%M:%S"), current_runs=cur, whitelist_p1=[RUN[c] for c in P1], p1_done=[RUN[c] for c in P1 if finished(RUN[c])], p1_pending=[RUN[c] for c in P1 if not finished(RUN[c])],
                deducted_completed=[r for r in done if r in [RUN[c] for c in P1]], queue=q, queue_runs=qs, core=core, decision=dict(open=dec["open"], reasons=dec["reasons"], q36=dict(passed=dec["q36"]["passed"], mean_delta=dec["q36"]["mean_delta"], n_positive=dec["q36"]["n_positive"], n_ok=dec["q36"]["n_ok"]),
-               q12=dict(passed=dec["q12"]["passed"], mean_delta=dec["q12"]["mean_delta"], n_positive=dec["q12"]["n_positive"], n_ok=dec["q12"]["n_ok"]), cf01_pilots=dec.get("cf01_pilots")), budget=dec["budget"], retired=RETIRED, hashes=hashes, next_tuning_axes=NEXT_AXES, alias=ALIAS,
+               q12=dict(passed=dec["q12"]["passed"], mean_delta=dec["q12"]["mean_delta"], n_positive=dec["q12"]["n_positive"], n_ok=dec["q12"]["n_ok"]), cf01_pilots=dec.get("cf01_pilots"), cf01_final=dec["cf01_final"], planned_hours=dec["planned_hours"]),
+               budget=dec["budget"], retired=RETIRED, hashes=hashes, next_tuning_axes=NEXT_AXES, alias=ALIAS, comparability={f"{c}-S{s}": comparable(RUN[(c, s)], RUN[("Q00", s)]) for c in ("Q36", "Q12", "CF01", "X02") for s in SEEDS if (c, s) in RUN and finished(RUN[(c, s)]) and finished(RUN[("Q00", s)])},
                selector_note="선택 기준은 best_raw HQNR → fSCC (best_rr_val 은 보조 selector 일 뿐 판정 축이 아니다; ERGAS 로 바꾸지 않는다)")
     os.makedirs(CAMP, exist_ok=True); json.dump(out, open(os.path.join(CAMP, f"report_{srv}.json"), "w"), indent=1, ensure_ascii=False)
     print(f"[20h {srv}] 현재 run {cur or '없음'} · P1 완료 {len(out['p1_done'])}/4 · 예산 used {dec['budget']['used_hours']} h / 20 (run 평균 {dec['budget']['est_run_hours']} h)")
-    for c in ("Q00", "Q36", "Q12"):
+    for c in ("Q00", "Q36", "Q12", "CF01", "X02"):
         print(f"  {c}: " + " | ".join(f"S{s} " + (f"best {v['best_original']['hqnr']:.5f}@{v['best_original']['step']} last {v['last']:.5f} plateau {v['plateau']:.5f}" + (f" ΔN0(cg) {v['delta_vs_N0_common']:+.5f}" if v.get('delta_vs_N0_common') is not None else "") if "best_original" in v else v["status"]) for s, v in core[c].items()))
-    print(f"  판정: Q36 {out['decision']['q36']} · Q12 {out['decision']['q12']}\n  열림: {dec['open'] or '없음'}\n  사유: " + " / ".join(dec["reasons"]))
+    print(f"  판정: Q36 {out['decision']['q36']} · Q12 {out['decision']['q12']} · CF01 최종 {out['decision']['cf01_final']['passed']} (vs N0 {out['decision']['cf01_final']['vs_N0']['passed']}, vs Q36 {out['decision']['cf01_final']['vs_Q36']['passed']})\n  열림: {dec['open'] or '없음'} (승인 예약 {dec['planned_hours']:.2f} h)\n  사유: " + " / ".join(dec["reasons"]))
     print(f"  hash: teacher {hashes['teacher']['best_hqnr_sha16']} pilot {hashes['pilot']['last_sha16']} queue {hashes['queue_sha16']} git {hashes['git']} evaluator {hashes['evaluator']}\n  -> work_dir/_na104_20h/report_{srv}.json")
 
 

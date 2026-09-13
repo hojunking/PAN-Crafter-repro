@@ -22,6 +22,17 @@
 `tools/na104_20h_unit_tests.py` H01–H05: config 9벌 존재·큐 순서, CF01 spec(N0·GC/FIX·kd 0.1·λ from Q36·Teacher 학습·TRI 없음; Q36 과 mode/λ출처/eval_only 만 다름), λ 출처 중복 거부, common-grid 재생(eval 5/10 혼재 합성), 3-seed 기준(+0.002/−0.001/+0.004 → pass; seed 미완 → None), decide 닫힘, campaign gate 격리, switch 절차 — 통과.
 **s1 에서 못 한 것**: CF01 의 실제 학습 forward(FIX 모드 + Teacher) smoke — Teacher·Q36 run 이 s2/s3 에만 있다. `na104_20h_switch.sh` 가 각 서버에서 P1 4 + CF01 을 smoke 한다(계획 §4 "먼저 smoke").
 
+## 2.1 2026-09-13 리뷰(6건) 반영
+
+| # | 지적 | 반영 |
+|---|---|---|
+| P1-1 | switch 가 smoke·unit test 실패 뒤에도 기동 · H04/H05 가 서버 상태에 의존 | `na104_20h_switch.sh`: `set -e` 대신 종료코드를 명시 검사 — P1 smoke 또는 unit test 실패면 token 을 쓰지 않고 exit 1(CF01 smoke 실패는 조건부 분기라 경고만; trainer gate 가 다시 막는다). unit test H03–H05 는 임시 ROOT 의 합성 run fixture 로만 판정(서버 진행 상태 무관) |
+| P1-2 | 20h 예산 누락(전환 전 run 잔여·실패·준비 비용) · CF01/X02 에 같은 잔여를 중복 승인 · 마감 30h | 시계 = switch 시각(현재 run 종료 뒤가 아니라 **지금**). `budget()` = 전환 전 run 의 switch 이후 잔여 + switch 이후 시작한 모든 NA104 run(실패·중단 포함) 실측 + 준비/smoke overhead + 완료 run 당 export overhead 0.1h. `decide()` 는 승인할 때마다 예약을 누적(반례 17h·1h/run: CF01 2 → 19.2 승인, X02 는 21.4 → STOP). 큐 마감 `--hours` = 남은 예산(20 − used) |
+| P1/P2-3 | finished 가 파일 존재만 확인 · 비교 조건 미검증 · 공통 격자가 한쪽만 유효한 시점을 허용 | `finished()`: last step 50000 · last 가중치 · exact-50K FR 평가 유한 · best_hqnr_meta · reduced/full mat · finished_at (사유 반환). `comparable()`: Teacher sha·데이터 hash·골격·evaluator/ROI hash·(같은 seed 면) 초기 tensor 가 같아야 비교(불일치 사유 기록, `three_seed` 에 NOT_COMPARABLE). `common_grid_pair`: **둘 다 유한한** update 의 교집합에서만 재생(합성 반례: 한쪽 NaN 시점 제외 → Δ 0) |
+| P2-4 | λ 출처가 파일·키 존재만 확인 · smoke 가 λ 경로를 검증하지 않음 | `kdv.calibration.load_lambda_from_run`: 출처 통계 종류/창/변환/영역 일치 · λ 유한 양수 · 파일 sha256·출처 run_id 기록; 불일치면 ValueError → trainer `CALIBRATION_SOURCE_INVALID` gate, smoke 도 같은 함수로 검증(전환 스크립트의 CF01 smoke 가 잡는다). NaN·−3·IV/창7·창7·키 없음 전부 거부(unit test) |
+| P2-5 | CF01 최종 3-seed 판정 없음 | `decide()` 에 `cf01_final` = CF01 vs N0 **및** vs Q36 의 3-seed 기준(둘 다 통과해야 pass; 3 seed 미완이면 None) — pilot(S777·S1234 vs Q36) 판정과 분리해 report 에 둘 다 표시 |
+| P2-6 | s2 가 먼저 DONE 이면 token 만으로 CF01 이 시작되지 않음 | `na104_20h_switch.sh --reenter`: 체인이 없고 ledger 가 있으면 사전 검사 → 남은 예산 확인 → `decide` 로 열릴 분기가 있을 때만 같은 큐로 체인 재기동(완료분 건너뜀 → gate 가 CF01/X02 를 연다), 마감 = 남은 예산. 운영 절차 §3 에 명시 |
+
 ## 3. 운영자 절차 (s2·s3)
 
 ```
@@ -30,6 +41,7 @@ git pull
 python tools/na104_20h.py report     # 언제든 회신 항목
 # s3: CF01 pilot 둘 다 양성이면 work_dir/_na104_20h/cf01_pilots_positive.json 이 생긴다 → 그 내용을 s2 에 전달 →
 # s2: touch work_dir/_na104_20h/cf01_approved_by_s3.txt (자기 Q36 도 통과해야 CF01 이 열린다)
+#     체인이 이미 DONE 으로 끝났으면 → ./tools/na104_20h_switch.sh --reenter  (남은 예산·열릴 분기 확인 뒤 같은 큐로 재진입)
 ```
 
 큐가 끝나면 체인이 gate 를 다중 패스로 부르므로 CF01/X02 는 조건이 갖춰지는 대로 열린다. 조건이 닫히면 `[cases] DONE` 으로 끝난다(빈 시간을 폐기한 방법으로 채우지 않는다).

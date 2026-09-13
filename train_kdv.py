@@ -359,17 +359,14 @@ class KDVTrainer(PATrainer):
                 self.calibration["stat"] = dict(percal[w], windows=ws, transform=tf, transform_eps=tfe, domain=dom, per_window={str(x): percal[x] for x in ws})
                 self.stat_crit = self.stat_crits.get(w)
             lam = st.get("outer_weight", "calibrate")
-            if sp.get("stat_lambda_from_run"):                                          # 20H CF01: 다른 run 이 실제로 쓴 λ_V 를 그대로 (재calibration 금지; 없으면 gate 실패)
-                src = os.path.join(ROOT, "work_dir", sp["stat_lambda_from_run"], "calibration_resolved.json")
-                if not os.path.exists(src):
-                    self._gate_fail("CALIBRATION_SOURCE_MISSING", dict(stage="lambda_V", lambda_from_run=sp["stat_lambda_from_run"], path=src))
-                j = json.load(open(src)); lsrc = j.get("lambda") or {}
-                if lsrc.get("lambda_V_used") is None:
-                    self._gate_fail("CALIBRATION_SOURCE_MISSING", dict(stage="lambda_V", lambda_from_run=sp["stat_lambda_from_run"], reason="calibration_resolved.json 에 lambda.lambda_V_used 없음"))
-                if str(lsrc.get("kind", (j.get("stat") or {}).get("kind", kind))) not in (kind, "None"):
-                    pass
-                self.lam_V = float(lsrc["lambda_V_used"]) * sp["stat_lambda_scale"]
-                self.calibration["lambda"] = dict(lambda_V=self.lam_V, source="from_run", run=sp["stat_lambda_from_run"], source_lambda=lsrc, lambda_scale=sp["stat_lambda_scale"], lambda_V_used=self.lam_V)
+            if sp.get("stat_lambda_from_run"):                                          # 20H CF01: 다른 run 이 실제로 쓴 λ_V 를 그대로 (재calibration 금지) — 출처 종류/창/변환·유한 양수·hash 검증 (리뷰 P2-4)
+                from kdv.calibration import load_lambda_from_run
+                try:
+                    lam_src, linfo = load_lambda_from_run(sp["stat_lambda_from_run"], kind, w, tf, dom)
+                except ValueError as ex:
+                    self._gate_fail("CALIBRATION_SOURCE_INVALID", dict(stage="lambda_V", lambda_from_run=sp["stat_lambda_from_run"], reason=str(ex)))
+                self.lam_V = float(lam_src) * sp["stat_lambda_scale"]
+                self.calibration["lambda"] = dict(lambda_V=self.lam_V, source="from_run", lambda_scale=sp["stat_lambda_scale"], lambda_V_used=self.lam_V, kind=kind, window=w, **linfo)
                 lam = None
             if lam == "calibrate":
                 pilot = st.get("lambda_pilot")
@@ -925,7 +922,8 @@ class KDVTrainer(PATrainer):
     # ------------------------------------------------------------------ gradient 진단 (§16.6, §21.2)
     def is_diag_step(self, step):
         """진단 step: diag_every 배수 + (I-AEQ 면 그 다음 홀수 step 도 — offset 연습 gradient 를 기록, 검토 지적 5)."""
-        return step % self.diag_every == 0 or (self.protocol == "I-AEQ" and (step % self.diag_every == 1 or step == int(self.args.num_iter) - 1))
+        n_iter = getattr(getattr(self, "args", None), "num_iter", None)          # gate 의 stub 객체(args 없음) 도 받는다
+        return step % self.diag_every == 0 or (self.protocol == "I-AEQ" and (step % self.diag_every == 1 or (n_iter is not None and step == int(n_iter) - 1)))
 
     def _gnorm(self, loss, params):
         if not params or not loss.requires_grad:

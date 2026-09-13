@@ -99,7 +99,7 @@ for n in names[:1]:
     if os.path.exists(f):
         k = yaml.safe_load(open(f))["kdv"]; check("PV08 config: kdv.select.retain_all_candidates true · kdv.diag.fixed_batch true", k.get("select", {}).get("retain_all_candidates") is True and k.get("diag", {}).get("fixed_batch") is True)
 src = open(os.path.join(ROOT, "train_kdv.py")).read()
-check("PV08 trainer: retain 이면 selector 동률 밖 후보를 지우지 않는다 · ledger flock · 마지막 active update(num_iter−1) 진단 · 고정 batch 분해", 'retain_all_candidates' in src and 'and not retain' in src and '_LedgerLock' in src and 'int(self.args.num_iter) - 1' in src and 'gradient_diagnostics_fixed.jsonl' in src)
+check("PV08 trainer: retain 이면 selector 동률 밖 후보를 지우지 않는다 · ledger flock · 마지막 active update(num_iter−1) 진단 · 고정 batch 분해", 'retain_all_candidates' in src and 'and not retain' in src and '_LedgerLock' in src and 'int(n_iter) - 1' in src and 'gradient_diagnostics_fixed.jsonl' in src)
 class _P: protocol = "I-AEQ"; diag_every = 1000; args = type("A", (), dict(num_iter=50000))()
 check("PV08 진단 step 에 49999(마지막 active update) 포함, 49998 제외", KDVTrainer.is_diag_step(_P, 49999) and not KDVTrainer.is_diag_step(_P, 49998) and KDVTrainer.is_diag_step(_P, 25001))
 # ---------------- PV09 리뷰 P1-2: matched grid = selection_grid 의 실제 update 목록 + 실제 BestSelector 규칙

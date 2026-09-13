@@ -336,3 +336,32 @@ def calibrate_lambda_q(pilot, teacher, batches, dev, criterion, *, s_c):
     g1m, gqm = float(np.median(g1)), float(np.median(gq))
     degenerate = gqm <= 1e-12 * max(g1m, 1e-30)
     return dict(lambda_q=(0.0 if degenerate else g1m / gqm), g_l1_rms_median=g1m, g_q_rms_median=gqm, degenerate=bool(degenerate), status=('CALIBRATION_DEGENERATE' if degenerate else 'OK'), s_c=s_c)
+
+
+def load_lambda_from_run(run, kind, window, transform='none', domain='final_hrms', root=None):
+    """다른 run 이 실제로 쓴 λ_V 를 그대로 가져온다 (NA104 20H CF01: Q36 의 λ_C 재사용, 재calibration 금지).
+    검증 (리뷰 P2-4): 출처 파일 존재 · lambda.lambda_V_used 유한 양수 · 출처의 통계 종류/창/변환/영역이 이 run 과 같음. 실패는 ValueError (trainer 는 gate 로, smoke 는 assert 로 받는다).
+    반환 (lambda_V, info) — info 에 출처 파일 sha256·출처 run 의 run_id·λ 내역."""
+    import hashlib, json, math, os
+    root = root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    src = os.path.join(root, 'work_dir', run, 'calibration_resolved.json')
+    if not os.path.exists(src):
+        raise ValueError(f'lambda_from_run: {src} 없음 (출처 run 이 이 서버에서 끝나지 않았다)')
+    j = json.load(open(src)); lsrc = j.get('lambda') or {}; st = j.get('stat') or {}
+    lam = lsrc.get('lambda_V_used')
+    if lam is None or not isinstance(lam, (int, float)) or not math.isfinite(float(lam)) or float(lam) <= 0:
+        raise ValueError(f'lambda_from_run: {run} 의 lambda.lambda_V_used 가 유한 양수가 아니다 ({lam!r})')
+    sk = lsrc.get('kind') or st.get('kind'); sw = lsrc.get('window') or st.get('window'); stf = st.get('transform', 'none'); sdom = st.get('domain', 'final_hrms')
+    swins = st.get('windows') or ([sw] if sw is not None else [])
+    if sk is not None and str(sk) != str(kind):
+        raise ValueError(f'lambda_from_run: 출처 통계 종류 {sk} ≠ 이 run {kind} (λ_V 는 표현마다 다르다)')
+    if swins and int(window) not in [int(w) for w in swins]:
+        raise ValueError(f'lambda_from_run: 출처 창 {swins} 에 이 run 의 창 {window} 이 없다')
+    if str(stf) != str(transform) or str(sdom) != str(domain):
+        raise ValueError(f'lambda_from_run: 출처 transform/domain ({stf}/{sdom}) ≠ 이 run ({transform}/{domain})')
+    sha = hashlib.sha256(open(src, 'rb').read()).hexdigest()
+    rid = None
+    kc = os.path.join(root, 'work_dir', run, 'kdv_config_resolved.json')
+    if os.path.exists(kc):
+        rid = json.load(open(kc)).get('run_id')
+    return float(lam), dict(source_run=run, source_run_id=rid, source_file=os.path.relpath(src, root), source_sha256=sha, source_lambda=lsrc, source_stat=dict(kind=sk, windows=swins, transform=stf, domain=sdom))
