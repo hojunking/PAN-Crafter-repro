@@ -13,7 +13,10 @@ case "$MODE" in
              PALS24_CTRLP0_W112_D123_WV3_S7777_N2LAST_R200_v1 PALS24_L000_W112_D123_WV3_S7777_N2LAST_R200_v1 PALS24_L1E4_W112_D123_WV3_S7777_N2LAST_R200_v1
              PALS24_CTRLP0_W112_D123_WV3_S2025_N2LAST_R200_v1 PALS24_L000_W112_D123_WV3_S2025_N2LAST_R200_v1 PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1
              NF16_P3_W112_D123_WV3_S1234_N2LAST_v1 $DONOR"; CKPTS="best_hqnr last"; KEY=vpre;;
-  post) RUNS=$(ls -d work_dir/PALSV18_*_v1 2>/dev/null | xargs -n1 basename | while read -r r; do [ -f "work_dir/$r/results/reduced_best_hqnr.mat" ] && echo "$r"; done | tr '\n' ' '); CKPTS="best_hqnr last"; KEY=vpost;;
+  post) RUNS="$(ls -d work_dir/PALSV18_*_v1 2>/dev/null | xargs -n1 basename | while read -r r; do [ -f "work_dir/$r/results/reduced_best_hqnr.mat" ] && echo "$r"; done | tr '\n' ' ')
+             NF16_P0_W112_D123_WV3_S1234_N2LAST_v1 NF16_P2_W112_D123_WV3_S1234_N2LAST_v1 PALS24_L1E4_W112_D123_WV3_S1234_N2LAST_R200_v1
+             PALS24_CTRLP0_W112_D123_WV3_S7777_N2LAST_R200_v1 PALS24_L000_W112_D123_WV3_S7777_N2LAST_R200_v1 PALS24_L1E4_W112_D123_WV3_S7777_N2LAST_R200_v1
+             PALS24_CTRLP0_W112_D123_WV3_S2025_N2LAST_R200_v1 PALS24_L000_W112_D123_WV3_S2025_N2LAST_R200_v1 PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1 NF16_P3_W112_D123_WV3_S1234_N2LAST_v1 $DONOR"; CKPTS="best_hqnr last"; KEY=vpost;;
   run)  RUNS="$1"; shift; CKPTS="${*:-best_hqnr last}"; KEY=vpost;;
   *) echo "usage: $0 pre|post|run <run> [ckpt...]" >&2; exit 2;;
 esac
@@ -28,9 +31,10 @@ for r in $RUNS; do
       "$PY" tools/po10_diag.py --run "$r" --ckpt "$ck" --out "po10_diag_${ck}_palsv18" --probe-set palsv18 --response-only --ref-run "$DONOR" --ref-ckpt last > "$L" 2>&1 || { echo "  !! V1 실패 ($r/$ck) — $L"; FAILS="$FAILS $r/$ck:V1"; }
       grep "fr512\|aligner 없음" "$L" | head -1 | cut -c1-200
     fi
-    # V2–V4
-    if [ ! -f "work_dir/$r/results/palsv18_${ck}.json" ]; then
-      "$PY" tools/palsv18_validate.py --run "$r" --ckpt "$ck" --parts v2,v3,v4 --stress-dirs 4 >> "$L" 2>&1 || { echo "  !! V2–V4 실패 ($r/$ck) — $L"; FAILS="$FAILS $r/$ck:V234"; }
+    # V2–V4: pre 는 best_raw 만 (약 12 min/ckpt; 예약 2.0h 안) — last 의 V2–V4 는 post 에서 (§9.4/§10.2 우선순위: 세 seed best_raw 전수 → exact50K)
+    PARTS="v2,v3,v4"; [ "$MODE" = "pre" ] && [ "$ck" = "last" ] && PARTS=""
+    if [ -n "$PARTS" ] && [ ! -f "work_dir/$r/results/palsv18_${ck}.json" ]; then
+      "$PY" tools/palsv18_validate.py --run "$r" --ckpt "$ck" --parts "$PARTS" --stress-dirs 4 >> "$L" 2>&1 || { echo "  !! V2–V4 실패 ($r/$ck) — $L"; FAILS="$FAILS $r/$ck:V234"; }
       grep "^  V[234]" "$L" | cut -c1-220
     fi
   done

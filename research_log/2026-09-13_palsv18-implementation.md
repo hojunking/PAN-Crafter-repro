@@ -47,7 +47,8 @@ PALS24(`2026-09-12_pals24-implementation.md`) 위에 **λ 값·예산 상수·�
 - **기동 19:28:44** (체인 마감 09-15 01:28), 큐 6 run. 첫 run gate: used 0.055 + 1.1×(1.7 + 1.7) + 5.0 = 8.80 ≤ 18 → RUN. `campaign_gates_enabled.txt` 의 `pals24` token 은 `_palsv18_campaign/campaign_gates_enabled.pals24.closed.txt` 로 옮겨 닫았다(PALSV18 은 조건부 gate 없음).
 - gate 실측 0.055 h(예약 0.8). PALS24 실측(1.41–1.46 h/run + 진단 0.15 h) 기준 6회 ≈ 9.5 h → 09-14 05:00 께 완료 예상.
 - V-pre(대조군 11 checkpoint 쌍의 V1–V4) 는 aligner 전용 추론 + FR 20장 재추론이라 학습과 겹쳐 돌리고 벽시계 시간 전부를 ledger `vpre` 에 계상한다(계획 §4.1 예약 2.0).
-- 검증 도구 실전 시험(PALS24 L1E4 S1234 best_raw): (기동 뒤 채움)
+- 검증 도구 실전 시험(PALS24 L1E4 S1234 best_raw, 학습과 겹쳐 실행): V2 fr512 — pan_only B ≈ diag(−0.51, −0.51), ms_only ≈ diag(+0.50, +0.47), common ≈ diag(−0.01, −0.01)·EPE 0.018 (무반응 참조 0.9375) → aligner 는 PAN–MS **상대** 위치에 반응한다(학습하지 않은 MS-only 변환에도 부호가 맞는다). native64 도 같은 방향(−0.44/−0.57, +0.37/+0.43, ≈0).
+  V3.3 — bicubic warp 는 Scharr energy 를 **줄이지 않는다**(FR 비 1.028, calibration 1.005) → σ 후보가 target 을 맞추지 못해 `unmatched_blur_control`(계획 §9.3 의 예외 경로; blur 개입은 돌리지 않고 상태만 기록). identity 0.0, ramp +1.000. constant_calibration 벡터(train 256 patch c0 중앙값) = (+0.136, +0.077) px.
 
 ## 5. 판정 규약·주의
 

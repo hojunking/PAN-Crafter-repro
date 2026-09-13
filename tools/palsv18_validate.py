@@ -204,7 +204,8 @@ def interventions(m, ds, lms_raw, pan_raw, sensor, wald, mp, dev, const_vec, sig
         lms, ms, lpan, pan = (t.unsqueeze(0).to(dev) for t in ds[i]); learned.append(m(pan, ms, lpan)["delta"][0].float().cpu().numpy())
     n = len(ds); modes = dict(learned=lambda i: learned[i], zero=lambda i: np.zeros(2, np.float32), wrong_sign=lambda i: -learned[i], scene_shuffle=lambda i: learned[(i + 1) % n], constant_calibration=lambda i: np.array(const_vec, np.float32))
     out = {}
-    for mode, fn in list(modes.items()) + ([("blur_energy_match", None)] if sigma_star is not None else []):
+    blur_ok = sigma_star is not None and sigma_star > 0 and blur_status == "matched"          # σ*=0 / unmatched 면 blur 대조는 zero 와 같아 의미가 없다 — 상태만 남긴다 (§9.3)
+    for mode, fn in list(modes.items()) + ([("blur_energy_match", None)] if blur_ok else []):
         acc = {v: dict(hqnr=[], fscc=[], d_s=[], d_lambda=[]) for v in VIEWS}; ok_n = 0; per = []
         for i in range(n):
             lms, ms, lpan, pan = (t.unsqueeze(0).to(dev) for t in ds[i])
@@ -221,6 +222,8 @@ def interventions(m, ds, lms_raw, pan_raw, sensor, wald, mp, dev, const_vec, sig
     # zero 의 수치 동치: aligner_enabled=False 와 delta_override=0 (같은 sampler 경로) 의 출력 차이
     lms, ms, lpan, pan = (t.unsqueeze(0).to(dev) for t in ds[0]); z1 = m(pan, ms, lpan, aligner_enabled=False)["y"]; z2 = m(pan, ms, lpan, delta_override=torch.zeros(1, 2, device=dev))["y"]
     out["zero_equivalence_max_abs"] = float((z1 - z2).abs().max()); out["constant_vector_dy_dx"] = list(map(float, const_vec)); out["scene_shuffle"]["derangement"] = "c_{(i+1) mod 20} (fixed)"
+    if not blur_ok:
+        out["blur_energy_match"] = dict(status=(blur_status or "not_run"), sigma_star=sigma_star, note="bicubic warp did not reduce Scharr energy on calibration patches (ratio >= 1) or no sigma matched within tolerance — blur control not applicable (unmatched_blur_control)")
     out["note"] = "same weights, correction substituted; raw views only (aligned view uses the substituted correction as reference). Not a substitute for a P0/constant-trained control (§10.1)"
     return out
 
@@ -254,10 +257,11 @@ def main():
             cal = summ.get("v3_energy") or {}; cv = cal.get("const_vec") or calibration_patches(m, cfg, dev)["c0_median_dy_dx"]
             iv = interventions(m, dsf, lms_raw, pan_raw, sensor, wald, mp, dev, cv, cal.get("sigma_star"), cal.get("blur_status")); json.dump(iv, open(os.path.join(od, f"{a.ckpt}_interventions.json"), "w"), indent=1)
             summ["v4_interventions"] = {k: dict(raw_hqnr=v["views"]["raw_original"]["hqnr"], raw_fscc=v["views"]["raw_original"]["fscc"], raw_v64_hqnr=v["views"]["raw_valid"]["hqnr"]) for k, v in iv.items() if isinstance(v, dict) and "views" in v}
+            summ["v4_blur_control"] = (iv.get("blur_energy_match") or {}).get("status", "run") if "views" not in (iv.get("blur_energy_match") or {}) else "matched"
             print("  V4 interventions raw HQNR: " + " | ".join(f"{k} {v['raw_hqnr']:.4f} (fSCC {v['raw_fscc']:.4f})" for k, v in summ["v4_interventions"].items()) + f" | zero-equivalence {iv['zero_equivalence_max_abs']:.1e}")
         import math as _m
         dirs = [(round(_m.sin(k * _m.pi / (a.stress_dirs / 2)), 12), round(_m.cos(k * _m.pi / (a.stress_dirs / 2)), 12)) for k in range(a.stress_dirs)]
-        probes = tuple([(0.0, 0.0)] + [(r * dy, r * dx) for r in (0.5, 1.0, 2.0) for dy, dx in dirs])
+        probes = tuple([(0.0, 0.0)] + [(r / R * dy, r / R * dx) for r in (0.5, 1.0, 2.0) for dy, dx in dirs])      # stress_hqnr_native 는 R 배수로 받는다 → HR px {0.5,1,2}
         refm = load_run(a.ref_run, a.ref_ckpt, dev)[2]; st = stress_hqnr_native(m, cfg, R, mg, dev, wd, refm, probes=probes); st["probe_manifest"] = dict(radii_hr=[0.5, 1.0, 2.0], directions=a.stress_dirs, reference="native original P / frozen N2 donor correction, V96")
         json.dump(st, open(os.path.join(od, f"{a.ckpt}_stress.json"), "w"), indent=1); by = st["by_eps"]
         summ["v4_stress"] = {k: dict(raw=v.get("raw_native_hqnr"), fixed=v.get("aligned_fixed_hqnr"), eligible=v.get("eligible_all")) for k, v in by.items()}
