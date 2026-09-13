@@ -84,6 +84,7 @@ class KDVTrainer(PATrainer):
         hidden = int(args.model_args.get("hidden_size")); depth = "".join(str(d) for d in args.model_args.get("depth"))
         self.init_dir = os.path.join(ROOT, k.get("init_dir", f"work_dir/_kdv_init_w{hidden}_d{depth}"))
         self.diag_every = int(k.get("diag_every", 1000)); self.diag_iter = self.diag_every
+        self._fixed_diag_on = bool((k.get("diag") or {}).get("fixed_batch", False)); self._fixed_batch = None     # PALSV18 §11.2 고정 diagnostic batch
         self.lam_edge, self.lam_geo = sp["edge_weight"], sp["geometry_weight_effective"]
         self.ramp = sp["aux_ramp_updates"]; self.geo_sigma = sp["geometry_sigma_hr"]; self.geo_margin = sp["geometry_margin_hr"]
         self.guard_margin = geometry_support_margin(self.geo_sigma, self.geo_margin)
@@ -202,6 +203,17 @@ class KDVTrainer(PATrainer):
         d = json.load(open(p)) if os.path.exists(p) else dict(total_gpu_hours=float(self.budget.get("total_gpu_hours", 16.0)), entries={})
         return p, d
 
+    class _LedgerLock:
+        """ledger 읽기-수정-쓰기 구간 잠금 (fcntl.flock on <ledger>.lock) — trainer·_upload.sh·palsv18_validate.sh 가 같은 파일을 갱신한다 (리뷰 P2-6)."""
+        def __init__(self, path):
+            self.path = path + ".lock"
+        def __enter__(self):
+            import fcntl
+            os.makedirs(os.path.dirname(self.path), exist_ok=True); self.f = open(self.path, "w"); fcntl.flock(self.f, fcntl.LOCK_EX); return self
+        def __exit__(self, *a):
+            import fcntl
+            fcntl.flock(self.f, fcntl.LOCK_UN); self.f.close()
+
     @staticmethod
     def budget_decision(used, proj_this, proj_remaining, reserve, total, required, proj_pair=0.0, margin=1.2):
         """순수 판정 (테스트 가능): projected = used + margin·(proj_this + Σ proj_remaining + proj_pair) + reserve. required 면 경고만, 아니면 초과 시 DEFERRED.
@@ -244,6 +256,11 @@ class KDVTrainer(PATrainer):
             return 0.0
 
     def _budget_gate(self):
+        p0 = self.budget.get("ledger", "work_dir/_kdv_budget/ledger.json"); p0 = p0 if os.path.isabs(p0) else os.path.join(ROOT, p0)
+        with self._LedgerLock(p0):
+            self._budget_gate_locked()
+
+    def _budget_gate_locked(self):
         p, d = self._ledger(); reserve = float(self.budget.get("reserve_hours", 1.0)); required = bool(self.budget.get("required", True))
         prev = d["entries"].get(self.run_id)
         if prev:                                                            # 재시작: 이전 시도의 비용을 보존 (used 에 포함)
@@ -270,9 +287,11 @@ class KDVTrainer(PATrainer):
     def _finish_ledger(self, status, total=False):
         if not self.budget:
             return
-        p, d = self._ledger(); e = d["entries"].get(self.run_id, {}); hrs = (time.time() - self._t_run0) / 3600.0
-        e.update(status=status, finished=time.strftime("%Y-%m-%dT%H:%M:%S"), **({"hours_total": hrs} if total else {"hours": hrs}))
-        d["entries"][self.run_id] = e; json.dump(d, open(p, "w"), indent=1); json.dump(e, open(os.path.join(self.args.work_dir, "budget_status.json"), "w"), indent=1)
+        p0 = self.budget.get("ledger", "work_dir/_kdv_budget/ledger.json"); p0 = p0 if os.path.isabs(p0) else os.path.join(ROOT, p0)
+        with self._LedgerLock(p0):
+            p, d = self._ledger(); e = d["entries"].get(self.run_id, {}); hrs = (time.time() - self._t_run0) / 3600.0
+            e.update(status=status, finished=time.strftime("%Y-%m-%dT%H:%M:%S"), **({"hours_total": hrs} if total else {"hours": hrs}))
+            d["entries"][self.run_id] = e; json.dump(d, open(p, "w"), indent=1); json.dump(e, open(os.path.join(self.args.work_dir, "budget_status.json"), "w"), indent=1)
 
     # ------------------------------------------------------------------ selectors (+ rr_val)
     def _init_selectors(self):
@@ -340,6 +359,18 @@ class KDVTrainer(PATrainer):
                 self.calibration["stat"] = dict(percal[w], windows=ws, transform=tf, transform_eps=tfe, domain=dom, per_window={str(x): percal[x] for x in ws})
                 self.stat_crit = self.stat_crits.get(w)
             lam = st.get("outer_weight", "calibrate")
+            if sp.get("stat_lambda_from_run"):                                          # 20H CF01: 다른 run 이 실제로 쓴 λ_V 를 그대로 (재calibration 금지; 없으면 gate 실패)
+                src = os.path.join(ROOT, "work_dir", sp["stat_lambda_from_run"], "calibration_resolved.json")
+                if not os.path.exists(src):
+                    self._gate_fail("CALIBRATION_SOURCE_MISSING", dict(stage="lambda_V", lambda_from_run=sp["stat_lambda_from_run"], path=src))
+                j = json.load(open(src)); lsrc = j.get("lambda") or {}
+                if lsrc.get("lambda_V_used") is None:
+                    self._gate_fail("CALIBRATION_SOURCE_MISSING", dict(stage="lambda_V", lambda_from_run=sp["stat_lambda_from_run"], reason="calibration_resolved.json 에 lambda.lambda_V_used 없음"))
+                if str(lsrc.get("kind", (j.get("stat") or {}).get("kind", kind))) not in (kind, "None"):
+                    pass
+                self.lam_V = float(lsrc["lambda_V_used"]) * sp["stat_lambda_scale"]
+                self.calibration["lambda"] = dict(lambda_V=self.lam_V, source="from_run", run=sp["stat_lambda_from_run"], source_lambda=lsrc, lambda_scale=sp["stat_lambda_scale"], lambda_V_used=self.lam_V)
+                lam = None
             if lam == "calibrate":
                 pilot = st.get("lambda_pilot")
                 if not pilot:
@@ -362,7 +393,7 @@ class KDVTrainer(PATrainer):
                     self._gate_fail("CALIBRATION_DEGENERATE", dict(stage="lambda_V", result=r))
                 self.lam_V = float(r["lambda_V"]) * sp["stat_lambda_scale"]                 # CTL-LAMBDA-V: ×0.3/1/3
                 self.calibration["lambda"] = dict(r, from_cache=hit, source="calibrate", pilot=pilot, lambda_scale=sp["stat_lambda_scale"], lambda_V_used=self.lam_V)
-            else:
+            elif lam is not None:
                 self.lam_V = float(lam) * sp["stat_lambda_scale"]; self.calibration["lambda"] = dict(lambda_V=self.lam_V, source="config", lambda_scale=sp["stat_lambda_scale"])
         # 보조 통계 항 (§11.4 GV+SC): 항마다 τ_V·λ_V 를 따로 calibration 한다 (결합 전용 재calibration 금지)
         self.stat_extra = []
@@ -894,7 +925,7 @@ class KDVTrainer(PATrainer):
     # ------------------------------------------------------------------ gradient 진단 (§16.6, §21.2)
     def is_diag_step(self, step):
         """진단 step: diag_every 배수 + (I-AEQ 면 그 다음 홀수 step 도 — offset 연습 gradient 를 기록, 검토 지적 5)."""
-        return step % self.diag_every == 0 or (self.protocol == "I-AEQ" and step % self.diag_every == 1)
+        return step % self.diag_every == 0 or (self.protocol == "I-AEQ" and (step % self.diag_every == 1 or step == int(self.args.num_iter) - 1))
 
     def _gnorm(self, loss, params):
         if not params or not loss.requires_grad:
@@ -1011,6 +1042,35 @@ class KDVTrainer(PATrainer):
             out["delta_teacher_mean"] = info["delta_t"].mean(0).tolist(); out["delta_drift_vs_teacher"] = float((info["delta"].detach() - info["delta_t"]).norm(dim=1).mean())
         self._jsonl("gradient_diagnostics.jsonl", out); self._ema["diag_last"] = step
 
+    def _diagnose_fixed(self, step, M):
+        """고정 diagnostic batch 의 §9.3 분해 (PALSV18 §11.2). 별도 forward graph; ε 는 전용 generator(corr_seed+777, 매번 같은 열); 전역 RNG 는 fork_rng 로 격리;
+        self.gen(학습 ε 열)·EMA 통계·optimizer·.grad 를 건드리지 않는다. 기록 gradient_diagnostics_fixed.jsonl."""
+        gt, ms, lpan, pan = self._fixed_batch; dev = gt.device
+        gen_train, ema0 = self.gen, dict(self._ema); rr0 = self._rr_val_last
+        g = torch.Generator(device="cpu"); g.manual_seed(int(self.corr_seed) + 777); self.gen = g
+        try:
+            with torch.random.fork_rng(devices=([dev] if dev.type == "cuda" else [])):
+                total, info = self._step(gt, ms, lpan, pan, step)
+                bp = [p for p in M.backbone.parameters() if p.requires_grad]; ap = list(M.aligner.parameters()) if self.aligner_trainable else []
+                out = dict(step=int(step), fixed_batch=True, loss_rec=float(info["loss_rec"]), delta_mean=info["delta"].detach().mean(0).tolist(), delta_norm_mean=float(info["delta"].detach().norm(dim=1).mean()))
+                v_rf, out["grad_rec_F"] = self._gnorm(info["loss_rec"], bp)
+                if ap:
+                    v_ra, out["grad_rec_A"] = self._gnorm(info["loss_rec"], ap)
+                    if info.get("eq_exercise") and torch.is_tensor(info.get("loss_off")) and info["loss_off"].requires_grad:
+                        v_oa, out["grad_off_A"] = self._gnorm(info["loss_off"], ap); lam = float(info.get("lam_off", 0.0))
+                        out.update(lambda_off=lam, loss_off_raw=float(info["loss_off"]), loss_off_weighted=lam * float(info["loss_off"]), grad_off_A_weighted=lam * out["grad_off_A"], rho_g=lam * out["grad_off_A"] / (out["grad_rec_A"] + 1e-12),
+                                   cos_psi=(float((v_ra * v_oa).sum() / (v_ra.norm() * v_oa.norm() + 1e-12)) if v_ra is not None and v_oa is not None and out["grad_rec_A"] > 0 and lam * out["grad_off_A"] > 0 else None))
+                        gb = torch.autograd.grad(info["loss_off"], bp, retain_graph=True, allow_unused=True); out["off_unet_grad_absent"] = bool(all(x is None or float(x.abs().sum()) == 0.0 for x in gb))
+                        v_tot = torch.autograd.grad(info["loss_rec"] + lam * info["loss_off"], ap, retain_graph=False, allow_unused=True)
+                        vt = torch.cat([x.float().flatten() if x is not None else torch.zeros_like(p).flatten() for x, p in zip(v_tot, ap)])
+                        out["sum_rule_max_abs_err"] = float((vt - (v_ra + lam * v_oa)).abs().max()) if v_ra is not None and v_oa is not None else None   # ∇(L_rec+λL_off) = g_rec + λ g_off
+                    else:
+                        out["eq_exercise"] = False
+                self._jsonl("gradient_diagnostics_fixed.jsonl", out)
+                del total, info
+        finally:
+            self.gen = gen_train; self._ema.clear(); self._ema.update(ema0); self._rr_val_last = rr0
+
     # ------------------------------------------------------------------ train
     def train(self, train_log, global_step):
         self.train_log_ref = train_log
@@ -1036,6 +1096,10 @@ class KDVTrainer(PATrainer):
                     self._support_fail(global_step, dmax, f"|Δ| > {MAX_ABS_DELTA_TRAIN} (학습 patch 에서 정의 불가능한 보정)")
                 if self.accelerator.is_main_process and self.is_diag_step(global_step):
                     self._diagnose(global_step, info, M)
+                    if self._fixed_diag_on:
+                        if self._fixed_batch is None:
+                            self._fixed_batch = tuple(t.detach().clone() for t in (gt, ms, lpan, pan))
+                        self._diagnose_fixed(global_step, M)
                 self.accelerator.backward(total)
                 if self.accelerator.is_main_process and self.is_diag_step(global_step):
                     self._ema["backbone_grad_norm"] = float(torch.sqrt(sum((p.grad.float() ** 2).sum() for p in M.backbone.parameters() if p.grad is not None)))
@@ -1263,8 +1327,9 @@ class KDVTrainer(PATrainer):
                 if use_al else dict(changed=False, pruned=[]))
         r_rr = self.sel_rrval.update(step, epoch, -self._rr_val_last, 0.0, bool(np.isfinite(self._rr_val_last)), cand)
         keep = {c["path"] for s in ((self.sel_raw, self.sel_aligned, self.sel_rrval) if use_al else (self.sel_raw, self.sel_rrval)) for c in s.cands}
+        retain = bool((self.k.get("select") or {}).get("retain_all_candidates", False))   # PALSV18 §6.3: 평가한 native checkpoint 전부 보존 (공통 격자 재선택·같은 checkpoint 진단 재현용)
         for p in set(r_raw["pruned"]) | set(r_al["pruned"]) | set(r_rr["pruned"]) | ({cand} if cand not in keep else set()):
-            if p not in keep and os.path.isdir(p):
+            if p not in keep and os.path.isdir(p) and not retain:
                 shutil.rmtree(p, ignore_errors=True)
         self.raw_is_best = r_raw["changed"]
         if r_al["changed"]:

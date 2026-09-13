@@ -27,6 +27,26 @@ def runs():
     return R
 
 
+def matched_grid_best(run, grid_steps, tol_h=1e-4, tol_f=1e-4):
+    """공통 격자(selection_grid.json 의 실제 optimizer update 목록, exact 50K 포함) 위에서 **실제 selector 규칙**(pa/selector.BestSelector: running-max HQNR 1e-4 band → fSCC 1e-4 band → 늦은 update) 을 재생한다.
+    checkpoint_metrics.csv 의 raw_original 만 쓴다(raw selector 는 항상 eligible). 반환 dict(step, hqnr, fscc, n_candidates, n_grid) 또는 None."""
+    from pa.selector import BestSelector
+    cm = rows_csv(os.path.join(ROOT, "work_dir", run, "checkpoint_metrics.csv")); g = set(int(x) for x in grid_steps)
+    rows = [r for r in cm if int(r["step"]) in g and r.get("raw_original.hqnr")]
+    if not rows:
+        return None
+    sel = BestSelector("raw", tol_hqnr=tol_h, tol_fscc=tol_f)
+    for r in rows:
+        sel.update(int(r["step"]), int(r["epoch"]), float(r["raw_original.hqnr"]), float(r["raw_original.fscc"]), True, f"step-{r['step']}")
+    b = sel.best; return dict(step=b["step"], hqnr=b["hqnr"], fscc=b["fscc"], n_candidates=len(rows), n_grid=len(g), complete=(len(rows) == len(g)))
+
+
+def resumed_flag(wd):
+    j = jload(os.path.join(wd, "kdv_config_resolved.json"), {}); ev = os.path.join(wd, "resume_events.jsonl")
+    n = sum(1 for _ in open(ev)) if os.path.exists(ev) else 0
+    return dict(resumed=bool(j.get("resumed")) or n > 0, resumed_from=j.get("resumed_from"), n_resume_events=n, exact=False if (j.get("resumed") or n) else True)
+
+
 def ckpt_sha(wd, ck):
     try:
         from kdv.teacher_assets import sha256_file
@@ -36,38 +56,36 @@ def ckpt_sha(wd, ck):
 
 
 def table_a(R):
-    rows = []
+    grid = jload(os.path.join(CAMP, "selection_grid.json"), {}); gsteps = grid.get("optimizer_updates") or []; rows = []
     for (c, s), info in sorted(R.items(), key=lambda kv: (kv[0][1], G.LAMBDA.get(kv[0][0], -1) if kv[0][0] in G.LAMBDA else -2)):
         if info["source"] == "diagnostic_reference":
             continue
         wd = os.path.join(ROOT, "work_dir", info["run"]); bm = jload(os.path.join(wd, "best_hqnr_meta.json")); cm = rows_csv(os.path.join(wd, "checkpoint_metrics.csv")); lm = jload(os.path.join(wd, "last_meta.json"), {})
         if not bm:
             rows.append(dict(case=c, seed=s, lambda_=G.LAMBDA.get(c), run=info["run"], source=info["source"], status="NOT FINISHED")); continue
-        b = next((r for r in cm if int(r["step"]) == int(bm["step"])), {}); g10 = None
-        try:
-            from tools.best_on_grid import pick
-            pk = pick(info["run"], 10); g10 = pk and pk["grid_hqnr"]
-        except Exception:
-            pass
-        rows.append(dict(case=c, seed=s, lambda_=G.LAMBDA.get(c), run=info["run"], source=info["source"], status=("DONE" if lm.get("step") == 50000 else "RUNNING(partial best — not a result)"), selected_update=int(bm["step"]), checkpoint_sha16=ckpt_sha(wd, "best_hqnr"), last_update=lm.get("step"),
+        b = next((r for r in cm if int(r["step"]) == int(bm["step"])), {}); mg_ = matched_grid_best(info["run"], gsteps) if gsteps else None; rf = resumed_flag(wd)
+        rows.append(dict(case=c, seed=s, lambda_=G.LAMBDA.get(c), run=info["run"], source=info["source"], status=("DONE" if lm.get("step") == 50000 else "RUNNING(partial best — not a result)"), selected_update=int(bm["step"]),
+                         matched_grid_update=(mg_ or {}).get("step"), matched_grid_HQNR=(mg_ or {}).get("hqnr"), matched_grid_fSCC=(mg_ or {}).get("fscc"), matched_grid_n=(mg_ or {}).get("n_candidates"), matched_grid_complete=(mg_ or {}).get("complete"),
+                         resumed_nonexact=rf["resumed"], n_resume_events=rf["n_resume_events"], checkpoint_sha16=ckpt_sha(wd, "best_hqnr"), last_update=lm.get("step"),
                          HQNR_raw_original=float(bm["hqnr"]), fSCC_raw_original=fl(bm.get("fscc")), D_lambda=fl(b.get("raw_original.d_lambda")), D_s=fl(b.get("raw_original.d_s")), HQNR_raw_v64=fl(b.get("raw_valid.hqnr")), fSCC_raw_v64=fl(b.get("raw_valid.fscc")),
-                         RR_ERGAS_py=fl(b.get("rr_ergas")), RR_SAM_py=fl(b.get("rr_sam")), RR_SCC_py=fl(b.get("rr_scc")), matched_grid10_HQNR=g10, eval_epoch=None))
+                         RR_ERGAS_py=fl(b.get("rr_ergas")), RR_SAM_py=fl(b.get("rr_sam")), RR_SCC_py=fl(b.get("rr_scc"))))
     by = {(r["case"], r["seed"]): r for r in rows if r.get("status") == "DONE"}
     for r in rows:
         if r.get("status") != "DONE":
             continue
         for ref in ("CTRLP0", "L000", "L1E4"):
-            q = by.get((ref, r["seed"])); r[f"delta_H_vs_{ref}"] = (r["HQNR_raw_original"] - q["HQNR_raw_original"]) if q else None
-            r[f"delta_H_vs_{ref}_grid10"] = (r["matched_grid10_HQNR"] - q["matched_grid10_HQNR"]) if q and r.get("matched_grid10_HQNR") and q.get("matched_grid10_HQNR") else None
+            q = by.get((ref, r["seed"])); r[f"delta_H_vs_{ref}_original"] = (r["HQNR_raw_original"] - q["HQNR_raw_original"]) if q else None
+            r[f"delta_H_vs_{ref}"] = (r["matched_grid_HQNR"] - q["matched_grid_HQNR"]) if q and r.get("matched_grid_HQNR") is not None and q.get("matched_grid_HQNR") is not None else None   # 주 대응 차이 = matched grid (§6.3)
     return rows
 
 
 def paired(A):
-    by = {(r["case"], r["seed"]): r for r in A if r.get("status") == "DONE"}; rows = []; summ = {}
+    by = {(r["case"], r["seed"]): r for r in A if r.get("status") == "DONE" and r.get("matched_grid_HQNR") is not None}; rows = []; summ = {}
+    K = "matched_grid_HQNR"                                                   # 대응 차이·leader 는 공통 격자 값 (리뷰 P1-2); original 값은 표 A 에 병기
     for c in ("L3E5", "L1E4", "L3E4"):
         for s in SEEDS:
             a = by.get((c, s))
-            rows.append(dict(case=c, seed=s, lambda_=G.LAMBDA[c], H=a and a["HQNR_raw_original"], H_L1E4=(by.get(("L1E4", s)) or {}).get("HQNR_raw_original"), H_L000=(by.get(("L000", s)) or {}).get("HQNR_raw_original"), H_P0=(by.get(("CTRLP0", s)) or {}).get("HQNR_raw_original"),
+            rows.append(dict(case=c, seed=s, lambda_=G.LAMBDA[c], H=a and a[K], H_original=a and a["HQNR_raw_original"], H_L1E4=(by.get(("L1E4", s)) or {}).get(K), H_L000=(by.get(("L000", s)) or {}).get(K), H_P0=(by.get(("CTRLP0", s)) or {}).get(K), resumed_nonexact=a and a.get("resumed_nonexact"),
                              d_vs_L1E4=a and a.get("delta_H_vs_L1E4"), d_vs_L000=a and a.get("delta_H_vs_L000"), d_vs_P0=a and a.get("delta_H_vs_CTRLP0"), complete=bool(a and by.get(("L000", s)) and by.get(("CTRLP0", s)))))
         v = [r["H"] for r in rows if r["case"] == c and r["H"] is not None]
         summ[c] = dict(n=len(v), mean=(float(np.mean(v)) if v else None), sd=(float(np.std(v, ddof=1)) if len(v) > 1 else None),
@@ -77,7 +95,7 @@ def paired(A):
                                               n_beyond_margin=int(sum(abs(r[f"d_vs_{k}"]) > MARGIN for r in rows if r["case"] == c and r.get(f"d_vs_{k}") is not None))) for k in ("L1E4", "L000", "P0")})
     done = {c: v for c, v in summ.items() if v["n"] == 3}
     leader = max(done, key=lambda c: done[c]["mean"]) if done else None
-    summ["_decision"] = dict(performance_leader=leader, working_reference="L1E4", n_seeds_required=3, margin=MARGIN,
+    summ["_decision"] = dict(performance_leader=leader, working_reference="L1E4", n_seeds_required=3, margin=MARGIN, basis="matched-grid best_raw HQNR (selection_grid.json, BestSelector replay)", resumed_runs=[r["run"] for r in A if r.get("resumed_nonexact")],
                              leader_vs_L1E4_mean=(done[leader]["mean"] - done["L1E4"]["mean"]) if leader and "L1E4" in done else None,
                              note="performance_leader = numerically highest 3-seed mean of best_raw raw HQNR on the same selection grid; within 0.0031 it does not replace the working reference (§12.2); alignment evidence is a separate claim (§12.3)")
     return rows, summ
@@ -146,20 +164,20 @@ def budget():
 
 def main():
     os.makedirs(CAMP, exist_ok=True); R = runs(); A = table_a(R); P, S = paired(A); B, C, r2, ep, px, sh, iv, st, ed, mf = diag_rows(R); bud = budget(); gate = jload(os.path.join(CAMP, "metric_gate_report.json"), {})
-    cols_a = ["case", "seed", "lambda", "run", "source", "status", "selected_update", "checkpoint_sha16", "last_update", "HQNR_raw_original", "fSCC_raw_original", "D_lambda", "D_s", "HQNR_raw_v64", "fSCC_raw_v64", "RR_ERGAS_py", "RR_SAM_py", "RR_SCC_py", "delta_H_vs_CTRLP0", "delta_H_vs_L000", "delta_H_vs_L1E4"]
+    cols_a = ["case", "seed", "lambda", "run", "source", "status", "resumed_nonexact", "selected_update", "checkpoint_sha16", "last_update", "HQNR_raw_original", "fSCC_raw_original", "D_lambda", "D_s", "HQNR_raw_v64", "fSCC_raw_v64", "RR_ERGAS_py", "RR_SAM_py", "RR_SCC_py", "delta_H_vs_CTRLP0_original", "delta_H_vs_L000_original", "delta_H_vs_L1E4_original"]
     write_csv(os.path.join(CAMP, "official_best_raw_results.csv"), cols_a, A)
-    write_csv(os.path.join(CAMP, "matched_grid_best_raw_results.csv"), ["case", "seed", "lambda", "run", "matched_grid10_HQNR", "HQNR_raw_original", "delta_H_vs_CTRLP0_grid10", "delta_H_vs_L000_grid10", "delta_H_vs_L1E4_grid10"], A)
-    write_csv(os.path.join(CAMP, "paired_seed_differences.csv"), ["case", "seed", "lambda", "H", "H_L1E4", "H_L000", "H_P0", "d_vs_L1E4", "d_vs_L000", "d_vs_P0", "complete"], P)
+    write_csv(os.path.join(CAMP, "matched_grid_best_raw_results.csv"), ["case", "seed", "lambda", "run", "matched_grid_update", "matched_grid_HQNR", "matched_grid_fSCC", "matched_grid_n", "matched_grid_complete", "selected_update", "HQNR_raw_original", "delta_H_vs_CTRLP0", "delta_H_vs_L000", "delta_H_vs_L1E4"], A)
+    write_csv(os.path.join(CAMP, "paired_seed_differences.csv"), ["case", "seed", "lambda", "H", "H_original", "H_L1E4", "H_L000", "H_P0", "d_vs_L1E4", "d_vs_L000", "d_vs_P0", "complete", "resumed_nonexact"], P)
     for name, cols, rows in (("response_signed_2x2.csv", None, r2), ("offset_component_mae_epe.csv", None, ep), ("native_shift_proxy_before_after.csv", None, px), ("shortcut_controls.csv", None, sh), ("correction_interventions.csv", None, iv),
                              ("synthetic_stress_native_reference.csv", None, st), ("edge_and_frequency_metrics.csv", None, ed), ("checkpoint_manifest.csv", None, mf), ("table_B_alignment.csv", None, B), ("table_C_position_sharpness.csv", None, C)):
         keys = list(dict.fromkeys(k for r in rows for k in r)) if rows else ["empty"]; write_csv(os.path.join(CAMP, name), keys, rows)
     json.dump(dict(budget=bud, paired_summary=S, gate=dict(all_reuse_approved=gate.get("all_reuse_approved"), entries={k: v["approval"] for k, v in (gate.get("entries") or {}).items()})), open(os.path.join(CAMP, "campaign_budget_ledger.json"), "w"), indent=1, ensure_ascii=False)
-    ca = ["case", "seed", "lambda", "source", "selected_update", "HQNR_raw_original", "fSCC_raw_original", "D_lambda", "D_s", "matched_grid10_HQNR", "delta_H_vs_CTRLP0", "delta_H_vs_L000", "delta_H_vs_L1E4"]
+    ca = ["case", "seed", "lambda", "source", "resumed_nonexact", "selected_update", "HQNR_raw_original", "fSCC_raw_original", "D_lambda", "D_s", "matched_grid_update", "matched_grid_HQNR", "delta_H_vs_CTRLP0", "delta_H_vs_L000", "delta_H_vs_L1E4"]
     cb = ["case", "seed", "ckpt", "update", "native_norm_median", "B_yy", "B_xx", "B_yx", "B_xy", "epe_scene_mean", "mae_component", "v2_ms_only_B_diag", "v2_common_epe", "drift_vs_donor_median"]
     cc = ["case", "seed", "ckpt", "proxy_before_median", "proxy_after_median", "proxy_n_improved", "edge_crossing_offset", "edge_width_gt", "edge_width_out", "edge_mae_dn", "flat_mae_dn", "raw_fscc", "energy_ratio_fr", "blur_sigma", "blur_status", "iv_learned_raw_hqnr", "iv_zero_raw_hqnr", "iv_wrong_sign_raw_hqnr", "iv_scene_shuffle_raw_hqnr", "iv_constant_calibration_raw_hqnr", "iv_blur_energy_match_raw_hqnr", "stress_mean_raw"]
     dec = S["_decision"]
     txt = (f"# PALSV18 집계 ({time.strftime('%Y-%m-%d %H:%M')}) — 판정 best_raw raw_original HQNR → fSCC, 판정선 {MARGIN} (HQNR 에만)\n\n약명→세팅: CTRLP0 = aligner 없음(NF16 P0 정의) · L000 = λ 0(NF16 P2 정의) · L3E5/L1E4/L3E4 = λ 3e-5/1e-4/3e-4 · L1E2 = λ 0.01. 대조군 P0/L000/L1E4 는 NF16/PALS24 재사용.\n\n"
-           f"performance_leader: **{dec['performance_leader']}** (3-seed 평균 선두; L1E4 대비 {dec['leader_vs_L1E4_mean']}) · working_reference: L1E4 · 판정선 안이면 교체하지 않는다.\n\n## 표 A — 공식 성능 (best_raw, raw_original, mat20)\n\n{md(ca, A)}\n\n"
+           f"performance_leader: **{dec['performance_leader']}** (3-seed 평균 선두, matched-grid 값; L1E4 대비 {dec['leader_vs_L1E4_mean']}) · working_reference: L1E4 · 판정선 안이면 교체하지 않는다. 재개(non-exact) run: {dec['resumed_runs']}\n\n## 표 A — 공식 성능 (best_raw, raw_original, mat20; 대응 차이 열은 matched-grid 기준, original 값은 csv 병기)\n\n{md(ca, A)}\n\n"
            f"### seed 대응 차이 (λ − L1E4 / L000 / P0)\n\n{md(['case', 'seed', 'H', 'H_L1E4', 'H_L000', 'H_P0', 'd_vs_L1E4', 'd_vs_L000', 'd_vs_P0', 'complete'], P)}\n\n요약: {json.dumps({k: {q: (w if not isinstance(w, dict) else {a: b for a, b in w.items() if a != 'values'}) for q, w in v.items()} for k, v in S.items() if k != '_decision'}, ensure_ascii=False)}\n\n"
            f"## 표 B — 같은 checkpoint 의 정합 능력 (V1/V2; 진단)\n\n{md(cb, B, '.4f')}\n\n## 표 C — 위치·선명도·보간·개입 (V3/V4; 진단)\n\n{md(cc, C, '.4f')}\n\n"
            f"## 표 D — 실행·한계\n\n사용 {bud['used_hours']:.2f} / 18 GPU-h (kind 별 {json.dumps({k: round(v, 2) for k, v in bud['used_by_kind'].items()})}) · 완료 {len(bud['finished'])} · 보류 {bud['deferred']} · 실행 중 {bud['running']} · 미사용 {bud['unused_hours']:.2f}\n"

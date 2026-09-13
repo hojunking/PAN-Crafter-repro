@@ -57,22 +57,15 @@ LOG="$REPO/work_dir/gspread_upload.log"
     PALS24_*|PALSV18_*)
       # PALS24 §9 / PALSV18 V1·V4: last(정확한 50K) 에서 반응(고정 probe, 64²/256²/512²)·drift·보간 대조·native-reference stress, best_raw 와 10K/≈25K checkpoint 는 반응만. 참조 = 원 P / 고정 donor(N2 last). GPU 시간은 ledger diag_<run>
       case "$t" in PALSV18_*) PSET=palsv18; PLED=work_dir/_palsv18_budget/ledger.json;; *) PSET=pals24; PLED=work_dir/_pals24_budget/ledger.json;; esac
-      set +e; python tools/po10_diag.py --run "$t" --ckpt last --out po10_diag_last_pals24 --probe-set "$PSET" --native-reference --ref-run PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT --ref-ckpt last > "$REPO/work_dir/$t/results/po10_diag_last_pals24.log" 2>&1; rc=$?; set -e
-      grep -v Warning "$REPO/work_dir/$t/results/po10_diag_last_pals24.log" | tail -12
-      [ $rc -eq 0 ] || echo "[upload] !! po10_diag(last, pals24) 실패 (rc=$rc): $t — work_dir/$t/results/po10_diag_last_pals24.log"
+      set +e; python tools/po10_diag.py --run "$t" --ckpt last --out "po10_diag_last_$PSET" --probe-set "$PSET" --native-reference --ref-run PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT --ref-ckpt last > "$REPO/work_dir/$t/results/po10_diag_last_$PSET.log" 2>&1; rc=$?; set -e
+      grep -v Warning "$REPO/work_dir/$t/results/po10_diag_last_$PSET.log" | tail -12
+      [ $rc -eq 0 ] || echo "[upload] !! po10_diag(last, $PSET) 실패 (rc=$rc): $t — work_dir/$t/results/po10_diag_last_$PSET.log"
       for CK in best_hqnr checkpoint-10000 epoch-125; do
         [ -f "$REPO/work_dir/$t/$CK/model.safetensors" ] || continue
-        set +e; python tools/po10_diag.py --run "$t" --ckpt "$CK" --out "po10_diag_${CK}_pals24" --probe-set "$PSET" --response-only --ref-run PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT --ref-ckpt last > "$REPO/work_dir/$t/results/po10_diag_${CK}_pals24.log" 2>&1; rc=$?; set -e
+        set +e; python tools/po10_diag.py --run "$t" --ckpt "$CK" --out "po10_diag_${CK}_$PSET" --probe-set "$PSET" --response-only --ref-run PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT --ref-ckpt last > "$REPO/work_dir/$t/results/po10_diag_${CK}_$PSET.log" 2>&1; rc=$?; set -e
         [ $rc -eq 0 ] || echo "[upload] !! po10_diag($CK, response-only) 실패 (rc=$rc): $t"
       done
-      python - "$t" "$(( $(date +%s) - T0 ))" "$(( FR_SEC / NF16_N ))" "$PLED" <<'PYEOF'
-import json, os, sys, time
-t, sec, fr = sys.argv[1], float(sys.argv[2]), float(sys.argv[3]); lp = sys.argv[4]
-if os.path.exists(lp):
-    d = json.load(open(lp)); prev = d["entries"].get(f"diag_{t}", {}); h = (sec + fr) / 3600.0 + float(prev.get("hours") or 0.0)
-    d["entries"][f"diag_{t}"] = dict(kind="diag", hours=h, runs=int(prev.get("runs", 0)) + 1, note="eval_fr_paperset(분담) + pa_diag + po10_diag(last: pals24 probes + native-reference; best/10K/ep125: response-only)", finished=time.strftime("%Y-%m-%dT%H:%M:%S"))
-    json.dump(d, open(lp, "w"), indent=1)
-PYEOF
+      [ -f "$PLED" ] && python tools/_ledger_update.py "$PLED" add "diag_$t" "$(python -c "print(($(( $(date +%s) - T0 )) + $(( FR_SEC / NF16_N ))) / 3600.0)")" diag "eval_fr_paperset(분담) + pa_diag + po10_diag(last: probes + native-reference; best/10K/ep125: response-only)"   # 잠금 갱신 (리뷰 P2-6)
       ;;
     NF16_*)
       # NF16 §8: 반응·closure·shortcut 대조·stress 를 **last(정확한 50K)** 에서, 참조는 native P / 고정 donor(N2 last) 로 (§8.4). 진단 GPU 시간은 ledger 에 diag_<run> 으로 더한다 (§10)

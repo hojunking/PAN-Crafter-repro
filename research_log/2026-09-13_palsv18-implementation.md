@@ -50,6 +50,25 @@ PALS24(`2026-09-12_pals24-implementation.md`) 위에 **λ 값·예산 상수·�
 - 검증 도구 실전 시험(PALS24 L1E4 S1234 best_raw, 학습과 겹쳐 실행): V2 fr512 — pan_only B ≈ diag(−0.51, −0.51), ms_only ≈ diag(+0.50, +0.47), common ≈ diag(−0.01, −0.01)·EPE 0.018 (무반응 참조 0.9375) → aligner 는 PAN–MS **상대** 위치에 반응한다(학습하지 않은 MS-only 변환에도 부호가 맞는다). native64 도 같은 방향(−0.44/−0.57, +0.37/+0.43, ≈0).
   V3.3 — bicubic warp 는 Scharr energy 를 **줄이지 않는다**(FR 비 1.028, calibration 1.005) → σ 후보가 target 을 맞추지 못해 `unmatched_blur_control`(계획 §9.3 의 예외 경로; blur 개입은 돌리지 않고 상태만 기록). identity 0.0, ramp +1.000. constant_calibration 벡터(train 256 patch c0 중앙값) = (+0.136, +0.077) px.
 
+## 4.1 2026-09-13 저녁 리뷰(7건) 반영 — 첫 run 중단·재기동
+
+사용자 리뷰(P1 2건, P2 5건)를 받아 19:54 에 V-pre 와 첫 run(`PALSV18_L3E5_…_S1234`, 14.5K update) 을 멈추고 아래를 고쳤다. 중단한 시도는 처음부터 다시 돈다(재개 아님); 소요 0.42 h 는 ledger 에 `KILLED_FOR_FIX` 로 계상했고 부분 산출물은 `work_dir/_palsv18_campaign/killed_PALSV18_L3E5_S1234_attempt1/` 에 두었다.
+
+| # | 지적 | 반영 |
+|---|---|---|
+| P1-1 | 평가 checkpoint 가 selector 동률 밖에서 삭제됨(계획 §6.3 위반) | `kdv.select.retain_all_candidates: true`(PALSV18 config 전부) → `train_kdv._select` 가 후보를 지우지 않는다(`candidates/step-*` 25개 + exact 50K 보존; run 당 ≈ 0.8 GB). 첫 run 은 이미 2020·4040 을 잃어 폐기·재실행 |
+| P1-2 | matched-grid 재선택이 selector·격자와 다름(`best_on_grid`: epoch%10, exact 50K 제외, HQNR 최대만) | `palsv18_report.matched_grid_best`: `selection_grid.json` 의 실제 25 update(50000 포함) 위에서 `pa.selector.BestSelector` 재생(HQNR 1e-4 → fSCC 1e-4 → 늦은 update). P0 S1234 → 38380 / 0.952723(리뷰 값과 일치). 대응 차이·performance_leader 는 matched-grid 값, original 은 병기 |
+| P2-3 | stress 장면별 csv 덮어씀 · 실행기가 JSON 존재만 보고 생략 | `stress_hqnr_native(tag=…)` → `stress_hqnr_native_fr512_<tag>.csv`; 실행기는 checkpoint sha·`tool_version`·완료 parts 를 모두 확인할 때만 생략(`need_run`/`need_v1`), po10_diag 산출물에 `ckpt_sha256` 기록 |
+| P2-4 | stress 4 방향, RR GT stress 없음, c0−ε 기준선 없음, best_raw shortcut 대조 없음, 상수 MS 가 전체 단일 평균, 개입 평균이 부적격 장면 포함 | stress 8 방향(HR px {0.5,1,2}) + `fr_stress_baseline`(c0−ε, native 참조 V96) + `rr_stress`(GT 고정, ROI margin 32, learned·기준선) · shortcut 대조를 best/last 둘 다 · 상수 MS = band 별 공간 평균 · 개입은 raw_original 전체·V64 view 는 적격 장면만(0 이면 None) + n_eligible 기록 |
+| P2-5 | native proxy 벡터 방향이 모델 correction 과 반대 · identity/known-shift 가 JSON 에 없음 | `canon_* = −audit`(PAN→MS 보정 방향) 병기, 모델 c 와의 cos 기록, identity·known-shift(+1 px → audit +1.007 → canonical −1) 를 summary·`estimator_contract.json` 에 |
+| P2-6 | 검증 포함 18 h 상한 미보장 · V-pre 병행 · V-pre 예약 미반영 · ledger 잠금 없음 | V-pre 를 학습 **전** 에 순차로 돌린다(계획 순서). 실행기 guard: `used(예약 포함) + 이 checkpoint 예상 + 1.7×미완 run + 1.5 ≤ 18` 아니면 시작하지 않음. `vpre_reserved`/`vpost_reserved` 항목으로 미수행 예약을 ledger 에 잡아 학습 gate 가 본다. ledger 갱신은 trainer(`_LedgerLock`)·`_upload.sh`·실행기 모두 `tools/_ledger_update.py`(flock) |
+| P2-7 | exact resume 미충족 · gradient 진단이 현재 batch·마지막 active update 49999 미측정 | `kdv.diag.fixed_batch: true` → 첫 학습 batch 를 고정해 두고 diag step 마다 별도 graph 로 §9.3 분해(`gradient_diagnostics_fixed.jsonl`: ρ_g, cos ψ, off_unet_grad_absent, 합산 규칙 오차; ε 전용 generator, fork_rng, EMA/optimizer 불변 — dry run 으로 학습 loss 열 동일 확인) · 진단 step 에 num_iter−1(49999) 추가. **exact resume 은 미구현**: sampler 순서 복원이 없어 재개는 `resumed_nonexact` 로 남고, 보고서가 `resumed_nonexact` 열로 구분한다(재개된 run 은 무중단 run 과 같은 표에 두되 표시). P0 S1234 의 eval 5/10 차이도 matched grid 로 완전히 제거되지 않음을 표 D 에 남긴다 |
+
+### 4.2 trainer 변경 검증 (dry run 24 update × 3)
+
+`fixed_batch` on / off / off(재실행) 세 벌: 마지막 가중치 sha 가 셋 다 다르고, 진단 값의 run 간 차이는 **on–off 와 off–off 가 같은 크기**(step 1 에서 3e-8, 23 에서 1e-5~3e-5)다 — 이 GPU 에서 학습 자체가 bit-identical 하지 않으며(CUDA grid_sample backward 비결정성, 계획 §13.3), 고정 batch 진단이 그 잡음 위에 추가 편차를 만들지 않는다.
+고정 batch 기록은 diag step 전부(0,1,4,5,…,num_iter−1) 에 남고 `sum_rule_max_abs_err` 0.0, `off_unet_grad_absent` True. 후보 checkpoint 는 selector 동률 밖이어도 남는다(`candidates/step-24`). ledger lock 파일 생성 확인.
+
 ## 5. 판정 규약·주의
 
 - 주 판정 best_raw raw_original HQNR → fSCC(원 PAN 참조), 판정선 0.0031 은 raw HQNR 에만. `performance_leader`(3-seed 평균 선두)·`working_reference`(L1E4)·`alignment_evidence`(V1–V4 근거 범위) 를 분리한다(§12.1). 판정선 안이면 L1E4 를 바꾸지 않는다.

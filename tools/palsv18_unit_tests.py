@@ -27,7 +27,7 @@ if os.path.exists(q):
 # ---------------- PV02 config: PALS24 L1E4 와 λ·예산·캠페인 키 외 동일 (§11.1 학습 코드 변경 최소화)
 def stripped(text):
     d = yaml.safe_load("\n".join(l for l in text.splitlines() if not l.lstrip().startswith("#"))); d.pop("work_dir", None); k = d.get("kdv", {})
-    for key in ("campaign_id", "plan_protocol_id", "document_revision", "case_id", "budget"):
+    for key in ("campaign_id", "plan_protocol_id", "document_revision", "case_id", "budget", "select", "diag"):   # select.retain_all_candidates / diag.fixed_batch 는 학습 의미 불변 (PV08 이 별도 검사)
         k.pop(key, None)
     return d
 def diffkeys(a, b, pre=""):
@@ -92,5 +92,47 @@ import math
 pr, st = fixed_probes(2.0, "palsv18"); nz = [p for p in pr if p != (0.0, 0.0)]
 check("PV07 palsv18 probe = zero + 32 (반경 0.25/0.5/1/2 × 8 방향), stress 없음", len(pr) == 33 and len(nz) == 32 and sorted({round(math.hypot(a, b), 6) for a, b in nz}) == [0.25, 0.5, 1.0, 2.0] and st == [])
 check("PV07 무반응 대조 EPE = mean‖e‖ = 0.9375 px (이번 32 probe 의 직접 계산)", abs(sum(math.hypot(a, b) for a, b in nz) / 32 - 0.9375) < 1e-12)
+
+# ---------------- PV08 리뷰 P1-1: 평가 checkpoint 보존 키 + trainer 경로
+for n in names[:1]:
+    f = os.path.join(ROOT, "config", n + ".yaml")
+    if os.path.exists(f):
+        k = yaml.safe_load(open(f))["kdv"]; check("PV08 config: kdv.select.retain_all_candidates true · kdv.diag.fixed_batch true", k.get("select", {}).get("retain_all_candidates") is True and k.get("diag", {}).get("fixed_batch") is True)
+src = open(os.path.join(ROOT, "train_kdv.py")).read()
+check("PV08 trainer: retain 이면 selector 동률 밖 후보를 지우지 않는다 · ledger flock · 마지막 active update(num_iter−1) 진단 · 고정 batch 분해", 'retain_all_candidates' in src and 'and not retain' in src and '_LedgerLock' in src and 'int(self.args.num_iter) - 1' in src and 'gradient_diagnostics_fixed.jsonl' in src)
+class _P: protocol = "I-AEQ"; diag_every = 1000; args = type("A", (), dict(num_iter=50000))()
+check("PV08 진단 step 에 49999(마지막 active update) 포함, 49998 제외", KDVTrainer.is_diag_step(_P, 49999) and not KDVTrainer.is_diag_step(_P, 49998) and KDVTrainer.is_diag_step(_P, 25001))
+# ---------------- PV09 리뷰 P1-2: matched grid = selection_grid 의 실제 update 목록 + 실제 BestSelector 규칙
+from tools.palsv18_report import matched_grid_best
+gp = os.path.join(ROOT, "work_dir", "_palsv18_campaign", "selection_grid.json")
+if os.path.exists(gp):
+    g = json.load(open(gp)); mg_ = matched_grid_best(G.NF16[0], g["optimizer_updates"])
+    check("PV09 NF16 P0 S1234 matched-grid: 25/25 후보(exact 50K 포함) · 실제 selector 규칙 → 38380 / 0.952723 (리뷰 값과 일치; best_on_grid 의 48480/0.952752 가 아님)", mg_ and mg_["n_candidates"] == 25 and mg_["complete"] and mg_["step"] == 38380 and abs(mg_["hqnr"] - 0.952722827) < 1e-8, str(mg_))
+    l1 = matched_grid_best(G.run_name("L1E4", 1234), g["optimizer_updates"]); check("PV09 L1E4 S1234 matched-grid = 원 selector (40400, 같은 격자)", l1 and l1["step"] == 40400)
+import tempfile as _tf, csv as _csv
+_d = _tf.mkdtemp(); os.makedirs(os.path.join(_d, "work_dir", "SYN"), exist_ok=True)
+with open(os.path.join(_d, "work_dir", "SYN", "checkpoint_metrics.csv"), "w", newline="") as fh:
+    w = _csv.DictWriter(fh, fieldnames=["step", "epoch", "raw_original.hqnr", "raw_original.fscc"]); w.writeheader()
+    for st, ep, h, f_ in ((10, 1, 0.95000, 0.80), (20, 2, 0.95005, 0.79), (30, 3, 0.95003, 0.81), (40, 4, 0.94000, 0.90)):
+        w.writerow(dict(step=st, epoch=ep, **{"raw_original.hqnr": h, "raw_original.fscc": f_}))
+import tools.palsv18_report as RP; _root0 = RP.ROOT; RP.ROOT = _d
+syn = matched_grid_best("SYN", [10, 20, 30]); RP.ROOT = _root0
+check("PV09 selector 규칙 재생: HQNR 1e-4 band {10,20,30} → fSCC 최대(30, 0.81) → 40(격자 밖) 무시", syn and syn["step"] == 30 and syn["n_candidates"] == 3)
+# ---------------- PV10 리뷰 P2-5: native proxy 방향 — P = W(M, (+1,0)) 이면 canonical PAN correction (−1, 0)
+import numpy as _np, torch as _t
+from pa.warp import warp_pan as _wp
+from align.estimator import estimate_shift as _es, GATES as _GA
+rng = _np.random.RandomState(0); base = rng.rand(96, 96); base = _np.cumsum(_np.cumsum(base, 0), 1); base = (base - base.min()) / (base.max() - base.min()) * 1000 + 100
+from scipy.ndimage import gaussian_filter as _gf; base = _gf(base, 1.0) + 50 * _np.sin(_np.arange(96) / 3.0)[None, :] + 50 * _np.cos(_np.arange(96) / 4.0)[:, None]
+P = _wp(_t.from_numpy(base)[None, None], _t.tensor([[1.0, 0.0]], dtype=_t.float64))[0, 0].numpy()
+r_ = _es(P.astype(_np.float32), base.astype(_np.float32), dict(_GA, search_int=4, max_magnitude=4.0)); canon = (-r_["dy_lr_raw"], -r_["dx_lr_raw"])
+check("PV10 audit(ref=PAN, mov=MS) 은 (+1,0) 근처, canonical = −audit 이 필요한 correction (−1,0)", abs(r_["dy_lr_raw"] - 1.0) < 0.15 and abs(r_["dx_lr_raw"]) < 0.15 and abs(canon[0] + 1.0) < 0.15, f"audit ({r_['dy_lr_raw']:+.3f},{r_['dx_lr_raw']:+.3f})")
+vsrc = open(os.path.join(ROOT, "tools", "palsv18_validate.py")).read()
+check("PV10 validate 가 canon_* 열·known-shift/identity 를 summary 에 남긴다 · 개입은 적격 장면만 평균 · shortcut 대조 양 ckpt · stress 8 방향 + c0−ε 기준선 + RR", all(x in vsrc for x in ("canon_before_dy", "canonical_pan_to_ms_of_audit", "def vmean", "shortcut_controls", "fr_stress_baseline", "def rr_stress", 'default=8')))
+# ---------------- PV11 리뷰 P2-3/P2-6: 실행기 idempotency·예산 guard·잠금
+rsrc = open(os.path.join(ROOT, "tools", "palsv18_validate.sh")).read()
+check("PV11 실행기: sha·tool_version·parts 검사 후 생략, guard(used + est + 1.7×미완 + 1.5 ≤ 18), reserved 항목, 잠금 helper", all(x in rsrc for x in ("need_run", "TOOL_VERSION", "guard", "_reserved", "_ledger_update.py")))
+psrc = open(os.path.join(ROOT, "tools", "po10_diag.py")).read()
+check("PV11 po10_diag: stress csv checkpoint 별 이름 · band 별 상수 MS · ckpt_sha256 기록", "stress_hqnr_native_fr512_{tag}" in psrc and "mean(dim=(2, 3), keepdim=True)" in psrc and "ckpt_sha256" in psrc)
 
 print(f"\n{'FAIL ' + str(FAIL) if FAIL else 'ALL OK'} ({len(FAIL)} failed)"); sys.exit(1 if FAIL else 0)

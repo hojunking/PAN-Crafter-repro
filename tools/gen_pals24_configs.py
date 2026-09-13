@@ -89,6 +89,8 @@ def kdv_block(case, seed, donor_sha, donor_step, members, projected=None, versio
         k["aux"] = dict(offset_weight=float(lam), offset_ramp_updates=0, offset_stop_reference=True, geometry_weight=0.0, ramp_updates=5000, geometry_sigma_hr=2.0, geometry_margin_hr=11)
     elif pol != "A-ID":
         k["aux"] = dict(offset_weight=0.0, geometry_weight=0.0)
+    for key, val in (C.get("extra") or {}).items():                        # 캠페인 전용 추가 키 (PALSV18: select.retain_all_candidates, diag.fixed_batch) — 학습 의미 불변
+        k[key] = dict(k.get(key) or {}, **val) if isinstance(val, dict) else val
     return k
 
 

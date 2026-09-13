@@ -91,7 +91,7 @@ def response(m, samples, R, mg, dev, seed=12345, kernel="bicubic", ms_mode="own"
         if ms_mode == "swap":
             ms_use = samples[(i + 1) % len(samples)][1].to(dev)
         elif ms_mode == "const":
-            ms_use = torch.zeros_like(ms) + ms.mean()
+            ms_use = ms.mean(dim=(2, 3), keepdim=True).expand_as(ms).contiguous()          # band 별 공간 평균 (PALSV18 §8.3; 2026-09-13 이전 산출물은 전체 단일 평균이었다)
         mb = F.interpolate(ms_use, scale_factor=4, mode="bicubic")
         c0 = predict_c(m.aligner, pan, mb, mg)[0].cpu().numpy()
         rnd = sample_offsets(8, R, g).numpy().tolist()
@@ -194,7 +194,7 @@ def interpolation_controls(m, samples, R, mg, dev):
 
 
 @torch.no_grad()
-def stress_hqnr(m, cfg, R, mg, dev, wd, probes=((0.0, 0.0), (1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0))):
+def stress_hqnr(m, cfg, R, mg, dev, wd, probes=((0.0, 0.0), (1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0)), tag=None):
     """PO10 §6.3·§10.3: FR 논문 세트에 ε 를 넣은 P_ε 로 추론한 SR 을 **별도 stress ROI**(margin 96)에서 평가. raw_valid(원 P) · aligned_valid(P̃ε = W(W(P_raw,ε),ĉε) float64).
     적격성은 두 단계: |ε|∞ + |ĉε|∞ ≤ MAX_ELIGIBLE_TWO_STAGE. 최종 diagnostic 만 — 선택에 쓰지 않는다."""
     sensor = efp.sensor_of(cfg); wald = load_dlpan(os.environ.get("PANCRAFTER_DLPAN", "/home/knuvi/Desktop/song/DLPan-Toolbox"))
@@ -217,7 +217,7 @@ def stress_hqnr(m, cfg, R, mg, dev, wd, probes=((0.0, 0.0), (1.0, 0.0), (-1.0, 0
             rows.append(dict(ey=ey * R, ex=ex * R, scene=i, c_dy=float(d[0]), c_dx=float(d[1]), two_stage_abs_shift=two, eligible=bool(two <= MAX_ELIGIBLE_TWO_STAGE and np.isfinite([v[k]["hqnr"] for k in VIEWS]).all()),
                              raw_valid_hqnr=v["raw_valid"]["hqnr"], raw_valid_fscc=v["raw_valid"]["fscc"], aligned_valid_hqnr=v["aligned_valid"]["hqnr"], aligned_valid_fscc=v["aligned_valid"]["fscc"],
                              d_lambda=v["raw_valid"]["d_lambda"], raw_valid_d_s=v["raw_valid"]["d_s"], aligned_valid_d_s=v["aligned_valid"]["d_s"], roi_hash=man["roi_hash"]))
-    write_csv(os.path.join(wd, "stress_hqnr_fr512.csv"), rows)
+    write_csv(os.path.join(wd, "stress_hqnr_fr512.csv" if tag is None else f"stress_hqnr_fr512_{tag}.csv"), rows)
     summ = {}
     for ey, ex in probes:
         r = [x for x in rows if x["ey"] == ey * R and x["ex"] == ex * R]; el = [x for x in r if x["eligible"]]
@@ -236,7 +236,7 @@ def native_stress_eligible(H, W, eps, c, c_d, margin=STRESS_MARGIN):
     return bool(m2.all()) and bool(support_margin_ok(H, W, cd, margin).all())
 
 
-def stress_hqnr_native(m, cfg, R, mg, dev, wd, ref_model, probes=((0.0, 0.0), (1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0))):
+def stress_hqnr_native(m, cfg, R, mg, dev, wd, ref_model, probes=((0.0, 0.0), (1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0)), tag=None):
     """NF16 §8.4: 입력만 P_ε 로 바꾸고 **참조는 native 로 고정** — raw = 원 P, aligned = W(P_raw, c_D) (c_D = 고정 donor 의 native 예측; ref_model None 이면 자기 native 예측). ROI margin 96.
     ε 마다 참조를 따라 옮겨 손실이 줄어든 것처럼 만들지 않는다. 출력 좌표(M-frame) 도 그대로다."""
     sensor = efp.sensor_of(cfg); wald = load_dlpan(os.environ.get("PANCRAFTER_DLPAN", "/home/knuvi/Desktop/song/DLPan-Toolbox"))
@@ -261,7 +261,7 @@ def stress_hqnr_native(m, cfg, R, mg, dev, wd, ref_model, probes=((0.0, 0.0), (1
             rows.append(dict(ey=ey * R, ex=ex * R, scene=i, c_dy=float(d[0]), c_dx=float(d[1]), ref_dy=float(c_d[0]), ref_dx=float(c_d[1]), eligible=bool(ok and sup and np.isfinite([v[k]["hqnr"] for k in VIEWS]).all()), support_two_stage_ok=bool(sup),
                              raw_native_hqnr=v["raw_valid"]["hqnr"], raw_native_fscc=v["raw_valid"]["fscc"], aligned_fixed_hqnr=v["aligned_valid"]["hqnr"], aligned_fixed_fscc=v["aligned_valid"]["fscc"],
                              d_lambda=v["raw_valid"]["d_lambda"], raw_native_d_s=v["raw_valid"]["d_s"], aligned_fixed_d_s=v["aligned_valid"]["d_s"]))
-    write_csv(os.path.join(wd, "stress_hqnr_native_fr512.csv"), rows)
+    write_csv(os.path.join(wd, "stress_hqnr_native_fr512.csv" if tag is None else f"stress_hqnr_native_fr512_{tag}.csv"), rows)     # checkpoint 별 원자료 보존 (리뷰 P2-3)
     return dict(roi_margin=STRESS_MARGIN, reference="native P / W(P, c_D) fixed", ref_model=("donor" if ref_model is not None else "self_native"),
                 rule="model-input two-stage support(ε→ĉε) inside V96 AND fixed-reference W(P,c_D) support; scene eligible only if both hold and all view metrics finite",
                 max_eligible_two_stage=MAX_ELIGIBLE_TWO_STAGE, max_eligible_reference_shift=MAX_ELIGIBLE_SHIFT, aggregation="all-eligible-only (부분 평균은 *_eligible_subset)",
@@ -292,11 +292,13 @@ def main():
     a = ap.parse_args(); dev = torch.device(a.device)
     wd, cfg, m, R, mg = load_run(a.run, a.ckpt, dev)
     if m.aligner is None:                                                    # A-ID(P0): 반응 진단 없음, native stress 만 (참조 = donor 필요)
-        out = dict(run=a.run, ckpt=a.ckpt, radius_hr=R, view_margin=mg, response={}, note="aligner 없음 (A-ID)")
+        from kdv.teacher_assets import sha256_file as _sha
+        out = dict(run=a.run, ckpt=a.ckpt, ckpt_sha256=_sha(os.path.join(wd, a.ckpt, "model.safetensors")), probe_set=a.probe_set, radius_hr=R, view_margin=mg, response={}, note="aligner 없음 (A-ID)")
         if a.native_reference and a.ref_run:
-            _, _, refm, _, _ = load_run(a.ref_run, a.ref_ckpt, dev); out["stress_hqnr_native_fr512"] = stress_hqnr_native(m, cfg, R, mg, dev, wd, refm)
+            _, _, refm, _, _ = load_run(a.ref_run, a.ref_ckpt, dev); out["stress_hqnr_native_fr512"] = stress_hqnr_native(m, cfg, R, mg, dev, wd, refm, tag=(None if a.out == "po10_diag" else a.out))
         os.makedirs(os.path.join(wd, "results"), exist_ok=True); json.dump(out, open(os.path.join(wd, "results", f"{a.out}.json"), "w"), indent=1); print("  aligner 없음 — native stress 만 기록"); return
-    ds = datasets(cfg); out = dict(run=a.run, ckpt=a.ckpt, radius_hr=R, view_margin=mg, response={})
+    from kdv.teacher_assets import sha256_file as _sha
+    ds = datasets(cfg); out = dict(run=a.run, ckpt=a.ckpt, ckpt_sha256=_sha(os.path.join(wd, a.ckpt, "model.safetensors")), radius_hr=R, view_margin=mg, response={})
     print(f"[{a.run}] §10.3 추가 변위 반응 (R={R}, view margin {mg}, ckpt {a.ckpt})")
     refm = load_run(a.ref_run, a.ref_ckpt, dev)[2] if a.ref_run else None
     out["probe_set"] = a.probe_set
@@ -316,10 +318,10 @@ def main():
     json.dump(ic, open(os.path.join(wd, "interpolation_controls.json"), "w"), indent=1)
     print(f"  §10.4 padding border→reflection |Δĉ| {ic['padding_border_vs_reflection_max_abs_diff']:.2e} | MS swap B diag {ic['ms_swap']['B_diag']} | MS const {ic['ms_const']['B_diag']} "
           f"| double-interp floor (common support {ic['double_interp_floor_common_support_frac']:.2f}) mean {ic['double_interp_floor_common_support_mean_abs']:.2e}, padding-indep inside {ic['double_interp_padding_independence_inside_support_max_abs']:.1e} | bilinear kernel B diag {ic['kernel_bilinear']['B_diag']}")
-    out["stress_hqnr_fr512"] = st = stress_hqnr(m, cfg, R, mg, dev, wd)
+    out["stress_hqnr_fr512"] = st = stress_hqnr(m, cfg, R, mg, dev, wd, tag=(None if a.out == "po10_diag" else a.out))
     print("  §6.3/§10.3 stress HQNR (FR, ROI margin 96, 두 단계 적격): " + " | ".join(f"ε{k}: raw_valid {v['raw_valid_hqnr']:.4f} aligned_valid {v['aligned_valid_hqnr']:.4f} ({v['n_eligible']}/{v['n']})" for k, v in st["by_eps"].items() if v["raw_valid_hqnr"] is not None))
     if a.native_reference:
-        out["stress_hqnr_native_fr512"] = sn = stress_hqnr_native(m, cfg, R, mg, dev, wd, refm)
+        out["stress_hqnr_native_fr512"] = sn = stress_hqnr_native(m, cfg, R, mg, dev, wd, refm, tag=(None if a.out == "po10_diag" else a.out))
         print("  NF16 §8.4 native-reference stress (raw = 원 P, aligned = W(P, c_D) 고정, V96): " + " | ".join((f"ε{k}: raw {v['raw_native_hqnr']:.4f} fixed {v['aligned_fixed_hqnr']:.4f}" if v["eligible_all"] else f"ε{k}: INELIGIBLE({v['n_eligible']}/{v['n']})") for k, v in sn["by_eps"].items()))
     os.makedirs(os.path.join(wd, "results"), exist_ok=True); json.dump(out, open(os.path.join(wd, "results", f"{a.out}.json"), "w"), indent=1)
     print(f"  -> {os.path.relpath(os.path.join(wd, 'results', a.out + '.json'), ROOT)}")

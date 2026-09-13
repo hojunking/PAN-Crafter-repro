@@ -13,7 +13,9 @@ from tools import gen_pals24_configs as G
 
 CAMP = dict(prefix="PALSV18", campaign_id="PALSV18_W112D123_N2LAST_R200_v1", plan_protocol_id="PALS_W112D123_N2LAST_R200_v1", document_revision="18GPUh_v1",
             ledger="work_dir/_palsv18_budget/ledger.json", total_hours=18.0, reserve_hours=5.0, run_reserved=1.7, margin=1.1,
-            plan="research_log/PAN_L1E4_Refinement_AlignmentValidation_S1_18GPUh_2026-09-13.md", note="research_log/2026-09-13_palsv18-implementation.md")
+            plan="research_log/PAN_L1E4_Refinement_AlignmentValidation_S1_18GPUh_2026-09-13.md", note="research_log/2026-09-13_palsv18-implementation.md",
+            extra=dict(select=dict(retain_all_candidates=True),          # 계획 §6.3: 평가한 native checkpoint 전부 보존 (리뷰 P1-1)
+                       diag=dict(fixed_batch=True)))                     # 계획 §11.2: 고정 diagnostic batch 의 gradient 분해 (리뷰 P2-7)
 NEW_LAMBDAS = ["L3E5", "L3E4"]; SEEDS = [1234, 7777, 2025]
 CELLS = [("L3E5", 1234), ("L3E4", 1234), ("L3E4", 7777), ("L3E5", 7777), ("L3E5", 2025), ("L3E4", 2025)]        # §3.1 순번 1–6 (seed 7777 은 λ 순서를 뒤집는다)
 PLAN_RESERVE = dict(gate=0.8, pre_validation=2.0, new_training=6 * 1.7, post_validation=3.5, reporting=0.5, buffer=1.0, total=18.0, drop_order=[2025, 7777])

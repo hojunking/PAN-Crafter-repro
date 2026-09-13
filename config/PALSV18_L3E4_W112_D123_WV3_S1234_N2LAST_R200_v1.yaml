@@ -67,6 +67,10 @@ kdv:
     ramp_updates: 5000
     geometry_sigma_hr: 2.0
     geometry_margin_hr: 11
+  select:
+    retain_all_candidates: true
+  diag:
+    fixed_batch: true
 
 
 
