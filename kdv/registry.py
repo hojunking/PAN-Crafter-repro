@@ -70,6 +70,11 @@ def resolve(k):
     windows = [int(w) for w in (st.get('windows') or ([window] if stat_enabled else []))]
     stat_transform = st.get('transform', 'none'); stat_domain = st.get('domain', 'final_hrms')
     stat_transform_eps = float(st.get('transform_eps', 1e-12)); stat_lambda_scale = float(st.get('lambda_scale', 1.0))
+    stat_lambda_from_run = st.get('lambda_from_run')                      # 20H CF01: 다른 run 이 실제로 쓴 λ_V(calibration_resolved.json lambda.lambda_V_used) 를 그대로 (재calibration 금지)
+    if stat_enabled and stat_lambda_from_run is not None and (not isinstance(stat_lambda_from_run, str) or not stat_lambda_from_run.strip()):
+        _bad("stat.lambda_from_run 은 run 이름 문자열 (work_dir/<run>/calibration_resolved.json 의 lambda.lambda_V_used 를 쓴다)")
+    if stat_enabled and stat_lambda_from_run and st.get('outer_weight') not in (None, 'calibrate'):
+        _bad("stat.lambda_from_run 과 숫자 outer_weight 를 같이 주지 않는다 (λ_V 출처는 하나)")
     if stat_enabled:
         if stat_transform not in STAT_TRANSFORMS:
             _bad(f"stat.transform {stat_transform!r} ∉ {STAT_TRANSFORMS}")
@@ -275,7 +280,7 @@ def resolve(k):
     if aligned_selector and policy == 'A-ID' and na is not None:
         _bad("aligner 가 없으면 aligned_valid 는 raw_valid 와 같다 — select.aligned_selector: false 로 명시한다 (§14.1)")
     return dict(recipe=recipe, protocol=protocol, policy=policy, rec_case=rec_case, rec_mode=REC_CASES[rec_case], tri=tri_spec,
-                rec_control=rec_control, rec_tau_scale=rec_tau_scale, na_protocol=na, expect_arch=ea, select_secondary=secondary, select_primary=primary, aligned_selector=aligned_selector,
+                rec_control=rec_control, rec_tau_scale=rec_tau_scale, na_protocol=na, expect_arch=ea, select_secondary=secondary, select_primary=primary, aligned_selector=aligned_selector, stat_lambda_from_run=stat_lambda_from_run,
                 stat_windows=windows, stat_transform=stat_transform, stat_transform_eps=stat_transform_eps, stat_domain=stat_domain, stat_lambda_scale=stat_lambda_scale, stat_extra=extra,
                 stat_enabled=stat_enabled, stat_key=stat_key, stat_kind=STAT_KINDS[stat_key], stat_mode=stat_mode, stat_window=window,
                 geom=geom, geom_outer_weight=lam_gkd, geom_r_gkd=r_gkd, geom_k0=k0, cov_source=cov_src, probes=probes, geo=geo, eq_sigma_min=eq_sigma_min,

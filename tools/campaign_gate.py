@@ -314,9 +314,26 @@ def gate_pals24():
         emit(tag, f"PALS24 stage 2 · λ* = {info['selected_case']} (λ {info['selected_lambda']}) · {info['why'].get('rule')}")
 
 
+# ================================================================= NA104 20H 우선순위 (s2·s3, 2026-09-13)
+def gate_na104_20h():
+    """research_log/01_S2_20H_PRIORITY.md · 02_S3_20H_PRIORITY.md §4–§6: P1(큐) 뒤 조건부 — Q36 3-seed 통과 → CF01 (s3: pilot S777·S1234 → 둘 다 Q36 대비 양성이면 S2026; s2: s3 token + 자기 Q36 통과 → 3벌),
+    Q12 3-seed 통과 → X02 S777·S2026. 판정은 tools/na104_20h.decide (common-grid BestSelector 재생, 20h 예산 guard). 서버는 gspread/server.txt."""
+    if ROOT not in sys.path:
+        sys.path.insert(0, ROOT)
+    from tools.na104_20h import decide, server
+    srv = server()
+    if srv not in ("s2", "s3"):
+        log(f"NA104-20H: s2·s3 전용 (현재 {srv}) — 닫힘"); return
+    d = decide(srv)
+    for r in d["reasons"]:
+        log(f"NA104-20H[{srv}]: {r}")
+    for tag in d["open"]:
+        emit(tag, f"NA104-20H[{srv}] 조건부 (Q36 pass={d['q36']['passed']}, Q12 pass={d['q12']['passed']}, used {d['budget']['used_hours']:.2f}h/20)")
+
+
 GATES = {"uvs": ("gate_uvs", "UVS-KD (2026-09-01 s2)"), "sr": ("gate_sr", "shift-robust (SR/AF)"),
          "s2cal": ("gate_s2_calibrate", "s2 uncertainty calibration"), "s2gtvar": ("gate_s2_gtvar", "s2 GT-variance KD"),
-         "pals24": ("gate_pals24", "PALS24 λ_off sweep stage 2 (s1, 2026-09-12)")}
+         "pals24": ("gate_pals24", "PALS24 λ_off sweep stage 2 (s1, 2026-09-12)"), "na104_20h": ("gate_na104_20h", "NA104 20H 우선순위 조건부 CF01/X02 (s2·s3, 2026-09-13)")}
 
 
 def enabled_gates():

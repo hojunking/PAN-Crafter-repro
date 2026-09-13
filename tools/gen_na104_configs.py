@@ -137,6 +137,9 @@ def cases(pilot):
     # ==== FINAL 계획(2026-09-12) 부록 §4 — 신규 18 정의 (v2). 기존 case 를 몰래 바꾸지 않는다
     C["X01"] = ("X01 R1 + GT gradient variance(GV-H) — R3 조합의 개선에 output soft 가 필요한가 (Q02·Q06·Q05)", rec("R1"), stat("GV", "H", pilot), None, {})
     C["X02"] = ("X02 R1 + signed GT edge(EDGE-H) (Q02·Q12·Q11)", rec("R1"), stat("EDGE", "H", pilot), None, {})
+    # 20H 우선순위 (research_log/01_S2_20H_PRIORITY.md·02_S3_20H_PRIORITY.md §4): CF01 = N0 + GC-FIX — GT_L1 + λ_C·(mean|C_S−C_GT| + 0.1·mean|C_S−C_T|), window 5,
+    # λ_C 는 Q36(S1234 v1) 이 실제로 쓴 λ_V 를 그대로(lambda_from_run; 재calibration 금지), Teacher 는 학습에 필요(eval_only 아님). 새 hard 재가중·adaptive gate 없음.
+    C["CF01"] = ("CF01 N0 + GC-FIX (Q36 의 λ_C 재사용, hard GT + 0.1·Teacher soft, Student 통계만 gradient) — Q36 이 3 seed 를 통과할 때만", rec("N0"), stat("GC", "FIX", pilot, kd_weight=0.1, lambda_from_run=Q36_LAMBDA_RUN), None, {})
     C["X03"] = ("X03 N0 + GV-FIX — 일반 GT reconstruction 위에 고정 GT/Teacher 통계 KD (Q05·Q09)", rec("N0"), stat("GV", "FIX", pilot), None, {})
     C["X04"] = ("X04 R1 + GV-FIX — Teacher-error hard reconstruction + 고정 통계 KD (X01·Q09·X03)", rec("R1"), stat("GV", "FIX", pilot), None, {})
     C["X05"] = ("X05 R3 + GV-HAD — 통계 hard 는 plain, soft 만 adaptive: H_V + β_V(1−d_V)a_V K_V (Q06·Q09·Q10)", rec("R3"), stat("GV", "HAD", pilot), None, {})
@@ -156,7 +159,8 @@ def cases(pilot):
     return C
 
 
-NEW_IDS = {"X01", "X02", "X03", "X04", "X05", "X06", "X07", "X08", "X09", "X10", "X11", "X12", "PX01", "PX02", "CX01", "CX02", "LX01", "LX02"}
+NEW_IDS = {"X01", "X02", "X03", "X04", "X05", "X06", "X07", "X08", "X09", "X10", "X11", "X12", "PX01", "PX02", "CX01", "CX02", "LX01", "LX02", "CF01"}
+Q36_LAMBDA_RUN = "NA104_Q36_W104_D122_WV3_N0_GCH_S1234_v1"            # 20H CF01 의 λ_C 출처 (각 서버의 자기 Q36 v1 run; 파일은 그 서버 work_dir 에 있어야 한다)
 CORE10 = ["Q00", "Q01", "Q02", "Q03", "Q04", "Q05", "Q06", "Q09", "Q11", "Q12"]         # 부록 §6.1 사전 지정 seed 반복 (매 seed 에서 Q00 먼저)
 CORE_SEEDS = [777, 2026]                                                              # R1 = 777 (P2 뒤), R2 = 2026 (P4 뒤). 2026 은 Teacher seed(2025) 와 겹치지 않게 고른 값
 LEGACY_SEED_CHECK = [("Q00", 2025), ("Q04", 2025), ("Q10", 2025), ("Q10", 777)]        # 원 반복안 보존 (§R3). seed 2025 의 N0 는 Teacher 를 재현할 수 있다 → TIED_TO_TEACHER_SEED
@@ -246,6 +250,7 @@ def main():
     ap.add_argument("--server", default=None, choices=["s2", "s3"], help="서버 block")
     ap.add_argument("--all", action="store_true", help="전 case 생성 + s2·s3 큐 둘 다")
     ap.add_argument("--only", default=None, help="쉼표로 구분한 case id (예: T00,Q00,X05). 없는 id 는 오류로 알린다")
+    ap.add_argument("--seeds", default=None, help="--only 와 함께: Student seed 목록 (예: 777,2026). 기본은 --seed 하나. 이름 규칙(v1/v2) 은 그대로")
     ap.add_argument("--seed", type=int, default=1234, help="기본 Student seed (v1 block)"); ap.add_argument("--teacher-seed", type=int, default=2025)
     ap.add_argument("--no-core-repeat", action="store_true", help="core10 × seed 777/2026 반복을 만들지 않는다")
     ap.add_argument("--no-legacy-seed", action="store_true", help="원 반복안(Q00/Q04/Q10@2025, Q10@777) 을 만들지 않는다")
@@ -294,7 +299,8 @@ def main():
         missing = [x for x in want if x not in C]
         if missing:
             sys.exit(f"!! 없는 case id: {missing} — 조용히 빠뜨리지 않는다 (부록 §8)")
-        cells = [("ONLY", cid, a.teacher_seed if cid == "T00" else a.seed) for cid in want]
+        seeds_ = [int(x) for x in a.seeds.split(",")] if a.seeds else [a.seed]
+        cells = [("ONLY", cid, a.teacher_seed if cid == "T00" else sd_) for cid in want for sd_ in (seeds_ if cid != "T00" else [a.teacher_seed])]
     else:
         srvs = ["s2", "s3"] if a.all else ([a.server] if a.server else ["s2", "s3"])
         seen = set()

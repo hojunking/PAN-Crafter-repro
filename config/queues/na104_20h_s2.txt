@@ -1,0 +1,8 @@
+# NA104 20H 우선순위 큐 (s2) — research_log/01_S2_20H_PRIORITY.md (2026-09-13). 상위 규약 00_20H_CRITERIA_AND_RETIREMENT.md (미수령 — 두 문서의 §6 기준으로 구현)
+# P1 필수 4개 (순서 고정). P2 CF01 · P3 X02 는 큐가 끝난 뒤 tools/campaign_gate.py 의 na104_20h gate 가 §4·§5 조건(3-seed common-grid 기준 + 20h 예산) 으로 연다 — work_dir/campaign_gates_enabled.txt = na104_20h
+# 전환: ./tools/na104_20h_switch.sh (현재 run 원 설정으로 마무리 → 체인 교체 → 예산 시계 시작). 판정·회신: python tools/na104_20h.py report
+# 약명→세팅: Q00 = N0(KD·통계 없음) · Q36 = N0+GC-H(GT covariance hard, window 5) · Q12 = R3+EDGE-H · CF01 = N0+GC-FIX(λ_C = Q36 재사용, hard GT + 0.1·Teacher soft) · X02 = R1+EDGE-H (Q12 의 soft 제거 대조)
+NA104_Q36_W104_D122_WV3_N0_GCH_S777_v2
+NA104_Q00_W104_D122_WV3_N0_OFF_S2026_v2
+NA104_Q36_W104_D122_WV3_N0_GCH_S2026_v2
+NA104_Q12_W104_D122_WV3_R3_EDGEH_S2026_v2
