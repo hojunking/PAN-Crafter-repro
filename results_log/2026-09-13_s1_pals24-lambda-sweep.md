@@ -166,3 +166,19 @@ best 가 이른 update(2020~10100)에서 뽑힌 탓도 있다(§2.1 표의 selec
   10 격자 재선택값은 0.95275 다(`tools/best_on_grid.py --grid 10`). 어느 쪽을 써도 λ\* 우위의 부호는 같다.
 - stage 2 는 `tools/campaign_gate.py` 의 `pals24` gate 가 열었다.
   **캠페인이 끝났으므로 `work_dir/campaign_gates_enabled.txt` 에서 `pals24` 를 지울 것** (아직 남아 있다).
+
+## 7. (같은 날 추가, WIP) PALSV18 — L1E4 근방 미세조정·정합 능력 검증 기동 (s1, 19:28)
+
+위 결과의 후속으로 사용자 결정에 따라 **λ_off 3e-5 / 3e-4 × seed 1234·7777·2025 (6벌, 각 50K)** 를 시작했다 (계획 [`PAN_L1E4_Refinement_AlignmentValidation_S1_18GPUh_2026-09-13.md`](../research_log/PAN_L1E4_Refinement_AlignmentValidation_S1_18GPUh_2026-09-13.md), 구현 노트 [`2026-09-13_palsv18-implementation.md`](../research_log/2026-09-13_palsv18-implementation.md)).
+PALS24 recipe 에서 λ 만 바뀐다(gate 가 config 동치 확인). 대조군 P0/L000/L1E4 × 3 seed 는 위 §2 의 run 을 그대로 재사용한다(G-M1 재평가 Δ 0.0, 초기 tensor·donor hash 일치).
+
+| 항목 | 값 |
+|---|---|
+| 큐 | seed1234 L3E5 → L3E4 · seed7777 L3E4 → L3E5 · seed2025 L3E5 → L3E4 (`config/queues/palsv18_s1.txt`), 조건부 gate 없음 |
+| 예산 | 18 GPU-h (`work_dir/_palsv18_budget/ledger.json`): gate 실측 0.06 h(예약 0.8) · run 예약 1.7 · reserve 5.0(V-post 3.5 + report 0.5 + buffer 1.0) · seed pair 단위 완결, 부족하면 2025 → 7777 순 보류 |
+| 예상 | PALS24 실측 1.41–1.46 h/run + 진단 0.15 h → 6회 ≈ 9.5 h, 09-14 05:00 께 완료 |
+| 검증 | V1 signed 2D 반응(33 probe, 장면별 fit) · V2 pan/MS/common 모달리티 · V3 native proxy(Scharr-ZNCC)·RR edge_profile_v1·energy-match blur · V4 correction 치환(zero/wrong/shuffle/constant/blur)·native-reference stress — `tools/palsv18_validate.sh`, 대조군(V-pre) 은 학습과 겹쳐 돌린다 |
+| 판정 | best_raw raw_original HQNR → fSCC, 판정선 0.0031; performance_leader(3-seed 평균) 와 working_reference(L1E4) 분리, 판정선 안이면 L1E4 유지 |
+| 결과 확인 | `python tools/palsv18_report.py` → `work_dir/_palsv18_campaign/final_report.md` (표 A–D, csv 13종) |
+
+결과는 **09-14 s1 문서**에 쓴다.

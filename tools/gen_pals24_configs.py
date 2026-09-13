@@ -22,7 +22,8 @@ CAMPAIGN_ID = "PALS24_W112D123_N2LAST_R200_v2"; PROTOCOL_ID = "PALS_W112D123_N2L
 PLAN = "research_log/PAN_P2_P3_LambdaSweep_MetricAware_24GPUh_Plan_2026-09-12_v2.md"; NOTE = "research_log/2026-09-12_pals24-implementation.md"
 DONOR_RUN = "PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT"
 LEDGER = "work_dir/_pals24_budget/ledger.json"; TOTAL_HOURS = 24.0; RESERVE_HOURS = 4.0; MARGIN = 1.1; RUN_RESERVED_HOURS = 2.0
-LAMBDA = {"L000": 0.0, "L1E4": 1e-4, "L1E3": 1e-3, "L3E3": 3e-3, "L1E2": 1e-2}
+LAMBDA = {"L000": 0.0, "L1E4": 1e-4, "L1E3": 1e-3, "L3E3": 3e-3, "L1E2": 1e-2, "L3E5": 3e-5, "L3E4": 3e-4}      # L3E5/L3E4: PALSV18 (2026-09-13) 의 L1E4 근방 미세조정
+CAMPAIGN_DEFAULT = None                                                                                  # (아래에서 채운다) 캠페인 상수 묶음 — PALSV18 은 gen_palsv18_configs.py 가 덮어쓴다
 NEW_LAMBDAS = ["L1E3", "L1E4", "L3E3"]                                    # §11.5 A1 → A2 → A3
 SCREEN_SEED = 1234; CONFIRM_SEEDS = [7777, 2025]
 NF16 = {q: f"NF16_P{q}_W112_D123_WV3_S1234_N2LAST_v1" for q in range(5)}
@@ -30,11 +31,18 @@ REUSED = {("CTRLP0", 1234): NF16[0], ("L000", 1234): NF16[2], ("L1E2", 1234): NF
 BACKGROUND = {("L1E2", 7777): "NF16_P3_W112_D123_WV3_S7777_N2LAST_v1"}                          # 배경 대조로만 (§11.2)
 DIAG_REFERENCE = {("P1", 1234): NF16[1]}                                                        # G-M4 (frozen donor: self == fixedN2)
 PURPOSE = {"CTRLP0": "CTRL-P0 — aligner·sampler 없는 no-align 대조 (NF16 P0 정의)", "L000": "L000 — λ_off 0: P2 와 같은 recon-only 공동 학습 (NF16 P2 정의)",
-           "L1E4": "L1E4 — λ_off 0.0001 (기존 P3 의 1/100)", "L1E3": "L1E3 — λ_off 0.001 (기존 P3 의 1/10)", "L3E3": "L3E3 — λ_off 0.003 (기존 P3 의 0.3배)", "L1E2": "L1E2 — λ_off 0.01 (NF16 P3 와 같은 감독 강도)"}
+           "L1E4": "L1E4 — λ_off 0.0001 (기존 P3 의 1/100)", "L1E3": "L1E3 — λ_off 0.001 (기존 P3 의 1/10)", "L3E3": "L3E3 — λ_off 0.003 (기존 P3 의 0.3배)", "L1E2": "L1E2 — λ_off 0.01 (NF16 P3 와 같은 감독 강도)",
+           "L3E5": "L3E5 — λ_off 0.00003 (L1E4 의 0.3배; PALSV18 근방 미세조정)", "L3E4": "L3E4 — λ_off 0.0003 (L1E4 의 3배; PALSV18 근방 미세조정)"}
+CAMPAIGN_DEFAULT = dict(prefix="PALS24", campaign_id=CAMPAIGN_ID, plan_protocol_id=PROTOCOL_ID, document_revision=DOC_REV, ledger=LEDGER, total_hours=TOTAL_HOURS, reserve_hours=RESERVE_HOURS,
+                        run_reserved=RUN_RESERVED_HOURS, margin=MARGIN, plan=PLAN, note=NOTE)
 
 
-def run_name(case, seed, version="v1"):
-    return f"PALS24_{case}_W112_D123_WV3_S{seed}_N2LAST_R200_{version}"
+def campaign(camp=None):
+    return dict(CAMPAIGN_DEFAULT, **(camp or {}))
+
+
+def run_name(case, seed, version="v1", prefix="PALS24"):
+    return f"{prefix}_{case}_W112_D123_WV3_S{seed}_N2LAST_R200_{version}"
 
 
 def stage1():
@@ -54,9 +62,9 @@ def blocks(lam_star=None):
     return b
 
 
-def kdv_block(case, seed, donor_sha, donor_step, members, projected=None, version="v1", diag_every=1000, ledger=LEDGER):
-    """NF16 build() 와 같은 recipe (P0 / P2 / P3) 에 λ 만 바꾼다. members: 같은 block 의 (case, seed) 목록 (예산 gate 용)."""
-    lam = LAMBDA.get(case)
+def kdv_block(case, seed, donor_sha, donor_step, members, projected=None, version="v1", diag_every=1000, ledger=None, camp=None):
+    """NF16 build() 와 같은 recipe (P0 / P2 / P3) 에 λ 만 바꾼다. members: 같은 block 의 (case, seed) 목록 (예산 gate 용). camp: 캠페인 상수 덮어쓰기 (PALSV18)."""
+    C = campaign(camp); ledger = ledger or C["ledger"]; lam = LAMBDA.get(case)
     if case == "CTRLP0":
         pol, proto = "A-ID", "I-A"
     elif lam == 0.0:
@@ -64,14 +72,14 @@ def kdv_block(case, seed, donor_sha, donor_step, members, projected=None, versio
     else:
         pol, proto = "A-FT", "I-AEQ"
     donor = dict(source=f"work_dir/{DONOR_RUN}/last", view_margin_hr=4, expected_sha256=donor_sha, expected_step=donor_step)
-    k = dict(campaign_id=CAMPAIGN_ID, plan_protocol_id=PROTOCOL_ID, document_revision=DOC_REV, case_id=case, run_kind="CONTROLLED", version=version, check_run_name=False,
+    k = dict(campaign_id=C["campaign_id"], plan_protocol_id=C["plan_protocol_id"], document_revision=C["document_revision"], case_id=case, run_kind="CONTROLLED", version=version, check_run_name=False,
              input_protocol=proto, aligner_policy=pol, diag_every=diag_every, calibration=dict(n_patches=3072, seed=1234), aligner_lr=1.0e-5,
              rec=dict(case="N0"), stat=dict(enabled=False), geom_kd=dict(mode="G0"),
              eval=(dict(fixed_reference_from_donor=True) if pol != "A-ID" else dict(reference_donor=dict(donor))))
-    me = run_name(case, seed, version)
-    k["budget"] = dict(ledger=ledger, total_gpu_hours=TOTAL_HOURS, reserve_hours=RESERVE_HOURS, margin=MARGIN, required=False, projected_hours=projected,
-                       projected_map={run_name(c, s, version): RUN_RESERVED_HOURS for c, s in members},
-                       remaining_mandatory=[run_name(c, s, version) for c, s in members if run_name(c, s, version) != me])
+    me = run_name(case, seed, version, C["prefix"])
+    k["budget"] = dict(ledger=ledger, total_gpu_hours=C["total_hours"], reserve_hours=C["reserve_hours"], margin=C["margin"], required=False, projected_hours=projected,
+                       projected_map={run_name(c, s, version, C["prefix"]): C["run_reserved"] for c, s in members},
+                       remaining_mandatory=[run_name(c, s, version, C["prefix"]) for c, s in members if run_name(c, s, version, C["prefix"]) != me])
     if pol == "A-ID":
         k["recipe"] = "NOALIGN"
     else:
@@ -84,18 +92,18 @@ def kdv_block(case, seed, donor_sha, donor_step, members, projected=None, versio
     return k
 
 
-def render(tag, case, seed, k, updates, eval_epoch, tpl, donor_sha, donor_step):
+def render(tag, case, seed, k, updates, eval_epoch, tpl, donor_sha, donor_step, camp=None):
     import yaml
-    sp = resolve(k)
+    C = campaign(camp); sp = resolve(k)
     t = re.sub(r"^(#.*\n)+", "", tpl)
-    head = (f"# {tag} — {PURPOSE[case]}. 생성: tools/gen_pals24_configs.py. 손으로 고치지 말 것.\n"
-            f"# 캠페인 {CAMPAIGN_ID} · protocol {PROTOCOL_ID} · 계획 {PLAN} · 노트 {NOTE}\n"
+    head = (f"# {tag} — {PURPOSE[case]}. 생성: tools/gen_{C['prefix'].lower()}_configs.py. 손으로 고치지 말 것.\n"
+            f"# 캠페인 {C['campaign_id']} · protocol {C['plan_protocol_id']} · 계획 {C['plan']} · 노트 {C['note']}\n"
             f"# 세팅: {describe(sp)} · λ_off {LAMBDA.get(case, 'n/a')} (config kdv.aux.offset_weight; ramp 없음, 홀수 update 만, L_rec 계수 1)\n"
-            f"# 약명→세팅: CTRLP0 = aligner 없음(NF16 P0 정의) · L000 = λ 0(NF16 P2 정의) · L1E4/L1E3/L3E3 = λ 1e-4/1e-3/3e-3 · L1E2 = λ 0.01(NF16 P3 정의)\n"
+            f"# 약명→세팅: CTRLP0 = aligner 없음(NF16 P0 정의) · L000 = λ 0(NF16 P2 정의) · L3E5/L1E4/L3E4/L1E3/L3E3 = λ 3e-5/1e-4/3e-4/1e-3/3e-3 · L1E2 = λ 0.01(NF16 P3 정의)\n"
             f"# 골격 W112·D123(2.6589 M) · 9ch · 단일 HRMS · AdamW 1e-4(backbone)/1e-5(aligner)/wd 0.01 cosine warmup100 · batch 48 · {updates} updates · seed {seed} · init work_dir/_kdv_init_w112_d123/init_unet_seed{seed}.pt\n"
             f"# donor aligner = {DONOR_RUN}/last (step {donor_step}, file sha256 {(donor_sha or '?')[:16]}…), 내부 view margin 4, strict load, head 재초기화 없음, donor U-Net·optimizer 미사용\n"
             f"# 평가: raw_original(주 판정, best_raw=best_hqnr) · raw_valid(V64) · aligned_valid(self, V64; 진단) · aligned_fixed_v64(고정 donor 참조; 진단) · best_rr_val · last(정확한 {updates})\n"
-            f"# 예산: {LEDGER} {TOTAL_HOURS} GPU-h, gate used + {MARGIN}·(이 run + 같은 block 나머지) + reserve {RESERVE_HOURS} ≤ {TOTAL_HOURS}, 초과 시 DEFERRED_BUDGET(exit 4)\n")
+            f"# 예산: {k['budget']['ledger']} {C['total_hours']} GPU-h, gate used + {C['margin']}·(이 run + 같은 block 나머지) + reserve {C['reserve_hours']} ≤ {C['total_hours']}, 초과 시 DEFERRED_BUDGET(exit 4)\n")
     t = re.sub(r"^eval_epoch: \d+$", f"eval_epoch: {eval_epoch}", t, flags=re.M)
     t = re.sub(r"work_dir: .*", f"work_dir: {ROOT}/work_dir/{tag}", t)
     t = re.sub(r"^trainer: po\npo:\n(  .*\n)+", "", t, flags=re.M)
@@ -113,15 +121,15 @@ def donor_identity():
     return donor_sha, donor_step
 
 
-def generate(cells, members_of, out_dir, updates=50000, eval_epoch=10, projected=None, version="v1", diag_every=1000, ledger=LEDGER):
-    donor_sha, donor_step = donor_identity()
+def generate(cells, members_of, out_dir, updates=50000, eval_epoch=10, projected=None, version="v1", diag_every=1000, ledger=None, camp=None):
+    C = campaign(camp); donor_sha, donor_step = donor_identity()
     tpl = open(os.path.join(ROOT, "config", "PO10_N1_REC_W112_D123_WV3_S2025_R200_FRSTAT.yaml")).read()       # W112·D123 골격·optimizer·평가 (NF16 과 같은 템플릿)
     made = []
     for case, seed in cells:
-        tag = run_name(case, seed, version)
-        k = kdv_block(case, seed, donor_sha, donor_step, members_of[(case, seed)], projected, version, diag_every, ledger)
+        tag = run_name(case, seed, version, C["prefix"])
+        k = kdv_block(case, seed, donor_sha, donor_step, members_of[(case, seed)], projected, version, diag_every, ledger, camp)
         os.makedirs(out_dir, exist_ok=True)
-        open(os.path.join(out_dir, tag + ".yaml"), "w").write(render(tag, case, seed, k, updates, eval_epoch, tpl, donor_sha, donor_step)); made.append(tag)
+        open(os.path.join(out_dir, tag + ".yaml"), "w").write(render(tag, case, seed, k, updates, eval_epoch, tpl, donor_sha, donor_step, camp)); made.append(tag)
     return made, donor_sha, donor_step
 
 

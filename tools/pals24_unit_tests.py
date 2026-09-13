@@ -31,7 +31,7 @@ s1 = G.stage1(); s2 = G.stage2("L1E3"); bl = G.blocks("L1E3")
 check("PL01 stage 1 = seed 1234 × (L1E3, L1E4, L3E3) in A1→A2→A3 order", s1 == [("L1E3", 1234), ("L1E4", 1234), ("L3E3", 1234)])
 check("PL01 stage 2 = B1 P0/7777 → B2 L000/7777 → B3 λ*/7777 → C1 L000/2025 → C2 λ*/2025 → C3 P0/2025", s2 == [("CTRLP0", 7777), ("L000", 7777), ("L1E3", 7777), ("L000", 2025), ("L1E3", 2025), ("CTRLP0", 2025)])
 check("PL01 blocks: B = 3 seed-7777 runs, C = 3 seed-2025 runs (P0·L000·λ* 완결 단위)", [c[1] for c in bl["B"]] == [7777] * 3 and [c[1] for c in bl["C"]] == [2025] * 3 and {c[0] for c in bl["B"]} == {"CTRLP0", "L000", "L1E3"})
-check("PL01 λ 값: L000 0 · L1E4 1e-4 · L1E3 1e-3 · L3E3 3e-3 · L1E2 1e-2 (grid 추가 없음)", G.LAMBDA == {"L000": 0.0, "L1E4": 1e-4, "L1E3": 1e-3, "L3E3": 3e-3, "L1E2": 1e-2} and G.NEW_LAMBDAS == ["L1E3", "L1E4", "L3E3"])
+check("PL01 λ 값: L000 0 · L1E4 1e-4 · L1E3 1e-3 · L3E3 3e-3 · L1E2 1e-2 (PALS24 grid; L3E5/L3E4 는 PALSV18 추가)", all(G.LAMBDA[k] == v for k, v in {"L000": 0.0, "L1E4": 1e-4, "L1E3": 1e-3, "L3E3": 3e-3, "L1E2": 1e-2}.items()) and G.NEW_LAMBDAS == ["L1E3", "L1E4", "L3E3"])
 check("PL01 run 이름 규칙 PALS24_<case>_W112_D123_WV3_S<seed>_N2LAST_R200_v1", G.run_name("L1E3", 1234) == "PALS24_L1E3_W112_D123_WV3_S1234_N2LAST_R200_v1")
 try:
     bad = G.stage2("L1E2"); check("PL01 stage 2 는 신규 λ 3개 중 하나만 λ* 로 받는다", False)

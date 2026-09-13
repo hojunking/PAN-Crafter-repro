@@ -67,10 +67,11 @@ def datasets(cfg):
 def fixed_probes(R, probe_set="po10"):
     """(probes, stress) — HR px (dy, dx). po10: 0, ±0.5/1/1.5/2 축 방향 (|e|≤R 만 probe, 나머지 stress).
     pals24 (계획 §9.2): 0 + 반경 {0.5, 1, 2} × 8 방향(축 4 + 대각 4) = 25 고정 probe, stress 없음 — 64²/256²/512² 에 같은 집합."""
-    if probe_set == "pals24":
+    if probe_set in ("pals24", "palsv18"):
         import math
         dirs = [(round(math.sin(k * math.pi / 4), 12), round(math.cos(k * math.pi / 4), 12)) for k in range(8)]   # (dy, dx), 0°=+x, 45° 간격
-        return [(0.0, 0.0)] + [(r * dy, r * dx) for r in (0.5, 1.0, 2.0) for dy, dx in dirs], []
+        radii = (0.5, 1.0, 2.0) if probe_set == "pals24" else (0.25, 0.5, 1.0, 2.0)                                # palsv18 (계획 §7.1): + 0.25, zero 는 identity 용
+        return [(0.0, 0.0)] + [(r * dy, r * dx) for r in radii for dy, dx in dirs], []
     AX = (0.5, 1.0, 1.5, 2.0)
     probes = [(0.0, 0.0)] + [(sg * f, 0.0) for sg in (1, -1) for f in AX if f <= R + 1e-9] + [(0.0, sg * f) for sg in (1, -1) for f in AX if f <= R + 1e-9]
     stress = [(sg * f, 0.0) for sg in (1, -1) for f in AX if f > R + 1e-9] + [(0.0, sg * f) for sg in (1, -1) for f in AX if f > R + 1e-9]
@@ -119,7 +120,27 @@ def fit(rows, R):
     pr = [x for x in rows if x["kind"] == "probe" and not (x["ey"] == 0 and x["ex"] == 0)]
     re_ = np.array([[x["q_dy"] + x["ey"], x["q_dx"] + x["ex"]] for x in pr]) if pr else np.zeros((0, 2))        # r_ε = ĉε + ε − ĉ0 (HR px, 성분)
     c0n = np.linalg.norm(c0, axis=1) if len(c0) else np.zeros(0)
-    extra = dict(offset_mae_component=(float(np.abs(re_).mean()) if len(re_) else None), offset_epe=(float(np.linalg.norm(re_, axis=1).mean()) if len(re_) else None),
+    # 장면 단위 집계 (PALSV18 §7.2–7.3): 장면 안에서 B_i·EPE_i 를 구한 뒤 장면 동등 가중 — 반경·방향 수를 독립 표본으로 세지 않는다
+    per_scene = []
+    for sid in sorted({x["sample"] for x in pr}):
+        xs = [x for x in pr if x["sample"] == sid]
+        if len(xs) >= 4:
+            Ei = np.array([[x["ey"], x["ex"], 1.0] for x in xs]); Qi = np.array([[x["q_dy"], x["q_dx"]] for x in xs]); ci, *_ = np.linalg.lstsq(Ei, Qi, rcond=None); Bi = ci[:2].T
+            ri = np.array([[x["q_dy"] + x["ey"], x["q_dx"] + x["ex"]] for x in xs]); sv = np.linalg.svd(Bi, compute_uv=False); resid = Qi - Ei @ ci
+            per_scene.append(dict(sample=int(sid), B=Bi.tolist(), a=ci[2].tolist(), sv=sv.tolist(), fit_rmse=float(np.sqrt((resid ** 2).mean())), epe=float(np.linalg.norm(ri, axis=1).mean()), mae_component=float(np.abs(ri).mean()),
+                                  by_radius={f"{round(float(np.hypot(x['ey'], x['ex'])), 2)}": None for x in xs}))
+            for x, r_ in zip(xs, ri):
+                key = f"{round(float(np.hypot(x['ey'], x['ex'])), 2)}"; per_scene[-1]["by_radius"][key] = (per_scene[-1]["by_radius"][key] or []) + [float(np.linalg.norm(r_))]
+            per_scene[-1]["by_radius"] = {k: float(np.mean(v)) for k, v in per_scene[-1]["by_radius"].items() if v}
+    scene_agg = None
+    if per_scene:
+        ep = np.array([x["epe"] for x in per_scene]); Bs = np.array([x["B"] for x in per_scene])
+        scene_agg = dict(n_scenes=len(per_scene), epe_mean=float(ep.mean()), epe_p50=float(np.median(ep)), epe_p90=float(np.percentile(ep, 90)), mae_component_mean=float(np.mean([x["mae_component"] for x in per_scene])),
+                         B_mean=Bs.mean(0).tolist(), B_diag_mean=[float(Bs[:, 0, 0].mean()), float(Bs[:, 1, 1].mean())], B_cross_mean=[float(Bs[:, 0, 1].mean()), float(Bs[:, 1, 0].mean())],
+                         sv_mean=np.mean([x["sv"] for x in per_scene], 0).tolist(), fit_rmse_mean=float(np.mean([x["fit_rmse"] for x in per_scene])),
+                         epe_by_radius={k: float(np.mean([x["by_radius"][k] for x in per_scene if k in x["by_radius"]])) for k in sorted({k for x in per_scene for k in x["by_radius"]}, key=float)},
+                         no_response_reference_epe=float(np.mean([np.hypot(x["ey"], x["ex"]) for x in pr])), per_scene=per_scene)
+    extra = dict(offset_mae_component=(float(np.abs(re_).mean()) if len(re_) else None), offset_epe=(float(np.linalg.norm(re_, axis=1).mean()) if len(re_) else None), scene_level=scene_agg,
                  n_fixed_probe=int(len(pr)), fixed_probe_note="r_eps = c_hat(eps) + eps - c_hat(0) over the fixed probe set (excluding eps=0); legacy closure_* = mean ||r_eps|| over probe+random",
                  native_c0_norm_median=(float(np.median(c0n)) if len(c0n) else None), native_c0_norm_p90=(float(np.percentile(c0n, 90)) if len(c0n) else None))
     return dict(B=B.tolist(), b=b.tolist(), B_diag=[float(B[0, 0]), float(B[1, 1])], B_cross=[float(B[0, 1]), float(B[1, 0])], ideal_B_diag=-1.0, **extra,
@@ -266,7 +287,7 @@ def main():
     ap.add_argument("--native-reference", action="store_true", help="NF16 §8.4: 참조를 native P / 고정 donor 보정으로 고정한 stress 도 계산")
     ap.add_argument("--ref-run", default=None); ap.add_argument("--ref-ckpt", default="last")
     ap.add_argument("--out", default="po10_diag", help="results/<out>.json (기본 po10_diag; last 진단은 po10_diag_last 권장)")
-    ap.add_argument("--probe-set", default="po10", choices=("po10", "pals24"), help="pals24: 반경 {0.5,1,2} × 8 방향 고정 probe (계획 §9.2), csv 는 offset_response_<set>_<ckpt>.csv")
+    ap.add_argument("--probe-set", default="po10", choices=("po10", "pals24", "palsv18"), help="pals24: 반경 {0.5,1,2} × 8 방향 고정 probe (PALS24 §9.2) · palsv18: + 0.25 (PALSV18 §7.1, 장면별 fit 집계), csv 는 offset_response_<scale>_<set>_<ckpt>.csv")
     ap.add_argument("--response-only", action="store_true", help="반응·drift 만 (stress HQNR·보간 대조 생략) — best/중간 checkpoint 의 저비용 진단")
     a = ap.parse_args(); dev = torch.device(a.device)
     wd, cfg, m, R, mg = load_run(a.run, a.ckpt, dev)

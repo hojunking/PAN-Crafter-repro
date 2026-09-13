@@ -14,7 +14,7 @@ from pa.evalviews import evaluator_hash, PROTOCOL_ID as EVAL_PROTOCOL, MARGIN, S
 from pa.selector import BestSelector
 from kdv.teacher_assets import sha256_file, tensors_sha
 
-CAMP = os.path.join(ROOT, "work_dir", "_pals24_campaign")
+CAMP = os.path.join(ROOT, "work_dir", "_pals24_campaign")           # --campaign palsv18 이면 main() 이 _palsv18_campaign 으로 바꾼다
 ATOL_REPRO = 1e-6; SHEET_ROUND = 5e-5; TIE_HQNR = 1e-4; METHOD_MARGIN = 0.0031; ATOL_IDENTITY = 1e-9
 VIEWS = ("raw_original", "raw_valid", "aligned_valid", "aligned_fixed_v64")
 
@@ -160,13 +160,15 @@ def check_run(tag, role, case, seed, repro=None):
     ih = hashes.get("init_hashes") or {}; init_file = ih.get("unet_init_file") or os.path.join(ROOT, "work_dir", "_kdv_init_w112_d123", f"init_unet_seed{seed}.pt")
     cur = init_sha16(init_file) if os.path.exists(init_file) else {}
     e["init"] = dict(recorded_sha16=ih.get("unet_init_sha256_16"), file=os.path.relpath(init_file, ROOT) if init_file else None, current=cur,
-                     match=bool(ih.get("unet_init_sha256_16") and ih["unet_init_sha256_16"] in (cur.get("tensors_sha16"), cur.get("file_sha16"))))
+                     match=(bool(ih["unet_init_sha256_16"] in (cur.get("tensors_sha16"), cur.get("file_sha16"))) if ih.get("unet_init_sha256_16") else None))   # None: 기록 없음 (po trainer 의 donor run 등) — 검사 불가, 실패 아님
+    if e["init"]["match"] is None:
+        e["notes"].append("init tensor hash not recorded by this trainer (not a kdv run) — init check N/A")
     dn = hashes.get("donor") or {}; dfile = os.path.join(ROOT, "work_dir", DONOR_RUN, "last", "model.safetensors")
     e["donor"] = (dict(recorded_file_sha256=dn.get("file_sha256"), recorded_aligner_sha16=dn.get("aligner_tensors_sha256_16"), donor_step=dn.get("donor_step"), current_file_sha256=sha256_file(dfile) if os.path.exists(dfile) else None,
                        match=bool(dn.get("file_sha256") and os.path.exists(dfile) and dn["file_sha256"] == sha256_file(dfile)), aligner_only=True) if dn else dict(none=True, note="no aligner (A-ID)"))
     e["config_sha256"] = sha256_file(os.path.join(wd, "meta", "config.yaml")); e["evaluator"] = dict(current_hash=evaluator_hash(), fr_mat20_eval_version=fr.get("eval_version"), roi_hash_at_best=(sc[0].get("roi_hash") if sc else None))
     ok["assets"] = dict(init_match=e["init"]["match"], donor_match=e["donor"].get("match", True), fr_eval_version_current=bool(fr) and fr.get("eval_version") == __import__("tools.eval_fr_paperset", fromlist=["EVAL_VERSION"]).EVAL_VERSION,
-                        pass_=bool(e["init"]["match"] and e["donor"].get("match", True)))
+                        pass_=bool(e["init"]["match"] is not False and e["donor"].get("match", True)))
     # G-M1 재현 (있으면)
     if repro:
         d_meta = abs(repro["hqnr"] - float(bm["hqnr"])); d_fr = abs(repro["hqnr"] - float(fr["hqnr"])) if fr.get("hqnr") is not None else float("nan")
@@ -195,10 +197,39 @@ def provenance_g_m8():
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--skip-repro", action="store_true"); ap.add_argument("--device", default=None); a = ap.parse_args()
+    ap.add_argument("--skip-repro", action="store_true"); ap.add_argument("--device", default=None)
+    ap.add_argument("--campaign", default="pals24", choices=("pals24", "palsv18"), help="palsv18: 대조군 9벌(P0/L000/L1E4 × 3 seed) + N2 last·L1E2 참조, 산출 work_dir/_palsv18_campaign (+ selection_grid.json, initial_tensor_registry.json)")
+    a = ap.parse_args()
     import torch
+    global CAMP, REUSED, DIAG_REFERENCE, BACKGROUND, CAMPAIGN_ID
+    if a.campaign == "palsv18":
+        from tools import gen_palsv18_configs as V
+        CAMP = os.path.join(ROOT, "work_dir", "_palsv18_campaign"); REUSED, DIAG_REFERENCE, BACKGROUND, CAMPAIGN_ID = V.REUSED, V.DIAG_REFERENCE, {}, V.CAMP["campaign_id"]
     dev = torch.device(a.device or ("cuda" if torch.cuda.is_available() else "cpu")); os.makedirs(CAMP, exist_ok=True); t0 = time.time()
-    con = contract(); json.dump(con, open(os.path.join(CAMP, "metric_contract.json"), "w"), indent=1, ensure_ascii=False)
+    con = contract(); con["campaign_id"] = CAMPAIGN_ID; json.dump(con, open(os.path.join(CAMP, "metric_contract.json"), "w"), indent=1, ensure_ascii=False)
+    if a.campaign == "palsv18":                                       # G-S selection grid (계획 §6.3): PALS24 L1E4 seed1234 의 실제 평가 update 목록을 고정, 신규 run 은 같은 eval_epoch 10
+        from tools.gen_pals24_configs import run_name as _rn
+        import csv as _csv, yaml as _yaml
+        ref = _rn("L1E4", 1234); cm = list(_csv.DictReader(open(os.path.join(ROOT, "work_dir", ref, "checkpoint_metrics.csv"))))
+        steps = [int(r["step"]) for r in cm]; epochs = [int(r["epoch"]) for r in cm]; cfg = _yaml.safe_load(open(os.path.join(ROOT, "work_dir", ref, "meta", "config.yaml")))
+        grid = dict(reference_run=ref, eval_epoch=int(cfg["eval_epoch"]), n_candidates=len(steps), optimizer_updates=steps, epochs=epochs, exact_last=50000, last_included=(50000 in steps),
+                    note="eval_epoch 10 = every 10 epochs (202 updates/epoch), not every 10 updates; NF16 P0 (eval_epoch 5) has 2x candidates -> matched-grid re-selection via tools/best_on_grid.py",
+                    sha256=hashlib.sha256(json.dumps(steps).encode()).hexdigest())
+        json.dump(grid, open(os.path.join(CAMP, "selection_grid.json"), "w"), indent=1)
+        # G-C initial tensor registry (계획 §2.2): seed 별 저장 U-Net 초기값 hash 가 기존 PALS24/NF16 run 의 기록과 같아야 통제 비교가 성립한다
+        reg_i = {}
+        for sd_ in (1234, 7777, 2025):
+            f = os.path.join(ROOT, "work_dir", "_kdv_init_w112_d123", f"init_unet_seed{sd_}.pt"); cur = init_sha16(f) if os.path.exists(f) else {}
+            recs = {}
+            for (c, s_), run in REUSED.items():
+                if s_ == sd_:
+                    hp = os.path.join(ROOT, "work_dir", run, "init_and_teacher_hashes.json")
+                    if os.path.exists(hp):
+                        recs[run] = (json.load(open(hp)).get("init_hashes") or {}).get("unet_init_sha256_16")
+            reg_i[sd_] = dict(file=os.path.relpath(f, ROOT), current=cur, recorded_in_controls=recs, all_match=bool(recs) and all(v in (cur.get("tensors_sha16"), cur.get("file_sha16")) for v in recs.values()))
+        json.dump(dict(campaign_id=CAMPAIGN_ID, seeds=reg_i, donor=dict(run="PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT", kind="last", copy="aligner_only"), created=time.strftime("%Y-%m-%dT%H:%M:%S")),
+                  open(os.path.join(CAMP, "initial_tensor_registry.json"), "w"), indent=1)
+        print(f"[G-S] selection grid: {len(steps)} candidates (eval_epoch {grid['eval_epoch']}, last {grid['last_included']}) · [G-C] init tensors match: { {k: v['all_match'] for k, v in reg_i.items()} }")
     print(f"[G-M0] evaluator {con['evaluator_hash']} · FR eval {con['fr_eval_version']} · selector best_raw: HQNR(raw_original, mat20) tie {con['selector']['tie_band_hqnr']} → fSCC(원 PAN, full-frame Sobel SCC) tie {con['selector']['tie_band_fscc']} · method margin {METHOD_MARGIN}")
     wald = None
     if not a.skip_repro:

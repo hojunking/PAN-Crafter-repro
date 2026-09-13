@@ -31,6 +31,8 @@ CATS = [
   lambda t: t.startswith("UVS_")),
  ("NA104", "㉒ W104·D122 no-align KD (NA104, s2·s3) — aligner·PAN warp 없는 같은 골격에서 GT-anchored KD(REC N0/R0/R1/R2/R3) · 출력 통계(IV/GV/GC/SC/M2 × H/T/FIX/WH/AD) · 방향 gate(TRI-A/B) · 필수 대조군(CTL). 주 selector 는 best_rr_val(검증 ERGAS), best_hqnr 는 exploratory",
   lambda t: t.startswith("NA104_")),
+ ("PALSV18", "㉔ L1E4 근방 미세조정·정합 능력 검증 (PALSV18, s1, 18 GPU-h) — PALS24 recipe 에서 λ_off 3e-5 / 3e-4 × seed 1234·7777·2025 (6벌), 대조군 P0/L000/L1E4 × 3 seed 는 NF16/PALS24 재사용. 주 판정 best_raw raw_original HQNR → fSCC; V0–V4 정합 검증은 진단",
+  lambda t: t.startswith("PALSV18_")),
  ("PALS24", "㉓ P2 기반 offset-consistency 가중치 비교 (PALS24, s1, 24 GPU-h) — NF16 P2/P3 recipe 에서 λ_off 만 0.0001/0.001/0.003 (seed 1234 탐색) + 고정 λ* 를 P0·L000(λ 0) 과 seed 7777·2025 에서 대응 비교. 주 판정 best_raw raw_original HQNR → fSCC",
   lambda t: t.startswith("PALS24_")),
  ("NF16", "㉑ N2 정합 능력 보존 + native HRMS fitting (NF16, P0–P4, s1) — N2 R200 last aligner 재사용: P0 aligner 없음 / P1 frozen / P2 fine-tune / P3 +aligner 전용 offset 연습 / P4 +GT 구조(A3 geometry)",
@@ -53,7 +55,7 @@ CATS = [
 ORDER = [c[0] for c in CATS]
 # 2026-09-11 시트 정리: 현 접근(BASE/PA/PO10/KDV)과 무관한 범주는 WV3-<server>_v1 탭으로 옮겼다 (gspread/archive_to_v1.py).
 # gspread_upload.py --all 은 이 범주의 run 을 다시 올리지 않는다 (--include-archived 로만).
-KEEP = ("REF", "BASE96", "PA", "PO10", "KDV", "NF16", "NA104", "PALS24")
+KEEP = ("REF", "BASE96", "PA", "PO10", "KDV", "NF16", "NA104", "PALS24", "PALSV18")
 ARCHIVED = tuple(k for k in ORDER if k not in KEEP)
 NAME  = {c[0]: c[1] for c in CATS}
 SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload 가 같이 쓴다
@@ -64,6 +66,9 @@ DESC = {
  "NA104": ("[캠페인] W104·D122 no-align KD · s2·s3 · Teacher seed 2025 / Student seed 1234(반복 2025·777) · 2026-09-11 · research_log/PAN_S2_W104_D122_NoAlign_KD_Experiment_Plan_2026-09-11.md. "
            "aligner 도 PAN warp 도 없는 동일 골격(2.0989 M)에서 'Teacher 가 남긴 복원·구조 오차를 GT 중심으로 더 fitting하는 KD' 만 본다 — 정합 연구(PA/PO10/NF16/KDV) 와 직접 대응하지 않는다. "
            "실행명 토큰: <case id>_W104_D122_WV3_<rec>_<stat>[_TRI_A*_B*_C*]_S<seed>_v1. 약명→세팅은 research_log/2026-09-11_na104-implementation.md §3 표."),
+ "PALSV18": ("[캠페인] PALSV18 (L1E4 근방 미세조정·정합 검증, 18 GPU-h) · s1 · seed 1234·7777·2025 · 2026-09-13 · research_log/PAN_L1E4_Refinement_AlignmentValidation_S1_18GPUh_2026-09-13.md. "
+             "PALS24 와 같은 recipe 에서 λ_off 만 3e-5(L3E5)/3e-4(L3E4). 실행명 PALSV18_<case>_W112_D123_WV3_S<seed>_N2LAST_R200_v1. 대조 P0/L000/L1E4 는 NF16/PALS24 행 그대로(work_dir/_palsv18_campaign/reuse_registry.json). "
+             "시트 HQNR = best_raw raw_original(주 판정); V0–V4(반응·모달리티·native 위치·개입·stress) 는 work_dir/_palsv18_campaign 의 표에만."),
  "PALS24": ("[캠페인] PALS24 (P2 기반 λ_off 비교, 24 GPU-h) · s1 · 탐색 seed 1234 / 확인 seed 7777·2025 · 2026-09-12 · research_log/PAN_P2_P3_LambdaSweep_MetricAware_24GPUh_Plan_2026-09-12_v2.md. "
             "NF16 P2(λ 0)/P3(λ 0.01) 과 같은 recipe(W112·D123 새 U-Net + N2 R200 last aligner fine-tune, native 복원, 홀수 update 에 P_ε 를 aligner 에만) 에서 λ_off 만 바꾼다. "
             "실행명 토큰 PALS24_<case>_W112_D123_WV3_S<seed>_N2LAST_R200_v1: CTRLP0 = aligner 없음(NF16 P0 정의) · L000 = λ 0(NF16 P2 정의) · L1E4/L1E3/L3E3 = λ 1e-4/1e-3/3e-3 · L1E2 = λ 0.01(NF16 P3 정의). "

@@ -1,0 +1,10 @@
+# PALSV18 (계획 §3.1·§4.2): R1 seed1234 L3E5 → L3E4 · R2 seed7777 L3E4 → L3E5 · R3 seed2025 L3E5 → L3E4 · s1 · 50000 updates · 예산 18 GPU-h (work_dir/_palsv18_budget/ledger.json)
+# 대조군 9벌(P0/L000/L1E4 × 3 seed) 은 NF16/PALS24 재사용(work_dir/_palsv18_campaign/reuse_registry.json) — 다시 학습하지 않는다. 조건부 gate 없음(전부 무조건 큐).
+# run gate: used + 1.1·(이 run + 같은 seed 의 나머지 λ) + reserve 5.0(V-post 3.5 + report 0.5 + buffer 1.0) ≤ 18 — seed 묶음 단위 완결. 초과면 DEFERRED_BUDGET(exit 4), 체인은 다음으로.
+# 약명→세팅: L3E5 = λ_off 3e-5 · L3E4 = λ_off 3e-4 (NF16 P3 recipe: A-FT donor aligner, I-AEQ 홀수 update 에 P_ε 를 aligner 에만, b=2, ramp 없음). 자세히는 research_log/2026-09-13_palsv18-implementation.md
+PALSV18_L3E5_W112_D123_WV3_S1234_N2LAST_R200_v1
+PALSV18_L3E4_W112_D123_WV3_S1234_N2LAST_R200_v1
+PALSV18_L3E4_W112_D123_WV3_S7777_N2LAST_R200_v1
+PALSV18_L3E5_W112_D123_WV3_S7777_N2LAST_R200_v1
+PALSV18_L3E5_W112_D123_WV3_S2025_N2LAST_R200_v1
+PALSV18_L3E4_W112_D123_WV3_S2025_N2LAST_R200_v1

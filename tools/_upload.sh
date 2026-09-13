@@ -20,7 +20,7 @@ LOG="$REPO/work_dir/gspread_upload.log"
   # 논문 세트(.mat FR 20장) 평가 — 시트의 FR 열. run 의 센서에 맞는 h5 가 없으면 스크립트가 건너뛴다 (KNOWN_ISSUES F-2).
   FR_T0=$(date +%s)
   python tools/eval_fr_paperset.py "$@" 2>&1 | grep -v Warning || true
-  FR_SEC=$(( $(date +%s) - FR_T0 )); NF16_N=$(printf '%s\n' "$@" | grep -c '^NF16_\|^PALS24_' || true); [ "${NF16_N:-0}" -gt 0 ] || NF16_N=1   # 예산 ledger 가 있는 캠페인(NF16·PALS24) 의 FR 평가 시간 분담
+  FR_SEC=$(( $(date +%s) - FR_T0 )); NF16_N=$(printf '%s\n' "$@" | grep -c '^NF16_\|^PALS24_\|^PALSV18_' || true); [ "${NF16_N:-0}" -gt 0 ] || NF16_N=1   # 예산 ledger 가 있는 캠페인(NF16·PALS24) 의 FR 평가 시간 분담
   # 아키텍처 고정 다중 데이터셋 캠페인: WV3 학습 run 이 끝나면 WV2 zero-shot run 도 만들어 함께 올린다
   ZS=()
   for t in "$@"; do
@@ -36,7 +36,7 @@ LOG="$REPO/work_dir/gspread_upload.log"
   # PA(A1–A3) run: 명세 §10.10·§11 진단 (교차 평가 · learned/zero/wrong-sign · known-shift 반응 · tile vs full) → results/pa_diag.json
   for t in "$@"; do
     T0=$(date +%s)                       # 이 run 의 GPU 진단 시간 (pa_diag 부터; NF16 은 ledger 에 기록한다)
-    case "$t" in PA_A*|PO10_*|S2W112*|NF16_*|NA104_*|PALS24_*)
+    case "$t" in PA_A*|PO10_*|S2W112*|NF16_*|NA104_*|PALS24_*|PALSV18_*)
       set +e; python tools/pa_diag.py --run "$t" > "$REPO/work_dir/$t/results/pa_diag.log" 2>&1; rc=$?; set -e
       grep -v Warning "$REPO/work_dir/$t/results/pa_diag.log" | tail -25
       [ $rc -eq 0 ] || echo "[upload] !! pa_diag 실패 (rc=$rc): $t — work_dir/$t/results/pa_diag.log";;
@@ -54,19 +54,20 @@ LOG="$REPO/work_dir/gspread_upload.log"
         grep -v Warning "$REPO/work_dir/$t/results/na104_diag_$CK.log" | tail -2
         [ $rc -eq 0 ] || echo "[upload] !! na104_diag($CK) 실패 (rc=$rc): $t"
       done;;
-    PALS24_*)
-      # PALS24 §9: last(정확한 50K) 에서 반응(고정 probe {0.5,1,2}×8방향, 64²/256²/512²)·drift·보간 대조·native-reference stress, best_raw 와 10K/≈25K checkpoint 는 반응만. 참조 = 원 P / 고정 donor(N2 last). GPU 시간은 ledger diag_<run>
-      set +e; python tools/po10_diag.py --run "$t" --ckpt last --out po10_diag_last_pals24 --probe-set pals24 --native-reference --ref-run PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT --ref-ckpt last > "$REPO/work_dir/$t/results/po10_diag_last_pals24.log" 2>&1; rc=$?; set -e
+    PALS24_*|PALSV18_*)
+      # PALS24 §9 / PALSV18 V1·V4: last(정확한 50K) 에서 반응(고정 probe, 64²/256²/512²)·drift·보간 대조·native-reference stress, best_raw 와 10K/≈25K checkpoint 는 반응만. 참조 = 원 P / 고정 donor(N2 last). GPU 시간은 ledger diag_<run>
+      case "$t" in PALSV18_*) PSET=palsv18; PLED=work_dir/_palsv18_budget/ledger.json;; *) PSET=pals24; PLED=work_dir/_pals24_budget/ledger.json;; esac
+      set +e; python tools/po10_diag.py --run "$t" --ckpt last --out po10_diag_last_pals24 --probe-set "$PSET" --native-reference --ref-run PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT --ref-ckpt last > "$REPO/work_dir/$t/results/po10_diag_last_pals24.log" 2>&1; rc=$?; set -e
       grep -v Warning "$REPO/work_dir/$t/results/po10_diag_last_pals24.log" | tail -12
       [ $rc -eq 0 ] || echo "[upload] !! po10_diag(last, pals24) 실패 (rc=$rc): $t — work_dir/$t/results/po10_diag_last_pals24.log"
       for CK in best_hqnr checkpoint-10000 epoch-125; do
         [ -f "$REPO/work_dir/$t/$CK/model.safetensors" ] || continue
-        set +e; python tools/po10_diag.py --run "$t" --ckpt "$CK" --out "po10_diag_${CK}_pals24" --probe-set pals24 --response-only --ref-run PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT --ref-ckpt last > "$REPO/work_dir/$t/results/po10_diag_${CK}_pals24.log" 2>&1; rc=$?; set -e
+        set +e; python tools/po10_diag.py --run "$t" --ckpt "$CK" --out "po10_diag_${CK}_pals24" --probe-set "$PSET" --response-only --ref-run PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT --ref-ckpt last > "$REPO/work_dir/$t/results/po10_diag_${CK}_pals24.log" 2>&1; rc=$?; set -e
         [ $rc -eq 0 ] || echo "[upload] !! po10_diag($CK, response-only) 실패 (rc=$rc): $t"
       done
-      python - "$t" "$(( $(date +%s) - T0 ))" "$(( FR_SEC / NF16_N ))" <<'PYEOF'
+      python - "$t" "$(( $(date +%s) - T0 ))" "$(( FR_SEC / NF16_N ))" "$PLED" <<'PYEOF'
 import json, os, sys, time
-t, sec, fr = sys.argv[1], float(sys.argv[2]), float(sys.argv[3]); lp = "work_dir/_pals24_budget/ledger.json"
+t, sec, fr = sys.argv[1], float(sys.argv[2]), float(sys.argv[3]); lp = sys.argv[4]
 if os.path.exists(lp):
     d = json.load(open(lp)); prev = d["entries"].get(f"diag_{t}", {}); h = (sec + fr) / 3600.0 + float(prev.get("hours") or 0.0)
     d["entries"][f"diag_{t}"] = dict(kind="diag", hours=h, runs=int(prev.get("runs", 0)) + 1, note="eval_fr_paperset(분담) + pa_diag + po10_diag(last: pals24 probes + native-reference; best/10K/ep125: response-only)", finished=time.strftime("%Y-%m-%dT%H:%M:%S"))
