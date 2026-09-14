@@ -85,7 +85,7 @@ def main(profile=False):
                    evaluator_hash=rep["evaluator_hash"], data=C.load_json(os.path.join(CAMP, "data_manifest_meta.json")), pairs=pairs, other_campaign_gate_token=gates, other_chain_running=int(chain or 0) > 0,
                    parquet_available=False, storage="csv/csv.gz + jsonl (same schema; pyarrow absent)", created=time.strftime("%Y-%m-%dT%H:%M:%S"))
         C.dump_json(os.path.join(CAMP, "sources_manifest.json"), src); C.dump_json(os.path.join(CAMP, "g00_reproduction.json"), rep); C.dump_json(os.path.join(CAMP, "g00_unit_checks.json"), uc); C.dump_json(os.path.join(CAMP, "g00_gradient_receivers.json"), gr)
-        proto = dict(campaign=dict(id=C.CAMPAIGN_ID, server="s1", nominal_wall_hours=20, hard_time_limit=False, mode="diagnostic_and_short_adaptation"),
+        proto = dict(campaign=dict(id=C.CAMPAIGN_ID, server=C.SERVER, plan_server="s1", nominal_wall_hours=20, hard_time_limit=False, mode="diagnostic_and_short_adaptation", registry_source=("s1 work_dir" if C.SERVER == "s1" else "eqrec4 bundle (tools/eqrec4_bundle.py install)")),
                      baseline=dict(case="L1E4", width=112, depth=[1, 2, 3], input_channels=9, task="ms_only", lambda_offset=1e-4, offset_every_updates=2, offset_on_remainder=1, jitter_radius_hr=2.0, jitter_distribution="uniform_disk_area",
                                    jittered_pan_to_unet_during_training=False, recon_grad_to_aligner=True, offset_grad_to_unet=False),
                      assets=dict(primary_teacher=dict(run=C.run_of(*C.PRIMARY[:2]), checkpoint="best_raw (dir best_hqnr)", actual_update=L.step, file_sha256=L.file_sha, aligner_hash=L.aligner_sha, unet_hash=L.unet_sha), pairs=pairs, freeze_teacher=True, share_teacher_student_objects=False),

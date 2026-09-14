@@ -80,7 +80,7 @@ def main(profile=False):
                                  q_over_qconst_A=float(s.q_A.mean() / C.load_json(os.path.join(CAMP, "probe_bank_A.json"))["q_const_component"]), **{f"q_A_r{r}_mean": float(s[f"q_A_r{r}"].mean()) for r in C.RADII}, source="D10 records (all samples)"))
         rows = []; models = [("L1E4", s, t) for s in (1234, 7777, 2025) for t in ("best_raw", "last")] + [("L000", s, "best_raw") for s in (1234, 7777, 2025)] + [("N2", 2025, "last")]
         rr_pan = torch.cat([fd["rr"][i][4].unsqueeze(0) for i in range(len(fd["rr"]))]); rr_ms = torch.cat([fd["rr"][i][2].unsqueeze(0) for i in range(len(fd["rr"]))])
-        fr_pan = torch.cat([fd["fr"][i][3].unsqueeze(0) for i in range(len(fd["fr"]))]); fr_ms = torch.cat([fd["fr"][i][2].unsqueeze(0) for i in range(len(fd["fr"]))])
+        fr_pan = torch.cat([fd["fr"][i][3].unsqueeze(0) for i in range(len(fd["fr"]))]); fr_ms = torch.cat([fd["fr"][i][1].unsqueeze(0) for i in range(len(fd["fr"]))])
         syn = []; cues = []
         for fam, seed, tag in models:
             if C.ckpt_dir(fam, seed, tag) is None:

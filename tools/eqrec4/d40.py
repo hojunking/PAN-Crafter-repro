@@ -39,7 +39,7 @@ def stress_fr(L, fd):
         def views(y):
             sr = ((y[0].clip(-1, 1).float().cpu().numpy() + 1) / 2 * mp).astype(np.float64).transpose(1, 2, 0); v, ok, _ = scene_views(sr, fd["lms_raw"][i].transpose(1, 2, 0), p, pa_fixed, sensor, wald, d0, 4, mp, margin=STRESS_MARGIN); return v, ok
         v0, ok0 = views(o0["y"]); sy, sx = C.roi_slice("fr512")
-        for pr in STRESS_PROBES:
+        for pr in [p for p in STRESS_PROBES if not p["probe_id"].endswith("_rep")]:      # FR: 주 stress(bank B r∈{.5,1,2} 대각 12개) 만 — scene_views 비용 (재현 4 축은 patch64/RR 에서)
             e = torch.tensor([[pr["ey"], pr["ex"]]], device=DEV); pe = C.warp_pan(pan, e); ce = C.predict_c(L.m.aligner, pe, mb, L.mg)
             for path, cc in (("response", ce), ("no_response", c0), ("known_inverse", c0 - e)):
                 y = L.m(pe, ms, lpan, delta_override=cc)["y"]; v, ok = views(y)
@@ -111,7 +111,9 @@ def main(profile=False):
             if L.has_aligner:
                 st += stress_patches(L, ids if not profile else ids[:16], quad, *(t[:16] if profile else t for t in (gt, ms, lpan, pan)))
                 if not profile:
-                    st += stress_patches(L, list(range(20)), {}, rr[0], rr[2], rr[3], rr[4], chunk=4); st += stress_fr(L, fd); ba += band_alignment(L, fd)
+                    st += stress_patches(L, list(range(20)), {}, rr[0], rr[2], rr[3], rr[4], chunk=4); ba += band_alignment(L, fd)
+                    if fam == "L1E4" and (tag == "best_raw" or (fam, seed, tag) == C.PRIMARY or seed == 2025):     # FR stress: L1E4 3 seed best + S2025 last (scene_views 비용, §5 우선순위)
+                        st += stress_fr(L, fd)
                 if (fam, seed, tag) == C.PRIMARY or (fam == "L1E4" and tag == "best_raw" and not profile):
                     ps += pan_sensitivity(L, ids, quad, gt, ms, lpan, pan)
             if not profile:

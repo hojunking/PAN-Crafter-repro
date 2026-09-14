@@ -13,8 +13,25 @@ from pa.warp import warp_pan                                             # noqa:
 from pa.losses import scharr as scharr_t                                 # noqa: E402
 from kdv.teacher_assets import sha256_file, tensors_sha, state_hash      # noqa: E402,F401
 
-CAMPAIGN_ID = "EQREC4_S1_v1"; PLAN = "research_log/PAN_S1_EQREC4_Alignment_Cue_Hypotheses_20h_2026-09-14.md"
-CAMP = os.path.join(ROOT, "work_dir", "_eqrec4_s1_campaign"); FIG = os.path.join(CAMP, "figures")
+PLAN = "research_log/PAN_S1_EQREC4_Alignment_Cue_Hypotheses_20h_2026-09-14.md"
+_sv = os.path.join(ROOT, "gspread", "server.txt"); SERVER = (open(_sv).read().strip() if os.path.exists(_sv) else "s1") or "s1"     # 실행 서버 (계획은 s1 기준; s3 등에서는 같은 registry bundle 로 돈다)
+CAMPAIGN_ID = f"EQREC4_{SERVER.upper()}_v1"
+CAMP = os.path.join(ROOT, "work_dir", f"_eqrec4_{SERVER}_campaign"); FIG = os.path.join(CAMP, "figures")     # 서버별 별도 root (§6-8: 다른 캠페인·다른 서버 결과를 덮어쓰지 않는다)
+
+
+def localize_path(p):
+    """run config 에 박힌 s1 절대 dataroot 를 이 저장소의 data/ 경로로 (setup_paths.sh 는 config/*.yaml 만 고치고 work_dir/<run>/meta 는 안 고친다)."""
+    if not p or os.path.exists(p) or "/data/" not in p:
+        return p
+    return os.path.join(ROOT, "data", p.split("/data/", 1)[1])
+
+
+def localize_cfg(cfg):
+    cfg = dict(cfg)
+    for k in ("train_feeder_args", "val_feeder_args", "test_reduced_feeder_args", "test_full_feeder_args"):
+        if k in cfg and isinstance(cfg[k], dict) and "dataroot" in cfg[k]:
+            cfg[k] = dict(cfg[k], dataroot=localize_path(cfg[k]["dataroot"]))
+    return cfg
 SPLIT_SEED = 314159; BLOCK = 32                                          # source group proxy = 연속 index 32개 (원본 scene/strip id 없음 → source_group_unknown)
 SPLIT_TARGET = dict(A=512, B=2048, C=512, D=1024)                        # calibration / adaptation fit / policy validation / locked holdout (§3.2)
 MAX_PIXEL = 2047.0
@@ -94,7 +111,7 @@ def load_model(fam, seed, tag, dev=DEV):
     d = ckpt_dir(fam, seed, tag)
     if d is None:
         raise FileNotFoundError(f"{mkey(fam, seed, tag)}: checkpoint 없음")
-    wd = os.path.join(ROOT, "work_dir", run_of(fam, seed)); cfg = yaml.safe_load(open(os.path.join(wd, "meta", "config.yaml"))); tr = cfg.get("trainer")
+    wd = os.path.join(ROOT, "work_dir", run_of(fam, seed)); cfg = localize_cfg(yaml.safe_load(open(os.path.join(wd, "meta", "config.yaml")))); tr = cfg.get("trainer")
     if tr == "kdv":
         from kdv.teacher_assets import skeleton_from_cfg
         m, info = skeleton_from_cfg(cfg, import_class(cfg["model"])); k = cfg.get("kdv") or {}; R = float((k.get("corruption") or {}).get("radius_hr", 0) or 2.0); mg = info["margin"]
@@ -173,7 +190,7 @@ def load_json(path, default=None):
 
 # ---------------------------------------------------------------- data (§3)
 def data_paths():
-    cfg = yaml.safe_load(open(os.path.join(ROOT, "work_dir", run_of(*PRIMARY[:2]), "meta", "config.yaml")))
+    cfg = localize_cfg(yaml.safe_load(open(os.path.join(ROOT, "work_dir", run_of(*PRIMARY[:2]), "meta", "config.yaml"))))
     tr = cfg["train_feeder_args"]["dataroot"]
     return dict(train=tr, train_pan=tr.replace(".h5", "_pan.h5"), rr=cfg["test_reduced_feeder_args"]["dataroot"], fr=cfg["test_full_feeder_args"]["dataroot"], cfg=cfg)
 

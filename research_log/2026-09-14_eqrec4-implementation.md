@@ -43,3 +43,16 @@
 
 - 23:07 `./tools/eqrec4_run.sh`(detached; T0 = `work_dir/_eqrec4_s1_campaign/T0.txt`) — G00(0.5 min, 재현 Δ 0.0, 수신자 검사 통과) → D10 → … stage 실패 시 그 자리에서 멈추고 재기동하면 이어 돈다(ledger done 기준).
 - JR-1234(PAKD50) 학습이 GPU 를 같이 쓰는 동안(≈00:05 까지) 진단 속도는 느려질 수 있다.
+
+## 5. s3 에서 실행 (2026-09-15 00:40 사용자 지시: "이 실험은 s3 에서 진행")
+
+계획·코드는 서버 무관하게 돈다. s1 고유 의존은 두 가지였고 둘 다 제거했다.
+
+| 의존 | 처리 |
+|---|---|
+| registry checkpoint 24벌 + pair 학생 2벌이 s1 `work_dir` 에만 있음 | `tools/eqrec4_bundle.py pack`(s1) → `work_dir/_eqrec4_bundle/`(14 run · 64 file · 272 MB, sha256 manifest). 전송은 사람이(rsync/scp; git 에는 넣지 않는다). s3 에서 `verify` → `install` 이 같은 `work_dir/<run>/…` 배치로 넣는다(다른 내용의 파일이 이미 있으면 덮어쓰지 않고 보고) |
+| run config 의 s1 절대 dataroot (`setup_paths.sh` 는 `config/*.yaml` 만 고침) | `common.localize_cfg`: 없는 경로는 이 저장소의 `data/…` 로 |
+| 출력 root·campaign id | `gspread/server.txt` 기준 `work_dir/_eqrec4_<server>_campaign`, `EQREC4_<SERVER>_v1` (s1 은 그대로) |
+
+s3 절차: pull → bundle 전송 → `./tools/eqrec4_prepare.sh`(bundle verify/install → 데이터·DLPan → gate E01–E10 → G00(primary raw HQNR 재현 Δ ≤ 1e-4) → runner 기동). s3 의 PAKD50 체인이 돌고 있으면 GPU 를 같이 써 느려진다 — 중단 여부는 사람이 정한다(prepare 가 경고만).
+s1 의 실행(23:07 기동) 은 그대로 두었다 — 같은 checkpoint·같은 분할이라 s3 결과와의 환경 교차(같은 sample 의 e/q·개입 재현) 로 쓸 수 있다. s1 을 멈추려면 `pkill -f eqrec4_run` 대신 `ps -eo pid,args | grep '[e]qrec4'` 로 PID 를 골라 kill.

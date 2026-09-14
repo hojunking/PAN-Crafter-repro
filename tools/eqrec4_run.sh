@@ -6,7 +6,8 @@
 set -uo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
 export PANCRAFTER_DLPAN="${PANCRAFTER_DLPAN:-/home/knuvi/Desktop/song/DLPan-Toolbox}"
-PY="${PYTHON:-/home/knuvi/miniconda3/envs/pancrafter/bin/python}"; CAMP=work_dir/_eqrec4_s1_campaign; mkdir -p "$CAMP"
+PY="${PYTHON:-/home/knuvi/miniconda3/envs/pancrafter/bin/python}"; SERVER="$(tr -d '[:space:]' < gspread/server.txt 2>/dev/null || echo s1)"; CAMP="work_dir/_eqrec4_${SERVER}_campaign"; mkdir -p "$CAMP"
+if ps -eo args | grep -q '[_]run_cases\.sh'; then echo "[eqrec4] 주의: 다른 학습 체인(_run_cases.sh) 이 이 GPU 를 쓰고 있다 — 진단은 같이 돌지만 느려진다 (중단 여부는 사람이 정한다)"; fi
 exec 8>"$CAMP/.runner.lock"; flock -n 8 || { echo "[eqrec4] 이미 실행 중"; exit 0; }
 [ -f "$CAMP/T0.txt" ] || date -Iseconds > "$CAMP/T0.txt"; echo "[eqrec4] T0 $(cat "$CAMP/T0.txt") · 시작 $(date -Iseconds)"
 done_stage() { [ -f "$CAMP/time_ledger.jsonl" ] && grep -q "\"stage\": \"$1\", \"status\": \"done\"" "$CAMP/time_ledger.jsonl"; }
