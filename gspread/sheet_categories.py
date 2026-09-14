@@ -3,6 +3,8 @@ import re
 
 # (범주키, 표시명, 판별함수)  — 위에서부터 처음 맞는 것으로 확정한다
 CATS = [
+ ("PAKD50", "㉕ 통합 캠페인 PAKD50 (T0 = PALS24 L1E4 seed 2025 aligner 재사용·적응 × N0/R1/Q12/X02, FRESH50, s1·s2·s3·s4) — 실행명 PAKD50_<case>_W112_D123_WV3_T0_S<seed>_FRESH50_v1",
+  lambda t: t.startswith("PAKD50_")),
  ("MS", "⑨ MS-only (MARs PAN mode 제거) 계열 — 시드복제·dual 대조군 포함",
   lambda t: t.startswith(("MS1_","MS2_")) or t == "R4_dual_ctrl"),
  ("REF", "① 기준·참조 — 논문 / 외부모델 / 배포본 재현 / 논문충실 재구성",
@@ -55,7 +57,7 @@ CATS = [
 ORDER = [c[0] for c in CATS]
 # 2026-09-11 시트 정리: 현 접근(BASE/PA/PO10/KDV)과 무관한 범주는 WV3-<server>_v1 탭으로 옮겼다 (gspread/archive_to_v1.py).
 # gspread_upload.py --all 은 이 범주의 run 을 다시 올리지 않는다 (--include-archived 로만).
-KEEP = ("REF", "BASE96", "PA", "PO10", "KDV", "NF16", "NA104", "PALS24", "PALSV18")
+KEEP = ("REF", "BASE96", "PA", "PO10", "KDV", "NF16", "NA104", "PALS24", "PALSV18", "PAKD50")
 ARCHIVED = tuple(k for k in ORDER if k not in KEEP)
 NAME  = {c[0]: c[1] for c in CATS}
 SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload 가 같이 쓴다
@@ -63,6 +65,11 @@ SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload �
 # 캠페인 설명 — 구분행의 Notes 에 들어간다. 여기 있는 범주만 업로드 시 구분행을 자동으로 넣는다
 # (업로드는 시트 맨 아래에 덧붙이므로, 새 캠페인이 지난 실험과 섞여 보이지 않게 한다).
 DESC = {
+ "PAKD50": ("[캠페인] PAKD50 통합 (raw HQNR 0.959–0.960 목표, 50h 병렬) · s1 seed 1234 / s2 777 / s3 2026 / s4 1234(s1 교차)+3407(확인) · 2026-09-14 · "
+            "research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md (+ s4: PAN_S4_Integrated_Experiment_Cases_2026-09-14.md). "
+            "Teacher T0 = PALS24_L1E4_…_S2025 best_hqnr 의 A+U(frozen); Student 는 T0 aligner 복사(J: 공동 적응 A LR 1e-5 / F: frozen / AL: A LR 3e-6) + 새 U-Net(W112·D123, seed 별 초기값). "
+            "case 토큰: J0/F0/AL0 = N0(GT L1) · JR/FR = R1(hard (1+αd)L1) · JQ/FQ/ALQ = Q12(R3 adaptive + GT edge λE) · XJ/XF = X02(R1 + edge) · J_QA05/QB005/QB02/QE025/QE10 = Q12 계수만(α 0.5 / β 0.05 / β 0.2 / λE×0.5 / λE×2). "
+            "τR·λE 는 공통 package assets/pakd50/calibration_resolved.json. 시트 HQNR = best_raw raw_original(주 판정, 후보 격자 GRID1010_50K_v1). X열 '통합실험' = PAKD50 / <case> / FRESH50."),
  "NA104": ("[캠페인] W104·D122 no-align KD · s2·s3 · Teacher seed 2025 / Student seed 1234(반복 2025·777) · 2026-09-11 · research_log/PAN_S2_W104_D122_NoAlign_KD_Experiment_Plan_2026-09-11.md. "
            "aligner 도 PAN warp 도 없는 동일 골격(2.0989 M)에서 'Teacher 가 남긴 복원·구조 오차를 GT 중심으로 더 fitting하는 KD' 만 본다 — 정합 연구(PA/PO10/NF16/KDV) 와 직접 대응하지 않는다. "
            "실행명 토큰: <case id>_W104_D122_WV3_<rec>_<stat>[_TRI_A*_B*_C*]_S<seed>_v1. 약명→세팅은 research_log/2026-09-11_na104-implementation.md §3 표."),

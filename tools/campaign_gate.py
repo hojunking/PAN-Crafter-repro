@@ -376,12 +376,16 @@ def gate_pakd50():
     bl = os.path.join(ROOT, G.LEDGER); bd = json.load(open(bl)) if os.path.exists(bl) else {}
     done = [float(e.get("hours_total") or e.get("hours")) for e in (bd.get("entries") or {}).values() if e.get("kind") == "run" and str(e.get("status", "")).startswith("FINISHED") and (e.get("hours_total") or e.get("hours"))]
     est = (sum(done) / len(done)) if done else float(led.get("measured_run_hours") or 4.0)          # 완료 run 실측 평균 → 없으면 smoke 예상
-    todo, dropped = G.schedule(bool(cal.get("lambda_E")), lambda c: terminal(G.run_name(c, seed)) or _running(G.run_name(c, seed)), rem, est)
+    extra = G.extra_priority()                                             # s4 등: 진단 뒤 사람이 고른 scalar/결합/확인 run (case id 또는 전체 run 이름)
+    if extra:
+        log(f"PAKD50: 추가 편성 목록({G.EXTRA_PRIORITY_FILE}): {' '.join(extra)}")
+    tag_of = lambda it: G.to_tag(it, seed)
+    todo, dropped = G.schedule(bool(cal.get("lambda_E")), lambda it: terminal(tag_of(it)) or _running(tag_of(it)), rem, est, priority=G.priority_for(srv), extra=extra)
     if dropped:
         log(f"PAKD50: admission — 남은 {rem:.1f}h 에 {len(todo)} run(1.1×{est:.2f}h) 만 들어간다; 밀림: {' '.join(dropped)}")
     lam = ("%.4g" % cal["lambda_E"]) if cal.get("lambda_E") else "미고정"; rem_s = "∞" if rem is None else f"{rem:.1f}"
-    for c in todo:
-        emit(G.run_name(c, seed), f"PAKD50 {c} (우선순위 편성; λE {lam}, τR {cal.get('tau_R'):.4g}; 남은 {rem_s}h, est {est:.2f}h)")
+    for it in todo:
+        emit(tag_of(it), f"PAKD50 {G.case_of(it)} ({srv} 우선순위 편성; λE {lam}, τR {cal.get('tau_R'):.4g}; 남은 {rem_s}h, est {est:.2f}h)")
 
 
 GATES = {"uvs": ("gate_uvs", "UVS-KD (2026-09-01 s2)"), "sr": ("gate_sr", "shift-robust (SR/AF)"),

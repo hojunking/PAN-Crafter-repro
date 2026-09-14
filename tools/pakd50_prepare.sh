@@ -9,7 +9,7 @@ START=1; HOURS=46; STAGE=1
 while [ $# -gt 0 ]; do case "$1" in --no-start) START=0;; --hours) HOURS="$2"; shift;; --stage) STAGE="$2"; shift;; *) echo "unknown arg $1" >&2; exit 2;; esac; shift; done
 : "${PANCRAFTER_DLPAN:=/home/knuvi/Desktop/song/DLPan-Toolbox}"; export PANCRAFTER_DLPAN
 PY="${PYTHON:-}"; [ -n "$PY" ] || { [ -x /home/knuvi/miniconda3/envs/pancrafter/bin/python ] && PY=/home/knuvi/miniconda3/envs/pancrafter/bin/python || PY=python; }
-SERVER="$(tr -d '[:space:]' < gspread/server.txt)"; case "$SERVER" in s1|s2|s3) ;; *) echo "!! s1/s2/s3 전용 (현재 $SERVER)"; exit 1;; esac
+SERVER="$(tr -d '[:space:]' < gspread/server.txt)"; case "$SERVER" in s1|s2|s3|s4) ;; *) echo "!! s1/s2/s3/s4 전용 (현재 $SERVER)"; exit 1;; esac
 QUEUE="config/queues/pakd50_${SERVER}_stage${STAGE}.txt"; CAMP=work_dir/_pakd50; LEDGER=work_dir/_pakd50_budget/ledger.json; mkdir -p "$CAMP" "$(dirname "$LEDGER")"; T0=$($PY -c "import sys; sys.path.insert(0,'.'); from tools import gen_pakd50_configs as G; print(G.t0_dir('$SERVER'))")
 T_PREP0=$(date +%s); fail() { echo "!! $1"; exit 1; }
 if ps -eo args | grep -q '[_]run_cases\.sh'; then fail "다른 체인이 돌고 있다 — 먼저 정리 (NA104 20H 등)"; fi

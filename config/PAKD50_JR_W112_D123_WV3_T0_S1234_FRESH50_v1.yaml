@@ -60,13 +60,13 @@ kdv:
   eval:
     fixed_reference_from_donor: true
   donor:
-    source: work_dir/PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1/best_hqnr
+    source: assets/pakd50/T0_run/best_hqnr
     view_margin_hr: 4
     expected_sha256: 16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32
     expected_step: 24240
   teacher:
     id: T0
-    run: work_dir/PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1
+    run: assets/pakd50/T0_run
     tag: best_hqnr
     expected_sha256: 16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32
     bridge: false

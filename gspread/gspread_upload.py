@@ -163,6 +163,20 @@ def sheet_name(ds, server):
     return f"{ds}-{server}"
 
 
+# 통합 캠페인(PAKD50) 행은 표 오른쪽 다음 열(WV3 = X열)에 "PAKD50 / <case> / FRESH50" 을 적는다 (s4 배정 §12; 열 이름 '통합실험').
+# 기존 B:W 열 배치와 헤더 검사는 그대로다 — 이 열은 검사 범위 밖이라 s1–s3 의 기존 탭에도 충돌 없이 붙는다. 새 서버(s4) 의 탭 WV3-s4 는
+# gspread/server.txt 가 s4 이면 _ensure_sheet 가 만들고(이미 손으로 만든 빈 탭이 있으면 그대로 쓴다), 첫 업로드에서 헤더를 쓴다.
+INTEGRATED_HDR = "통합실험"
+
+
+def integrated_label(run):
+    if not run or not run.startswith("PAKD50_"):
+        return ""
+    case = run[len("PAKD50_"):].split("_W112")[0]
+    proto = "FRESH50" if "_FRESH50_" in run else run.rsplit("_", 2)[-2]
+    return f"PAKD50 / {case} / {proto}"
+
+
 def columns_for(ds):
     """첫 데이터셋(WV3)만 비용 열 전부. 다른 데이터셋은 Params(M)·Train(h) 만 남긴다 — FLOPs·추론시간·메모리는
     데이터셋과 무관하지만 학습 시간은 데이터셋마다 다르다 (2026-09-08 요청). ds 는 서버 접미사 없는 이름이다."""
@@ -526,7 +540,7 @@ def collect(tag, want_profile, server, peer=None):
     hs = ma.get("hidden_size")
     row = {
         # 캠페인은 **꾸미기 전 실행명**으로 정한다 — tag 는 뒤에서 "(50K) · w96 …"·"·peerB" 가 붙는다
-        "campaign": classify(tag),
+        "campaign": classify(tag), "_run": tag,
         "tag": tag, "_ds": ds.upper(),
         "model": a.model.rsplit(".", 1)[-1],
         "seed": a.seed, "iter": a.num_iter,   # iter 는 비고와 실행명 양쪽에 들어간다
@@ -1004,8 +1018,13 @@ def upload(rows, server, replace=False):
                 i = ORIGIN_ROW + 2 + len(tags)
                 tags.append(r["tag"]); added += 1
             pending.append({"range": f"{_a1(i, ORIGIN_COL)}:{_a1(i, ORIGIN_COL + n - 1)}", "values": [v]})
+            lab = integrated_label(r.get("_run", ""))
+            if lab:                                                # 표 오른쪽 다음 열(WV3 는 X열) '통합실험' — 열 배치 검사(B:W) 밖이라 기존 탭과 충돌하지 않는다
+                pending.append({"range": _a1(i, ORIGIN_COL + n), "values": [[lab]]})
             last = max(last, i)
             total += 1
+        if any(integrated_label(r.get("_run", "")) for r in rs):
+            pending.append({"range": _a1(ORIGIN_ROW + 1, ORIGIN_COL + n), "values": [[INTEGRATED_HDR]]})
         if pending:
             _retry(ws.batch_update, pending)                       # 값 전체를 한 요청으로
         if sep_rows:

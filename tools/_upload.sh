@@ -36,7 +36,7 @@ LOG="$REPO/work_dir/gspread_upload.log"
   # PA(A1–A3) run: 명세 §10.10·§11 진단 (교차 평가 · learned/zero/wrong-sign · known-shift 반응 · tile vs full) → results/pa_diag.json
   for t in "$@"; do
     T0=$(date +%s)                       # 이 run 의 GPU 진단 시간 (pa_diag 부터; NF16 은 ledger 에 기록한다)
-    case "$t" in PA_A*|PO10_*|S2W112*|NF16_*|NA104_*|PALS24_*|PALSV18_*)
+    case "$t" in PA_A*|PO10_*|S2W112*|NF16_*|NA104_*|PALS24_*|PALSV18_*|PAKD50_*)
       set +e; python tools/pa_diag.py --run "$t" > "$REPO/work_dir/$t/results/pa_diag.log" 2>&1; rc=$?; set -e
       grep -v Warning "$REPO/work_dir/$t/results/pa_diag.log" | tail -25
       [ $rc -eq 0 ] || echo "[upload] !! pa_diag 실패 (rc=$rc): $t — work_dir/$t/results/pa_diag.log";;
