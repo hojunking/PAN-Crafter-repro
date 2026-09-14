@@ -33,5 +33,9 @@ s1 커밋 → 사용자 push → s2/s3 `git pull` 후 `./tools/pakd50_prepare.sh
 
 P/JK0/JE0 (A/U 별 loss routing), D0/DQ(첫 5K A frozen), LF(25K 이후 A frozen), QA05/QB005/QB02/QE025/QE10/QSF scalar variant(계수는 config 로 바로 가능하나 QSF schedule 은 미구현), TCOPY10/CONT10 protocol, T1/S3407/XSRV, PAKD50 전용 집계 도구(paired block summary·plateau·run max). J0/JQ 3 block 결과를 본 뒤 순서대로 붙인다.
 
-## 5. 실행
-(기동 뒤 채움)
+## 5. 실행 (s1)
+
+- 2026-09-14 13:22:31 `./tools/pakd50_prepare.sh --hours 46` → T0 재현 raw HQNR 0.956976(Δ 0.0) → 기존 gate 4종 + K01–K05 통과 → τR 재계산 0.012463942(고정값과 Δ 0) → stage 1 config → smoke 4벌 OK → 50h 시계 시작 → gate token `pakd50` → 체인 기동(마감 09-16 11:22). release cac23a6.
+- 첫 run `PAKD50_J0_…_S1234_FRESH50_v1`(λE pilot) 예산 gate RUN(8.4 ≤ 46). smoke 처리량: J 40 ms/step(offset 연습 포함) · F 19 · R1 22 · peak 3.3 GB → run ≈ 1.9 h(평가 50회 포함) → stage 1 4벌 ≈ 8 h, J0-1234 완료 ≈ 15:20 → λE 고정 → stage 2.
+- PALSV18 V-post(11/23 checkpoint) 는 13:03 에 일시 중단하고 GPU 를 이 캠페인에 양보했다 — 나머지는 캠페인 사이에 `./tools/palsv18_validate.sh post` 로 이어 돌린다(완료분은 sha 검사로 생략).
+- s2/s3: 이 commit 을 pull → (NA104 20H 체인이 있으면 먼저 정리) → `./tools/pakd50_prepare.sh` (stage 1: J0 → F0 → JR → FR, seed 777/2026). stage 2 는 s1 이 λE 를 고정한 commit 을 다시 pull 한 뒤 `./tools/pakd50_prepare.sh --stage 2`.
