@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PAKD50 — 돌고 있는 체인의 큐를 gate 편성(J0 → λE → JQ → F0 → FQ → JR → FR → XJ)으로 바꾼다. **현재 학습 run 은 건드리지 않는다** (감사 F02).
+# PAKD50 — 돌고 있는 체인의 큐를 gate 편성(J0 → λE → 서버별 우선순위: gen_pakd50_configs.priority_for; 2026-09-15 재배정 뒤 s2/s4/s5 는 명시 순서)으로 바꾼다. **현재 학습 run 은 건드리지 않는다** (감사 F02).
 #   ./tools/pakd50_requeue.sh
 #   ① 감시자 cron 일시 해제 ② 체인 runner(bash _run_cases.sh) 만 종료 — 학습 프로세스(run.sh → python)는 그대로
 #   ③ 예산 ledger 를 50h/4h 규약으로, 50h 시계에 공통 마감 기록 ④ 새 runner 기동(큐 = J0 만; runner 는 현재 학습이 끝날 때까지 스스로 기다린다)

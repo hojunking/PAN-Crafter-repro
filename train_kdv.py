@@ -236,6 +236,9 @@ class KDVTrainer(PATrainer):
             return 0.0
         if run_id is None and self.budget.get("projected_hours"):
             return float(self.budget["projected_hours"])
+        pf = self._projection_file_hours(rid)                               # PAKD50 재배정 §3: 서버 로컬 run 별 예약(gate 가 씀) — config 의 보수값보다 우선
+        if pf is not None:
+            return pf
         if (self.budget.get("projected_map") or {}).get(rid):
             return float(self.budget["projected_map"][rid])
         done = [float(e["hours_total"] if e.get("hours_total") else e["hours"]) for e in d["entries"].values() if e.get("kind") == "run" and str(e.get("status", "")).startswith("FINISHED") and e.get("hours")]
@@ -243,6 +246,21 @@ class KDVTrainer(PATrainer):
             return float(np.mean(done))
         th = (d.get("throughput") or {}).get("projected_run_hours_50k")
         return float(th) if th else float("nan")
+
+    def _projection_file_hours(self, rid):
+        """`budget.projection_file`(서버 로컬 JSON: {"runs": {run: {"gate_hours": h, ...}}}) 의 run 별 예상 시간 — 없거나 항목이 없으면 None.
+        PAKD50 재배정(2026-09-15) 의 예약식 reservation_h = 1.10×ref + 10/60 을 gate_hours = reservation_h / budget.margin 으로 적어, 이 gate 가 margin 을 곱하면 예약값 그대로가 된다."""
+        f = self.budget.get("projection_file")
+        if not f:
+            return None
+        p = f if os.path.isabs(f) else os.path.join(ROOT, f)
+        if not os.path.exists(p):
+            return None
+        try:
+            e = (json.load(open(p)).get("runs") or {}).get(rid) or {}
+            return float(e["gate_hours"]) if e.get("gate_hours") else None
+        except Exception:
+            return None
 
     def _crashed_hours(self, prev):
         """죽은 시도의 GPU 시간: trainer 가 주기적으로 쓴 memory_and_throughput.json 의 elapsed_hours → 없으면 started→now 벽시계."""

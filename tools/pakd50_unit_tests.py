@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """PAKD50 launch gate (계획 §14.1 중 코드로 닫는 것). 하나라도 실패하면 exit 1.   python tools/pakd50_unit_tests.py
-T0 binding · 정책/backend 매핑 · Q12↔X02↔R1↔N0 관계 · edge 정의 · gate detach · offset 수신자 · frozen A · 후보 격자 · 큐 · λE 의존성 · 캠페인 gate 격리"""
+T0 binding · 정책/backend 매핑 · Q12↔X02↔R1↔N0 관계 · edge 정의 · gate detach · offset 수신자 · frozen A · 후보 격자 · 큐 · λE 의존성 · 캠페인 gate 격리
+K17–K20 (2026-09-15 재배정): RC 정책·J_R3_NOEDGE/J_N0_EDGE 정의 · RC trainer step(offset 연습 없음, L_rec → A) · 서버별 명시 순서·예약식·admission · trainer projection_file"""
 import copy, json, os, subprocess, sys, tempfile
 import torch, yaml
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0, ROOT)
@@ -143,10 +144,10 @@ try:
     G.kdv_block("J_QE10", 1234, "s4", cal=dict(tau_R=0.012)); check("K09 λE 배율 case 는 λE0 없이 만들 수 없다", False)
 except SystemExit:
     check("K09 λE 배율 case 는 λE0 없이 만들 수 없다", True)
-check("K09 s4: seed 1234(s1 과 같은 run id), T0 경로는 모든 서버에서 자산 사본, 기본 묶음 J0→JQ→AL0→ALQ, stage 1 = J0/AL0", G.SERVER_SEED["s4"] == 1234 and G.t0_dir("s1") == G.t0_dir("s4") == G.T0_ASSET_DIR and G.priority_for("s4") == ["J0", "JQ", "AL0", "ALQ"] and G.stage_cases("s4", 1) == ["J0", "AL0"] and G.priority_for("s1") == G.PRIORITY)
-check("K09 s4 기본 묶음(예산 예약, 서버 로컬 파일로) = J0/JQ/AL0/ALQ · config 자체에는 서버별 목록 없음", G.mandatory_for("s4") == ["J0", "JQ", "AL0", "ALQ"] and G.kdv_block("ALQ", 1234, "s4", cal=cal4)["budget"]["remaining_mandatory"] == [])
+check("K09 s4: seed 1234(s1 과 같은 run id), T0 경로는 모든 서버에서 자산 사본, 2026-09-14 기본 묶음 J0→JQ→AL0→ALQ(완료; PREVIOUS_PRIORITY_BY_SERVER), stage 1 = J0/AL0", G.SERVER_SEED["s4"] == 1234 and G.t0_dir("s1") == G.t0_dir("s4") == G.T0_ASSET_DIR and G.PREVIOUS_PRIORITY_BY_SERVER["s4"] == ["J0", "JQ", "AL0", "ALQ"] and G.stage_cases("s4", 1) == ["J0", "AL0"] and G.priority_for("s1") == G.PRIORITY)
+check("K09 s4 기본 묶음(예산 예약, 서버 로컬 파일로) = 재배정 명시 순서 (mandatory_for == priority_for) · config 자체에는 서버별 목록 없음", G.mandatory_for("s4") == G.priority_for("s4") == ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"] and G.kdv_block("ALQ", 1234, "s4", cal=cal4)["budget"]["remaining_mandatory"] == [])
 ex = ["J_QA05", G.run_name("JQ", 3407), "J_QA05"]
-check("K09 추가 편성: case id 와 전체 run 이름 혼용, 기본 묶음 뒤·중복 제거; λE 없으면 λE case 는 미편성", G.schedule(True, term({"J0", "JQ", "AL0", "ALQ"}), 40.0, 1.9, priority=G.priority_for("s4"), extra=ex) == (["J_QA05", G.run_name("JQ", 3407)], []) and G.schedule(False, term({"J0", "AL0"}), 40.0, 1.9, priority=G.priority_for("s4"), extra=ex) == ([], []))
+check("K09 추가 편성: case id 와 전체 run 이름 혼용, 기본 묶음 뒤·중복 제거; λE 없으면 λE case 는 미편성", G.schedule(True, term({"J0", "JQ", "AL0", "ALQ"}), 40.0, 1.9, priority=G.PREVIOUS_PRIORITY_BY_SERVER["s4"], extra=ex) == (["J_QA05", G.run_name("JQ", 3407)], []) and G.schedule(False, term({"J0", "AL0"}), 40.0, 1.9, priority=G.PREVIOUS_PRIORITY_BY_SERVER["s4"], extra=ex) == ([], []))
 check("K09 to_tag/case_of", G.to_tag("J_QA05", 3407) == G.run_name("J_QA05", 3407) and G.case_of(G.run_name("AL_QE10", 3407)) == "AL_QE10" and G.case_of("JQ") == "JQ")
 # ---------------- K10–K12 s5 timing/routing (research_log/PAN_S5_Timing_Routing_Experiment_Plan_2026-09-14.md §4–§6, §10.2–10.4; S5-G02/G03/G05/G06/G07)
 import types
@@ -166,7 +167,7 @@ d0, dq, pq, px, lfq, jk0, je0, dpq = (G.kdv_block(c, 2026, "s5", cal=cal4) for c
 check("K11 D0/DQ: freeze_until 5000 · routing 없음 · A LR 1e-5 · 계수 JQ 와 같음 · control D0", d0["aligner_schedule"] == dict(freeze_until=5000) and "routing" not in d0 and dq["aligner_lr"] == 1e-5 and dq["rec"]["kd_weight"] == 0.1 and dq["baseline_run"] == G.run_name("D0", 2026))
 check("K11 PQ: qD=qK=qE=0 · 일정 없음 · control J0 | PX(X02): qK 없음 | JK0: qK=0 만 | JE0: qE=0 만 | DPQ: 일정+routing", pq["routing"] == dict(qD=0.0, qK=0.0, qE=0.0) and "aligner_schedule" not in pq and pq["baseline_run"] == G.run_name("J0", 2026)
       and px["routing"] == dict(qD=0.0, qE=0.0) and jk0["routing"] == dict(qK=0.0) and je0["routing"] == dict(qE=0.0) and dpq["aligner_schedule"] == dict(freeze_until=5000) and dpq["routing"]["qD"] == 0.0)
-check("K11 LFQ: freeze_from 25000 · s5 seed 2026 · 기본 묶음 J0→JQ→D0→DQ→PQ · stage 1 = J0/D0 · s5 case 전부 registry 통과", lfq["aligner_schedule"] == dict(freeze_from=25000) and G.SERVER_SEED["s5"] == 2026 and G.priority_for("s5") == ["J0", "JQ", "D0", "DQ", "PQ"]
+check("K11 LFQ: freeze_from 25000 · s5 seed 2026 · 2026-09-14 기본 묶음 J0→JQ→D0→DQ→PQ(PREVIOUS) · stage 1 = J0/D0 · s5 case 전부 registry 통과", lfq["aligner_schedule"] == dict(freeze_from=25000) and G.SERVER_SEED["s5"] == 2026 and G.PREVIOUS_PRIORITY_BY_SERVER["s5"] == ["J0", "JQ", "D0", "DQ", "PQ"] and G.priority_for("s5") == ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"]
       and G.stage_cases("s5", 1) == ["J0", "D0"] and all(_res(G.kdv_block(c, 2026, "s5", cal=cal4)) for c in ("D0", "DQ", "DR", "DX", "PQ", "PR", "PX", "DPQ", "DPX", "LF0", "LFQ", "JK0", "JE0")))
 def _stub(case, seed_gen=3234):        # 실제 KDVTrainer._step 을 CPU 에서 (감사 verify_readonly.py 와 같은 방식). Student = T0 복사 + U 에 작은 잡음 (e_S ≠ e_T 라 soft 항이 살아 있게)
     tr = object.__new__(KDVTrainer); tr.k = G.kdv_block(case, 2026, "s5", cal=cal4); sp_ = tr.spec = resolve(tr.k)
@@ -235,6 +236,61 @@ check("K14 4999 뒤 재개(모델·ε RNG 상태 복원) == 연속 실행: 5000 
       and torch.equal(res[5001]["eps"], cont[5001]["eps"]) and cont[4999]["act"] == 0.0 and cont[5000]["act"] == 1.0 and cont[5000]["eq"] == 0.0 and cont[5001]["eq"] == 1.0)
 del a, b, b2
 # ---------------- K16 seed 별 U 초기값 hash pin (s5 보고 #3)
+# ---------------- K17–K20 2026-09-15 재배정 (research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md §3–§5, §7–§9)
+rc0, rcq, jr3, jn0 = (G.kdv_block(c, 2026, "s5", cal=cal4) for c in ("RC0", "RCQ", "J_R3_NOEDGE", "J_N0_EDGE")); s_rc0, s_rcq, s_jr3, s_jn0 = (resolve(x) for x in (rc0, rcq, jr3, jn0))
+check("K17 RC(§5 semantic fragment): A-FT + I-NATIVE-TRANSFER + A LR 1e-5 + corruption.radius_hr 0 + offset 0 · A trainable · 일정/routing 없음 · control RC0 · RCQ 는 Q12 식 그대로(α1 β0.1 λE0)",
+      all(x["aligner_policy"] == "A-FT" and x["input_protocol"] == "I-NATIVE-TRANSFER" and x["aligner_lr"] == 1e-5 and x["corruption"] == dict(radius_hr=0.0) and x["aux"]["offset_weight"] == 0.0 and "aligner_schedule" not in x and "routing" not in x for x in (rc0, rcq))
+      and s_rc0["aligner_trainable"] and s_rcq["aligner_trainable"] and s_rc0["offset_weight_effective"] == 0 == s_rc0["radius_hr"] and rc0["baseline_run"] == rcq["baseline_run"] == G.run_name("RC0", 2026)
+      and rc0["rec"]["case"] == "N0" and rc0["teacher"].get("eval_only") and rcq["rec"] == G.kdv_block("JQ", 2026, "s5", cal=cal4)["rec"] and rcq["stat"] == G.kdv_block("JQ", 2026, "s5", cal=cal4)["stat"])
+check("K17 registry 계약: I-AEQ 에 offset 0 만 넣는 방식은 거부 (그래서 RC 는 protocol 을 바꾼다) · I-NATIVE-TRANSFER 에 radius > 0 도 거부", not _res(dict(G.kdv_block("J0", 2026, "s5", cal=cal4), aux=dict(offset_weight=0.0, geometry_weight=0.0)))
+      and not _res(dict(rc0, corruption=dict(radius_hr=2.0))))
+check("K17 J_R3_NOEDGE = JQ 에서 edge 만 제거 (rec R3 α1 β0.1 · stat OFF · Teacher 필요 · J 정책 그대로) · J_N0_EDGE = J0 + λE edge (rec N0 · EDGE-H λE0 · Teacher eval_only, loss 에 없음)",
+      jr3["rec"] == G.kdv_block("JQ", 2026, "s5", cal=cal4)["rec"] and not jr3["stat"]["enabled"] and s_jr3["needs_teacher"] and jr3["input_protocol"] == "I-AEQ" and jr3["aux"]["offset_weight"] == 1e-4
+      and jn0["rec"] == dict(case="N0") and jn0["stat"]["enabled"] and jn0["stat"]["outer_weight"] == 0.3 and s_jn0["teacher_eval_only"] and not s_jn0["needs_teacher"] and jn0["baseline_run"] == jr3["baseline_run"] == G.run_name("J0", 2026))
+check("K17 λE 의존: J_N0_EDGE·RCQ 는 λE 필요, J_R3_NOEDGE·RC0 는 τR/없음 · 시간 산정 유형: RC0/F0/LF0 = N0 형, RCQ/LFQ/JR/XJ/J_R3_NOEDGE/J_N0_EDGE = T 형, PQ = ROUTING",
+      {"J_N0_EDGE", "RCQ"} <= G.NEEDS_LAMBDA_E and not ({"J_R3_NOEDGE", "RC0"} & G.NEEDS_LAMBDA_E) and all(G.reference_kind(c) == "N0" for c in ("RC0", "F0", "LF0")) and all(G.reference_kind(c) == "T" for c in ("RCQ", "LFQ", "JR", "XJ", "J_R3_NOEDGE", "J_N0_EDGE")) and G.reference_kind("PQ") == "ROUTING")
+# K18 RC trainer step: native 만(corrupt 없음) · offset 연습 없음(ε RNG 소비 없음) · L_rec → A gradient 유지 · RCQ 는 soft/edge 도 A 로 (routing 없음)
+tR, tJ = _stub("RC0"), _stub("J0"); g_before = tR.gen.get_state().clone()
+totR, infR = tR._step(*inp5, 1); totJ, infJ = tJ._step(*inp5, 1); ap = list(tR.M.aligner.parameters()); bp = list(tR.M.backbone.parameters())
+gA = torch.autograd.grad(totR, ap, retain_graph=True, allow_unused=True); gU = torch.autograd.grad(totR, bp, retain_graph=True, allow_unused=True)
+check("K18 RC0 update 1(odd): corrupt False · eq_exercise 없음 · L_O 0 · ε RNG 미소비 (J0 은 같은 update 에 연습) · Δ 에 graph · L_rec → A 와 U 양쪽 gradient · aligner_active 0/49999",
+      not infR["corrupt"] and "eq_exercise" not in infR and float(infR["loss_off"]) == 0.0 and torch.equal(tR.gen.get_state(), g_before) and infJ.get("eq_exercise") == 1.0 and infR["delta"].requires_grad
+      and any(x is not None and float(x.abs().sum()) > 0 for x in gA) and any(x is not None and float(x.abs().sum()) > 0 for x in gU) and tR.aligner_active(0) and tR.aligner_active(49999))
+tQ = _stub("RCQ"); totQ, infQ = tQ._step(*inp5, 1); apQ = list(tQ.M.aligner.parameters())
+lkA = float(sum(w.abs().sum() for w in _grads(infQ["_rec_soft_t"], apQ))); leA = float(sum(w.abs().sum() for w in _grads(infQ["_edge_w_t"], apQ)))
+check(f"K18 RCQ: Q12 전체(hard+soft+λE edge) 가 A 로도 간다 (routing 없음; soft→A {lkA:.2e}, edge→A {leA:.2e}) · offset 없음 · Teacher forward 있음", lkA > 0 and leA > 0 and float(infQ["loss_off"]) == 0.0 and infQ["y_t"] is not None)
+tE = _stub("J_N0_EDGE"); totE, infE = tE._step(*inp5, 1)
+check("K18 J_N0_EDGE: Teacher forward 없음(y_t None) · edge 항 > 0 · offset 연습은 J 와 같음(odd 에 ε)", infE["y_t"] is None and float(infE["_edge_w_t"]) > 0 and infE.get("eq_exercise") == 1.0 and float(infE.get("rec_soft", 0.0)) == 0.0)
+del tR, tJ, tQ, tE, totR, totQ, totE, totJ
+# K19 서버별 명시 순서·예약식 (§3–§4 검산)·admission (§8)·확인 seed (§7)
+check("K19 명시 순서(§4): s2 JR→XJ→J_R3_NOEDGE→J_N0_EDGE · s4 F0→RC0→RCQ→JR→XJ→J_R3_NOEDGE · s5 PQ→F0→LF0→LFQ→RC0→RCQ; mandatory == priority; s1/s3 는 기본 PRIORITY; 완료 묶음은 순서에 없다(FR 도)",
+      G.priority_for("s2") == ["JR", "XJ", "J_R3_NOEDGE", "J_N0_EDGE"] and G.priority_for("s4") == ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"] and G.priority_for("s5") == ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"]
+      and all(G.mandatory_for(s) == G.priority_for(s) for s in ("s2", "s4", "s5")) and G.priority_for("s1") == G.priority_for("s3") == G.PRIORITY and not ({"J0", "JQ", "F0", "FQ", "FR"} & set(G.priority_for("s2"))) and "PQ" in G.priority_for("s5"))
+_sum = lambda srv: sum(G.reservation_for(srv, c)["reservation_h"] for c in G.priority_for(srv))
+check("K19 예약식 reservation_h = 1.10×ref + 10/60 (§3 검산): s2 4×2.33 → 10.9187 · s4 2×1.17+4×1.39 → 9.6900 · s5 1.80+3×1.35+2×1.36 → 10.4270 (측정값 없이)",
+      abs(_sum("s2") - 10.9186667) < 1e-6 and abs(_sum("s4") - 9.69) < 1e-6 and abs(_sum("s5") - 10.427) < 1e-6 and abs(G.reservation_hours(2.33) - 2.7296667) < 1e-6)
+check("K19 기준값 출처: N0 형/T 형은 서버 계획값(s2 는 전부 2.33) · PQ 는 routing 가예약 1.80 · 같은 서버 같은 case 실측이 있으면 그것 · routing 실측이 생기면 다른 routing case 도 그 평균 · 확인 seed 는 1.80 가예약",
+      G.reference_hours("s2", "JR") == (2.33, "plan_reference") and G.reference_hours("s4", "RC0") == (1.17, "plan_reference") and G.reference_hours("s4", "RCQ") == (1.39, "plan_reference") and G.reference_hours("s5", "PQ") == (1.8, "routing_placeholder")
+      and G.reference_hours("s5", "PQ", {"PQ": 1.9}) == (1.9, "measured_same_case") and G.reference_hours("s5", "PX", {"PQ": 1.9})[1] == "measured_routing_mean" and G.reference_hours("s4", "RCQ", {}, confirm=True) == (1.8, "confirm_placeholder")
+      and G.reference_hours("s4", "RCQ", {"RCQ": 1.4}, confirm=True) == (1.4, "measured_same_case") and G.reservation_for("s4", G.run_name("RCQ", 3407))["seed"] == 3407 and G.reservation_for("s4", G.run_name("RCQ", 3407))["reference_kind"] == "confirm_placeholder")
+_est = lambda srv: (lambda it: G.reservation_for(srv, it)["reservation_h"])
+check("K19 편성: s2 완료(J0/F0/JQ/FQ) 뒤 남은 전부 명시 순서 · s4/s5 도 · 실행 중 PQ 는 제외(그 뒤부터) · s2 남은 5.0h 면 JR 만(2.73+2.73 > 5) · est callable 이면 margin 을 다시 곱하지 않는다",
+      G.schedule(True, term({"J0", "F0", "JQ", "FQ"}), 40.0, _est("s2"), priority=G.priority_for("s2")) == (["JR", "XJ", "J_R3_NOEDGE", "J_N0_EDGE"], [])
+      and G.schedule(True, term({"AL0", "J0", "JQ", "ALQ"}), 40.0, _est("s4"), priority=G.priority_for("s4")) == (["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"], [])
+      and G.schedule(True, term({"J0", "JQ", "D0", "DQ", "PQ"}), 40.0, _est("s5"), priority=G.priority_for("s5")) == (["F0", "LF0", "LFQ", "RC0", "RCQ"], [])
+      and G.schedule(True, term({"J0", "F0", "JQ", "FQ"}), 5.0, _est("s2"), priority=G.priority_for("s2")) == (["JR"], ["XJ", "J_R3_NOEDGE", "J_N0_EDGE"])
+      and G.schedule(True, term({"J0", "F0", "JQ", "FQ"}), 5.46, _est("s2"), priority=G.priority_for("s2")) == (["JR", "XJ"], ["J_R3_NOEDGE", "J_N0_EDGE"]))
+check("K19 확인 seed(§7): s4 3407 / s5 9091 · 묶음 = WIN → 같은 policy no-KD control → F0 (F0 가 control 이면 2 run) · 최대 3", G.CONFIRM_SEED == {"s4": 3407, "s5": 9091} and G.confirmation_cases("RCQ") == ["RCQ", "RC0", "F0"] and G.confirmation_cases("LFQ") == ["LFQ", "LF0", "F0"]
+      and G.confirmation_cases("F0") == ["F0"] and G.confirmation_cases("JQ") == ["JQ", "J0", "F0"] and G.CONFIRM_MAX_RUNS == 3)
+# K20 trainer 예산 gate 가 서버 로컬 예약 파일을 본다 (gate_hours × margin = reservation_h; 없으면 config projected_map 4.0h)
+_tdir = tempfile.mkdtemp(); _rf = os.path.join(_tdir, "reservations.json"); _run_id = G.run_name("RCQ", 2026)
+_out = G.write_reservation_file("s5", ["RCQ", "F0"], {}, path=_rf); _e = _out["runs"][_run_id]
+tp = object.__new__(KDVTrainer); tp.run_id = _run_id; tp.budget = dict(rcq["budget"], projection_file=_rf); _d = dict(entries={}, throughput=dict(projected_run_hours_50k=2.0))
+check("K20 projection_file: gate_hours = reservation_h / 1.1 → trainer margin 1.1 을 곱하면 예약값(1.6627h) · 이 run 과 remaining 둘 다 파일 우선 · 파일에 없는 remaining run 은 종전대로(ledger 평균 → smoke throughput) · 파일이 없으면 이 run 은 projected_map 4.0h",
+      abs(_e["gate_hours"] * 1.1 - (1.1 * 1.36 + 10 / 60)) < 1e-9 and abs(tp._projection(_d) - _e["gate_hours"]) < 1e-12 and abs(tp._projection(_d, G.run_name("F0", 2026)) - _out["runs"][G.run_name("F0", 2026)]["gate_hours"]) < 1e-12
+      and tp._projection(_d, G.run_name("LF0", 2026)) == 2.0 and (setattr(tp, "budget", dict(rcq["budget"], projection_file=os.path.join(_tdir, "none.json"))) or tp._projection(_d) == 4.0)
+      and rcq["budget"]["projection_file"] == G.RESERVATION_FILE and rcq["budget"]["remaining_mandatory_file"] == G.MANDATORY_FILE)
+import shutil; shutil.rmtree(_tdir, ignore_errors=True); del tp
 check("K16 registry: expect_init 은 16-hex unet/aligner 만", _res(dict(base5, expect_init=dict(unet_sha256_16="0123456789abcdef"))) and not _res(dict(base5, expect_init=dict(unet_sha256_16="short"))) and not _res(dict(base5, expect_init=dict(foo="0123456789abcdef"))))
 try:
     KDVTrainer._check_init_hash(dict(unet_init_sha256_16="0123456789abcdef"), dict(unet_sha256_16="0123456789abcdef")); ok16 = True

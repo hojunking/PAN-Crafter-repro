@@ -335,8 +335,8 @@ def gate_na104_20h():
 def gate_pakd50():
     """PAKD50 편성 gate (계획 §5.3·§9.4·§9.6·§11.2; 감사 F02/F03/F05). 큐에는 J0 만 있고, 그 뒤는 매 pass 이 gate 가 정한다:
     s1 은 pilot(J0 S1234 exact50K) 완료 즉시 λE 고정(tools/pakd50_calibrate.py --lambda-e → assets 사본 mirror) + 세 서버 stage 2 config 생성(빠진 것이 있으면 λE 와 별개로 다시).
-    s2/s3 는 pull 로 받은 사본에서 λE 를 받는다. 편성 = gen_pakd50_configs.schedule: λE 없으면 τR-only 다음 한 벌(F0→JR→FR), 있으면 남은 전부(JQ→F0→FQ→JR→FR→XJ);
-    admission = 공통 training_deadline 까지 남은 시간 안에 1.1×est 씩."""
+    s2/s3 는 pull 로 받은 사본에서 λE 를 받는다. 편성 = gen_pakd50_configs.schedule: λE 없으면 τR-only 다음 한 벌(F0→JR→FR), 있으면 남은 전부 — 서버별 명시 순서(priority_for; 2026-09-15 재배정 s2/s4/s5) + extra_priority.txt;
+    admission = 공통 training_deadline 까지 남은 시간 안에 run 별 예약(1.10×reference_train_h + 10/60; 재배정 §3·§8) 을 누적. 예약은 서버 로컬 work_dir/_pakd50/reservations.json 에도 써 trainer 예산 gate 가 같은 값을 본다."""
     if ROOT not in sys.path:
         sys.path.insert(0, ROOT)
     from tools import gen_pakd50_configs as G
@@ -375,23 +375,33 @@ def gate_pakd50():
         rem = (_t.mktime(_t.strptime(led["training_deadline"][:19], "%Y-%m-%dT%H:%M:%S")) - _t.time()) / 3600.0
     bl = os.path.join(ROOT, G.LEDGER); bd = json.load(open(bl)) if os.path.exists(bl) else {}
     done = [float(e.get("hours_total") or e.get("hours")) for e in (bd.get("entries") or {}).values() if e.get("kind") == "run" and str(e.get("status", "")).startswith("FINISHED") and (e.get("hours_total") or e.get("hours"))]
-    est = (sum(done) / len(done)) if done else float(led.get("measured_run_hours") or 4.0)          # 완료 run 실측 평균 → 없으면 smoke 예상
+    est = (sum(done) / len(done)) if done else float(led.get("measured_run_hours") or 4.0)          # 완료 run 실측 평균 → 없으면 smoke 예상 (reference 가 전혀 없을 때의 마지막 fallback)
+    measured = G.measured_hours_from_ledger(srv, bd)                       # 같은 서버·같은 case 실측 {case: h} — 재배정 §3 '첫 실측이 나오면 곧바로 교체'
     extra = G.extra_priority()                                             # s4 등: 진단 뒤 사람이 고른 scalar/결합/확인 run (case id 또는 전체 run 이름)
     if extra:
         log(f"PAKD50: 추가 편성 목록({G.EXTRA_PRIORITY_FILE}): {' '.join(extra)}")
     tag_of = lambda it: G.to_tag(it, seed)
-    todo, dropped = G.schedule(bool(cal.get("lambda_E")), lambda it: terminal(tag_of(it)) or _running(tag_of(it)), rem, est, priority=G.priority_for(srv), extra=extra)
+    def _reservation(it):                                                  # 재배정 §3: reservation_h = 1.10 × reference_train_h + 10/60 (여유 포함 — schedule 은 margin 을 다시 곱하지 않는다)
+        r = G.reservation_for(srv, it, measured, seed)
+        return r["reservation_h"] if r else G.reservation_hours(est)
+    todo, dropped = G.schedule(bool(cal.get("lambda_E")), lambda it: terminal(tag_of(it)) or _running(tag_of(it)), rem, _reservation, priority=G.priority_for(srv), extra=extra)
+    try:                                                                   # 서버 로컬 예약 파일 (trainer budget.projection_file) — 편성·밀린 run 전부 (완료 run 은 trainer 가 0 으로 센다)
+        G.write_reservation_file(srv, list(todo) + list(dropped), measured, seed)
+    except Exception as e:                                                 # noqa — 예약 파일 실패가 편성을 막지 않는다 (trainer 는 projected_map 보수값으로)
+        log(f"PAKD50: 예약 파일 기록 실패 — {e!r}")
     if dropped:
-        log(f"PAKD50: admission — 남은 {rem:.1f}h 에 {len(todo)} run(1.1×{est:.2f}h) 만 들어간다; 밀림: {' '.join(dropped)}")
-    lam = ("%.4g" % cal["lambda_E"]) if cal.get("lambda_E") else "미고정"; rem_s = "∞" if rem is None else f"{rem:.1f}"
+        log(f"PAKD50: admission — 남은 {rem:.1f}h 에 {len(todo)} run 만 들어간다 (예약 = 1.10×ref + 10min); 밀림: {' '.join(dropped)}")
+    lam = ("%.4g" % cal["lambda_E"]) if cal.get("lambda_E") else "미고정"; rem_s = "∞" if rem is None else f"{rem:.1f}"; cum = 0.0
     for it in todo:
-        emit(tag_of(it), f"PAKD50 {G.case_of(it)} ({srv} 우선순위 편성; λE {lam}, τR {cal.get('tau_R'):.4g}; 남은 {rem_s}h, est {est:.2f}h)")
+        r = G.reservation_for(srv, it, measured, seed); cum += _reservation(it)
+        src = f"ref {r['reference_train_h']:.2f}h {r['reference_kind']}" if r else f"ref {est:.2f}h ledger_mean"
+        emit(tag_of(it), f"PAKD50 {G.case_of(it)} ({srv} 명시 순서 편성; λE {lam}, τR {cal.get('tau_R'):.4g}; 남은 {rem_s}h, 예약 {_reservation(it):.2f}h [{src}], 누적 {cum:.2f}h)")
 
 
 GATES = {"uvs": ("gate_uvs", "UVS-KD (2026-09-01 s2)"), "sr": ("gate_sr", "shift-robust (SR/AF)"),
          "s2cal": ("gate_s2_calibrate", "s2 uncertainty calibration"), "s2gtvar": ("gate_s2_gtvar", "s2 GT-variance KD"),
          "pals24": ("gate_pals24", "PALS24 λ_off sweep stage 2 (s1, 2026-09-12)"), "na104_20h": ("gate_na104_20h", "NA104 20H 우선순위 조건부 CF01/X02 (s2·s3, 2026-09-13)"),
-         "pakd50": ("gate_pakd50", "PAKD50 통합 캠페인 stage 2 (λE 고정 뒤 JQ/FQ/XJ; s1·s2·s3, 2026-09-14)")}
+         "pakd50": ("gate_pakd50", "PAKD50 통합 캠페인 편성 (λE 고정 뒤 서버별 명시 순서; s1–s5, 2026-09-14 · 재배정 2026-09-15)")}
 
 
 def enabled_gates():

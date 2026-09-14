@@ -3,7 +3,7 @@ import re
 
 # (범주키, 표시명, 판별함수)  — 위에서부터 처음 맞는 것으로 확정한다
 CATS = [
- ("PAKD50", "㉕ 통합 캠페인 PAKD50 (T0 = PALS24 L1E4 seed 2025 aligner 재사용·적응 × N0/R1/Q12/X02, FRESH50, s1·s2·s3·s4) — 실행명 PAKD50_<case>_W112_D123_WV3_T0_S<seed>_FRESH50_v1",
+ ("PAKD50", "㉕ 통합 캠페인 PAKD50 (T0 = PALS24 L1E4 seed 2025 aligner 재사용·적응 × N0/R1/Q12/X02, FRESH50, s1–s5) — 실행명 PAKD50_<case>_W112_D123_WV3_T0_S<seed>_FRESH50_v1",
   lambda t: t.startswith("PAKD50_")),
  ("MS", "⑨ MS-only (MARs PAN mode 제거) 계열 — 시드복제·dual 대조군 포함",
   lambda t: t.startswith(("MS1_","MS2_")) or t == "R4_dual_ctrl"),
@@ -70,6 +70,8 @@ DESC = {
             "Teacher T0 = PALS24_L1E4_…_S2025 best_hqnr 의 A+U(frozen); Student 는 T0 aligner 복사(J: 공동 적응 A LR 1e-5 / F: frozen / AL: A LR 3e-6) + 새 U-Net(W112·D123, seed 별 초기값). "
             "case 토큰: J0/F0/AL0 = N0(GT L1) · JR/FR = R1(hard (1+αd)L1) · JQ/FQ/ALQ = Q12(R3 adaptive + GT edge λE) · XJ/XF = X02(R1 + edge) · J_QA05/QB005/QB02/QE025/QE10 = Q12 계수만(α 0.5 / β 0.05 / β 0.2 / λE×0.5 / λE×2) · "
             "s5(seed 2026·확인 9091): D* = 0–4999 A 동결 · LF* = 25K 뒤 A 동결 · P* = A 는 L0+offset 만(U 는 backend 전체) · DP* = D+P · JK0/JE0 = A 로 가는 soft/edge 만 차단 (뒤 글자 0/Q/R/X = N0/Q12/R1/X02). "
+            "재배정 2026-09-15(research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md; s2 seed 777 / s4 1234 / s5 2026): J_R3_NOEDGE = J + R3 adaptive soft, GT edge 없음 · J_N0_EDGE = J + GT L1 + λE GT edge(Teacher 를 loss 에 쓰지 않음) · "
+            "RC0/RCQ = A trainable(LR 1e-5) 인데 Student 단계 offset 연습 없음(입력 매 update native, I-NATIVE-TRANSFER) + N0/Q12. "
             "τR·λE 는 공통 package assets/pakd50/calibration_resolved.json. 시트 HQNR = best_raw raw_original(주 판정, 후보 격자 GRID1010_50K_v1). X열 '통합실험' = PAKD50 / <case> / FRESH50."),
  "NA104": ("[캠페인] W104·D122 no-align KD · s2·s3 · Teacher seed 2025 / Student seed 1234(반복 2025·777) · 2026-09-11 · research_log/PAN_S2_W104_D122_NoAlign_KD_Experiment_Plan_2026-09-11.md. "
            "aligner 도 PAN warp 도 없는 동일 골격(2.0989 M)에서 'Teacher 가 남긴 복원·구조 오차를 GT 중심으로 더 fitting하는 KD' 만 본다 — 정합 연구(PA/PO10/NF16/KDV) 와 직접 대응하지 않는다. "
