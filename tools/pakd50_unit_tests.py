@@ -114,7 +114,8 @@ check("K07 admission: 남은 시간 안에 드는 것까지만 (1.1×1.9h 씩), 
 check("K07 시계 없음(None) 이면 admission 생략", G.schedule(True, term(set(G.PRIORITY) - {"XJ"}), None, 1.9) == (["XJ"], []))
 # ---------------- K08 예산 블록 (감사 F05): P0 예약 · 50h/4h · 공통 마감
 kb = G.kdv_block("FR", SEED, SRV); kb0 = G.kdv_block("J0", SEED, SRV)
-check("K08 remaining_mandatory = P0(J0/JQ) 중 자기 제외 · total 50h / reserve 4h (학습 admission ≤ 46h)", kb["budget"]["remaining_mandatory"] == [G.run_name("J0", SEED), G.run_name("JQ", SEED)] and kb0["budget"]["remaining_mandatory"] == [G.run_name("JQ", SEED)] and kb["budget"]["total_gpu_hours"] == 50.0 and kb["budget"]["reserve_hours"] == 4.0)
+_mand = G.mandatory_for(SRV)          # s1–s3: J0/JQ · s4: J0/JQ/AL0/ALQ (s4 보고 P-3)
+check(f"K08 remaining_mandatory = 서버 기본 묶음({'/'.join(_mand)}) 중 자기 제외 · total 50h / reserve 4h (학습 admission ≤ 46h)", kb["budget"]["remaining_mandatory"] == [G.run_name(c, SEED) for c in _mand if c != "FR"] and kb0["budget"]["remaining_mandatory"] == [G.run_name(c, SEED) for c in _mand if c != "J0"] and kb["budget"]["total_gpu_hours"] == 50.0 and kb["budget"]["reserve_hours"] == 4.0)
 check("K08 공통 시계(assets/pakd50/campaign_clock.json) 가 있으면 config 에 training_deadline 이 박힌다", (not G.campaign_clock()) or kb["budget"].get("training_deadline") == G.campaign_clock()["training_deadline"])
 # ---------------- K09 s4 배정 (research_log/PAN_S4_Integrated_Experiment_Cases_2026-09-14.md §5–§7): Q12 scalar variant 는 계수만 · s4 우선순위·추가 편성
 cal4 = dict(tau_R=0.012, lambda_E=0.3)

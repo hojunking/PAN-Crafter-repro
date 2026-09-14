@@ -45,13 +45,17 @@ for t in pa_unit_tests kdv_unit_tests nf16_unit_tests pals24_unit_tests; do "$PY
 "$PY" tools/pakd50_unit_tests.py > "$CAMP/gate_pakd50.log" 2>&1 || { tail -3 "$CAMP/gate_pakd50.log"; fail "pakd50 gate 실패 — $CAMP/gate_pakd50.log"; }; tail -1 "$CAMP/gate_pakd50.log"
 echo "[pakd50] ③ τR: git 의 고정값(work_dir/_pakd50/calibration_resolved.json 은 서버 로컬) — 이 서버에서 재계산해 대조"
 "$PY" -c "import sys; sys.path.insert(0,'.'); from tools import gen_pakd50_configs as G; m, src = G.sync_calibration_from_assets(write=True); print('   calibration 로컬 <-', src, {k: m.get(k) for k in ('tau_R','lambda_E')})"   # 첫 prepare: 사본 복사 · 이후: λE 만 덧입힘
-PIN=$($PY -c "import json; print(json.load(open('$CAMP/calibration_resolved.json')).get('tau_R'))" 2>/dev/null || echo "")
+# 고정값(PIN) 의 출처는 **자산 사본**(assets/pakd50/calibration_resolved.json) 이다 — 로컬 파일은 한 번 실패하면 재계산값이 남아 '고정값' 행세를 한다 (s4 보고 P-5).
+PIN=$($PY -c "import json; print(json.load(open('assets/pakd50/calibration_resolved.json')).get('tau_R'))" 2>/dev/null || echo "")
+[ -n "$PIN" ] && [ "$PIN" != "None" ] || fail "자산 사본에 τR 고정값이 없다 — assets/pakd50/calibration_resolved.json (s1 이 만든다)"
 "$PY" tools/pakd50_calibrate.py --tau --server "$SERVER" > "$CAMP/calibrate_tau.log" 2>&1 || fail "τR calibration 실패 — $CAMP/calibrate_tau.log"; grep "τR" "$CAMP/calibrate_tau.log" | tail -1
 $PY - "$PIN" <<'PYEOF'
-import json, sys; pin = float(sys.argv[1]) if sys.argv[1] not in ("", "None") else None; now = json.load(open("work_dir/_pakd50/calibration_resolved.json"))["tau_R"]
-print(f"   τR 이 서버 {now:.9f} vs 고정 {pin}" + ("" if pin is None else f" (Δ {abs(now - pin):.1e})")); assert pin is None or abs(now - pin) < 1e-6, "τR 이 s1 고정값과 다르다 — 데이터/T0/평가 경로 차이"
-if pin is not None:
-    d = json.load(open("work_dir/_pakd50/calibration_resolved.json")); d["tau_R"] = pin; d["tau_R_local_recomputed"] = now; json.dump(d, open("work_dir/_pakd50/calibration_resolved.json", "w"), indent=1, ensure_ascii=False, default=str)
+import json, sys; pin = float(sys.argv[1]); p = "work_dir/_pakd50/calibration_resolved.json"; d = json.load(open(p)); now = float(d["tau_R"]); rel = abs(now - pin) / pin
+# 복원을 **판정보다 먼저** — 판정이 실패해도 로컬 파일에는 공통 고정값이 남아 λE 수신(sync 의 τR 1e-9 조건) 이 막히지 않는다 (s4 보고 P-5)
+d.update(tau_R=pin, tau_R_local_recomputed=now, tau_R_local_reldiff=rel, tau_R_pinned_from="assets/pakd50/calibration_resolved.json"); json.dump(d, open(p, "w"), indent=1, ensure_ascii=False, default=str)
+print(f"   τR 이 서버 {now:.9f} vs 고정 {pin:.9f} (상대차 {rel:.1e}, 허용 1e-3; config 에는 고정값이 들어간다)")
+# 허용치는 상대 1e-3: 같은 patch·같은 T0 에서도 GPU/커널 차이로 분위수가 1e-6 수준(상대 ~2e-4) 흔들린다 (s4 실측, 보고 P-4). 그 이상이면 데이터/T0/평가 경로 차이
+assert rel < 1e-3, f"τR 이 s1 고정값과 다르다 (상대차 {rel:.2e} ≥ 1e-3) — 데이터/T0/평가 경로 차이를 먼저 설명"
 PYEOF
 [ $? -eq 0 ] || fail "τR 대조 실패"
 echo "[pakd50] ④ stage $STAGE config (seed $($PY -c "from tools.gen_pakd50_configs import SERVER_SEED as S; print(S['$SERVER'])" 2>/dev/null))"; "$PY" tools/gen_pakd50_configs.py --server "$SERVER" --stage "$STAGE" 2>&1 | grep -v Warning | tail -2; [ "${PIPESTATUS[0]}" -eq 0 ] || fail "config 생성 실패 (stage $STAGE — stage 2 는 λE 사본이 있어야 한다)"

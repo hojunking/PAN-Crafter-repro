@@ -133,7 +133,10 @@ except Exception as e:
 
 # ---------------- evaluator gates on real data (E02/E03/E06/E11)
 dl = os.environ.get("PANCRAFTER_DLPAN")
-if dl and os.path.exists(os.path.join(ROOT, "data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5")):
+_e02_sr = os.path.join(ROOT, "work_dir/S1_T05_W168_D123_DUAL/results/full_best_hqnr_mat20.mat")     # s1 의 과거 run 산출물 — 없는 서버(s4 등)는 이 블록을 건너뛴다 (PAKD50 s4 보고 P-1)
+if dl and os.path.exists(os.path.join(ROOT, "data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5")) and not os.path.exists(_e02_sr):
+    print(f"  SKIP E02/E03/E06/E11 (실데이터 evaluator gate): 참조 run 산출물 없음 — {os.path.relpath(_e02_sr, ROOT)}")
+if dl and os.path.exists(os.path.join(ROOT, "data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5")) and os.path.exists(_e02_sr):
     from tools.metrics.eval_fr import load_dlpan, d_lambda_k, d_s
     from scipy.io import loadmat
     wald = load_dlpan(dl)

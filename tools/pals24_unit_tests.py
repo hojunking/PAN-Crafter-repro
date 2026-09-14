@@ -47,11 +47,15 @@ check("PL01 resolver: CTRLP0 A-ID/I-A · L000 A-FT/I-NATIVE-TRANSFER λ 0 · L1E
       and spB["L1E3"]["protocol"] == "I-AEQ" and abs(spB["L1E3"]["offset_weight_effective"] - 1e-3) < 1e-15 and spB["L1E3"]["offset_ramp_updates"] == 0 and spB["L1E3"]["geometry_weight_effective"] == 0 and all(not s["needs_teacher"] for s in spB.values()))
 
 # ---------------- PL02 NF16 동치: λ(및 seed) 외 변경 없음 — 실제 YAML 을 만들어 NF16 P3/P2/P0 config 와 비교
+_DONOR_HERE = os.path.exists(os.path.join(ROOT, "work_dir", G.DONOR_RUN, "last", "model.safetensors"))   # NF16/PALS24 계보 donor 가 없는 서버(s4 등)는 생성기가 expected_sha256/step 을 null 로 둔다 (PAKD50 s4 보고 P-2)
 def stripped(text):
     d = yaml.safe_load("\n".join(l for l in text.splitlines() if not l.lstrip().startswith("#")))
     d.pop("work_dir", None); k = d.get("kdv", {})
     for key in ("campaign_id", "plan_protocol_id", "document_revision", "case_id", "budget"):
         k.pop(key, None)
+    if not _DONOR_HERE:                       # donor 유무에 따라 달라지는 identity 키는 비교에서 뺀다 — 이 검사는 'λ 외 변경 없음' 이 목적
+        for key in ("expected_sha256", "expected_step", "expected_tensors_sha256_16"):
+            (k.get("donor") or {}).pop(key, None)
     return d
 nf = {q: os.path.join(ROOT, "config", f"NF16_P{q}_W112_D123_WV3_S1234_N2LAST_v1.yaml") for q in (0, 2, 3)}
 if all(os.path.exists(v) for v in nf.values()):
