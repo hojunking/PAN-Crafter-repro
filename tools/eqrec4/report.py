@@ -97,7 +97,7 @@ def verdicts(J):
 
 
 def quadrant_explanations(pk, nm, qa, st, ci, core, ps, gs, k10s):
-    rows = []; k10c = C.load_json(os.path.join(CAMP, "k10_cells_A_B.csv"), None)
+    rows = []                                                              # (2026-09-15 03:00: 쓰지 않는 k10_cells CSV 를 load_json 으로 읽던 죽은 줄 제거 — dry-run 때는 파일이 없어 None 이라 통과했고 실전에서 JSONDecodeError)
     for q in QUADS:
         n64 = nm[(nm.model_key == pk) & (nm.scale == "native64")].merge(qa[qa.model_key == pk][["sample_id", "quadrant_id", "split_role"]].rename(columns={"split_role": "role"}), on="sample_id"); s = n64[n64.quadrant_id == q]
         r = dict(quadrant=q, n_atlas=int(len(s)), n_groups_atlas=int(s.source_group_id.nunique()), e_mean=float(s.e_native_full.mean()), qA_mean=float(s.q_A.mean()), c0_norm=float(s.c0_norm.mean()), texture=float(s.pan_scharr_energy.mean()))
