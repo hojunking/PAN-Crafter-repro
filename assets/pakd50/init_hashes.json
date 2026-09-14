@@ -1,0 +1,12 @@
+{
+ "note": "seed → init_unet_seed<seed>.pt 의 tensor sha256_16 (train_pa._sha_tensors). 값이 있으면 gen_pakd50_configs 가 config expect_init 으로 박고 trainer 가 fail-fast. 다른 서버 값은 그 서버의 work_dir/<run>/initialization_hashes.json 의 unet_init_sha256_16 으로 채운다 (s2 777 · s3 2026).",
+ "unet": {
+  "1234": "c988a6c95b17f4fd",
+  "2025": "881bdb65878c2e05",
+  "7777": "90cb0372ad3d774b",
+  "777": null,
+  "2026": null,
+  "3407": null,
+  "9091": null
+ }
+}

@@ -104,6 +104,7 @@ class KDVTrainer(PATrainer):
             torch.manual_seed(int(args.seed) + 1000)
             scratch = PANGlobalAligner(nb)
         self.init_hashes = self._pair_init(model, scratch)
+        self._check_init_hash(self.init_hashes, sp.get("expect_init") or {})   # s5 보고 #3: 같은 seed 의 서버 간 U 초기값 동일성 (기대 hash 가 config 에 있을 때만)
         # --- aligner 정책 (§4.2)  [검토 지적 1: 정책 if/elif/else 를 먼저 닫고, 참조 aligner 는 그 뒤에 별도로]
         pol = sp["policy"]; self.donor_manifest = None
         if pol in ("A-FR", "A-FT"):
@@ -258,6 +259,26 @@ class KDVTrainer(PATrainer):
         except Exception:
             return 0.0
 
+    @staticmethod
+    def _check_init_hash(init_hashes, expect):
+        """s5 보고 #3: config `kdv.expect_init{unet_sha256_16, aligner_sha256_16}` 가 있으면 _pair_init 의 저장 초기값 hash 와 대조해 즉시 실패."""
+        for name in ("unet", "aligner"):
+            want = (expect or {}).get(f"{name}_sha256_16")
+            if want and init_hashes.get(f"{name}_init_sha256_16") != want:
+                raise ValueError(f"INIT_HASH_MISMATCH: {name} 초기값 hash {init_hashes.get(f'{name}_init_sha256_16')} ≠ 기대 {want} "
+                                 f"(파일 {init_hashes.get(f'{name}_init_file')}) — 같은 seed 라도 서버 초기값이 다르다: 원본 서버의 init 파일을 복사하거나 assets/pakd50/init_hashes.json 을 확인")
+
+    def _remaining_mandatory(self):
+        """예산 gate 가 예약할 필수 run 목록. `budget.remaining_mandatory_file`(서버 로컬 파일, 한 줄 하나, # 주석) 이 있으면 그것이 우선 —
+        같은 seed 를 쓰는 서버(s1/s4, s3/s5) 가 같은 이름의 config 를 공유하므로 서버별 묶음을 config 에 박지 않는다 (PAKD50 s5 보고 #2). 자기 자신은 뺀다."""
+        f = self.budget.get("remaining_mandatory_file")
+        if f:
+            p = f if os.path.isabs(f) else os.path.join(ROOT, f)
+            if os.path.exists(p):
+                ids = [l.strip() for l in open(p) if l.strip() and not l.startswith("#")]
+                return [r for r in ids if r != self.run_id]
+        return [r for r in (self.budget.get("remaining_mandatory") or []) if r != self.run_id]
+
     def _budget_gate(self):
         p0 = self.budget.get("ledger", "work_dir/_kdv_budget/ledger.json"); p0 = p0 if os.path.isabs(p0) else os.path.join(ROOT, p0)
         with self._LedgerLock(p0):
@@ -274,7 +295,7 @@ class KDVTrainer(PATrainer):
                 d["entries"][f"{self.run_id}#{n}"] = dict(prev, status="PREV_CRASHED", hours=self._crashed_hours(prev), hours_estimated=True)
 
         used = sum(float(e.get("hours_total") or e.get("hours") or 0.0) for kk, e in d["entries"].items() if kk != self.run_id)
-        proj = self._projection(d); rem = [self._projection(d, r) for r in (self.budget.get("remaining_mandatory") or [])]
+        proj = self._projection(d); rem_ids = self._remaining_mandatory(); rem = [self._projection(d, r) for r in rem_ids]
         pair = self._projection(d, self.budget["pair_with"]) if self.budget.get("pair_with") else 0.0
         margin = float(self.budget.get("margin", 1.2))
         dec = self.budget_decision(used, proj, rem, reserve, float(d.get("total_gpu_hours", self.budget.get("total_gpu_hours", 16.0))), required, pair, margin)
@@ -285,7 +306,7 @@ class KDVTrainer(PATrainer):
             if end > dl_s:
                 dec.update(decision=("RUN" if required else "DEFERRED_BUDGET"), warn=bool(required), ok=False)
         rec = dict(started=time.strftime("%Y-%m-%dT%H:%M:%S"), required=required, case=self.case, kind="run", status="RUNNING", used_hours_before=used, projected_hours=proj, margin=margin,
-                   remaining_mandatory=self.budget.get("remaining_mandatory") or [], pair_with=self.budget.get("pair_with"), **dec)
+                   remaining_mandatory=rem_ids, remaining_mandatory_source=("file" if self.budget.get("remaining_mandatory_file") else "config"), pair_with=self.budget.get("pair_with"), **dec)
         d["entries"][self.run_id] = rec if dec["decision"] == "RUN" else dict(rec, status="DEFERRED_BUDGET")
         os.makedirs(os.path.dirname(p), exist_ok=True); json.dump(d, open(p, "w"), indent=1); json.dump(d["entries"][self.run_id], open(os.path.join(self.args.work_dir, "budget_status.json"), "w"), indent=1)
         if not dec.get("deadline_ok", True):
@@ -1111,7 +1132,7 @@ class KDVTrainer(PATrainer):
                         out.update(lambda_off=lam, loss_off_raw=float(info["loss_off"]), loss_off_weighted=lam * float(info["loss_off"]), grad_off_A_weighted=lam * out["grad_off_A"], rho_g=lam * out["grad_off_A"] / (out["grad_rec_A"] + 1e-12),
                                    cos_psi=(float((v_ra * v_oa).sum() / (v_ra.norm() * v_oa.norm() + 1e-12)) if v_ra is not None and v_oa is not None and out["grad_rec_A"] > 0 and lam * out["grad_off_A"] > 0 else None))
                         gb = torch.autograd.grad(info["loss_off"], bp, retain_graph=True, allow_unused=True); out["off_unet_grad_absent"] = bool(all(x is None or float(x.abs().sum()) == 0.0 for x in gb))
-                        v_tot = torch.autograd.grad(info["loss_rec"] + lam * info["loss_off"], ap, retain_graph=False, allow_unused=True)
+                        v_tot = torch.autograd.grad(info["loss_rec"] + lam * info["loss_off"], ap, retain_graph=True, allow_unused=True)   # graph 는 아래 loss 별 분해가 더 쓴다 (s5 보고 #1); `del total, info` 에서 해제
                         vt = torch.cat([x.float().flatten() if x is not None else torch.zeros_like(p).flatten() for x, p in zip(v_tot, ap)])
                         out["sum_rule_max_abs_err"] = float((vt - (v_ra + lam * v_oa)).abs().max()) if v_ra is not None and v_oa is not None else None   # ∇(L_rec+λL_off) = g_rec + λ g_off
                     else:

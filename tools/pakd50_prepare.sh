@@ -58,6 +58,7 @@ print(f"   τR 이 서버 {now:.9f} vs 고정 {pin:.9f} (상대차 {rel:.1e}, �
 assert rel < 1e-3, f"τR 이 s1 고정값과 다르다 (상대차 {rel:.2e} ≥ 1e-3) — 데이터/T0/평가 경로 차이를 먼저 설명"
 PYEOF
 [ $? -eq 0 ] || fail "τR 대조 실패"
+"$PY" -c "import sys; sys.path.insert(0,'.'); from tools import gen_pakd50_configs as G; print('   기본 묶음(예산 예약, 서버 로컬 ' + G.MANDATORY_FILE + '):', ' '.join(G.write_mandatory_file('$SERVER')))"
 echo "[pakd50] ④ stage $STAGE config (seed $($PY -c "from tools.gen_pakd50_configs import SERVER_SEED as S; print(S['$SERVER'])" 2>/dev/null))"; "$PY" tools/gen_pakd50_configs.py --server "$SERVER" --stage "$STAGE" 2>&1 | grep -v Warning | tail -2; [ "${PIPESTATUS[0]}" -eq 0 ] || fail "config 생성 실패 (stage $STAGE — stage 2 는 λE 사본이 있어야 한다)"
 CASES=$(grep -v '^#' "$QUEUE" | grep -v '^$' | tr '\n' ' ')
 echo "[pakd50] ⑤ smoke (실배치·시간·peak — Teacher 포함)"; "$PY" tools/smoke_cases.py $CASES > "$CAMP/smoke_stage$STAGE.log" 2>&1 || { grep -v Warning "$CAMP/smoke_stage$STAGE.log" | tail -4; fail "smoke 실패"; }; grep "^\[smoke\]" "$CAMP/smoke_stage$STAGE.log" | tail -5

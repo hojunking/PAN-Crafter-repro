@@ -54,6 +54,26 @@ PRIORITY_BY_SERVER = {"s4": ["J0", "JQ", "AL0", "ALQ"], "s5": ["J0", "JQ", "D0",
 MANDATORY_BY_SERVER = {"s4": ["J0", "JQ", "AL0", "ALQ"], "s5": ["J0", "JQ", "D0", "DQ", "PQ"]}
 STAGE_BY_SERVER = {"s4": {1: ["J0", "AL0"], 2: ["JQ", "ALQ"]}, "s5": {1: ["J0", "D0"], 2: ["JQ", "DQ", "PQ"]}}
 EXTRA_PRIORITY_FILE = "work_dir/_pakd50/extra_priority.txt"
+MANDATORY_FILE = "work_dir/_pakd50/mandatory_runs.txt"      # 서버 로컬: 이 서버의 기본 묶음 run 이름 (trainer 예산 gate 의 remaining_mandatory 출처; prepare 가 mandatory_for(server) 로 쓴다)
+
+
+def write_mandatory_file(server, version="v1"):
+    p = os.path.join(ROOT, MANDATORY_FILE); os.makedirs(os.path.dirname(p), exist_ok=True)
+    runs = [run_name(c, SERVER_SEED[server], version) for c in mandatory_for(server)]
+    with open(p, "w") as f:
+        f.write(f"# {server} 기본 묶음 (예산 gate 예약; 완료된 run 은 trainer 가 0 으로 센다) — gen_pakd50_configs.write_mandatory_file\n" + "\n".join(runs) + "\n")
+    return runs
+
+
+INIT_HASH_PATH = "assets/pakd50/init_hashes.json"          # seed → 저장 U 초기값(init_unet_seed<seed>.pt) 의 tensor sha256_16. 값이 있으면 config expect_init 으로 박혀 trainer 가 fail-fast (s5 보고 #3)
+
+
+def init_hash_for(seed):
+    return ((_load_json(INIT_HASH_PATH) or {}).get("unet") or {}).get(str(int(seed)))
+
+
+def servers_sharing_seed(server):
+    return [s for s, sd in SERVER_SEED.items() if sd == SERVER_SEED[server]]
 
 
 def priority_for(server):
@@ -205,11 +225,12 @@ def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=Tr
              input_protocol=P["proto"], aligner_policy=P["pol"], diag_every=1000, diag=dict(fixed_batch=True), calibration=dict(n_patches=3072, seed=1234), aligner_lr=P["alr"],
              select=dict(primary="best_hqnr", secondary=["best_rr_val", "last"], retain_all_candidates=True), expect_arch=dict(width=112, depth=[1, 2, 3], noalign=False),
              rec=rec, stat=stat, geom_kd=dict(mode="G0"), recipe="N2_SG", eval=dict(fixed_reference_from_donor=True),
+             **({"expect_init": dict(unet_sha256_16=init_hash_for(seed))} if init_hash_for(seed) else {}),
              donor=dict(source=f"{t0}/{T0_TAG}", view_margin_hr=4, expected_sha256=sha, expected_step=step),
              teacher=dict(id="T0", run=t0, tag=T0_TAG, expected_sha256=sha, bridge=False, **({} if needs_teacher else dict(eval_only=True))),
              baseline_run=run_name(BASELINE_OF[pol_id], seed, version),
              budget=dict(ledger=LEDGER, total_gpu_hours=TOTAL_HOURS, reserve_hours=RESERVE_HOURS, margin=MARGIN, required=False, projected_hours=projected, projected_map={me: RUN_RESERVED_HOURS},
-                         remaining_mandatory=[run_name(c, SERVER_SEED[server], version) for c in mandatory_for(server) if c != case],   # 서버 기본 묶음 예약(서버 seed): 완료된 것은 trainer 가 0 으로 센다
+                         remaining_mandatory=[], remaining_mandatory_file=MANDATORY_FILE,     # 서버 기본 묶음 예약은 **서버 로컬 파일**(prepare 가 씀) — 같은 seed 서버(s1/s4, s3/s5) 가 config 파일을 공유하므로 config 에 박지 않는다 (s5 보고 #2)
                          **({"training_deadline": training_deadline()} if training_deadline() else {})))            # 공통 절대 마감 — trainer 가 예상 종료 ≤ 마감 을 검사
     if P.get("schedule"):
         k["aligner_schedule"] = dict(P["schedule"])
@@ -230,7 +251,7 @@ def render(tag, case, seed, server, k, updates, eval_epoch, tpl):
     import yaml
     sp = resolve(k); pol_id, be_id = CASES[case]; sha, step = t0_identity(server)
     t = re.sub(r"^(#.*\n)+", "", tpl)
-    head = (f"# {tag} — {PURPOSE[case]}. 생성: tools/gen_pakd50_configs.py --server {server}. 손으로 고치지 말 것.\n"
+    head = (f"# {tag} — {PURPOSE[case]}. 생성: tools/gen_pakd50_configs.py (seed {seed} 를 쓰는 서버 {'/'.join(servers_sharing_seed(server)) if seed == SERVER_SEED[server] else server} 공용 — 서버별 값은 config 에 없다). 손으로 고치지 말 것.\n"
             f"# 캠페인 {CAMPAIGN_ID} · protocol {PROTOCOL} · grid {GRID_ID} · 계획 {PLAN} · 요약 {SUMMARY} · 노트 {NOTE}\n"
             f"# 세팅: {describe(sp)} · 정책 {pol_id}(A {'trainable' if sp['aligner_trainable'] else 'frozen'}, offset λ {k.get('aux', {}).get('offset_weight', 0)}, A LR {k['aligner_lr']}) · backend {be_id} (rec {k['rec']['case']}{', EDGE-H λE ' + str(k['stat'].get('outer_weight')) if k['stat'].get('enabled') else ''})\n"
             f"# 약명→세팅: J0/JQ/JR/XJ = A trainable(joint) + N0/Q12/R1/X02 · F0/FQ/FR/XF = A frozen + … · AL0/ALQ = joint, A LR 3e-6 · Q12 = (1+αd)L1 + β(1−d)a|S−T| + λE·signed Scharr edge · R1 = (1+αd)L1 · X02 = R1 + edge\n"

@@ -115,7 +115,23 @@ check("K07 시계 없음(None) 이면 admission 생략", G.schedule(True, term(s
 # ---------------- K08 예산 블록 (감사 F05): P0 예약 · 50h/4h · 공통 마감
 kb = G.kdv_block("FR", SEED, SRV); kb0 = G.kdv_block("J0", SEED, SRV)
 _mand = G.mandatory_for(SRV)          # s1–s3: J0/JQ · s4: J0/JQ/AL0/ALQ (s4 보고 P-3)
-check(f"K08 remaining_mandatory = 서버 기본 묶음({'/'.join(_mand)}) 중 자기 제외 · total 50h / reserve 4h (학습 admission ≤ 46h)", kb["budget"]["remaining_mandatory"] == [G.run_name(c, SEED) for c in _mand if c != "FR"] and kb0["budget"]["remaining_mandatory"] == [G.run_name(c, SEED) for c in _mand if c != "J0"] and kb["budget"]["total_gpu_hours"] == 50.0 and kb["budget"]["reserve_hours"] == 4.0)
+check(f"K08 config 는 서버 공용(remaining_mandatory 비움 + 서버 로컬 파일 참조) · total 50h / reserve 4h (학습 admission ≤ 46h)", kb["budget"]["remaining_mandatory"] == [] and kb["budget"]["remaining_mandatory_file"] == G.MANDATORY_FILE and kb0["budget"]["remaining_mandatory"] == [] and kb["budget"]["total_gpu_hours"] == 50.0 and kb["budget"]["reserve_hours"] == 4.0)
+_mf = os.path.join(ROOT, G.MANDATORY_FILE); _mf_bak = open(_mf).read() if os.path.exists(_mf) else None
+try:
+    G.write_mandatory_file(SRV); _lines = [l.strip() for l in open(_mf) if l.strip() and not l.startswith("#")]
+    from train_kdv import KDVTrainer as _KT
+    _st = object.__new__(_KT); _st.budget = dict(kb["budget"]); _st.run_id = G.run_name(_mand[0], SEED)
+    check(f"K08 prepare 가 쓰는 서버 로컬 파일 = {'/'.join(_mand)} (seed {SEED}) · trainer 는 파일에서 읽고 자기 자신을 뺀다 (s5 보고 #2: s1/s4·s3/s5 가 config 를 공유해도 예약이 섞이지 않는다)",
+          _lines == [G.run_name(c, SEED) for c in _mand] and _st._remaining_mandatory() == [G.run_name(c, SEED) for c in _mand if c != _mand[0]])
+    _st.budget["remaining_mandatory_file"] = "work_dir/_pakd50/_does_not_exist.txt"; _st.budget["remaining_mandatory"] = ["X", _st.run_id]
+    check("K08 파일이 없으면 config 목록(자기 제외) 으로 후퇴", _st._remaining_mandatory() == ["X"])
+finally:
+    if _mf_bak is not None:
+        open(_mf, "w").write(_mf_bak)
+    elif os.path.exists(_mf):
+        os.remove(_mf)
+_ = [G.kdv_block(c, SEED, s) for s in G.SERVER_SEED for c in ("J0",)]
+check("K08 같은 seed 서버(s1/s4, s3/s5) 의 J0 config 가 서버와 무관하게 같다 (공유 파일 안전)", all(G.kdv_block("J0", G.SERVER_SEED[s], s) == G.kdv_block("J0", G.SERVER_SEED[s2], s2) for s, s2 in (("s1", "s4"), ("s3", "s5"))))
 check("K08 공통 시계(assets/pakd50/campaign_clock.json) 가 있으면 config 에 training_deadline 이 박힌다", (not G.campaign_clock()) or kb["budget"].get("training_deadline") == G.campaign_clock()["training_deadline"])
 # ---------------- K09 s4 배정 (research_log/PAN_S4_Integrated_Experiment_Cases_2026-09-14.md §5–§7): Q12 scalar variant 는 계수만 · s4 우선순위·추가 편성
 cal4 = dict(tau_R=0.012, lambda_E=0.3)
@@ -128,7 +144,7 @@ try:
 except SystemExit:
     check("K09 λE 배율 case 는 λE0 없이 만들 수 없다", True)
 check("K09 s4: seed 1234(s1 과 같은 run id), T0 경로는 모든 서버에서 자산 사본, 기본 묶음 J0→JQ→AL0→ALQ, stage 1 = J0/AL0", G.SERVER_SEED["s4"] == 1234 and G.t0_dir("s1") == G.t0_dir("s4") == G.T0_ASSET_DIR and G.priority_for("s4") == ["J0", "JQ", "AL0", "ALQ"] and G.stage_cases("s4", 1) == ["J0", "AL0"] and G.priority_for("s1") == G.PRIORITY)
-check("K09 s4 remaining_mandatory = J0/JQ/AL0/ALQ 중 자기 제외", G.kdv_block("ALQ", 1234, "s4", cal=cal4)["budget"]["remaining_mandatory"] == [G.run_name(c, 1234) for c in ("J0", "JQ", "AL0")])
+check("K09 s4 기본 묶음(예산 예약, 서버 로컬 파일로) = J0/JQ/AL0/ALQ · config 자체에는 서버별 목록 없음", G.mandatory_for("s4") == ["J0", "JQ", "AL0", "ALQ"] and G.kdv_block("ALQ", 1234, "s4", cal=cal4)["budget"]["remaining_mandatory"] == [])
 ex = ["J_QA05", G.run_name("JQ", 3407), "J_QA05"]
 check("K09 추가 편성: case id 와 전체 run 이름 혼용, 기본 묶음 뒤·중복 제거; λE 없으면 λE case 는 미편성", G.schedule(True, term({"J0", "JQ", "AL0", "ALQ"}), 40.0, 1.9, priority=G.priority_for("s4"), extra=ex) == (["J_QA05", G.run_name("JQ", 3407)], []) and G.schedule(False, term({"J0", "AL0"}), 40.0, 1.9, priority=G.priority_for("s4"), extra=ex) == ([], []))
 check("K09 to_tag/case_of", G.to_tag("J_QA05", 3407) == G.run_name("J_QA05", 3407) and G.case_of(G.run_name("AL_QE10", 3407)) == "AL_QE10" and G.case_of("JQ") == "JQ")
@@ -196,6 +212,40 @@ check("K12 동결 update 4999(odd; S5-G03/G08): offset 연습 생략(eq_exercise
 tD.M.aligner.requires_grad_(True); tot5, inf5 = tD._step(*inp5, 5001)
 check("K12 해제 뒤 update 5001(odd): offset 연습 재개, Δ 에 graph 있음, A 로 gradient 있음", inf5.get("eq_exercise") == 1.0 and inf5["delta"].requires_grad and any(x is not None and float(x.abs().sum()) > 0 for x in torch.autograd.grad(tot5, list(tD.M.aligner.parameters()), allow_unused=True)))
 del tD, tL, tJ, tJ0, totD, infD, totJ, infJ, tot5, inf5
+# ---------------- K13 고정 batch 진단이 graph 를 두 번 쓰지 않는다 (s5 보고 #1: sum-rule grad 뒤 loss 별 분해)
+tQ = _stub("JQ"); tQ._fixed_batch = inp5; _recs = []; tQ._jsonl = lambda n, r: _recs.append((n, r))
+try:
+    tQ._diagnose_fixed(1, tQ.M); _pt = _recs[-1][1].get("per_term", {})
+    check("K13 _diagnose_fixed(step 1, offset 연습 포함): 예외 없이 sum-rule + loss 별 A/U 분해(L0/LD/LK/LEw/LOw) 기록", _recs[-1][0] == "gradient_diagnostics_fixed.jsonl" and "sum_rule_max_abs_err" in _recs[-1][1]
+          and all(k in _pt for k in ("L0_A_norm", "LD_A_norm", "LK_A_norm", "LEw_A_norm", "LOw_A_norm", "L0_U_norm", "LK_U_cos_L0")) and _pt["LOw_U_norm"] == 0.0)
+except Exception as e:
+    check("K13 _diagnose_fixed(step 1, offset 연습 포함): 예외 없이 sum-rule + loss 별 A/U 분해 기록", False, repr(e)[:160])
+del tQ
+# ---------------- K14 동결 경계 직전 중단·재개 (S5-G09; s5 보고 #8): 연속 실행 vs 4999 뒤 재개 — aligner_active·ε 열·Δ 가 같다 (optimizer/scheduler 복원은 accelerate save_state 의 몫)
+def _run(tr, steps):
+    out = {}
+    for s in steps:
+        tr.M.aligner.requires_grad_(tr.aligner_active(s)); tot, inf = tr._step(*inp5, s)
+        out[s] = dict(eps=(inf["eps"].clone() if torch.is_tensor(inf.get("eps")) else None), delta=inf["delta"].detach().clone(), eq=inf.get("eq_exercise", 0.0), act=inf["aligner_active"], tot=float(tot))
+    return out
+a = _stub("D0"); cont = _run(a, [4998, 4999, 5000, 5001])
+b = _stub("D0"); _run(b, [4998, 4999]); b2 = _stub("D0"); b2.model = copy.deepcopy(b.model); b2.gen.set_state(b.gen.get_state()); res = _run(b2, [5000, 5001])
+check("K14 4999 뒤 재개(모델·ε RNG 상태 복원) == 연속 실행: 5000 은 A 활성·offset 없음(even), 5001 은 offset ε 동일·Δ 동일·loss 동일",
+      all(res[s]["act"] == cont[s]["act"] and res[s]["eq"] == cont[s]["eq"] and torch.equal(res[s]["delta"], cont[s]["delta"]) and abs(res[s]["tot"] - cont[s]["tot"]) < 1e-9 for s in (5000, 5001))
+      and torch.equal(res[5001]["eps"], cont[5001]["eps"]) and cont[4999]["act"] == 0.0 and cont[5000]["act"] == 1.0 and cont[5000]["eq"] == 0.0 and cont[5001]["eq"] == 1.0)
+del a, b, b2
+# ---------------- K16 seed 별 U 초기값 hash pin (s5 보고 #3)
+check("K16 registry: expect_init 은 16-hex unet/aligner 만", _res(dict(base5, expect_init=dict(unet_sha256_16="0123456789abcdef"))) and not _res(dict(base5, expect_init=dict(unet_sha256_16="short"))) and not _res(dict(base5, expect_init=dict(foo="0123456789abcdef"))))
+try:
+    KDVTrainer._check_init_hash(dict(unet_init_sha256_16="0123456789abcdef"), dict(unet_sha256_16="0123456789abcdef")); ok16 = True
+except ValueError:
+    ok16 = False
+try:
+    KDVTrainer._check_init_hash(dict(unet_init_sha256_16="0123456789abcdef"), dict(unet_sha256_16="ffffffffffffffff")); ok16b = False
+except ValueError:
+    ok16b = True
+_h1234 = G.init_hash_for(1234)
+check(f"K16 trainer: 기대 hash 일치면 통과, 불일치면 INIT_HASH_MISMATCH · seed 1234 의 hash({_h1234}) 는 assets/pakd50/init_hashes.json 에서 config 로 (없는 seed 는 검사 생략)", ok16 and ok16b and (_h1234 is None or G.kdv_block("J0", 1234, "s1")["expect_init"]["unet_sha256_16"] == _h1234) and "expect_init" not in G.kdv_block("J0", 3407, "s4"))
 r0 = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "campaign_gate.py")], cwd=ROOT, capture_output=True, text=True, env={**os.environ, "PANCRAFTER_CAMPAIGN_GATES": ""})
 check("K05 campaign gate 기본 닫힘", r0.stdout.strip() == "")
 src = open(os.path.join(ROOT, "train_kdv.py")).read()

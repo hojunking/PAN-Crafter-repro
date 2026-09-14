@@ -267,6 +267,9 @@ def resolve(k):
             _bad("NA-STRICT 는 Teacher probe 의 PAN warp 도 금지 — C 계열은 na_protocol: NA-TSENS 로 분리한다 (§9.2)")
         if na == 'NA-TSENS' and c_mode == 'off':
             _bad("NA-TSENS 는 Teacher 입력 민감도(TRI-C) case 전용 cohort 다 (§9.2)")
+    ei = dict(k.get('expect_init') or {})           # PAKD50 s5 보고 #3: seed 별 저장 U 초기값의 tensor hash 를 config 에 박아 서버 간 같은 초기값인지 fail-fast (trainer _pair_init 뒤 검사)
+    if set(ei) - {'unet_sha256_16', 'aligner_sha256_16'} or any(not (isinstance(v, str) and len(v) == 16) for v in ei.values()):
+        _bad(f"expect_init 은 {{unet_sha256_16: <16 hex>, aligner_sha256_16: <16 hex>}} 만 — 현재 {ei}")
     ea = k.get('expect_arch')                       # 캠페인이 골격을 강제한다 (§20: 모든 Q 는 width104/depth122/noalign 검사)
     if ea is not None and not (isinstance(ea, dict) and 'width' in ea and 'depth' in ea):
         _bad("expect_arch 는 {width: …, depth: […]} 형식")
@@ -309,7 +312,7 @@ def resolve(k):
     if rt and (tri_on or geom != 'G0' or extra or rec_control != 'none'):
         _bad("routing 은 plain rec(hard/soft) + EDGE-H 분해 위에서만 정의한다 — TRI/geomKD/stat.extra/rec.control 과 결합하지 않는다")
     return dict(recipe=recipe, protocol=protocol, policy=policy, rec_case=rec_case, rec_mode=REC_CASES[rec_case], tri=tri_spec,
-                aligner_freeze_until=f_until, aligner_freeze_from=f_from, route_A=(qD, qK, qE),
+                aligner_freeze_until=f_until, aligner_freeze_from=f_from, route_A=(qD, qK, qE), expect_init=ei,
                 rec_control=rec_control, rec_tau_scale=rec_tau_scale, na_protocol=na, expect_arch=ea, select_secondary=secondary, select_primary=primary, aligned_selector=aligned_selector, stat_lambda_from_run=stat_lambda_from_run,
                 stat_windows=windows, stat_transform=stat_transform, stat_transform_eps=stat_transform_eps, stat_domain=stat_domain, stat_lambda_scale=stat_lambda_scale, stat_extra=extra,
                 stat_enabled=stat_enabled, stat_key=stat_key, stat_kind=STAT_KINDS[stat_key], stat_mode=stat_mode, stat_window=window,

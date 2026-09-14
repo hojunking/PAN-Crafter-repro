@@ -40,3 +40,18 @@
 2. `./tools/pakd50_prepare.sh` — T0 sha·raw HQNR 재현 → gate(K01–K12 포함) → τR 대조(자산 고정값) → stage 1 config(J0/D0) → smoke → 공통 시계 → 체인 기동(큐 J0). 그 뒤 gate: λE0 사본이 있으면 JQ → D0 → DQ → PQ, 없으면 D0 한 벌 뒤 다시 확인(§9.2 "J0 뒤 λE0 가 없으면 D0 먼저").
 3. 조건부·확인: `python tools/gen_pakd50_configs.py --server s5 --cases LF0,LFQ`(또는 JK0 / DPQ / DX·PX) 뒤 case id 를 `work_dir/_pakd50/extra_priority.txt` 에; seed 9091 은 `--seed 9091 --cases J0,JQ,<WIN>` 로 생성한 run 이름을 같은 파일에.
 4. 업로드는 체인이 run 마다 한다(`WV3-s5`).
+
+## 4. s5 보고(8건) 검토·반영 — 17:30
+
+| # | 판단 | 반영 |
+|---|---|---|
+| 1 `_diagnose_fixed` graph 재사용 | **맞다.** sum-rule grad 가 `retain_graph=False` 로 graph 를 해제한 뒤 loss 별 분해가 다시 autograd.grad → 진단 step(홀수 diag step, offset 연습 포함) 에서 RuntimeError. s1 의 다음 stage-2 run 도 같은 경로였다 | `retain_graph=True`(해제는 `del total, info`). K13 이 stub 으로 `_diagnose_fixed(step 1)` 을 실제 호출해 재현·검사 |
+| 2 s3/s5 config 네임스페이스 공유 | **맞다.** 같은 seed → 같은 config 파일. `gen --all` 이 s1→s4, s3→s5 순으로 덮어써 `remaining_mandatory` 가 마지막 서버 것으로 남았다(s1 의 JQ-1234 는 s4 묶음 [J0,AL0,ALQ] 으로 시작 — 예약량만 다르고 수치 경로는 같다) | **config 를 서버 공용으로**: `remaining_mandatory: []` + `remaining_mandatory_file: work_dir/_pakd50/mandatory_runs.txt`(prepare 가 `mandatory_for(server)` 로 쓴다; trainer `_remaining_mandatory()` 가 파일 우선, 자기 제외). 이제 s1/s4·s3/s5 의 J0/JQ config 는 byte 단위로 같다(K08). 헤더 주석도 "seed 를 쓰는 서버 s3/s5 공용" |
+| 3 `init_unet_seed2026.pt` 부재 | 부분 동의. 초기값은 seed 로 결정적(main 의 `manual_seed` → 모델 생성 → `_pair_init` 저장) 이라 s5 가 같은 파일을 만든다. 각 run 의 `initialization_hashes.json`(`unet_init_sha256_16`) 으로 **사후 대조는 가능**했다. 다만 fail-fast 는 없었다 | `kdv.expect_init{unet_sha256_16}` (registry) + trainer `_check_init_hash` (`INIT_HASH_MISMATCH`). `assets/pakd50/init_hashes.json` 에 s1 이 가진 seed 1234/2025/7777 을 기록(1234 = c988a6c95b17f4fd, 감사와 일치); **777·2026 은 s2·s3 가 자기 run 의 `initialization_hashes.json` 값을 보내면 채운다** — 그때까지 s5 는 검사 없이 돌고 사후 대조 |
+| 4 동결 구간 LR 감쇠 | **계획대로다.** 배정 §5 "A 는 1e-5 × g(global_update) 로 해제, warmup 을 새로 시작하지 않는다", §10.2 "기존 scheduler 규약 보존". 실제 cosine(warmup 100/50K) 의 5000 시점 배율은 **0.9764**(보고의 0.79 는 다른 산식) — `aligner_schedule_events.jsonl` 에 해제 시점 A LR 이 기록된다. "peak 에서 재시작" 은 다른 arm 이며 계획 작성자가 원하면 별도 case 로 |
+| 5 동반 문서 2종 | s3/계획 작성자 몫. 노트 §1 에 부재를 적어 두었다 |
+| 6 처리량 | J0 완주 뒤 ledger 의 완료 평균이 자동으로 우선한다(gate est) |
+| 7 §12.1 산출물 | 미구현 그대로. `winner_lock.json` 은 CONF 전에 **수동 작성**(case·config·code sha·T0/calibration/evaluator hash·근거 run) |
+| 8 S5-G09 | K14: 연속 실행(4998–5001) vs 4999 뒤 재개(모델·ε RNG 상태 복원) 에서 aligner_active·offset 유무·ε·Δ·loss 동일. optimizer/scheduler 복원은 accelerate `save_state` 의 몫이며 exact resume(F06) 은 여전히 후속 |
+
+이번 변경 뒤 config 12+7+s4/s5 벌을 다시 생성했다(공용 파일 = 서버 무관). s1 의 다음 run 부터 적용.
