@@ -1,0 +1,42 @@
+{
+ "teacher_id": "T0",
+ "rec": {
+  "tau_R": 0.012463942170143127,
+  "eps_scale": 1e-06,
+  "e_T": {
+   "p10": 0.0043775588274002075,
+   "p25": 0.007004748098552227,
+   "p50": 0.012463942170143127,
+   "p75": 0.022851726040244102,
+   "p90": 0.03858726024627686,
+   "p99": 0.09336926825344583,
+   "mean": 0.018384340964221823,
+   "n": 12582912
+  },
+  "intensity_convention": "feeder [-1,1] (range 2 = [0,1]-scale \u00d72)",
+  "kind": "reconstruction",
+  "from_cache": false,
+  "source": "calibrate",
+  "tau_scale": 1.0,
+  "tau_R_used": 0.012463942170143127
+ },
+ "calibration_set": {
+  "dataroot": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5",
+  "n_patches": 3072,
+  "dataset_len": 9714,
+  "seed": 1234,
+  "batch_size": 48,
+  "augmentation": "none",
+  "index_sha256_16": "02122e2554783774",
+  "first_indices": [
+   0,
+   1,
+   5,
+   6,
+   11,
+   13,
+   16,
+   20
+  ]
+ }
+}

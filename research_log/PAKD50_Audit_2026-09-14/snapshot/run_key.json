@@ -1,0 +1,22 @@
+{
+ "server_id": "s1",
+ "campaign_id": "PAKD50_W112D123_WV3_20260914_v1",
+ "run_id": "PAKD50_J0_W112_D123_WV3_T0_S1234_FRESH50_v1",
+ "version": "v1",
+ "student_seed": 1234,
+ "teacher_id": "T0",
+ "teacher_run": "PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1",
+ "teacher_tag": "best_hqnr",
+ "teacher_checkpoint_sha": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+ "teacher_tensors_sha16": "7d9b52112797bbff",
+ "init_sha": "c988a6c95b17f4fd",
+ "calibration_sha": "a74c81d491b0d3e4",
+ "selection_policy_id": "best_hqnr+secondary(best_rr_val·last)",
+ "evaluator_hash": "460484e2227bc017",
+ "protocol_id": "PAN_GLOBAL_ALIGN_EVAL_v2",
+ "view": "raw_original",
+ "fr_dataset_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+ "train_dataset_sha256": "f9e7ec381390ff36ddffd0714df7af07a3c5f456078b219a25f3e18372228f82",
+ "grid_id": "per-run eval schedule (공통 격자는 분석 도구가 별도로 만든다)",
+ "note": "같은 run_id 라도 server_id·teacher_checkpoint_sha 가 다르면 다른 결과다 — 시트·분석에서 서로 덮어쓰지 않는다 (§12.2)"
+}

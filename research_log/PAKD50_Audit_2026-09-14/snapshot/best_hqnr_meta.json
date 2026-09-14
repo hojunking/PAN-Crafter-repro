@@ -1,0 +1,15 @@
+{
+ "step": 8080,
+ "epoch": 40,
+ "selection_view": "raw_original",
+ "hqnr": 0.9372703866544423,
+ "fscc": 0.9190857800032548,
+ "protocol_id": "PAN_GLOBAL_ALIGN_EVAL_v2",
+ "roi_hash": "b5979ef01aa92480",
+ "alias": "best_hqnr",
+ "case": "A-FT/N0/OFF/G0",
+ "rr_scc": 0.9887517002207957,
+ "rr_ergas": 2.2193615423616593,
+ "rr_sam": 2.953065734237605,
+ "hqnr_aligned_valid": 0.9423005992258501
+}

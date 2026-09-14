@@ -1,0 +1,140 @@
+{
+ "init_hashes": {
+  "unet_init_sha256_16": "c988a6c95b17f4fd",
+  "unet_init_file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_kdv_init_w112_d123/init_unet_seed1234.pt",
+  "aligner_init_sha256_16": "680275151d73f067",
+  "aligner_init_file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_kdv_init_w112_d123/init_aligner_seed1234.pt",
+  "seed": 1234
+ },
+ "donor": {
+  "source": "work_dir/PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1/best_hqnr",
+  "resolved_file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1/best_hqnr/model.safetensors",
+  "file_sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+  "aligner_tensors_sha256_16": "493aca181f93ae68",
+  "n_params": 105330,
+  "n_keys": 22,
+  "expected_sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+  "expected_match": true,
+  "donor_step": 24240
+ },
+ "teacher": {
+  "run": "PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1",
+  "run_dir": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1",
+  "tag": "best_hqnr",
+  "file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1/best_hqnr/model.safetensors",
+  "file_sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+  "tensors_sha256_16": "7d9b52112797bbff",
+  "trainer": "kdv",
+  "width": 112,
+  "depth": [
+   1,
+   2,
+   3
+  ],
+  "in_mode": "paper",
+  "norm": "ln",
+  "backbone_params": 2658888,
+  "aligner_params": 105330,
+  "aligner_view_margin": 4,
+  "sampler": true,
+  "seed": 2025,
+  "kdv": {
+   "campaign_id": "PALS24_W112D123_N2LAST_R200_v2",
+   "plan_protocol_id": "PALS_W112D123_N2LAST_R200_v1",
+   "document_revision": "24GPUh_v2",
+   "case_id": "L1E4",
+   "run_kind": "CONTROLLED",
+   "version": "v1",
+   "check_run_name": false,
+   "input_protocol": "I-AEQ",
+   "aligner_policy": "A-FT",
+   "diag_every": 1000,
+   "calibration": {
+    "n_patches": 3072,
+    "seed": 1234
+   },
+   "aligner_lr": 1e-05,
+   "rec": {
+    "case": "N0"
+   },
+   "stat": {
+    "enabled": false
+   },
+   "geom_kd": {
+    "mode": "G0"
+   },
+   "eval": {
+    "fixed_reference_from_donor": true
+   },
+   "budget": {
+    "ledger": "work_dir/_pals24_budget/ledger.json",
+    "total_gpu_hours": 24.0,
+    "reserve_hours": 4.0,
+    "margin": 1.1,
+    "required": false,
+    "projected_hours": null,
+    "projected_map": {
+     "PALS24_L000_W112_D123_WV3_S2025_N2LAST_R200_v1": 2.0,
+     "PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1": 2.0,
+     "PALS24_CTRLP0_W112_D123_WV3_S2025_N2LAST_R200_v1": 2.0
+    },
+    "remaining_mandatory": [
+     "PALS24_L000_W112_D123_WV3_S2025_N2LAST_R200_v1",
+     "PALS24_CTRLP0_W112_D123_WV3_S2025_N2LAST_R200_v1"
+    ]
+   },
+   "recipe": "N2_SG",
+   "donor": {
+    "source": "work_dir/PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT/last",
+    "view_margin_hr": 4,
+    "expected_sha256": "9d4cbf218cd8f6743942115e882d87d664d663935a1a1ba295a9903e27f3f816",
+    "expected_step": 50000
+   },
+   "corruption": {
+    "radius_hr": 2.0,
+    "corruption_seed_offset": 2000
+   },
+   "aux": {
+    "offset_weight": 0.0001,
+    "offset_ramp_updates": 0,
+    "offset_stop_reference": true,
+    "geometry_weight": 0.0,
+    "ramp_updates": 5000,
+    "geometry_sigma_hr": 2.0,
+    "geometry_margin_hr": 11
+   }
+  },
+  "tag_meta": {
+   "step": 24240,
+   "epoch": 120,
+   "selection_view": "raw_original",
+   "hqnr": 0.9569763995761281,
+   "fscc": 0.8785613365978273,
+   "protocol_id": "PAN_GLOBAL_ALIGN_EVAL_v2",
+   "roi_hash": "b5979ef01aa92480",
+   "alias": "best_hqnr",
+   "case": "A-FT/N0/OFF/G0",
+   "rr_scc": 0.9909490095562754,
+   "rr_ergas": 2.056243509745785,
+   "rr_sam": 2.796378489282271,
+   "hqnr_aligned_valid": 0.9600467222562281
+  },
+  "expected_sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32"
+ },
+ "aligner_hash0": "493aca181f93ae68",
+ "reference_aligner": {
+  "source": "work_dir/PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1/best_hqnr",
+  "resolved_file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1/best_hqnr/model.safetensors",
+  "file_sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+  "aligner_tensors_sha256_16": "493aca181f93ae68",
+  "n_params": 105330,
+  "n_keys": 22,
+  "expected_sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+  "expected_match": true,
+  "donor_step": 24240,
+  "copied_from": "training_donor"
+ },
+ "reference_view_margin": 4,
+ "teacher_hash0": "7d9b52112797bbff",
+ "share_correction": false
+}

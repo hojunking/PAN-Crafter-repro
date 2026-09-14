@@ -39,3 +39,19 @@ P/JK0/JE0 (A/U 별 loss routing), D0/DQ(첫 5K A frozen), LF(25K 이후 A frozen
 - 첫 run `PAKD50_J0_…_S1234_FRESH50_v1`(λE pilot) 예산 gate RUN(8.4 ≤ 46). smoke 처리량: J 40 ms/step(offset 연습 포함) · F 19 · R1 22 · peak 3.3 GB → run ≈ 1.9 h(평가 50회 포함) → stage 1 4벌 ≈ 8 h, J0-1234 완료 ≈ 15:20 → λE 고정 → stage 2.
 - PALSV18 V-post(11/23 checkpoint) 는 13:03 에 일시 중단하고 GPU 를 이 캠페인에 양보했다 — 나머지는 캠페인 사이에 `./tools/palsv18_validate.sh post` 로 이어 돌린다(완료분은 sha 검사로 생략).
 - s2/s3: 이 commit 을 pull → (NA104 20H 체인이 있으면 먼저 정리) → `./tools/pakd50_prepare.sh` (stage 1: J0 → F0 → JR → FR, seed 777/2026). stage 2 는 s1 이 λE 를 고정한 commit 을 다시 pull 한 뒤 `./tools/pakd50_prepare.sh --stage 2`.
+
+## 6. 구현 검증(감사 2026-09-14) 반영 — 14:04
+
+감사 `research_log/PAN_Integrated_Implementation_Experiment_Audit_2026-09-14.md`(F01–F10) 의 P1 항목 F01–F05 를 반영했다. 현재 s1 J0-1234 학습은 건드리지 않았다(감사도 J0 목적함수 오류 없음·폐기 근거 없음으로 판정).
+
+| 항목 | 반영 |
+|---|---|
+| F01 새 서버 bootstrap 순서 | prepare ①' 가 gate 검사 **전에** calibration 사본(`assets/pakd50/calibration_resolved.json`)을 로컬 `work_dir/_pakd50/` 로 동기화한다. `gen_pakd50_configs.calibration()` 도 로컬이 없으면 사본을 본다(K05 는 같은 view). 기존 gate(pa/nf16/pals24 unit tests)는 s1 전용 자산이 없으면 그 검사를 건너뛰도록 이미 guard 돼 있다 |
+| F02 J0 완료 → λE → JQ | 큐 파일은 **J0 만**(`config/queues/pakd50_<srv>_stage1.txt`). 그 뒤는 매 pass gate `pakd50` 가 `gen_pakd50_configs.schedule` 로 편성: 우선순위 J0 → JQ → F0 → FQ → JR → FR → XJ(계획 §9.4 P0/P1/P3); λE 가 없으면 τR-only 다음 **한 벌**(F0 → JR → FR)만 넣어 run 사이마다 λE 를 다시 본다(§9.6). s1 은 pilot 완료 즉시 λE 고정. s1 의 돌던 runner 는 14:04 `tools/pakd50_requeue.sh` 로 교체 — 학습 프로세스(PID 2559101)는 유지, 새 runner(2967009)가 J0 종료를 기다린 뒤 gate 편성으로 간다. 이전 큐(J0→F0→JR→FR 뒤 stage 2)는 폐기 |
+| F03 λE 전달 | `pakd50_calibrate.py` 가 s1 에서 사본(assets)을 mirror 한다(저장소 반영은 사람). s2/s3 는 gate/prepare 가 `sync_calibration_from_assets` 로 λE 항목만 덧입힌다 — 같은 campaign_id·같은 τR(1e-9) 일 때만(K06). stage 2 config 생성은 λE 유무와 별개로 "빠진 config" 검사로 다시 만든다. prepare 의 config 생성 실패는 즉시 중단(PIPESTATUS) |
+| F04 테스트의 live gate | `campaign_gate.enabled_gates()`: 환경변수가 **존재하면**(빈 문자열 포함) 그것만 본다 → 테스트의 `PANCRAFTER_CAMPAIGN_GATES=''` 는 token 파일을 읽지 않는다(PALS24/NA104 테스트도 같은 규약). 편성 규칙은 순수 함수로 K07 이 검사한다 |
+| F05 공통 마감·예약·처리량 | `assets/pakd50/campaign_clock.json`(start 2026-09-14 13:22:31 · 학습 마감 09-16 11:22:31 · 최종 15:22:31) 을 세 서버가 공유. config `kdv.budget.training_deadline` → trainer 예산 gate 가 예상 종료(margin 1.1 × 예상) > 마감이면 DEFERRED_BUDGET(필수 run 은 경고). gate admission 도 같은 마감까지 남은 시간으로 누적 검사. 체인 마감(`work_dir/cases_deadline.txt`) = 이 절대 시각이고 재기동(`--stage 2` 등)이 늘리지 않는다. `remaining_mandatory` = P0(J0/JQ) 예약(완료분은 0), ledger 50h/reserve 4h(학습 admission ≤ 46h — GPU-h 와 벽시계 의미 일치). smoke 처리량은 case 별로 기록하고 예산은 가장 느린 case(1.90h); 완료 run 이 생기면 실측 평균이 우선 |
+
+미반영(후속 release): F06 exact resume(재개 run 은 `resumed` 플래그로 paired 결과에서 분리 표기), F07 실행 전용 고정 worktree, F08 loss 별 A/U/cS gradient 분해 진단, F09 fitting bin 자료원(현재 RR20 q50/q90 — 보고 시 계획의 train bin 과 다름을 명시), F10 package/환경 pin 보강·PAKD50 전용 paired report. 이번 변경으로 config 12벌·큐 3개가 다시 생성됐다(J0-1234 의 기록은 `work_dir/…/meta/config.yaml` 스냅샷이 기준; 수치 경로 변경 없음).
+
+s2/s3 절차(변경): pull → (다른 체인이 있으면 정리) → `./tools/pakd50_prepare.sh`(큐 J0 → gate 편성; τR 은 사본과 대조). s1 의 λE 사본이 도착하면 **pull 만으로** 다음 pass 부터 JQ 가 열린다. 체인이 이미 DONE 이면 `./tools/pakd50_prepare.sh --stage 2`(마감은 공통 시계).

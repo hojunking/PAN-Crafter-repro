@@ -1,0 +1,116 @@
+campaign:
+  id: PAKD50_W112D123_WV3_20260914_v1
+  status: running
+  budget_kind: elapsed_wall_hours_parallel_servers
+  wall_hours: 50
+  training_finish_target_hour: 46
+  final_audit_hours: 4
+  start_time: '2026-09-14T13:22:31'
+  server: s1
+  gpu_slots_per_server: 1
+  measured_case_hours: 1.902777777777778
+release:
+  git_full_sha: cac23a6efb168e47714d9194aee843df484d5b36
+  git_dirty: true
+  plan: research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md
+  summary: research_log/PAN_Integrated_Method_Summary_2026-09-14.md
+  note: research_log/2026-09-14_pakd50-implementation.md
+model:
+  width: 112
+  depth:
+  - 1
+  - 2
+  - 3
+  input_channels: 9
+  output_channels: 8
+  output_kind: residual_plus_ms_base_once
+  frame: M
+  aligner_source_class: pa.aligner.PANGlobalAligner
+  warp:
+    mode: bicubic
+    padding_mode: border
+    align_corners: false
+  aligner_margin_hr: 4
+  crop_before_zscore: true
+teacher:
+  package_id: T0
+  run_id: PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1
+  checkpoint_kind: best_raw
+  selected_update: 24240
+  checkpoint_path: work_dir/PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1
+  checkpoint_sha256: 16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32
+  aligner_tensors_sha256_16: 493aca181f93ae68
+  recorded_hqnr: 0.9569763995761281
+  frozen_own_aligner: true
+  stationary_given_fixed_input: true
+student:
+  protocol: FRESH50
+  seed: 1234
+  init_policy: copy_teacher_aligner_fresh_unet
+  unet_init_file: work_dir/_kdv_init_w112_d123/init_unet_seed1234.pt (trainer 가 첫
+    run 에서 만들고 hash 를 run 폴더에 기록)
+objective:
+  alpha: 1.0
+  beta: 0.1
+  eps: 1.0e-06
+  lambda_off: 0.0001
+  off_period: 2
+  off_phase_zero_based: 1
+  jitter_radius_hr: 2.0
+  tau_R: 0.012463942170143127
+  lambda_E: null
+  edge_r_grad: 0.05
+  edge_definition: signed_bandwise_scharr32_reflect1_interior1
+calibration:
+  tau_teacher_package: T0
+  max_train_patches: 3072
+  seed: 1234
+  batch: 48
+  geometric_augmentation: false
+  patch_manifest_sha256: aa2b4f9bc29aea898019418999833478bfb602e6e52facdb3f25f06db29d76af
+  edge_pilot: J0_seed1234_exact50k
+  file: work_dir/_pakd50/calibration_resolved.json
+training:
+  total_updates: 50000
+  effective_batch: 48
+  optimizer: AdamW
+  lr_unet_peak: 0.0001
+  lr_aligner_peak: 1.0e-05
+  weight_decay: 0.01
+  warmup_updates: 100
+  schedule: cosine
+  source_config: config/PO10_N1_REC_W112_D123_WV3_S2025_R200_FRSTAT.yaml (template;
+    resolved config per run in work_dir/<run>/meta)
+evaluation:
+  primary: hqnr_raw_original
+  fr_scene_set: WV3_paper_mat20
+  aggregation: mean_of_per_scene_products
+  candidate_grid_id: GRID1010_50K_v1
+  candidate_updates: 1010*k (k=1..49) + 50000
+  exact_last_update: 50000
+  plateau_updates:
+  - 45450
+  - 46460
+  - 47470
+  - 48480
+  - 49490
+  - 50000
+  selector: best_hqnr (running-max HQNR tie 1e-4 → fSCC)
+  target_lower: 0.959
+  target_stretch: 0.96
+  evaluator_hash: 460484e2227bc017
+queue:
+  file: config/queues/pakd50_s1_stage1.txt
+  runs:
+  - PAKD50_J0_W112_D123_WV3_T0_S1234_FRESH50_v1
+  - PAKD50_F0_W112_D123_WV3_T0_S1234_FRESH50_v1
+  - PAKD50_JR_W112_D123_WV3_T0_S1234_FRESH50_v1
+  - PAKD50_FR_W112_D123_WV3_T0_S1234_FRESH50_v1
+  stage2: 'gate pakd50 (s1: λE 고정 후 생성; s2/s3: git pull 뒤 --stage 2 로 campaign_start)'
+environment:
+  hostname: knuvi-hojun-local
+  python: 3.9.19
+  torch: 2.4.0
+  cuda: '11.8'
+  gpu: NVIDIA GeForce RTX 4090
+created: '2026-09-14T13:22:33'

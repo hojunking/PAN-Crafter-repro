@@ -1,0 +1,7 @@
+{
+ "unet_init_sha256_16": "c988a6c95b17f4fd",
+ "unet_init_file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_kdv_init_w112_d123/init_unet_seed1234.pt",
+ "aligner_init_sha256_16": "680275151d73f067",
+ "aligner_init_file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_kdv_init_w112_d123/init_aligner_seed1234.pt",
+ "seed": 1234
+}

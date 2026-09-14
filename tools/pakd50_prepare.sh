@@ -38,11 +38,13 @@ json.dump(out, open("work_dir/_pakd50/t0_reproduction.json", "w"), indent=1); pr
 assert out["pass_"], "T0 재현 실패 — 평가기/자산 차이를 먼저 설명 (계획 §14.1)"
 PYEOF
 RC=$?; grep -v Warning "$CAMP/t0_verify.log" | tail -2; [ $RC -eq 0 ] || fail "T0 검증 실패 — $CAMP/t0_verify.log"
+echo "[pakd50] ①' calibration 사본 → 로컬 (gate 가 로컬 τR 을 검사하므로 먼저; 감사 F01)"
+"$PY" -c "import sys; sys.path.insert(0,'.'); from tools import gen_pakd50_configs as G; m, src = G.sync_calibration_from_assets(write=True); print('   calibration 로컬 <-', src, {k: m.get(k) for k in ('tau_R','lambda_E')})" || fail "calibration 사본 없음 — assets/pakd50/calibration_resolved.json (s1 이 만든 τR) 을 pull"
 echo "[pakd50] ② 지표 이식·기존 gate"; "$PY" tools/verify_metrics.py | tail -1
 for t in pa_unit_tests kdv_unit_tests nf16_unit_tests pals24_unit_tests; do "$PY" tools/$t.py > "$CAMP/gate_$t.log" 2>&1 || fail "$t 실패 — $CAMP/gate_$t.log"; tail -1 "$CAMP/gate_$t.log"; done
 "$PY" tools/pakd50_unit_tests.py > "$CAMP/gate_pakd50.log" 2>&1 || { tail -3 "$CAMP/gate_pakd50.log"; fail "pakd50 gate 실패 — $CAMP/gate_pakd50.log"; }; tail -1 "$CAMP/gate_pakd50.log"
 echo "[pakd50] ③ τR: git 의 고정값(work_dir/_pakd50/calibration_resolved.json 은 서버 로컬) — 이 서버에서 재계산해 대조"
-[ -f "$CAMP/calibration_resolved.json" ] || cp -f assets/pakd50/calibration_resolved.json "$CAMP/calibration_resolved.json" 2>/dev/null || true
+"$PY" -c "import sys; sys.path.insert(0,'.'); from tools import gen_pakd50_configs as G; m, src = G.sync_calibration_from_assets(write=True); print('   calibration 로컬 <-', src, {k: m.get(k) for k in ('tau_R','lambda_E')})"   # 첫 prepare: 사본 복사 · 이후: λE 만 덧입힘
 PIN=$($PY -c "import json; print(json.load(open('$CAMP/calibration_resolved.json')).get('tau_R'))" 2>/dev/null || echo "")
 "$PY" tools/pakd50_calibrate.py --tau --server "$SERVER" > "$CAMP/calibrate_tau.log" 2>&1 || fail "τR calibration 실패 — $CAMP/calibrate_tau.log"; grep "τR" "$CAMP/calibrate_tau.log" | tail -1
 $PY - "$PIN" <<'PYEOF'
@@ -52,26 +54,35 @@ if pin is not None:
     d = json.load(open("work_dir/_pakd50/calibration_resolved.json")); d["tau_R"] = pin; d["tau_R_local_recomputed"] = now; json.dump(d, open("work_dir/_pakd50/calibration_resolved.json", "w"), indent=1, ensure_ascii=False, default=str)
 PYEOF
 [ $? -eq 0 ] || fail "τR 대조 실패"
-echo "[pakd50] ④ stage $STAGE config (seed $($PY -c "from tools.gen_pakd50_configs import SERVER_SEED as S; print(S['$SERVER'])" 2>/dev/null))"; "$PY" tools/gen_pakd50_configs.py --server "$SERVER" --stage "$STAGE" 2>&1 | grep -v Warning | tail -2
+echo "[pakd50] ④ stage $STAGE config (seed $($PY -c "from tools.gen_pakd50_configs import SERVER_SEED as S; print(S['$SERVER'])" 2>/dev/null))"; "$PY" tools/gen_pakd50_configs.py --server "$SERVER" --stage "$STAGE" 2>&1 | grep -v Warning | tail -2; [ "${PIPESTATUS[0]}" -eq 0 ] || fail "config 생성 실패 (stage $STAGE — stage 2 는 λE 사본이 있어야 한다)"
 CASES=$(grep -v '^#' "$QUEUE" | grep -v '^$' | tr '\n' ' ')
 echo "[pakd50] ⑤ smoke (실배치·시간·peak — Teacher 포함)"; "$PY" tools/smoke_cases.py $CASES > "$CAMP/smoke_stage$STAGE.log" 2>&1 || { grep -v Warning "$CAMP/smoke_stage$STAGE.log" | tail -4; fail "smoke 실패"; }; grep "^\[smoke\]" "$CAMP/smoke_stage$STAGE.log" | tail -5
 T_PREP=$(( $(date +%s) - T_PREP0 ))
 echo "[pakd50] ⑥ ledger (서버 학습 46h + 감사 4h; 50h 시계 시작) — 준비 ${T_PREP}s"
 "$PY" - "$T_PREP" "$SERVER" "$CAMP/smoke_stage$STAGE.log" <<'PYEOF'
 import json, os, re, sys, time
-lp = "work_dir/_pakd50_budget/ledger.json"; d = json.load(open(lp)) if os.path.exists(lp) else dict(total_gpu_hours=46.0, entries={})
-log = open(sys.argv[3]).read(); tn = re.findall(r"t_native (\d+)ms", log); tc = re.findall(r"t_corrupt (\d+)ms", log)
-if tn:
-    t_nat = float(tn[-1]) / 1000; t_cor = float(tc[-1]) / 1000 if tc else t_nat; proj = 50000 * (t_nat + t_cor) / 2 / 3600 + 50 * 67.0 / 3600
-    d["throughput"] = dict(t_native_s=t_nat, t_offset_exercise_s=t_cor, projected_run_hours_50k=proj, note="50 평가 × 67s 포함 (eval_epoch 5)", measured_at=time.strftime("%Y-%m-%dT%H:%M:%S"))
+lp = "work_dir/_pakd50_budget/ledger.json"; d = json.load(open(lp)) if os.path.exists(lp) else dict(total_gpu_hours=50.0, entries={})
+d["total_gpu_hours"] = 50.0                                     # 50h 벽시계 = slot 1 의 GPU-h; reserve 4h(46–50h 감사) 는 config kdv.budget.reserve_hours → 학습 admission ≤ 46h (감사 F05)
+per = {}
+for m in re.finditer(r"^\[smoke\] OK\s+(\S+).*?t_native (\d+)ms(?:.*?t_corrupt (\d+)ms)?", open(sys.argv[3]).read(), re.M):
+    t_nat = float(m.group(2)) / 1000; t_cor = float(m.group(3)) / 1000 if m.group(3) else t_nat
+    per[m.group(1)] = dict(t_native_s=t_nat, t_offset_exercise_s=t_cor, projected_run_hours_50k=50000 * (t_nat + t_cor) / 2 / 3600 + 50 * 67.0 / 3600)
+if per:                                                          # case 별 실측 (감사 F05: FR 의 native 와 JR 의 offset 을 섞지 않는다); 예산은 가장 느린 case
+    worst = max(per.values(), key=lambda v: v["projected_run_hours_50k"])
+    d["throughput"] = dict(worst, per_case=per, note="case 별 smoke 실측, 예산은 max; 50 평가 × 67s 포함 (eval_epoch 5) — 완료 run 이 생기면 trainer 는 완료 평균을 쓴다", measured_at=time.strftime("%Y-%m-%dT%H:%M:%S"))
 prev = d["entries"].get("gate", {}); d["entries"]["gate"] = dict(kind="gate", hours=float(sys.argv[1]) / 3600.0 + float(prev.get("hours") or 0.0), note="T0 검증·재현, gate, τR, smoke (계획 §9.3 0–4h)", finished=time.strftime("%Y-%m-%dT%H:%M:%S"))
 json.dump(d, open(lp, "w"), indent=1)
 cp = "work_dir/_pakd50/ledger.json"; c = json.load(open(cp)) if os.path.exists(cp) else {}
+ck = "assets/pakd50/campaign_clock.json"; clock = json.load(open(ck)) if os.path.exists(ck) else {}
 if not c.get("start"):
-    c.update(server=sys.argv[2], start=time.strftime("%Y-%m-%dT%H:%M:%S"), wall_hours=50, training_finish_target_hour=46, final_audit_hours=4, budget_kind="elapsed_wall_hours_parallel_servers", measured_run_hours=(d.get("throughput") or {}).get("projected_run_hours_50k"))
-    json.dump(c, open(cp, "w"), indent=1); print("   50h 시계 시작", c["start"], "| 예상 run", c["measured_run_hours"])
+    c.update(server=sys.argv[2], start=time.strftime("%Y-%m-%dT%H:%M:%S"), wall_hours=50, training_finish_target_hour=46, final_audit_hours=4, budget_kind="elapsed_wall_hours_parallel_servers")
+c["local_prepared_at"] = c.get("local_prepared_at") or c["start"]; c["measured_run_hours"] = (d.get("throughput") or {}).get("projected_run_hours_50k") or c.get("measured_run_hours")
+if clock.get("training_deadline"):                                # 세 서버 공통 절대 시계 (감사 F05): 서버별 50h 창이 아니라 s1 이 정한 하나의 start/deadline
+    c.update(start=clock["start"], training_deadline=clock["training_deadline"], final_deadline=clock["final_deadline"], clock_source=ck)
 else:
-    print("   50h 시계 이미 시작", c["start"])
+    t0 = time.mktime(time.strptime(c["start"][:19], "%Y-%m-%dT%H:%M:%S")); f = lambda h: time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(t0 + h * 3600))
+    c.update(training_deadline=f(46), final_deadline=f(50), clock_source="local")
+json.dump(c, open(cp, "w"), indent=1); print("   50h 시계", c["start"], "→ 학습 마감", c["training_deadline"], f"({c['clock_source']}) | 예상 run", c["measured_run_hours"])
 PYEOF
 "$PY" - "$SERVER" "$QUEUE" <<'PYEOF'
 import json, os, platform, subprocess, sys, time, torch, yaml
@@ -93,6 +104,13 @@ man = dict(campaign=dict(id=G.CAMPAIGN_ID, status="running", budget_kind="elapse
 yaml.safe_dump(man, open(f"work_dir/_pakd50/campaign_manifest_{srv}.yaml", "w"), sort_keys=False, allow_unicode=True); print("   campaign_manifest:", len(runs), "run · release", man["release"]["git_full_sha"][:10], "dirty" if man["release"]["git_dirty"] else "clean")
 PYEOF
 echo "pakd50" > work_dir/campaign_gates_enabled.txt; echo "[pakd50] ⑦ gate token = pakd50 (stage 2 는 λE 고정 뒤)"
+# 체인 마감 = 공통 training_deadline (절대 시각). 재기동(--stage 2 등)이 마감을 늘리지 않는다 (계획 §11.2, 감사 F05). --hours 는 무시된다.
+DL=$("$PY" -c "import json; print(json.load(open('work_dir/_pakd50/ledger.json'))['training_deadline'])")
+REM=$("$PY" -c "import time; t=time.mktime(time.strptime('$DL'[:19],'%Y-%m-%dT%H:%M:%S')); print('%.2f' % max(0.0, (t-time.time())/3600))")
+echo "[pakd50] 공통 학습 마감 $DL 까지 ${REM}h"
+[ "$("$PY" -c "print(1 if float('$REM') > 0.5 else 0)")" = 1 ] || fail "46h 학습 창이 끝났다 — 새 run 을 시작하지 않는다"
+HOURS=$("$PY" -c "import math; print(max(1, math.ceil(float('$REM'))))")
 [ "$START" = 1 ] || { echo "[pakd50] 준비 완료 — 기동: ./tools/campaign_start.sh --queue $QUEUE --hours $HOURS --label pakd50-$SERVER"; exit 0; }
 ./tools/campaign_start.sh --queue "$QUEUE" --hours "$HOURS" --label "pakd50-$SERVER-stage$STAGE" || fail "기동 실패"
+echo "$DL" > work_dir/cases_deadline.txt; echo "  체인 마감을 공통 training_deadline 으로 고정: $DL"
 ./tools/_watchdog.sh --install && echo "  감시자 cron 등록"

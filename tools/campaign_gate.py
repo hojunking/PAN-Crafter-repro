@@ -333,38 +333,55 @@ def gate_na104_20h():
 
 # ================================================================= PAKD50 통합 캠페인 (s1·s2·s3, 2026-09-14)
 def gate_pakd50():
-    """계획 §5.3·§9.4: stage 1(J0/F0/JR/FR) 뒤 — s1 에서 J0 seed1234 exact50K 가 끝나면 λE 를 고정(tools/pakd50_calibrate.py --lambda-e) 하고 stage 2 config(JQ/FQ/XJ) 를 만들어 연다.
-    s2/s3 는 git pull 로 받은 stage 2 config 가 있을 때만 연다(λE 는 s1 이 고정한 숫자). admission: 서버 ledger 의 경과 + 예상 ≤ 46h."""
+    """PAKD50 편성 gate (계획 §5.3·§9.4·§9.6·§11.2; 감사 F02/F03/F05). 큐에는 J0 만 있고, 그 뒤는 매 pass 이 gate 가 정한다:
+    s1 은 pilot(J0 S1234 exact50K) 완료 즉시 λE 고정(tools/pakd50_calibrate.py --lambda-e → assets 사본 mirror) + 세 서버 stage 2 config 생성(빠진 것이 있으면 λE 와 별개로 다시).
+    s2/s3 는 pull 로 받은 사본에서 λE 를 받는다. 편성 = gen_pakd50_configs.schedule: λE 없으면 τR-only 다음 한 벌(F0→JR→FR), 있으면 남은 전부(JQ→F0→FQ→JR→FR→XJ);
+    admission = 공통 training_deadline 까지 남은 시간 안에 1.1×est 씩."""
     if ROOT not in sys.path:
         sys.path.insert(0, ROOT)
     from tools import gen_pakd50_configs as G
     srv = open(os.path.join(ROOT, "gspread", "server.txt")).read().strip(); seed = G.SERVER_SEED.get(srv)
     if seed is None:
         log(f"PAKD50: 서버 {srv} 의 seed block 없음 — 닫힘"); return
-    cal = G.calibration()
-    if not cal.get("lambda_E"):
-        if srv != "s1":
-            log("PAKD50: λE 미고정 (s1 의 J0-1234 pilot 뒤 git pull) — stage 2 닫힘"); return
+    cal, cal_src = G.sync_calibration_from_assets(write=(srv != "s1"))      # s2/s3: s1 이 mirror 한 사본(assets) 의 λE 를 로컬 calibration 에 받는다 (같은 campaign·τR 일 때만)
+    if cal_src == "assets" and cal.get("lambda_E"):
+        log(f"PAKD50: λE {cal['lambda_E']:.4g} 를 {G.ASSET_CAL_PATH} 에서 받아 로컬 calibration 에 기록")
+    if not cal.get("lambda_E") and srv == "s1":                          # s1: pilot(J0 S1234 exact50K) 이 끝나는 즉시 λE 고정 (감사 F02) — 실패해도 τR-only run 으로 slot 은 쓴다
         pilot = G.pilot_run()
         if not complete(pilot):
-            log(f"PAKD50: pilot {pilot} 미완 — λE 고정 대기"); return
-        r = subprocess.run([PY, os.path.join(ROOT, "tools", "pakd50_calibrate.py"), "--lambda-e", "--server", "s1"], cwd=ROOT, capture_output=True, text=True)
-        for line in (r.stdout + r.stderr).splitlines()[-4:]:
-            log(line)
-        cal = G.calibration()
-        if r.returncode != 0 or not cal.get("lambda_E"):
-            log("PAKD50: λE 고정 실패 — stage 2 닫힘"); return
-        r2 = subprocess.run([PY, os.path.join(ROOT, "tools", "gen_pakd50_configs.py"), "--all", "--stage", "2"], cwd=ROOT, capture_output=True, text=True); log("PAKD50: stage 2 config 생성 " + ("OK" if r2.returncode == 0 else "FAIL " + r2.stderr[-200:]))
-    # admission (§11.2): 경과(ledger start) + 남은 stage 2 run × 예상 ≤ 46h
+            log(f"PAKD50: pilot {pilot} 미완 — λE 대기, τR 만 필요한 run 으로 slot 사용")
+        else:
+            r = subprocess.run([PY, os.path.join(ROOT, "tools", "pakd50_calibrate.py"), "--lambda-e", "--server", "s1"], cwd=ROOT, capture_output=True, text=True)
+            for line in (r.stdout + r.stderr).splitlines()[-4:]:
+                log(line)
+            cal = G.calibration()
+            if r.returncode != 0 or not cal.get("lambda_E"):
+                log("PAKD50: λE 고정 실패 — λE 가 필요한 case 는 닫힘")
+    if cal.get("lambda_E") and srv == "s1":                              # config 생성은 λE 와 별개로 검사 (감사 F03): 빠진 stage 2 config 가 있으면 세 서버분을 다시 만든다
+        missing = [G.run_name(c, sd) for sd in G.SERVER_SEED.values() for c in G.STAGE2 if not os.path.exists(os.path.join(ROOT, "config", G.run_name(c, sd) + ".yaml"))]
+        if missing:
+            r2 = subprocess.run([PY, os.path.join(ROOT, "tools", "gen_pakd50_configs.py"), "--all", "--stage", "2"], cwd=ROOT, capture_output=True, text=True)
+            log("PAKD50: stage 2 config 생성 " + (("OK " + " ".join(missing)) if r2.returncode == 0 else "FAIL " + r2.stderr[-200:]))
+    elif not cal.get("lambda_E") and srv != "s1":
+        log("PAKD50: λE 미고정 (s1 의 λE 사본을 pull; 로컬 τR 과 같은 campaign 이어야 받는다) — λE 가 필요한 case 는 닫힘, τR-only run 으로 slot 사용")
+    def _running(tag):                                                     # 지금 학습 중인 run 은 편성하지 않는다 (runner 는 본 큐 뒤에만 gate 를 부르지만, 손으로 불러도 중복 기동이 없게)
+        r = subprocess.run(["ps", "-eo", "args"], capture_output=True, text=True).stdout
+        return any(("main.py" in ln and "--config" in ln and tag in ln) for ln in r.splitlines())
+    # 편성 (계획 §9.4 우선순위) + admission (§11.2: 공통 training_deadline 까지 남은 시간 안에서만; 감사 F05)
     lp = os.path.join(ROOT, "work_dir", "_pakd50", "ledger.json"); led = json.load(open(lp)) if os.path.exists(lp) else {}
     import time as _t
-    t0 = led.get("start"); elapsed = ((_t.time() - _t.mktime(_t.strptime(t0[:19], "%Y-%m-%dT%H:%M:%S"))) / 3600.0) if t0 else 0.0
-    est = float(led.get("measured_run_hours") or 4.0); todo = [G.run_name(c, seed) for c in G.STAGE2 if not terminal(G.run_name(c, seed))]
-    need = elapsed + 1.1 * est * len(todo)
-    if need > 46.0:
-        log(f"PAKD50: admission STOP — 경과 {elapsed:.1f}h + {len(todo)}×{est:.1f}×1.1 = {need:.1f} > 46h"); todo = todo[:max(0, int((46.0 - elapsed) / (1.1 * est)))]
-    for tag in todo:
-        emit(tag, f"PAKD50 stage 2 (λE {cal.get('lambda_E'):.4g}, τR {cal.get('tau_R'):.4g}; 경과 {elapsed:.1f}h)")
+    rem = G.hours_to_deadline()
+    if rem is None and led.get("training_deadline"):
+        rem = (_t.mktime(_t.strptime(led["training_deadline"][:19], "%Y-%m-%dT%H:%M:%S")) - _t.time()) / 3600.0
+    bl = os.path.join(ROOT, G.LEDGER); bd = json.load(open(bl)) if os.path.exists(bl) else {}
+    done = [float(e.get("hours_total") or e.get("hours")) for e in (bd.get("entries") or {}).values() if e.get("kind") == "run" and str(e.get("status", "")).startswith("FINISHED") and (e.get("hours_total") or e.get("hours"))]
+    est = (sum(done) / len(done)) if done else float(led.get("measured_run_hours") or 4.0)          # 완료 run 실측 평균 → 없으면 smoke 예상
+    todo, dropped = G.schedule(bool(cal.get("lambda_E")), lambda c: terminal(G.run_name(c, seed)) or _running(G.run_name(c, seed)), rem, est)
+    if dropped:
+        log(f"PAKD50: admission — 남은 {rem:.1f}h 에 {len(todo)} run(1.1×{est:.2f}h) 만 들어간다; 밀림: {' '.join(dropped)}")
+    lam = ("%.4g" % cal["lambda_E"]) if cal.get("lambda_E") else "미고정"; rem_s = "∞" if rem is None else f"{rem:.1f}"
+    for c in todo:
+        emit(G.run_name(c, seed), f"PAKD50 {c} (우선순위 편성; λE {lam}, τR {cal.get('tau_R'):.4g}; 남은 {rem_s}h, est {est:.2f}h)")
 
 
 GATES = {"uvs": ("gate_uvs", "UVS-KD (2026-09-01 s2)"), "sr": ("gate_sr", "shift-robust (SR/AF)"),
@@ -379,10 +396,10 @@ def enabled_gates():
     기본값은 **전부 닫힘**이고, 켜려면 명시해야 한다:
         PANCRAFTER_CAMPAIGN_GATES=uvs,sr  (환경변수)  또는  work_dir/campaign_gates_enabled.txt (한 줄에 하나)
     'all' 이면 전부 연다."""
-    raw = os.environ.get("PANCRAFTER_CAMPAIGN_GATES", "")
+    raw = os.environ.get("PANCRAFTER_CAMPAIGN_GATES")            # 환경변수가 **있으면**(빈 문자열 포함) 그것이 전부 — 테스트가 '' 로 격리하면 token 파일을 읽지 않는다 (PAKD50 감사 F04)
     fp = os.path.join(ROOT, "work_dir", "campaign_gates_enabled.txt")
-    if not raw and os.path.exists(fp):
-        raw = ",".join(l.strip() for l in open(fp) if l.strip() and not l.startswith("#"))
+    if raw is None:
+        raw = ",".join(l.strip() for l in open(fp) if l.strip() and not l.startswith("#")) if os.path.exists(fp) else ""
     names = [x.strip().lower() for x in raw.split(",") if x.strip()]
     if "all" in names:
         return list(GATES)

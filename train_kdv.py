@@ -275,10 +275,18 @@ class KDVTrainer(PATrainer):
         pair = self._projection(d, self.budget["pair_with"]) if self.budget.get("pair_with") else 0.0
         margin = float(self.budget.get("margin", 1.2))
         dec = self.budget_decision(used, proj, rem, reserve, float(d.get("total_gpu_hours", self.budget.get("total_gpu_hours", 16.0))), required, pair, margin)
+        dl = self.budget.get("training_deadline")                          # 공통 절대 마감 (PAKD50 감사 F05): 이 run 의 예상 종료가 마감을 넘기면 시작하지 않는다
+        if dl and np.isfinite(proj):
+            end = time.time() + margin * float(proj) * 3600.0; dl_s = time.mktime(time.strptime(str(dl)[:19], "%Y-%m-%dT%H:%M:%S"))
+            dec.update(training_deadline=str(dl), projected_end=time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(end)), deadline_ok=bool(end <= dl_s))
+            if end > dl_s:
+                dec.update(decision=("RUN" if required else "DEFERRED_BUDGET"), warn=bool(required), ok=False)
         rec = dict(started=time.strftime("%Y-%m-%dT%H:%M:%S"), required=required, case=self.case, kind="run", status="RUNNING", used_hours_before=used, projected_hours=proj, margin=margin,
                    remaining_mandatory=self.budget.get("remaining_mandatory") or [], pair_with=self.budget.get("pair_with"), **dec)
         d["entries"][self.run_id] = rec if dec["decision"] == "RUN" else dict(rec, status="DEFERRED_BUDGET")
         os.makedirs(os.path.dirname(p), exist_ok=True); json.dump(d, open(p, "w"), indent=1); json.dump(d["entries"][self.run_id], open(os.path.join(self.args.work_dir, "budget_status.json"), "w"), indent=1)
+        if not dec.get("deadline_ok", True):
+            print(f"[kdv] 마감 검사: 예상 종료 {dec['projected_end']} > training_deadline {dl}" + (" (필수 run 이라 진행)" if required else ""))
         if dec["decision"] != "RUN":
             print(f"[kdv] DEFERRED_BUDGET: used {used:.2f}h + {margin}×(this {proj:.2f} + remaining {sum(rem):.2f} + pair {pair:.2f})h + reserve {reserve}h = {dec['projected_total_hours']:.2f} > {d['total_gpu_hours']}h"); sys.exit(EXIT_GATE)
         if dec["warn"]:

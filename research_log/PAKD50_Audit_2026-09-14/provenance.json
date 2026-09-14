@@ -1,0 +1,151 @@
+{
+  "at": "2026-09-14T13:43:16.867657+09:00",
+  "audit_HEAD": "3d068859e0d4b8d3cbd74242419fbf9fc27b0c4f",
+  "run_commit": "cac23a6efb168e47714d9194aee843df484d5b36",
+  "source_sha256": {
+    "main.py": "16675e5446a038f5372ea3e68cd37d92a8f907b3beca797cf618781c2ec5cbe3",
+    "train_kdv.py": "023924a4ab37fb1d63df7aa1cb916c4da2b3e65f0984f8403df1daf843b79fc4",
+    "train_pa.py": "a1c66c379f22e17c2171d9c2f0eccc5f016840d71ddf7df396717306e5b05be6",
+    "kdv/forward.py": "f29c09446e93fe40d97eb903242c8d306fe3d7d381744a13c46093284996ff52",
+    "kdv/losses_rec.py": "092e68d3c96b7a145f1f6821ef0aa44c4dfc3658f8338670c2ee27f56ba52997",
+    "kdv/calibration.py": "dc3b2b200bf747d215d87e25db46f28ebbf8de875eceff25d3468722192127d0",
+    "kdv/teacher_assets.py": "616ee40abd022ada9a072ce0c063fe8e23537aa53e5698c4e5b71801fb144533",
+    "pa/model.py": "e162cbc77e0b15af87f27ef7573b101c0b977cd171f679ff902c782f8a87a393",
+    "pa/aligner.py": "ebf6b026b213dc857b5e9d39ba5d3070356a51092b11c32f3ffac0bb861faa2f",
+    "pa/warp.py": "b7ea18eb1c09a9462763bfe0146454df2c6593c8dce9107328804a33ed02fcab",
+    "pa/losses.py": "9f2f14de8c72741fc2e8178e6edd528ec89be70fb23ce9e09882af81e2e0e349",
+    "pa/offset.py": "8e70f6999d311eaba9d9ff35fc7e4da05d2f0439fc1735d125a1342eec9b5dba",
+    "pa/evalviews.py": "9f1c31c11358d807645d0a0824b26885b9ff41a53d974bb59bbae49ea9d0c1b9",
+    "pa/selector.py": "c37d74e822eda80e8c298db6183fd33aebe44760471b062451cec7a702335bf9",
+    "tools/pakd50_prepare.sh": "54d43df36282c18e3d39b9eda3e26106c821a131583b74d18678785c23a7626a",
+    "tools/pakd50_unit_tests.py": "2c3e994c32e62981d9e0d0c61d1233501f47434f0f903a1cfd74bfd0dbfa24f0",
+    "tools/pakd50_calibrate.py": "2257bf2b3f9bf9265c39fe527c7b5d24646d225979075f59ddfebe9d4f88b24a",
+    "tools/gen_pakd50_configs.py": "01af9c56f5d78cf205cc5be3c1538570bbc3c3892173b82195b78dad0f4ee5db",
+    "tools/campaign_gate.py": "4609b663f887996dd9d40f915c6ff0b33b1ef14082d1ea3e280043708b5bbc24",
+    "tools/campaign_start.sh": "14326a6ead50493504c93a78911c744a0376b8b1a0f636888b6d60584bfc345e",
+    "tools/_run_cases.sh": "868d8ec365565d87820d39e00d75025fb261d64113d8390657b016ceef19b92a",
+    "tools/_upload.sh": "53f5c42085211dd47b92a2a3947e9de4e275bc115c4a0042bfb0eecbc36c0a37",
+    "research_log/PAN_Integrated_Method_Summary_2026-09-14.md": "2eb798bde58eed1ca6cb51b8a7d965ec2380192466ef64f42e9727e4940fc0b8",
+    "research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md": "1f741eddd2676e25721ff433d41ab0650ebe84f17eeec3428d108197e071420e"
+  },
+  "optimizer": {
+    "student": {
+      "groups": [
+        {
+          "name": "backbone",
+          "lr": 9.846960655408102e-05,
+          "betas": [
+            0.9,
+            0.999
+          ],
+          "eps": 1e-08,
+          "weight_decay": 0.01,
+          "amsgrad": false,
+          "foreach": null,
+          "maximize": false,
+          "capturable": false,
+          "differentiable": false,
+          "fused": null,
+          "initial_lr": 0.0001
+        },
+        {
+          "name": "aligner",
+          "lr": 9.846960655408102e-06,
+          "betas": [
+            0.9,
+            0.999
+          ],
+          "eps": 1e-08,
+          "weight_decay": 0.01,
+          "amsgrad": false,
+          "foreach": null,
+          "maximize": false,
+          "capturable": false,
+          "differentiable": false,
+          "fused": null,
+          "initial_lr": 1e-05
+        }
+      ],
+      "state_steps": [
+        4040.0
+      ],
+      "scheduler": {
+        "base_lrs": [
+          0.0001,
+          1e-05
+        ],
+        "last_epoch": 4040,
+        "verbose": false,
+        "_step_count": 4041,
+        "_get_lr_called_within_step": false,
+        "_last_lr": [
+          9.846960655408102e-05,
+          9.846960655408102e-06
+        ],
+        "lr_lambdas": [
+          null,
+          null
+        ]
+      }
+    },
+    "T0": {
+      "groups": [
+        {
+          "name": "backbone",
+          "lr": 5.2548684620922764e-05,
+          "betas": [
+            0.9,
+            0.999
+          ],
+          "eps": 1e-08,
+          "weight_decay": 0.01,
+          "amsgrad": false,
+          "foreach": null,
+          "maximize": false,
+          "capturable": false,
+          "differentiable": false,
+          "fused": null,
+          "initial_lr": 0.0001
+        },
+        {
+          "name": "aligner",
+          "lr": 5.254868462092276e-06,
+          "betas": [
+            0.9,
+            0.999
+          ],
+          "eps": 1e-08,
+          "weight_decay": 0.01,
+          "amsgrad": false,
+          "foreach": null,
+          "maximize": false,
+          "capturable": false,
+          "differentiable": false,
+          "fused": null,
+          "initial_lr": 1e-05
+        }
+      ],
+      "state_steps": [
+        24240.0
+      ],
+      "scheduler": {
+        "base_lrs": [
+          0.0001,
+          1e-05
+        ],
+        "last_epoch": 24240,
+        "verbose": false,
+        "_step_count": 24241,
+        "_get_lr_called_within_step": false,
+        "_last_lr": [
+          5.2548684620922764e-05,
+          5.254868462092276e-06
+        ],
+        "lr_lambdas": [
+          null,
+          null
+        ]
+      }
+    }
+  }
+}

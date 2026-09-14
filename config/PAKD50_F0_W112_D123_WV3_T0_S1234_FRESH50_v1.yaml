@@ -3,7 +3,7 @@
 # 세팅: I-NATIVE-TRANSFER · aligner frozen(donor 복사, 학습 없음) · rec L1(GT) · stat OFF · geomKD 없음 Teacher T0 (평가 bin 전용 — 학습 loss 에 쓰지 않는다) · 주 selector best_hqnr (보조 best_rr_val·last) · 정책 F(A frozen, offset λ 0.0, A LR 1e-05) · backend N0 (rec N0)
 # 약명→세팅: J0/JQ/JR/XJ = A trainable(joint) + N0/Q12/R1/X02 · F0/FQ/FR/XF = A frozen + … · AL0/ALQ = joint, A LR 3e-6 · Q12 = (1+αd)L1 + β(1−d)a|S−T| + λE·signed Scharr edge · R1 = (1+αd)L1 · X02 = R1 + edge
 # Teacher T0 = PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1/best_hqnr (step 24240, file sha 16b5cf78614be121…; A+U frozen, 자기 aligner 로 forward) · Student A = T0 aligner 복사(view margin 4), U = init_unet_seed1234.pt · τR/λE = work_dir/_pakd50/calibration_resolved.json (고정) 
-# 골격 W112·D123 · 9ch · 50K · batch 48 · AdamW 1e-4/1e-05 wd 0.01 cosine warmup100 · eval_epoch 5 (= GRID1010_50K_v1: 1010 update 마다 + exact 50000, 50 후보 보존) · 예산 work_dir/_pakd50_budget/ledger.json 46.0h(+감사 4.0h)
+# 골격 W112·D123 · 9ch · 50K · batch 48 · AdamW 1e-4/1e-05 wd 0.01 cosine warmup100 · eval_epoch 5 (= GRID1010_50K_v1: 1010 update 마다 + exact 50000, 50 후보 보존) · 예산 work_dir/_pakd50_budget/ledger.json 50.0h(+감사 4.0h)
 expect_params_m: 2.6589     # backbone 만 (aligner 0.1053M 은 smoke 가 따로 확인)
 seed: 1234
 num_worker: 4
@@ -69,14 +69,17 @@ kdv:
   baseline_run: PAKD50_F0_W112_D123_WV3_T0_S1234_FRESH50_v1
   budget:
     ledger: work_dir/_pakd50_budget/ledger.json
-    total_gpu_hours: 46.0
+    total_gpu_hours: 50.0
     reserve_hours: 4.0
     margin: 1.1
     required: false
     projected_hours: null
     projected_map:
       PAKD50_F0_W112_D123_WV3_T0_S1234_FRESH50_v1: 4.0
-    remaining_mandatory: []
+    remaining_mandatory:
+    - PAKD50_J0_W112_D123_WV3_T0_S1234_FRESH50_v1
+    - PAKD50_JQ_W112_D123_WV3_T0_S1234_FRESH50_v1
+    training_deadline: '2026-09-16T11:22:31'
   aux:
     offset_weight: 0.0
     geometry_weight: 0.0

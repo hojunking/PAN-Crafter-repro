@@ -54,3 +54,13 @@ Teacher T0 = PALS24 L1E4 seed 2025 best_raw(step 24240) 의 A+U; Student 는 그
 | stage 2 | λE 고정 뒤 JQ → FQ → XJ (gate `pakd50`) |
 | T0 재현 | raw HQNR 0.956976 (기록과 Δ 0), τR 0.012464 |
 | s2/s3 | 이 commit 을 pull 한 뒤 `./tools/pakd50_prepare.sh` (현재 NA104 20H 체인이 있으면 먼저 정리) |
+
+## 5. 같은 날 추가 (14:04) — 구현 감사 반영·s1 큐 재편성
+
+| 항목 | 내용 |
+|---|---|
+| 감사 | `research_log/PAN_Integrated_Implementation_Experiment_Audit_2026-09-14.md` F01–F10. J0 목적함수 오류 없음 → run 유지. F01–F05 반영(`research_log/2026-09-14_pakd50-implementation.md` §6), F06–F10 후속 |
+| s1 큐 | 14:04 runner 교체(`tools/pakd50_requeue.sh`): 학습 중인 J0-1234 유지, 새 runner 가 J0 종료를 기다린 뒤 gate 편성 J0 → λE → **JQ** → F0 → FQ → JR → FR → XJ. §4 표의 "stage 1 큐 J0→F0→JR→FR / stage 2" 는 이 시점부터 무효 |
+| 마감 | 공통 시계 `assets/pakd50/campaign_clock.json`: start 13:22:31 · 학습 마감 09-16 11:22:31 · 최종 15:22:31 — 체인·trainer·gate 가 같은 절대 시각(재기동으로 늘지 않음) |
+| J0 진행 | 14:04 iter 18,000/50,000 (예상 완료 ≈ 15:20, 그 직후 λE 고정 → JQ) |
+| s2/s3 | pull 뒤 `./tools/pakd50_prepare.sh`. λE 는 `assets/pakd50/calibration_resolved.json` 사본으로 전달 — pull 만으로 다음 pass 에 JQ 가 열린다 |

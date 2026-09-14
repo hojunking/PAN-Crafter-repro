@@ -16,7 +16,7 @@ CAMPAIGN_ID = "PAKD50_W112D123_WV3_20260914_v1"; PROTOCOL = "FRESH50"; GRID_ID =
 PLAN = "research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md"; SUMMARY = "research_log/PAN_Integrated_Method_Summary_2026-09-14.md"; NOTE = "research_log/2026-09-14_pakd50-implementation.md"
 T0_RUN = "PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1"; T0_TAG = "best_hqnr"; T0_ASSET_DIR = "assets/pakd50/T0_run"      # s1 은 work_dir 원본, s2/s3 는 git 으로 받은 사본 (같은 layout: meta/config.yaml + best_hqnr/model.safetensors + best_hqnr_meta.json)
 SERVER_SEED = {"s1": 1234, "s2": 777, "s3": 2026}
-LEDGER = "work_dir/_pakd50_budget/ledger.json"; TOTAL_HOURS = 46.0; RESERVE_HOURS = 4.0; MARGIN = 1.1; RUN_RESERVED_HOURS = 4.0     # 서버당 slot 1: 0–46h 학습, 46–50h 감사 (§9.1)
+LEDGER = "work_dir/_pakd50_budget/ledger.json"; TOTAL_HOURS = 50.0; RESERVE_HOURS = 4.0; MARGIN = 1.1; RUN_RESERVED_HOURS = 4.0     # 서버당 slot 1: 0–46h 학습, 46–50h 감사 (§9.1)
 CAL_PATH = "work_dir/_pakd50/calibration_resolved.json"                                                                            # tools/pakd50_calibrate.py 산출 (τR: T0, λE: J0 S1234 exact50K)
 POLICY = {"J": dict(pol="A-FT", proto="I-AEQ", off=1e-4, alr=1e-5), "F": dict(pol="A-FR", proto="I-NATIVE-TRANSFER", off=0.0, alr=1e-5), "AL": dict(pol="A-FT", proto="I-AEQ", off=1e-4, alr=3e-6)}
 BACKEND = {"N0": dict(rec="N0", edge=False), "R1": dict(rec="R1", edge=False), "Q12": dict(rec="R3", edge=True), "X02": dict(rec="R1", edge=True)}
@@ -24,6 +24,9 @@ CASES = {"J0": ("J", "N0"), "JQ": ("J", "Q12"), "JR": ("J", "R1"), "XJ": ("J", "
 PURPOSE = {"J0": "Teacher-final-A → fresh-U, native GT + offset (joint baseline; seed1234 는 λE pilot)", "JQ": "주력: joint + Q12 (실패 지도 + adaptive soft + GT edge)", "JR": "joint + R1 (실패 지도 재가중만)", "XJ": "joint + X02 (Q12 의 soft 제거 대조)",
            "F0": "frozen T0 aligner + native GT (frozen baseline)", "FQ": "frozen + Q12", "FR": "frozen + R1", "XF": "frozen + X02", "AL0": "joint, A LR 3e-6, N0", "ALQ": "joint, A LR 3e-6, Q12"}
 STAGE1 = ["J0", "F0", "JR", "FR"]; STAGE2 = ["JQ", "FQ", "XJ"]
+PRIORITY = ["J0", "JQ", "F0", "FQ", "JR", "FR", "XJ"]     # 계획 §9.4: P0 J0/JQ → P1 F0/FQ, JR → FR 은 뒤 → P3 X02(XJ). 큐에는 J0 만 두고 나머지는 gate 'pakd50' 가 이 순서로 편성 (감사 F02)
+MANDATORY = ["J0", "JQ"]                                  # P0 — 다른 run 의 예산 gate 가 이 둘의 예상 시간을 remaining_mandatory 로 예약 (감사 F05)
+QUEUE_STAGE = {1: ["J0"], 2: ["JQ"]}                      # 큐 파일 내용 (stage 2 는 DONE 뒤 재진입용) — 나머지는 gate 편성
 NEEDS_LAMBDA_E = {c for c, (p, b) in CASES.items() if BACKEND[b]["edge"]}
 
 
@@ -47,8 +50,73 @@ def t0_identity(server):
     return sha, step
 
 
+ASSET_CAL_PATH = "assets/pakd50/calibration_resolved.json"        # 서버 간 전달용 고정값 사본 (s1 의 calibrate 가 mirror; s2/s3 는 여기서 λE 를 받는다)
+LAMBDA_E_KEYS = ("lambda_E", "lambda_E_source", "lambda_computed_at", "lambda_server")
+
+
+def _load_json(p):
+    p = os.path.join(ROOT, p); return json.load(open(p)) if os.path.exists(p) else {}
+
+
+def sync_calibration_from_assets(write=False):
+    """서버 로컬 calibration(work_dir) 에 λE 가 없고 사본(assets) 에 있으면 — 같은 campaign_id · 같은 τR(1e-9) 일 때만 — λE 항목을 덧입힌다.
+    반환 (merged dict, source) · source ∈ {'local', 'assets', 'none'}. write=True 면 로컬 파일에 저장(없으면 사본 그대로 생성). τR 이 다르면 덧입히지 않는다(fail-safe)."""
+    loc, ast = _load_json(CAL_PATH), _load_json(ASSET_CAL_PATH)
+    if not loc:
+        if write and ast:
+            os.makedirs(os.path.dirname(os.path.join(ROOT, CAL_PATH)), exist_ok=True); json.dump(ast, open(os.path.join(ROOT, CAL_PATH), "w"), indent=1, ensure_ascii=False)
+        return dict(ast), ("assets" if ast else "none")
+    if loc.get("lambda_E") or not ast.get("lambda_E"):
+        return loc, "local"
+    same = (loc.get("campaign_id") == ast.get("campaign_id") and loc.get("tau_R") is not None and ast.get("tau_R") is not None
+            and abs(float(loc["tau_R"]) - float(ast["tau_R"])) < 1e-9)
+    if not same:
+        return loc, "local"
+    m = dict(loc); m.update({k: ast[k] for k in LAMBDA_E_KEYS if k in ast}); m["lambda_E_from"] = ASSET_CAL_PATH
+    if write:
+        json.dump(m, open(os.path.join(ROOT, CAL_PATH), "w"), indent=1, ensure_ascii=False)
+    return m, "assets"
+
+
 def calibration():
-    p = os.path.join(ROOT, CAL_PATH); return json.load(open(p)) if os.path.exists(p) else {}
+    """서버 로컬 값 + (λE 만) 사본 덧입힘 — s2/s3 가 s1 의 λE 를 받으면(pull) 재준비 없이 stage 2 가 열린다."""
+    return sync_calibration_from_assets(write=False)[0]
+
+
+CLOCK_PATH = "assets/pakd50/campaign_clock.json"     # 세 서버 공통 절대 시계 (s1 prepare 시각 = start; training_deadline = +46h, final_deadline = +50h). 감사 F05
+
+
+def campaign_clock():
+    return _load_json(CLOCK_PATH)
+
+
+def training_deadline():
+    return (campaign_clock() or {}).get("training_deadline")
+
+
+def hours_to_deadline(now=None):
+    """공통 training_deadline 까지 남은 시간(h) — 시계 파일이 없으면 None."""
+    import time as _t
+    dl = training_deadline()
+    if not dl:
+        return None
+    return (_t.mktime(_t.strptime(dl[:19], "%Y-%m-%dT%H:%M:%S")) - (now if now is not None else _t.time())) / 3600.0
+
+
+def schedule(has_lambda_e, is_terminal, remaining_hours, est_hours, margin=MARGIN):
+    """gate 'pakd50' 의 순수 편성 규칙 (계획 §9.4 P0 J0/JQ → P1 F0/FQ/JR → FR → P3 XJ; §9.6 'JQ 가 가능한 시점에 다음 slot 부터').
+    λE 가 없으면 τR 만 필요한 **다음 한 벌만** (그 사이 λE 를 다시 확인), 있으면 남은 전부를 우선순위대로.
+    admission(§11.2): 누적 margin×est ≤ 남은 시간 (remaining_hours None 이면 생략). 반환 (편성 case, 예산으로 밀린 case)."""
+    order = [c for c in PRIORITY if not is_terminal(c)]
+    if not has_lambda_e:
+        order = [c for c in order if c not in NEEDS_LAMBDA_E][:1]
+    todo, dropped, t = [], [], 0.0
+    for c in order:
+        if remaining_hours is None or t + margin * est_hours <= remaining_hours:
+            todo.append(c); t += margin * est_hours
+        else:
+            dropped.append(c)
+    return todo, dropped
 
 
 def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=True):
@@ -70,7 +138,9 @@ def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=Tr
              donor=dict(source=f"{t0}/{T0_TAG}", view_margin_hr=4, expected_sha256=sha, expected_step=step),
              teacher=dict(id="T0", run=t0, tag=T0_TAG, expected_sha256=sha, bridge=False, **({} if needs_teacher else dict(eval_only=True))),
              baseline_run=run_name(("J0" if pol_id in ("J",) else "F0" if pol_id == "F" else "AL0"), seed, version),
-             budget=dict(ledger=LEDGER, total_gpu_hours=TOTAL_HOURS, reserve_hours=RESERVE_HOURS, margin=MARGIN, required=False, projected_hours=projected, projected_map={me: RUN_RESERVED_HOURS}, remaining_mandatory=[]))
+             budget=dict(ledger=LEDGER, total_gpu_hours=TOTAL_HOURS, reserve_hours=RESERVE_HOURS, margin=MARGIN, required=False, projected_hours=projected, projected_map={me: RUN_RESERVED_HOURS},
+                         remaining_mandatory=[run_name(c, seed, version) for c in MANDATORY if c != case],          # P0 예약: 완료된 것은 trainer 가 0 으로 센다
+                         **({"training_deadline": training_deadline()} if training_deadline() else {})))            # 공통 절대 마감 — trainer 가 예상 종료 ≤ 마감 을 검사
     if P["proto"] == "I-AEQ":
         k["corruption"] = dict(radius_hr=2.0, corruption_seed_offset=2000)
         k["aux"] = dict(offset_weight=float(P["off"]), offset_ramp_updates=0, offset_stop_reference=True, geometry_weight=0.0, ramp_updates=5000, geometry_sigma_hr=2.0, geometry_margin_hr=11)
@@ -123,9 +193,10 @@ def main():
         if a.out_dir == os.path.join(ROOT, "config") and a.version == "v1":
             q = os.path.join(ROOT, "config", "queues", f"pakd50_{srv}_stage{a.stage}.txt")
             with open(q, "w") as f:
-                f.write(f"# PAKD50 {srv} (seed {SERVER_SEED[srv]}) stage {a.stage} — {PLAN} §9.4/§9.5. stage 1: J0 → F0 → JR → FR (τR 만) · stage 2: JQ → FQ → XJ (λE = J0 S1234 exact50K pilot, tools/pakd50_calibrate.py 로 고정 뒤 생성)\n"
-                        f"# 조건부 gate 'pakd50'(work_dir/campaign_gates_enabled.txt) 이 s1 에서 J0-1234 완료 → λE 고정 → stage 2 config 생성·실행을 잇는다. s2/s3 는 git pull 뒤 stage 2 큐를 campaign_start 로 잇는다.\n"
-                        f"# 예산: 서버당 학습 46h(+감사 4h) — {LEDGER} (run 마다 gate); 46h 이후 새 run 시작 금지는 gate 의 admission 이 본다. 약명→세팅은 config 머리 주석 / {NOTE}\n" + "\n".join(made) + "\n")
+                f.write(f"# PAKD50 {srv} (seed {SERVER_SEED[srv]}) stage {a.stage} — {PLAN} §9.4/§9.6/§11.2. 큐에는 {'J0 (P0 · s1 은 λE pilot 겸함)' if a.stage == 1 else 'JQ (DONE 뒤 재진입용)'} 만 둔다.\n"
+                        f"# 나머지는 매 pass 조건부 gate 'pakd50'(work_dir/campaign_gates_enabled.txt) 이 우선순위 {' → '.join(PRIORITY)} 로 편성한다: λE(J0 S1234 exact50K pilot → tools/pakd50_calibrate.py, {ASSET_CAL_PATH} 사본) 가 없으면 τR 만 필요한 다음 한 벌, 있으면 남은 전부.\n"
+                        f"# 예산: 공통 절대 시계 {CLOCK_PATH} (학습 마감 = start+46h, 감사 +4h) — 예상 종료가 마감을 넘기는 run 은 시작하지 않는다 ({LEDGER} 50h/4h). 약명→세팅은 config 머리 주석 / {NOTE}\n"
+                        + "\n".join(run_name(c, SERVER_SEED[srv], a.version) for c in QUEUE_STAGE[a.stage]) + "\n")
             print("queue:", os.path.relpath(q, ROOT))
         print(f"[{srv}] " + " ".join(made))
     sha, step = t0_identity(servers[0]); print("T0:", T0_RUN, T0_TAG, "step", step, "sha", (sha or "?")[:16], "| calibration:", {k: cal.get(k) for k in ("tau_R", "lambda_E")})

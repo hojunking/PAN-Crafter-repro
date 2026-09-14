@@ -47,6 +47,9 @@ def main():
         print(f"[cal] λE = {cal['lambda_E']:.6g} (pilot {prun}/last sha {pman['file_sha256'][:16]})")
     os.makedirs(os.path.dirname(OUT), exist_ok=True); cal["updated"] = time.strftime("%Y-%m-%dT%H:%M:%S"); json.dump(cal, open(OUT, "w"), indent=1, ensure_ascii=False, default=str)
     print("  ->", os.path.relpath(OUT, ROOT), {k: cal.get(k) for k in ("tau_R", "lambda_E")})
+    if srv == "s1":                                                      # 사본 mirror — s2/s3 는 pull 뒤 gen_pakd50_configs.calibration() 이 여기서 λE 를 받는다 (저장소 반영은 사람이)
+        ap_ = os.path.join(ROOT, G.ASSET_CAL_PATH); os.makedirs(os.path.dirname(ap_), exist_ok=True); json.dump(cal, open(ap_, "w"), indent=1, ensure_ascii=False, default=str)
+        print("  -> mirror", G.ASSET_CAL_PATH, "(s2/s3 전달용 — 저장소에 반영할 것)")
 
 
 if __name__ == "__main__":
