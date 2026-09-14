@@ -1,0 +1,37 @@
+{
+ "init_hashes": {
+  "unet_init_sha256_16": "881bdb65878c2e05",
+  "unet_init_file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_kdv_init_w112_d123/init_unet_seed2025.pt",
+  "aligner_init_sha256_16": "fccd6a265d243e2c",
+  "aligner_init_file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_kdv_init_w112_d123/init_aligner_seed2025.pt",
+  "seed": 2025
+ },
+ "donor": {
+  "source": "work_dir/PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT/last",
+  "resolved_file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT/last/model.safetensors",
+  "file_sha256": "9d4cbf218cd8f6743942115e882d87d664d663935a1a1ba295a9903e27f3f816",
+  "aligner_tensors_sha256_16": "db638b55c62f8c62",
+  "n_params": 105330,
+  "n_keys": 22,
+  "expected_sha256": "9d4cbf218cd8f6743942115e882d87d664d663935a1a1ba295a9903e27f3f816",
+  "expected_match": true,
+  "donor_step": 50000
+ },
+ "teacher": null,
+ "aligner_hash0": "db638b55c62f8c62",
+ "reference_aligner": {
+  "source": "work_dir/PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT/last",
+  "resolved_file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT/last/model.safetensors",
+  "file_sha256": "9d4cbf218cd8f6743942115e882d87d664d663935a1a1ba295a9903e27f3f816",
+  "aligner_tensors_sha256_16": "db638b55c62f8c62",
+  "n_params": 105330,
+  "n_keys": 22,
+  "expected_sha256": "9d4cbf218cd8f6743942115e882d87d664d663935a1a1ba295a9903e27f3f816",
+  "expected_match": true,
+  "donor_step": 50000,
+  "copied_from": "training_donor"
+ },
+ "reference_view_margin": 4,
+ "teacher_hash0": null,
+ "share_correction": false
+}

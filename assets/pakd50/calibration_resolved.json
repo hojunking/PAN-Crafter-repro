@@ -1,0 +1,50 @@
+{
+ "campaign_id": "PAKD50_W112D123_WV3_20260914_v1",
+ "package": "T0",
+ "max_train_patches": 3072,
+ "seed": 1234,
+ "batch": 48,
+ "geometric_augmentation": false,
+ "patch_manifest": {
+  "dataroot": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5",
+  "n_patches": 3072,
+  "dataset_len": 9714,
+  "seed": 1234,
+  "batch_size": 48,
+  "augmentation": "none",
+  "index_sha256_16": "02122e2554783774",
+  "first_indices": [
+   0,
+   1,
+   5,
+   6,
+   11,
+   13,
+   16,
+   20
+  ]
+ },
+ "patch_manifest_sha256": "aa2b4f9bc29aea898019418999833478bfb602e6e52facdb3f25f06db29d76af",
+ "tau_R": 0.012463942170143127,
+ "tau_source": {
+  "teacher_run": "PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1",
+  "tag": "best_hqnr",
+  "file_sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+  "tensors_sha256_16": "7d9b52112797bbff",
+  "selected_update": 24240,
+  "e_T_quantiles": {
+   "p10": 0.0043775588274002075,
+   "p25": 0.007004748098552227,
+   "p50": 0.012463942170143127,
+   "p75": 0.022851726040244102,
+   "p90": 0.03858726024627686,
+   "p99": 0.09336926825344583,
+   "mean": 0.018384340964221823,
+   "n": 12582912
+  },
+  "rule": "median e_T over calibration patches, floor 1e-6 (§5.1)"
+ },
+ "tau_computed_at": "2026-09-14T13:13:05",
+ "tau_server": "s1",
+ "updated": "2026-09-14T13:13:05"
+}

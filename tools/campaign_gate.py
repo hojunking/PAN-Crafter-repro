@@ -331,9 +331,46 @@ def gate_na104_20h():
         emit(tag, f"NA104-20H[{srv}] 조건부 (Q36 pass={d['q36']['passed']}, Q12 pass={d['q12']['passed']}, used {d['budget']['used_hours']:.2f}h/20)")
 
 
+# ================================================================= PAKD50 통합 캠페인 (s1·s2·s3, 2026-09-14)
+def gate_pakd50():
+    """계획 §5.3·§9.4: stage 1(J0/F0/JR/FR) 뒤 — s1 에서 J0 seed1234 exact50K 가 끝나면 λE 를 고정(tools/pakd50_calibrate.py --lambda-e) 하고 stage 2 config(JQ/FQ/XJ) 를 만들어 연다.
+    s2/s3 는 git pull 로 받은 stage 2 config 가 있을 때만 연다(λE 는 s1 이 고정한 숫자). admission: 서버 ledger 의 경과 + 예상 ≤ 46h."""
+    if ROOT not in sys.path:
+        sys.path.insert(0, ROOT)
+    from tools import gen_pakd50_configs as G
+    srv = open(os.path.join(ROOT, "gspread", "server.txt")).read().strip(); seed = G.SERVER_SEED.get(srv)
+    if seed is None:
+        log(f"PAKD50: 서버 {srv} 의 seed block 없음 — 닫힘"); return
+    cal = G.calibration()
+    if not cal.get("lambda_E"):
+        if srv != "s1":
+            log("PAKD50: λE 미고정 (s1 의 J0-1234 pilot 뒤 git pull) — stage 2 닫힘"); return
+        pilot = G.pilot_run()
+        if not complete(pilot):
+            log(f"PAKD50: pilot {pilot} 미완 — λE 고정 대기"); return
+        r = subprocess.run([PY, os.path.join(ROOT, "tools", "pakd50_calibrate.py"), "--lambda-e", "--server", "s1"], cwd=ROOT, capture_output=True, text=True)
+        for line in (r.stdout + r.stderr).splitlines()[-4:]:
+            log(line)
+        cal = G.calibration()
+        if r.returncode != 0 or not cal.get("lambda_E"):
+            log("PAKD50: λE 고정 실패 — stage 2 닫힘"); return
+        r2 = subprocess.run([PY, os.path.join(ROOT, "tools", "gen_pakd50_configs.py"), "--all", "--stage", "2"], cwd=ROOT, capture_output=True, text=True); log("PAKD50: stage 2 config 생성 " + ("OK" if r2.returncode == 0 else "FAIL " + r2.stderr[-200:]))
+    # admission (§11.2): 경과(ledger start) + 남은 stage 2 run × 예상 ≤ 46h
+    lp = os.path.join(ROOT, "work_dir", "_pakd50", "ledger.json"); led = json.load(open(lp)) if os.path.exists(lp) else {}
+    import time as _t
+    t0 = led.get("start"); elapsed = ((_t.time() - _t.mktime(_t.strptime(t0[:19], "%Y-%m-%dT%H:%M:%S"))) / 3600.0) if t0 else 0.0
+    est = float(led.get("measured_run_hours") or 4.0); todo = [G.run_name(c, seed) for c in G.STAGE2 if not terminal(G.run_name(c, seed))]
+    need = elapsed + 1.1 * est * len(todo)
+    if need > 46.0:
+        log(f"PAKD50: admission STOP — 경과 {elapsed:.1f}h + {len(todo)}×{est:.1f}×1.1 = {need:.1f} > 46h"); todo = todo[:max(0, int((46.0 - elapsed) / (1.1 * est)))]
+    for tag in todo:
+        emit(tag, f"PAKD50 stage 2 (λE {cal.get('lambda_E'):.4g}, τR {cal.get('tau_R'):.4g}; 경과 {elapsed:.1f}h)")
+
+
 GATES = {"uvs": ("gate_uvs", "UVS-KD (2026-09-01 s2)"), "sr": ("gate_sr", "shift-robust (SR/AF)"),
          "s2cal": ("gate_s2_calibrate", "s2 uncertainty calibration"), "s2gtvar": ("gate_s2_gtvar", "s2 GT-variance KD"),
-         "pals24": ("gate_pals24", "PALS24 λ_off sweep stage 2 (s1, 2026-09-12)"), "na104_20h": ("gate_na104_20h", "NA104 20H 우선순위 조건부 CF01/X02 (s2·s3, 2026-09-13)")}
+         "pals24": ("gate_pals24", "PALS24 λ_off sweep stage 2 (s1, 2026-09-12)"), "na104_20h": ("gate_na104_20h", "NA104 20H 우선순위 조건부 CF01/X02 (s2·s3, 2026-09-13)"),
+         "pakd50": ("gate_pakd50", "PAKD50 통합 캠페인 stage 2 (λE 고정 뒤 JQ/FQ/XJ; s1·s2·s3, 2026-09-14)")}
 
 
 def enabled_gates():

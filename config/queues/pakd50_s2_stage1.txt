@@ -1,0 +1,7 @@
+# PAKD50 s2 (seed 777) stage 1 — research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md §9.4/§9.5. stage 1: J0 → F0 → JR → FR (τR 만) · stage 2: JQ → FQ → XJ (λE = J0 S1234 exact50K pilot, tools/pakd50_calibrate.py 로 고정 뒤 생성)
+# 조건부 gate 'pakd50'(work_dir/campaign_gates_enabled.txt) 이 s1 에서 J0-1234 완료 → λE 고정 → stage 2 config 생성·실행을 잇는다. s2/s3 는 git pull 뒤 stage 2 큐를 campaign_start 로 잇는다.
+# 예산: 서버당 학습 46h(+감사 4h) — work_dir/_pakd50_budget/ledger.json (run 마다 gate); 46h 이후 새 run 시작 금지는 gate 의 admission 이 본다. 약명→세팅은 config 머리 주석 / research_log/2026-09-14_pakd50-implementation.md
+PAKD50_J0_W112_D123_WV3_T0_S777_FRESH50_v1
+PAKD50_F0_W112_D123_WV3_T0_S777_FRESH50_v1
+PAKD50_JR_W112_D123_WV3_T0_S777_FRESH50_v1
+PAKD50_FR_W112_D123_WV3_T0_S777_FRESH50_v1
