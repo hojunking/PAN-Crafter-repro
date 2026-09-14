@@ -81,4 +81,9 @@ s1 의 실행(23:07 기동) 은 그대로 두었다 — 같은 checkpoint·같�
 원인: block(32 연속 index 의 proxy) 하나의 sample 이 4 Aneg cell 전부에 흩어져 있는데(cell 당 64 block 전부 등장, block·cell 당 평균 7.6 sample), 종전 코드는 **cell 마다** 전체 block 으로 pool 을 채워 같은 block 이 여러 cell 의 pool 에 들어갔다 —
 E11 fixture 가 단일 cell 이라 잡지 못했다. 수정: block 을 먼저 pool 을 만들 수 있는 cell(≥32 sample) 에 **배타적으로 배정**(seed 로 섞고 누적 sample 이 가장 적은 cell 에) 한 뒤 cell 안에서 자기 block 의 sample 로만 pool 을 채운다(계획 §12.2 "fit-pool/source 묶음 분할" 그대로; 감사 Q02).
 실제 표(Pair A, B split 2048): 4 cell 이 자격, 9 pool(EdCd 3(하나는 35 cycled)·EdCu 2·EuCd 2·EuCu 2), 55 block 전부 서로 다름, pool 에 든 sample 419/2048 — 다른 cell 에 있는 block 의 sample 은 버린다(그래서 cell 당 ≤4 가 아니라 2–3 pool). E11 에 다중 cell fixture 추가(ALL OK).
-runner 는 02:1x 재기동 — 완료 stage 는 ledger+산출물 검사로 건너뛰고 K10 부터.
+runner 는 02:00 재기동 — 완료 stage 는 ledger+산출물 검사로 건너뛰고 K10 부터.
+
+**02:05 K10 2차 수정.** 1차 수정의 배정 규칙(누적 sample 이 가장 적은 cell 에 block) 은 Pair A 에서는 9 pool 이었지만 **Pair B 에서 pool 0** 이었다 — Pair B 는 큰 Apos 4 cell(447–539) 과 자격(≥32) 은 있으나 block 당 0.5 sample 인 작은 Aneg 2 cell(38·34) 인데,
+작은 cell 이 누적 sample 이 늘지 않아 block 을 계속 받아 64 block 을 다 삼키고도 pool 을 못 만들었다. K10 은 그 상태로 "done" 이 됐고 K20 이 시작돼 runner·K20 을 멈췄다(02:05; run 1 의 K10/K20 산출물은 `_run1_badpools_k10_k20/` 에 보존).
+새 규칙: **pool 단위 round-robin** — 매 round 에 pool 수가 적은 cell 부터(동률이면 block 당 기대 sample 큰 cell 부터) 다음 pool 을 채울 만큼 block 을 주고, 남은 block 으로 못 채우는 cell(기대 수율 n_c/64) 은 건너뛴다. 실제 표: Pair A 9 pool(EdCu 3·EuCd 2·EdCd 2·EuCu 2, 432 sample, 62 block), Pair B 9 pool(EdCu_Apos 3·EuCd/EdCd/EuCu_Apos 2, Aneg 소 cell 0, 63 block); 모두 48 고유, block 전역 분리.
+E11 에 Pair B 형 불균형 fixture 추가. runner 02:12 재기동(K10 부터).

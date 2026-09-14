@@ -91,35 +91,50 @@ def cells_for_pair(pair, T, S, man):
 
 
 def fit_pools(dfB, seed):
-    """pool 을 **source block 단위**로 만든다 (감사 Q02: pool 간 source 공유 없음 → LOO/K20 수축이 source 분리). 한 block 은 **전체에서 한 pool 에만** —
-    block 은 32 연속 index 의 proxy 라 그 sample 이 여러 cell 에 흩어져 있으므로, 먼저 block 을 pool 을 만들 수 있는 cell(≥32 sample) 들에 **배타적으로 배정**(seed 로 섞은 뒤,
-    누적 sample 이 가장 적은 cell 에) 하고, cell 안에서는 자기 block 의 sample 로만 48 짜리 pool 을 최대 TRIALS 개 채운다. 다른 cell 에 있는 그 block 의 sample 은 쓰지 않는다
-    (2026-09-15 02:00 수정: 전에는 cell 마다 전체 block 을 다시 썼고 전역 분리 assert 가 실제 자료(한 block 이 4 cell 에 걸침) 에서 실패했다).
-    48 을 넘는 마지막 block 의 나머지는 버린다(다른 pool 에 가지 않음). 32 ≤ 나머지 < 48 이면 cycled pool 하나."""
+    """pool 을 **source block 단위**로 만든다 (감사 Q02: pool 간 source 공유 없음 → LOO/K20 수축이 source 분리). 한 block 은 **전체에서 한 pool 에만**.
+    block 은 32 연속 index 의 proxy 라 그 sample 이 여러 cell 에 흩어져 있으므로 block 을 cell 에 **배타적으로 배정**하고, cell 안에서는 자기 block 의 sample 로만 48 짜리 pool 을 최대 TRIALS 개 채운다
+    (계획 §12.2 fit-pool/source 묶음 분할). 배정은 **pool 단위 round-robin**: 매 round 에 pool 수가 적은 cell 부터(동률이면 block 당 기대 sample 이 큰 cell 부터) 다음 pool 을 채울 만큼 block 을 준다 —
+    남은 block 으로 그 pool 을 채울 수 없는 cell(기대 수율 n_c/#block 기준) 은 건너뛴다. 그래서 sample 이 많은 cell 은 TRIALS 까지, 작은 cell 은 가능한 만큼만 pool 을 얻고,
+    block 당 1 sample 도 안 되는 cell 이 block 을 삼켜 큰 cell 을 굶기지 않는다 (2026-09-15 02:00 첫 수정(누적 sample 최소 cell 에 배정) 은 Pair B 에서 작은 Aneg cell 이 block 을 다 가져가 pool 0 이었다).
+    다른 cell 에 있는 그 block 의 sample 은 쓰지 않는다. 48 을 넘는 마지막 block 의 나머지는 버린다(다른 pool 에 가지 않음). 32 ≤ 나머지 < 48 이면 cycled pool 하나."""
     rng = np.random.RandomState(seed); pools = []
-    eligible = [c for c, g in dfB.groupby("cell") if len(g) >= 32]
-    blocks = sorted(dfB.source_group_id.unique().tolist()); rng.shuffle(blocks)
-    owner, acc = {}, {c: 0 for c in eligible}; size = dfB.groupby(["cell", "source_group_id"]).size()
-    for b in blocks:                                                          # 배타 배정: 누적 sample 이 가장 적은 cell (동률이면 cell 이름 순)
-        if not eligible:
+    eligible = sorted(c for c, g in dfB.groupby("cell") if len(g) >= 32)
+    blocks = sorted(dfB.source_group_id.unique().tolist()); rng.shuffle(blocks); n_blocks = len(blocks); ptr = 0
+    size = dfB.groupby(["cell", "source_group_id"]).size(); n_cell = dfB.groupby("cell").size(); yield_c = {c: float(n_cell[c]) / max(1, n_blocks) for c in eligible}
+    rows_of = {(c, b): g.index.values.copy() for (c, b), g in dfB.groupby(["cell", "source_group_id"]) if c in eligible}
+    cur = {c: [] for c in eligible}; cur_blocks = {c: [] for c in eligible}; count = {c: 0 for c in eligible}; exhausted = {c: False for c in eligible}
+    def emit(c, cycled):
+        r = cur[c] if cycled else cur[c][:POOL]
+        pools.append(dict(cell=c, trial=count[c], rows=np.array(r), n_unique=int(len(r)), cycled=bool(cycled), source_blocks=list(cur_blocks[c]), dropped_from_last_block=int(0 if cycled else len(cur[c]) - POOL)))
+        cur[c], cur_blocks[c] = [], []; count[c] += 1
+    while True:
+        progressed = False
+        for c in sorted(eligible, key=lambda cc: (count[cc], -yield_c[cc], cc)):
+            if count[c] >= TRIALS or exhausted[c] or ptr >= n_blocks:
+                continue
+            need = int(np.ceil((POOL - len(cur[c])) / max(yield_c[c], 1e-9)))
+            if need > n_blocks - ptr:                                         # 남은 block 으로 이 pool 을 못 채운다 (기대 수율) — 이 cell 은 더 받지 않는다
+                exhausted[c] = True; continue
+            while len(cur[c]) < POOL and ptr < n_blocks:
+                b = blocks[ptr]; ptr += 1; rws = rows_of.get((c, b))
+                if rws is None or len(rws) == 0:                              # 이 block 에 이 cell 의 sample 이 없다 — block 은 소비된다(다른 cell 에 주지 않음: 배타 배정 유지)
+                    continue
+                cur[c].extend(rws.tolist()); cur_blocks[c].append(str(b))
+            if len(cur[c]) >= POOL:
+                emit(c, cycled=False); progressed = True
+            else:
+                exhausted[c] = True
+        if not progressed:
             break
-        c = min(eligible, key=lambda cc: (acc[cc], cc)); owner[b] = c; acc[c] += int(size.get((c, b), 0))
-    for cell, g in dfB.groupby("cell"):
-        mine = [b.index.values.copy() for bid, b in g.groupby("source_group_id") if owner.get(bid) == cell]; rng.shuffle(mine); cur, cur_blocks, k = [], [], 0
-        for blk in mine:
-            if k >= TRIALS:
-                break
-            cur.extend(blk.tolist()); cur_blocks.append(str(g.loc[blk[0], "source_group_id"]))
-            if len(cur) >= POOL:
-                pools.append(dict(cell=cell, trial=k, rows=np.array(cur[:POOL]), n_unique=POOL, cycled=False, source_blocks=list(cur_blocks), dropped_from_last_block=int(len(cur) - POOL))); cur, cur_blocks = [], []; k += 1
-        if k < TRIALS and 32 <= len(cur) < POOL:
-            pools.append(dict(cell=cell, trial=k, rows=np.array(cur), n_unique=int(len(cur)), cycled=True, source_blocks=list(cur_blocks), dropped_from_last_block=0))
+    for c in eligible:
+        if count[c] < TRIALS and 32 <= len(cur[c]) < POOL:
+            emit(c, cycled=True)
     used = {}
     for p in pools:
         for b in p["source_blocks"]:
             assert b not in used, f"source block {b} shared across pools ({used[b]} / {(p['cell'], p['trial'])})"; used[b] = (p["cell"], p["trial"])
     n_used = sum(len(p["rows"]) for p in pools); per_cell = {c: sum(1 for p in pools if p["cell"] == c) for c in eligible}
-    print(f"[k10] fit_pools: cells eligible {len(eligible)}/{dfB.cell.nunique()} · blocks {len(blocks)} exclusively assigned · pools {len(pools)} {per_cell} · samples in pools {n_used}/{len(dfB)}")
+    print(f"[k10] fit_pools: cells eligible {len(eligible)}/{dfB.cell.nunique()} · blocks {n_blocks} (consumed {ptr}) exclusively assigned · pools {len(pools)} {per_cell} · samples in pools {n_used}/{len(dfB)}")
     return pools
 
 

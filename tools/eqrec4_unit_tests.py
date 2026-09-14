@@ -62,5 +62,11 @@ poolsM = fit_pools(pM, 1); bM = [b for p in poolsM for b in p["source_blocks"]];
 check("E11 다중 cell(block 이 4 cell 에 걸침): 전역에서 block 공유 없음 · 4 cell 모두 pool 있음 · <32 sample cell 은 제외 · pool 의 row 는 자기 cell 의 자기 block 뿐",
       len(bM) == len(set(bM)) and cellsM == {"EdCd_Aneg", "EdCu_Aneg", "EuCd_Aneg", "EuCu_Aneg"} and "EdCd_Apos" not in cellsM
       and all((pM.loc[p["rows"], "cell"] == p["cell"]).all() and set(pM.loc[p["rows"], "source_group_id"]) <= set(p["source_blocks"]) for p in poolsM) and len(poolsM) >= 8, f"pools {len(poolsM)} cells {sorted(cellsM)}")
+# Pair B 형태(2026-09-15 02:04 실패 재현): 큰 cell 4 + 자격은 있으나 block 당 <1 sample 인 작은 cell 2 → 작은 cell 이 block 을 삼키지 않고 큰 cell 이 pool 을 얻는다
+pI = pd.DataFrame(dict(source_group_id=[f"blk{i // 32:03d}" for i in range(2048)], e_T=_rng.rand(2048), a_T=_rng.rand(2048), q_A=_rng.rand(2048)))
+pI["cell"] = _rng.choice(["EdCu_Apos", "EuCd_Apos", "EdCd_Apos", "EuCu_Apos", "EdCu_Aneg", "EuCu_Aneg"], size=2048, p=[.26, .24, .23, .22, .026, .024])
+poolsI = fit_pools(pI, 1); bI = [b for p in poolsI for b in p["source_blocks"]]; perI = {c: sum(1 for p in poolsI if p["cell"] == c) for c in pI.cell.unique()}
+check("E11 불균형(큰 4 cell + 수율 <1/block 인 작은 cell): 큰 cell 마다 ≥2 pool · 작은 cell 0 · 전역 block 분리 · 전부 48 고유", all(perI[c] >= 2 for c in ("EdCu_Apos", "EuCd_Apos", "EdCd_Apos", "EuCu_Apos")) and perI.get("EdCu_Aneg", 0) == 0 == perI.get("EuCu_Aneg", 0)
+      and len(bI) == len(set(bI)) and all(p["n_unique"] == 48 and not p["cycled"] for p in poolsI), str(perI))
 bb = C.block_bootstrap(np.r_[np.ones(50), -np.ones(50)] * 0.1 + np.random.randn(100) * 0.01, np.repeat(np.arange(10), 10)); check("E10 block bootstrap: 평균 ≈ 0, CI 가 0 을 포함, n_groups 10", abs(bb["point"]) < 0.05 and bb["ci95"][0] < 0 < bb["ci95"][1] and bb["n_groups"] == 10)
 print(f"\n{'FAIL ' + str(FAIL) if FAIL else 'ALL OK'} ({len(FAIL)} failed)"); sys.exit(1 if FAIL else 0)
