@@ -64,3 +64,5 @@ Teacher T0 = PALS24 L1E4 seed 2025 best_raw(step 24240) 의 A+U; Student 는 그
 | 마감 | 공통 시계 `assets/pakd50/campaign_clock.json`: start 13:22:31 · 학습 마감 09-16 11:22:31 · 최종 15:22:31 — 체인·trainer·gate 가 같은 절대 시각(재기동으로 늘지 않음) |
 | J0 진행 | 14:04 iter 18,000/50,000 (예상 완료 ≈ 15:20, 그 직후 λE 고정 → JQ) |
 | s2/s3 | pull 뒤 `./tools/pakd50_prepare.sh`. λE 는 `assets/pakd50/calibration_resolved.json` 사본으로 전달 — pull 만으로 다음 pass 에 JQ 가 열린다 |
+| λE 고정 (15:29) | J0-1234 exact50K(last, sha 82735386…) 에서 gate 가 λE = **0.0907517**(r_grad 0.05 × output-gradient RMS 비, τR 0.012464 그대로) 를 고정하고 `assets/pakd50/calibration_resolved.json` 사본에 mirror. 세 서버 stage 2 config 생성 → JQ-1234 15:29:44 시작. J0-1234 최종은 이 문서의 후속(09-15 s1 문서)에서 |
+| s5 (16:30) | 배정 `research_log/PAN_S5_Timing_Routing_Experiment_Plan_2026-09-14.md` 반영: trainer 에 A 동결 일정·loss 별 A 수신 경로 구현(기본값이면 J 와 동일; K10–K12 + kdv/nf16/pals24 gate 통과, D0/PR GPU smoke OK). s1 의 JQ-1234 는 15:29 코드로 시작했고 그 다음 run 부터 새 코드(수치 경로 동일) |

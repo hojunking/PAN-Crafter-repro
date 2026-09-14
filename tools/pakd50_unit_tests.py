@@ -132,6 +132,70 @@ check("K09 s4 remaining_mandatory = J0/JQ/AL0/ALQ 중 자기 제외", G.kdv_bloc
 ex = ["J_QA05", G.run_name("JQ", 3407), "J_QA05"]
 check("K09 추가 편성: case id 와 전체 run 이름 혼용, 기본 묶음 뒤·중복 제거; λE 없으면 λE case 는 미편성", G.schedule(True, term({"J0", "JQ", "AL0", "ALQ"}), 40.0, 1.9, priority=G.priority_for("s4"), extra=ex) == (["J_QA05", G.run_name("JQ", 3407)], []) and G.schedule(False, term({"J0", "AL0"}), 40.0, 1.9, priority=G.priority_for("s4"), extra=ex) == ([], []))
 check("K09 to_tag/case_of", G.to_tag("J_QA05", 3407) == G.run_name("J_QA05", 3407) and G.case_of(G.run_name("AL_QE10", 3407)) == "AL_QE10" and G.case_of("JQ") == "JQ")
+# ---------------- K10–K12 s5 timing/routing (research_log/PAN_S5_Timing_Routing_Experiment_Plan_2026-09-14.md §4–§6, §10.2–10.4; S5-G02/G03/G05/G06/G07)
+import types
+from train_kdv import KDVTrainer
+def _res(kk):
+    try:
+        resolve(kk); return True
+    except ValueError:
+        return False
+base5 = G.kdv_block("JQ", 2026, "s5", cal=cal4); sp5 = resolve(base5)
+check("K10 registry: aligner_schedule/routing 기본값은 J 와 같다 (None, (1,1,1))", sp5["aligner_freeze_until"] is None and sp5["aligner_freeze_from"] is None and tuple(sp5["route_A"]) == (1.0, 1.0, 1.0))
+_bad5 = [dict(base5, aligner_schedule=dict(freeze_until=5000, freeze_from=100)), dict(base5, aligner_schedule=dict(warm=1)), dict(base5, aligner_schedule=dict(freeze_until=-1)),
+         dict(base5, routing=dict(qX=0)), dict(base5, routing=dict(qD=2.0)), dict(G.kdv_block("J0", 2026, "s5", cal=cal4), routing=dict(qD=0.0)), dict(G.kdv_block("JR", 2026, "s5", cal=cal4), routing=dict(qK=0.0)),
+         dict(G.kdv_block("JR", 2026, "s5", cal=cal4), routing=dict(qE=0.0)), dict(G.kdv_block("FQ", 2026, "s5", cal=cal4), routing=dict(qD=0.0)), dict(G.kdv_block("FQ", 2026, "s5", cal=cal4), aligner_schedule=dict(freeze_until=5000))]
+check("K10 registry 거부(S5-G07): 순서 역전·알 수 없는 키·음수·qX·범위 밖·N0 위 qD·R1 위 qK·edge 없는 qE·A-FR 위 routing/schedule (10 건 전부 ValueError)", all(not _res(b) for b in _bad5))
+d0, dq, pq, px, lfq, jk0, je0, dpq = (G.kdv_block(c, 2026, "s5", cal=cal4) for c in ("D0", "DQ", "PQ", "PX", "LFQ", "JK0", "JE0", "DPQ"))
+check("K11 D0/DQ: freeze_until 5000 · routing 없음 · A LR 1e-5 · 계수 JQ 와 같음 · control D0", d0["aligner_schedule"] == dict(freeze_until=5000) and "routing" not in d0 and dq["aligner_lr"] == 1e-5 and dq["rec"]["kd_weight"] == 0.1 and dq["baseline_run"] == G.run_name("D0", 2026))
+check("K11 PQ: qD=qK=qE=0 · 일정 없음 · control J0 | PX(X02): qK 없음 | JK0: qK=0 만 | JE0: qE=0 만 | DPQ: 일정+routing", pq["routing"] == dict(qD=0.0, qK=0.0, qE=0.0) and "aligner_schedule" not in pq and pq["baseline_run"] == G.run_name("J0", 2026)
+      and px["routing"] == dict(qD=0.0, qE=0.0) and jk0["routing"] == dict(qK=0.0) and je0["routing"] == dict(qE=0.0) and dpq["aligner_schedule"] == dict(freeze_until=5000) and dpq["routing"]["qD"] == 0.0)
+check("K11 LFQ: freeze_from 25000 · s5 seed 2026 · 기본 묶음 J0→JQ→D0→DQ→PQ · stage 1 = J0/D0 · s5 case 전부 registry 통과", lfq["aligner_schedule"] == dict(freeze_from=25000) and G.SERVER_SEED["s5"] == 2026 and G.priority_for("s5") == ["J0", "JQ", "D0", "DQ", "PQ"]
+      and G.stage_cases("s5", 1) == ["J0", "D0"] and all(_res(G.kdv_block(c, 2026, "s5", cal=cal4)) for c in ("D0", "DQ", "DR", "DX", "PQ", "PR", "PX", "DPQ", "DPX", "LF0", "LFQ", "JK0", "JE0")))
+def _stub(case, seed_gen=3234):        # 실제 KDVTrainer._step 을 CPU 에서 (감사 verify_readonly.py 와 같은 방식). Student = T0 복사 + U 에 작은 잡음 (e_S ≠ e_T 라 soft 항이 살아 있게)
+    tr = object.__new__(KDVTrainer); tr.k = G.kdv_block(case, 2026, "s5", cal=cal4); sp_ = tr.spec = resolve(tr.k)
+    tr.model = copy.deepcopy(T0).train().requires_grad_(True)
+    with torch.no_grad():
+        for p_ in tr.model.backbone.parameters():
+            p_.add_(0.01 * torch.randn(p_.shape, generator=torch.Generator().manual_seed(7)))
+    tr.accelerator = types.SimpleNamespace(unwrap_model=lambda m: m, gradient_accumulation_steps=1, scaler=None, is_main_process=True)
+    tr.teacher = T0; tr.aligner_trainable = sp_["aligner_trainable"]; tr.aligner_view_margin = 4; tr.share_correction = False
+    tr.protocol = sp_["protocol"]; tr.radius_hr = sp_["radius_hr"]; tr.diag_every = 1000
+    tr.rec_crit = (GTAnchoredReconstructionKD(cal4["tau_R"], alpha=float(tr.k["rec"].get("alpha", 1.0)), kd_weight=float(tr.k["rec"].get("kd_weight", 0.0)), eps=1e-6, mode=sp_["rec_mode"]) if sp_["rec_case"] != "N0" else None)
+    tr.tri = sp_["tri"]; tr.stat_extra = []; tr.lam_V = (cal4["lambda_E"] if sp_["stat_enabled"] else 0.0); tr.stat_ramp = 0; tr.lam_edge = 0; tr.lam_geo = 0; tr.ramp = 5000; tr.lam_gkd = 0
+    tr.gen = torch.Generator().manual_seed(seed_gen); tr.corr_seed = seed_gen; tr._ema = {}; tr._rr_val_last = float("nan"); tr.args = types.SimpleNamespace(num_iter=50000)
+    tr.freeze_until, tr.freeze_from = sp_["aligner_freeze_until"], sp_["aligner_freeze_from"]; tr.route_A = tuple(sp_["route_A"]); tr._routed = any(q != 1.0 for q in tr.route_A); tr._sched_last = None
+    return tr
+g5 = torch.Generator().manual_seed(11)
+inp5 = (torch.rand(2, 8, 64, 64, generator=g5), torch.rand(2, 8, 16, 16, generator=g5), torch.rand(2, 1, 16, 16, generator=g5), torch.rand(2, 1, 64, 64, generator=g5))   # gt, ms, lpan, pan
+def _grads(loss, params):
+    return [x if x is not None else torch.zeros_like(p) for x, p in zip(torch.autograd.grad(loss, params, retain_graph=True, allow_unused=True), params)]
+def _routed(case, keep):               # keep = (LD, LK, LEw) 중 A 가 그대로 받는 항
+    tr = _stub(case); total, info = tr._step(*inp5, 1)                   # update 1 (odd): offset 연습 포함
+    ap = list(tr.M.aligner.parameters()); bp = list(tr.M.backbone.parameters())
+    l0, ld, lk, le, lo = info["_l0_t"], info["_rec_hard_t"] - info["_l0_t"], info["_rec_soft_t"], info["_edge_w_t"], float(info["lam_off"]) * info["loss_off"]
+    manual_A = l0 + lo + (ld if keep[0] else 0.0) + (lk if keep[1] else 0.0) + (le if keep[2] else 0.0)
+    want_A = _grads(manual_A, ap); want_U = _grads(total, bp); lkA = float(sum(w.abs().sum() for w in _grads(lk, ap)))   # graph 가 살아 있을 때 먼저 (routing 은 graph 를 해제한다)
+    total.backward(retain_graph=True); n = tr._apply_routing(info, tr.M)
+    ref = max(float(w.abs().max()) for w in want_A)
+    errA = max(float((p.grad - w).abs().max()) for p, w in zip(ap, want_A)); errU = max(float((p.grad - w).abs().max()) for p, w in zip(bp, want_U))
+    return errA, errU, n, ref, lkA
+eA, eU, n, ref, lkA = _routed("PQ", (False, False, False))
+check(f"K12 PQ(S5-G05): backward 뒤 routing → A 의 grad = ∇φ(L0 + λ_off L_O) (LD/LK/λE LE 는 A 에 없음), U 의 grad = ∇θ L_Q 전체, step 은 한 번 (max|Δ| A {eA:.1e}/ref {ref:.1e}, U {eU:.1e}; soft→A 원 gradient 합 {lkA:.2e})", eA <= 1e-5 * (1.0 + ref) and eU == 0.0 and n > 0 and lkA > 0)
+eA, eU, n, ref, _ = _routed("JK0", (True, False, True)); check(f"K12 JK0(S5-G06): A 는 L_K 만 제외 (max|Δ| {eA:.1e}/ref {ref:.1e})", eA <= 1e-5 * (1.0 + ref) and eU == 0.0)
+eA, eU, n, ref, _ = _routed("JE0", (True, True, False)); check(f"K12 JE0(S5-G06): A 는 λE L_E 만 제외 (max|Δ| {eA:.1e}/ref {ref:.1e})", eA <= 1e-5 * (1.0 + ref) and eU == 0.0)
+tJ = _stub("JQ"); check("K12 JQ(S5-G02): qA=(1,1,1) 이면 routing 비활성 · 일정 없음 → 기존 J 경로 그대로 (aligner_active 0/49999 True)", not tJ._routed and tJ.aligner_active(0) and tJ.aligner_active(49999))
+tD, tL = _stub("D0"), _stub("LF0")
+check("K12 D(S5-G03): aligner_active 4999 False / 5000 True / 49999 True · LF(S5-G04): 24999 True / 25000 False (0-based next update index)", (not tD.aligner_active(4999)) and tD.aligner_active(5000) and tD.aligner_active(49999) and tL.aligner_active(24999) and not tL.aligner_active(25000))
+tD.M.aligner.requires_grad_(False); tJ0 = _stub("J0")
+totD, infD = tD._step(*inp5, 4999); totJ, infJ = tJ0._step(*inp5, 4999); hA = state_hash(tD.M.aligner)
+optD = torch.optim.AdamW([dict(params=list(tD.M.backbone.parameters())), dict(params=list(tD.M.aligner.parameters()), lr=1e-5)], lr=1e-4, weight_decay=0.01); totD.backward(); optD.step()
+check("K12 동결 update 4999(odd; S5-G03/G08): offset 연습 생략(eq_exercise 0, L_O 0) · Δ 에 graph 없음 · U 는 학습 · AdamW step 뒤 A hash 불변(grad None → moment·WD 없음) · ε RNG 소비량은 J 와 같다",
+      infD.get("off_skipped_frozen") == 1.0 and float(infD["loss_off"]) == 0.0 and not infD["delta"].requires_grad and totD.requires_grad and infJ.get("eq_exercise") == 1.0 and state_hash(tD.M.aligner) == hA
+      and all(p.grad is None for p in tD.M.aligner.parameters()) and torch.equal(tD.gen.get_state(), tJ0.gen.get_state()))
+tD.M.aligner.requires_grad_(True); tot5, inf5 = tD._step(*inp5, 5001)
+check("K12 해제 뒤 update 5001(odd): offset 연습 재개, Δ 에 graph 있음, A 로 gradient 있음", inf5.get("eq_exercise") == 1.0 and inf5["delta"].requires_grad and any(x is not None and float(x.abs().sum()) > 0 for x in torch.autograd.grad(tot5, list(tD.M.aligner.parameters()), allow_unused=True)))
+del tD, tL, tJ, tJ0, totD, infD, totJ, infJ, tot5, inf5
 r0 = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "campaign_gate.py")], cwd=ROOT, capture_output=True, text=True, env={**os.environ, "PANCRAFTER_CAMPAIGN_GATES": ""})
 check("K05 campaign gate 기본 닫힘", r0.stdout.strip() == "")
 src = open(os.path.join(ROOT, "train_kdv.py")).read()

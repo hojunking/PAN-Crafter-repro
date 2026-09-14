@@ -68,7 +68,8 @@ DESC = {
  "PAKD50": ("[캠페인] PAKD50 통합 (raw HQNR 0.959–0.960 목표, 50h 병렬) · s1 seed 1234 / s2 777 / s3 2026 / s4 1234(s1 교차)+3407(확인) · 2026-09-14 · "
             "research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md (+ s4: PAN_S4_Integrated_Experiment_Cases_2026-09-14.md). "
             "Teacher T0 = PALS24_L1E4_…_S2025 best_hqnr 의 A+U(frozen); Student 는 T0 aligner 복사(J: 공동 적응 A LR 1e-5 / F: frozen / AL: A LR 3e-6) + 새 U-Net(W112·D123, seed 별 초기값). "
-            "case 토큰: J0/F0/AL0 = N0(GT L1) · JR/FR = R1(hard (1+αd)L1) · JQ/FQ/ALQ = Q12(R3 adaptive + GT edge λE) · XJ/XF = X02(R1 + edge) · J_QA05/QB005/QB02/QE025/QE10 = Q12 계수만(α 0.5 / β 0.05 / β 0.2 / λE×0.5 / λE×2). "
+            "case 토큰: J0/F0/AL0 = N0(GT L1) · JR/FR = R1(hard (1+αd)L1) · JQ/FQ/ALQ = Q12(R3 adaptive + GT edge λE) · XJ/XF = X02(R1 + edge) · J_QA05/QB005/QB02/QE025/QE10 = Q12 계수만(α 0.5 / β 0.05 / β 0.2 / λE×0.5 / λE×2) · "
+            "s5(seed 2026·확인 9091): D* = 0–4999 A 동결 · LF* = 25K 뒤 A 동결 · P* = A 는 L0+offset 만(U 는 backend 전체) · DP* = D+P · JK0/JE0 = A 로 가는 soft/edge 만 차단 (뒤 글자 0/Q/R/X = N0/Q12/R1/X02). "
             "τR·λE 는 공통 package assets/pakd50/calibration_resolved.json. 시트 HQNR = best_raw raw_original(주 판정, 후보 격자 GRID1010_50K_v1). X열 '통합실험' = PAKD50 / <case> / FRESH50."),
  "NA104": ("[캠페인] W104·D122 no-align KD · s2·s3 · Teacher seed 2025 / Student seed 1234(반복 2025·777) · 2026-09-11 · research_log/PAN_S2_W104_D122_NoAlign_KD_Experiment_Plan_2026-09-11.md. "
            "aligner 도 PAN warp 도 없는 동일 골격(2.0989 M)에서 'Teacher 가 남긴 복원·구조 오차를 GT 중심으로 더 fitting하는 KD' 만 본다 — 정합 연구(PA/PO10/NF16/KDV) 와 직접 대응하지 않는다. "

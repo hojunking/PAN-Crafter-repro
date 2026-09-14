@@ -15,10 +15,18 @@ from kdv.registry import resolve, describe
 CAMPAIGN_ID = "PAKD50_W112D123_WV3_20260914_v1"; PROTOCOL = "FRESH50"; GRID_ID = "GRID1010_50K_v1"
 PLAN = "research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md"; SUMMARY = "research_log/PAN_Integrated_Method_Summary_2026-09-14.md"; NOTE = "research_log/2026-09-14_pakd50-implementation.md"
 T0_RUN = "PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1"; T0_TAG = "best_hqnr"; T0_ASSET_DIR = "assets/pakd50/T0_run"      # s1 은 work_dir 원본, s2/s3 는 git 으로 받은 사본 (같은 layout: meta/config.yaml + best_hqnr/model.safetensors + best_hqnr_meta.json)
-SERVER_SEED = {"s1": 1234, "s2": 777, "s3": 2026, "s4": 1234}     # s4(2026-09-14 배정, research_log/PAN_S4_Integrated_Experiment_Cases_2026-09-14.md): 개발 seed 1234 = s1 과 같은 논리 run id 로 서버 교차(bridge); 독립 seed 가 아니다. 확인 seed 3407 은 --seed 로
+SERVER_SEED = {"s1": 1234, "s2": 777, "s3": 2026, "s4": 1234, "s5": 2026}     # s5(배정 research_log/PAN_S5_Timing_Routing_Experiment_Plan_2026-09-14.md): 탐색 seed 2026 = s3 교차(bridge), 확인 seed 9091 은 --seed 로     # s4(2026-09-14 배정, research_log/PAN_S4_Integrated_Experiment_Cases_2026-09-14.md): 개발 seed 1234 = s1 과 같은 논리 run id 로 서버 교차(bridge); 독립 seed 가 아니다. 확인 seed 3407 은 --seed 로
 LEDGER = "work_dir/_pakd50_budget/ledger.json"; TOTAL_HOURS = 50.0; RESERVE_HOURS = 4.0; MARGIN = 1.1; RUN_RESERVED_HOURS = 4.0     # 서버당 slot 1: 0–46h 학습, 46–50h 감사 (§9.1)
 CAL_PATH = "work_dir/_pakd50/calibration_resolved.json"                                                                            # tools/pakd50_calibrate.py 산출 (τR: T0, λE: J0 S1234 exact50K)
-POLICY = {"J": dict(pol="A-FT", proto="I-AEQ", off=1e-4, alr=1e-5), "F": dict(pol="A-FR", proto="I-NATIVE-TRANSFER", off=0.0, alr=1e-5), "AL": dict(pol="A-FT", proto="I-AEQ", off=1e-4, alr=3e-6)}
+POLICY = {"J": dict(pol="A-FT", proto="I-AEQ", off=1e-4, alr=1e-5), "F": dict(pol="A-FR", proto="I-NATIVE-TRANSFER", off=0.0, alr=1e-5), "AL": dict(pol="A-FT", proto="I-AEQ", off=1e-4, alr=3e-6),
+          # s5 timing/routing (배정 §4–§6; 상위 계획 §7.2–7.6): 계수·LR 은 J 와 같고 A 의 업데이트 시점·수신 경로만 다르다. kdv.aligner_schedule / kdv.routing (registry 가 미지원 조합을 거부)
+          "D": dict(pol="A-FT", proto="I-AEQ", off=1e-4, alr=1e-5, schedule=dict(freeze_until=5000)),                       # 0–4999 A 동결(LO 없음), 5000 부터 J
+          "LF": dict(pol="A-FT", proto="I-AEQ", off=1e-4, alr=1e-5, schedule=dict(freeze_from=25000)),                      # 0–24999 J, 25000 부터 A 동결(LO 없음)
+          "P": dict(pol="A-FT", proto="I-AEQ", off=1e-4, alr=1e-5, routing=dict(qD=0.0, qK=0.0, qE=0.0)),                   # A 는 L0+LO 만, U 는 backend 전체
+          "DP": dict(pol="A-FT", proto="I-AEQ", off=1e-4, alr=1e-5, schedule=dict(freeze_until=5000), routing=dict(qD=0.0, qK=0.0, qE=0.0)),
+          "JK0": dict(pol="A-FT", proto="I-AEQ", off=1e-4, alr=1e-5, routing=dict(qK=0.0)),                                  # A 에서 L_K(soft) 만 차단
+          "JE0": dict(pol="A-FT", proto="I-AEQ", off=1e-4, alr=1e-5, routing=dict(qE=0.0))}                                  # A 에서 λE L_E 만 차단
+BASELINE_OF = {"J": "J0", "F": "F0", "AL": "AL0", "D": "D0", "DP": "D0", "LF": "LF0", "P": "J0", "JK0": "J0", "JE0": "J0"}   # no-KD control (배정 §5–§6)
 BACKEND = {"N0": dict(rec="N0", edge=False), "R1": dict(rec="R1", edge=False), "Q12": dict(rec="R3", edge=True), "X02": dict(rec="R1", edge=True),
            # Q12 단일축 scalar variant (s4 배정 §6; 상위 계획 C1 목록의 QA05/QB005/QB02/QE025/QE10 — 계수만 바뀌고 loss 정의는 같다): α = rec.alpha(L_D), β = rec.kd_weight(L_K), λE = λE0 × lam_mult
            "Q12_A05": dict(rec="R3", edge=True, alpha=0.5), "Q12_B005": dict(rec="R3", edge=True, kd_weight=0.05), "Q12_B02": dict(rec="R3", edge=True, kd_weight=0.2),
@@ -27,6 +35,12 @@ CASES = {"J0": ("J", "N0"), "JQ": ("J", "Q12"), "JR": ("J", "R1"), "XJ": ("J", "
 for _p in ("J", "AL"):                                    # J_QA05 … J_QE10 (anchor JQ, no-KD J0) · AL_QA05 … AL_QE10 (§7 결합: anchor ALQ, no-KD AL0)
     for _v in ("QA05", "QB005", "QB02", "QE025", "QE10"):
         CASES[f"{_p}_{_v}"] = (_p, "Q12_" + _v[1:])
+CASES.update({"D0": ("D", "N0"), "DQ": ("D", "Q12"), "DR": ("D", "R1"), "DX": ("D", "X02"), "PQ": ("P", "Q12"), "PR": ("P", "R1"), "PX": ("P", "X02"),
+              "DPQ": ("DP", "Q12"), "DPX": ("DP", "X02"), "LF0": ("LF", "N0"), "LFQ": ("LF", "Q12"), "JK0": ("JK0", "Q12"), "JE0": ("JE0", "Q12")})
+_PURPOSE_S5 = {"D0": "s5: 초기 5K A 동결 뒤 joint, N0 (delayed-joint 의 no-KD control)", "DQ": "s5: 초기 5K A 동결, U 는 처음부터 Q12 (delayed joint KD)", "DR": "s5 fallback: D 일정 + R1", "DX": "s5: DQ 의 soft 제거 대조 (D 일정 + X02)",
+                "PQ": "s5: protected routing — A 는 L0+LO 만, U 는 Q12 전체", "PR": "s5 fallback: protected + R1", "PX": "s5: PQ 의 soft 제거 대조 (protected + X02)",
+                "DPQ": "s5: delayed + protected 결합 (Q12)", "DPX": "s5: DPQ 의 soft 제거 대조", "LF0": "s5: 25K 이후 A 동결, N0 (late-freeze control)", "LFQ": "s5: 25K 이후 A 동결, Q12",
+                "JK0": "s5: JQ 에서 A 로 가는 L_K(soft) 만 차단", "JE0": "s5: JQ 에서 A 로 가는 λE L_E 만 차단"}
 PURPOSE = {"J0": "Teacher-final-A → fresh-U, native GT + offset (joint baseline; seed1234 는 λE pilot)", "JQ": "주력: joint + Q12 (실패 지도 + adaptive soft + GT edge)", "JR": "joint + R1 (실패 지도 재가중만)", "XJ": "joint + X02 (Q12 의 soft 제거 대조)",
            "F0": "frozen T0 aligner + native GT (frozen baseline)", "FQ": "frozen + Q12", "FR": "frozen + R1", "XF": "frozen + X02", "AL0": "joint, A LR 3e-6, N0", "ALQ": "joint, A LR 3e-6, Q12"}
 STAGE1 = ["J0", "F0", "JR", "FR"]; STAGE2 = ["JQ", "FQ", "XJ"]
@@ -35,9 +49,10 @@ MANDATORY = ["J0", "JQ"]                                  # P0 — 다른 run �
 QUEUE_STAGE = {1: ["J0"], 2: ["JQ"]}                      # 큐 파일 내용 (stage 2 는 DONE 뒤 재진입용) — 나머지는 gate 편성
 # s4 (배정 §5·§10.1): B0 J0 → B1 JQ(λE0 뒤) → E0 AL0 → E1 ALQ 가 기본 묶음. scalar(E2/E3)·결합(E4)·seed 3407 확인(C1–C3) 은 진단을 보고 사람이 고르므로
 # work_dir/_pakd50/extra_priority.txt 에 case id(J_QA05 …) 또는 전체 run 이름(seed 3407 등) 을 한 줄씩 적으면 gate 가 기본 묶음 뒤에 그 순서로 편성한다.
-PRIORITY_BY_SERVER = {"s4": ["J0", "JQ", "AL0", "ALQ"]}
-MANDATORY_BY_SERVER = {"s4": ["J0", "JQ", "AL0", "ALQ"]}
-STAGE_BY_SERVER = {"s4": {1: ["J0", "AL0"], 2: ["JQ", "ALQ"]}}
+# s5 (배정 §0·§9.2): B0 J0 → B1 JQ(λE0) → T0 D0 → T1 DQ(λE0) → R0 PQ(λE0). 조건부(LF pair / JK0·JE0 / DPQ / soft-off DX·PX·DPX) 와 seed 9091 확인은 extra_priority.txt 로.
+PRIORITY_BY_SERVER = {"s4": ["J0", "JQ", "AL0", "ALQ"], "s5": ["J0", "JQ", "D0", "DQ", "PQ"]}
+MANDATORY_BY_SERVER = {"s4": ["J0", "JQ", "AL0", "ALQ"], "s5": ["J0", "JQ", "D0", "DQ", "PQ"]}
+STAGE_BY_SERVER = {"s4": {1: ["J0", "AL0"], 2: ["JQ", "ALQ"]}, "s5": {1: ["J0", "D0"], 2: ["JQ", "DQ", "PQ"]}}
 EXTRA_PRIORITY_FILE = "work_dir/_pakd50/extra_priority.txt"
 
 
@@ -72,6 +87,7 @@ def to_tag(item, seed, version="v1"):
 def case_of(item):
     """run 이름 또는 case id → case id (PAKD50_<case>_W112_…)."""
     return item[len("PAKD50_"):].split("_W112")[0] if is_tag(item) else item
+PURPOSE.update(_PURPOSE_S5)
 NEEDS_LAMBDA_E = {c for c, (p, b) in CASES.items() if BACKEND[b]["edge"]}
 
 
@@ -191,10 +207,17 @@ def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=Tr
              rec=rec, stat=stat, geom_kd=dict(mode="G0"), recipe="N2_SG", eval=dict(fixed_reference_from_donor=True),
              donor=dict(source=f"{t0}/{T0_TAG}", view_margin_hr=4, expected_sha256=sha, expected_step=step),
              teacher=dict(id="T0", run=t0, tag=T0_TAG, expected_sha256=sha, bridge=False, **({} if needs_teacher else dict(eval_only=True))),
-             baseline_run=run_name(("J0" if pol_id in ("J",) else "F0" if pol_id == "F" else "AL0"), seed, version),
+             baseline_run=run_name(BASELINE_OF[pol_id], seed, version),
              budget=dict(ledger=LEDGER, total_gpu_hours=TOTAL_HOURS, reserve_hours=RESERVE_HOURS, margin=MARGIN, required=False, projected_hours=projected, projected_map={me: RUN_RESERVED_HOURS},
                          remaining_mandatory=[run_name(c, SERVER_SEED[server], version) for c in mandatory_for(server) if c != case],   # 서버 기본 묶음 예약(서버 seed): 완료된 것은 trainer 가 0 으로 센다
                          **({"training_deadline": training_deadline()} if training_deadline() else {})))            # 공통 절대 마감 — trainer 가 예상 종료 ≤ 마감 을 검사
+    if P.get("schedule"):
+        k["aligner_schedule"] = dict(P["schedule"])
+    if P.get("routing"):                                                     # backend 에 없는 항의 q 는 적지 않는다 (registry: N0 위 qD / R1 위 qK / edge 없는 qE 는 거부)
+        rq = {q: v for q, v in P["routing"].items() if (q == "qD" and B["rec"] != "N0") or (q == "qK" and B["rec"] == "R3") or (q == "qE" and B["edge"])}
+        if not rq:
+            raise SystemExit(f"!! {case}: 정책 {pol_id} 의 routing 이 backend {be_id} 에서 아무 항도 바꾸지 않는다 — J 와 같은 실험 (만들지 않음)")
+        k["routing"] = rq
     if P["proto"] == "I-AEQ":
         k["corruption"] = dict(radius_hr=2.0, corruption_seed_offset=2000)
         k["aux"] = dict(offset_weight=float(P["off"]), offset_ramp_updates=0, offset_stop_reference=True, geometry_weight=0.0, ramp_updates=5000, geometry_sigma_hr=2.0, geometry_margin_hr=11)
@@ -211,6 +234,7 @@ def render(tag, case, seed, server, k, updates, eval_epoch, tpl):
             f"# 캠페인 {CAMPAIGN_ID} · protocol {PROTOCOL} · grid {GRID_ID} · 계획 {PLAN} · 요약 {SUMMARY} · 노트 {NOTE}\n"
             f"# 세팅: {describe(sp)} · 정책 {pol_id}(A {'trainable' if sp['aligner_trainable'] else 'frozen'}, offset λ {k.get('aux', {}).get('offset_weight', 0)}, A LR {k['aligner_lr']}) · backend {be_id} (rec {k['rec']['case']}{', EDGE-H λE ' + str(k['stat'].get('outer_weight')) if k['stat'].get('enabled') else ''})\n"
             f"# 약명→세팅: J0/JQ/JR/XJ = A trainable(joint) + N0/Q12/R1/X02 · F0/FQ/FR/XF = A frozen + … · AL0/ALQ = joint, A LR 3e-6 · Q12 = (1+αd)L1 + β(1−d)a|S−T| + λE·signed Scharr edge · R1 = (1+αd)L1 · X02 = R1 + edge\n"
+            f"#           D*/LF* = joint 에서 A 를 0–4999 동결 / 25000 부터 동결 (kdv.aligner_schedule; 동결 구간 LO 없음, ε RNG 는 같은 순서) · P*/JK0/JE0 = A 가 직접 받는 항만 제한 (kdv.routing qA=(qD,qK,qE); U 는 backend 전체) · J_Q*/AL_Q* = Q12 계수만\n"
             f"# Teacher T0 = {T0_RUN}/{T0_TAG} (step {step}, file sha {(sha or '?')[:16]}…; A+U frozen, 자기 aligner 로 forward) · Student A = T0 aligner 복사(view margin 4), U = init_unet_seed{seed}.pt · τR/λE = {CAL_PATH} (고정) \n"
             f"# 골격 W112·D123 · 9ch · 50K · batch 48 · AdamW 1e-4/{k['aligner_lr']} wd 0.01 cosine warmup100 · eval_epoch {eval_epoch} (= {GRID_ID}: 1010 update 마다 + exact 50000, 50 후보 보존) · 예산 {LEDGER} {TOTAL_HOURS}h(+감사 {RESERVE_HOURS}h)\n")
     t = re.sub(r"^eval_epoch: \d+$", f"eval_epoch: {eval_epoch}", t, flags=re.M)

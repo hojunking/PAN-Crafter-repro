@@ -125,6 +125,9 @@ class KDVTrainer(PATrainer):
                 raise ValueError("fixed_reference_from_donor 는 donor 가 있는 정책(A-FR/A-FT)에서만; A-ID/A-SC 는 eval.reference_donor 로 참조를 지정한다")
             self.ref_aligner = copy.deepcopy(aligner); freeze(self.ref_aligner); self.ref_manifest = dict(self.donor_manifest, copied_from="training_donor")
         self.aligner_view_margin = margin; self.aligner_trainable = sp["aligner_trainable"]
+        # s5 timing/routing (배정 §4–§6): A 동결 일정(D: 앞 / LF: 뒤) 과 A 가 직접 받는 항의 계수 qA=(qD,qK,qE). 기본(None, (1,1,1)) 이면 기존 J 와 완전히 같다.
+        self.freeze_until, self.freeze_from = sp.get("aligner_freeze_until"), sp.get("aligner_freeze_from")
+        self.route_A = tuple(float(q) for q in (sp.get("route_A") or (1.0, 1.0, 1.0))); self._routed = any(q != 1.0 for q in self.route_A); self._sched_last = None
         if pol == "A-FR":
             freeze(aligner)
         self.model = PAModel(model, aligner, aligner_margin=margin, sampler=(pol != "A-ID"))
@@ -560,7 +563,8 @@ class KDVTrainer(PATrainer):
                     groupnorm_layers_backbone=gn[:8], groupnorm_divisibility_ok=all(c % g == 0 for _, g, c in gn), conv_out_widths=widths, n_conv=len(convs),
                     mode_modulation=ma.get("mode_modulation"), attention=ma.get("attn_locations"), pan_auxiliary_forward_count=0,
                     aligner=(None if M.aligner is None else dict(cls=type(M.aligner).__name__, params=sum(p.numel() for p in M.aligner.parameters()), view_margin_hr=self.aligner_view_margin,
-                                                                trainable=self.aligner_trainable, source=("donor" if self.donor_manifest else "scratch"))),
+                                                                trainable=self.aligner_trainable, source=("donor" if self.donor_manifest else "scratch"),
+                                                                schedule=dict(freeze_until=self.freeze_until, freeze_from=self.freeze_from), route_A=list(self.route_A))),
                     sampler=M.sampler, params_total=n_all, params_trainable=n_tr, params_frozen=n_all - n_tr, backbone_params=sum(p.numel() for p in bb.parameters()),
                     teacher=(None if self.teacher is None else dict(params=sum(p.numel() for p in self.teacher.parameters()), width=self.teacher_manifest["width"], depth=self.teacher_manifest["depth"])))
 
@@ -715,12 +719,13 @@ class KDVTrainer(PATrainer):
 
     # ------------------------------------------------------------------ 한 update 의 loss (§12)
     def _step(self, gt, ms, lpan, pan, step):
-        sp = self.spec; M = self.M; dev = gt.device
+        sp = self.spec; M = self.M; dev = gt.device; act = self.aligner_active(step)
         pan_view, eps, corrupted = prepare_view(pan, self.protocol, step, self.radius_hr, self.gen)
         t0 = time.time()
-        o = kdv_forward(M, self.teacher, pan_view, ms, lpan, share_correction=self.share_correction, teacher_needed=sp["needs_teacher"], aligner_live=self.aligner_trainable, features=(sp["geom"] == "G5"))
+        o = kdv_forward(M, self.teacher, pan_view, ms, lpan, share_correction=self.share_correction, teacher_needed=sp["needs_teacher"], aligner_live=act, features=(sp["geom"] == "G5"))
         y, y_t, delta = o["y"], o["y_t"], o["delta"]
         info = dict(corrupt=corrupted, eps=eps, delta=delta, delta_t=o["delta_t"], pan_aligned=o["pan_aligned"], pan_view=pan_view, y=y, y_t=y_t, t_forward=time.time() - t0, _gt=gt, feat_t=o["feat_t"], _ms=ms, _lpan=lpan)
+        info["aligner_active"] = float(act)
         # reconstruction (§6) — TRI-A/C (addendum §4·§6·§7): parent 의 w_H/w_K 그대로, soft 에 band gate m_A · risk r_C 만 곱한다
         tri = self.tri; tri_rec = tri["enabled"] and (tri["a_mode"] != "off" or (tri["c_mode"] != "off" and tri["c_phi"] == "identity"))
         ctl_rec = sp["rec_control"] != "none"                                  # §12 CTL-HSCALE / CTL-RSHUFFLE — soft·hard 계수만 바꾸는 인과 대조
@@ -783,8 +788,9 @@ class KDVTrainer(PATrainer):
             r = self.rec_crit(y, y_t, gt, return_maps=self.is_diag_step(step)); loss_rec = r.loss
             info.update(rec_hard=float(r.hard), rec_soft=float(r.soft), **{f"rec_{kk}": float(v) for kk, v in r.stats.items()})
             info["_rec_hard_t"], info["_rec_soft_t"], info["_rec_maps"] = r.hard, r.soft, r.maps
+            info["_l0_t"] = (y.float() - gt.float()).abs().mean()                  # L_0 (plain L1) — s5 routing/진단의 L_D = hard − L_0
         else:
-            loss_rec = (y - gt).abs().mean(); info.update(rec_hard=float(loss_rec), rec_soft=0.0, rec_plain_gt_l1=float(loss_rec))
+            loss_rec = (y - gt).abs().mean(); info.update(rec_hard=float(loss_rec), rec_soft=0.0, rec_plain_gt_l1=float(loss_rec)); info["_l0_t"] = loss_rec
         # output statistics (§9)
         loss_stat_raw = torch.zeros((), device=dev); lam_v = 0.0
         if sp["stat_enabled"]:
@@ -878,12 +884,15 @@ class KDVTrainer(PATrainer):
         loss_off = torch.zeros((), device=dev); lam_off = 0.0
         if self.protocol == "I-AEQ" and sp["offset_weight_effective"] > 0 and step % 2 == 1:
             # NF16 §4.2: 홀수 update 에 P_ε 를 **aligner 에만** 넣어 |ĉε + ε − sg(ĉ0)|. ĉ0 는 native forward 의 값 재사용(target 만 detach). U-Net 은 native P̃0 만 본다.
-            eps = sample_offsets(pan.shape[0], self.radius_hr, self.gen).to(dev)
-            with torch.no_grad(), torch.autocast(device_type=dev.type, enabled=False):
-                p_eps = warp_pan(pan.float(), eps)
-            c_eps = predict_c(M.aligner, p_eps, o["ms_base"], self.aligner_view_margin)
-            loss_off = offset_loss(c_eps, delta, eps, stop_reference=True); lam_off = lambda_off(step, sp["offset_weight_effective"], sp["offset_ramp_updates"])
-            info["closure"] = float((c_eps.detach() + eps - delta.detach()).norm(dim=1).mean()); info["eps"] = eps; info["eq_exercise"] = 1.0; info["_c_eps"] = c_eps
+            eps = sample_offsets(pan.shape[0], self.radius_hr, self.gen).to(dev)     # ε 는 A 가 동결된 update 에도 같은 순서로 소비한다 (s5 §7.1: 해제 뒤 ε 열이 J 와 같다)
+            if act:
+                with torch.no_grad(), torch.autocast(device_type=dev.type, enabled=False):
+                    p_eps = warp_pan(pan.float(), eps)
+                c_eps = predict_c(M.aligner, p_eps, o["ms_base"], self.aligner_view_margin)
+                loss_off = offset_loss(c_eps, delta, eps, stop_reference=True); lam_off = lambda_off(step, sp["offset_weight_effective"], sp["offset_ramp_updates"])
+                info["closure"] = float((c_eps.detach() + eps - delta.detach()).norm(dim=1).mean()); info["eps"] = eps; info["eq_exercise"] = 1.0; info["_c_eps"] = c_eps
+            else:                                                                    # 동결 구간: jittered-A forward/backward 만 생략 (LO 없음)
+                info["eq_exercise"] = 0.0; info["off_skipped_frozen"] = 1.0
         elif corrupted and sp["offset_weight_effective"] > 0:
             if sp["offset_stop_reference"]:
                 with torch.no_grad():
@@ -918,9 +927,44 @@ class KDVTrainer(PATrainer):
         loss_aux = lam_e * loss_edge + lam_g * loss_geo + lam_off * loss_off + lam_gkd * loss_gkd + loss_stat_extra
         info.update(gk)
         total = loss_rec + lam_v * loss_stat_raw + loss_aux
+        info["_edge_w_t"] = (lam_v * loss_stat_raw) if (sp["stat_enabled"] and sp["stat_kind"] == "edge") else None     # λE·L_E (s5 routing/진단)
         info.update(loss_rec=loss_rec, loss_stat_raw=loss_stat_raw, lam_v=lam_v, loss_edge=float(loss_edge), loss_geo=float(loss_geo), _loss_geo=loss_geo, loss_off=loss_off, loss_gkd=float(loss_gkd),
                     lam_e=lam_e, lam_g=lam_g, lam_off=lam_off, lam_gkd=lam_gkd, loss_aux=loss_aux, geo_info=geo_info)
         return total, info
+
+    # ------------------------------------------------------------------ s5 timing / routing (배정 §4.2·§5·§10.2–10.3)
+    def aligner_active(self, step):
+        """이 update(0-based) 에서 A 가 gradient 를 받는가 — step 만의 순수 함수라 재개에 안전하다. D: step ≥ freeze_until · LF: step < freeze_from."""
+        fu, ff = getattr(self, "freeze_until", None), getattr(self, "freeze_from", None)          # 옛 stub(감사 스크립트 등) 호환: 속성이 없으면 일정 없음
+        return bool(self.aligner_trainable and (fu is None or step >= int(fu)) and (ff is None or step < int(ff)))
+
+    def _apply_routing(self, info, M):
+        """routing qA=(qD,qK,qE): backward 가 남긴 A 의 .grad 에서 A 가 받지 않을 항 (1−q)·∂L/∂φ 를 뺀다 (g_A = ∇φ(L0 + qD L_D + qK L_K + qE λE L_E + LO)).
+        U 의 .grad 는 그대로(전체 L_Q). optimizer step 은 기존처럼 한 번(§10.3). AMP scaler·accumulation 배율은 backward 와 같게 맞춘다. aligned PAN 을 detach 하지 않는다."""
+        qD, qK, qE = self.route_A; ap = [p for p in M.aligner.parameters() if p.requires_grad]
+        terms = []
+        if qD != 1.0 and info.get("_rec_hard_t") is not None and info.get("_l0_t") is not None:
+            terms.append((1.0 - qD) * (info["_rec_hard_t"] - info["_l0_t"]))              # L_D = ⟨(1+αd)e_S⟩ − ⟨e_S⟩
+        if qK != 1.0 and info.get("_rec_soft_t") is not None:
+            terms.append((1.0 - qK) * info["_rec_soft_t"])                                  # L_K (β 포함)
+        if qE != 1.0 and info.get("_edge_w_t") is not None:
+            terms.append((1.0 - qE) * info["_edge_w_t"])                                     # λE·L_E
+        if not terms or not ap:
+            return 0
+        extra = sum(terms)
+        if not (torch.is_tensor(extra) and extra.requires_grad):
+            return 0
+        scale = 1.0 / float(getattr(self.accelerator, "gradient_accumulation_steps", 1) or 1)
+        sc = getattr(self.accelerator, "scaler", None)
+        if sc is not None:
+            scale *= float(sc.get_scale())
+        g = torch.autograd.grad(extra * scale, ap, retain_graph=False, allow_unused=True)
+        n = 0
+        with torch.no_grad():
+            for p, gi in zip(ap, g):
+                if gi is not None and p.grad is not None:
+                    p.grad.sub_(gi.to(p.grad.dtype)); n += 1
+        return n
 
     def _support_fail(self, step, mx, why):
         self.train_log_ref.write(f'[SUPPORT_FAIL] step {step}: |Δ| max {mx:.2f} px — {why}')
@@ -941,8 +985,8 @@ class KDVTrainer(PATrainer):
         return v, float(v.norm())
 
     def _diagnose(self, step, info, M):
-        bp = [p for p in M.backbone.parameters() if p.requires_grad]; ap = list(M.aligner.parameters()) if self.aligner_trainable else []
-        out = dict(step=int(step), corrupt=bool(info["corrupt"]))
+        bp = [p for p in M.backbone.parameters() if p.requires_grad]; ap = list(M.aligner.parameters()) if self.aligner_active(step) else []
+        out = dict(step=int(step), corrupt=bool(info["corrupt"]), aligner_active=bool(ap), route_A=list(getattr(self, "route_A", (1.0, 1.0, 1.0))))
         v_rec, out["grad_rec_F"] = self._gnorm(info["loss_rec"], bp)
         if self.spec["stat_enabled"]:
             v_st, n_st = self._gnorm(info["loss_stat_raw"], bp); out["grad_stat_F_raw"] = n_st; out["grad_stat_F_weighted"] = n_st * info["lam_v"]
@@ -1057,8 +1101,8 @@ class KDVTrainer(PATrainer):
         try:
             with torch.random.fork_rng(devices=([dev] if dev.type == "cuda" else [])):
                 total, info = self._step(gt, ms, lpan, pan, step)
-                bp = [p for p in M.backbone.parameters() if p.requires_grad]; ap = list(M.aligner.parameters()) if self.aligner_trainable else []
-                out = dict(step=int(step), fixed_batch=True, loss_rec=float(info["loss_rec"]), delta_mean=info["delta"].detach().mean(0).tolist(), delta_norm_mean=float(info["delta"].detach().norm(dim=1).mean()))
+                bp = [p for p in M.backbone.parameters() if p.requires_grad]; ap = list(M.aligner.parameters()) if self.aligner_active(step) else []
+                out = dict(step=int(step), fixed_batch=True, aligner_active=bool(ap), route_A=list(getattr(self, "route_A", (1.0, 1.0, 1.0))), loss_rec=float(info["loss_rec"]), delta_mean=info["delta"].detach().mean(0).tolist(), delta_norm_mean=float(info["delta"].detach().norm(dim=1).mean()))
                 v_rf, out["grad_rec_F"] = self._gnorm(info["loss_rec"], bp)
                 if ap:
                     v_ra, out["grad_rec_A"] = self._gnorm(info["loss_rec"], ap)
@@ -1072,6 +1116,23 @@ class KDVTrainer(PATrainer):
                         out["sum_rule_max_abs_err"] = float((vt - (v_ra + lam * v_oa)).abs().max()) if v_ra is not None and v_oa is not None else None   # ∇(L_rec+λL_off) = g_rec + λ g_off
                     else:
                         out["eq_exercise"] = False
+                # s5 §7.1 / 감사 F08: loss 별 A/U gradient 분해 — L0 · L_D(hard−L0) · L_K · λE·L_E · λ_off·L_O 의 norm 과 native L0 와의 cosine (norm 0 이면 undefined).
+                # routing 전의 원 gradient 다 (autograd.grad 만; optimizer·.grad 를 건드리지 않는다).
+                lo_w = (float(info.get("lam_off", 0.0)) * info["loss_off"]) if (info.get("eq_exercise") and torch.is_tensor(info.get("loss_off")) and info["loss_off"].requires_grad) else None
+                terms = dict(L0=info.get("_l0_t"), LD=((info["_rec_hard_t"] - info["_l0_t"]) if (info.get("_rec_hard_t") is not None and info.get("_l0_t") is not None) else None),
+                             LK=info.get("_rec_soft_t"), LEw=info.get("_edge_w_t"), LOw=lo_w)
+                dec = {}
+                for mod, params in (("A", ap), ("U", bp)):
+                    if not params:
+                        continue
+                    v0, n0 = self._gnorm(terms["L0"], params) if torch.is_tensor(terms["L0"]) else (None, 0.0)
+                    for nm, t in terms.items():
+                        if not torch.is_tensor(t) or not t.requires_grad:
+                            continue
+                        v, n = self._gnorm(t, params); dec[f"{nm}_{mod}_norm"] = n
+                        if nm != "L0":
+                            dec[f"{nm}_{mod}_cos_L0"] = (float((v * v0).sum() / (v.norm() * v0.norm())) if (v is not None and v0 is not None and n > 0 and n0 > 0) else None)
+                out["per_term"] = dec; out["per_term_note"] = "norm = ‖∂L/∂param‖ (A: aligner, U: backbone) on the fixed batch, before routing; LD = hard − L0"
                 self._jsonl("gradient_diagnostics_fixed.jsonl", out)
                 del total, info
         finally:
@@ -1082,7 +1143,7 @@ class KDVTrainer(PATrainer):
         self.train_log_ref = train_log
         self.model.train(); self.M.backbone.requires_grad_(True)
         if self.M.aligner is not None:
-            self.M.aligner.requires_grad_(self.aligner_trainable)
+            self.M.aligner.requires_grad_(self.aligner_active(global_step))
         if self.M.cov_head is not None:
             self.M.cov_head.requires_grad_(True)                          # 검토 지적: eval 의 requires_grad_(False) 뒤 재활성 (G5)
         if global_step >= self.args.num_iter:
@@ -1094,6 +1155,11 @@ class KDVTrainer(PATrainer):
             t0 = time.time()
             with self.accelerator.accumulate(self.model):
                 gt, ms, lpan, pan = (t.to(dev, dtype=dt) for t in (gt, ms, lpan, pan))
+                if M.aligner is not None and self.aligner_trainable:                   # s5 timing: 동결 구간에는 requires_grad False → grad None → AdamW 가 moment·WD 를 건드리지 않는다
+                    act = self.aligner_active(global_step); M.aligner.requires_grad_(act)
+                    if self.accelerator.is_main_process and act != self._sched_last:   # 경계 기록 (S5-G03): 0-based next update index, A hash, 그 시점 A LR
+                        self._jsonl("aligner_schedule_events.jsonl", dict(step=int(global_step), aligner_active=act, aligner_hash=state_hash(M.aligner), lr_aligner=float(self.optimizer.param_groups[-1]["lr"]),
+                                                                          freeze_until=self.freeze_until, freeze_from=self.freeze_from, route_A=list(self.route_A))); self._sched_last = act
                 total, info = self._step(gt, ms, lpan, pan, global_step)
                 if not torch.isfinite(total):
                     train_log.write(f'[abort] non-finite loss at step {global_step}: {total.item()}'); self._runs_csv("NAN"); self._finish_ledger("NAN"); sys.exit(3)
@@ -1106,10 +1172,16 @@ class KDVTrainer(PATrainer):
                         if self._fixed_batch is None:
                             self._fixed_batch = tuple(t.detach().clone() for t in (gt, ms, lpan, pan))
                         self._diagnose_fixed(global_step, M)
-                self.accelerator.backward(total)
+                routed_now = self._routed and self.aligner_active(global_step)
+                self.accelerator.backward(total, retain_graph=routed_now)
+                if routed_now:                                                             # s5 routing: A 의 .grad 만 보정, U 는 전체 L_Q, step 은 한 번
+                    self._ema["routing_params_adjusted"] = float(self._apply_routing(info, M))
+                if M.aligner is not None and self.aligner_trainable and not self.aligner_active(global_step):
+                    for p in M.aligner.parameters():
+                        p.grad = None                                                      # 동결 구간 방어: 어떤 경로로도 A 가 update 되지 않게
                 if self.accelerator.is_main_process and self.is_diag_step(global_step):
                     self._ema["backbone_grad_norm"] = float(torch.sqrt(sum((p.grad.float() ** 2).sum() for p in M.backbone.parameters() if p.grad is not None)))
-                    self._ema["aligner_grad_norm"] = (float(torch.sqrt(sum((p.grad.float() ** 2).sum() for p in M.aligner.parameters() if p.grad is not None))) if self.aligner_trainable else 0.0)
+                    self._ema["aligner_grad_norm"] = (float(torch.sqrt(sum((p.grad.float() ** 2).sum() for p in M.aligner.parameters() if p.grad is not None))) if (self.aligner_active(global_step) and any(p.grad is not None for p in M.aligner.parameters())) else 0.0)
                 self.optimizer.step(); self.lr_scheduler.step(); self.optimizer.zero_grad()
                 if self.accelerator.is_main_process:
                     report.update(B, total.item(), float(info["loss_rec"]), float(info["lam_v"] * float(info["loss_stat_raw"]) + float(info["loss_aux"])))

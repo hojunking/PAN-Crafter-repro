@@ -178,7 +178,7 @@ check("PL08 gate 기본 닫힘 (stdout 비어 있음) · pals24 gate 는 A1–A3
 check("PL09 _diagnose 가 ρ_g·cos ψ·raw/weighted L_off·off_unet_grad_absent 를 기록한다", all(k in src for k in ('out["rho_g"]', 'out["cos_psi"]', 'out["loss_off_raw"]', 'out["loss_off_weighted"]', 'out["off_unet_grad_absent"]', 'out["grad_off_A_weighted"]')))
 class _P: protocol = "I-AEQ"; diag_every = 1000
 check("PL09 진단 step 이 홀수(offset 연습) update 를 포함 — 10001/25001/49001", all(KDVTrainer.is_diag_step(_P, s) for s in (10001, 25001, 49001)) and not KDVTrainer.is_diag_step(_P, 25002))
-check("PL09 I-AEQ 의 offset 연습은 step % 2 == 1 에서만, 합산 전 λ 배 (forward 중간 optimizer step 없음)", 'step % 2 == 1' in src and src.count(".backward(total)") == 1 and src.count("self.optimizer.step()") == 1)
+check("PL09 I-AEQ 의 offset 연습은 step % 2 == 1 에서만, 합산 전 λ 배 (forward 중간 optimizer step 없음)", 'step % 2 == 1' in src and src.count(".backward(total") == 1 and src.count("self.optimizer.step()") == 1)   # s5 routing 뒤 backward(total, retain_graph=…) — 호출은 여전히 한 번
 
 # ---------------- PL10 고정 probe·반응 fit
 from tools.po10_diag import fixed_probes, fit

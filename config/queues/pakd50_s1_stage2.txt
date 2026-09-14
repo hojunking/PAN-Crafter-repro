@@ -1,0 +1,4 @@
+# PAKD50 s1 (seed 1234) stage 2 — research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md §9.4/§9.6/§11.2. 큐에는 JQ (DONE 뒤 재진입용) 만 둔다.
+# 나머지는 매 pass 조건부 gate 'pakd50'(work_dir/campaign_gates_enabled.txt) 이 우선순위 J0 → JQ → F0 → FQ → JR → FR → XJ 로 편성한다: λE(J0 S1234 exact50K pilot → tools/pakd50_calibrate.py, assets/pakd50/calibration_resolved.json 사본) 가 없으면 τR 만 필요한 다음 한 벌, 있으면 남은 전부.
+# 예산: 공통 절대 시계 assets/pakd50/campaign_clock.json (학습 마감 = start+46h, 감사 +4h) — 예상 종료가 마감을 넘기는 run 은 시작하지 않는다 (work_dir/_pakd50_budget/ledger.json 50h/4h). 약명→세팅은 config 머리 주석 / research_log/2026-09-14_pakd50-implementation.md
+PAKD50_JQ_W112_D123_WV3_T0_S1234_FRESH50_v1

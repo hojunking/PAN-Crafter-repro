@@ -44,7 +44,39 @@
   },
   "rule": "median e_T over calibration patches, floor 1e-6 (§5.1)"
  },
- "tau_computed_at": "2026-09-14T13:13:05",
+ "tau_computed_at": "2026-09-14T13:22:24",
  "tau_server": "s1",
- "updated": "2026-09-14T13:13:05"
+ "updated": "2026-09-14T15:29:41",
+ "tau_R_local_recomputed": 0.012463942170143127,
+ "lambda_E": 0.09075170336956798,
+ "lambda_E_source": {
+  "pilot_run": "PAKD50_J0_W112_D123_WV3_T0_S1234_FRESH50_v1",
+  "tag": "last",
+  "file_sha256": "8273538697d5811dfebefb9bf6754ecdf8ccbd51bb05bda2dd9e0d070c0bc5b7",
+  "tensors_sha256_16": "9e5ba46d598677f2",
+  "step": 50000,
+  "r_grad": 0.05,
+  "rule": "0.05 × median_b RMS(∂L0/∂Z)/RMS(∂LE/∂Z) on the calibration patches, Z detached (§5.2)",
+  "raw": {
+   "lambda_V": 0.09075170336956798,
+   "r_grad": 0.05,
+   "g_rec_rms_median": 6.357823281177843e-07,
+   "g_V_rms_median": 3.502866405824534e-07,
+   "ratio_median": 1.8150340673913594,
+   "ratio_p10": 1.8042598808526678,
+   "ratio_p90": 1.8317110675616899,
+   "n_batches": 64,
+   "degenerate": false,
+   "status": "OK",
+   "kind": "edge",
+   "window": 5,
+   "windows": [
+    5
+   ],
+   "transform": "none",
+   "domain": "final_hrms"
+  }
+ },
+ "lambda_computed_at": "2026-09-14T15:29:41",
+ "lambda_server": "s1"
 }

@@ -1,14 +1,14 @@
-# PAKD50_FR_W112_D123_WV3_T0_S2026_FRESH50_v1 — frozen + R1. 생성: tools/gen_pakd50_configs.py --server s3. 손으로 고치지 말 것.
+# PAKD50_XJ_W112_D123_WV3_T0_S777_FRESH50_v1 — joint + X02 (Q12 의 soft 제거 대조). 생성: tools/gen_pakd50_configs.py --server s2. 손으로 고치지 말 것.
 # 캠페인 PAKD50_W112D123_WV3_20260914_v1 · protocol FRESH50 · grid GRID1010_50K_v1 · 계획 research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md · 요약 research_log/PAN_Integrated_Method_Summary_2026-09-14.md · 노트 research_log/2026-09-14_pakd50-implementation.md
-# 세팅: I-NATIVE-TRANSFER · aligner frozen(donor 복사, 학습 없음) · rec (1+α d_T)·L1 · stat OFF · geomKD 없음 Teacher T0 · 주 selector best_hqnr (보조 best_rr_val·last) · 정책 F(A frozen, offset λ 0.0, A LR 1e-05) · backend R1 (rec R1)
+# 세팅: I-AEQ · aligner donor 초기화 후 학습 · rec (1+α d_T)·L1 · stat edge w5 mode H · geomKD 없음 Teacher T0 · 주 selector best_hqnr (보조 best_rr_val·last) · 정책 J(A trainable, offset λ 0.0001, A LR 1e-05) · backend X02 (rec R1, EDGE-H λE 0.09075170336956798)
 # 약명→세팅: J0/JQ/JR/XJ = A trainable(joint) + N0/Q12/R1/X02 · F0/FQ/FR/XF = A frozen + … · AL0/ALQ = joint, A LR 3e-6 · Q12 = (1+αd)L1 + β(1−d)a|S−T| + λE·signed Scharr edge · R1 = (1+αd)L1 · X02 = R1 + edge
 #           D*/LF* = joint 에서 A 를 0–4999 동결 / 25000 부터 동결 (kdv.aligner_schedule; 동결 구간 LO 없음, ε RNG 는 같은 순서) · P*/JK0/JE0 = A 가 직접 받는 항만 제한 (kdv.routing qA=(qD,qK,qE); U 는 backend 전체) · J_Q*/AL_Q* = Q12 계수만
-# Teacher T0 = PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1/best_hqnr (step 24240, file sha 16b5cf78614be121…; A+U frozen, 자기 aligner 로 forward) · Student A = T0 aligner 복사(view margin 4), U = init_unet_seed2026.pt · τR/λE = work_dir/_pakd50/calibration_resolved.json (고정) 
+# Teacher T0 = PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1/best_hqnr (step 24240, file sha 16b5cf78614be121…; A+U frozen, 자기 aligner 로 forward) · Student A = T0 aligner 복사(view margin 4), U = init_unet_seed777.pt · τR/λE = work_dir/_pakd50/calibration_resolved.json (고정) 
 # 골격 W112·D123 · 9ch · 50K · batch 48 · AdamW 1e-4/1e-05 wd 0.01 cosine warmup100 · eval_epoch 5 (= GRID1010_50K_v1: 1010 update 마다 + exact 50000, 50 후보 보존) · 예산 work_dir/_pakd50_budget/ledger.json 50.0h(+감사 4.0h)
 expect_params_m: 2.6589     # backbone 만 (aligner 0.1053M 은 smoke 가 따로 확인)
-seed: 2026
+seed: 777
 num_worker: 4
-work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_FR_W112_D123_WV3_T0_S2026_FRESH50_v1
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_XJ_W112_D123_WV3_T0_S777_FRESH50_v1
 
 phase: train
 
@@ -18,14 +18,14 @@ kdv:
   campaign_id: PAKD50_W112D123_WV3_20260914_v1
   plan_protocol_id: FRESH50
   candidate_grid_id: GRID1010_50K_v1
-  case_id: FR
-  policy_id: F
-  backend_id: R1
+  case_id: XJ
+  policy_id: J
+  backend_id: X02
   run_kind: CONTROLLED
   version: v1
   check_run_name: false
-  input_protocol: I-NATIVE-TRANSFER
-  aligner_policy: A-FR
+  input_protocol: I-AEQ
+  aligner_policy: A-FT
   diag_every: 1000
   diag:
     fixed_batch: true
@@ -54,7 +54,17 @@ kdv:
     tau: 0.012463942170143127
     eps_scale: 1.0e-06
   stat:
-    enabled: false
+    enabled: true
+    kind: EDGE
+    mode: H
+    window: 5
+    alpha: 1.0
+    kd_weight: 0.1
+    tau: calibrate
+    outer_weight: 0.09075170336956798
+    lambda_pilot: PAKD50_J0_W112_D123_WV3_T0_S1234_FRESH50_v1/last
+    r_grad: 0.05
+    ramp_updates: 0
   geom_kd:
     mode: G0
   recipe: N2_SG
@@ -71,7 +81,7 @@ kdv:
     tag: best_hqnr
     expected_sha256: 16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32
     bridge: false
-  baseline_run: PAKD50_F0_W112_D123_WV3_T0_S2026_FRESH50_v1
+  baseline_run: PAKD50_J0_W112_D123_WV3_T0_S777_FRESH50_v1
   budget:
     ledger: work_dir/_pakd50_budget/ledger.json
     total_gpu_hours: 50.0
@@ -80,14 +90,22 @@ kdv:
     required: false
     projected_hours: null
     projected_map:
-      PAKD50_FR_W112_D123_WV3_T0_S2026_FRESH50_v1: 4.0
+      PAKD50_XJ_W112_D123_WV3_T0_S777_FRESH50_v1: 4.0
     remaining_mandatory:
-    - PAKD50_J0_W112_D123_WV3_T0_S2026_FRESH50_v1
-    - PAKD50_JQ_W112_D123_WV3_T0_S2026_FRESH50_v1
+    - PAKD50_J0_W112_D123_WV3_T0_S777_FRESH50_v1
+    - PAKD50_JQ_W112_D123_WV3_T0_S777_FRESH50_v1
     training_deadline: '2026-09-16T11:22:31'
+  corruption:
+    radius_hr: 2.0
+    corruption_seed_offset: 2000
   aux:
-    offset_weight: 0.0
+    offset_weight: 0.0001
+    offset_ramp_updates: 0
+    offset_stop_reference: true
     geometry_weight: 0.0
+    ramp_updates: 5000
+    geometry_sigma_hr: 2.0
+    geometry_margin_hr: 11
 
 
 

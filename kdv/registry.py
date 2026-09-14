@@ -279,7 +279,37 @@ def resolve(k):
     aligned_selector = bool(sel.get('aligned_selector', True))
     if aligned_selector and policy == 'A-ID' and na is not None:
         _bad("aligner 가 없으면 aligned_valid 는 raw_valid 와 같다 — select.aligned_selector: false 로 명시한다 (§14.1)")
+    # --- s5 timing / routing (PAKD50 s5 배정 §4–§6·§10.2–10.3; 상위 계획 §7.2–7.6·§13.3): A 의 동결 일정 + loss 별 A 수신 경로.
+    # 미지원 조합은 즉시 거부한다 — key 만 적혀 J 와 같은 실험이 조용히 도는 일이 없게 (배정 §10.1).
+    sch = dict(k.get('aligner_schedule') or {}); f_until = sch.get('freeze_until'); f_from = sch.get('freeze_from')
+    if set(sch) - {'freeze_until', 'freeze_from'}:
+        _bad(f"aligner_schedule 의 알 수 없는 키 {sorted(set(sch) - {'freeze_until', 'freeze_from'})} (freeze_until·freeze_from 만; 0-based next update index)")
+    for nm, v in (('freeze_until', f_until), ('freeze_from', f_from)):
+        if v is not None and (isinstance(v, bool) or not isinstance(v, int) or v < 0):
+            _bad(f"aligner_schedule.{nm} 는 0 이상의 정수(0-based next update index) — 현재 {v!r}")
+    if (f_until is not None or f_from is not None) and not trainable:
+        _bad("aligner_schedule 은 trainable aligner(A-FT/A-SC) 에서만 (A-FR 은 항상 동결, A-ID 는 aligner 없음)")
+    if f_until is not None and f_from is not None and f_until >= f_from:
+        _bad(f"aligner_schedule: freeze_until({f_until}) < freeze_from({f_from}) 이어야 한다 (D: 앞 동결 / LF: 뒤 동결)")
+    rt = dict(k.get('routing') or {})
+    if set(rt) - {'qD', 'qK', 'qE'}:
+        _bad(f"routing 의 알 수 없는 키 {sorted(set(rt) - {'qD', 'qK', 'qE'})} (qD·qK·qE 만)")
+    qD, qK, qE = float(rt.get('qD', 1.0)), float(rt.get('qK', 1.0)), float(rt.get('qE', 1.0))
+    for nm, q in (('qD', qD), ('qK', qK), ('qE', qE)):
+        if not (0.0 <= q <= 1.0):
+            _bad(f"routing.{nm} ∈ [0, 1] — 현재 {q}")
+    if rt and not trainable:
+        _bad("routing 은 trainable aligner(A-FT/A-SC) 에서만 뜻이 있다 (A-FR 은 A 가 gradient 를 받지 않는다)")
+    if qD != 1.0 and rec_case not in ('R1', 'R2', 'R3'):
+        _bad(f"routing.qD 는 L_D(실패 지도 재가중) 가 있는 rec R1/R2/R3 에서만 (현재 {rec_case}) — N0 위의 P 는 J0 와 같은 실험이다")
+    if qK != 1.0 and rec_case not in ('R0', 'R2', 'R3'):
+        _bad(f"routing.qK 는 soft 항이 있는 rec R0/R2/R3 에서만 (현재 {rec_case})")
+    if qE != 1.0 and not (stat_enabled and stat_key == 'EDGE'):
+        _bad("routing.qE 는 stat EDGE-H 가 켜져 있을 때만")
+    if rt and (tri_on or geom != 'G0' or extra or rec_control != 'none'):
+        _bad("routing 은 plain rec(hard/soft) + EDGE-H 분해 위에서만 정의한다 — TRI/geomKD/stat.extra/rec.control 과 결합하지 않는다")
     return dict(recipe=recipe, protocol=protocol, policy=policy, rec_case=rec_case, rec_mode=REC_CASES[rec_case], tri=tri_spec,
+                aligner_freeze_until=f_until, aligner_freeze_from=f_from, route_A=(qD, qK, qE),
                 rec_control=rec_control, rec_tau_scale=rec_tau_scale, na_protocol=na, expect_arch=ea, select_secondary=secondary, select_primary=primary, aligned_selector=aligned_selector, stat_lambda_from_run=stat_lambda_from_run,
                 stat_windows=windows, stat_transform=stat_transform, stat_transform_eps=stat_transform_eps, stat_domain=stat_domain, stat_lambda_scale=stat_lambda_scale, stat_extra=extra,
                 stat_enabled=stat_enabled, stat_key=stat_key, stat_kind=STAT_KINDS[stat_key], stat_mode=stat_mode, stat_window=window,
@@ -379,4 +409,8 @@ def describe(spec, k=None):
              + (', 진단만 — soft 미적용' if not tri.get('c_apply', True) else '') + (', 총계수 대조' if tri.get('c_control') == 'mass' else '') + ')' if tri['c_mode'] != 'off' else '')
     na = '' if not spec.get('na_protocol') else f" · {spec['na_protocol']}(" + ('학습 forward 에 PAN warp 없음' if spec['na_protocol'] == 'NA-STRICT' else 'Teacher 입력 민감도 probe 별도 cohort') + ')'
     sel = f" · 주 selector {spec.get('select_primary', 'best_hqnr')}" + (f" (보조 {'·'.join(spec.get('select_secondary') or [])})" if spec.get('select_secondary') else '')
-    return f"{spec['protocol']} · {pol} · rec {rec} · {st} · {gk}{src}{t}{tr}{na}{sel}"
+    fu, ff = spec.get('aligner_freeze_until'), spec.get('aligner_freeze_from')
+    sch = '' if (fu is None and ff is None) else (' · A 일정' + (f" 앞 {fu} update 동결(D)" if fu is not None else '') + (f" {ff} 부터 동결(LF)" if ff is not None else ''))
+    q = tuple(spec.get('route_A') or (1.0, 1.0, 1.0))
+    rt = '' if q == (1.0, 1.0, 1.0) else f" · A 수신 qA(D,K,E)={q} (U 는 전체; A 는 L0+LO+q·추가항)"
+    return f"{spec['protocol']} · {pol} · rec {rec} · {st} · {gk}{src}{t}{tr}{na}{sel}{sch}{rt}"
