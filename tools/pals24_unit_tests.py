@@ -54,8 +54,10 @@ def stripped(text):
     for key in ("campaign_id", "plan_protocol_id", "document_revision", "case_id", "budget"):
         k.pop(key, None)
     if not _DONOR_HERE:                       # donor 유무에 따라 달라지는 identity 키는 비교에서 뺀다 — 이 검사는 'λ 외 변경 없음' 이 목적
-        for key in ("expected_sha256", "expected_step", "expected_tensors_sha256_16"):
-            (k.get("donor") or {}).pop(key, None)
+        # A-FT/A-FR 은 kdv.donor, A-ID(CTRLP0/NF16 P0) 는 kdv.eval.reference_donor 에 donor 가 들어간다 (gen_pals24_configs.py 의 eval 분기; s4 보고 P-2 잔여)
+        for dd in ((k.get("donor") or {}), ((k.get("eval") or {}).get("reference_donor") or {})):
+            for key in ("expected_sha256", "expected_step", "expected_tensors_sha256_16"):
+                dd.pop(key, None)
     return d
 nf = {q: os.path.join(ROOT, "config", f"NF16_P{q}_W112_D123_WV3_S1234_N2LAST_v1.yaml") for q in (0, 2, 3)}
 if all(os.path.exists(v) for v in nf.values()):
