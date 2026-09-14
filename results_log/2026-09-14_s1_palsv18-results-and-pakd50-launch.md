@@ -66,3 +66,12 @@ Teacher T0 = PALS24 L1E4 seed 2025 best_raw(step 24240) 의 A+U; Student 는 그
 | s2/s3 | pull 뒤 `./tools/pakd50_prepare.sh`. λE 는 `assets/pakd50/calibration_resolved.json` 사본으로 전달 — pull 만으로 다음 pass 에 JQ 가 열린다 |
 | λE 고정 (15:29) | J0-1234 exact50K(last, sha 82735386…) 에서 gate 가 λE = **0.0907517**(r_grad 0.05 × output-gradient RMS 비, τR 0.012464 그대로) 를 고정하고 `assets/pakd50/calibration_resolved.json` 사본에 mirror. 세 서버 stage 2 config 생성 → JQ-1234 15:29:44 시작. J0-1234 최종은 이 문서의 후속(09-15 s1 문서)에서 |
 | s5 (16:30) | 배정 `research_log/PAN_S5_Timing_Routing_Experiment_Plan_2026-09-14.md` 반영: trainer 에 A 동결 일정·loss 별 A 수신 경로 구현(기본값이면 J 와 동일; K10–K12 + kdv/nf16/pals24 gate 통과, D0/PR GPU smoke OK). s1 의 JQ-1234 는 15:29 코드로 시작했고 그 다음 run 부터 새 코드(수치 경로 동일) |
+
+## 6. 같은 날 추가 (22:40–23:10) — PAKD50 s1 중단, EQREC4 캠페인 기동 (WIP)
+
+| 항목 | 내용 |
+|---|---|
+| PAKD50 s1 중단 | 사용자 지시로 22:40 runner·감시자 cron 종료. s1 완료 run: J0/JQ/F0/FQ-1234. JR-1234 는 학습 중이라 끝까지 두고(≈00:05) 업로드는 수동. s2–s5 는 계속 |
+| EQREC4-S1-v1 | 계획 `research_log/PAN_S1_EQREC4_Alignment_Cue_Hypotheses_20h_2026-09-14.md`, 노트 `research_log/2026-09-14_eqrec4-implementation.md`. 새 모델 학습 없이 frozen checkpoint(L1E4/L000/L3E4/P0/N2/L1E2) 의 sample 별 e/q 4분면·정합 검증·개입·stress·gradient(D10–D50) + 단기 적응(K10 64 update microtrial, K20 5 arm × 5K) |
+| 기동 | 23:07 `./tools/eqrec4_run.sh`(detached). G00: primary(L1E4 S2025 best_raw, update 24240) raw HQNR 재현 0.956976 = 기록(Δ 0), gradient 수신자 검사 통과. 출력 `work_dir/_eqrec4_s1_campaign/`(report_EQREC4.md 가 최종) |
+| 판정 원칙 | 계획 §15: within-checkpoint 관계·대응 개입·source-block bootstrap; 0.0031 은 HQNR 방법 간 판정선일 뿐 여기 통계 기준이 아니다. 결과는 09-15 s1 문서로 |
