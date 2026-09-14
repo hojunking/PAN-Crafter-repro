@@ -76,3 +76,9 @@ s1 의 실행(23:07 기동) 은 그대로 두었다 — 같은 checkpoint·같�
 | §5 a_T>0 희소 | 관측 | Pair A 는 Aneg 4 cell 만 지원 — K10 이 그대로 기록; "Teacher 우위 집단에서도 효과" 주장 불가를 보고서에 반영 |
 
 운영: 옛 runner(D30B 없음) 는 D40 시작 뒤 종료(00:49)하고 D40 python 은 계속; D40 종료를 기다려 새 runner(D30B → D50 → K10 → K20 → REPORT) 를 기동한다.
+
+**02:00 K10 실패·수정.** D40(63 min) → D30B(4.4 min) → D50(1.5 min) 뒤 K10 이 `fit_pools` 의 전역 분리 assert("source block shared across pools") 로 즉시 실패했다.
+원인: block(32 연속 index 의 proxy) 하나의 sample 이 4 Aneg cell 전부에 흩어져 있는데(cell 당 64 block 전부 등장, block·cell 당 평균 7.6 sample), 종전 코드는 **cell 마다** 전체 block 으로 pool 을 채워 같은 block 이 여러 cell 의 pool 에 들어갔다 —
+E11 fixture 가 단일 cell 이라 잡지 못했다. 수정: block 을 먼저 pool 을 만들 수 있는 cell(≥32 sample) 에 **배타적으로 배정**(seed 로 섞고 누적 sample 이 가장 적은 cell 에) 한 뒤 cell 안에서 자기 block 의 sample 로만 pool 을 채운다(계획 §12.2 "fit-pool/source 묶음 분할" 그대로; 감사 Q02).
+실제 표(Pair A, B split 2048): 4 cell 이 자격, 9 pool(EdCd 3(하나는 35 cycled)·EdCu 2·EuCd 2·EuCu 2), 55 block 전부 서로 다름, pool 에 든 sample 419/2048 — 다른 cell 에 있는 block 의 sample 은 버린다(그래서 cell 당 ≤4 가 아니라 2–3 pool). E11 에 다중 cell fixture 추가(ALL OK).
+runner 는 02:1x 재기동 — 완료 stage 는 ledger+산출물 검사로 건너뛰고 K10 부터.

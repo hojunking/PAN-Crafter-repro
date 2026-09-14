@@ -91,11 +91,22 @@ def cells_for_pair(pair, T, S, man):
 
 
 def fit_pools(dfB, seed):
-    """cell 안에서 **source block 단위**로 pool 을 만든다 — 한 block 은 한 pool 에만 (감사 Q02: pool 간 source 공유 없음 → held-pool 검증이 source 분리). 48 을 넘는 마지막 block 의 나머지는 버린다(다른 pool 에 넣지 않음)."""
+    """pool 을 **source block 단위**로 만든다 (감사 Q02: pool 간 source 공유 없음 → LOO/K20 수축이 source 분리). 한 block 은 **전체에서 한 pool 에만** —
+    block 은 32 연속 index 의 proxy 라 그 sample 이 여러 cell 에 흩어져 있으므로, 먼저 block 을 pool 을 만들 수 있는 cell(≥32 sample) 들에 **배타적으로 배정**(seed 로 섞은 뒤,
+    누적 sample 이 가장 적은 cell 에) 하고, cell 안에서는 자기 block 의 sample 로만 48 짜리 pool 을 최대 TRIALS 개 채운다. 다른 cell 에 있는 그 block 의 sample 은 쓰지 않는다
+    (2026-09-15 02:00 수정: 전에는 cell 마다 전체 block 을 다시 썼고 전역 분리 assert 가 실제 자료(한 block 이 4 cell 에 걸침) 에서 실패했다).
+    48 을 넘는 마지막 block 의 나머지는 버린다(다른 pool 에 가지 않음). 32 ≤ 나머지 < 48 이면 cycled pool 하나."""
     rng = np.random.RandomState(seed); pools = []
+    eligible = [c for c, g in dfB.groupby("cell") if len(g) >= 32]
+    blocks = sorted(dfB.source_group_id.unique().tolist()); rng.shuffle(blocks)
+    owner, acc = {}, {c: 0 for c in eligible}; size = dfB.groupby(["cell", "source_group_id"]).size()
+    for b in blocks:                                                          # 배타 배정: 누적 sample 이 가장 적은 cell (동률이면 cell 이름 순)
+        if not eligible:
+            break
+        c = min(eligible, key=lambda cc: (acc[cc], cc)); owner[b] = c; acc[c] += int(size.get((c, b), 0))
     for cell, g in dfB.groupby("cell"):
-        blocks = [b.index.values.copy() for _, b in g.groupby("source_group_id")]; rng.shuffle(blocks); cur, cur_blocks, k = [], [], 0
-        for blk in blocks:
+        mine = [b.index.values.copy() for bid, b in g.groupby("source_group_id") if owner.get(bid) == cell]; rng.shuffle(mine); cur, cur_blocks, k = [], [], 0
+        for blk in mine:
             if k >= TRIALS:
                 break
             cur.extend(blk.tolist()); cur_blocks.append(str(g.loc[blk[0], "source_group_id"]))
@@ -106,7 +117,9 @@ def fit_pools(dfB, seed):
     used = {}
     for p in pools:
         for b in p["source_blocks"]:
-            assert b not in used or used[b] == (p["cell"], p["trial"]), "source block shared across pools"; used[b] = (p["cell"], p["trial"])
+            assert b not in used, f"source block {b} shared across pools ({used[b]} / {(p['cell'], p['trial'])})"; used[b] = (p["cell"], p["trial"])
+    n_used = sum(len(p["rows"]) for p in pools); per_cell = {c: sum(1 for p in pools if p["cell"] == c) for c in eligible}
+    print(f"[k10] fit_pools: cells eligible {len(eligible)}/{dfB.cell.nunique()} · blocks {len(blocks)} exclusively assigned · pools {len(pools)} {per_cell} · samples in pools {n_used}/{len(dfB)}")
     return pools
 
 

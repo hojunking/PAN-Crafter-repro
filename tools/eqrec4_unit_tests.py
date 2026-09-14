@@ -55,5 +55,12 @@ from tools.eqrec4.k10 import fit_pools
 pB = pd.DataFrame(dict(cell=["EdCd_Aneg"] * 200, source_group_id=[f"blk{i // 10:03d}" for i in range(200)], e_T=np.random.rand(200), a_T=-np.random.rand(200), q_A=np.random.rand(200)))
 pools = fit_pools(pB, 1); blocks = [set(p["source_blocks"]) for p in pools]
 check("E11 K10 fit pools: source block 단위 배정, pool 간 block 공유 없음, 48 고유, ≤4 pool", len(pools) == 4 and all(p["n_unique"] == 48 and not p["cycled"] for p in pools) and all(not (blocks[i] & blocks[j]) for i in range(4) for j in range(i + 1, 4)))
+# 실제 자료 형태: 한 block(32 연속 index) 의 sample 이 여러 cell 에 흩어진다 → block 을 cell 에 배타 배정 (2026-09-15 K10 실패 재현·수정)
+_rng = np.random.RandomState(3); pM = pd.DataFrame(dict(source_group_id=[f"blk{i // 32:03d}" for i in range(2048)], e_T=_rng.rand(2048), a_T=-_rng.rand(2048), q_A=_rng.rand(2048)))
+pM["cell"] = _rng.choice(["EdCd_Aneg", "EdCu_Aneg", "EuCd_Aneg", "EuCu_Aneg"], size=2048, p=[.22, .29, .27, .22]); pM.loc[:4, "cell"] = "EdCd_Apos"   # 5 sample 짜리 cell 은 pool 불가
+poolsM = fit_pools(pM, 1); bM = [b for p in poolsM for b in p["source_blocks"]]; cellsM = {p["cell"] for p in poolsM}
+check("E11 다중 cell(block 이 4 cell 에 걸침): 전역에서 block 공유 없음 · 4 cell 모두 pool 있음 · <32 sample cell 은 제외 · pool 의 row 는 자기 cell 의 자기 block 뿐",
+      len(bM) == len(set(bM)) and cellsM == {"EdCd_Aneg", "EdCu_Aneg", "EuCd_Aneg", "EuCu_Aneg"} and "EdCd_Apos" not in cellsM
+      and all((pM.loc[p["rows"], "cell"] == p["cell"]).all() and set(pM.loc[p["rows"], "source_group_id"]) <= set(p["source_blocks"]) for p in poolsM) and len(poolsM) >= 8, f"pools {len(poolsM)} cells {sorted(cellsM)}")
 bb = C.block_bootstrap(np.r_[np.ones(50), -np.ones(50)] * 0.1 + np.random.randn(100) * 0.01, np.repeat(np.arange(10), 10)); check("E10 block bootstrap: 평균 ≈ 0, CI 가 0 을 포함, n_groups 10", abs(bb["point"]) < 0.05 and bb["ci95"][0] < 0 < bb["ci95"][1] and bb["n_groups"] == 10)
 print(f"\n{'FAIL ' + str(FAIL) if FAIL else 'ALL OK'} ({len(FAIL)} failed)"); sys.exit(1 if FAIL else 0)
