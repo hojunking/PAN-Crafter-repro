@@ -56,7 +56,7 @@ def gradient_receiver_check(pair="A"):
 
 
 def main(profile=False):
-    C.ensure_dirs(); C.probe_manifest(); man = C.make_manifest(); status = dict(implementation_invalid=[], provenance_limited=["source_group_id is an index-block(32) proxy — no original scene/strip ids; all patches seen in pretraining (§3.2)"])
+    C.ensure_dirs(); C.probe_manifest(); man = C.make_manifest(); status = dict(implementation_invalid=[], provenance_limited=[])
     with C.Stage("G00", "assets·provenance·metric·support·graph gate"):
         rows = []
         for fam, seed, tag in C.CORE + C.EXTRA + [C.PAIRS[p]["S"] for p in C.PAIRS]:

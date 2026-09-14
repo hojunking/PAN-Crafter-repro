@@ -12,21 +12,18 @@ PATHS = ("response", "no_response", "known_inverse")
 @torch.no_grad()
 def stress_patches(L, ids, quad, gt, ms, lpan, pan, chunk=64):
     """§10 D40-A patch64/RR: y_ε = M + F([W(W(P,ε), c_path), M]) — response(cε) / no_response(c0) / known_inverse(c0−ε). native 와 같은 ROI; d_e = L1(yε)−L1(y0), s_Y = mean|yε−y0| (ROI)."""
-    scale = "native64" if pan.shape[-1] == 64 else "rr256"; mg_roi = C.ROI_MARGIN[scale]; H = pan.shape[-1]; rows = []; own = C.own_quadrants(L.key)
-    y0, c0 = C.native_forward(L, pan, ms, lpan, chunk=chunk); l0 = C.l1_roi(y0, gt, scale); eb0 = C.l1_roi(y0, gt, scale, per_band=True); sy, sx = C.roi_slice(scale); m2 = mg_roi + 8; s2 = (slice(m2, -m2), slice(m2, -m2))
-    l0_alt = (y0 - gt).abs()[..., s2[0], s2[1]].mean(dim=(1, 2, 3))                               # ROI 민감도 (감사 Q09): margin+8 의 작은 ROI 에서도 같은 d_e 부호인가
+    scale = "native64" if pan.shape[-1] == 64 else "rr256"; mg_roi = C.ROI_MARGIN[scale]; H = pan.shape[-1]; rows = []
+    y0, c0 = C.native_forward(L, pan, ms, lpan, chunk=chunk); l0 = C.l1_roi(y0, gt, scale); sy, sx = C.roi_slice(scale)
     for pr in STRESS_PROBES:
         for s in range(0, pan.shape[0], chunk):
             p, q, l, g = (t[s:s + chunk].to(DEV) for t in (pan, ms, lpan, gt)); e = torch.tensor([[pr["ey"], pr["ex"]]], device=DEV).expand(p.shape[0], 2); pe = C.warp_pan(p, e)
             mb = F.interpolate(q, scale_factor=4, mode="bicubic"); ce = C.predict_c(L.m.aligner, pe, mb, L.mg); cb = c0[s:s + chunk].to(DEV)
             for path, cc in (("response", ce), ("no_response", cb), ("known_inverse", cb - e)):
-                y = L.m(pe, q, l, delta_override=cc)["y"]; l1 = C.l1_roi(y, g, scale); sY = (y - y0[s:s + chunk].to(DEV)).abs()[..., sy, sx].mean(dim=(1, 2, 3)); eb = C.l1_roi(y, g, scale, per_band=True); l1_alt = (y - g).abs()[..., s2[0], s2[1]].mean(dim=(1, 2, 3))
+                y = L.m(pe, q, l, delta_override=cc)["y"]; l1 = C.l1_roi(y, g, scale); sY = (y - y0[s:s + chunk].to(DEV)).abs()[..., sy, sx].mean(dim=(1, 2, 3)); eb = C.l1_roi(y, g, scale, per_band=True)
                 for i in range(p.shape[0]):
-                    j = s + i; rows.append(dict(model_key=L.key, scale=scale, sample_id=int(ids[j]), quadrant_primary=(quad.get(int(ids[j])) if scale == "native64" else None), quadrant_own=(own.get(int(ids[j])) if scale == "native64" else None),
-                                                probe_id=pr["probe_id"], probe_bank=pr["bank"], r=pr["r"], epsilon_dy_hr=pr["ey"], epsilon_dx_hr=pr["ex"],
+                    j = s + i; rows.append(dict(model_key=L.key, scale=scale, sample_id=int(ids[j]), quadrant_primary=(quad.get(int(ids[j])) if scale == "native64" else None), probe_id=pr["probe_id"], probe_bank=pr["bank"], r=pr["r"], epsilon_dy_hr=pr["ey"], epsilon_dx_hr=pr["ex"],
                                                 path=path, c_path_dy=float(cc[i, 0]), c_path_dx=float(cc[i, 1]), c0_dy=float(cb[i, 0]), c0_dx=float(cb[i, 1]), ce_dy=float(ce[i, 0]), ce_dx=float(ce[i, 1]), l1_native_roi=float(l0[j]), l1_stress_roi=float(l1[i]),
-                                                d_e=float(l1[i] - l0[j]), d_e_roi_plus8=float(l1_alt[i] - l0_alt[j]), s_Y=float(sY[i]), **{f"l1_stress_band{b}": float(eb[i, b]) for b in range(8)}, **{f"d_e_band{b}": float(eb[i, b] - eb0[j, b]) for b in range(8)},
-                                                valid_support=C.two_stage_ok(H, H, (pr["ey"], pr["ex"]), cc[i], mg_roi), scalar_scope="probe"))
+                                                d_e=float(l1[i] - l0[j]), s_Y=float(sY[i]), **{f"d_e_band{b}": float(eb[i, b]) for b in range(8)}, valid_support=C.two_stage_ok(H, H, (pr["ey"], pr["ex"]), cc[i], mg_roi), scalar_scope="probe"))
     return rows
 
 
@@ -68,7 +65,7 @@ def pan_sensitivity(L, ids, quad, gt, ms, lpan, pan):
 @torch.no_grad()
 def band_alignment(L, fd):
     """§10 D40-D native RR: PAN 과 각 GT band 의 구조 정합 추정 (GT-informed) + band 별 L1 — 물리적 misalignment 와 spectral appearance 를 구분하지 못한 상태로 기록."""
-    from tools.palsv18_validate import blur_hr
+    from tools.palsv18_validate import _est, blur_hr
     from tools.metrics.jqm import _pan_kernel
     from align.estimator import GATES
     kp = _pan_kernel("WV3", 4); G = dict(GATES, search_int=4, max_magnitude=4.0); mp = fd["mp"]; rows = []
@@ -76,35 +73,28 @@ def band_alignment(L, fd):
         gt, lms, ms, lpan, pan = (t.unsqueeze(0).to(DEV) for t in fd["rr"][i]); o = L.m(pan, ms, lpan); d = o["delta"][0].double().cpu(); p = (pan[0, 0].double().cpu().numpy() + 1) / 2 * mp; pt = C.warp_pan(torch.from_numpy(p)[None, None], d[None])[0, 0].numpy()
         gdn = (gt[0].double().cpu().numpy() + 1) / 2 * mp; l1b = (o["y"] - gt).abs()[0].mean(dim=(1, 2)).cpu().numpy()
         for b in range(8):
-            a = C.est_full(blur_hr(p, kp), gdn[b], G); c = C.est_full(blur_hr(pt, kp), gdn[b], G)
-            rows.append(dict(model_key=L.key, scene=i, band_index=b, band_l1=float(l1b[b]), **{f"before_{k}": v for k, v in a.items()}, **{f"after_{k}": v for k, v in c.items()},
-                             note="GT-informed; band names follow source metadata; even/odd index groups are not called visible/NIR"))
+            a = _est(blur_hr(p, kp), gdn[b], G); c = _est(blur_hr(pt, kp), gdn[b], G)
+            rows.append(dict(model_key=L.key, scene=i, band_index=b, band_l1=float(l1b[b]), before_dy=a["dy"], before_dx=a["dx"], before_mag=a["mag"], before_accepted=a["accepted"], after_dy=c["dy"], after_dx=c["dx"], after_mag=c["mag"], after_accepted=c["accepted"],
+                             note="band names follow source metadata; even/odd index groups are not called visible/NIR"))
     return rows
 
 
 def h2_stats(df, nm):
-    """H2 (감사 Q03): 주 집계는 **bank B 만**(독립 대각 방향), bank A r=1 재현은 별도 표. paired valid = 같은 sample·probe 의 세 경로가 모두 valid_support 인 집합만."""
     out = {}
-    df = df.copy(); pv = df.groupby(["model_key", "scale", "sample_id", "probe_id"]).valid_support.transform("all"); df = df[pv]
     for mk, g in df.groupby("model_key"):
         out[mk] = {}
         for sc, s in g.groupby("scale"):
             key = "d_e" if sc != "fr512" else "d_Q"; q = nm[(nm.model_key == mk) & (nm.scale == sc)].set_index("sample_id"); res = {}
-            for bank, sb in s.groupby("probe_bank"):
-                res[bank] = {}
-                for path, sp in sb.groupby("path"):
-                    per = {}
-                    for r, sr in sp.groupby("r"):
-                        agg = sr.groupby("sample_id")[key].mean(); qa = q.q_A.reindex(agg.index); e_ = (q.e_native_full if sc != "fr512" else q.raw_original_hqnr).reindex(agg.index)
-                        groups = q.source_group_id.reindex(agg.index).values if sc == "native64" else np.array([f"{sc}{i}" for i in agg.index])
-                        per[str(r)] = dict(n=int(len(agg)), n_probes=int(sr.probe_id.nunique()), mean=float(agg.mean()), median=float(agg.median()), positive_loss_mean=float(agg[agg > 0].mean()) if (agg > 0).any() else None, p90=float(agg.quantile(.9)),
-                                           worst_direction=(sr.groupby("probe_id")[key].mean().idxmax() if len(sr) else None), spearman_qA_d=C.spearman_boot(qa.values, agg.values, groups, seed=7),
-                                           spearman_qA_d_by_native_tertile={t: C.spearman(qa.values[m_], agg.values[m_]) for t, m_ in zip(("low", "mid", "high"), [C.texture_tertile(e_.values) == t for t in ("low", "mid", "high")])} if len(agg) >= 24 else None,
-                                           by_quadrant_own=({qd: dict(n=int(len(x)), mean=float(x[key].mean())) for qd, x in sr.groupby("quadrant_own")} if sc == "native64" and "quadrant_own" in sr and sr.quadrant_own.notna().any() else None),
-                                           roi_sensitivity_sign_agreement=(float((np.sign(sr.d_e) == np.sign(sr.d_e_roi_plus8)).mean()) if "d_e_roi_plus8" in sr and sc != "fr512" else None))
-                    res[bank][path] = per
-            out[mk][sc] = dict(primary_bank="B", by_bank=res, paired_valid_fraction=float(pv[(df.model_key == mk) & (df.scale == sc)].mean()) if False else None, metric=key, sign=("d_e>0 = stress worse" if key == "d_e" else "d_Q>0 = stress worse"),
-                               note="bank B = independent diagonal directions (H2 primary); bank A r=1 = replication; paired valid set (all three paths valid) only")
+            for path, sp in s.groupby("path"):
+                per = {}
+                for r, sr in sp[sp.valid_support].groupby("r"):
+                    agg = sr.groupby("sample_id")[key].mean(); qa = q.q_A.reindex(agg.index); e_ = (q.e_native_full if sc != "fr512" else q.raw_original_hqnr).reindex(agg.index)
+                    groups = q.source_group_id.reindex(agg.index).values if sc == "native64" else np.array([f"{sc}{i}" for i in agg.index])
+                    per[str(r)] = dict(n=int(len(agg)), mean=float(agg.mean()), median=float(agg.median()), positive_loss_mean=float(agg[agg > 0].mean()) if (agg > 0).any() else None, p90=float(agg.quantile(.9)),
+                                       worst_direction=(sr.groupby("probe_id")[key].mean().idxmax() if len(sr) else None), spearman_qA_d=C.spearman_boot(qa.values, agg.values, groups, seed=7),
+                                       spearman_qA_d_by_native_tertile={t: C.spearman(qa.values[m_], agg.values[m_]) for t, m_ in zip(("low", "mid", "high"), [C.texture_tertile(e_.values) == t for t in ("low", "mid", "high")])} if len(agg) >= 24 else None)
+                res[path] = per
+            out[mk][sc] = dict(by_path=res, invalid_support_fraction=float(1 - s.valid_support.mean()), metric=key, sign=("d_e>0 = stress worse" if key == "d_e" else "d_Q>0 = stress worse"))
     return out
 
 
@@ -127,9 +117,7 @@ def main(profile=False):
                 if (fam, seed, tag) == C.PRIMARY or (fam == "L1E4" and tag == "best_raw" and not profile):
                     ps += pan_sensitivity(L, ids, quad, gt, ms, lpan, pan)
             if not profile:
-                rows, summ = edge_profile(L.m, fd["cfg"], fd["mp"], DEV, L.has_aligner); ep += [dict(model_key=L.key, correction="learned" if L.has_aligner else "none", **r) for r in rows]; en[L.key] = dict(edge_profile=summ, **(energy_fr(L.m, fd["fr"], fd["pan_raw"], DEV) if L.has_aligner else {}))
-                if fam == "L1E4" and tag == "best_raw":                                          # 감사 Q09: 같은 가중치의 zero-correction 출력 edge profile — learned 와 폭/위치 차이를 대응
-                    rows0, summ0 = edge_profile(L.m, fd["cfg"], fd["mp"], DEV, False); ep += [dict(model_key=L.key, correction="zero", **r) for r in rows0]; en[L.key]["edge_profile_zero_correction"] = summ0
+                rows, summ = edge_profile(L.m, fd["cfg"], fd["mp"], DEV, L.has_aligner); ep += [dict(model_key=L.key, **r) for r in rows]; en[L.key] = dict(edge_profile=summ, **(energy_fr(L.m, fd["fr"], fd["pan_raw"], DEV) if L.has_aligner else {}))
             print(f"  {L.key}: {C.time.time() - t0:.0f}s", flush=True); del L; torch.cuda.empty_cache()
         df = pd.DataFrame(st); df.to_csv(os.path.join(CAMP, "output_stress.csv"), index=False)
         if ps:

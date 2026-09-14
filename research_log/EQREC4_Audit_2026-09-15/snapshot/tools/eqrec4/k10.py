@@ -75,7 +75,7 @@ def eval_l1(m, gt, ms, lpan, pan, chunk=64):
     ys = []
     for s in range(0, pan.shape[0], chunk):
         ys.append(m(pan[s:s + chunk].to(DEV), ms[s:s + chunk].to(DEV), lpan[s:s + chunk].to(DEV))["y"].float().cpu())
-    y = torch.cat(ys); return dict(l1=float((y - gt).abs().mean()), l1_roi=float(C.l1_roi(y, gt, "native64").mean()), edge=float(C.edge_l1_roi(y, gt, "native64").mean()), per_sample=(y - gt).abs().mean(dim=(1, 2, 3)).numpy(), per_band=(y - gt).abs().mean(dim=(0, 2, 3)).numpy())
+    y = torch.cat(ys); return dict(l1=float((y - gt).abs().mean()), l1_roi=float(C.l1_roi(y, gt, "native64").mean()), edge=float(C.edge_l1_roi(y, gt, "native64").mean()), per_sample=(y - gt).abs().mean(dim=(1, 2, 3)).numpy())
 
 
 def cells_for_pair(pair, T, S, man):
@@ -91,22 +91,18 @@ def cells_for_pair(pair, T, S, man):
 
 
 def fit_pools(dfB, seed):
-    """cell 안에서 **source block 단위**로 pool 을 만든다 — 한 block 은 한 pool 에만 (감사 Q02: pool 간 source 공유 없음 → held-pool 검증이 source 분리). 48 을 넘는 마지막 block 의 나머지는 버린다(다른 pool 에 넣지 않음)."""
     rng = np.random.RandomState(seed); pools = []
     for cell, g in dfB.groupby("cell"):
-        blocks = [b.index.values.copy() for _, b in g.groupby("source_group_id")]; rng.shuffle(blocks); cur, cur_blocks, k = [], [], 0
-        for blk in blocks:
-            if k >= TRIALS:
+        idx = g.index.values.copy(); rng.shuffle(idx); k = 0
+        while k < TRIALS:
+            chunk = idx[k * POOL:(k + 1) * POOL]
+            if len(chunk) >= POOL:
+                pools.append(dict(cell=cell, trial=k, rows=chunk, n_unique=int(len(chunk)), cycled=False))
+            elif len(chunk) >= 32:
+                pools.append(dict(cell=cell, trial=k, rows=chunk, n_unique=int(len(chunk)), cycled=True)); break
+            else:
                 break
-            cur.extend(blk.tolist()); cur_blocks.append(str(g.loc[blk[0], "source_group_id"]))
-            if len(cur) >= POOL:
-                pools.append(dict(cell=cell, trial=k, rows=np.array(cur[:POOL]), n_unique=POOL, cycled=False, source_blocks=list(cur_blocks), dropped_from_last_block=int(len(cur) - POOL))); cur, cur_blocks = [], []; k += 1
-        if k < TRIALS and 32 <= len(cur) < POOL:
-            pools.append(dict(cell=cell, trial=k, rows=np.array(cur), n_unique=int(len(cur)), cycled=True, source_blocks=list(cur_blocks), dropped_from_last_block=0))
-    used = {}
-    for p in pools:
-        for b in p["source_blocks"]:
-            assert b not in used or used[b] == (p["cell"], p["trial"]), "source block shared across pools"; used[b] = (p["cell"], p["trial"])
+            k += 1
     return pools
 
 
@@ -121,10 +117,10 @@ def run_trial(S, m_src_state, cfg, pool, Bt, tp_B, valC, tp_dummy, seed, arm):
         r = k_step(m, S.mg, b, u, gen, tp, arm, opt=opt)
         if u in (0, UPDATES - 1):
             logs.append(dict(update=u, **r))
-    m.eval(); fit1 = eval_l1(m, *(t[sel] for t in (gt, ms, lpan, pan))); c1 = eval_l1(m, *valC); h1 = C.state_hash(m)
-    return dict(restore_hash=h0, final_hash=h1, fit_l1_before=fit0["l1"], fit_l1_after=fit1["l1"], C_l1_before=c0["l1"], C_l1_after=c1["l1"], C_edge_before=c0["edge"], C_edge_after=c1["edge"], C_l1_roi_after=c1["l1_roi"],
+    m.eval(); fit1 = eval_l1(m, *(t[sel] for t in (gt, ms, lpan, pan))); c1 = eval_l1(m, *valC)
+    return dict(restore_hash=h0, fit_l1_before=fit0["l1"], fit_l1_after=fit1["l1"], C_l1_before=c0["l1"], C_l1_after=c1["l1"], C_edge_before=c0["edge"], C_edge_after=c1["edge"], C_l1_roi_after=c1["l1_roi"],
                 g_base_A_first=logs[0]["g_base_A"], g_base_U_first=logs[0]["g_base_U"], g_extra_U_first=logs[0]["g_extra_U"], g_base_U_last=logs[-1]["g_base_U"], g_extra_U_last=logs[-1]["g_extra_U"], loss_h_first=logs[0]["loss_h"], loss_h_last=logs[-1]["loss_h"], loss_d_first=logs[0]["loss_d"],
-                C_per_sample_before=c0["per_sample"], C_per_sample_after=c1["per_sample"], fit_sel=sel, optimizer_state="fresh AdamW per trial/arm (step 0 state)", logs=logs)
+                C_per_sample_after=c1["per_sample"])
 
 
 def h4_diag(ut):
@@ -146,7 +142,7 @@ def h4_diag(ut):
         res["q_added_mae_improvement"] = res["B0"]["loo_mae"] - res["B1"]["loo_mae"]; out[pair] = res; fitted[pair] = (X0, X1, y)
     if "A" in fitted and "B" in fitted:                                   # §15.3: Pair A 로 맞춘 관계를 Pair B 에 적용 (B 의 utility 로 다시 맞추지 않는다)
         (XA0, XA1, yA), (XB0, XB1, yB) = fitted["A"], fitted["B"]; out["cross_pair_A_to_B"] = {n: dict(mae=float(np.abs(ridge_fit_predict(Xa, yA, Xb) - yB).mean()), direction_acc=float(((ridge_fit_predict(Xa, yA, Xb) > 0) == (yB > 0)).mean())) for n, Xa, Xb in (("B0", XA0, XB0), ("B1", XA1, XB1))}
-    out["note"] = "pool-level utilities; ridge(alpha=1) leave-one-pool-out; pools are source-block disjoint by construction (fit_pools) so LOO is source-separated; EA/EAQ medians do not perfectly control e/a (§15.3)"; out["source_disjoint"] = True
+    out["note"] = "pool-level utilities; ridge(alpha=1) leave-one-pool-out; pools are disjoint by construction; EA/EAQ medians do not perfectly control e/a (§15.3)"
     return out
 
 
@@ -169,20 +165,15 @@ def main(profile=False, pairs=("A", "B")):
                     for arm in ARMS:
                         res[arm] = run_trial(S, src_state, S.cfg, pool, Bt, tpB, valC, None, seed=1000 + pool["trial"] + 17 * pi, arm=arm)
                     g = dfB.loc[pool["rows"]]; row = dict(pair=pair, teacher=T.key, student=S.key, student_update=S.step, cell=pool["cell"], trial=pool["trial"], repeat=rep, n_unique_fit=pool["n_unique"], cycled=pool["cycled"], n_source_groups=int(g.source_group_id.nunique()),
-                                                          source_blocks="|".join(pool["source_blocks"]), source_disjoint_across_pools=True,
                                                           pool_eT_mean=float(g.e_T.mean()), pool_eT_std=float(g.e_T.std()), pool_aT_mean=float(g.a_T.mean()), pool_apos_frac=float(g.a_pos.mean()), pool_qA_mean=float(g.q_A.mean()), pool_qA_std=float(g.q_A.std()),
-                                                          restore_ok=bool(len({res[a]["restore_hash"] for a in ARMS}) == 1), restore_hash=res["R0"]["restore_hash"], C_l1_source=res["R0"]["C_l1_before"], C_val_ids="|".join(str(int(dfC.sample_id.iloc[k])) for k in vsel))
-                    os.makedirs(os.path.join(CAMP, "k10_raw"), exist_ok=True)                    # 감사 Q10: 원시 C endpoint (sample 별 before/after, C id, restore hash) — U_soft-hard 를 원시값에서 재현할 수 있게
-                    np.savez(os.path.join(CAMP, "k10_raw", f"{pair}_{pool['cell']}_t{pool['trial']}_r{rep}.npz"), C_ids=np.array([int(dfC.sample_id.iloc[k]) for k in vsel]), fit_ids=np.array([int(dfB.sample_id.iloc[k]) for k in res["R0"]["fit_sel"]]),
-                             **{f"{a}_C_before": res[a]["C_per_sample_before"] for a in ARMS}, **{f"{a}_C_after": res[a]["C_per_sample_after"] for a in ARMS}, restore_hashes=np.array([res[a]["restore_hash"] for a in ARMS]), final_hashes=np.array([res[a]["final_hash"] for a in ARMS]),
-                             grad_logs=np.array(json.dumps({a: res[a]["logs"] for a in ARMS})))
+                                                          restore_ok=bool(len({res[a]["restore_hash"] for a in ARMS}) == 1), C_l1_source=res["R0"]["C_l1_before"])
                     for a in ARMS:
                         row.update({f"{a}_fit_l1_before": res[a]["fit_l1_before"], f"{a}_fit_l1_after": res[a]["fit_l1_after"], f"{a}_C_l1_after": res[a]["C_l1_after"], f"{a}_C_edge_after": res[a]["C_edge_after"], f"{a}_g_base_A": res[a]["g_base_A_first"], f"{a}_g_base_U": res[a]["g_base_U_first"], f"{a}_g_extra_U": res[a]["g_extra_U_first"], f"{a}_loss_d_first": res[a]["loss_d_first"]})
                     L0 = res["R0"]["C_l1_before"]; row.update(U_soft_hard=res["RH"]["C_l1_after"] - res["RS"]["C_l1_after"], U_soft_base=res["R0"]["C_l1_after"] - res["RS"]["C_l1_after"], U_hard_base=res["R0"]["C_l1_after"] - res["RH"]["C_l1_after"])
                     row.update(U_soft_hard_rel=row["U_soft_hard"] / L0, U_soft_base_rel=row["U_soft_base"] / L0, U_hard_base_rel=row["U_hard_base"] / L0, fit_gain_RH=res["RH"]["fit_l1_before"] - res["RH"]["fit_l1_after"], fit_gain_RS=res["RS"]["fit_l1_before"] - res["RS"]["fit_l1_after"])
                     trials.append(row); reps.setdefault(pi, []).append(row["U_soft_hard_rel"])
                     print(f"  {pair} {pool['cell']} t{pool['trial']} r{rep}: U_soft-hard {row['U_soft_hard']:+.2e} (rel {row['U_soft_hard_rel']:+.3f})", flush=True)
-                manifest.append(dict(pair=pair, cell=pool["cell"], trial=pool["trial"], sample_ids=[int(dfB.sample_id.iloc[k]) for k in pool["rows"]], n_unique=pool["n_unique"], cycled=pool["cycled"], source_blocks=pool["source_blocks"], dropped_from_last_block=pool["dropped_from_last_block"]))
+                manifest.append(dict(pair=pair, cell=pool["cell"], trial=pool["trial"], sample_ids=[int(dfB.sample_id.iloc[k]) for k in pool["rows"]], n_unique=pool["n_unique"], cycled=pool["cycled"]))
             noise = float(np.std(reps.get(0, [0.0]))) if len(reps.get(0, [])) > 1 else None
             C.dump_json(os.path.join(CAMP, f"k10_noise_{pair}.json"), dict(pair=pair, repeat_utilities_rel=reps.get(0), noise_scale_rel=noise, note="same source/pool/RNG re-run (GPU nondeterminism); scale for K20 s_u"))
             del T, S; torch.cuda.empty_cache()

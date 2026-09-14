@@ -10,10 +10,10 @@ PY="${PYTHON:-/home/knuvi/miniconda3/envs/pancrafter/bin/python}"; SERVER="$(tr 
 if ps -eo args | grep -q '[_]run_cases\.sh'; then echo "[eqrec4] 주의: 다른 학습 체인(_run_cases.sh) 이 이 GPU 를 쓰고 있다 — 진단은 같이 돌지만 느려진다 (중단 여부는 사람이 정한다)"; fi
 exec 8>"$CAMP/.runner.lock"; flock -n 8 || { echo "[eqrec4] 이미 실행 중"; exit 0; }
 [ -f "$CAMP/T0.txt" ] || date -Iseconds > "$CAMP/T0.txt"; echo "[eqrec4] T0 $(cat "$CAMP/T0.txt") · 시작 $(date -Iseconds)"
-done_stage() { [ -f "$CAMP/time_ledger.jsonl" ] && grep -q "\"stage\": \"$1\", \"status\": \"done\"" "$CAMP/time_ledger.jsonl" && "$PY" tools/eqrec4.py check --of "$2" > /dev/null 2>&1; }   # ledger done + 필수 산출물 존재 (감사 Q11)
-for st in g00:G00 d10:D10 d20:D20 d30:D30 d30b:D30B d40:D40 d50:D50 k10:K10 k20:K20 report:REPORT; do
+done_stage() { [ -f "$CAMP/time_ledger.jsonl" ] && grep -q "\"stage\": \"$1\", \"status\": \"done\"" "$CAMP/time_ledger.jsonl"; }
+for st in g00:G00 d10:D10 d20:D20 d30:D30 d40:D40 d50:D50 k10:K10 k20:K20 report:REPORT; do
   cmd=${st%%:*}; name=${st##*:}
-  if done_stage "$name" "$cmd"; then echo "[eqrec4] $name 이미 완료 — 건너뜀"; continue; fi
+  if done_stage "$name"; then echo "[eqrec4] $name 이미 완료 — 건너뜀"; continue; fi
   echo "[eqrec4] === $name $(date -Iseconds) (T0 로부터 $(( ($(date +%s) - $(date -d "$(cat "$CAMP/T0.txt")" +%s)) / 60 )) min) ==="
   "$PY" tools/eqrec4.py "$cmd" 8>&-; rc=$?
   if [ $rc -ne 0 ]; then echo "[eqrec4] !! $name 실패 (rc=$rc) — 중단 $(date -Iseconds)"; echo "[eqrec4] STOPPED $name rc=$rc $(date -Iseconds)" >> "$CAMP/run_status.txt"; exit $rc; fi

@@ -56,3 +56,23 @@
 
 s3 절차: pull → bundle 전송 → `./tools/eqrec4_prepare.sh`(bundle verify/install → 데이터·DLPan → gate E01–E10 → G00(primary raw HQNR 재현 Δ ≤ 1e-4) → runner 기동). s3 의 PAKD50 체인이 돌고 있으면 GPU 를 같이 써 느려진다 — 중단 여부는 사람이 정한다(prepare 가 경고만).
 s1 의 실행(23:07 기동) 은 그대로 두었다 — 같은 checkpoint·같은 분할이라 s3 결과와의 환경 교차(같은 sample 의 e/q·개입 재현) 로 쓸 수 있다. s1 을 멈추려면 `pkill -f eqrec4_run` 대신 `ps -eo pid,args | grep '[e]qrec4'` 로 PID 를 골라 kill.
+
+## 6. 구현 감사(`research_log/PAN_EQREC4_Implementation_Experiment_Audit_2026-09-15.md`) 반영 — 2026-09-15 00:45–01:30
+
+| # | 판단 | 반영 |
+|---|---|---|
+| Q01 K20 진입 조건 없음 | 맞다 | `k20.k20_gate`: G00 유효 · q_A/q_B 반복성(ρ≥0.8, label 일치 ≥0.75) · K10 pool ≥4·restore ok·source 분리 · 원시 C(npz) 에서 U_soft-hard 재현(≤1e-7) · 식별 가능 신호(noise 있으면 max|u|>2·noise, 없으면 MAD>0; 임의 floor 없음) · proxy source 지원 ≥5. 실패면 `k20_gate.json`(pilot_not_identifiable) 만 남기고 학습하지 않는다; report 는 `final_training_pilot_not_run` |
+| Q02 pool 의 source 공유·held-pool | 맞다 | `k10.fit_pools` 가 cell 안에서 **source block 단위**로 pool 을 채운다(한 block 은 한 pool 에만; 48 을 넘는 나머지는 버림) → LOO 가 source 분리. `source_blocks`·`source_disjoint_across_pools` 기록. G00 `provenance_limited` 에 proxy 명시 |
+| Q03 H2 에 bank A 혼합 | 맞다 | `d40.h2_stats` 를 bank 별로 나눠 **bank B 를 주**로, A r=1 은 재현 표; paired valid = 세 경로 모두 valid 인 (sample, probe) 만. D40 은 수정 뒤 시작(00:46:47; 파일 00:46:40) 이라 저장 자료가 새 규약 |
+| Q04 자동 판정 규칙 | 맞다 | `report.verdicts` 를 증거표 기반으로: 단위 = seed(best/last 합의, CI 가 0 제외), 세 seed 모두 일치해야 Supported/Opposed, 그 밖은 Insufficient; H4_diag 는 source 분리·Pair A→B 교차·noise 기록 조건; H4_exec 는 gate 통과 시만. `verdict_evidence.csv`. H1_RR → H1_native64 |
+| Q05 band d_e 가 절대값 | 맞다 | `l1_stress_band*` 와 native 를 뺀 `d_e_band*` 를 모두 저장 |
+| Q06 native64 전수 개입·자기 4분면 | 맞다 | 새 stage **D30B**: L1E4 6 checkpoint 의 4,096 전수 I-L/I-Z/I-W/I-C + `quadrant_own`(자기 threshold) / `quadrant_primary` 병기, `h3_core_stats.json`(전체·D·own 4분면별). D40/D50 행에도 `quadrant_own` 추가 |
+| Q07 blur calibration 이 A 밖 | 맞다 | D30B `blur_calibration_A`: 분할 A 512 에서 energy 2% + overshoot 0 + 고주파 power 5% 를 모두 만족해야 matched; D30 의 blur 행은 "PALSV18 calibration 재사용(exploratory)" |
+| Q08 shuffle 이 1D·최소 2 | 맞다 | rank e 순 32 묶음을 rank a 로 반갈라 16 블록(2D 근접), 8 미만 unmatched; `k20_shuffle_pairs.csv`(partner·q 전후·e/a rank 거리·source) |
+| Q09 estimator secondary·범위 | 부분 | `common.est_full`(secondary·차이·margin·boundary) 로 RR/FR proxy 전체 필드(`native_geometry_proxy_full.csv`, known-shift sign_ok 포함), band alignment, native64 I-G(`native64_ig.csv`, accepted 만), RR bias 개입 전후 위치 proxy(`bias_position_proxy_rr.csv`), D20 MS-only/common **bank B**, stress 의 ROI 민감도(`d_e_roi_plus8`), primary zero-correction edge profile. 미반영: parent-context(64² 고정 patch 라 불가, 기록), 출력 profile overshoot |
+| Q10 K10 원시·K20 2500 | 맞다 | `k10_raw/*.npz`(C id·arm 별 before/after per-sample·fit id·restore/final hash·grad log); K20 은 0/2500/5000 state 저장 + D band endpoint |
+| Q11 G00 exit·재개 | 맞다 | 단독 `g00` 도 invalid 면 exit 2; ledger 에 code fingerprint(git+eqrec4 py sha); runner `done_stage` = ledger done **and** 필수 산출물 존재(`tools/eqrec4.py check`) |
+| Q12 보고서 원인 설명 | 맞다 | Table B 를 열마다 지원 n 을 두고 집단별 관측/미검증 목록으로; 자동 원인 배정 없음(mixed/unresolved), placeholder 제거; 해석은 results_log 에서 |
+| §5 a_T>0 희소 | 관측 | Pair A 는 Aneg 4 cell 만 지원 — K10 이 그대로 기록; "Teacher 우위 집단에서도 효과" 주장 불가를 보고서에 반영 |
+
+운영: 옛 runner(D30B 없음) 는 D40 시작 뒤 종료(00:49)하고 D40 python 은 계속; D40 종료를 기다려 새 runner(D30B → D50 → K10 → K20 → REPORT) 를 기동한다.

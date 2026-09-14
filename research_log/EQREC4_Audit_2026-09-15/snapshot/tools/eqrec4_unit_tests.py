@@ -47,13 +47,6 @@ tab = K.utility_tables(ut, "A", dfB); ea = tab["EA"]["EdApos"]; eaq = tab["EAQ"]
 check("E08 EA 셀 = e·a 만 (q 제거), EAQ 는 부모 EA 로 shrink (n·ū + 4·ū_parent)/(n+4), 지원 없는 셀은 부모값", abs(ea["raw"] - (.02 + .03 - .01) / 3) < 1e-9 and abs(eaq["value"] - (2 * .025 + 4 * ea["value"]) / 6) < 1e-9 and tab["EAQ"]["EdCu_Aneg"]["value"] == tab["EA"]["EdAneg"]["value"])
 rho, info = K.rho_for(dfB, tab["EAQ"], "EAQ", tab); rho2, info2 = K.rho_for(dfB, tab["EA"], "EA", tab)
 check("E08 ρ = σ(clip(ū/s_u,−4,4)+b_mass), B 평균 0.5 (EA·EAQ 각각), 순서 보존", abs(info["mean_rho"] - 0.5) < 1e-6 and abs(info2["mean_rho"] - 0.5) < 1e-6 and rho[0] > rho[30], f"b_mass {info['b_mass']:.3f}")
-dfB["source_group_id"] = "b"; dfB["sample_id"] = np.arange(len(dfB)); dfS, stt, prs = K.conditional_shuffle(dfB, 1)
-check("E09 conditional shuffle: e/a 셀 유지 · q-label 만 2D rank 블록(≤16, ≥8) 안에서 derangement · partner/거리 기록 · 8 미만은 unmatched", (dfS.cell.map(K.ea_key) == dfB.cell.map(K.ea_key)).all() and (dfS.e_T.values == dfB.e_T.values).all() and (dfS.cell.values != dfB.cell.values).mean() > 0
-      and (prs.status == "ok").sum() > 0 and prs[prs.status == "ok"].e_rank_dist.max() <= 32 and (prs[prs.status == "ok"].partner_sample_id >= 0).all())
-tiny = dfB.iloc[:5].copy(); _, st_t, _ = K.conditional_shuffle(tiny, 1); check("E09 블록이 8 미만이면 shuffle_unmatched (라벨 유지)", (st_t == "shuffle_unmatched").all())
-from tools.eqrec4.k10 import fit_pools
-pB = pd.DataFrame(dict(cell=["EdCd_Aneg"] * 200, source_group_id=[f"blk{i // 10:03d}" for i in range(200)], e_T=np.random.rand(200), a_T=-np.random.rand(200), q_A=np.random.rand(200)))
-pools = fit_pools(pB, 1); blocks = [set(p["source_blocks"]) for p in pools]
-check("E11 K10 fit pools: source block 단위 배정, pool 간 block 공유 없음, 48 고유, ≤4 pool", len(pools) == 4 and all(p["n_unique"] == 48 and not p["cycled"] for p in pools) and all(not (blocks[i] & blocks[j]) for i in range(4) for j in range(i + 1, 4)))
+dfS, stt = K.conditional_shuffle(dfB, 1); check("E09 conditional shuffle: e/a 셀은 유지, q-label 만 블록 안에서 derangement, 영상·Teacher 출력은 손대지 않음", (dfS.cell.map(K.ea_key) == dfB.cell.map(K.ea_key)).all() and (dfS.e_T.values == dfB.e_T.values).all() and (dfS.cell.values != dfB.cell.values).mean() > 0)
 bb = C.block_bootstrap(np.r_[np.ones(50), -np.ones(50)] * 0.1 + np.random.randn(100) * 0.01, np.repeat(np.arange(10), 10)); check("E10 block bootstrap: 평균 ≈ 0, CI 가 0 을 포함, n_groups 10", abs(bb["point"]) < 0.05 and bb["ci95"][0] < 0 < bb["ci95"][1] and bb["n_groups"] == 10)
 print(f"\n{'FAIL ' + str(FAIL) if FAIL else 'ALL OK'} ({len(FAIL)} failed)"); sys.exit(1 if FAIL else 0)

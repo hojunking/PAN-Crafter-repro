@@ -148,7 +148,7 @@ class Stage:
         ledger(self.name, "start", 0.0, self.note); print(f"[eqrec4] {self.name} start {time.strftime('%H:%M:%S')}", flush=True); return self
 
     def __exit__(self, et, ev, tb):
-        ledger(self.name, "done" if et is None else "error", time.time() - self.t0, self.note if et is None else f"{self.note} !! {ev!r}"[:400], code=code_fingerprint())
+        ledger(self.name, "done" if et is None else "error", time.time() - self.t0, self.note if et is None else f"{self.note} !! {ev!r}"[:400])
         print(f"[eqrec4] {self.name} {'done' if et is None else 'ERROR'} {(time.time() - self.t0) / 60:.1f} min", flush=True)
 
 
@@ -378,33 +378,6 @@ def block_bootstrap(values, groups, fn=np.mean, n=2000, seed=0):
     for _ in range(n):
         pick = rng.choice(ug, len(ug), replace=True); sel = np.concatenate([idx_by[g] for g in pick]); stats.append(fn(values[sel]))
     return dict(point=float(fn(values)), ci95=[float(np.percentile(stats, 2.5)), float(np.percentile(stats, 97.5))], n_groups=int(len(ug)), n=int(len(values)))
-
-
-def est_full(ref, mov, G):
-    """align.estimator.estimate_shift 의 전체 반환(primary Scharr-ZNCC + secondary census, 차이, margin, boundary) — 감사 Q09: secondary 를 버리지 않는다."""
-    from align.estimator import estimate_shift
-    r = estimate_shift(np.asarray(ref, dtype=np.float32), np.asarray(mov, dtype=np.float32), G)
-    return dict(dy=r["dy_lr_raw"], dx=r["dx_lr_raw"], mag=r["magnitude_raw"], zncc=r.get("peak_zncc"), margin=r.get("peak_margin"), accepted=bool(r.get("accepted")), boundary=bool(r.get("boundary_hit")),
-                secondary_dy=r.get("secondary_dy"), secondary_dx=r.get("secondary_dx"), primary_secondary_diff=r.get("primary_secondary_diff"))
-
-
-def own_quadrants(model_key):
-    """quadrant_assignments.csv 에서 이 checkpoint 자신의 4분면 label (sample_id → quadrant_id) — primary label 과 구분 (감사 Q06)."""
-    p = os.path.join(CAMP, "quadrant_assignments.csv")
-    if not os.path.exists(p):
-        return {}
-    qa = read_csv(p); qa = qa[qa.model_key == model_key]; return dict(zip(qa.sample_id.astype(int), qa.quadrant_id))
-
-
-def code_fingerprint():
-    """실행 시점 코드 지문 (감사 Q11): git HEAD + tools/eqrec4/*.py 의 sha256 (dirty 여부 포함)."""
-    import subprocess
-    g = lambda c: subprocess.run(c, shell=True, capture_output=True, text=True, cwd=ROOT).stdout.strip()
-    d = os.path.dirname(os.path.abspath(__file__)); h = hashlib.sha256()
-    for f in sorted(os.listdir(d)):
-        if f.endswith(".py"):
-            h.update(open(os.path.join(d, f), "rb").read())
-    return dict(git=g("git rev-parse HEAD"), dirty=bool(g("git status --porcelain -- tools/eqrec4 tools/eqrec4.py tools/eqrec4_run.sh")), eqrec4_py_sha256_16=h.hexdigest()[:16])
 
 
 def spearman(x, y):
