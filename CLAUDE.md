@@ -12,6 +12,7 @@ clone 에 작업을 얹은 것이다.
 | `SETUP.md` | 새 서버 셋업 (경로 치환, 데이터 배치, 형제 저장소) |
 | `KNOWN_ISSUES.md` | 논문 불일치·잠재 버그·데이터 결함과 적용 현황. **코드를 고치기 전에 반드시 확인** |
 | `INTRO.md` | 논문 요지와 코드 구조 |
+| `DISK_CLEANUP.md` | `work_dir` 정리로 디스크 회수 (`tools/prune_workdir.py`). **캠페인 시작 전 `df -h` 확인** |
 | `results_log/README.md` | 실험 결과 색인 (최신순). **수치를 인용할 때는 여기부터** |
 | `results_log/CONVENTION.md` | 실험 문서 작성 규약 |
 
