@@ -1,0 +1,5 @@
+# DCR12 (research_log/PAN_Consistency_Reconstruction_Quadrant_Validation_12H_2026-09-14.md §8.2) — s1 단일 호스트 두 seed pair. B0/FQ S1234 v1 은 s1 완료본 재사용(큐에 넣지 않음).
+# 순서: B1/JK0 S1234 → B0/FQ S777 → B1/JK0 S777. 학습 정의는 PAKD50 generator 그대로(v1; s1 의 FQ S777 은 s2 의 같은 이름 run 과 별개 host 학습). gate 'pakd50' 는 이 큐 동안 비운다 (tools/dcr12_run.sh).
+PAKD50_JK0_W112_D123_WV3_T0_S1234_FRESH50_v1
+PAKD50_FQ_W112_D123_WV3_T0_S777_FRESH50_v1
+PAKD50_JK0_W112_D123_WV3_T0_S777_FRESH50_v1
