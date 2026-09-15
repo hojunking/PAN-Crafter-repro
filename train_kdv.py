@@ -38,7 +38,7 @@ from kdv.teacher_assets import load_donor_aligner, load_run_model, load_state, f
 from pa.aligner import PANGlobalAligner
 from pa.evalviews import PROTOCOL_ID, evaluator_hash, fixed_roi, VIEWS, scene_views
 from pa.losses import output_edge_loss, output_edge_loss_per_sample, direct_geometry_loss, lambda_ramp, geometry_support_margin, scharr
-from kdv.edge_gate import EdgeGate
+from kdv.edge_gate import EdgeGate, AffineEdgeWeight
 from kdv.resume import EpochState, begin_epoch
 from pa.model import PAModel
 from pa.offset import offset_loss, predict_c, lambda_off, sample_offsets
@@ -132,6 +132,7 @@ class KDVTrainer(PATrainer):
         self.freeze_until, self.freeze_from = sp.get("aligner_freeze_until"), sp.get("aligner_freeze_from")
         self.route_A = tuple(float(q) for q in (sp.get("route_A") or (1.0, 1.0, 1.0))); self._routed = any(q != 1.0 for q in self.route_A); self._sched_last = None
         self.edge_route = None; self._edge_routed = bool(sp.get("edge_route"))          # QEGX §4.5: U all-edge / A gated edge — 자산은 _calibrate_and_build_inner 에서 싣는다
+        self.edge_schedule = sp.get("edge_schedule"); self.edge_weight = None; self._edge_sched_last = None     # EDGEBAL §3.3/§3.4: GT edge 계수 w(t) / w_i(cue) — 자산은 _calibrate_and_build_inner
         if pol == "A-FR":
             freeze(aligner)
         self.model = PAModel(model, aligner, aligner_margin=margin, sampler=(pol != "A-ID"))
@@ -593,6 +594,20 @@ class KDVTrainer(PATrainer):
                 raise ValueError("edge_route 는 train_feeder_args.return_meta: true (sample index·augmentation state) 가 필요하다")
             self.calibration["edge_route"] = dict(self.edge_route.summary(), edge_U=1.0, edge_A=sp["edge_route"]["edge_A"])
             print(f"[kdv] edge_route {self.edge_route.mode}: U all-edge / A gated (θq {self.edge_route.theta_q}) · 자산 {self.edge_route.asset}")
+        # EDGEBAL (2026-09-16 §3.4): edge_weight — 기존 cue 자산의 0/1 표(low_q / shuffle) 위에 affine 계수 w = high + (low−high)·g (kdv/edge_gate.AffineEdgeWeight; 표 자체는 불변). 자산·Teacher·데이터·feeder 대조는 edge_gate 와 같다.
+        self.edge_weight = None
+        if sp.get("edge_cue_weight"):                                                     # config 키 kdv.edge_weight → spec 키 edge_cue_weight (edge_weight 는 aux λ_edge)
+            fa = dict(self.args.train_feeder_args)
+            prev_p = os.path.join(self.args.work_dir, "kdv_config_resolved.json"); prev = None
+            if getattr(self.args, "resume", None) and os.path.exists(prev_p):
+                prev = (json.load(open(prev_p)).get("edge_cue_weight") or {}) or {}
+            self.edge_weight = AffineEdgeWeight.load(sp["edge_cue_weight"], teacher=self.teacher, train_h5=fa["dataroot"], feeder_args=fa, sha_fn=lambda p_: sha_cached(p_, self.init_dir), previous=prev)
+            if not bool(fa.get("return_meta", False)):
+                raise ValueError("edge_weight 는 train_feeder_args.return_meta: true (sample index·augmentation state) 가 필요하다")
+            self.calibration["edge_cue_weight"] = self.edge_weight.summary()
+            print(f"[kdv] edge_weight {self.edge_weight.mode}: w = {self.edge_weight.high} + ({self.edge_weight.low} − {self.edge_weight.high})·g (θq {self.edge_weight.theta_q}) · 자산 {sp['edge_cue_weight']['asset']}")
+        if self.edge_schedule:
+            print(f"[kdv] edge_schedule: GT edge 계수 {self.edge_schedule['before']}×λE (update < {self.edge_schedule['switch']}) → {self.edge_schedule['after']}×λE (A 는 계속 학습; 재시작 없음)")
         self._calib.pop("batches", None)
         if self.accelerator.is_main_process:
             json.dump(dict(self.calibration, calibration_set=self._calib.get("set_manifest")), open(os.path.join(self.args.work_dir, "calibration_resolved.json"), "w"), indent=1)
@@ -659,6 +674,7 @@ class KDVTrainer(PATrainer):
                        lambda_V=self.lam_V, stat_ramp_updates=self.stat_ramp, lambda_GKD=self.lam_gkd, k0=self.k0, cov_source=sp["cov_source"], cov_status=(self.cov or {}).get("status"),
                        edge_gate=(self.edge_gate.summary() if getattr(self, "edge_gate", None) is not None else None),
                        edge_route=(dict(self.edge_route.summary(), edge_U=1.0, edge_A=sp["edge_route"]["edge_A"]) if getattr(self, "edge_route", None) is not None else None),
+                       edge_schedule=(dict(self.edge_schedule) if getattr(self, "edge_schedule", None) else None), edge_cue_weight=(self.edge_weight.summary() if getattr(self, "edge_weight", None) is not None else None),
                        tri=sp["tri"], tri_state={kk: (v.tolist() if torch.is_tensor(v) else v) for kk, v in self.tri_state.items() if kk != "prec_fn"},
                        aligner_view_margin=self.aligner_view_margin, guard_margin_hr=self.guard_margin,
                        corruption_seed=self.corr_seed, evaluator_hash=evaluator_hash(), protocol_id=PROTOCOL_ID,
@@ -891,6 +907,14 @@ class KDVTrainer(PATrainer):
                     elif eg is not None and eg.mode == "const":                       # QEC §6.1: λE·c_E·mean_i E_i
                         _le = output_edge_loss(y.float(), gt.float()); loss_stat_raw = float(eg.c_E) * _le
                         info.update(stat_hard=float(loss_stat_raw), stat_edge_c_E=float(eg.c_E), stat_edge_ungated=float(_le))
+                    elif getattr(self, "edge_weight", None) is not None:                # EDGEBAL §3.4 FLOOR/SHUF/REVERSE: λE·(1/B)Σ w_i E_i, w_i = high + (low−high)·g_i (sg; active 수·weight 합으로 재정규화 없음)
+                        edge_i = output_edge_loss_per_sample(y.float(), gt.float()); w_i = self.edge_weight.weight_for(meta, dev); g_i = self.edge_weight.gate.gate_for(meta, dev).detach(); ga = g_i.sum(); gb = (1.0 - g_i).sum()
+                        loss_stat_raw = (w_i * edge_i).mean(); Ed = edge_i.detach()
+                        info.update(stat_hard=float(loss_stat_raw), stat_edge_w_mean=float(w_i.mean()), stat_edge_gate_frac=float(g_i.mean()), stat_edge_raw=float(Ed.mean()), stat_edge_eff=float(loss_stat_raw), stat_edge_ungated=float(Ed.mean()),
+                                    stat_edge_E_qlow=(float((g_i * Ed).sum() / ga) if float(ga) > 0 else 0.0), stat_edge_E_qhigh=(float(((1.0 - g_i) * Ed).sum() / gb) if float(gb) > 0 else 0.0), stat_edge_sched=1.0)
+                    elif getattr(self, "edge_schedule", None):                           # EDGEBAL §3.3 DOWN/UP: λE·w(t)·mean_i E_i, w(t) 는 0-based update 만의 순수 함수(재개 동일) — 1.0 이면 JQ 와 bitwise 같은 식
+                        _le = output_edge_loss(y.float(), gt.float()); r_t = self.edge_schedule_factor(step); loss_stat_raw = (_le if r_t == 1.0 else r_t * _le)
+                        info.update(stat_hard=float(loss_stat_raw), stat_edge_sched=float(r_t), stat_edge_raw=float(_le), stat_edge_eff=float(loss_stat_raw), stat_edge_ungated=float(_le), stat_edge_w_mean=float(r_t))
                     elif getattr(self, "edge_route", None) is not None:                 # QEGX §4.5 QER50/QERS: total 은 all-edge(JQ 와 같은 식) — A 가 받지 않을 몫 λE·mean((1−g)E_i) 는 backward 뒤 A .grad 에서 뺀다
                         loss_stat_raw = output_edge_loss(y.float(), gt.float())
                         edge_i = output_edge_loss_per_sample(y.float(), gt.float()); g_i = self.edge_route.gate_for(meta, dev).detach(); ga = g_i.sum()
@@ -1025,6 +1049,8 @@ class KDVTrainer(PATrainer):
         total = loss_rec + lam_v * loss_stat_raw + loss_aux
         info["_edge_w_t"] = (lam_v * loss_stat_raw) if (sp["stat_enabled"] and sp["stat_kind"] == "edge") else None     # λE·L_E (s5 routing/진단)
         info["_edge_route_hi_w_t"] = (lam_v * info["_edge_route_hi_t"]) if info.get("_edge_route_hi_t") is not None else None   # QEGX: λE·mean((1−g)E_i) — A 에서 빼는 몫
+        if info.get("stat_edge_w_mean") is not None:                                                                            # EDGEBAL §10.4: effective λ = λE × mean w (loss ratio 지 gradient ratio 가 아니다)
+            info["stat_edge_lambda_eff"] = float(lam_v) * float(info["stat_edge_w_mean"])
         info.update(loss_rec=loss_rec, loss_stat_raw=loss_stat_raw, lam_v=lam_v, loss_edge=float(loss_edge), loss_geo=float(loss_geo), _loss_geo=loss_geo, loss_off=loss_off, loss_gkd=float(loss_gkd),
                     lam_e=lam_e, lam_g=lam_g, lam_off=lam_off, lam_gkd=lam_gkd, loss_aux=loss_aux, geo_info=geo_info)
         return total, info
@@ -1062,6 +1088,13 @@ class KDVTrainer(PATrainer):
                 if gi is not None and p.grad is not None:
                     p.grad.sub_(gi.to(p.grad.dtype)); n += 1
         return n
+
+    def edge_schedule_factor(self, step):
+        """EDGEBAL §3.3: GT edge 계수 w(t) — 0-based optimizer update 만의 순수 함수(before if t < switch else after) 라 재개에 안전하다. 일정이 없으면 1.0."""
+        es = getattr(self, "edge_schedule", None)
+        if not es:
+            return 1.0
+        return float(es["before"]) if int(step) < int(es["switch"]) else float(es["after"])
 
     def _apply_edge_route(self, info, M):
         """QEGX §4.5 edge_route: backward(total = … + λE·E(1)) 가 남긴 A 의 .grad 에서 λE·mean((1−g_i)E_i) 의 A gradient 를 뺀다 → g_A = ∇φ(L_H + L_K + λE·E(g) + L_O), g_U = ∇θ(전체) 그대로.
@@ -1102,6 +1135,8 @@ class KDVTrainer(PATrainer):
     def _diagnose(self, step, info, M):
         bp = [p for p in M.backbone.parameters() if p.requires_grad]; ap = list(M.aligner.parameters()) if self.aligner_active(step) else []
         out = dict(step=int(step), corrupt=bool(info["corrupt"]), aligner_active=bool(ap), route_A=list(getattr(self, "route_A", (1.0, 1.0, 1.0))))
+        if getattr(self, "edge_weight", None) is not None or getattr(self, "edge_schedule", None):     # EDGEBAL §10.4: w 평균·λ_eff·q-low/high E·schedule 계수 (loss ratio; gradient 는 고정 진단)
+            out.update({kk: info.get(kk) for kk in ("stat_edge_w_mean", "stat_edge_lambda_eff", "stat_edge_sched", "stat_edge_raw", "stat_edge_eff", "stat_edge_gate_frac", "stat_edge_E_qlow", "stat_edge_E_qhigh") if info.get(kk) is not None})
         if getattr(self, "edge_route", None) is not None:                                  # QEGX §13: gate 활성 비율 · gated/ungated edge · 직전 update 의 A 보정 param 수 · A 가 받는 all-edge vs routed-edge gradient 규모
             out.update(edge_route=(self.spec.get("edge_route") or {}).get("edge_A"), edge_route_params_adjusted=self._ema.get("edge_route_params_adjusted"),
                        stat_edge_gate_frac=info.get("stat_edge_gate_frac"), stat_edge_ungated=info.get("stat_edge_ungated"), stat_edge_A_gated=info.get("stat_edge_A_gated"))
@@ -1290,6 +1325,11 @@ class KDVTrainer(PATrainer):
                     if self.accelerator.is_main_process and act != self._sched_last:   # 경계 기록 (S5-G03): 0-based next update index, A hash, 그 시점 A LR
                         self._jsonl("aligner_schedule_events.jsonl", dict(step=int(global_step), aligner_active=act, aligner_hash=state_hash(M.aligner), lr_aligner=float(self.optimizer.param_groups[-1]["lr"]),
                                                                           freeze_until=self.freeze_until, freeze_from=self.freeze_from, route_A=list(self.route_A))); self._sched_last = act
+                if self.edge_schedule and self.accelerator.is_main_process:                # EDGEBAL §3.3 경계 기록: 계수가 바뀌는 update (0-based) 와 그 시점 λ_eff·A LR — A 는 계속 학습
+                    r_ = self.edge_schedule_factor(global_step)
+                    if r_ != self._edge_sched_last:
+                        self._jsonl("edge_schedule_events.jsonl", dict(step=int(global_step), factor=r_, lambda_eff=float(self.lam_V) * r_, switch=int(self.edge_schedule["switch"]), aligner_active=bool(self.aligner_active(global_step)),
+                                                                     lr_aligner=(float(self.optimizer.param_groups[-1]["lr"]) if M.aligner is not None else None))); self._edge_sched_last = r_
                 total, info = self._step(gt, ms, lpan, pan, global_step, meta=meta)
                 if not torch.isfinite(total):
                     train_log.write(f'[abort] non-finite loss at step {global_step}: {total.item()}'); self._runs_csv("NAN"); self._finish_ledger("NAN"); sys.exit(3)

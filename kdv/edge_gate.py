@@ -280,3 +280,34 @@ class EdgeGate:
                     q_source="T0 aligner (frozen)", q_cut="median(train calibration views)", edge_gate=("low_q" if self.mode == "low_q" else ("shuffle(perm seed %s)" % man.get("qes", {}).get("seed") if self.mode == "shuffle" else f"const c_E={self.c_E}")),
                     hard_always=1, selection=man.get("selection"), qes=man.get("qes"), c_E=self.c_E, c_E_source=({k: self.ce_info.get(k) for k in ("pilot_run", "pilot_tag", "pilot_step", "pilot_sha256_16", "pilot_file_sha256", "n_views", "views", "computed_at", "server")} if self.ce_info else None),
                     checks=self.checks, teacher=man.get("teacher"), computed_at=man.get("computed_at"), source_server=man.get("server"))
+
+
+class AffineEdgeWeight:
+    """EDGEBAL §3.4 완만한 q 가중: w_i = high + (low − high)·g_i — g 는 기존 cue 자산의 low_q(1[q_T<θq]) 또는 shuffle(stratum 셔플 라벨) **0/1 표 그대로**(EdgeGate; 표를 바꾸지 않는다).
+    FLOOR low .75/high .25 → w = .25 + .5g · REVERSE low .25/high .75 → w = .75 − .5g · SHUF 는 shuffle 표 위에 FLOOR 계수. w 는 sg(상수) 라 gradient 가 없다. 평균 w 는 gate 비율 ~0.5 에서 ≈ (low+high)/2."""
+
+    def __init__(self, gate, low, high, mode):
+        self.gate = gate; self.low = float(low); self.high = float(high); self.mode = mode
+
+    @classmethod
+    def load(cls, cfg, **kw):
+        """cfg = registry 의 edge_weight spec(mode floor|floor_shuffle, low, high, asset, perm_seed). 자산·Teacher·데이터·feeder 대조는 EdgeGate.load 와 같다 (kw 그대로 전달)."""
+        base = "shuffle" if cfg["mode"] == "floor_shuffle" else "low_q"
+        prev = kw.pop("previous", None)
+        gate = EdgeGate.load(dict(mode=base, asset=cfg["asset"], perm_seed=cfg.get("perm_seed", QES_SEED)), previous=prev, **kw)
+        return cls(gate, cfg["low"], cfg["high"], cfg["mode"])
+
+    @classmethod
+    def synthetic(cls, table, low, high, mode="floor"):
+        return cls(EdgeGate.synthetic("shuffle" if mode == "floor_shuffle" else "low_q", table=table), low, high, mode)
+
+    @property
+    def theta_q(self):
+        return self.gate.theta_q
+
+    def weight_for(self, meta, device):
+        g = self.gate.gate_for(meta, device)
+        return (self.high + (self.low - self.high) * g).detach()
+
+    def summary(self):
+        return dict(self.gate.summary(), edge_weight=dict(mode=self.mode, low=self.low, high=self.high, base_gate=self.gate.mode, formula="w_i = high + (low - high) * g_i (g: 0/1 cue table, sg)"))

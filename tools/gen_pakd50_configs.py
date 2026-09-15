@@ -21,7 +21,9 @@ case NA0(aligner 없음, A-ID/NOALIGN) → J0 → JQ → XJ → F0 @ seed 1234; 
 QEC(모든 patch edge × 상수 c_E, s4 W104 J0 S1234 exact50K pilot 로 산출) · QES(gate 를 e decile × aug state stratum 안에서 고정 permutation 51515 로 셔플). 새 논리 캠페인 QEDGE9_A104D121_20260915_v1 / branch A104D121_T0FIX_QEDGE9_v1 —
 PAKD50 의 50h·09-16 절대 마감을 상속하지 않는다(soft target 9h, kdv.budget.time_policy). s5(2026·777 두 seed) J0→JQ→QE50 ×2 · s1(1234, v2) J0→JQ→QE50→QES→QEC (전부 @W104_D121). cue 자산 tools/qedge9_cue.py.
 QEGX (2026-09-15 저녁, research_log/PAN_QEGX_S3_S4_W104D121_Experiment_Plan_2026-09-15.md): s3(2026·4321, 15 run **v2**) q-edge × soft(QX50/QEC3/QES/β0.05) · s4(1234·3407, 14 run v1) edge 수신 모듈(QER50/QERS = kdv.edge_route)·LF 결합.
-캠페인 QEGX_A104D121_S3S4_20260915_v1 / branch A104D121_T0FIX_QEGX_v1, 시간 상한 없음(자체 ledger, required 경고만). 전환 tools/qegx_switch.sh, QEC3 pilot tools/qedge9_cue.py pilot --branch qegx."""
+캠페인 QEGX_A104D121_S3S4_20260915_v1 / branch A104D121_T0FIX_QEGX_v1, 시간 상한 없음(자체 ledger, required 경고만). 전환 tools/qegx_switch.sh, QEC3 pilot tools/qedge9_cue.py pilot --branch qegx.
+EDGEBAL (2026-09-16, research_log/PAN_EDGEBAL_S2_S5_Experiment_Plan_2026-09-16.md): GT edge 를 얼마나·언제 — s2(777·2026·9091, 12 run v1) 상수 배수 r·성분별 기여 · s5(2026·777·9091, 14 run v2) 시간배분 DOWN/UP/CONST075 + 완만한 q 가중 FLOOR/SHUF/REVERSE.
+캠페인 EDGEBAL_A104D121_S2S5_20260916_v1 / branch A104D121_T0FIX_EDGEBAL_v1, 상한 없음. 새 키 kdv.edge_schedule / kdv.edge_weight. 전환 tools/edgebal_switch.sh."""
 import argparse, json, os, re, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0, ROOT)
 from kdv.registry import resolve, describe
@@ -55,7 +57,18 @@ QEGX_VERSION_BY_SERVER = {"s3": "v2", "s4": "v1"}
 QEGX_PILOT_BY_SERVER = {"s3": "PAKD50_J0_W104_D121_WV3_T0_S2026_FRESH50_v2"}; QEGX_PILOT_RUNS = set(QEGX_PILOT_BY_SERVER.values())     # QEC3 pilot = s3 J0@W104 S2026 exact50K (§4.2); 다른 서버에 QEC3 없음
 QEGX_CASES = ("QX50", "QEC3", "QE50_B005", "LFQE50", "QER50", "QERS")                # QEGX 전용 case (다른 branch 로 만들지 않는다); QE50/QES/J_QB005/JE0/LF*/J_R3_NOEDGE/XJ/JQ/J0 는 기존 정의 재사용
 QEGX_REFRESH_CONTROLS = {"s4": [f"PAKD50_{c}_W104_D121_WV3_T0_S1234_FRESH50_v3" for c in ("J0", "JQ", "XJ")]}     # §6 전제 불통과 시 대조 새로고침(약 3h8m + XJ); QEGX branch 로 편성(extra_priority)
-CUE_CASES = ("QE50", "QEC", "QES", "QX50", "QEC3", "QE50_B005", "LFQE50", "QER50", "QERS")   # cue 자산(θq/gate 표) 이 있어야 시작하는 case (gate 의 cue_ready)
+# EDGEBAL (2026-09-16; research_log/PAN_EDGEBAL_S2_S5_Experiment_Plan_2026-09-16.md): q gate 를 더 복잡하게 만들기 전에 **GT edge 를 얼마나·언제** 줄지 — s2(777 탐색 + 2026·9091 반복) 상수 배수 r ∈ {0, .25, .5, 2}·성분별 기여(N0+edge, R1+edge),
+# s5(2026 탐색 + 777·9091 반복) 시간배분(DOWN 1→.5 / UP .5→1 / CONST075) 과 완만한 q 가중(FLOOR .75/.25 · SHUF · REVERSE). 전부 W104·D121·T0 고정·J 정책, 시간 상한 없음. 이름 충돌 방지: s2 v1 · s5 v2 (실행 identity, 수식 차이 아님).
+EDGEBAL_PLAN = "research_log/PAN_EDGEBAL_S2_S5_Experiment_Plan_2026-09-16.md"; EDGEBAL_NOTE = "research_log/2026-09-16_edgebal-implementation.md"
+EDGEBAL_CAMPAIGN_ID = "EDGEBAL_A104D121_S2S5_20260916_v1"; EDGEBAL_BRANCH = "A104D121_T0FIX_EDGEBAL_v1"; EDGEBAL_ARCH = QEDGE9_ARCH
+EDGEBAL_LEDGER = "work_dir/_edgebal_budget/ledger.json"; EDGEBAL_MANDATORY_FILE = "work_dir/_edgebal/mandatory_runs.txt"; EDGEBAL_SOFT_HOURS = 1000.0; EDGEBAL_RESERVED_H = 2.3
+EDGEBAL_TIME_POLICY = dict(mode="no_hard_limit", target_elapsed_hours=None, hard_deadline=None, inherit_parent_deadline=False)
+EDGEBAL_VERSION_BY_SERVER = {"s2": "v1", "s5": "v2"}; EDGEBAL_SWITCH_UPDATE = 25000
+EDGEBAL_CASES = ("EB_N0", "EB_R3E000", "EB_R3E025", "EB_R3E050", "EB_R3E075", "EB_R3E100", "EB_R3E200", "EB_N0E100", "EB_R1E100", "EB_EDOWN", "EB_EUP", "EB_QFLOOR", "EB_QFSHUF", "EB_QFREV")
+EDGEBAL_CONTROLS = {"s2": {777: {"J0": "PAKD50_J0_W104_D121_WV3_T0_S777_FRESH50_v2", "JQ": "PAKD50_JQ_W104_D121_WV3_T0_S777_FRESH50_v2", "QE50": "PAKD50_QE50_W104_D121_WV3_T0_S777_FRESH50_v2"}},    # §5: s2 가 돌린 QEDGE9 v2 3 벌(재사용 검증 뒤)
+                    "s5": {2026: {"J0": "PAKD50_J0_W104_D121_WV3_T0_S2026_FRESH50_v1", "JQ": "PAKD50_JQ_W104_D121_WV3_T0_S2026_FRESH50_v1", "QE50": "PAKD50_QE50_W104_D121_WV3_T0_S2026_FRESH50_v1"},
+                           777: {"J0": "PAKD50_J0_W104_D121_WV3_T0_S777_FRESH50_v1", "JQ": "PAKD50_JQ_W104_D121_WV3_T0_S777_FRESH50_v1", "QE50": "PAKD50_QE50_W104_D121_WV3_T0_S777_FRESH50_v1"}}}    # §6: s5 QEDGE9 두 seed
+CUE_CASES = ("QE50", "QEC", "QES", "QX50", "QEC3", "QE50_B005", "LFQE50", "QER50", "QERS", "EB_QFLOOR", "EB_QFSHUF", "EB_QFREV")   # cue 자산(θq/gate 표) 이 있어야 시작하는 case (gate 의 cue_ready)
 ALL_PILOT_RUNS = QEDGE9_PILOT_RUNS | QEGX_PILOT_RUNS
 
 
@@ -93,7 +106,14 @@ BACKEND = {"N0": dict(rec="N0", edge=False), "R1": dict(rec="R1", edge=False), "
            # QEGX (2026-09-15 §4): QX50 = QE50 에서 output soft 만 제거(R1 hard-only + gated edge; QX50 ≠ XJ) · QE50_B005 = QE50 에서 β 0.1→0.05 · QEC3 = const 대조(c_E3 = s3 J0@W104 S2026 exact50K pilot; 별도 파일)
            # QER50/QERS = **edge_route**(§4.5): total 은 all-edge E(1) 그대로(U 는 모든 patch 의 GT edge), A 의 .grad 에서 λE·mean((1−g)E_i) 를 뺀다(A 는 q_T<θq / shuffle patch 의 edge 만) — routing.qE·edge_gate 와 별도 경로, 둘과 결합하지 않는다
            "QX50": dict(rec="R1", edge=True, edge_gate="low_q"), "QE50_B005": dict(rec="R3", edge=True, edge_gate="low_q", kd_weight=0.05), "QEC3": dict(rec="R3", edge=True, edge_gate="const3"),
-           "QER50": dict(rec="R3", edge=True, edge_route="low_q"), "QERS": dict(rec="R3", edge=True, edge_route="shuffle")}
+           "QER50": dict(rec="R3", edge=True, edge_route="low_q"), "QERS": dict(rec="R3", edge=True, edge_route="shuffle"),
+           # EDGEBAL (2026-09-16 §3–§4): w_i(t) 만 다르다 — 상수 r 은 λE0 배율(lam_mult; EB_R3E050 ≡ J_QE025, EB_R3E200 ≡ J_QE10) · 시간배분 edge_schedule(0-based update 25000 분기; A 는 계속 학습) ·
+           # 완만한 q 가중 edge_weight(w = high + (low−high)·g, g 는 기존 low_q/shuffle 0/1 표 그대로; FLOOR .75/.25 · REVERSE .25/.75 · SHUF 는 stratum 셔플 라벨). 동치: EB_N0 ≡ J0 · EB_R3E000 ≡ R3_NOEDGE · EB_R3E100 ≡ JQ · EB_N0E100 ≡ N0_EDGE · EB_R1E100 ≡ X02
+           "EB_N0": dict(rec="N0", edge=False), "EB_R3E000": dict(rec="R3", edge=False), "EB_R3E025": dict(rec="R3", edge=True, lam_mult=0.25), "EB_R3E050": dict(rec="R3", edge=True, lam_mult=0.5),
+           "EB_R3E075": dict(rec="R3", edge=True, lam_mult=0.75), "EB_R3E100": dict(rec="R3", edge=True), "EB_R3E200": dict(rec="R3", edge=True, lam_mult=2.0), "EB_N0E100": dict(rec="N0", edge=True), "EB_R1E100": dict(rec="R1", edge=True),
+           "EB_EDOWN": dict(rec="R3", edge=True, edge_schedule=dict(before=1.0, after=0.5)), "EB_EUP": dict(rec="R3", edge=True, edge_schedule=dict(before=0.5, after=1.0)),
+           "EB_QFLOOR": dict(rec="R3", edge=True, edge_weight=dict(mode="floor", low=0.75, high=0.25)), "EB_QFSHUF": dict(rec="R3", edge=True, edge_weight=dict(mode="floor_shuffle", low=0.75, high=0.25)),
+           "EB_QFREV": dict(rec="R3", edge=True, edge_weight=dict(mode="floor", low=0.25, high=0.75))}
 CASES = {"J0": ("J", "N0"), "JQ": ("J", "Q12"), "JR": ("J", "R1"), "XJ": ("J", "X02"), "F0": ("F", "N0"), "FQ": ("F", "Q12"), "FR": ("F", "R1"), "XF": ("F", "X02"), "AL0": ("AL", "N0"), "ALQ": ("AL", "Q12")}
 for _p in ("J", "AL"):                                    # J_QA05 … J_QE10 (anchor JQ, no-KD J0) · AL_QA05 … AL_QE10 (§7 결합: anchor ALQ, no-KD AL0)
     for _v in ("QA05", "QB005", "QB02", "QE025", "QE10"):
@@ -102,7 +122,8 @@ CASES.update({"D0": ("D", "N0"), "DQ": ("D", "Q12"), "DR": ("D", "R1"), "DX": ("
               "DPQ": ("DP", "Q12"), "DPX": ("DP", "X02"), "LF0": ("LF", "N0"), "LFQ": ("LF", "Q12"), "JK0": ("JK0", "Q12"), "JE0": ("JE0", "Q12"),
               "J_R3_NOEDGE": ("J", "R3_NOEDGE"), "J_N0_EDGE": ("J", "N0_EDGE"), "RC0": ("RC", "N0"), "RCQ": ("RC", "Q12"),     # 재배정 2026-09-15 §5
               "LFX": ("LF", "X02"), "NA0": ("NA", "N0"), "QE50": ("J", "QE50"), "QEC": ("J", "QEC"), "QES": ("J", "QES"),
-              "QX50": ("J", "QX50"), "QEC3": ("J", "QEC3"), "QE50_B005": ("J", "QE50_B005"), "LFQE50": ("LF", "QE50"), "QER50": ("J", "QER50"), "QERS": ("J", "QERS")})     # QEGX 2026-09-15 §4                                                                                              # s3 추가 2026-09-15 §4.3: 0–24999 XJ 와 같은 joint, 25000 부터 A 동결(offset 중단), U 는 X02(R1 + λE edge; soft 없음) 50K
+              "QX50": ("J", "QX50"), "QEC3": ("J", "QEC3"), "QE50_B005": ("J", "QE50_B005"), "LFQE50": ("LF", "QE50"), "QER50": ("J", "QER50"), "QERS": ("J", "QERS")})     # QEGX 2026-09-15 §4
+CASES.update({c: ("J", c) for c in EDGEBAL_CASES})                                                                                                                     # EDGEBAL 2026-09-16 §4 (전부 J 정책)                                                                                              # s3 추가 2026-09-15 §4.3: 0–24999 XJ 와 같은 joint, 25000 부터 A 동결(offset 중단), U 는 X02(R1 + λE edge; soft 없음) 50K
 _PURPOSE_S5 = {"D0": "s5: 초기 5K A 동결 뒤 joint, N0 (delayed-joint 의 no-KD control)", "DQ": "s5: 초기 5K A 동결, U 는 처음부터 Q12 (delayed joint KD)", "DR": "s5 fallback: D 일정 + R1", "DX": "s5: DQ 의 soft 제거 대조 (D 일정 + X02)",
                 "PQ": "s5: protected routing — A 는 L0+LO 만, U 는 Q12 전체", "PR": "s5 fallback: protected + R1", "PX": "s5: PQ 의 soft 제거 대조 (protected + X02)",
                 "DPQ": "s5: delayed + protected 결합 (Q12)", "DPX": "s5: DPQ 의 soft 제거 대조", "LF0": "s5: 25K 이후 A 동결, N0 (late-freeze control)", "LFQ": "s5: 25K 이후 A 동결, Q12",
@@ -120,7 +141,14 @@ _PURPOSE_S5 = {"D0": "s5: 초기 5K A 동결 뒤 joint, N0 (delayed-joint 의 no
                 "QEC3": "QEGX s3 상수 대조: 모든 patch edge × c_E3 = Σ g E_pilot / Σ E_pilot (pilot = s3 J0@W104 S2026 exact50K, calibration view; work_dir/_qegx/qec3_cE.json) — s1 QEDGE9 QEC 파일과 별도",
                 "LFQE50": "QEGX s4: 0–24999 는 QE50(q-low gated edge + Q12) 과 같은 학습, 25000 부터 A 완전 동결(offset 중단; ε RNG 규약은 LF 와 같음); U 는 gated edge·Q12 로 50K 까지 — LFQ 와 대응",
                 "QER50": "QEGX s4 핵심(edge_route low_q): U 에는 모든 patch 의 GT edge(E(1)), A 에는 q_T<θq patch 의 edge 만 — total 은 JQ 와 같고 A .grad 에서 λE·mean((1−g)E_i) 를 뺀다; JQ(1/1)·JE0(1/0)·QE50(g/g) 과 대응",
-                "QERS": "QEGX s4 대조(edge_route shuffle): QER50 의 A gate 를 QES 와 같은 stratum 셔플 라벨로 — routing 의 실제 q–sample 연결 대조"}
+                "QERS": "QEGX s4 대조(edge_route shuffle): QER50 의 A gate 를 QES 와 같은 stratum 셔플 라벨로 — routing 의 실제 q–sample 연결 대조",
+                "EB_N0": "EDGEBAL: joint + plain GT (J0 와 학습 동치; 반복 seed 의 no-KD 기준)", "EB_R3E000": "EDGEBAL s2: joint + R3 adaptive, GT edge 없음 (J_R3_NOEDGE 와 동치) — JQ 와의 차 = edge 만의 효과",
+                "EB_R3E025": "EDGEBAL s2: Q12 인데 GT edge 계수 0.25×λE0 (모든 patch)", "EB_R3E050": "EDGEBAL s2·s5: Q12 인데 GT edge 계수 0.5×λE0 (모든 patch; J_QE025 와 동치) — q 로 절반을 고르는 QE50 과 nominal 강도 대조",
+                "EB_R3E075": "EDGEBAL s5: Q12 인데 GT edge 계수 0.75×λE0 (DOWN/UP 의 산술평균 계수 대조)", "EB_R3E100": "EDGEBAL: Q12 그대로 λE0 (JQ 와 학습 동치; 반복 seed 의 기존 Q12 기준)", "EB_R3E200": "EDGEBAL s2: Q12 인데 GT edge 계수 2×λE0 (J_QE10 과 동치)",
+                "EB_N0E100": "EDGEBAL: joint + plain GT + λE0 GT edge, Teacher 를 학습 loss 에 쓰지 않음 (J_N0_EDGE 와 동치; A 는 여전히 T0 복사)", "EB_R1E100": "EDGEBAL s2: joint + (1+αd_T)L1 + λE0 edge, output soft 없음 (XJ 와 동치)",
+                "EB_EDOWN": "EDGEBAL s5: Q12 인데 GT edge 계수 w(t) = 1 (t<25000) → 0.5 (t≥25000); A·U 계속 학습, optimizer/cosine 재시작 없음 (평균 계수 0.75)", "EB_EUP": "EDGEBAL s5: EDOWN 의 반대 순서 0.5 → 1",
+                "EB_QFLOOR": "EDGEBAL s5: Q12 인데 GT edge 계수 w_i = 0.25 + 0.5·g_i (q_T<θq 0.75 / q-high 0.25; q-high 를 끄지 않는 완만한 cue)", "EB_QFSHUF": "EDGEBAL s5 대조: FLOOR 의 g 를 (e_roi32 decile × aug state) stratum 셔플 라벨(51515) 로",
+                "EB_QFREV": "EDGEBAL s5 대조: FLOOR 의 방향 반전 (q-low 0.25 / q-high 0.75)"}
 PURPOSE = {"J0": "Teacher-final-A → fresh-U, native GT + offset (joint baseline; seed1234 는 λE pilot)", "JQ": "주력: joint + Q12 (실패 지도 + adaptive soft + GT edge)", "JR": "joint + R1 (실패 지도 재가중만)", "XJ": "joint + X02 (Q12 의 soft 제거 대조)",
            "F0": "frozen T0 aligner + native GT (frozen baseline)", "FQ": "frozen + Q12", "FR": "frozen + R1", "XF": "frozen + X02", "AL0": "joint, A LR 3e-6, N0", "ALQ": "joint, A LR 3e-6, Q12"}
 STAGE1 = ["J0", "F0", "JR", "FR"]; STAGE2 = ["JQ", "FQ", "XJ"]
@@ -135,8 +163,13 @@ QUEUE_STAGE = {1: ["J0"], 2: ["JQ"]}                      # 큐 파일 내용 (s
 # 그 전 묶음(2026-09-14): s4 J0→JQ→AL0→ALQ · s5 J0→JQ→D0→DQ→PQ (research_log/2026-09-14_pakd50-s{4,5}-review-and-implementation.md).
 # QEDGE9 (2026-09-15 §5–§6): s5 = 두 고유 seed(2026 서버 seed · 777) 의 J0→JQ→QE50 @W104 (fresh50K 셋; 체인 학습 아님) · s4 = 기존 JQ/XJ/F0@W104 잔여 완료 뒤 QE50→QEC→QES @W104 (seed 1234).
 # 항목이 전체 run 이름이면 그 seed 로(777 은 s5 의 허용 seed — 확인 seed 가 아니다: allowed_seeds). 완료된 run 은 편성에서 빠지고, cue 자산(θq / c_E) 이 없는 gate run 은 gate 가 그 pass 에서 건너뛴다(cue_ready).
-PRIORITY_BY_SERVER = {"s2": ["JR", "XJ", "J_R3_NOEDGE", "J_N0_EDGE"],
-                      "s5": ["J0@W104_D121", "JQ@W104_D121", "QE50@W104_D121", "PAKD50_J0_W104_D121_WV3_T0_S777_FRESH50_v1", "PAKD50_JQ_W104_D121_WV3_T0_S777_FRESH50_v1", "PAKD50_QE50_W104_D121_WV3_T0_S777_FRESH50_v1"],
+QEDGE9_S5_ITEMS = ["J0@W104_D121", "JQ@W104_D121", "QE50@W104_D121", "PAKD50_J0_W104_D121_WV3_T0_S777_FRESH50_v1", "PAKD50_JQ_W104_D121_WV3_T0_S777_FRESH50_v1", "PAKD50_QE50_W104_D121_WV3_T0_S777_FRESH50_v1"]
+# EDGEBAL (2026-09-16 §5–§6): s2 12 run v1(777 A 6 → 2026 B 3 → 9091 C 3) · s5 = QEDGE9 6 항목(완료분 terminal; 실행 중 QE50 S777 은 끝까지) 뒤 14 run v2(2026 A 8 → 777 B 2 → 9091 C 4). 전부 run 이름 항목.
+PRIORITY_BY_SERVER = {"s2": [f"PAKD50_{c}_W104_D121_WV3_T0_S777_FRESH50_v1" for c in ("EB_R3E000", "EB_R3E050", "EB_R3E025", "EB_R3E200", "EB_N0E100", "EB_R1E100")]
+                            + [f"PAKD50_{c}_W104_D121_WV3_T0_S{sd}_FRESH50_v1" for sd in (2026, 9091) for c in ("EB_N0", "EB_R3E100", "EB_R3E050")],
+                      "s5": list(QEDGE9_S5_ITEMS)
+                            + [f"PAKD50_{c}_W104_D121_WV3_T0_S2026_FRESH50_v2" for c in ("EB_R3E050", "EB_R3E075", "EB_EDOWN", "EB_EUP", "EB_QFLOOR", "EB_QFSHUF", "EB_QFREV", "EB_N0E100")]
+                            + [f"PAKD50_{c}_W104_D121_WV3_T0_S777_FRESH50_v2" for c in ("EB_R3E075", "EB_EDOWN")] + [f"PAKD50_{c}_W104_D121_WV3_T0_S9091_FRESH50_v2" for c in ("EB_N0", "EB_R3E100", "EB_R3E075", "EB_EDOWN")],
                       # QEGX (2026-09-15 저녁 §5–§6): s3 15 run(전부 v2; seed 2026 A/B 10 + 4321 C 5) · s4 = 기존 E0 5 항목(완료분은 terminal 로 건너뜀) 뒤 신규 14 run(v1; 1234 A 8 + 3407 C 6). 신규는 전부 run 이름 항목(seed·version 포함).
                       "s3": [f"PAKD50_{c}_W104_D121_WV3_T0_S2026_FRESH50_v2" for c in ("J0", "JQ", "QE50", "XJ", "QX50", "J_R3_NOEDGE", "QEC3", "QES", "J_QB005", "QE50_B005")]
                             + [f"PAKD50_{c}_W104_D121_WV3_T0_S4321_FRESH50_v2" for c in ("J0", "JQ", "XJ", "QE50", "QX50")],
@@ -145,11 +178,13 @@ PRIORITY_BY_SERVER = {"s2": ["JR", "XJ", "J_R3_NOEDGE", "J_N0_EDGE"],
                             + [f"PAKD50_{c}_W104_D121_WV3_T0_S3407_FRESH50_v1" for c in ("J0", "JQ", "QE50", "JE0", "QER50", "QERS")],
                       "s1": ["PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v2", "PAKD50_JQ_W104_D121_WV3_T0_S1234_FRESH50_v2", "PAKD50_QE50_W104_D121_WV3_T0_S1234_FRESH50_v2", "PAKD50_QES_W104_D121_WV3_T0_S1234_FRESH50_v2", "PAKD50_QEC_W104_D121_WV3_T0_S1234_FRESH50_v2"]}   # QEDGE9 s1(seed 1234): control 부터 새로(v2), QEC 는 pilot(J0 v2 exact50K) 뒤 마지막
 MANDATORY_BY_SERVER = dict(PRIORITY_BY_SERVER)        # 기본 run 전부가 예산 예약 대상 (완료된 run 은 trainer 가 0 으로 센다)
-QEDGE9_ITEMS_BY_SERVER = {"s5": list(PRIORITY_BY_SERVER["s5"]), "s1": list(PRIORITY_BY_SERVER["s1"])}     # 이 항목들만 QEDGE9 branch(campaign/budget); s4 는 기존 E0 allocation 그대로(QEDGE9 없음)
+QEDGE9_ITEMS_BY_SERVER = {"s5": list(QEDGE9_S5_ITEMS), "s1": list(PRIORITY_BY_SERVER["s1"])}     # 이 항목들만 QEDGE9 branch(campaign/budget); s4 는 기존 E0 allocation 그대로(QEDGE9 없음); s5 의 EDGEBAL 항목은 아래
+EDGEBAL_ITEMS_BY_SERVER = {"s2": list(PRIORITY_BY_SERVER["s2"]), "s5": [it for it in PRIORITY_BY_SERVER["s5"] if it.startswith("PAKD50_EB_")]}
 QEGX_ITEMS_BY_SERVER = {"s3": list(PRIORITY_BY_SERVER["s3"]), "s4": [it for it in PRIORITY_BY_SERVER["s4"] if it.startswith("PAKD50_")] + QEGX_REFRESH_CONTROLS["s4"]}     # QEGX branch 항목 (s4 의 E0 5 항목 제외; 대조 새로고침 v3 포함)
 PREVIOUS_PRIORITY_BY_SERVER = {"s4": ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"], "s4_20260914": ["J0", "JQ", "AL0", "ALQ"], "s5": ["J0", "JQ", "D0", "DQ", "PQ"], "s3": list(PRIORITY),
                                "s5_20260915": ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"],      # s5 재배정(2026-09-15 아침) — 시트 확인 결과 전부 완료 → QEDGE9 로 교체
                                "s3_20260915": ["J_R3_NOEDGE", "J_N0_EDGE", "LF0", "LFQ", "LFX"],   # s3 추가(2026-09-15 낮; W112 seed 2026) — 완료(§9.1 실측 있음) → QEGX 로 교체
+                               "s2_20260915": ["JR", "XJ", "J_R3_NOEDGE", "J_N0_EDGE"],             # s2 재배정(2026-09-15; W112 seed 777) — 완료(12:00 시트) → EDGEBAL 로 교체 (09-16)
                                "s4_20260915_e0": ["NA0@W104_D121", "J0@W104_D121", "JQ@W104_D121", "XJ@W104_D121", "F0@W104_D121"]}   # s4 E0 이식 묶음 — 완료; 현재 순서 앞에 그대로 남겨 control 검증·terminal 표시
 ALLOC_PLAN = "research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md"; ALLOC_PLAN_S3 = "research_log/PAN_PAKD50_Latest_Sheet_Analysis_and_S3_Experiments_2026-09-15.md"
 ALLOC_PLAN_S4 = "research_log/PAN_PAKD50_S4_W104D121_Architecture_Allocation_2026-09-15.md"
@@ -166,7 +201,12 @@ REFERENCE_CASE_TRAIN_H = {"s3": {"LFX": 1.33,                       # case 별 �
                           "s4": {"NA0@W104_D121": 1.27, "J0@W104_D121": 1.17, "JQ@W104_D121": 1.38, "XJ@W104_D121": 1.37, "F0@W104_D121": 1.13,
                                  "QE50@W104_D121": 1.50, "QEC@W104_D121": 1.40, "QES@W104_D121": 1.50,                                             # QEDGE9 §9.1–9.2 (s4 QEDGE9 항목은 s1 로 이관됐지만 키는 보존)
                                  "LF0@W104_D121": 1.17, "LFQ@W104_D121": 1.38, "LFQE50@W104_D121": 1.50, "LFX@W104_D121": 1.37, "JE0@W104_D121": 1.80, "QER50@W104_D121": 1.80, "QERS@W104_D121": 1.80},
-                          "s5": {"J0@W104_D121": 1.35, "JQ@W104_D121": 1.36, "QE50@W104_D121": 1.50},                                              # QEDGE9 §9.2: s5 W112 J0/JQ 관측 대용 + QE50 1.50(*); 예약 합 10.2620 h
+                          # s5 W104: EDGEBAL §7.1 Sheet 실측(seed 2026 J0 1.38 / JQ 1.57 / QE50 1.65; 종전 QEDGE9 §9.2 의 W112 대용 1.35/1.36/1.50 교체) · §7.2 dense/schedule/GT+edge 1.57 · cached floor 1.65 · plain N0 1.38 — 실측 아님
+                          "s5": {"J0@W104_D121": 1.38, "JQ@W104_D121": 1.57, "QE50@W104_D121": 1.65,
+                                 **{f"{c}@W104_D121": 1.57 for c in ("EB_R3E050", "EB_R3E075", "EB_R3E100", "EB_EDOWN", "EB_EUP", "EB_N0E100")}, **{f"{c}@W104_D121": 1.65 for c in ("EB_QFLOOR", "EB_QFSHUF", "EB_QFREV")}, "EB_N0@W104_D121": 1.38},
+                          # s2 W104: EDGEBAL §7.1–7.2 (seed 777 J0 1.95 / JQ 2.30 / QE50 2.29) — R3/edge 형 2.30 · plain N0 1.95 (빨라질 가능성 사전 차감 없음)
+                          "s2": {"J0@W104_D121": 1.95, "JQ@W104_D121": 2.30, "QE50@W104_D121": 2.29, "EB_N0@W104_D121": 1.95,
+                                 **{f"{c}@W104_D121": 2.30 for c in ("EB_R3E000", "EB_R3E025", "EB_R3E050", "EB_R3E100", "EB_R3E200", "EB_N0E100", "EB_R1E100")}},
                           "s1": {"J0@W104_D121": 1.18, "JQ@W104_D121": 1.40, "QE50@W104_D121": 1.50, "QEC@W104_D121": 1.40, "QES@W104_D121": 1.50}}                 # QEDGE9 s1 (17:20): s4 W104 관측(J0 1.17/JQ 1.38)·계획 §9.2 값 대용 — s1 W104 실측 없음; 예약 합 8.1633 h
 ROUTING_PLACEHOLDER_H = 1.80; CONFIRM_PLACEHOLDER_H = 1.80          # 미실측 경로 가예약 (실측·성능 예측이 아니다; 결과 수치로 기록하지 않는다)
 CONFIRM_REFERENCE_H = {"s3": 1.34}                                   # 확인 run 의 서버별 공통 대용값 (s3 §6: JQ 1.34; 상한 보장 아님) — 없으면 CONFIRM_PLACEHOLDER_H
@@ -196,6 +236,8 @@ def branch_for(server, item, seed=None):
     QEDGE9 case(QE50/QEC/QES) 이거나 서버 QEDGE9 목록의 run 이면 'QEDGE9'; 아니면 None(기본 PAKD50 계약).
     QEGX §12 검사: s3/s4 큐의 QE50/QES 는 run 이름 항목이라 QEGX 목록이 먼저 잡힌다 — bare 'QE50@W104_D121' 은 QEDGE9 자동 규칙(9h ledger) 으로 가므로 QEGX 큐에는 run 이름만 쓴다."""
     case, arch, sd, ver = parse_item(item)
+    if case in EDGEBAL_CASES:
+        return "EDGEBAL"
     if case in QEGX_CASES:
         return "QEGX"
     sd = sd if sd is not None else (seed if seed is not None else SERVER_SEED.get(server))
@@ -368,7 +410,7 @@ def measured_hours_from_ledger(server, ledger=None):
 def measured_hours_all(server):
     """같은 서버 실측(case@arch 키)을 PAKD50 · QEDGE9 · QEGX ledger 에서 모아 평균 (감사 F07: 새 branch 의 실측이 예약에 반영되지 않던 문제)."""
     acc = {}
-    for lp in (LEDGER, QEDGE9_LEDGER, QEGX_LEDGER):
+    for lp in (LEDGER, QEDGE9_LEDGER, QEGX_LEDGER, EDGEBAL_LEDGER):
         d = _load_json(lp)
         for rid, e in (d.get("entries") or {}).items():
             if e.get("kind") != "run" or not str(e.get("status", "")).startswith("FINISHED") or not is_tag(rid) or "#" in rid:
@@ -570,9 +612,11 @@ def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=Tr
     """계획 §4·§6 의 FRESH50 kdv 블록. pin: calibration_resolved.json 의 τR/λE 를 숫자로 고정(서버 간 동일 package); 없으면 calibrate(그 서버에서 T0/pilot 로 산출).
     arch: Student U 골격 (기본 W112_D123; s4 이식 W104_D121 — T0·donor·τR·λE0 는 그대로, expect_arch 와 init hash namespace 만 바뀐다)."""
     pol_id, be_id = CASES[case]; P, B = POLICY[pol_id], BACKEND[be_id]; cal = cal if cal is not None else calibration(); A = ARCHS[arch]
-    branch = branch or ("QEGX" if case in QEGX_CASES else ("QEDGE9" if B.get("edge_gate") else None))     # gate/route case 는 branch 가 있어야 한다: QEGX 전용 case → QEGX, 그 밖의 gate case → QEDGE9 (W104 전용; 아래 검사)
+    branch = branch or ("EDGEBAL" if case in EDGEBAL_CASES else ("QEGX" if case in QEGX_CASES else ("QEDGE9" if B.get("edge_gate") else None)))     # gate/route/EB case 는 branch 가 있어야 한다 (W104 전용; 아래 검사)
     if branch != "QEGX" and (case in QEGX_CASES or B.get("edge_route")):
         raise SystemExit(f"!! {case}: QEGX 전용 case 는 QEGX branch 로만 만든다 (현재 {branch})")
+    if branch != "EDGEBAL" and (case in EDGEBAL_CASES or B.get("edge_schedule") or B.get("edge_weight")):
+        raise SystemExit(f"!! {case}: EDGEBAL 전용 case 는 EDGEBAL branch 로만 만든다 (현재 {branch})")
     sha, step = t0_identity(server); t0 = t0_dir(server); me = run_name(case, seed, version, arch=arch); noalign = (P["pol"] == "A-ID")
     rec = dict(case=B["rec"])
     if B["rec"] != "N0":
@@ -610,6 +654,19 @@ def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=Tr
         k.update(campaign_id=QEGX_CAMPAIGN_ID, parent_campaign_id=CAMPAIGN_ID, lineage_campaign_ids=[CAMPAIGN_ID, QEDGE9_CAMPAIGN_ID], experiment_branch_id=QEGX_BRANCH, exact_resume=True,
                  budget=dict(ledger=QEGX_LEDGER, total_gpu_hours=QEGX_SOFT_HOURS, reserve_hours=0.0, margin=MARGIN, required=True, projected_hours=projected, projected_map={me: QEGX_RESERVED_H},
                              remaining_mandatory=[], remaining_mandatory_file=QEGX_MANDATORY_FILE, projection_file=RESERVATION_FILE, time_policy=dict(QEGX_TIME_POLICY)))
+    if branch == "EDGEBAL":                                                 # EDGEBAL §10.1–10.2·§7: 새 캠페인(parent PAKD50, lineage QEDGE9·QEGX), 시간 상한 없음(total 1000h + required 경고만, 절대 마감·9h·50h 미상속), exact_resume
+        if arch != EDGEBAL_ARCH:
+            raise SystemExit(f"!! {case}: EDGEBAL 은 {EDGEBAL_ARCH} 전용 (현재 {arch})")
+        ctl = (EDGEBAL_CONTROLS.get(server) or {}).get(seed) or {c: run_name(("J0" if c == "J0" else ("JQ" if c == "JQ" else "QE50")), seed, version, arch=arch) for c in ("J0", "JQ", "QE50")}
+        ctl = dict(ctl); ctl.update({k: (run_name({"J0": "EB_N0", "JQ": "EB_R3E100"}[k], seed, version, arch=arch) if k in ("J0", "JQ") and seed not in (EDGEBAL_CONTROLS.get(server) or {}) else v) for k, v in ctl.items()})
+        k.update(campaign_id=EDGEBAL_CAMPAIGN_ID, parent_campaign_id=CAMPAIGN_ID, lineage_campaign_ids=[CAMPAIGN_ID, QEDGE9_CAMPAIGN_ID, QEGX_CAMPAIGN_ID], experiment_branch_id=EDGEBAL_BRANCH, exact_resume=True,
+                 control_runs=ctl,                                              # §10.4 Notes control_run_id: 그 서버·seed 의 대조(기존 QEDGE9 J0/JQ/QE50 또는 같은 큐의 EB_N0/EB_R3E100)
+                 budget=dict(ledger=EDGEBAL_LEDGER, total_gpu_hours=EDGEBAL_SOFT_HOURS, reserve_hours=0.0, margin=MARGIN, required=True, projected_hours=projected, projected_map={me: EDGEBAL_RESERVED_H},
+                             remaining_mandatory=[], remaining_mandatory_file=EDGEBAL_MANDATORY_FILE, projection_file=RESERVATION_FILE, time_policy=dict(EDGEBAL_TIME_POLICY)))
+        if B.get("edge_schedule"):                                          # §3.3: w(t) piecewise (0-based optimizer update; trainer 가 step 만의 순수 함수로 읽는다 → resume 동일). stat.outer_weight 는 λE0 그대로(중복 배율 없음)
+            k["edge_schedule"] = dict(before=float(B["edge_schedule"]["before"]), after=float(B["edge_schedule"]["after"]), switch=EDGEBAL_SWITCH_UPDATE)
+        if B.get("edge_weight"):                                            # §3.4: w_i = high + (low−high)·g_i, g 는 기존 cue 자산의 low_q / shuffle 0/1 표 그대로 (kdv/edge_gate.AffineEdgeWeight)
+            ew = B["edge_weight"]; k["edge_weight"] = dict(mode=ew["mode"], low=float(ew["low"]), high=float(ew["high"]), asset=QEDGE9_CUE_ASSET, **({"perm_seed": 51515} if ew["mode"] == "floor_shuffle" else {}))
     if branch in ("QEDGE9", "QEGX") and B.get("edge_gate"):
         if B["edge_gate"] == "const3":                                      # QEC3 (§4.2): s3 pilot(J0@W104 S2026 v2 exact50K) 의 c_E3, 별도 파일 — 다른 서버에는 pilot 이 없어 만들지 않는다
             if server not in QEGX_PILOT_BY_SERVER:
@@ -642,7 +699,7 @@ def render(tag, case, seed, server, k, updates, eval_epoch, tpl, arch=ARCH_DEFAU
     import yaml
     sp = resolve(k); pol_id, be_id = CASES[case]; sha, step = t0_identity(server); A = ARCHS[arch]
     t = re.sub(r"^(#.*\n)+", "", tpl)
-    if (k.get("edge_gate") and k["edge_gate"]["mode"] in ("low_q", "shuffle")) or k.get("edge_route"):   # QEDGE9 §7.1 / QEGX §4.5: 학습 loader 가 (index, rot) 를 그대로 준다 — RNG 추가 소비 없음 (feeders.feeder return_meta)
+    if (k.get("edge_gate") and k["edge_gate"]["mode"] in ("low_q", "shuffle")) or k.get("edge_route") or k.get("edge_weight"):   # QEDGE9 §7.1 / QEGX §4.5 / EDGEBAL §3.4: 학습 loader 가 (index, rot) 를 그대로 준다 — RNG 추가 소비 없음 (feeders.feeder return_meta)
         t2 = re.sub(r"^(train_feeder_args:\n(?:  .*\n)*?  rot: True\n)", r"\1  return_meta: true\n", t, count=1, flags=re.M)
         assert t2 != t, "template 의 train_feeder_args 에 rot: True 가 없다 — return_meta 삽입 실패"; t = t2
     if arch != ARCH_DEFAULT:                                                 # Student U 골격만 바꾼다 (model class·in_mode·norm·attn 은 template 그대로; s4 이식 §3·§9.1)
@@ -677,6 +734,14 @@ def render(tag, case, seed, server, k, updates, eval_epoch, tpl, arch=ARCH_DEFAU
                             + what + (f" · A 일정 freeze_from {k['aligner_schedule']['freeze_from']}" if (k.get("aligner_schedule") or {}).get("freeze_from") else "") + (f" · β {k['rec'].get('kd_weight')}" if k["rec"].get("kd_weight") not in (None, 0.1) else "")
                             + f" · 시트 X열 'PAKD50 / {case} / {ARCH_LABEL[arch]} / QEGX / FRESH50'\n"
                             + f"# 약명→세팅(QEGX): QE50/QES = Q12 인데 GT edge 를 q_T<θq patch 만 / stratum 셔플 (kdv.edge_gate) · QX50 = QE50 − soft(R1) · QE50_B005 = QE50 β0.05 · QEC3 = 상수 c_E3(s3 pilot) · LFQE50 = LF 일정 + QE50 · QER50/QERS = U all-edge, A 는 gated edge 만 (kdv.edge_route) · J_QB005 = JQ β0.05\n", 1)
+    if branch == "EDGEBAL":
+        B_ = BACKEND[be_id]; mult = float(B_.get("lam_mult", 1.0)) if B_["edge"] else 0.0
+        what = (f" GT edge w(t) = {k['edge_schedule']['before']} (t<{k['edge_schedule']['switch']}) → {k['edge_schedule']['after']} (kdv.edge_schedule; A 계속 학습, optimizer/cosine 재시작 없음)" if k.get("edge_schedule")
+                else (f" GT edge w_i = {k['edge_weight']['high']} + ({k['edge_weight']['low']} − {k['edge_weight']['high']})·g_i, g = {'stratum 셔플 라벨(51515)' if k['edge_weight']['mode'] == 'floor_shuffle' else '1[q_T<θq]'} (kdv.edge_weight; cue {QEDGE9_CUE_ASSET})" if k.get("edge_weight")
+                      else (f" GT edge 상수 {mult}×λE0 = {k['stat'].get('outer_weight')} (모든 patch)" if B_["edge"] else " GT edge 없음")))
+        head = head.replace("\n", f"\n# EDGEBAL (계획 {EDGEBAL_PLAN}, 노트 {EDGEBAL_NOTE}): 캠페인 {EDGEBAL_CAMPAIGN_ID} · branch {EDGEBAL_BRANCH} (parent {CAMPAIGN_ID}, lineage QEDGE9·QEGX) · 시간 정책 no_hard_limit(상한 없음; 자체 ledger {EDGEBAL_LEDGER}, required 경고만, 절대 마감 미상속) ·"
+                            + what + f" · rec {k['rec']['case']} · control {k['control_runs']} · 시트 X열 'PAKD50 / {case} / {ARCH_LABEL[arch]} / EDGEBAL / FRESH50'\n"
+                            + "# 약명→세팅(EDGEBAL): EB_N0 = J0 · EB_R3E000 = R3 edge 없음(J_R3_NOEDGE) · EB_R3E<rrr> = Q12 인데 GT edge 계수 r×λE0(모든 patch; 100 = JQ) · EB_N0E100 = plain GT + λE0 edge(Teacher 미사용) · EB_R1E100 = XJ · EB_EDOWN/EUP = 25K 에서 1→.5 / .5→1 · EB_QFLOOR/QFSHUF/QFREV = w_i = .25+.5g / 셔플 g / .75−.5g\n", 1)
     return head + t
 
 
@@ -708,11 +773,11 @@ def plan_rows(server, measured=None, is_terminal=None, extra=()):
 
 def plan_table(server):
     rem = hours_to_deadline(); rows = plan_rows(server)
-    plan_doc = {"s3": QEGX_PLAN + " §5 (s3 15 run v2)", "s4": QEGX_PLAN + " §6 (E0 5 완료 + 14 run v1)", "s5": QEDGE9_PLAN, "s1": QEDGE9_PLAN + " (seed 1234 묶음, 17:20 s4→s1)"}.get(server, ALLOC_PLAN)
+    plan_doc = {"s3": QEGX_PLAN + " §5 (s3 15 run v2)", "s4": QEGX_PLAN + " §6 (E0 5 완료 + 14 run v1)", "s5": EDGEBAL_PLAN + " §6 (QEDGE9 6 뒤 14 run v2)", "s2": EDGEBAL_PLAN + " §5 (12 run v1)", "s1": QEDGE9_PLAN + " (seed 1234 묶음, 17:20 s4→s1)"}.get(server, ALLOC_PLAN)
     print(f"[{server}] seed {SERVER_SEED[server]} — 배정 {plan_doc} §4; 예약 = {RESERVE_SLACK}×ref + {RESERVE_POST_H * 60:.0f}min; 학습 마감까지 {'?' if rem is None else '%.2f' % rem} h")
     for r in rows:
         print(f"  {(r['case'] + ('' if r['arch'] == ARCH_DEFAULT else '@' + r['arch'])):<18} S{r['seed']:<5} {(branch_for(server, r['run']) or 'PAKD50'):<7} {r['status']:<14} ref {r['reference_train_h']:.2f} h ({r['reference_kind']}) → 예약 {r['reservation_h']:.4f} h · 누적 {r['cumulative_h']:.4f} h")
-    tot = sum(r["reservation_h"] for r in rows if r["status"] == "planned"); tot_x = sum(r["reservation_h"] for r in rows if r["status"] == "planned" and branch_for(server, r["run"]) in ("QEDGE9", "QEGX"))
+    tot = sum(r["reservation_h"] for r in rows if r["status"] == "planned"); tot_x = sum(r["reservation_h"] for r in rows if r["status"] == "planned" and branch_for(server, r["run"]) in ("QEDGE9", "QEGX", "EDGEBAL"))
     print(f"  planned {sum(r['status'] == 'planned' for r in rows)} run · 예약 합 {tot:.4f} h" + (f" (그중 마감 admission 제외 branch {tot_x:.4f} h)" if tot_x else "")
           + ("" if rem is None else f" · PAKD50 branch 마감 안 {'OK' if tot - tot_x <= max(rem, 0.0) else '초과 — gate admission 이 뒤를 민다'}"))
 

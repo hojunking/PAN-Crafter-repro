@@ -372,7 +372,57 @@ def resolve(k):
         if er_mode == 'shuffle' and eps_ != 51515:
             _bad("QERS permutation seed 는 51515 로 고정 (QES 와 같은 셔플 라벨)")
         er_spec = dict(mode=er_mode, asset=er['asset'], perm_seed=(eps_ if er_mode == 'shuffle' else None), theta_source=er.get('theta_source', 'asset'), edge_U=1.0, edge_A=('g' if er_mode == 'low_q' else 'g_shuffle'))
-    return dict(recipe=recipe, protocol=protocol, policy=policy, rec_case=rec_case, rec_mode=REC_CASES[rec_case], tri=tri_spec, edge_gate=eg_spec, edge_route=er_spec,
+    # --- EDGEBAL (2026-09-16, research_log/PAN_EDGEBAL_S2_S5_Experiment_Plan_2026-09-16.md §3.3–§3.4·§10.2): GT edge 계수 w_i(t) — 시간배분 edge_schedule{before, after, switch}(0-based update; A 는 계속 학습)
+    # / 완만한 q 가중 edge_weight{mode floor|floor_shuffle, low, high, asset}(w = high + (low−high)·g, g 는 기존 0/1 표). 둘을 한 run 에 결합하지 않으며(§6 "각각 검증 뒤 한 개의 후속 교차만") edge_gate/edge_route/routing/TRI 와도 결합하지 않는다.
+    es = dict(k.get('edge_schedule') or {}); es_spec = None
+    if es:
+        _ESK = {'before', 'after', 'switch'}
+        if set(es) - _ESK or not _ESK <= set(es):
+            _bad(f"edge_schedule 은 정확히 {sorted(_ESK)} (현재 {sorted(es)})")
+        for nm in ('before', 'after'):
+            v = es[nm]
+            if isinstance(v, bool) or not isinstance(v, (int, float)) or not (0.0 <= float(v) <= 4.0):
+                _bad(f"edge_schedule.{nm} ∈ [0, 4] (λE0 배수) — 현재 {v!r}")
+        sw = es['switch']
+        if isinstance(sw, bool) or not isinstance(sw, int) or sw <= 0:
+            _bad(f"edge_schedule.switch 는 양의 정수(0-based optimizer update index) — 현재 {sw!r}")
+        if float(es['before']) == float(es['after']):
+            _bad("edge_schedule before == after 는 상수 배수(stat.outer_weight 배율) 로 쓴다 — 일정으로 만들지 않는다")
+        if not (stat_enabled and stat_key == 'EDGE' and stat_mode == 'H'):
+            _bad("edge_schedule 은 stat EDGE-H(GT signed Scharr) 위에서만")
+        if eg or er or rt:
+            _bad("edge_schedule 은 edge_gate/edge_route/routing 과 결합하지 않는다 (EDGEBAL §3.3: 계수만 시간에 따라)")
+        if tri_on or extra or rec_control != 'none' or geom != 'G0':
+            _bad("edge_schedule 은 plain rec(hard/soft) + EDGE-H 위에서만")
+        es_spec = dict(before=float(es['before']), after=float(es['after']), switch=int(sw))
+    ew = dict(k.get('edge_weight') or {}); ew_spec = None
+    if ew:
+        _EWK = {'mode', 'low', 'high', 'asset', 'perm_seed'}
+        if set(ew) - _EWK:
+            _bad(f"edge_weight 의 알 수 없는 키 {sorted(set(ew) - _EWK)}")
+        if ew.get('mode') not in ('floor', 'floor_shuffle'):
+            _bad(f"edge_weight.mode {ew.get('mode')!r} ∉ ('floor', 'floor_shuffle')")
+        for nm in ('low', 'high'):
+            v = ew.get(nm)
+            if isinstance(v, bool) or not isinstance(v, (int, float)) or not (0.0 <= float(v) <= 4.0):
+                _bad(f"edge_weight.{nm} ∈ [0, 4] (λE0 배수) — 현재 {v!r}")
+        if float(ew['low']) == float(ew['high']):
+            _bad("edge_weight low == high 는 상수 배수다 — cue 를 읽지 않는 stat.outer_weight 배율로 만든다")
+        if not ew.get('asset'):
+            _bad("edge_weight.asset (assets/qedge9/<cue>.json) 이 필요하다 — g 는 자산의 0/1 표에서만")
+        if not (stat_enabled and stat_key == 'EDGE' and stat_mode == 'H'):
+            _bad("edge_weight 는 stat EDGE-H(GT signed Scharr) 위에서만")
+        if not has_teacher:
+            _bad("edge_weight 의 g 는 고정 Teacher(T0) aligner 의 q — kdv.teacher.run 이 필요하다")
+        if eg or er or rt or es:
+            _bad("edge_weight 는 edge_gate/edge_route/routing/edge_schedule 과 결합하지 않는다 (EDGEBAL §6: 결합은 별도 후속 1개)")
+        if tri_on or extra or rec_control != 'none' or geom != 'G0':
+            _bad("edge_weight 는 plain rec(hard/soft) + EDGE-H 위에서만")
+        pse = int(ew.get('perm_seed', 51515))
+        if ew['mode'] == 'floor_shuffle' and pse != 51515:
+            _bad("EB_QFSHUF permutation seed 는 51515 로 고정 (QES 와 같은 셔플 라벨)")
+        ew_spec = dict(mode=ew['mode'], low=float(ew['low']), high=float(ew['high']), asset=ew['asset'], perm_seed=(pse if ew['mode'] == 'floor_shuffle' else None))
+    return dict(recipe=recipe, protocol=protocol, policy=policy, rec_case=rec_case, rec_mode=REC_CASES[rec_case], tri=tri_spec, edge_gate=eg_spec, edge_route=er_spec, edge_schedule=es_spec, edge_cue_weight=ew_spec,
                 aligner_freeze_until=f_until, aligner_freeze_from=f_from, route_A=(qD, qK, qE), expect_init=ei,
                 rec_control=rec_control, rec_tau_scale=rec_tau_scale, na_protocol=na, expect_arch=ea, select_secondary=secondary, select_primary=primary, aligned_selector=aligned_selector, stat_lambda_from_run=stat_lambda_from_run,
                 stat_windows=windows, stat_transform=stat_transform, stat_transform_eps=stat_transform_eps, stat_domain=stat_domain, stat_lambda_scale=stat_lambda_scale, stat_extra=extra,
@@ -406,6 +456,10 @@ def stat_tag(spec):
         t += {'low_q': 'Q50', 'const': 'QC', 'shuffle': 'QS'}[spec['edge_gate']['mode']]
     if spec.get('edge_route'):                                 # QEGX: EDGEHR50(U all / A low_q) · EDGEHRS(A shuffle)
         t += {'low_q': 'R50', 'shuffle': 'RS'}[spec['edge_route']['mode']]
+    if spec.get('edge_schedule'):                              # EDGEBAL: EDGEHSD(1→.5 down) · EDGEHSU(.5→1 up) · 그 밖 EDGEHS<before>_<after>
+        es_ = spec['edge_schedule']; t += ('SD' if (es_['before'], es_['after']) == (1.0, 0.5) else ('SU' if (es_['before'], es_['after']) == (0.5, 1.0) else f"S{es_['before']:g}_{es_['after']:g}"))
+    if spec.get('edge_cue_weight'):                            # EDGEBAL: EDGEHF(floor low>high) · EDGEHFR(reverse) · EDGEHFS(floor shuffle) — spec 키는 edge_cue_weight (edge_weight 는 aux λ_edge 의 spec 키)
+        ew_ = spec['edge_cue_weight']; t += ('FS' if ew_['mode'] == 'floor_shuffle' else ('F' if ew_['low'] > ew_['high'] else 'FR'))
     for e in spec.get('stat_extra') or []:                     # 두 번째 통계 항 (GV-H + SC-H → GVH_SCH)
         t += '_' + e['key'] + e['mode'] + {'none': '', 'std': 'STD', 'logvar': 'LOG'}[e['transform']] + ('RES' if e['domain'] == 'residual' else '') + ('' if e['window'] == 5 else f"W{e['window']}")
     return t
@@ -490,4 +544,11 @@ def describe(spec, k=None):
     if er:                                                     # QEGX §4.5: U 는 all-edge, A 는 gated edge — Notes 에 edge_U/edge_A 로 서술
         ers = ' · edge_route ' + {'low_q': 'low_q: U 는 모든 patch 의 GT edge(E(1)), A 는 고정 T0 aligner 의 q(AXIS16) < θq 인 patch 의 edge 만 (A .grad 에서 λE·mean((1−g)E_i) 를 뺀다)',
                                    'shuffle': 'shuffle: U 는 모든 patch 의 GT edge, A 는 stratum 셔플 라벨(51515) patch 의 edge 만 — q–sample 연결 대조'}[er['mode']] + ' · hard/soft 는 Q12 그대로(wH≥1)'
-    return f"{spec['protocol']} · {pol} · rec {rec} · {st} · {gk}{src}{t}{tr}{na}{sel}{sch}{rt}{egs}{ers}"
+    ess = ''
+    if spec.get('edge_schedule'):                              # EDGEBAL §3.3
+        e_ = spec['edge_schedule']; ess = f" · GT edge 계수 w(t) = {e_['before']:g}×λE0 (t<{e_['switch']}) → {e_['after']:g}×λE0 (0-based update; A 계속 학습, optimizer 재시작 없음)"
+    ews = ''
+    if spec.get('edge_cue_weight'):                            # EDGEBAL §3.4
+        w_ = spec['edge_cue_weight']; ews = (f" · GT edge 계수 w_i = {w_['high']:g} + ({w_['low']:g} − {w_['high']:g})·g_i, g = " + ('stratum 셔플 라벨(51515) — q–sample 연결 대조' if w_['mode'] == 'floor_shuffle' else '1[q_T(T0 aligner, AXIS16) < θq]')
+                                        + f" (q-low {w_['low']:g} / q-high {w_['high']:g}; hard/soft 는 Q12 그대로)")
+    return f"{spec['protocol']} · {pol} · rec {rec} · {st} · {gk}{src}{t}{tr}{na}{sel}{sch}{rt}{egs}{ers}{ess}{ews}"

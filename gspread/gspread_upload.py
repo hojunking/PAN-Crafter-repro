@@ -176,7 +176,7 @@ def integrated_label(run, branch=None):
         return ""
     import re as _re
     m = _re.match(r"^PAKD50_(?P<case>.+?)_(?P<arch>W\d+_D\d+)_WV3_T0_S\d+_(?P<proto>[A-Z0-9]+)_v\d+$", run)
-    btok = " / QEGX" if (branch and "QEGX" in str(branch)) else (" / QEDGE9" if (branch and "QEDGE9" in str(branch)) else "")
+    btok = " / EDGEBAL" if (branch and "EDGEBAL" in str(branch)) else (" / QEGX" if (branch and "QEGX" in str(branch)) else (" / QEDGE9" if (branch and "QEDGE9" in str(branch)) else ""))
     if not m:
         case = run[len("PAKD50_"):].split("_W112")[0]; proto = "FRESH50" if "_FRESH50_" in run else run.rsplit("_", 2)[-2]; return f"PAKD50 / {case}{btok} / {proto}"
     arch = m.group("arch"); tok = "" if arch == "W112_D123" else " / A" + arch.replace("W", "").replace("_D", "D")
@@ -639,7 +639,16 @@ def collect(tag, want_profile, server, peer=None):
                 _th = _err.get("theta_q"); _sha = (_err.get("npz_sha256") or "")[:16]; _tp = (_kb.get("budget") or {}).get("time_policy") or {}
                 desc = (desc + f"; q_source=T0; q_bank=AXIS16; q_cut=median; theta_q={_th if _th is not None else 'asset'}; edge_route={_er['mode']}; edge_U=1; edge_A={'g_shuffle' if _er['mode'] == 'shuffle' else 'g'}; hard_always=1; cue_sha={_sha or 'asset'}; time_policy={_tp.get('mode', 'inherit')}"
                         + (f"; perm_seed={_er.get('perm_seed')}" if _er["mode"] == "shuffle" else "")).strip()
-            if "QEGX" in str(_kb.get("experiment_branch_id", "")):     # QEGX §12 Notes: β · freeze_from · seed · time-policy (release 는 run 의 meta/git 기록)
+            if "EDGEBAL" in str(_kb.get("experiment_branch_id", "")):  # EDGEBAL §10.4 Notes: edge_mult · edge_schedule · edge_low/high · gt_hard_always · T0_sha · cue_asset_id · seed · release_sha · control_run_id
+                _st = _kb.get("stat") or {}; _cal = json.load(open(os.path.join(ROOT, "assets", "pakd50", "calibration_resolved.json"))) if os.path.exists(os.path.join(ROOT, "assets", "pakd50", "calibration_resolved.json")) else {}
+                _lam0 = float(_cal.get("lambda_E") or 0.0); _ow = _st.get("outer_weight") if _st.get("enabled") else 0.0
+                _mult = (round(float(_ow) / _lam0, 4) if (_lam0 > 0 and isinstance(_ow, (int, float))) else ("calibrate" if _ow == "calibrate" else 0.0))
+                _es = _kb.get("edge_schedule") or {}; _ew = _kb.get("edge_weight") or {}; _cr = os.path.join(ROOT, "work_dir", tag, "calibration_resolved.json"); _cw = ((json.load(open(_cr)).get("edge_cue_weight") or {}) if os.path.exists(_cr) else {})
+                _gc = os.path.join(ROOT, "work_dir", tag, "meta", "git_commit.txt"); _rel = (open(_gc).read().strip()[:12] if os.path.exists(_gc) else "?"); _tp = (_kb.get("budget") or {}).get("time_policy") or {}
+                desc = (desc + f"; campaign={_kb.get('campaign_id')}; edge_mult={_mult}; edge_schedule={(str(_es.get('before')) + '->' + str(_es.get('after')) + '@' + str(_es.get('switch'))) if _es else 'none'}"
+                        + f"; edge_low/high={(str(_ew.get('low')) + '/' + str(_ew.get('high')) + ('(shuffle)' if _ew.get('mode') == 'floor_shuffle' else '')) if _ew else 'none'}; gt_hard_always=1; T0_sha={str((_kb.get('teacher') or {}).get('expected_sha256') or '')[:16]}"
+                        + f"; cue_asset_id={_cw.get('asset_id') or ('none' if not _ew else 'asset')}; seed={getattr(a, 'seed', '?')}; release_sha={_rel}; control_run_id={_kb.get('control_runs')}; time_policy={_tp.get('mode', 'inherit')}").strip()
+            elif "QEGX" in str(_kb.get("experiment_branch_id", "")):   # QEGX §12 Notes: β · freeze_from · seed · time-policy (release 는 run 의 meta/git 기록)
                 _rc = _kb.get("rec") or {}; _sch = _kb.get("aligner_schedule") or {}; _tp = (_kb.get("budget") or {}).get("time_policy") or {}
                 desc = (desc + f"; campaign={_kb.get('campaign_id')}; beta={_rc.get('kd_weight', 0)}; freeze_from={_sch.get('freeze_from', 'none')}; seed={getattr(a, 'seed', '?')}; time_policy={_tp.get('mode', 'inherit')}").strip()
     elif _tr == "uvs":
