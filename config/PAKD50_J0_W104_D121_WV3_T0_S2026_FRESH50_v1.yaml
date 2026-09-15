@@ -91,6 +91,7 @@ kdv:
       hard_deadline: null
       inherit_parent_deadline: false
   parent_campaign_id: PAKD50_W112D123_WV3_20260914_v1
+  exact_resume: true
   corruption:
     radius_hr: 2.0
     corruption_seed_offset: 2000

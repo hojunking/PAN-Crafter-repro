@@ -1,4 +1,4 @@
-# PAKD50_QES_W104_D121_WV3_T0_S1234_FRESH50_v1 — QEDGE9 대조: low_q gate 를 (T0 e_T_roi32 decile × aug state) stratum 안에서 고정 permutation(51515) 으로 셔플(active 수 보존) — q–sample 연결의 필요성. 생성: tools/gen_pakd50_configs.py (seed 1234 를 쓰는 서버 s1/s4 공용 — 서버별 값은 config 에 없다). 손으로 고치지 말 것.
+# PAKD50_QES_W104_D121_WV3_T0_S1234_FRESH50_v2 — QEDGE9 대조: low_q gate 를 (T0 e_T_roi32 decile × aug state) stratum 안에서 고정 permutation(51515) 으로 셔플(active 수 보존) — q–sample 연결의 필요성. 생성: tools/gen_pakd50_configs.py (seed 1234 를 쓰는 서버 s1/s4 공용 — 서버별 값은 config 에 없다). 손으로 고치지 말 것.
 # QEDGE9 (계획 research_log/PAN_QEDGE9_W104D121_S5_S4_Experiment_Plan_2026-09-15.md, 노트 research_log/2026-09-15_qedge9-implementation.md): 캠페인 QEDGE9_A104D121_20260915_v1 · branch A104D121_T0FIX_QEDGE9_v1 (parent PAKD50_W112D123_WV3_20260914_v1) · 시간 정책 soft target 9.0h(절대 마감·50h 미상속, kdv.budget.time_policy) · GT edge gate shuffle (cue assets/qedge9/cue_T0_AXIS16_v1.json; θq/c_E 는 자산에서만, 없으면 시작 안 함) · 시트 X열 'PAKD50 / QES / A104D121 / QEDGE9 / FRESH50'
 # 골격 W104_D121: s4 이식: Student U 만 W104·depth[1,2,1] (backbone 1.9036 M; s3 GT-only 기록과 같은 model_args), T0/A·τR·λE0 고정 · branch A104D121_T0FIX_E0_v1 · 편성 항목 <case>@W104_D121 · 시트 X열 'PAKD50 / <case> / A104D121 / FRESH50' · 계획 research_log/PAN_PAKD50_S4_W104D121_Architecture_Allocation_2026-09-15.md
 # 캠페인 PAKD50_W112D123_WV3_20260914_v1 · protocol FRESH50 · grid GRID1010_50K_v1 · 계획 research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md · 요약 research_log/PAN_Integrated_Method_Summary_2026-09-14.md · 노트 research_log/2026-09-14_pakd50-implementation.md
@@ -11,7 +11,7 @@
 expect_params_m: 1.9036     # backbone 만 (aligner 0.1053M 은 smoke 가 따로 확인)
 seed: 1234
 num_worker: 4
-work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_QES_W104_D121_WV3_T0_S1234_FRESH50_v1
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_QES_W104_D121_WV3_T0_S1234_FRESH50_v2
 
 phase: train
 
@@ -25,7 +25,7 @@ kdv:
   policy_id: J
   backend_id: QES
   run_kind: CONTROLLED
-  version: v1
+  version: v2
   check_run_name: false
   experiment_branch_id: A104D121_T0FIX_QEDGE9_v1
   architecture_signature: W104_D121:model.pancrafter_paper.PANCrafterPaper:in_mode=paper:norm=ln:attn_locations=[]:n_attn=3:mode_modulation=false
@@ -86,7 +86,7 @@ kdv:
     tag: best_hqnr
     expected_sha256: 16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32
     bridge: true
-  baseline_run: PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v1
+  baseline_run: PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v2
   budget:
     ledger: work_dir/_qedge9_budget/ledger.json
     total_gpu_hours: 9.0
@@ -95,7 +95,7 @@ kdv:
     required: true
     projected_hours: null
     projected_map:
-      PAKD50_QES_W104_D121_WV3_T0_S1234_FRESH50_v1: 1.5
+      PAKD50_QES_W104_D121_WV3_T0_S1234_FRESH50_v2: 1.5
     remaining_mandatory: []
     remaining_mandatory_file: work_dir/_qedge9/mandatory_runs.txt
     projection_file: work_dir/_pakd50/reservations.json
@@ -105,6 +105,7 @@ kdv:
       hard_deadline: null
       inherit_parent_deadline: false
   parent_campaign_id: PAKD50_W112D123_WV3_20260914_v1
+  exact_resume: true
   edge_gate:
     mode: shuffle
     asset: assets/qedge9/cue_T0_AXIS16_v1.json

@@ -36,6 +36,11 @@ QEDGE9_CAMPAIGN_ID = "QEDGE9_A104D121_20260915_v1"; QEDGE9_BRANCH = "A104D121_T0
 QEDGE9_CUE_ASSET = "assets/qedge9/cue_T0_AXIS16_v1.json"; QEDGE9_CE_FILE = "work_dir/_qedge9/qec_cE.json"                 # cue 자산(git; s1 이 만들고 hash 로 전달) · c_E 는 서버 로컬(s4 pilot)
 QEDGE9_LEDGER = "work_dir/_qedge9_budget/ledger.json"; QEDGE9_MANDATORY_FILE = "work_dir/_qedge9/mandatory_runs.txt"; QEDGE9_SOFT_HOURS = 9.0; QEDGE9_RESERVED_H = 1.5
 QEDGE9_TIME_POLICY = dict(mode="soft_target_only", target_elapsed_hours=QEDGE9_SOFT_HOURS, hard_deadline=None, inherit_parent_deadline=False)   # §9.3: trainer 는 required=True 로 경고만, training_deadline 없음
+QEDGE9_PILOT_RUN = "PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v1"; QEDGE9_PILOT_TAG = "last"; QEDGE9_PILOT_STEP = 50000   # §6.1 QEC pilot (W104 J0 S1234 exact50K) — cue 도구·trainer 가 identity 를 강제
+# 2026-09-15 17:20 사용자 결정: seed 1234 묶음은 **s4 대신 s1** 이 돈다(s5 는 그대로). s1 에는 W104 control 이 없으므로 J0/JQ@W104 S1234 를 s1 이 새로 학습하고(같은 정의, 다른 호스트), 이름은 s4 의 E0 config(v1) 와 겹치지 않게 **v2**.
+# QEC 의 pilot 도 그 서버의 J0 exact50K (s1: v2). s4 의 QEDGE9 항목은 편성에서 뺀다(E0 allocation 만 계속).
+QEDGE9_VERSION_BY_SERVER = {"s1": "v2", "s5": "v1", "s4": "v1"}
+QEDGE9_PILOT_BY_SERVER = {"s4": QEDGE9_PILOT_RUN, "s1": "PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v2"}; QEDGE9_PILOT_RUNS = set(QEDGE9_PILOT_BY_SERVER.values())
 RUN_RE = re.compile(r"^PAKD50_(?P<case>.+?)_(?P<arch>W\d+_D\d+)_WV3_T0_S(?P<seed>\d+)_(?P<proto>[A-Z0-9]+)_(?P<ver>v\d+)$")
 PLAN = "research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md"; SUMMARY = "research_log/PAN_Integrated_Method_Summary_2026-09-14.md"; NOTE = "research_log/2026-09-14_pakd50-implementation.md"
 T0_RUN = "PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1"; T0_TAG = "best_hqnr"; T0_ASSET_DIR = "assets/pakd50/T0_run"      # s1 은 work_dir 원본, s2/s3 는 git 으로 받은 사본 (같은 layout: meta/config.yaml + best_hqnr/model.safetensors + best_hqnr_meta.json)
@@ -101,9 +106,10 @@ QUEUE_STAGE = {1: ["J0"], 2: ["JQ"]}                      # 큐 파일 내용 (s
 PRIORITY_BY_SERVER = {"s2": ["JR", "XJ", "J_R3_NOEDGE", "J_N0_EDGE"],
                       "s5": ["J0@W104_D121", "JQ@W104_D121", "QE50@W104_D121", "PAKD50_J0_W104_D121_WV3_T0_S777_FRESH50_v1", "PAKD50_JQ_W104_D121_WV3_T0_S777_FRESH50_v1", "PAKD50_QE50_W104_D121_WV3_T0_S777_FRESH50_v1"],
                       "s3": ["J_R3_NOEDGE", "J_N0_EDGE", "LF0", "LFQ", "LFX"],      # s3 (2026-09-15 §4: 기존 J0/JQ/JR/XJ/F0/FQ/FR 은 control 재사용; 개발 seed 2026)
-                      "s4": ["NA0@W104_D121", "J0@W104_D121", "JQ@W104_D121", "XJ@W104_D121", "F0@W104_D121", "QE50@W104_D121", "QEC@W104_D121", "QES@W104_D121"]}     # s4 아키텍처 이식 (2026-09-15 §4) + QEDGE9 §6
+                      "s4": ["NA0@W104_D121", "J0@W104_D121", "JQ@W104_D121", "XJ@W104_D121", "F0@W104_D121"],      # s4 아키텍처 이식 (2026-09-15 §4); QEDGE9 seed-1234 묶음은 17:20 결정으로 s1 (아래)
+                      "s1": ["PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v2", "PAKD50_JQ_W104_D121_WV3_T0_S1234_FRESH50_v2", "PAKD50_QE50_W104_D121_WV3_T0_S1234_FRESH50_v2", "PAKD50_QES_W104_D121_WV3_T0_S1234_FRESH50_v2", "PAKD50_QEC_W104_D121_WV3_T0_S1234_FRESH50_v2"]}   # QEDGE9 s1(seed 1234): control 부터 새로(v2), QEC 는 pilot(J0 v2 exact50K) 뒤 마지막
 MANDATORY_BY_SERVER = dict(PRIORITY_BY_SERVER)        # 기본 run 전부가 예산 예약 대상 (완료된 run 은 trainer 가 0 으로 센다)
-QEDGE9_ITEMS_BY_SERVER = {"s5": list(PRIORITY_BY_SERVER["s5"]), "s4": ["QE50@W104_D121", "QEC@W104_D121", "QES@W104_D121"]}     # 이 항목들만 QEDGE9 branch(campaign/budget); s4 의 JQ/XJ/F0@W104 는 기존 E0 allocation 그대로
+QEDGE9_ITEMS_BY_SERVER = {"s5": list(PRIORITY_BY_SERVER["s5"]), "s1": list(PRIORITY_BY_SERVER["s1"])}     # 이 항목들만 QEDGE9 branch(campaign/budget); s4 는 기존 E0 allocation 그대로(QEDGE9 없음)
 PREVIOUS_PRIORITY_BY_SERVER = {"s4": ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"], "s4_20260914": ["J0", "JQ", "AL0", "ALQ"], "s5": ["J0", "JQ", "D0", "DQ", "PQ"], "s3": list(PRIORITY),
                                "s5_20260915": ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"]}      # s5 재배정(2026-09-15 아침) — 시트 확인 결과 전부 완료 → QEDGE9 로 교체
 ALLOC_PLAN = "research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md"; ALLOC_PLAN_S3 = "research_log/PAN_PAKD50_Latest_Sheet_Analysis_and_S3_Experiments_2026-09-15.md"
@@ -115,7 +121,8 @@ REFERENCE_TRAIN_H = {"s2": dict(N0=1.97, T=2.33, all=2.33), "s4": dict(N0=1.17, 
 REFERENCE_CASE_TRAIN_H = {"s3": {"LFX": 1.33},                      # case 별 대용값 (s3 §4: LFX 는 XJ 1.33) — 유형 표보다 우선
                           "s4": {"NA0@W104_D121": 1.18, "J0@W104_D121": 1.18, "JQ@W104_D121": 1.40, "XJ@W104_D121": 1.39, "F0@W104_D121": 1.14,   # s4 이식 §8.1: 큰 골격의 s4 관측값 대용(속도 이득 미차감)
                                  "QE50@W104_D121": 1.50, "QEC@W104_D121": 1.40, "QES@W104_D121": 1.50},                                            # QEDGE9 §9.1–9.2: QE50/QES 는 cache-ready 1.50h 임시 편성값(*), QEC 는 JQ 대용 1.40
-                          "s5": {"J0@W104_D121": 1.35, "JQ@W104_D121": 1.36, "QE50@W104_D121": 1.50}}                                             # QEDGE9 §9.2: s5 W112 J0/JQ 관측 대용 + QE50 1.50(*); 예약 합 10.2620 h
+                          "s5": {"J0@W104_D121": 1.35, "JQ@W104_D121": 1.36, "QE50@W104_D121": 1.50},                                              # QEDGE9 §9.2: s5 W112 J0/JQ 관측 대용 + QE50 1.50(*); 예약 합 10.2620 h
+                          "s1": {"J0@W104_D121": 1.18, "JQ@W104_D121": 1.40, "QE50@W104_D121": 1.50, "QEC@W104_D121": 1.40, "QES@W104_D121": 1.50}}                 # QEDGE9 s1 (17:20): s4 W104 관측(J0 1.17/JQ 1.38)·계획 §9.2 값 대용 — s1 W104 실측 없음; 예약 합 8.1633 h
 ROUTING_PLACEHOLDER_H = 1.80; CONFIRM_PLACEHOLDER_H = 1.80          # 미실측 경로 가예약 (실측·성능 예측이 아니다; 결과 수치로 기록하지 않는다)
 CONFIRM_REFERENCE_H = {"s3": 1.34}                                   # 확인 run 의 서버별 공통 대용값 (s3 §6: JQ 1.34; 상한 보장 아님) — 없으면 CONFIRM_PLACEHOLDER_H
 CONFIRM_REFERENCE_CASE_H = {"s4": {"J0": 1.18, "*": 1.40}}           # s4 이식 §8.2: 확인 4 run 은 J0 1.18 · WIN 1.40 (골격 무관 대용값)
@@ -141,11 +148,11 @@ def allowed_seeds(server):
 
 def branch_for(server, item, seed=None):
     """편성 항목의 branch: QEDGE9 case(QE50/QEC/QES) 이거나 서버 QEDGE9 목록(QEDGE9_ITEMS_BY_SERVER) 의 run 이면 'QEDGE9', 아니면 None(기본 PAKD50 계약)."""
-    case, arch, sd, _ = parse_item(item)
+    case, arch, sd, ver = parse_item(item)
     if case in QEDGE9_CASES:
         return "QEDGE9"
     sd = sd if sd is not None else (seed if seed is not None else SERVER_SEED.get(server))
-    tag = run_name(case, sd, arch=arch)
+    tag = run_name(case, sd, ver or "v1", arch=arch)
     return "QEDGE9" if tag in {to_tag(x, SERVER_SEED[server]) for x in QEDGE9_ITEMS_BY_SERVER.get(server, [])} else None
 
 
@@ -305,6 +312,62 @@ def measured_hours_from_ledger(server, ledger=None):
             continue
         acc.setdefault(item_key(rid), []).append(float(h))       # 골격이 다르면 다른 키 (W104 실측을 W112 로 덮어쓰지 않는다)
     return {c: sum(v) / len(v) for c, v in acc.items()}
+
+
+def measured_hours_all(server):
+    """같은 서버 실측(case@arch 키)을 PAKD50 ledger 와 QEDGE9ledger 양쪽에서 모아 평균 (감사 F07: 새 branch 의 실측이 예약에 반영되지 않던 문제)."""
+    acc = {}
+    for lp in (LEDGER, QEDGE9_LEDGER):
+        d = _load_json(lp)
+        for rid, e in (d.get("entries") or {}).items():
+            if e.get("kind") != "run" or not str(e.get("status", "")).startswith("FINISHED") or not is_tag(rid) or "#" in rid:
+                continue
+            h = e.get("hours_total") or e.get("hours")
+            try:
+                sd = seed_of(rid)
+            except ValueError:
+                continue
+            if not h or sd not in allowed_seeds(server):
+                continue
+            acc.setdefault(item_key(rid), []).append(float(h))
+    return {c: sum(v) / len(v) for c, v in acc.items()}
+
+
+def verified_complete(run, expect_step=50000, min_candidates=45):
+    """완료 marker(results .mat 두 개) 를 넘어 계획 §8.2·§8.3 의 완결·동치 검사 (감사 F06): exact-50K last state · 평가 후보 격자 · Teacher 파일 sha == T0 · train h5 sha == cue 자산 · U init hash == seed 공유 init 파일.
+    반환 dict(ok, checks{name: bool|None}, notes) — None 은 판단 자료 없음(예: cue 자산/Teacher 없는 run)."""
+    rd = os.path.join(ROOT, "work_dir", run); c = {}; notes = []
+    c["results_mats"] = os.path.exists(os.path.join(rd, "results", "reduced_best_hqnr.mat")) and os.path.exists(os.path.join(rd, "results", "full_best_hqnr.mat"))
+    lm = _load_json(os.path.join("work_dir", run, "last_meta.json")); c["last_exact_step"] = (lm.get("step") == expect_step) and os.path.exists(os.path.join(rd, "last", "model.safetensors"))
+    cm = os.path.join(rd, "checkpoint_metrics.csv"); rows = []
+    if os.path.exists(cm):
+        import csv as _csv
+        rows = list(_csv.DictReader(open(cm)))
+    steps = {int(float(r["step"])) for r in rows if r.get("step")}
+    c["candidate_grid"] = (expect_step in steps) and (len(rows) >= min_candidates)
+    kc = _load_json(os.path.join("work_dir", run, "kdv_config_resolved.json")); c["kdv_manifest"] = bool(kc)
+    ith = _load_json(os.path.join("work_dir", run, "init_and_teacher_hashes.json")); t = (ith.get("teacher") or {})
+    if t:
+        sha, _ = t0_identity(None); c["teacher_is_T0"] = (t.get("file_sha256") == sha)
+    else:
+        c["teacher_is_T0"] = None; notes.append("Teacher 없음(no-KD/no-align run)")
+    ds = _load_json(os.path.join("work_dir", run, "dataset_hashes.json")); cue = _load_json(QEDGE9_CUE_ASSET)
+    if ds and cue:
+        c["train_sha_matches_cue"] = ((ds.get("train_feeder_args") or {}).get("sha256") == (cue.get("dataset") or {}).get("train_sha256"))
+    else:
+        c["train_sha_matches_cue"] = None; notes.append("dataset_hashes 또는 cue 자산 없음")
+    ih = _load_json(os.path.join("work_dir", run, "initialization_hashes.json")); init_f = ih.get("unet_init_file")
+    if ih.get("unet_init_sha256_16") and init_f and os.path.exists(init_f):
+        try:
+            import torch
+            from train_pa import _sha_tensors
+            c["init_matches_shared_file"] = (_sha_tensors(torch.load(init_f, map_location="cpu")) == ih["unet_init_sha256_16"])
+        except Exception as ex:                                                        # noqa
+            c["init_matches_shared_file"] = None; notes.append(f"init 파일 검사 실패 {ex!r}")
+    else:
+        c["init_matches_shared_file"] = None; notes.append("초기값 hash/파일 없음")
+    ok = all(v for v in c.values() if v is not None) and c["results_mats"] and c["last_exact_step"] and c["candidate_grid"] and c["kdv_manifest"]
+    return dict(run=run, ok=bool(ok), checks=c, notes=notes)
 
 
 def reservation_for(server, item, measured=None, seed=None):
@@ -483,11 +546,12 @@ def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=Tr
     if branch == "QEDGE9":                                                  # QEDGE9 §0.7·§9.3·§11.1: 새 논리 캠페인/branch, PAKD50 50h·절대 마감 미상속(soft 9h, required → 경고만; NaN/오류/중복 보호는 trainer 그대로)
         if arch != QEDGE9_ARCH:
             raise SystemExit(f"!! {case}: QEDGE9 는 {QEDGE9_ARCH} 전용 (현재 {arch})")
-        k.update(campaign_id=QEDGE9_CAMPAIGN_ID, parent_campaign_id=CAMPAIGN_ID, experiment_branch_id=QEDGE9_BRANCH,
+        k.update(campaign_id=QEDGE9_CAMPAIGN_ID, parent_campaign_id=CAMPAIGN_ID, experiment_branch_id=QEDGE9_BRANCH, exact_resume=True,     # exact_resume: 감사 F04 (kdv/resume.py; 재개 시 같은 batch 열)
                  budget=dict(ledger=QEDGE9_LEDGER, total_gpu_hours=QEDGE9_SOFT_HOURS, reserve_hours=0.0, margin=MARGIN, required=True, projected_hours=projected, projected_map={me: QEDGE9_RESERVED_H},
                              remaining_mandatory=[], remaining_mandatory_file=QEDGE9_MANDATORY_FILE, projection_file=RESERVATION_FILE, time_policy=dict(QEDGE9_TIME_POLICY)))
         if B.get("edge_gate"):
-            k["edge_gate"] = {"low_q": dict(mode="low_q", asset=QEDGE9_CUE_ASSET, theta_source="asset"), "const": dict(mode="const", asset=QEDGE9_CUE_ASSET, c_E_file=QEDGE9_CE_FILE),
+            k["edge_gate"] = {"low_q": dict(mode="low_q", asset=QEDGE9_CUE_ASSET, theta_source="asset"),
+                              "const": dict(mode="const", asset=QEDGE9_CUE_ASSET, c_E_file=QEDGE9_CE_FILE, pilot_run=QEDGE9_PILOT_BY_SERVER.get(server, QEDGE9_PILOT_RUN), pilot_tag=QEDGE9_PILOT_TAG, pilot_step=QEDGE9_PILOT_STEP),   # 감사 F02: pilot identity(그 서버의 J0 exact50K) 를 config 에 박고 trainer 가 c_E 파일과 대조
                               "shuffle": dict(mode="shuffle", asset=QEDGE9_CUE_ASSET, perm_seed=51515)}[B["edge_gate"]]
     if P.get("schedule"):
         k["aligner_schedule"] = dict(P["schedule"])
@@ -543,15 +607,15 @@ def render(tag, case, seed, server, k, updates, eval_epoch, tpl, arch=ARCH_DEFAU
 def generate(server, cases, out_dir, updates=50000, eval_epoch=5, projected=None, version="v1", pin=True, seed=None):
     seed = seed or SERVER_SEED[server]; tpl = open(os.path.join(ROOT, "config", "PO10_N1_REC_W112_D123_WV3_S2025_R200_FRSTAT.yaml")).read(); made = []
     for item in cases:
-        case, arch, isd, _ = parse_item(item); sd = isd if isd is not None else seed; br = branch_for(server, item, sd)      # 항목이 run 이름이면 그 seed (QEDGE9 s5 의 777)
-        tag = run_name(case, sd, version, arch=arch); k = kdv_block(case, sd, server, projected=projected, version=version, pin=pin, arch=arch, branch=br)
+        case, arch, isd, iver = parse_item(item); sd = isd if isd is not None else seed; ver = iver or version; br = branch_for(server, item, sd)      # 항목이 run 이름이면 그 seed·version (QEDGE9 s5 의 777 · s1 의 v2)
+        tag = run_name(case, sd, ver, arch=arch); k = kdv_block(case, sd, server, projected=projected, version=ver, pin=pin, arch=arch, branch=br)
         os.makedirs(out_dir, exist_ok=True); open(os.path.join(out_dir, tag + ".yaml"), "w").write(render(tag, case, sd, server, k, updates, eval_epoch, tpl, arch=arch, branch=br)); made.append(tag)
     return made
 
 
 def plan_rows(server, measured=None, is_terminal=None, extra=()):
     """재배정 dry-run: 서버 순서(priority_for + extra) 에서 완료·실행 중이 아닌 run 의 예약과 누적 (재배정 §4 표 형식). is_terminal(run 이름) 이 없으면 work_dir 완료 판정."""
-    seed = SERVER_SEED[server]; measured = measured if measured is not None else measured_hours_from_ledger(server)
+    seed = SERVER_SEED[server]; measured = measured if measured is not None else measured_hours_all(server)
     if is_terminal is None:
         from tools.campaign_gate import terminal as is_terminal          # noqa
     rows, t = [], 0.0
@@ -568,7 +632,7 @@ def plan_rows(server, measured=None, is_terminal=None, extra=()):
 
 def plan_table(server):
     rem = hours_to_deadline(); rows = plan_rows(server)
-    plan_doc = {"s3": ALLOC_PLAN_S3, "s4": ALLOC_PLAN_S4 + " + " + QEDGE9_PLAN, "s5": QEDGE9_PLAN}.get(server, ALLOC_PLAN)
+    plan_doc = {"s3": ALLOC_PLAN_S3, "s4": ALLOC_PLAN_S4, "s5": QEDGE9_PLAN, "s1": QEDGE9_PLAN + " (seed 1234 묶음, 17:20 s4→s1)"}.get(server, ALLOC_PLAN)
     print(f"[{server}] seed {SERVER_SEED[server]} — 배정 {plan_doc} §4; 예약 = {RESERVE_SLACK}×ref + {RESERVE_POST_H * 60:.0f}min; 학습 마감까지 {'?' if rem is None else '%.2f' % rem} h")
     for r in rows:
         print(f"  {(r['case'] + ('' if r['arch'] == ARCH_DEFAULT else '@' + r['arch'])):<18} {r['status']:<14} ref {r['reference_train_h']:.2f} h ({r['reference_kind']}) → 예약 {r['reservation_h']:.4f} h · 누적 {r['cumulative_h']:.4f} h")

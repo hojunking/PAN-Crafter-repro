@@ -39,6 +39,7 @@ from pa.aligner import PANGlobalAligner
 from pa.evalviews import PROTOCOL_ID, evaluator_hash, fixed_roi, VIEWS, scene_views
 from pa.losses import output_edge_loss, output_edge_loss_per_sample, direct_geometry_loss, lambda_ramp, geometry_support_margin, scharr
 from kdv.edge_gate import EdgeGate
+from kdv.resume import EpochState, begin_epoch
 from pa.model import PAModel
 from pa.offset import offset_loss, predict_c, lambda_off, sample_offsets
 from pa.selector import BestSelector
@@ -169,6 +170,11 @@ class KDVTrainer(PATrainer):
         self.accelerator.register_for_checkpointing(RNGState(self.gen))
         self.tri_gen = torch.Generator(device="cpu"); self.tri_gen.manual_seed(int((k.get("tri") or {}).get("shuffle_seed", 4321)))
         self.accelerator.register_for_checkpointing(RNGState(self.tri_gen))    # SHUFFLE/MASS 대조군이 재개 후에도 같은 열을 쓰게
+        # exact resume (QEDGE9 감사 F04, kdv/resume.py): epoch 시작 전역 RNG + 시작 step 을 checkpoint 에 — 재개 시 같은 permutation·worker seed 로 소비한 batch 를 건너뛴다. 옛 run 과 checkpoint 규격이 다르므로 opt-in
+        self.exact_resume = bool(k.get("exact_resume", False)); self._epoch_state = EpochState() if self.exact_resume else None; self._resume_pending = bool(getattr(args, "resume", None))
+        if self.exact_resume:
+            self.accelerator.register_for_checkpointing(self._epoch_state)
+        self._meta_log = bool(int(os.environ.get("KDV_LOG_BATCH_META", "0") or 0))     # 검증용: batch 별 (index, rot) 앞 8 개를 batch_meta.jsonl 에 (exact resume 대조)
         # --- 평가 참조·선택기 (PATrainer)
         self.last_reduced_metrics, self.last_full_metrics, self.last_val_metrics = {}, {}, {}
         self.last_fscc_official = float("nan"); self.raw_is_best = False
@@ -566,7 +572,10 @@ class KDVTrainer(PATrainer):
         self.edge_gate = None
         if sp.get("edge_gate"):
             fa = dict(self.args.train_feeder_args)
-            self.edge_gate = EdgeGate.load(sp["edge_gate"], teacher=self.teacher, train_h5=fa["dataroot"], feeder_args=fa, sha_fn=lambda p_: sha_cached(p_, self.init_dir))
+            prev_p = os.path.join(self.args.work_dir, "kdv_config_resolved.json"); prev = None
+            if getattr(self.args, "resume", None) and os.path.exists(prev_p):                    # 재개: 이 run 이 전에 쓴 cue asset_id / c_E 와 대조 (감사 F03·§8.2)
+                prev = (json.load(open(prev_p)).get("edge_gate") or {}) or {}
+            self.edge_gate = EdgeGate.load(sp["edge_gate"], teacher=self.teacher, train_h5=fa["dataroot"], feeder_args=fa, sha_fn=lambda p_: sha_cached(p_, self.init_dir), previous=prev)
             if self.edge_gate.needs_meta and not bool(fa.get("return_meta", False)):
                 raise ValueError("edge_gate low_q/shuffle 는 train_feeder_args.return_meta: true (sample index·augmentation state) 가 필요하다 — RNG 를 더 소비하지 않는 feeder meta")
             self.calibration["edge_gate"] = self.edge_gate.summary()
@@ -631,7 +640,7 @@ class KDVTrainer(PATrainer):
                                       note=("판정·시트·Teacher·진단이 모두 같은 checkpoint 를 쓴다 (저장소 확정 지시: 무조건 HQNR→SCC). "
                                             "best_hqnr(=best_raw) 는 FR test 로 매 평가 고르므로 test-adaptive 다 — 독립 hold-out 이 아니라는 점은 그대로 기록한다. "
                                             "계획 §14.2 의 독립 RR-validation 선택(best_rr_val, valid_wv3.h5 plain ERGAS) 은 **보조**로 함께 저장·평가한다.")),
-                       na_protocol=sp.get("na_protocol"), rec_control=sp.get("rec_control"), resumed=bool(self.resumed_from), resumed_nonexact=bool(self.resumed_from), resumed_from=(str(self.resumed_from) if self.resumed_from else None), stat_axes=dict(windows=sp.get("stat_windows"), transform=sp.get("stat_transform"), domain=sp.get("stat_domain"),
+                       na_protocol=sp.get("na_protocol"), rec_control=sp.get("rec_control"), resumed=bool(self.resumed_from), resumed_nonexact=bool(self.resumed_from) and not getattr(self, "exact_resume", False), exact_resume=getattr(self, "exact_resume", False), resumed_from=(str(self.resumed_from) if self.resumed_from else None), stat_axes=dict(windows=sp.get("stat_windows"), transform=sp.get("stat_transform"), domain=sp.get("stat_domain"),
                                                                                                             transform_eps=sp.get("stat_transform_eps"), lambda_scale=sp.get("stat_lambda_scale"), tau_scale=sp.get("rec_tau_scale")),
                        lambda_V=self.lam_V, stat_ramp_updates=self.stat_ramp, lambda_GKD=self.lam_gkd, k0=self.k0, cov_source=sp["cov_source"], cov_status=(self.cov or {}).get("status"),
                        edge_gate=(self.edge_gate.summary() if getattr(self, "edge_gate", None) is not None else None),
@@ -650,10 +659,15 @@ class KDVTrainer(PATrainer):
         if self.resumed_from:
             # 재개는 optimizer/scheduler/scaler/RNG 를 복원하지만 **data sampler 순서는 복원하지 않는다** (main.py C-1 주석).
             # 즉 재개한 run 은 중단 없는 대응 run 과 배치 열이 다르다 — 엄밀 대조에서는 제외하거나 처음부터 다시 돌린다.
-            self._jsonl("resume_events.jsonl", dict(time=time.strftime("%Y-%m-%dT%H:%M:%S"), resume_from=str(self.resumed_from), resumed_nonexact=True,
-                                                    restored="optimizer·scheduler·scaler·RNG(corruption/TRI)", not_restored="data sampler 배치 순서",
-                                                    consequence="중단 없는 run 과 배치 열이 다르다 — 통제 비교에서 표시하거나 재실행"))
-            print(f"[kdv] 재개: {self.resumed_from} — 배치 순서는 복원되지 않는다 (resume_events.jsonl 에 기록)")
+            if getattr(self, "exact_resume", False):                                   # kdv.exact_resume: epoch 시작 RNG + skip 으로 같은 batch 열 (train() 이 exact 이벤트를 따로 남긴다)
+                self._jsonl("resume_events.jsonl", dict(time=time.strftime("%Y-%m-%dT%H:%M:%S"), resume_from=str(self.resumed_from), resumed_nonexact=False, exact_resume_requested=True,
+                                                        restored="optimizer·scheduler·scaler·RNG(corruption/TRI)·epoch 시작 전역 RNG(sampler permutation·worker seed)", note="train() 의 exact 이벤트가 skip 수를 기록한다"))
+                print(f"[kdv] 재개: {self.resumed_from} — exact resume (같은 batch 열; resume_events.jsonl)")
+            else:
+                self._jsonl("resume_events.jsonl", dict(time=time.strftime("%Y-%m-%dT%H:%M:%S"), resume_from=str(self.resumed_from), resumed_nonexact=True,
+                                                        restored="optimizer·scheduler·scaler·RNG(corruption/TRI)", not_restored="data sampler 배치 순서",
+                                                        consequence="중단 없는 run 과 배치 열이 다르다 — 통제 비교에서 표시하거나 재실행"))
+                print(f"[kdv] 재개: {self.resumed_from} — 배치 순서는 복원되지 않는다 (resume_events.jsonl 에 기록)")
         # §12.2 결과 key — 이름이 같아도 서버가 다르면 다른 결과다. 시트·분석에서 덮어쓰지 않도록 식별자를 한곳에 모은다
         try:
             _srv = open(os.path.join(ROOT, "gspread", "server.txt")).read().strip()
@@ -1212,8 +1226,15 @@ class KDVTrainer(PATrainer):
         report = Train_Report(); start = time.time()
         B = self.args.batch_size; dev, dt = self.accelerator.device, self.weight_dtype; M = self.M
         times = dict(native=[], corrupt=[], forward=[])
-        for idx, batch in enumerate(self.train_data_loader):
+        it, skip, rinfo = begin_epoch(self.train_data_loader, self._epoch_state, global_step, self._resume_pending and self.exact_resume); self._resume_pending = False
+        if rinfo["exact"] and self.accelerator.is_main_process:
+            self._jsonl("resume_events.jsonl", dict(time=time.strftime("%Y-%m-%dT%H:%M:%S"), exact=True, resumed_at_step=int(global_step), epoch_start_step=rinfo["epoch_start_step"], skipped_batches=rinfo["skipped"],
+                                                    restored="epoch 시작 전역 RNG → 같은 permutation·worker seed, 소비 batch skip; optimizer·scheduler·scaler·RNG(corruption/TRI)", note="연속 실행과 같은 batch 열 (kdv.exact_resume)"))
+            print(f"[kdv] exact resume: epoch 시작 step {rinfo['epoch_start_step']} 부터 {rinfo['skipped']} batch 건너뜀 → step {global_step} 에서 이어간다")
+        for idx, batch in enumerate(it, start=skip):
             gt, lms, ms, lpan, pan = batch[:5]; meta = (batch[5] if len(batch) > 5 else None)     # feeder return_meta (QEDGE9): (index, rot, hflip, vflip) — 없으면 None
+            if self._meta_log and meta is not None and self.accelerator.is_main_process:
+                self._jsonl("batch_meta.jsonl", dict(step=int(global_step), index=meta[:8, 0].tolist(), rot=meta[:8, 1].tolist()))
             t0 = time.time()
             with self.accelerator.accumulate(self.model):
                 gt, ms, lpan, pan = (t.to(dev, dtype=dt) for t in (gt, ms, lpan, pan))

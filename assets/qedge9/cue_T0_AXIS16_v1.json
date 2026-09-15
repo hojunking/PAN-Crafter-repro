@@ -141,5 +141,6 @@
  },
  "npz": "assets/qedge9/cue_T0_AXIS16_v1.npz",
  "npz_sha256": "b83cc5d1a25e8766d1813c9d19d956efc24e0f152553e53c4894fa18dcdf563e",
- "npz_arrays": "index int32 · rot int8 · q float64 · c0 float32[2] · e_roi32 float32 · gate_low_q/gate_shuffle int8 · e_decile int8 · calib_mask bool (row = base×4 + rot)"
+ "npz_arrays": "index int32 · rot int8 · q float64 · c0 float32[2] · e_roi32 float32 · gate_low_q/gate_shuffle int8 · e_decile int8 · calib_mask bool (row = base×4 + rot)",
+ "asset_id": "526dbd718af54c4a0c3eb5fd81778caa"
 }

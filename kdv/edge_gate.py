@@ -110,11 +110,75 @@ def _abs(p):
     return p if os.path.isabs(p) else os.path.join(ROOT, p)
 
 
-def read_asset(asset_json):
+NORMALIZATION = "feeder.np2tensor: float64→float32, 2x/max_pixel−1 (float32)"
+ASSET_ID_FIELDS = ("npz_sha256", "teacher.aligner_state_hash", "teacher.file_sha256", "teacher.aligner_view_margin", "dataset.train_sha256", "dataset.train_pan_sha256", "dataset.n_train", "dataset.normalization",
+                   "feeder_contract.hflip", "feeder_contract.vflip", "feeder_contract.rot", "feeder_contract.crop", "bank.id", "bank.K", "theta_q", "calibration.index_sha256_16", "calibration.seed", "qes.seed", "qes.bins")
+
+
+def _get(man, dotted):
+    v = man
+    for k in dotted.split("."):
+        v = (v or {}).get(k) if isinstance(v, dict) else None
+    return v
+
+
+def asset_id(man):
+    """cue 자산의 불변 ID (감사 F03): q 의 출처(Teacher A/파일/margin)·데이터·정규화·feeder 계약·bank·θq·calibration id·QES seed·npz sha 를 묶은 sha256[:32]. 재개 시 checkpoint 의 값과 대조한다."""
+    payload = {k: _get(man, k) for k in ASSET_ID_FIELDS}
+    return hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest()[:32]
+
+
+def check_asset(man, z, perm_seed=QES_SEED):
+    """자산의 내부 일관성(§7.1 key·§3.1·§6.2): bank 정의 · θq 유한·gate == 1[q<θq] · calibration id 재계산 · coverage(index×rot 완비) · QES 재현(고정 permutation) · 정규화 문자열 · asset_id 일치. 위반 목록을 돌려준다(비면 통과)."""
+    bad = []
+    b = man.get("bank") or {}
+    if b.get("id") != BANK_ID or int(b.get("K", 0)) != K_PROBES or [float(x) for x in (b.get("radii_hr") or [])] != list(RADII) or [int(x) for x in (b.get("angles_deg") or [])] != list(ANGLES_DEG):
+        bad.append(f"bank {b.get('id')}/{b.get('K')}/{b.get('radii_hr')}/{b.get('angles_deg')} ≠ {BANK_ID}/{K_PROBES}/{RADII}/{ANGLES_DEG}")
+    th = man.get("theta_q")
+    if th is None or not math.isfinite(float(th)) or not (0.0 < float(th) < 10.0):
+        bad.append(f"theta_q {th} 가 유한한 HR px 값이 아니다")
+    q = z["q"]; g = z["gate_low_q"]; idx = z["index"].astype(np.int64); rot = z["rot"].astype(np.int64); N = int(_get(man, "dataset.n_train") or 0)
+    if th is not None and math.isfinite(float(th)) and not np.array_equal(g, (q < float(th)).astype(np.int8)):
+        bad.append("gate_low_q ≠ 1[q < theta_q] (θq·q·label 내부 모순)")
+    if len(idx) != N * len(ROT_STATES) or set(np.unique(rot).tolist()) != set(ROT_STATES) or len(set(zip(idx.tolist(), rot.tolist()))) != N * len(ROT_STATES):
+        bad.append(f"coverage: {len(idx)} view ≠ N {N} × {len(ROT_STATES)} state 또는 (index, rot) 중복")
+    fc = man.get("feeder_contract") or {}
+    if int(fc.get("states", 0)) != len(ROT_STATES) or [int(x) for x in (fc.get("rot_states") or [])] != list(ROT_STATES):
+        bad.append(f"feeder_contract states {fc.get('states')}/{fc.get('rot_states')}")
+    if _get(man, "dataset.normalization") != NORMALIZATION:
+        bad.append(f"normalization {_get(man, 'dataset.normalization')!r} ≠ {NORMALIZATION!r}")
+    cal = man.get("calibration") or {}
+    if N > 0:
+        gen = torch.Generator(device="cpu"); gen.manual_seed(int(cal.get("seed")) if cal.get("seed") is not None else 0); n_b = min(int(cal.get("n_base") or 0), N)
+        ids = torch.randperm(N, generator=gen)[:n_b].sort().values.numpy().astype(np.int64); sha = hashlib.sha256(ids.tobytes()).hexdigest()[:16]
+        if cal.get("seed") != 1234 or sha != cal.get("index_sha256_16"):
+            bad.append(f"calibration id 재계산 {sha} ≠ manifest {cal.get('index_sha256_16')} (seed {cal.get('seed')})")
+        cm = z["calib_mask"].astype(bool)
+        if int(cm.sum()) != n_b * len(ROT_STATES) or not np.array_equal(np.unique(idx[cm]), ids):
+            bad.append("calib_mask 가 calibration id × 4 state 와 다르다")
+    qes = man.get("qes") or {}; edges = (man.get("e_roi32") or {}).get("decile_edges")
+    if int(qes.get("seed", -1)) != int(perm_seed) or edges is None:
+        bad.append(f"qes seed {qes.get('seed')} ≠ {perm_seed} 또는 decile edges 없음")
+    else:
+        strata, dec = strata_of(z["e_roi32"], rot, edges); g_sh, _ = shuffle_gate(g, strata, int(perm_seed))
+        if not np.array_equal(g_sh, z["gate_shuffle"]) or not np.array_equal(dec, z["e_decile"].astype(np.int8)):
+            bad.append("gate_shuffle ≠ 고정 permutation 재현 (또는 e_decile 불일치)")
+    if man.get("asset_id") != asset_id(man):
+        bad.append(f"asset_id {man.get('asset_id')} ≠ 재계산 {asset_id(man)}")
+    return bad
+
+
+def read_asset(asset_json, strict=True, perm_seed=QES_SEED):
+    """manifest + npz. strict: npz sha + 내부 일관성(check_asset) 위반이면 ValueError."""
     man = json.load(open(_abs(asset_json))); npz_p = _abs(man["npz"])
     if sha256_file(npz_p) != man["npz_sha256"]:
         raise ValueError(f"cue npz sha 불일치: {npz_p}")
-    return man, np.load(npz_p)
+    z = np.load(npz_p)
+    if strict:
+        bad = check_asset(man, z, perm_seed)
+        if bad:
+            raise ValueError("cue 자산 내부 일관성 위반: " + " · ".join(bad))
+    return man, z
 
 
 class EdgeGate:
@@ -135,9 +199,10 @@ class EdgeGate:
         return (self.manifest.get("theta_q") if self.manifest else None)
 
     @classmethod
-    def load(cls, cfg, teacher=None, train_h5=None, feeder_args=None, sha_fn=None):
+    def load(cls, cfg, teacher=None, train_h5=None, feeder_args=None, sha_fn=None, previous=None):
+        """cfg = registry 의 edge_gate spec. teacher/train_h5/feeder_args 가 있으면 대조한다. previous: 재개 시 이 run 이 전에 기록한 edge_gate 요약(kdv_config_resolved.json) — asset_id/c_E 가 다르면 거부 (감사 F03)."""
         mode = cfg["mode"]; asset = cfg.get("asset"); checks = {}
-        man, z = read_asset(asset)
+        man, z = read_asset(asset, strict=True, perm_seed=int(cfg.get("perm_seed") or QES_SEED)); aid = asset_id(man); checks["asset_id"] = aid
         if teacher is not None:
             from kdv.teacher_assets import state_hash
             if teacher.aligner is None:
@@ -146,6 +211,15 @@ class EdgeGate:
             if got != want:
                 raise ValueError(f"edge_gate: cue 의 Teacher aligner hash {want} ≠ 이 run 의 Teacher {got} — q 출처가 다르다(§2.1 q 는 고정 T0 A)")
             checks["teacher_aligner_hash"] = got
+            mg = int(getattr(teacher, "aligner_margin", -1))
+            if mg != int(man["teacher"]["aligner_view_margin"]):
+                raise ValueError(f"edge_gate: cue 의 Teacher view margin {man['teacher']['aligner_view_margin']} ≠ 이 run 의 Teacher {mg} — 같은 A 라도 입력 adapter 가 다르면 q 가 다르다(§7.3)")
+            checks["teacher_view_margin"] = mg
+        if previous is not None:
+            pa = (previous or {}).get("asset_id")
+            if pa and pa != aid:
+                raise ValueError(f"edge_gate: 재개 run 의 이전 cue asset_id {pa} ≠ 현재 {aid} — 재개 중 gate 가 바뀌었다 (§8.2 Resume)")
+            checks["previous_asset_id"] = pa
         if train_h5 is not None and sha_fn is not None:
             got = sha_fn(train_h5); want = man["dataset"]["train_sha256"]
             if got != want:
@@ -169,13 +243,20 @@ class EdgeGate:
             if not os.path.exists(p):
                 raise FileNotFoundError(f"edge_gate const: c_E 파일 없음 {cfg['c_E_file']} — tools/qedge9_cue.py pilot 으로 먼저 만든다 (placeholder 금지)")
             ce_info = json.load(open(p))
-            if ce_info.get("cue_npz_sha256") and ce_info["cue_npz_sha256"] != man["npz_sha256"]:
-                raise ValueError("edge_gate const: c_E 가 다른 cue 자산에서 계산됐다")
+            if ce_info.get("cue_npz_sha256") != man["npz_sha256"] or ce_info.get("cue_asset_id") != aid:
+                raise ValueError(f"edge_gate const: c_E 가 다른 cue 자산에서 계산됐다 (npz {str(ce_info.get('cue_npz_sha256'))[:16]} / asset_id {ce_info.get('cue_asset_id')} ≠ {aid})")
+            for key, want in (("pilot_run", cfg.get("pilot_run")), ("pilot_tag", cfg.get("pilot_tag")), ("pilot_step", cfg.get("pilot_step"))):     # 감사 F02: pilot identity 필수 대조
+                if want is not None and ce_info.get(key) != want:
+                    raise ValueError(f"edge_gate const: c_E 의 {key} {ce_info.get(key)!r} ≠ config {want!r} (§6.1 pilot = W104 J0 S1234 exact50K)")
+            if not ce_info.get("pilot_file_sha256") or not ce_info.get("pilot_sha256_16") or ce_info.get("views") != "calibration":
+                raise ValueError("edge_gate const: c_E 파일에 pilot checkpoint hash / calibration view 표기가 없다")
             c_E = float(ce_info["c_E"])
         else:
             c_E = float(cfg["c_E"])
         if not (math.isfinite(c_E) and 0.0 < c_E <= 1.0):
             raise ValueError(f"edge_gate const: c_E {c_E} 는 (0, 1] 이어야 한다 (분모 퇴화면 calibration 실패로 처리)")
+        if previous is not None and (previous or {}).get("c_E") is not None and abs(float(previous["c_E"]) - c_E) > 1e-12:
+            raise ValueError(f"edge_gate const: 재개 run 의 이전 c_E {previous['c_E']} ≠ 현재 {c_E}")
         return cls(mode, c_E=c_E, manifest=man, asset=asset, ce_info=ce_info, checks=checks)
 
     @classmethod
@@ -195,7 +276,7 @@ class EdgeGate:
 
     def summary(self):
         man = self.manifest or {}
-        return dict(mode=self.mode, asset=self.asset, npz_sha256=man.get("npz_sha256"), theta_q=man.get("theta_q"), bank=man.get("bank", {}).get("id") if isinstance(man.get("bank"), dict) else man.get("bank"),
+        return dict(mode=self.mode, asset=self.asset, asset_id=man.get("asset_id"), npz_sha256=man.get("npz_sha256"), theta_q=man.get("theta_q"), bank=man.get("bank", {}).get("id") if isinstance(man.get("bank"), dict) else man.get("bank"),
                     q_source="T0 aligner (frozen)", q_cut="median(train calibration views)", edge_gate=("low_q" if self.mode == "low_q" else ("shuffle(perm seed %s)" % man.get("qes", {}).get("seed") if self.mode == "shuffle" else f"const c_E={self.c_E}")),
-                    hard_always=1, selection=man.get("selection"), qes=man.get("qes"), c_E=self.c_E, c_E_source=({k: self.ce_info.get(k) for k in ("pilot_run", "pilot_tag", "pilot_sha256_16", "n_views", "computed_at")} if self.ce_info else None),
+                    hard_always=1, selection=man.get("selection"), qes=man.get("qes"), c_E=self.c_E, c_E_source=({k: self.ce_info.get(k) for k in ("pilot_run", "pilot_tag", "pilot_step", "pilot_sha256_16", "pilot_file_sha256", "n_views", "views", "computed_at", "server")} if self.ce_info else None),
                     checks=self.checks, teacher=man.get("teacher"), computed_at=man.get("computed_at"), source_server=man.get("server"))

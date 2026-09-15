@@ -376,7 +376,7 @@ def gate_pakd50():
     bl = os.path.join(ROOT, G.LEDGER); bd = json.load(open(bl)) if os.path.exists(bl) else {}
     done = [float(e.get("hours_total") or e.get("hours")) for e in (bd.get("entries") or {}).values() if e.get("kind") == "run" and str(e.get("status", "")).startswith("FINISHED") and (e.get("hours_total") or e.get("hours"))]
     est = (sum(done) / len(done)) if done else float(led.get("measured_run_hours") or 4.0)          # 완료 run 실측 평균 → 없으면 smoke 예상 (reference 가 전혀 없을 때의 마지막 fallback)
-    measured = G.measured_hours_from_ledger(srv, bd)                       # 같은 서버·같은 case 실측 {case: h} — 재배정 §3 '첫 실측이 나오면 곧바로 교체'
+    measured = G.measured_hours_all(srv)                                   # 같은 서버·같은 case 실측 {case@arch: h} — PAKD50 + QEDGE9 ledger (재배정 §3 '첫 실측이 나오면 곧바로 교체'; 감사 F07)
     extra = G.extra_priority()                                             # s4 등: 진단 뒤 사람이 고른 scalar/결합/확인 run (case id 또는 전체 run 이름)
     if extra:
         log(f"PAKD50: 추가 편성 목록({G.EXTRA_PRIORITY_FILE}): {' '.join(extra)}")
@@ -387,6 +387,12 @@ def gate_pakd50():
     exempt = lambda it: G.branch_for(srv, it) == "QEDGE9"                 # QEDGE9 §0.7·§9.3: 절대 마감 admission 제외 (soft target 만; NaN/오류/중복 보호는 그대로)
     blocked = lambda it: not G.cue_ready(it)                                # QEDGE9 §11.3: θq/c_E 자산이 없는 gate run 은 이번 pass 에 편성하지 않는다 (placeholder 금지)
     todo, dropped = G.schedule(bool(cal.get("lambda_E")), lambda it: terminal(tag_of(it)) or _running(tag_of(it)), rem, _reservation, priority=G.priority_for(srv), extra=extra, exempt=exempt, blocked=blocked)
+    for it in list(G.priority_for(srv)) + list(extra):                      # 감사 F06: 완료 marker 만 있고 50K state·후보 격자·Teacher/데이터/init 동치가 확인되지 않는 run 은 그대로 재사용하지 않도록 기록 (판단은 사람)
+        tg = tag_of(it)
+        if complete(tg) and G.branch_for(srv, it) == "QEDGE9":
+            v = G.verified_complete(tg)
+            if not v["ok"]:
+                log(f"QEDGE9: {tg} 는 완료 marker 는 있으나 검증 불통과 {[k for k, x in v['checks'].items() if x is False]} — COMPLETE_UNVERIFIED (work_dir/_qedge9/control_verification.json; 재실행 여부는 사람이)")
     waiting = [it for it in list(G.priority_for(srv)) + list(extra) if not (terminal(tag_of(it)) or _running(tag_of(it))) and blocked(it)]
     if waiting:
         log(f"QEDGE9: cue 자산 대기 — θq({G.QEDGE9_CUE_ASSET}) / c_E({G.QEDGE9_CE_FILE}) 미산출: {' '.join(waiting)} (tools/qedge9_cue.py build|pilot 뒤 다음 pass)")

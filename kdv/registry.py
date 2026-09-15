@@ -319,8 +319,11 @@ def resolve(k):
         eg_mode = eg.get('mode')
         if eg_mode not in EG_MODES:
             _bad(f"edge_gate.mode {eg_mode!r} ∉ {EG_MODES}")
-        if set(eg) - {'mode', 'asset', 'c_E', 'c_E_file', 'perm_seed', 'theta_source'}:
-            _bad(f"edge_gate 의 알 수 없는 키 {sorted(set(eg) - {'mode', 'asset', 'c_E', 'c_E_file', 'perm_seed', 'theta_source'})}")
+        _EGK = {'mode', 'asset', 'c_E', 'c_E_file', 'perm_seed', 'theta_source', 'pilot_run', 'pilot_tag', 'pilot_step'}
+        if set(eg) - _EGK:
+            _bad(f"edge_gate 의 알 수 없는 키 {sorted(set(eg) - _EGK)}")
+        if eg.get('mode') == 'const' and eg.get('c_E_file') and not (eg.get('pilot_run') and eg.get('pilot_tag') and eg.get('pilot_step')):
+            _bad("edge_gate const(c_E_file) 는 pilot_run/pilot_tag/pilot_step 을 명시한다 — trainer 가 c_E 파일의 pilot identity 와 대조 (감사 F02)")
         if not (stat_enabled and stat_key == 'EDGE' and stat_mode == 'H'):
             _bad("edge_gate 는 stat EDGE-H(GT signed Scharr) 위에서만 — 기존 edge 항을 교체한다 (더하지 않는다)")
         if rt:
@@ -338,7 +341,8 @@ def resolve(k):
         ps = int(eg.get('perm_seed', 51515))
         if eg_mode == 'shuffle' and ps != 51515:
             _bad("QES permutation seed 는 51515 로 고정 (§6.2)")
-        eg_spec = dict(mode=eg_mode, asset=eg['asset'], c_E=eg.get('c_E'), c_E_file=eg.get('c_E_file'), perm_seed=(ps if eg_mode == 'shuffle' else None), theta_source=eg.get('theta_source', 'asset'))
+        eg_spec = dict(mode=eg_mode, asset=eg['asset'], c_E=eg.get('c_E'), c_E_file=eg.get('c_E_file'), perm_seed=(ps if eg_mode == 'shuffle' else None), theta_source=eg.get('theta_source', 'asset'),
+                       pilot_run=eg.get('pilot_run'), pilot_tag=eg.get('pilot_tag'), pilot_step=eg.get('pilot_step'))
     return dict(recipe=recipe, protocol=protocol, policy=policy, rec_case=rec_case, rec_mode=REC_CASES[rec_case], tri=tri_spec, edge_gate=eg_spec,
                 aligner_freeze_until=f_until, aligner_freeze_from=f_from, route_A=(qD, qK, qE), expect_init=ei,
                 rec_control=rec_control, rec_tau_scale=rec_tau_scale, na_protocol=na, expect_arch=ea, select_secondary=secondary, select_primary=primary, aligned_selector=aligned_selector, stat_lambda_from_run=stat_lambda_from_run,

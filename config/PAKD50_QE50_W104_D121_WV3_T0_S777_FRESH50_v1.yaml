@@ -105,6 +105,7 @@ kdv:
       hard_deadline: null
       inherit_parent_deadline: false
   parent_campaign_id: PAKD50_W112D123_WV3_20260914_v1
+  exact_resume: true
   edge_gate:
     mode: low_q
     asset: assets/qedge9/cue_T0_AXIS16_v1.json

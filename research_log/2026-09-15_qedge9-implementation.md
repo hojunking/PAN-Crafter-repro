@@ -50,29 +50,50 @@
 
 `*` cache-ready 임시 편성값(미실측). 시트 확인(2026-09-15 15:00): s4 는 NA0/J0/JQ@W104 완료(0.9580/0.9585/0.9565), XJ/F0@W104 진행·대기; s5 는 J0…RCQ(W112) 전부 완료 → s5 는 pull 즉시 시작. 실제 종료는 현재 run 잔여 + s4 의 pilot c_E 준비(수 분) + 예약 합.
 
-## 5. s5 절차 (pull 뒤)
+## 5. s5 절차 (pull 뒤; 17:20 갱신 — runner 를 죽이지 않는 전환)
 
 ```bash
 git pull
-./tools/qedge9_switch.sh --dry-run   # gate(110) · cue verify(이 서버 T0) · 6 config == 생성기 · 예약 표 10.2620 h
-./tools/qedge9_switch.sh             # runner 교체 → gate 가 J0→JQ→QE50 @W104 S2026 → J0→JQ→QE50 @W104 S777 (완료 run 은 건너뜀; 마감 admission 없음)
-tail -f work_dir/cases_chain.log
+./tools/qedge9_switch.sh --dry-run   # gate(117) · cue verify(이 서버 T0; 내부 일관성·margin·θq 밖 flip 0) · 6 config == 생성기 · 완료 control 검증 · 예약 표 10.2620 h — 운영 파일은 쓰지 않는다
+./tools/qedge9_switch.sh             # 로컬 mandatory/reservations · 옛 extra_priority 보존 분리 · chain 마감 파일 제거(soft) · chain 이 없으면(DONE) campaign_start · 대기자(tools/qedge9_waiter.sh)
+tail -f work_dir/cases_chain.log; cat work_dir/_qedge9/status.json
 ```
 
-## 6. s4 절차 (pull 뒤; 현재 XJ/F0@W104 는 그대로 끝까지)
+s5 의 옛 chain 은 시트상 전부 완료라 DONE 상태다 → switch 가 새 chain 을 열고 gate 가 J0→JQ→QE50 @W104 S2026 → 같은 셋 S777 을 편성한다(마감 admission 없음). 살아 있는 chain 이 있으면 손대지 않는다(현재 run·평가·업로드는 그 runner 가 끝내고, gate 는 매 pass 새 코드를 부르므로 다음 pass 부터 새 순서).
+
+## 6. s1 절차 (17:20 사용자 결정: seed 1234 묶음은 s4 대신 s1)
 
 ```bash
-git pull
-./tools/qedge9_switch.sh --dry-run   # + QEC pilot c_E (W104 J0 S1234 exact50K 가 있으면 work_dir/_qedge9/qec_cE.json)
-./tools/qedge9_switch.sh             # runner 교체 → 잔여 XJ/F0@W104 뒤 QE50 → QEC(c_E 있으면) → QES
-./tools/qedge9_switch.sh --pilot     # c_E 를 나중에 만들 때 (gate 는 다음 pass 에 QEC 를 연다)
+./tools/qedge9_prepare_s1.sh --dry-run   # gate · cue verify · 5 config(v2) == 생성기 · 예약 표 8.5113 h
+./tools/qedge9_prepare_s1.sh             # s1 로컬 예약/mandatory + waiter 둘: SMEC12 chain DONE 뒤 campaign_start(마감 파일 제거) · J0 v2 exact50K 가 생기면 c_E (QEC 는 큐 마지막)
+tail -f work_dir/cases_chain.log · work_dir/_qedge9/launch_s1.log
 ```
 
-- 첫 W104 seed 2026/777(s5)·확인용 hash: 첫 run 의 `work_dir/<run>/initialization_hashes.json` `unet_init_sha256_16` 을 `assets/pakd50/init_hashes.json` `unet@W104_D121` 에 적으면 이후 config 가 `expect_init` 으로 fail-fast 한다.
-- 결과 판정(§10.1): seed 별 같은 서버 안에서 ΔH_gate = H(QE50) − H(JQ), ΔH_total = H(QE50) − H(J0); s4 QE50−QEC / QE50−QES; JQ−XJ. selected raw HQNR · exact50K · plateau(45,450–50,000) 열 별도. 0.0031 을 유의성 검정으로 쓰지 않는다.
+- s1 에는 W104 control 이 없어 J0/JQ@W104 S1234 를 새로 학습한다(같은 정의·다른 호스트; s4 의 E0 config v1 과 이름 충돌을 피해 **v2**, 캠페인 metadata 는 QEDGE9). 순서 J0 → JQ → QE50 → QES → QEC(pilot = s1 의 J0 v2 exact50K). 큐 `config/queues/qedge9_s1.txt`, gate 'pakd50' 는 s1 에서 꺼져 있다.
+- 기동 시점: SMEC12 준비 학습 chain(10 run, 12:34 시작, run 당 ≈1.3 h → 09-16 새벽) 이 DONE 된 뒤 자동. 먼저 돌리려면 SMEC12 chain 을 사람이 멈추고 `./tools/campaign_start.sh --queue config/queues/qedge9_s1.txt --hours 24 && rm -f work_dir/cases_deadline.txt`.
+- seed 1234 의 대응 비교(QE50−JQ, QE50−J0, QE50−QEC/QES) 는 전부 s1 안에서; s4 의 W104 J0/JQ/NA0(0.9585/0.9565/0.9580) 는 다른 호스트라 절대값을 빼지 않는다(계획 §6.3).
 
 ## 7. 남긴 것
 
 - QEC 의 c_E 는 s4 에서만 산출된다(pilot 이 s4 에만 있음) — 값은 s4 의 `work_dir/_qedge9/qec_cE.json` 과 시트 Notes(`cE=`) 로 기록; 자산화(assets) 는 s4 가 커밋할 때.
 - §10.3 연장(seed 9091 J0/JQ/QE50, β=0.05 대응쌍, LF+QE50) 은 이번 release 에 없다 — 확인 seed 는 기존 `pakd50_reallocate.sh --confirm` 규칙(9091 은 QEDGE9 목록의 허용 seed 가 아니므로 confirm 예약 1.80h 가예약) 을 그대로 쓸 수 있으나 QEDGE9 case 묶음 표는 만들지 않았다.
 - q cache 는 W104 학습과 무관하게 T0 에 묶여 있어 다른 골격/seed 에 그대로 쓸 수 있다; feeder 계약(crop/flip/rot) 이 바뀌면 다시 만든다(§7.2).
+
+## 8. 감사 대응 (research_log/PAN_QEDGE9_Implementation_Audit_2026-09-15.md F01–F08; 2026-09-15 17:00–18:00)
+
+| ID | 조치 | 검증 |
+|---|---|---|
+| F01 전환 시 runner 종료·dry-run 기록 | `qedge9_switch.sh` 재작성: **runner 를 죽이지 않는다** — 현재 run 의 학습·평가·업로드는 그 runner 가 끝내고, gate 는 매 pass `campaign_gate.py` 를 새로 부르므로 pull 뒤 다음 pass 부터 새 순서. chain 이 없을 때만 `campaign_start`. `--dry-run` 은 임시 경로만 쓴다(mandatory/reservations/extra/마감/c_E 미기록). | 스크립트 구조; s1 `qedge9_prepare_s1.sh --dry-run` 이 운영 파일을 만들지 않음을 확인 |
+| F02 QEC pilot identity | `qedge9_cue.py pilot`: run 이름(`RUN_RE`: J0·W104_D121·S1234)·tag last·last_meta step 50000·모델 W104/D[1,2,1]/seed/case/step 을 전부 강제, 기존 c_E 가 있으면 출처만 대조하고 `--force` 없이는 덮어쓰지 않는다. config 의 `edge_gate.const` 에 `pilot_run/pilot_tag/pilot_step` 을 박고(registry 필수) trainer 가 c_E 파일의 pilot identity·checkpoint hash·cue asset_id·calibration view 표기를 대조 | K31 (잘못된 run/tag/step/asset_id/hash 없음/전체 view 전부 거부, 올바른 파일 통과) |
+| F03 cue 식별·일관성 | manifest 에 **asset_id**(npz sha·Teacher A hash/파일/margin·데이터 sha·정규화·feeder 계약·bank·θq·calibration id·QES seed 의 sha256[:32]) 를 넣고(`stamp`), `check_asset` 이 bank 정의·θq 유한·`gate == 1[q<θq]`·coverage·calibration id 재계산·QES permutation 재현·정규화 문자열·asset_id 를 검사한다(`read_asset(strict)`, trainer 적재·verify·status 전부). `EdgeGate.load` 가 Teacher view margin 도 대조하고, 재개 시 이 run 의 이전 `kdv_config_resolved.json` 의 asset_id/c_E 와 대조한다. `verify` CLI 합격 조건: 내부 일관성 + |Δq|<1e-4 + |Δe|<1e-3 + θq 밖 라벨 flip 0(θq 근처 flip 은 기록) | K30 (θq/bank/QES seed/gate 반전/shuffle 위조/asset_id 위조 거부 · margin 0 거부 · 재개 asset_id 불일치 거부) · s1 verify PASS |
+| F04 exact resume | `kdv/resume.py`: epoch 시작 시점의 전역 torch RNG(RandomSampler permutation·worker base_seed 의 출처) + 시작 step 을 accelerate checkpoint 에(`EpochState`), 재개 시 복원 → 같은 iterator → 소비 batch skip(worker augmentation RNG 도 같은 만큼 진행) → 전역 RNG 는 checkpoint 시점으로. `kdv.exact_resume: true`(QEDGE9 config 전부). `resume_events.jsonl` 에 exact/skipped 기록 | K29(tiny feeder·2 worker·rot 무작위: 연속 열 == 재개 열) · **실학습 e2e**: QE50 40 update 연속 vs 20 + checkpoint-20 재개 → step 20–39 의 (index, rot) 열 20/20 동일 |
+| F05 QEC 미준비 시 DONE | `tools/qedge9_waiter.sh`(switch 가 기동): QEDGE9 mandatory 중 미완 run 이 있는데 chain 이 없으면 cue 준비 여부에 따라 재기동(READY_TO_RESTART) 또는 `WAITING_FOR_CUE`(`work_dir/_qedge9/status.json`); 전부 끝나야 DONE. s1 은 QEC 를 큐 마지막에 두고 pilot 대기자가 J0 v2 뒤 c_E 를 만든다 | 스크립트; status 판정은 `terminal`/`cue_ready` 재사용 |
+| F06 완료 marker 만으로 재사용 | `gen_pakd50_configs.verified_complete(run)`: results .mat + exact-50K last + 후보 격자(step 50000 포함·≥45 행) + kdv manifest + Teacher 파일 sha == T0 + train h5 sha == cue + U init hash == seed 공유 init 파일. gate 는 QEDGE9 서버의 완료 run 이 불통과면 `COMPLETE_UNVERIFIED` 로 기록(재실행은 사람 결정), switch 가 표와 `control_verification.json` 을 남긴다 | K33 (marker 만 있는 가짜 run 불통과 사유 명시 · s1 PAKD50 FQ S1234 실제 완료 run 통과) |
+| F07 chain 마감·실측 조회원 | switch/waiter/prepare_s1 이 `campaign_start` 뒤 `cases_deadline.txt` 를 지운다(`_run_cases.sh` 는 파일이 없으면 마감 없음 = `hard_deadline: null`; 사본 보존). `measured_hours_all` 이 PAKD50 + QEDGE9 ledger 의 같은 서버 실측(case@arch) 을 합쳐 gate·plan·switch 가 쓴다 | K32 (QEDGE9 ledger 의 2.75 h 가 예약에 반영; 확인 seed 제외) |
+| F08 옛 extra_priority | switch 가 `extra_priority.txt` 를 `extra_priority.pre_qedge9_<ts>.txt` 로 보존 분리하고 빈 파일(주석) 을 둔다 | 스크립트 |
+
+감사가 정상으로 확인한 범위(q 정의·Teacher 입력·hard/soft·edge 교체·gradient·gate·QES·feeder·config·예산)는 바꾸지 않았다. 감사 스크립트(`research_log/QEDGE9_Implementation_Audit_2026-09-15/verify_*.py`) 는 결함 재현을 전제로 짜여 있어 그대로 재실행하지 않았고, 같은 부정 입력을 K29–K33 으로 옮겼다. gate 는 117 검사 ALL OK.
+
+## 9. 서버 변경 (2026-09-15 17:20 사용자 결정: s5 + **s1**)
+
+seed 1234 묶음(QE50/QEC/QES) 을 s4 대신 s1 이 돈다. s1 에는 W104 control 이 없으므로 J0/JQ@W104 S1234 도 s1 이 새로 학습한다 — 이름은 **v2**(`PAKD50_<case>_W104_D121_WV3_T0_S1234_FRESH50_v2`; s4 의 E0 v1 config 와 파일·run 이름 충돌 방지, 학습 정의는 같고 캠페인 metadata·호스트만 다르다), 순서 J0 → JQ → QE50 → QES → QEC(pilot = s1 J0 v2 exact50K; `QEDGE9_PILOT_BY_SERVER`). s4 의 QEDGE9 항목·config 3 벌은 제거했고 s4 는 기존 E0 allocation(NA0/J0/JQ/XJ/F0@W104) 만 계속한다. generator 가 항목의 version 을 쓰도록 고쳤다(`generate`: run 이름 항목의 seed·version). 예약 합 8.5113 h(s4 관측·계획 §9.2 대용값; s1 W104 실측 없음). 기동은 SMEC12 chain 뒤 자동(§6). §5–§6 갱신, 검사 K26/K28 갱신. 시트 X열 `PAKD50 / <case> / A104D121 / QEDGE9 / FRESH50` (WV3-s1 탭; v2 는 실행명으로 구분).

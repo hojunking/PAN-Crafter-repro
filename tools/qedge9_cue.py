@@ -134,37 +134,54 @@ def build(a):
                qes=dict(seed=EG.QES_SEED, bins=EG.QES_E_BINS, strata="e_T_roi32 decile(calibration edges) × aug state(rot)", **sh_stats, changed_frac=float((g_sh != g).mean()), rule="stratum 내 고정 permutation; active 수 보존; 원소<2·단일 라벨 stratum 은 그대로"),
                timing=dict(bench=bench, total_seconds=total_s, views_per_second=V / total_s, n_views=V, note="T_cue 실측 (§7.4) — 학습 시간표 밖의 일회성 비용"),
                npz=npz_rel, npz_sha256=sha256_file(os.path.join(ROOT, npz_rel)), npz_arrays="index int32 · rot int8 · q float64 · c0 float32[2] · e_roi32 float32 · gate_low_q/gate_shuffle int8 · e_decile int8 · calib_mask bool (row = base×4 + rot)")
+    man["asset_id"] = EG.asset_id(man)                                       # 감사 F03: 불변 자산 ID (trainer 가 재개 시 대조)
     json.dump(man, open(os.path.join(ROOT, json_rel), "w"), indent=1, ensure_ascii=False)
+    bad = EG.check_asset(man, np.load(os.path.join(ROOT, npz_rel)))
+    if bad:
+        sys.exit("!! 만든 자산이 내부 일관성 검사를 통과하지 못했다: " + " · ".join(bad))
     print(f"[cue] θq {theta:.6f} (calibration {len(cal_ids)} base × {R}) · 선택 비율 calib {man['selection']['calib_frac']:.4f} / 전체 {man['selection']['all_frac']:.4f} · 동일값 {ties_cal}/{ties_all} · q p50 {man['q_stats']['all']['p50']:.4f} (무반응 상수 {EG.q_const_component():.4f})")
     print(f"[cue] QES: strata {sh_stats['n_strata']} · 셔플 {sh_stats['n_shuffled']} · 단일라벨 {sh_stats['n_degenerate']} · 소형 {sh_stats['n_small']} · 라벨 변경 비율 {man['qes']['changed_frac']:.4f}")
     print(f"[cue] 총 {total_s / 60:.1f} min ({V / total_s:.0f} view/s) → {json_rel} + {npz_rel} ({os.path.getsize(os.path.join(ROOT, npz_rel)) / 2 ** 20:.2f} MB, sha {man['npz_sha256'][:16]}…) — git 에 넣어 s4/s5 로 전달")
 
 
 def verify(a):
-    man, z = EG.read_asset(a.asset); cfg = yaml.safe_load(open(os.path.join(ROOT, a.config))); contract, h5, h5pan = contract_from(cfg); mp = max_pixel_of(h5)
-    T0, tman = load_T0(); margin = int(tman["aligner_view_margin"]); out = dict(server=server(), asset=a.asset, npz_sha256=man["npz_sha256"], theta_q=man["theta_q"], checked_at=time.strftime("%Y-%m-%dT%H:%M:%S"), gpu=(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu"))
-    out["teacher_aligner_hash_ok"] = (state_hash(T0.aligner) == man["teacher"]["aligner_state_hash"]); out["dataset_sha_ok"] = (sha_cached(h5) == man["dataset"]["train_sha256"])
+    man, z = EG.read_asset(a.asset, strict=False); cfg = yaml.safe_load(open(os.path.join(ROOT, a.config))); contract, h5, h5pan = contract_from(cfg); mp = max_pixel_of(h5)
+    internal = EG.check_asset(man, z)                                            # 감사 F03: θq·q·label 내부 모순 / bank / calibration id / QES 재현 / asset_id
+    T0, tman = load_T0(); margin = int(tman["aligner_view_margin"]); out = dict(server=server(), asset=a.asset, asset_id=man.get("asset_id"), npz_sha256=man["npz_sha256"], theta_q=man["theta_q"], checked_at=time.strftime("%Y-%m-%dT%H:%M:%S"), gpu=(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu"))
+    out["internal_consistency_ok"] = not internal; out["internal_violations"] = internal
+    out["teacher_aligner_hash_ok"] = (state_hash(T0.aligner) == man["teacher"]["aligner_state_hash"]); out["teacher_margin_ok"] = (margin == int(man["teacher"]["aligner_view_margin"])); out["dataset_sha_ok"] = (sha_cached(h5) == man["dataset"]["train_sha256"])
     out["feeder_contract_ok"] = ({k: bool(v) for k, v in contract.items()} == {k: bool(man["feeder_contract"][k]) for k in contract})
     rng = np.random.RandomState(a.seed); N = int(man["dataset"]["n_train"]); base = np.sort(rng.choice(N, size=min(a.n, N), replace=False))
     with h5py.File(h5) as f, h5py.File(h5pan) as fp:
         rows = read_rows(f, fp, base)
     Q, C, E = compute_views(T0, margin, rows, contract, mp); rows_idx = (np.repeat(base, len(ROTS)) * len(ROTS) + np.tile(np.array(ROTS), len(base)))
     qc = z["q"][rows_idx]; gc = z["gate_low_q"][rows_idx]; g_new = EG.gate_low_q(Q, man["theta_q"]); dq = np.abs(Q - qc); de = np.abs(E - z["e_roi32"][rows_idx])
-    out.update(n_views=int(len(rows_idx)), max_abs_dq=float(dq.max()), mean_abs_dq=float(dq.mean()), max_abs_de=float(de.max()), label_flips=int((g_new != gc).sum()), near_threshold=int((np.abs(qc - man["theta_q"]) < 1e-3).sum()),
-               pass_=bool(out["teacher_aligner_hash_ok"] and out["dataset_sha_ok"] and out["feeder_contract_ok"] and float(dq.max()) < a.tol))
+    flips = (g_new != gc); near = (np.abs(qc - man["theta_q"]) < a.tol); flips_far = int((flips & ~near).sum())     # θq 근처(GPU 수치차) 의 flip 은 기록만, 그 밖의 flip 은 실패 (감사 F03)
+    out.update(n_views=int(len(rows_idx)), max_abs_dq=float(dq.max()), mean_abs_dq=float(dq.mean()), max_abs_de=float(de.max()), label_flips=int(flips.sum()), label_flips_far_from_threshold=flips_far, near_threshold=int((np.abs(qc - man["theta_q"]) < 1e-3).sum()),
+               tol_q=a.tol, tol_e=a.tol_e,
+               pass_=bool(out["internal_consistency_ok"] and out["teacher_aligner_hash_ok"] and out["teacher_margin_ok"] and out["dataset_sha_ok"] and out["feeder_contract_ok"] and float(dq.max()) < a.tol and float(de.max()) < a.tol_e and flips_far == 0))
     os.makedirs(os.path.join(ROOT, CAMP), exist_ok=True); json.dump(out, open(os.path.join(ROOT, CAMP, f"verify_{server()}.json"), "w"), indent=1, ensure_ascii=False)
-    print(f"[cue] verify {server()}: T0 A hash {'OK' if out['teacher_aligner_hash_ok'] else 'MISMATCH'} · dataset sha {'OK' if out['dataset_sha_ok'] else 'MISMATCH'} · feeder 계약 {'OK' if out['feeder_contract_ok'] else 'MISMATCH'} · {out['n_views']} view 재계산: max|Δq| {out['max_abs_dq']:.2e} mean {out['mean_abs_dq']:.2e} · max|Δe| {out['max_abs_de']:.2e} · gate 라벨 차이 {out['label_flips']} · θq 근처(<1e-3) {out['near_threshold']} → {'PASS' if out['pass_'] else 'FAIL'} (허용 |Δq| < {a.tol:g})")
+    print(f"[cue] verify {server()}: 내부 일관성 {'OK' if out['internal_consistency_ok'] else 'FAIL ' + str(internal)} · T0 A hash {'OK' if out['teacher_aligner_hash_ok'] else 'MISMATCH'} · margin {'OK' if out['teacher_margin_ok'] else 'MISMATCH'} · dataset sha {'OK' if out['dataset_sha_ok'] else 'MISMATCH'} · feeder 계약 {'OK' if out['feeder_contract_ok'] else 'MISMATCH'} · "
+          f"{out['n_views']} view 재계산: max|Δq| {out['max_abs_dq']:.2e} mean {out['mean_abs_dq']:.2e} · max|Δe| {out['max_abs_de']:.2e} · gate 라벨 차이 {out['label_flips']}(θq 밖 {flips_far}) · θq 근처(<1e-3) {out['near_threshold']} → {'PASS' if out['pass_'] else 'FAIL'} (허용 |Δq| < {a.tol:g}, |Δe| < {a.tol_e:g}, θq 밖 flip 0)")
     sys.exit(0 if out["pass_"] else 1)
 
 
 def pilot(a):
     man, z = EG.read_asset(a.asset); cfg = yaml.safe_load(open(os.path.join(ROOT, a.config))); contract, h5, h5pan = contract_from(cfg); mp = max_pixel_of(h5)
+    out_p = os.path.join(ROOT, G.QEDGE9_CE_FILE)
+    if os.path.exists(out_p) and not a.force:                                   # 감사 F02: 산출 뒤 고정 — 같은 출처인지만 확인하고 덮어쓰지 않는다
+        prev = json.load(open(out_p)); same = (prev.get("cue_asset_id") == man.get("asset_id") and prev.get("pilot_run") == a.run and prev.get("pilot_tag") == a.tag)
+        print(f"[cue] c_E 이미 고정: {prev.get('c_E')} (pilot {prev.get('pilot_run')}/{prev.get('pilot_tag')}, cue asset {prev.get('cue_asset_id')}) — {'같은 출처, 그대로 둔다' if same else '!! 다른 출처 — --force 로만 교체'}")
+        sys.exit(0 if same else 1)
+    m = G.RUN_RE.match(a.run)                                                    # 감사 F02: pilot identity 강제 (§6.1 s4 W104D121 J0 S1234 exact50K)
+    if not m or m.group("case") != "J0" or m.group("arch") != "W104_D121" or int(m.group("seed")) != 1234 or a.run not in G.QEDGE9_PILOT_RUNS or a.tag != G.QEDGE9_PILOT_TAG:
+        sys.exit(f"!! pilot 은 {sorted(G.QEDGE9_PILOT_RUNS)}/{G.QEDGE9_PILOT_TAG} 뿐이다 (받은 {a.run}/{a.tag}) — 다른 run/tag 로 c_E 를 만들지 않는다 (§6.1; 서버별 자기 J0 exact50K)")
     rd = os.path.join(ROOT, "work_dir", a.run); lm = os.path.join(rd, f"{a.tag}_meta.json")
-    if a.tag == "last" and not (os.path.exists(lm) and json.load(open(lm)).get("step") == 50000):
-        sys.exit(f"!! pilot {a.run} 의 exact-50K last 가 없다 (§6.1: s4 W104 J0 S1234 exact50K)")
+    if not (os.path.exists(lm) and json.load(open(lm)).get("step") == G.QEDGE9_PILOT_STEP):
+        sys.exit(f"!! pilot {a.run} 의 exact-{G.QEDGE9_PILOT_STEP} {a.tag} 가 없다 (§6.1: s4 W104 J0 S1234 exact50K)")
     Model = import_class(cfg["model"]); pm, pman = load_run_model(rd, a.tag, Model); freeze(pm); pm.to(DEV).eval()
-    if int(pman["width"]) != 104:
-        sys.exit(f"!! pilot 골격 W{pman['width']} — QEC 의 c_E 는 W104·D121 pilot 에서 (§6.1)")
+    if int(pman["width"]) != 104 or list(pman["depth"]) != [1, 2, 1] or int(pman.get("seed") or -1) != 1234 or ((pman.get("kdv") or {}).get("case_id")) != "J0" or (pman.get("tag_meta") or {}).get("step") != G.QEDGE9_PILOT_STEP:
+        sys.exit(f"!! pilot 골격/seed/case/step 불일치: W{pman['width']} D{pman['depth']} seed {pman.get('seed')} case {(pman.get('kdv') or {}).get('case_id')} step {(pman.get('tag_meta') or {}).get('step')} — QEC 의 c_E 는 W104·D121 J0 S1234 exact50K 에서 (§6.1)")
     N = int(man["dataset"]["n_train"]); cal_ids, cal_sha = calibration_ids(N)
     if cal_sha != man["calibration"]["index_sha256_16"]:
         sys.exit("!! calibration id 가 cue 자산과 다르다")
@@ -183,7 +200,7 @@ def pilot(a):
     cE = num / den
     out = dict(c_E=cE, sum_gE=num, sum_E=den, n_views=int(len(E)), views=("all" if a.all_views else "calibration"), gate_frac=float(g.mean()), mean_E_gated=float((g * E).sum() / max(g.sum(), 1)), mean_E_all=float(E.mean()),
                pilot_run=a.run, pilot_tag=a.tag, pilot_sha256_16=pman["tensors_sha256_16"], pilot_file_sha256=pman["file_sha256"], pilot_step=(pman.get("tag_meta") or {}).get("step"), pilot_width=pman["width"], pilot_depth=pman["depth"],
-               cue=a.asset, cue_npz_sha256=man["npz_sha256"], theta_q=man["theta_q"], computed_at=time.strftime("%Y-%m-%dT%H:%M:%S"), server=server(),
+               cue=a.asset, cue_npz_sha256=man["npz_sha256"], cue_asset_id=man.get("asset_id"), theta_q=man["theta_q"], computed_at=time.strftime("%Y-%m-%dT%H:%M:%S"), server=server(),
                rule="c_E = Σ_i g_i E_pilot(i) / Σ_i E_pilot(i) (train calibration view, 고정 pilot; §6.1) — 고정 pilot 에서 edge loss 평균을 맞춘 대조이지 전 학습 gradient 일치 대조가 아니다",
                note="0.5 로 두지 않는다: 선택 patch 의 edge 오차가 크면 c_E > 0.5")
     os.makedirs(os.path.join(ROOT, CAMP), exist_ok=True); json.dump(out, open(os.path.join(ROOT, G.QEDGE9_CE_FILE), "w"), indent=1, ensure_ascii=False)
@@ -195,18 +212,24 @@ def status(a):
     if not os.path.exists(j):
         print(f"[cue] 자산 없음: {a.asset} (build 필요)"); return
     man = json.load(open(j)); ok = os.path.exists(os.path.join(ROOT, man["npz"])) and sha256_file(os.path.join(ROOT, man["npz"])) == man["npz_sha256"]
+    bad = EG.check_asset(man, np.load(os.path.join(ROOT, man["npz"]))) if ok else ["npz 없음/sha 불일치"]
+    print(f"[cue] asset_id {man.get('asset_id')} · 내부 일관성 {'OK' if not bad else 'FAIL ' + str(bad)}")
     print(f"[cue] {a.asset}: θq {man['theta_q']:.6f} · 선택 calib {man['selection']['calib_frac']:.4f} / 전체 {man['selection']['all_frac']:.4f} · view {man['timing']['n_views']} · T0 A {man['teacher']['aligner_state_hash']} · npz {'OK' if ok else 'BAD'} ({man['npz_sha256'][:16]}…) · 만든 곳 {man['server']} {man['computed_at']}")
     c = os.path.join(ROOT, G.QEDGE9_CE_FILE)
     print(f"[cue] c_E: " + (f"{json.load(open(c))['c_E']:.6f} ({json.load(open(c))['pilot_run']})" if os.path.exists(c) else f"없음 ({G.QEDGE9_CE_FILE}; s4 에서 pilot)"))
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter); ap.add_argument("cmd", choices=("build", "verify", "pilot", "status"))
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter); ap.add_argument("cmd", choices=("build", "verify", "pilot", "status", "stamp"))
     ap.add_argument("--config", default=DEFAULT_CONFIG); ap.add_argument("--name", default="cue_T0_AXIS16_v1"); ap.add_argument("--asset", default=G.QEDGE9_CUE_ASSET); ap.add_argument("--chunk", type=int, default=128); ap.add_argument("--bench", type=int, default=256)
-    ap.add_argument("--n", type=int, default=96); ap.add_argument("--seed", type=int, default=0); ap.add_argument("--tol", type=float, default=1e-4); ap.add_argument("--run", default=None); ap.add_argument("--tag", default="last"); ap.add_argument("--all-views", action="store_true")
+    ap.add_argument("--n", type=int, default=96); ap.add_argument("--seed", type=int, default=0); ap.add_argument("--tol", type=float, default=1e-4); ap.add_argument("--tol-e", dest="tol_e", type=float, default=1e-3)
+    ap.add_argument("--run", default=None); ap.add_argument("--tag", default="last"); ap.add_argument("--all-views", action="store_true"); ap.add_argument("--force", action="store_true", help="pilot: 이미 고정된 c_E 를 교체 (출처가 바뀔 때만; 노트에 기록)")
     a = ap.parse_args()
     if a.cmd == "pilot" and not a.run:
         sys.exit("--run <pilot run> 필요")
+    if a.cmd == "stamp":                                                        # 기존 manifest 에 asset_id 를 (재)기록 — 데이터는 바꾸지 않는다
+        j = os.path.join(ROOT, a.asset); man = json.load(open(j)); man["asset_id"] = EG.asset_id(man); json.dump(man, open(j, "w"), indent=1, ensure_ascii=False)
+        bad = EG.check_asset(man, np.load(os.path.join(ROOT, man["npz"]))); print(f"[cue] stamp asset_id {man['asset_id']} · 내부 일관성 {'OK' if not bad else 'FAIL ' + str(bad)}"); sys.exit(1 if bad else 0)
     {"build": build, "verify": verify, "pilot": pilot, "status": status}[a.cmd](a)
 
 
