@@ -58,7 +58,7 @@
 | 파일 | 내용 |
 |---|---|
 | `tools/dcr12_run.sh` | 서버 공용: 큐 `config/queues/dcr12_<server>.txt`(없으면 시작 안 함). train phase 가 **다른 큐의 chain 이 돌면 끝날 때까지 기다렸다가** gate 'pakd50' 를 비우고(백업 `work_dir/_dcr12_gates_backup.txt`) `campaign_start` 로 우리 큐를 기동; 미완 run 을 남기고 chain 이 끝나면 최대 3 회 재기동, `cases_failed.txt` 에 우리 run 이 있으면 INVALID. (s1 에서 돌던 runner 는 옛 inode 로 계속 돈다 — mv 로 교체) |
-| `tools/dcr12_bundle.py` | `pack --seed 1234`(학습 호스트) → `verify` / `install`(분석 호스트). run 마다 meta/config.yaml(+started/finished/git) · best_hqnr/last model+meta · results reduced/full best_hqnr.mat + fr_mat20.json · checkpoint_metrics.csv · initialization_hashes.json · candidates step-{5050,25250,45450,50000}/model.safetensors(D03∪D04 격자; optimizer 는 D04 가 fresh AdamW 라 제외). 실측 1.7 GB (34 files; results .mat 1.6 GB 포함 — 완료 판정·FR 재평가용, checkpoint 127 MB). 미완 run 은 묶지 않는다(X12 와 같은 규칙). install 은 `work_dir/<run>/bundle_provenance.json` 을 남긴다 |
+| `tools/dcr12_bundle.py` | `pack --seed 1234`(학습 호스트) → `verify` / `install`(분석 호스트). run 마다 meta/config.yaml(+started/finished/git) · best_hqnr/last model+meta · results/fr_mat20.json · checkpoint_metrics.csv · initialization_hashes.json · candidates step-{5050,25250,45450,50000}/model.safetensors(D03∪D04 격자; optimizer 는 D04 가 fresh AdamW 라 제외). 실측 127 MB (30 files; .mat 제외 — sha/size 만 manifest, `--with-mats` 로 포함 가능); 첫 pack(12:07) 은 .mat 포함 1.7 GB 였고 진단이 .mat 을 읽지 않아 뺐다 — install 된 run 의 완료 판정은 provenance `complete_on_source`. 미완 run 은 묶지 않는다(X12 와 같은 규칙). install 은 `work_dir/<run>/bundle_provenance.json` 을 남긴다 |
 | `tools/dcr12/common.py` | `provenance / trained_on / host_pairing`(pair 안 같은 호스트 여부 · seed 간 호스트 결합) |
 | `tools/dcr12/d00.py` · `results.py` · `report.py` | manifest run 항목에 `trained_on/provenance`, `host_pairing` 을 계산값으로(문자열 → dict); RESULTS 에 `trained_on/finished_at`; REPORT 머리에 학습 호스트 줄, `reused` 는 "campaign T0 이전에 끝난 B0", seed 간 호스트가 다르면 라벨 `SEED_HOST_COUPLED` |
 | `config/queues/dcr12_s2.txt` | JK0 S777 v1 만(B0/FQ S777 은 s2 완료본 재사용; seed 1234 pair 는 bundle) |
@@ -70,7 +70,7 @@
 **s2 절차** (pull 뒤):
 
 ```bash
-rsync -a s1:/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_dcr12_bundle/ work_dir/_dcr12_bundle/   # 실측 1.7 GB, 34 files (bundle_manifest.json 포함)
+rsync -a s1:/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_dcr12_bundle/ work_dir/_dcr12_bundle/   # 실측 127 MB, 30 files (bundle_manifest.json 포함)
 ./tools/dcr12_prepare.sh --dry-run      # 큐·T0·FQ S777 완료본·bundle verify·gate·registry·마감 여유
 ./tools/dcr12_prepare.sh                # bundle install → runner detached: D00–D03(pre: T0 + FQ S777 + 1234 pair) → 다른 chain 이 끝나면 JK0 S777 학습(≈2.3–2.7 h) → post D01–D04 → RESULTS → REPORT (≈1.5 h)
 tail -f work_dir/_dcr12_s2_campaign/run.log

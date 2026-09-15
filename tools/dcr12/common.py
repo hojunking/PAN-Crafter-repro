@@ -120,8 +120,12 @@ def ckpt_step(case_key, seed, tag):
 
 
 def run_complete(case_key, seed):
+    """완료 = results/{reduced,full}_best_hqnr.mat 존재(체인 규약) — 다른 호스트에서 옮긴 run 은 bundle provenance 의 complete_on_source(원 호스트에서 그 두 파일을 확인, sha/size 기록) 로 대신한다."""
     r = os.path.join(run_dir(case_key, seed), "results")
-    return os.path.exists(os.path.join(r, "reduced_best_hqnr.mat")) and os.path.exists(os.path.join(r, "full_best_hqnr.mat"))
+    if os.path.exists(os.path.join(r, "reduced_best_hqnr.mat")) and os.path.exists(os.path.join(r, "full_best_hqnr.mat")):
+        return True
+    p = load_json(os.path.join(run_dir(case_key, seed), "bundle_provenance.json"), None)
+    return bool(p and p.get("complete_on_source") and os.path.exists(os.path.join(run_dir(case_key, seed), "best_hqnr", "model.safetensors")))
 
 
 def provenance(case_key, seed):
