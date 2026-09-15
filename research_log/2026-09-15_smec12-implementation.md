@@ -92,10 +92,11 @@ setsid nohup ./tools/smec12_run.sh >> work_dir/_smec12_<server>_campaign/run.log
 
 D11-C, D12, I21, I22, I23-A/C/D, I24-B/C, I25-B, S30, C50, R60. 계획 §19.3 우선순위(전 센서 sampling·primary atlas → primary 상세 개입 → 확인 seed) 대로 backbone 이 먼저이고, 위 항목은 같은 raw 표(join key: sample_id·source_group·model·part) 위에 추가한다.
 
-## 8. 서버 교체 준비 (2026-09-15 12:00; 사용자 제안 — 확인 대기)
+## 8. 서버 교체 (2026-09-15 12:00 준비 → 12:34 사용자 결정으로 s1 기동)
 
 사용자가 "SMEC12 는 WV3 자산이 있는 s1 에서, 지금 s1 에서 도는 DCR12 는 s2 에서" 를 제안했다. 검토 결과 맞는 방향이라 **기동만 남기고 준비**했다 (DCR12 쪽은 `research_log/2026-09-15_dcr12-implementation.md` §5).
 
 - s1 의 DCR12 학습 chain 은 11:46 에 `work_dir/cases_deadline.txt` 를 과거로 돌려 **JK0 S1234(≈12:10 완료) 뒤 FQ/JK0 S777 을 시작하지 않게** 잡아 두었다(체크포인트·완료본 손실 없음; 되돌리기 = `./tools/campaign_start.sh --queue config/queues/dcr12_s1.txt --hours 20` + runner 재기동).
 - s1 용 큐 `config/queues/smec12_s1.txt`(생성기 `--server s1`; config 10 벌은 s2 와 같은 파일) · `smec12_prepare.sh --dry-run` s1 통과 · 40 h ledger 생성. **기동(`./tools/smec12_prepare.sh`) 은 사용자 확인 뒤** — waiter 가 JK0 S1234 종료 뒤 자동으로 chain 을 연다. 예상: 10 run × ≈2.3 h ≈ 23–26 h(s1 W112 50K 실측 1.9–2.5 h) → 09-16 저녁, 그 뒤 분석 backbone(WV3+QB+GF2+WV2) ≈ 1 h.
 - 교체하지 않으면(DCR12 를 s1 에서 마저) SMEC12 는 s1 에서 DCR12 뒤(≈20:00) 시작하거나 s2 에서 돌리되 WV3 lane 없이 간다.
+- **12:34 기동**: `./tools/smec12_prepare.sh`(s1) → chain 즉시 시작(B01_QB_P0 부터, 큐 10 run, 마감 09-17 04:34, 감시자 cron). 분석 runner 는 `work_dir/_smec12_s1_campaign/analyze_when_done.sh`(detached) 가 chain DONE 뒤 `smec12_run.sh` 를 전 센서로 한 번 돌린다(그 전에 손으로 돌려도 증분). s2 는 SMEC12 를 돌리지 않는다.

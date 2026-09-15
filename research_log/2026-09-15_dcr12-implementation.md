@@ -49,7 +49,7 @@
 - 계획 §11.2 의 300-update smoke 처리량 재산정은 하지 않았다 — 같은 골격·같은 trainer 의 s1 실측(FQ 2.15 h, JQ 2.22 h) 이 있어 그 값을 예상치로 썼다.
 - FR 의 ±bias 는 FR8 만(partial), 합성 이동(§6.4) 은 DISC128 만.
 
-## 5. s2 이관 준비 (2026-09-15 12:00; 사용자 제안 — 확인 대기)
+## 5. s2 이관 (2026-09-15 12:00 준비 → 12:34 사용자 결정으로 확정)
 
 **왜**: SMEC12 의 WV3 lane 자산(PALS24/NF16/PO10 run) 이 s1 에만 있어 SMEC12 는 s1 이 맞고, DCR12 의 B0/FQ S777 완료본은 s2 에 있으며 s2 의 파생 큐(JR/XJ/J_R3_NOEDGE/J_N0_EDGE, 777) 는 시트에 전부 올라와 있다(12:00 확인 → s2 GPU 가 비어 있거나 곧 빈다). s1 의 JK0 S1234(12:10 완료) 를 버리지 않도록 seed 1234 pair 는 **bundle 로 옮긴다** — 계획 §8.2 의 "host A: FQ1234+JK0 1234 / host B: FQ777+JK0 777" 배치(빠른 확인 배치; seed 와 host 가 결합되므로 REPORT 가 `SEED_HOST_COUPLED` 라벨을 붙이고 최종 재현 주장은 한 호스트 두 seed 또는 pair 복제로 보강한다).
 
@@ -78,4 +78,6 @@ tail -f work_dir/_dcr12_s2_campaign/run.log
 
 - **마감**: JK0 S777 config 는 PAKD50 generator 출력 그대로라 `kdv.budget.training_deadline` 2026-09-16 11:22:31 · `required: false` 를 갖는다 — 예상 종료(4.0 h × margin 1.1) 가 마감을 넘기면 trainer 가 DEFERRED(rc=4) 로 시작하지 않고 runner 는 INVALID 로 멈춘다. 09-16 07:00 이전 기동이면 문제없다. 그 뒤라면 그 config 의 `kdv.budget.required` 를 `true` 로 바꿔(DCR12 전용 run; PAKD50 순서 검사 대상이 아님) 돌리고 노트에 적는다.
 - s2 의 chain 이 아직 돌고 있으면 runner 가 5 분 간격으로 기다렸다가 기동한다(그 chain 의 `[cases] DONE` 뒤). 시트 확인으로는 s2 의 4 run 이 전부 올라와 있어 곧 빈다.
-- 교체하지 않기로 하면: s1 에서 §3 의 되돌리기 명령으로 chain 을 다시 열면 FQ/JK0 S777 을 이어 돈다(JK0 S1234 완료본 그대로).
+- **12:34 확정**: s1 은 SMEC12 를 기동했다(`cases_chain.log`; 이전 DCR12 chain 로그는 `cases_chain_smec12-s1-0915-1234.log` 로 회전 — campaign_start 의 label 이 *이전* 로그에 붙는다). s1 의 DCR12 는 여기서 끝(D00–D03 pre + JK0 S1234 학습, `_dcr12_s1_campaign/run_status.txt` STOPPED). 이후 DCR12 결과 문서는 s2 의 `_dcr12_s2_campaign/report.md` 기준.
+- bundle 을 s2 에 나중에 넣는 경우(runner 가 seed 777 pair 만으로 DONE 한 뒤): `rsync` → `./tools/dcr12_prepare.sh --post` 가 install 뒤 post 단계(D01→D02→D03→D04→RESULTS→REPORT) 를 새 phase 이름으로 다시 돌린다(증분; 기존 행 갱신).
+- s2 에서 확인할 것: `tail -f work_dir/_dcr12_s2_campaign/run.log`(runner), `work_dir/cases_chain.log`(학습). 시트 `WV3-s2` 에 `PAKD50_JK0_…_S777_…` 행이 올라오면 학습 끝.
