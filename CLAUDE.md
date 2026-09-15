@@ -40,7 +40,7 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지 
 큐 캠페인 기동·재개는 `./tools/campaign_start.sh --queue <큐파일> [--hours N(기본 24)] [--label 이름]` — 큐를 `work_dir/cases_queue.txt` 로 복사하고
 이전 `cases_chain.log` 를 `cases_chain_<label>.log` 로 옮긴 뒤 `_run_cases.sh` 를 detached 로 띄운다(살아 있는 체인이 있으면 거부). chain 마감은
 `work_dir/cases_deadline.txt`(ISO 시각) — **지난 마감이 남아 있으면 전 case 가 '마감 경과' 로 스킵되고 즉시 DONE 이 찍힌다**; 파일이 없으면 마감 없음
-(QEDGE9 switch/waiter 가 지우는 soft 정책). 사전 확인은 `python tools/gen_pakd50_configs.py --plan --server <srv>`(PAKD50 계열 편성 dry-run, config 생성 없음).
+(QEDGE9·QEGX switch/waiter 가 지우는 soft·무상한 정책). 사전 확인은 `python tools/gen_pakd50_configs.py --plan --server <srv>`(PAKD50 계열 편성 dry-run, config 생성 없음).
 
 **장애 대비가 걸려 있다** — cron 이 15분마다 `tools/_watchdog.sh` 로 체인 생존을 확인하고,
 죽어 있으면 재기동한다(재부팅 후 @reboot 포함). 체인은 완료분을 건너뛰고 이어 돈다.
@@ -172,8 +172,8 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
 |---|---|---|
 | s1 | **SMEC12 준비 학습** 10 run(12:34 기동, run 당 ≈1.3 h → 09-16 새벽) · 분석 runner 는 chain DONE 뒤 자동 | **QEDGE9 seed 1234 묶음**(v2; `qedge9_prepare_s1.sh` 가 띄운 `work_dir/_qedge9/launch_when_idle_s1.sh`·`pilot_when_ready_s1.sh` 가 SMEC12 DONE 뒤 자동 기동, 로그 `work_dir/_qedge9/launch_s1.log`) |
 | s2 | PAKD50 재배정 4 run(JR/XJ/J_R3_NOEDGE/J_N0_EDGE, 777) 완료(09-15 12:00 시트 확인) | **DCR12**: pull → s1 bundle(127 MB) rsync → `./tools/dcr12_prepare.sh` (사용자 조작; JK0 S777 config 는 PAKD50 마감 09-16 11:22 를 상속 — 09-16 07:00 이후 기동이면 `kdv.budget.required: true`, 노트 §5) |
-| s3 | PAKD50 s3 추가(J_R3_NOEDGE→J_N0_EDGE→LF0→LFQ→LFX, seed 2026) · EQREC4 s3 는 09-15 사용자 결정(bundle; 실행 여부는 s3 에서 확인) | 확인 seed 4321 은 `pakd50_reallocate.sh --confirm <WIN>` |
-| s4 | PAKD50 W104·D121 골격 이식 잔여(XJ/F0@W104; NA0 0.9580 · J0 0.9585 · JQ 0.9565 완료 — 시트 WV3-s4, best_raw raw HQNR, 09-15 15:00 확인) | 확인 seed 3407 (외부 WIN 뒤) — QEDGE9 는 s4 에 없다 |
+| s3 | PAKD50 s3 추가(J_R3_NOEDGE→J_N0_EDGE→LF0→LFQ→LFX, seed 2026; QEGX 계획 §9.1 에 실측 있음 → 완료로 본다) · EQREC4 s3 는 09-15 사용자 결정(bundle; 실행 여부는 s3 에서 확인) | **QEGX 15 run(v2)**: pull → `./tools/qegx_switch.sh` (사용자 조작; runner 를 죽이지 않는다). 확인 seed 4321 은 명시 표 안(C 5 run) — 옛 `--confirm` 불필요 |
+| s4 | PAKD50 W104·D121 골격 이식(NA0/J0/JQ/XJ/F0@W104; NA0 0.9580 · J0 0.9585 · JQ 0.9565 — 시트 WV3-s4, best_raw raw HQNR, 09-15 15:00 확인; QEGX 계획 §9.1 에 5 run 실측 → 완료로 본다) | **QEGX 14 run(v1)**: pull → `./tools/qegx_switch.sh` (J0/JQ/XJ v1 은 `verified_complete` 뒤 재사용; 불통과면 `--refresh-controls` = v3). 확인 seed 3407 은 명시 표 안(C 6 run) — QEDGE9 는 s4 에 없다 |
 | s5 | 옛 s5 묶음(J0…RCQ, W112) 전부 완료 | **QEDGE9 두 seed 6 run**: pull → `./tools/qedge9_switch.sh` (사용자 조작) |
 
 ### 기반 — 지금 캠페인들의 공통 기준
@@ -191,13 +191,13 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
   git 자산(지우지 말 것): `assets/donor_aligner/`(PA_A1 S2025 aligner — kdv unit gate 가 읽는다) · `assets/pakd50/`(T0_run·calibration·clock·init_hashes) · `assets/qedge9/`(cue).
   prepare 스크립트는 pa/kdv/nf16/pals24/pakd50 unit test 를 전부 돌린다.
 - **시트**: 탭 `WV3-<server>`(`gspread/server.txt`), 범주 ⑳ KDV ~ ㉖ SMEC12 는 `gspread/sheet_categories.py`, 옛 범주는 `WV3-<server>_v1` 탭. HQNR↑ = 전체 프레임(논문 프로토콜),
-  HQNR(V64)↑ = 가장자리 64 px 제외(판정은 HQNR↑ — '판정·표기 규약'). PAKD50 계열 X열 `PAKD50 / <case> / [A104D121 /] [QEDGE9 /] FRESH50`.
+  HQNR(V64)↑ = 가장자리 64 px 제외(판정은 HQNR↑ — '판정·표기 규약'). PAKD50 계열 X열 `PAKD50 / <case> / [A104D121 /] [QEDGE9 | QEGX /] FRESH50`.
   `gspread_upload.py --all` 은 `sheet_categories.ARCHIVED` 범주를 기본 제외(`--include-archived` 로 포함; 이전 도구 `gspread/archive_to_v1.py`, 백업 `gspread/_sheet_backup/`).
 - **캠페인 gate**: `work_dir/campaign_gates_enabled.txt` 에 적은 gate 만 `tools/campaign_gate.py` 가 연다(기본 전부 닫힘) — 캠페인 뒤 비운다. 돌던 체인의 재편성은 runner 교체
   (`pakd50_requeue.sh`/`pakd50_reallocate.sh`) 또는 runner 를 두고 다음 gate pass 가 새 코드를 읽게 하는 방식(`qedge9_switch.sh`).
 - **예산·시계**: PAKD50 branch 는 공통 절대 시계 `assets/pakd50/campaign_clock.json`(학습 마감 2026-09-16 11:22:31; trainer `kdv.budget.training_deadline`·gate admission·체인 마감이 같은 시각) + 50 h ledger.
   slot 예약 `reservation_h = 1.10 × reference_train_h + 10/60` → 서버 로컬 `work_dir/_pakd50/reservations.json`(= `kdv.budget.projection_file`) · `mandatory_runs.txt` ·
-  선택 `extra_priority.txt`(case id 또는 run 이름; 없으면 `PRIORITY_BY_SERVER` 기본 묶음만). QEDGE9 는 이를 상속하지 않는다(soft 9 h).
+  선택 `extra_priority.txt`(case id 또는 run 이름; 없으면 `PRIORITY_BY_SERVER` 기본 묶음만). QEDGE9(soft 9 h)·QEGX(상한 없음) 는 이를 상속하지 않는다.
 - **판정**: 각 캠페인 계획서의 판정 절(PAKD50 `PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md`, QEDGE9 `PAN_QEDGE9_W104D121_S5_S4_Experiment_Plan_2026-09-15.md` §10 등) 그대로 —
   공통 원칙: 같은 서버·같은 seed 안의 대응 차이를 먼저, 판정선 0.0031(raw HQNR), 서버 간 절대 HQNR 을 빼지 않는다. GPU 학습은 run-to-run 재현이 아니다(s4 J0 v1/v2 0.0026 차).
 
@@ -225,6 +225,14 @@ T0/B0(FQ)/B1(JK0) 의 C×R 사분면(D01) → correction 개입(D02) → A gradi
 case `QE50`(Q12 hard/soft 그대로, GT edge 는 고정 T0 aligner 의 q(AXIS16) < θq = 0.327613 인 patch 만: λE·Σ g_i E_i / B) · `QEC`(모든 patch edge × c_E, pilot = **s1 의 `PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v2`** exact50K — F02 로 identity 고정, s4 의 J0 v1 아님) · `QES`(gate 를 e_roi32 decile × aug state stratum 안에서 permutation 51515).
 캠페인 `QEDGE9_A104D121_20260915_v1` / branch `A104D121_T0FIX_QEDGE9_v1`, **PAKD50 마감·50 h 미상속**(자체 ledger soft 9 h). cue 자산 `assets/qedge9/cue_T0_AXIS16_v1.{json,npz}`(`tools/qedge9_cue.py build/verify/pilot/status/stamp`, asset_id·내부 일관성·재개 대조; 상태 `work_dir/_qedge9/status.json`),
 feeder `return_meta`, trainer `kdv.edge_gate`/`kdv.exact_resume`(`kdv/resume.py`). s5: J0→JQ→QE50 @W104 × seed 2026·777(`qedge9_switch.sh`; runner 를 죽이지 않는다, 대기자 `qedge9_waiter.sh`). s1(17:20 결정, s4 대신): J0→JQ→QE50→QES→QEC @W104 S1234 **v2**(큐 `config/queues/qedge9_s1.txt`, `qedge9_prepare_s1.sh`, SMEC12 뒤 자동). s4 는 QEDGE9 없음.
+
+**QEGX — W104·D121 q-edge × soft · edge 수신 모듈 (s3·s4, 09-15 저녁)** — 계획 `PAN_QEGX_S3_S4_W104D121_Experiment_Plan_2026-09-15.md`(+ `S3_Run_Handoff_QEGX_2026-09-15.md`·`S4_Run_Handoff_QEGX_2026-09-15.md`), 노트 `2026-09-15_qegx-implementation.md`.
+새 case: `QX50`(QE50 − output soft = R1 + gated edge; 'QE50 에서 β=0' 의 동치, XJ 아님) · `QE50_B005`(QE50 β 0.05; `J_QB005` 와 대응쌍) · `QEC3`(상수 c_E3, pilot = **s3 의 `PAKD50_J0_W104_D121_WV3_T0_S2026_FRESH50_v2`** exact50K → `work_dir/_qegx/qec3_cE.json`; s1 QEC 파일과 별도) · `LFQE50`(LF 일정 + QE50)
+· **`QER50`/`QERS`** = `kdv.edge_route`(U 는 모든 patch 의 GT edge, A 는 q_T<θq / stratum 셔플 patch 의 edge 만 — total 은 JQ 와 같고 backward 뒤 A 의 .grad 에서 λE·mean((1−g)E_i) 를 뺀다; `edge_gate`·`routing` 과 결합 금지, registry 가 막는다). JQ(1/1)·JE0(1/0)·QE50(g/g)·QER50(1/g) 대응.
+캠페인 `QEGX_A104D121_S3S4_20260915_v1` / branch `A104D121_T0FIX_QEGX_v1`, **시간 상한 없음**(자체 ledger `work_dir/_qegx_budget/`, `total 1000 h` + `required`(경고만), 절대 마감·9 h 미상속; gate admission 제외; 실패/NaN 자동 반복 없음).
+s3 = 15 run **v2**(J0→JQ→QE50→XJ→QX50→J_R3_NOEDGE→QEC3→QES→J_QB005→QE50_B005 S2026 → J0/JQ/XJ/QE50/QX50 S4321; 예약 25.20 h) — s5 QEDGE9 의 J0/JQ/QE50@W104 S2026 v1 config 와 이름 충돌을 피한 것(정의는 같다). s4 = E0 5 완료 뒤 14 run v1(QE50→LF0→LFQ→LFQE50→LFX→JE0→QER50→QERS S1234 → J0/JQ/QE50/JE0/QER50/QERS S3407; 26.28 h).
+큐 `config/queues/qegx_{s3,s4}.txt`, 전환 `tools/qegx_switch.sh`(`--dry-run`/`--pilot`(s3 c_E3)/`--refresh-controls`(s4)), 대기자 `tools/qegx_waiter.sh`(s3 는 J0 v2 exact50K 뒤 c_E3 자동), QEC3 pilot `tools/qedge9_cue.py pilot --branch qegx`. 검사 K34–K38(136 ALL OK). 시트 X열 `… / QEGX / FRESH50`, Notes `edge_U/edge_A/beta/freeze_from/cE_pilot`.
+**함정**: bare `QE50@W104_D121` 항목은 QEDGE9 자동 규칙(9 h ledger) 으로 간다 — QEGX 큐/extra 에는 **run 이름만** 쓴다(switch 가 검사).
 
 **EQREC4 결과 (s1 완료 09-15 03:00; s3 반복은 사용자 결정)** — `results_log/2026-09-15_s1_eqrec4-results.md`: **q 는 patch 정합 품질의 표지가 아니다**(H1 native·H2 3 seed 반대, FR scene 수준만 양) · learned correction > zero(3/3) ·
 Student cue 로는 판정 불가, 5K pilot 은 모든 arm 에서 HQNR 하락 → **q_T Teacher-quality gate 채택 안 함**(q 는 GT edge 선택에만 — QEDGE9). 구현 `tools/eqrec4/`, s3 는 `eqrec4_bundle.py` + `eqrec4_prepare.sh`.

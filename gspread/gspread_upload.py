@@ -171,12 +171,12 @@ INTEGRATED_HDR = "통합실험"
 
 def integrated_label(run, branch=None):
     """X열 '통합실험': PAKD50 / <case> / FRESH50 — 기본 골격(W112_D123) 이 아니면 골격 토큰을 끼운다: PAKD50 / JQ / A104D121 / FRESH50 (s4 이식 2026-09-15 §10).
-    branch 가 QEDGE9(experiment_branch_id 에 'QEDGE9') 면 캠페인 토큰을 덧붙인다: PAKD50 / QE50 / A104D121 / QEDGE9 / FRESH50 (QEDGE9 §11.3)."""
+    branch 가 QEDGE9/QEGX(experiment_branch_id 에 그 토큰) 면 캠페인 토큰을 덧붙인다: PAKD50 / QE50 / A104D121 / QEDGE9 / FRESH50 (QEDGE9 §11.3) · PAKD50 / QX50 / A104D121 / QEGX / FRESH50 (QEGX §12)."""
     if not run or not run.startswith("PAKD50_"):
         return ""
     import re as _re
     m = _re.match(r"^PAKD50_(?P<case>.+?)_(?P<arch>W\d+_D\d+)_WV3_T0_S\d+_(?P<proto>[A-Z0-9]+)_v\d+$", run)
-    btok = " / QEDGE9" if (branch and "QEDGE9" in str(branch)) else ""
+    btok = " / QEGX" if (branch and "QEGX" in str(branch)) else (" / QEDGE9" if (branch and "QEDGE9" in str(branch)) else "")
     if not m:
         case = run[len("PAKD50_"):].split("_W112")[0]; proto = "FRESH50" if "_FRESH50_" in run else run.rsplit("_", 2)[-2]; return f"PAKD50 / {case}{btok} / {proto}"
     arch = m.group("arch"); tok = "" if arch == "W112_D123" else " / A" + arch.replace("W", "").replace("_D", "D")
@@ -631,7 +631,17 @@ def collect(tag, want_profile, server, peer=None):
                 _eg = _kb["edge_gate"]; _cr = os.path.join(ROOT, "work_dir", tag, "calibration_resolved.json"); _egr = ((json.load(open(_cr)).get("edge_gate") or {}) if os.path.exists(_cr) else {})
                 _th = _egr.get("theta_q"); _sha = (_egr.get("npz_sha256") or "")[:16]; _tp = (_kb.get("budget") or {}).get("time_policy") or {}
                 desc = (desc + f"; q_source=T0; q_bank=AXIS16; q_cut=median; theta_q={_th if _th is not None else 'asset'}; edge_gate={_eg['mode']}; hard_always=1; cue_sha={_sha or 'asset'}; time_policy={_tp.get('mode', 'inherit')}"
-                        + (f"; cE={_egr.get('c_E')}" if _eg["mode"] == "const" else "") + (f"; perm_seed={_eg.get('perm_seed')}" if _eg["mode"] == "shuffle" else "")).strip()
+                        + (f"; cE={_egr.get('c_E')}" if _eg["mode"] == "const" else "") + (f"; perm_seed={_eg.get('perm_seed')}" if _eg["mode"] == "shuffle" else "")
+                        + (f"; cE_pilot={_eg.get('pilot_run')}/{_eg.get('pilot_tag')}@{_eg.get('pilot_step')}; cE_pilot_sha={((_egr.get('c_E_source') or {}).get('pilot_sha256_16') or '?')}" if _eg["mode"] == "const" else "")
+                        + "; edge_U=g; edge_A=g").strip()
+            if _kb.get("edge_route"):                # QEGX §4.5·§12: U all-edge / A gated edge — edge_U/edge_A 토큰, q 출처·θq·cue sha 는 edge_gate 와 같은 형식
+                _er = _kb["edge_route"]; _cr = os.path.join(ROOT, "work_dir", tag, "calibration_resolved.json"); _err = ((json.load(open(_cr)).get("edge_route") or {}) if os.path.exists(_cr) else {})
+                _th = _err.get("theta_q"); _sha = (_err.get("npz_sha256") or "")[:16]; _tp = (_kb.get("budget") or {}).get("time_policy") or {}
+                desc = (desc + f"; q_source=T0; q_bank=AXIS16; q_cut=median; theta_q={_th if _th is not None else 'asset'}; edge_route={_er['mode']}; edge_U=1; edge_A={'g_shuffle' if _er['mode'] == 'shuffle' else 'g'}; hard_always=1; cue_sha={_sha or 'asset'}; time_policy={_tp.get('mode', 'inherit')}"
+                        + (f"; perm_seed={_er.get('perm_seed')}" if _er["mode"] == "shuffle" else "")).strip()
+            if "QEGX" in str(_kb.get("experiment_branch_id", "")):     # QEGX §12 Notes: β · freeze_from · seed · time-policy (release 는 run 의 meta/git 기록)
+                _rc = _kb.get("rec") or {}; _sch = _kb.get("aligner_schedule") or {}; _tp = (_kb.get("budget") or {}).get("time_policy") or {}
+                desc = (desc + f"; campaign={_kb.get('campaign_id')}; beta={_rc.get('kd_weight', 0)}; freeze_from={_sch.get('freeze_from', 'none')}; seed={getattr(a, 'seed', '?')}; time_policy={_tp.get('mode', 'inherit')}").strip()
     elif _tr == "uvs":
         _u = getattr(a, "uvs", {}) or {}; _v = _u.get("variant", "?")
         desc = (desc + " UVS " + {"b0": "B0(lms baseline)", "k0": "K0(output KD)", "k1": "K1(U routing)", "k2": "K2(U+GT var)",

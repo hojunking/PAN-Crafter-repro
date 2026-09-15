@@ -340,7 +340,7 @@ def gate_pakd50():
     if ROOT not in sys.path:
         sys.path.insert(0, ROOT)
     from tools import gen_pakd50_configs as G
-    srv = open(os.path.join(ROOT, "gspread", "server.txt")).read().strip(); seed = G.SERVER_SEED.get(srv)
+    srv = G.server_id(open(os.path.join(ROOT, "gspread", "server.txt")).read()); seed = G.SERVER_SEED.get(srv)      # 's3(5090)' 표시 문자열도 s3 로 (QEGX §12)
     if seed is None:
         log(f"PAKD50: 서버 {srv} 의 seed block 없음 — 닫힘"); return
     cal, cal_src = G.sync_calibration_from_assets(write=(srv != "s1"))      # s2/s3: s1 이 mirror 한 사본(assets) 의 λE 를 로컬 calibration 에 받는다 (같은 campaign·τR 일 때만)
@@ -384,20 +384,23 @@ def gate_pakd50():
     def _reservation(it):                                                  # 재배정 §3: reservation_h = 1.10 × reference_train_h + 10/60 (여유 포함 — schedule 은 margin 을 다시 곱하지 않는다)
         r = G.reservation_for(srv, it, measured, seed)
         return r["reservation_h"] if r else G.reservation_hours(est)
-    exempt = lambda it: G.branch_for(srv, it) == "QEDGE9"                 # QEDGE9 §0.7·§9.3: 절대 마감 admission 제외 (soft target 만; NaN/오류/중복 보호는 그대로)
-    blocked = lambda it: not G.cue_ready(it)                                # QEDGE9 §11.3: θq/c_E 자산이 없는 gate run 은 이번 pass 에 편성하지 않는다 (placeholder 금지)
+    exempt = lambda it: G.branch_for(srv, it) in ("QEDGE9", "QEGX")      # QEDGE9 §0.7·§9.3 / QEGX §9.3·§12: 절대 마감 admission 제외 (soft target · 상한 없음; NaN/오류/중복 보호는 그대로)
+    blocked = lambda it: not G.cue_ready(it)                                # QEDGE9 §11.3 / QEGX: θq/c_E(c_E3) 자산이 없는 gate·route run 은 이번 pass 에 편성하지 않는다 (placeholder 금지)
     todo, dropped = G.schedule(bool(cal.get("lambda_E")), lambda it: terminal(tag_of(it)) or _running(tag_of(it)), rem, _reservation, priority=G.priority_for(srv), extra=extra, exempt=exempt, blocked=blocked)
     for it in list(G.priority_for(srv)) + list(extra):                      # 감사 F06: 완료 marker 만 있고 50K state·후보 격자·Teacher/데이터/init 동치가 확인되지 않는 run 은 그대로 재사용하지 않도록 기록 (판단은 사람)
         tg = tag_of(it)
-        if complete(tg) and G.branch_for(srv, it) == "QEDGE9":
+        br_ = G.branch_for(srv, it)
+        if complete(tg) and br_ in ("QEDGE9", "QEGX"):
             v = G.verified_complete(tg)
             if not v["ok"]:
-                log(f"QEDGE9: {tg} 는 완료 marker 는 있으나 검증 불통과 {[k for k, x in v['checks'].items() if x is False]} — COMPLETE_UNVERIFIED (work_dir/_qedge9/control_verification.json; 재실행 여부는 사람이)")
+                log(f"{br_}: {tg} 는 완료 marker 는 있으나 검증 불통과 {[k for k, x in v['checks'].items() if x is False]} — COMPLETE_UNVERIFIED (work_dir/_{br_.lower()}/control_verification.json; 재실행 여부는 사람이)")
     waiting = [it for it in list(G.priority_for(srv)) + list(extra) if not (terminal(tag_of(it)) or _running(tag_of(it))) and blocked(it)]
     if waiting:
-        log(f"QEDGE9: cue 자산 대기 — θq({G.QEDGE9_CUE_ASSET}) / c_E({G.QEDGE9_CE_FILE}) 미산출: {' '.join(waiting)} (tools/qedge9_cue.py build|pilot 뒤 다음 pass)")
-    if any(exempt(it) for it in todo):
+        log(f"cue 자산 대기 — θq({G.QEDGE9_CUE_ASSET}) / c_E({G.QEDGE9_CE_FILE}) / c_E3({G.QEGX_CE_FILE}) 미산출: {' '.join(waiting)} (tools/qedge9_cue.py build|pilot[ --branch qegx] 뒤 다음 pass)")
+    if any(G.branch_for(srv, it) == "QEDGE9" for it in todo):
         log(f"QEDGE9: 시간 정책 soft target {G.QEDGE9_SOFT_HOURS}h — 절대 마감·50h 상속 없음 (해당 run 은 admission 제외, ledger {G.QEDGE9_LEDGER})")
+    if any(G.branch_for(srv, it) == "QEGX" for it in todo):
+        log(f"QEGX: 시간 정책 no_hard_limit — 절대 마감·50h·9h 상속 없음 (해당 run 은 admission 제외, ledger {G.QEGX_LEDGER}; 실패/NaN 은 자동 반복하지 않는다)")
     try:                                                                   # 서버 로컬 예약 파일 (trainer budget.projection_file) — 편성·밀린 run 전부 (완료 run 은 trainer 가 0 으로 센다)
         G.write_reservation_file(srv, list(todo) + list(dropped), measured, seed)
     except Exception as e:                                                 # noqa — 예약 파일 실패가 편성을 막지 않는다 (trainer 는 projected_map 보수값으로)
@@ -408,13 +411,13 @@ def gate_pakd50():
     for it in todo:
         r = G.reservation_for(srv, it, measured, seed); cum += _reservation(it)
         src = f"ref {r['reference_train_h']:.2f}h {r['reference_kind']}" if r else f"ref {est:.2f}h ledger_mean"
-        emit(tag_of(it), f"{'QEDGE9' if exempt(it) else 'PAKD50'} {G.case_of(it)} ({srv} 명시 순서 편성; λE {lam}, τR {cal.get('tau_R'):.4g}; 남은 {rem_s}h{' (QEDGE9: 마감 제외)' if exempt(it) else ''}, 예약 {_reservation(it):.2f}h [{src}], 누적 {cum:.2f}h)")
+        emit(tag_of(it), f"{G.branch_for(srv, it) or 'PAKD50'} {G.case_of(it)} ({srv} 명시 순서 편성; λE {lam}, τR {cal.get('tau_R'):.4g}; 남은 {rem_s}h{' (' + G.branch_for(srv, it) + ': 마감 제외)' if exempt(it) else ''}, 예약 {_reservation(it):.2f}h [{src}], 누적 {cum:.2f}h)")
 
 
 GATES = {"uvs": ("gate_uvs", "UVS-KD (2026-09-01 s2)"), "sr": ("gate_sr", "shift-robust (SR/AF)"),
          "s2cal": ("gate_s2_calibrate", "s2 uncertainty calibration"), "s2gtvar": ("gate_s2_gtvar", "s2 GT-variance KD"),
          "pals24": ("gate_pals24", "PALS24 λ_off sweep stage 2 (s1, 2026-09-12)"), "na104_20h": ("gate_na104_20h", "NA104 20H 우선순위 조건부 CF01/X02 (s2·s3, 2026-09-13)"),
-         "pakd50": ("gate_pakd50", "PAKD50 통합 캠페인 편성 (λE 고정 뒤 서버별 명시 순서; s1–s5, 2026-09-14 · 재배정 2026-09-15)")}
+         "pakd50": ("gate_pakd50", "PAKD50 통합 캠페인 편성 (λE 고정 뒤 서버별 명시 순서; s1–s5, 2026-09-14 · 재배정 2026-09-15 · QEDGE9 s5/s1 · QEGX s3/s4)")}
 
 
 def enabled_gates():

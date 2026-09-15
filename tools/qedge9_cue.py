@@ -166,22 +166,30 @@ def verify(a):
     sys.exit(0 if out["pass_"] else 1)
 
 
+def pilot_branch(a):
+    """--branch qedge9(기본; QEC 의 c_E: s4/s1 J0 S1234 exact50K → QEDGE9_CE_FILE) | qegx(QEC3 의 c_E3: s3 J0 S2026 v2 exact50K → QEGX_CE_FILE). 서로 다른 파일 — 덮어쓰지 않는다 (QEGX §4.2)."""
+    br = getattr(a, "branch", "qedge9")
+    if br == "qegx":
+        return dict(branch="qegx", runs=G.QEGX_PILOT_RUNS, out=G.QEGX_CE_FILE, seed=2026, case_txt="QEC3 의 c_E3 는 W104·D121 J0 S2026 v2 exact50K 에서 (QEGX §4.2)")
+    return dict(branch="qedge9", runs=G.QEDGE9_PILOT_RUNS, out=G.QEDGE9_CE_FILE, seed=1234, case_txt="QEC 의 c_E 는 W104·D121 J0 S1234 exact50K 에서 (§6.1)")
+
+
 def pilot(a):
     man, z = EG.read_asset(a.asset); cfg = yaml.safe_load(open(os.path.join(ROOT, a.config))); contract, h5, h5pan = contract_from(cfg); mp = max_pixel_of(h5)
-    out_p = os.path.join(ROOT, G.QEDGE9_CE_FILE)
+    PB = pilot_branch(a); out_p = os.path.join(ROOT, PB["out"])
     if os.path.exists(out_p) and not a.force:                                   # 감사 F02: 산출 뒤 고정 — 같은 출처인지만 확인하고 덮어쓰지 않는다
         prev = json.load(open(out_p)); same = (prev.get("cue_asset_id") == man.get("asset_id") and prev.get("pilot_run") == a.run and prev.get("pilot_tag") == a.tag)
         print(f"[cue] c_E 이미 고정: {prev.get('c_E')} (pilot {prev.get('pilot_run')}/{prev.get('pilot_tag')}, cue asset {prev.get('cue_asset_id')}) — {'같은 출처, 그대로 둔다' if same else '!! 다른 출처 — --force 로만 교체'}")
         sys.exit(0 if same else 1)
-    m = G.RUN_RE.match(a.run)                                                    # 감사 F02: pilot identity 강제 (§6.1 s4 W104D121 J0 S1234 exact50K)
-    if not m or m.group("case") != "J0" or m.group("arch") != "W104_D121" or int(m.group("seed")) != 1234 or a.run not in G.QEDGE9_PILOT_RUNS or a.tag != G.QEDGE9_PILOT_TAG:
-        sys.exit(f"!! pilot 은 {sorted(G.QEDGE9_PILOT_RUNS)}/{G.QEDGE9_PILOT_TAG} 뿐이다 (받은 {a.run}/{a.tag}) — 다른 run/tag 로 c_E 를 만들지 않는다 (§6.1; 서버별 자기 J0 exact50K)")
+    m = G.RUN_RE.match(a.run)                                                    # 감사 F02: pilot identity 강제 (QEDGE9 §6.1: 그 서버의 W104 J0 S1234 exact50K · QEGX §4.2: s3 J0 S2026 v2 exact50K)
+    if not m or m.group("case") != "J0" or m.group("arch") != "W104_D121" or int(m.group("seed")) != PB["seed"] or a.run not in PB["runs"] or a.tag != G.QEDGE9_PILOT_TAG:
+        sys.exit(f"!! [{PB['branch']}] pilot 은 {sorted(PB['runs'])}/{G.QEDGE9_PILOT_TAG} 뿐이다 (받은 {a.run}/{a.tag}) — 다른 run/tag 로 c_E 를 만들지 않는다 ({PB['case_txt']})")
     rd = os.path.join(ROOT, "work_dir", a.run); lm = os.path.join(rd, f"{a.tag}_meta.json")
     if not (os.path.exists(lm) and json.load(open(lm)).get("step") == G.QEDGE9_PILOT_STEP):
-        sys.exit(f"!! pilot {a.run} 의 exact-{G.QEDGE9_PILOT_STEP} {a.tag} 가 없다 (§6.1: s4 W104 J0 S1234 exact50K)")
+        sys.exit(f"!! pilot {a.run} 의 exact-{G.QEDGE9_PILOT_STEP} {a.tag} 가 없다 ({PB['case_txt']})")
     Model = import_class(cfg["model"]); pm, pman = load_run_model(rd, a.tag, Model); freeze(pm); pm.to(DEV).eval()
-    if int(pman["width"]) != 104 or list(pman["depth"]) != [1, 2, 1] or int(pman.get("seed") or -1) != 1234 or ((pman.get("kdv") or {}).get("case_id")) != "J0" or (pman.get("tag_meta") or {}).get("step") != G.QEDGE9_PILOT_STEP:
-        sys.exit(f"!! pilot 골격/seed/case/step 불일치: W{pman['width']} D{pman['depth']} seed {pman.get('seed')} case {(pman.get('kdv') or {}).get('case_id')} step {(pman.get('tag_meta') or {}).get('step')} — QEC 의 c_E 는 W104·D121 J0 S1234 exact50K 에서 (§6.1)")
+    if int(pman["width"]) != 104 or list(pman["depth"]) != [1, 2, 1] or int(pman.get("seed") or -1) != PB["seed"] or ((pman.get("kdv") or {}).get("case_id")) != "J0" or (pman.get("tag_meta") or {}).get("step") != G.QEDGE9_PILOT_STEP:
+        sys.exit(f"!! pilot 골격/seed/case/step 불일치: W{pman['width']} D{pman['depth']} seed {pman.get('seed')} case {(pman.get('kdv') or {}).get('case_id')} step {(pman.get('tag_meta') or {}).get('step')} — {PB['case_txt']}")
     N = int(man["dataset"]["n_train"]); cal_ids, cal_sha = calibration_ids(N)
     if cal_sha != man["calibration"]["index_sha256_16"]:
         sys.exit("!! calibration id 가 cue 자산과 다르다")
@@ -200,11 +208,11 @@ def pilot(a):
     cE = num / den
     out = dict(c_E=cE, sum_gE=num, sum_E=den, n_views=int(len(E)), views=("all" if a.all_views else "calibration"), gate_frac=float(g.mean()), mean_E_gated=float((g * E).sum() / max(g.sum(), 1)), mean_E_all=float(E.mean()),
                pilot_run=a.run, pilot_tag=a.tag, pilot_sha256_16=pman["tensors_sha256_16"], pilot_file_sha256=pman["file_sha256"], pilot_step=(pman.get("tag_meta") or {}).get("step"), pilot_width=pman["width"], pilot_depth=pman["depth"],
-               cue=a.asset, cue_npz_sha256=man["npz_sha256"], cue_asset_id=man.get("asset_id"), theta_q=man["theta_q"], computed_at=time.strftime("%Y-%m-%dT%H:%M:%S"), server=server(),
+               cue=a.asset, cue_npz_sha256=man["npz_sha256"], cue_asset_id=man.get("asset_id"), theta_q=man["theta_q"], computed_at=time.strftime("%Y-%m-%dT%H:%M:%S"), server=server(), branch=PB["branch"],
                rule="c_E = Σ_i g_i E_pilot(i) / Σ_i E_pilot(i) (train calibration view, 고정 pilot; §6.1) — 고정 pilot 에서 edge loss 평균을 맞춘 대조이지 전 학습 gradient 일치 대조가 아니다",
                note="0.5 로 두지 않는다: 선택 patch 의 edge 오차가 크면 c_E > 0.5")
-    os.makedirs(os.path.join(ROOT, CAMP), exist_ok=True); json.dump(out, open(os.path.join(ROOT, G.QEDGE9_CE_FILE), "w"), indent=1, ensure_ascii=False)
-    print(f"[cue] pilot {a.run}/{a.tag} (W{pman['width']}, step {out['pilot_step']}, sha {pman['tensors_sha256_16']}): c_E = {cE:.6f} (gate 비율 {out['gate_frac']:.4f}; E gated 평균 {out['mean_E_gated']:.5f} vs 전체 {out['mean_E_all']:.5f}; {out['n_views']} view) → {G.QEDGE9_CE_FILE}")
+    os.makedirs(os.path.dirname(out_p), exist_ok=True); json.dump(out, open(out_p, "w"), indent=1, ensure_ascii=False)
+    print(f"[cue] [{PB['branch']}] pilot {a.run}/{a.tag} (W{pman['width']}, step {out['pilot_step']}, sha {pman['tensors_sha256_16']}): c_E = {cE:.6f} (gate 비율 {out['gate_frac']:.4f}; E gated 평균 {out['mean_E_gated']:.5f} vs 전체 {out['mean_E_all']:.5f}; {out['n_views']} view) → {PB['out']}")
 
 
 def status(a):
@@ -215,8 +223,9 @@ def status(a):
     bad = EG.check_asset(man, np.load(os.path.join(ROOT, man["npz"]))) if ok else ["npz 없음/sha 불일치"]
     print(f"[cue] asset_id {man.get('asset_id')} · 내부 일관성 {'OK' if not bad else 'FAIL ' + str(bad)}")
     print(f"[cue] {a.asset}: θq {man['theta_q']:.6f} · 선택 calib {man['selection']['calib_frac']:.4f} / 전체 {man['selection']['all_frac']:.4f} · view {man['timing']['n_views']} · T0 A {man['teacher']['aligner_state_hash']} · npz {'OK' if ok else 'BAD'} ({man['npz_sha256'][:16]}…) · 만든 곳 {man['server']} {man['computed_at']}")
-    c = os.path.join(ROOT, G.QEDGE9_CE_FILE)
-    print(f"[cue] c_E: " + (f"{json.load(open(c))['c_E']:.6f} ({json.load(open(c))['pilot_run']})" if os.path.exists(c) else f"없음 ({G.QEDGE9_CE_FILE}; s4 에서 pilot)"))
+    for lab, cf, who in (("c_E (QEDGE9 QEC)", G.QEDGE9_CE_FILE, "s1/s4 에서 pilot"), ("c_E3 (QEGX QEC3)", G.QEGX_CE_FILE, "s3 에서 pilot --branch qegx")):
+        c = os.path.join(ROOT, cf)
+        print(f"[cue] {lab}: " + (f"{json.load(open(c))['c_E']:.6f} ({json.load(open(c))['pilot_run']})" if os.path.exists(c) else f"없음 ({cf}; {who})"))
 
 
 def main():
@@ -224,6 +233,7 @@ def main():
     ap.add_argument("--config", default=DEFAULT_CONFIG); ap.add_argument("--name", default="cue_T0_AXIS16_v1"); ap.add_argument("--asset", default=G.QEDGE9_CUE_ASSET); ap.add_argument("--chunk", type=int, default=128); ap.add_argument("--bench", type=int, default=256)
     ap.add_argument("--n", type=int, default=96); ap.add_argument("--seed", type=int, default=0); ap.add_argument("--tol", type=float, default=1e-4); ap.add_argument("--tol-e", dest="tol_e", type=float, default=1e-3)
     ap.add_argument("--run", default=None); ap.add_argument("--tag", default="last"); ap.add_argument("--all-views", action="store_true"); ap.add_argument("--force", action="store_true", help="pilot: 이미 고정된 c_E 를 교체 (출처가 바뀔 때만; 노트에 기록)")
+    ap.add_argument("--branch", default="qedge9", choices=("qedge9", "qegx"), help="pilot: qedge9 = QEC 의 c_E(그 서버 J0 S1234 exact50K → work_dir/_qedge9/qec_cE.json) · qegx = QEC3 의 c_E3(s3 J0 S2026 v2 → work_dir/_qegx/qec3_cE.json)")
     a = ap.parse_args()
     if a.cmd == "pilot" and not a.run:
         sys.exit("--run <pilot run> 필요")
