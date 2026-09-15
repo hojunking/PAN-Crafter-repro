@@ -13,12 +13,21 @@ RC0/RCQ(RC = A trainable LR 1e-5 인데 Student 단계 offset 연습 없음: I-N
     python tools/gen_pakd50_configs.py --server s4 --cases F0,RC0,RCQ,JR,XJ,J_R3_NOEDGE     # 재배정 목록 config (큐 파일은 그대로 J0 만; 편성은 gate)
     python tools/gen_pakd50_configs.py --plan [--server s2]                                # 재배정 순서·예약·누적 (dry-run; 완료·실행 중 run 은 work_dir 로 제외)
 2026-09-15 s3 추가(research_log/PAN_PAKD50_Latest_Sheet_Analysis_and_S3_Experiments_2026-09-15.md §4–§7): s3(seed 2026) 명시 순서 J_R3_NOEDGE → J_N0_EDGE → LF0 → LFQ → LFX(새 case: LF 일정 + X02 backend),
-확인 seed 4321 은 후보별 묶음(§5 표) 최대 3 run, 확인 reference 는 s3 JQ 1.34 h."""
+확인 seed 4321 은 후보별 묶음(§5 표) 최대 3 run, 확인 reference 는 s3 JQ 1.34 h.
+2026-09-15 s4 아키텍처 이식(research_log/PAN_PAKD50_S4_W104D121_Architecture_Allocation_2026-09-15.md): Student U 만 **W104·depth[1,2,1]**(T0/A·τR·λE0 고정 이식, branch A104D121_T0FIX_E0_v1),
+case NA0(aligner 없음, A-ID/NOALIGN) → J0 → JQ → XJ → F0 @ seed 1234; 편성 항목은 `case@arch`(예: JQ@W104_D121), run 이름 `PAKD50_<case>_<W…_D…>_WV3_T0_S<seed>_FRESH50_v1`.
+확인 seed 3407 은 J0@W104 · WIN@W104 · J0@W112 · WIN@W112 (WIN ∈ {JQ, XJ, F0}; 최대 4)."""
 import argparse, json, os, re, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0, ROOT)
 from kdv.registry import resolve, describe
 
 CAMPAIGN_ID = "PAKD50_W112D123_WV3_20260914_v1"; PROTOCOL = "FRESH50"; GRID_ID = "GRID1010_50K_v1"
+# Student 골격 (2026-09-15 s4 이식): 기본 W112_D123 = T0 와 같은 골격. 다른 골격은 U 만 바꾸고 T0(A+U)·τR·λE0 는 그대로(coefficient transfer) — parent campaign_id 는 유지, experiment_branch_id 로 구분.
+ARCH_DEFAULT = "W112_D123"
+ARCHS = {"W112_D123": dict(width=112, depth=[1, 2, 3], params_m=2.6589, branch=None, note="기본 골격 (T0 와 같음)"),
+         "W104_D121": dict(width=104, depth=[1, 2, 1], params_m=1.9036, branch="A104D121_T0FIX_E0_v1", note="s4 이식: Student U 만 W104·depth[1,2,1] (backbone 1.9036 M; s3 GT-only 기록과 같은 model_args), T0/A·τR·λE0 고정")}
+ARCH_LABEL = {"W112_D123": "", "W104_D121": "A104D121"}        # 시트 X열 토큰 (기본 골격은 표기 없음)
+RUN_RE = re.compile(r"^PAKD50_(?P<case>.+?)_(?P<arch>W\d+_D\d+)_WV3_T0_S(?P<seed>\d+)_(?P<proto>[A-Z0-9]+)_(?P<ver>v\d+)$")
 PLAN = "research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md"; SUMMARY = "research_log/PAN_Integrated_Method_Summary_2026-09-14.md"; NOTE = "research_log/2026-09-14_pakd50-implementation.md"
 T0_RUN = "PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1"; T0_TAG = "best_hqnr"; T0_ASSET_DIR = "assets/pakd50/T0_run"      # s1 은 work_dir 원본, s2/s3 는 git 으로 받은 사본 (같은 layout: meta/config.yaml + best_hqnr/model.safetensors + best_hqnr_meta.json)
 SERVER_SEED = {"s1": 1234, "s2": 777, "s3": 2026, "s4": 1234, "s5": 2026}     # s5(배정 research_log/PAN_S5_Timing_Routing_Experiment_Plan_2026-09-14.md): 탐색 seed 2026 = s3 교차(bridge), 확인 seed 9091 은 --seed 로     # s4(2026-09-14 배정, research_log/PAN_S4_Integrated_Experiment_Cases_2026-09-14.md): 개발 seed 1234 = s1 과 같은 논리 run id 로 서버 교차(bridge); 독립 seed 가 아니다. 확인 seed 3407 은 --seed 로
@@ -34,8 +43,10 @@ POLICY = {"J": dict(pol="A-FT", proto="I-AEQ", off=1e-4, alr=1e-5), "F": dict(po
           "JE0": dict(pol="A-FT", proto="I-AEQ", off=1e-4, alr=1e-5, routing=dict(qE=0.0)),                                 # A 에서 λE L_E 만 차단
           # 재배정 2026-09-15 §5 (s4/s5): Stage 2 의 relative-offset 보조 연습만 제거 — A 는 T0 복사·trainable(LR 1e-5), 입력은 매 update native(I-NATIVE-TRANSFER; radius 0), L_rec → A gradient 유지.
           # I-AEQ 에 offset 0 을 넣는 방식은 registry 계약(I-AEQ 는 offset > 0) 과 맞지 않아 protocol 자체를 바꾼다.
-          "RC": dict(pol="A-FT", proto="I-NATIVE-TRANSFER", off=0.0, alr=1e-5, radius=0.0)}
-BASELINE_OF = {"J": "J0", "F": "F0", "AL": "AL0", "D": "D0", "DP": "D0", "LF": "LF0", "P": "J0", "JK0": "J0", "JE0": "J0", "RC": "RC0"}   # no-KD control (배정 §5–§6; RC 는 재배정 §5)
+          "RC": dict(pol="A-FT", proto="I-NATIVE-TRANSFER", off=0.0, alr=1e-5, radius=0.0),
+          # s4 아키텍처 이식 §4: NA0 = aligner 없음(A-ID/NOALIGN, native 입력, PAN warp 없음 NA-STRICT), plain GT. T0 는 평가 bin 전용(eval_only) — no-align 모델에 Teacher 의 aligned PAN 을 넣지 않는다
+          "NA": dict(pol="A-ID", proto="I-A", off=0.0, alr=None, noalign=True)}
+BASELINE_OF = {"J": "J0", "F": "F0", "AL": "AL0", "D": "D0", "DP": "D0", "LF": "LF0", "P": "J0", "JK0": "J0", "JE0": "J0", "RC": "RC0", "NA": "NA0"}   # no-KD control (배정 §5–§6; RC 는 재배정 §5; NA 는 s4 이식 §4)
 BACKEND = {"N0": dict(rec="N0", edge=False), "R1": dict(rec="R1", edge=False), "Q12": dict(rec="R3", edge=True), "X02": dict(rec="R1", edge=True),
            # Q12 단일축 scalar variant (s4 배정 §6; 상위 계획 C1 목록의 QA05/QB005/QB02/QE025/QE10 — 계수만 바뀌고 loss 정의는 같다): α = rec.alpha(L_D), β = rec.kd_weight(L_K), λE = λE0 × lam_mult
            "Q12_A05": dict(rec="R3", edge=True, alpha=0.5), "Q12_B005": dict(rec="R3", edge=True, kd_weight=0.05), "Q12_B02": dict(rec="R3", edge=True, kd_weight=0.2),
@@ -49,7 +60,7 @@ for _p in ("J", "AL"):                                    # J_QA05 … J_QE10 (a
 CASES.update({"D0": ("D", "N0"), "DQ": ("D", "Q12"), "DR": ("D", "R1"), "DX": ("D", "X02"), "PQ": ("P", "Q12"), "PR": ("P", "R1"), "PX": ("P", "X02"),
               "DPQ": ("DP", "Q12"), "DPX": ("DP", "X02"), "LF0": ("LF", "N0"), "LFQ": ("LF", "Q12"), "JK0": ("JK0", "Q12"), "JE0": ("JE0", "Q12"),
               "J_R3_NOEDGE": ("J", "R3_NOEDGE"), "J_N0_EDGE": ("J", "N0_EDGE"), "RC0": ("RC", "N0"), "RCQ": ("RC", "Q12"),     # 재배정 2026-09-15 §5
-              "LFX": ("LF", "X02")})                                                                                              # s3 추가 2026-09-15 §4.3: 0–24999 XJ 와 같은 joint, 25000 부터 A 동결(offset 중단), U 는 X02(R1 + λE edge; soft 없음) 50K
+              "LFX": ("LF", "X02"), "NA0": ("NA", "N0")})                                                                                              # s3 추가 2026-09-15 §4.3: 0–24999 XJ 와 같은 joint, 25000 부터 A 동결(offset 중단), U 는 X02(R1 + λE edge; soft 없음) 50K
 _PURPOSE_S5 = {"D0": "s5: 초기 5K A 동결 뒤 joint, N0 (delayed-joint 의 no-KD control)", "DQ": "s5: 초기 5K A 동결, U 는 처음부터 Q12 (delayed joint KD)", "DR": "s5 fallback: D 일정 + R1", "DX": "s5: DQ 의 soft 제거 대조 (D 일정 + X02)",
                 "PQ": "s5: protected routing — A 는 L0+LO 만, U 는 Q12 전체", "PR": "s5 fallback: protected + R1", "PX": "s5: PQ 의 soft 제거 대조 (protected + X02)",
                 "DPQ": "s5: delayed + protected 결합 (Q12)", "DPX": "s5: DPQ 의 soft 제거 대조", "LF0": "s5: 25K 이후 A 동결, N0 (late-freeze control)", "LFQ": "s5: 25K 이후 A 동결, Q12",
@@ -57,7 +68,8 @@ _PURPOSE_S5 = {"D0": "s5: 초기 5K A 동결 뒤 joint, N0 (delayed-joint 의 no
                 # 재배정 2026-09-15 §5: JR = weighted_GT · J_R3_NOEDGE = weighted_GT + adaptive soft · XJ = weighted_GT + λE edge · JQ = 셋 다 · J_N0_EDGE = plain GT + λE edge (Teacher 없이)
                 "J_R3_NOEDGE": "재배정 s2/s4: joint + R3 adaptive soft, GT edge 전체 제거 (JQ − edge)", "J_N0_EDGE": "재배정 s2: joint + plain GT L1 + λE GT edge, Teacher 를 loss 에 쓰지 않음 (Teacher-free edge 대조)",
                 "RC0": "재배정 s4/s5: A trainable(LR 1e-5) 인데 Student 단계 offset 연습 없음(native 만), N0 (RC 의 no-KD control)", "RCQ": "재배정 s4/s5: RC 정합 정책 + Q12 전체",
-                "LFX": "s3: 25K 이후 A 동결 + X02(재가중 GT hard + λE GT edge, output soft 없음) — XJ 의 LF 판 (control LF0; 비교 LFX−XJ, LFQ−LFX)"}
+                "LFX": "s3: 25K 이후 A 동결 + X02(재가중 GT hard + λE GT edge, output soft 없음) — XJ 의 LF 판 (control LF0; 비교 LFX−XJ, LFQ−LFX)",
+                "NA0": "s4 이식: aligner 없음(A-ID/NOALIGN, PAN 원본 직접 입력), plain GT L1 — 같은 서버·현재 규약의 no-align 기준 (Teacher 는 평가 bin 전용)"}
 PURPOSE = {"J0": "Teacher-final-A → fresh-U, native GT + offset (joint baseline; seed1234 는 λE pilot)", "JQ": "주력: joint + Q12 (실패 지도 + adaptive soft + GT edge)", "JR": "joint + R1 (실패 지도 재가중만)", "XJ": "joint + X02 (Q12 의 soft 제거 대조)",
            "F0": "frozen T0 aligner + native GT (frozen baseline)", "FQ": "frozen + Q12", "FR": "frozen + R1", "XF": "frozen + X02", "AL0": "joint, A LR 3e-6, N0", "ALQ": "joint, A LR 3e-6, Q12"}
 STAGE1 = ["J0", "F0", "JR", "FR"]; STAGE2 = ["JQ", "FQ", "XJ"]
@@ -70,21 +82,27 @@ QUEUE_STAGE = {1: ["J0"], 2: ["JQ"]}                      # 큐 파일 내용 (s
 # 2026-09-15 재배정 (research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md §4·§9): s2/s4/s5 의 **명시 순서** — 완료된 기본 묶음(s2 J0/F0/JQ/FQ · s4 AL0/J0/JQ/ALQ · s5 J0/JQ/D0/DQ) 은
 # 다시 넣지 않고(work_dir 완료 판정으로도 제외), 옛 꼬리(s2 FR 등) 는 편성에서 빠진다. s5 PQ 는 실행 중이면 그 run 을 유지하고 남은 시간만 센다. s1/s3 는 신규 배정 없음(기본 PRIORITY 유지).
 # 그 전 묶음(2026-09-14): s4 J0→JQ→AL0→ALQ · s5 J0→JQ→D0→DQ→PQ (research_log/2026-09-14_pakd50-s{4,5}-review-and-implementation.md).
-PRIORITY_BY_SERVER = {"s2": ["JR", "XJ", "J_R3_NOEDGE", "J_N0_EDGE"], "s4": ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"], "s5": ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"],
-                      "s3": ["J_R3_NOEDGE", "J_N0_EDGE", "LF0", "LFQ", "LFX"]}      # s3 (2026-09-15 §4: 기존 J0/JQ/JR/XJ/F0/FQ/FR 은 control 재사용; 개발 seed 2026)
+PRIORITY_BY_SERVER = {"s2": ["JR", "XJ", "J_R3_NOEDGE", "J_N0_EDGE"], "s5": ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"],
+                      "s3": ["J_R3_NOEDGE", "J_N0_EDGE", "LF0", "LFQ", "LFX"],      # s3 (2026-09-15 §4: 기존 J0/JQ/JR/XJ/F0/FQ/FR 은 control 재사용; 개발 seed 2026)
+                      "s4": ["NA0@W104_D121", "J0@W104_D121", "JQ@W104_D121", "XJ@W104_D121", "F0@W104_D121"]}     # s4 아키텍처 이식 (2026-09-15 §4; 파생 묶음 F0/RC0/RCQ/JR/XJ/J_R3_NOEDGE 는 완료 → PREVIOUS)
 MANDATORY_BY_SERVER = dict(PRIORITY_BY_SERVER)        # 기본 run 전부가 예산 예약 대상 (완료된 run 은 trainer 가 0 으로 센다)
-PREVIOUS_PRIORITY_BY_SERVER = {"s4": ["J0", "JQ", "AL0", "ALQ"], "s5": ["J0", "JQ", "D0", "DQ", "PQ"], "s3": list(PRIORITY)}
+PREVIOUS_PRIORITY_BY_SERVER = {"s4": ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"], "s4_20260914": ["J0", "JQ", "AL0", "ALQ"], "s5": ["J0", "JQ", "D0", "DQ", "PQ"], "s3": list(PRIORITY)}
 ALLOC_PLAN = "research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md"; ALLOC_PLAN_S3 = "research_log/PAN_PAKD50_Latest_Sheet_Analysis_and_S3_Experiments_2026-09-15.md"
+ALLOC_PLAN_S4 = "research_log/PAN_PAKD50_S4_W104D121_Architecture_Allocation_2026-09-15.md"
 ALLOCATED_SERVERS = ("s2", "s3", "s4", "s5")
 # 시간 산정 (재배정 §2–§3): 같은 서버 완료 case 의 Sheet Train(h)(2026-09-15 00:05 live read; 새 case 실측이 아니라 **계획 기준값**) — N0 형(rec N0·edge 없음) 은 J0, Teacher/Q12 형은 JQ 의 값.
 # s2 는 이번 4 case 전부 2.33 (보수). s5 D0 1.15 는 일반화하지 않는다. routing case(PQ 등) 는 완료 기록이 없어 1.80h 가예약 — 같은 서버에서 첫 실측이 나오면 그것으로 바꾼다 (reference_hours).
 REFERENCE_TRAIN_H = {"s2": dict(N0=1.97, T=2.33, all=2.33), "s4": dict(N0=1.17, T=1.39), "s5": dict(N0=1.35, T=1.36), "s3": dict(N0=1.16, T=1.34)}     # s3: J0 1.16 / JQ 1.34 (§6)
-REFERENCE_CASE_TRAIN_H = {"s3": {"LFX": 1.33}}                       # case 별 대용값 (s3 §4: LFX 는 XJ 1.33) — 유형 표보다 우선
+REFERENCE_CASE_TRAIN_H = {"s3": {"LFX": 1.33},                      # case 별 대용값 (s3 §4: LFX 는 XJ 1.33) — 유형 표보다 우선
+                          "s4": {"NA0@W104_D121": 1.18, "J0@W104_D121": 1.18, "JQ@W104_D121": 1.40, "XJ@W104_D121": 1.39, "F0@W104_D121": 1.14}}   # s4 이식 §8.1: 큰 골격의 s4 관측값 대용(속도 이득 미차감)
 ROUTING_PLACEHOLDER_H = 1.80; CONFIRM_PLACEHOLDER_H = 1.80          # 미실측 경로 가예약 (실측·성능 예측이 아니다; 결과 수치로 기록하지 않는다)
 CONFIRM_REFERENCE_H = {"s3": 1.34}                                   # 확인 run 의 서버별 공통 대용값 (s3 §6: JQ 1.34; 상한 보장 아님) — 없으면 CONFIRM_PLACEHOLDER_H
+CONFIRM_REFERENCE_CASE_H = {"s4": {"J0": 1.18, "*": 1.40}}           # s4 이식 §8.2: 확인 4 run 은 J0 1.18 · WIN 1.40 (골격 무관 대용값)
+CONFIRM_MAX_RUNS_BY_SERVER = {"s4": 4}
 RESERVE_SLACK = 1.10; RESERVE_POST_H = 10.0 / 60.0                   # reservation_h = 1.10 × reference_train_h + 10/60 (10 % 변동 여유 + run 뒤 export/업로드/전환 10 분 가예약)
 CONFIRM_SEED = {"s4": 3407, "s5": 9091, "s3": 4321}; CONFIRM_MAX_RUNS = 3   # §7: 외부 분석의 WIN 확정 뒤에만, 서버당 최대 3 run (s2/s4/s5: WIN · 같은 policy 의 no-KD control · F0; s3: §5 표의 후보별 묶음)
-CONFIRM_BUNDLE_BY_SERVER = {"s3": {"LFQ": ["JQ", "LF0", "LFQ"], "LFX": ["XJ", "LF0", "LFX"], "J_N0_EDGE": ["J0", "XJ", "J_N0_EDGE"], "J_R3_NOEDGE": ["J0", "JR", "J_R3_NOEDGE"], "XJ": ["J0", "JR", "XJ"], "JQ": ["J0", "XJ", "JQ"]}}
+CONFIRM_BUNDLE_BY_SERVER = {"s3": {"LFQ": ["JQ", "LF0", "LFQ"], "LFX": ["XJ", "LF0", "LFX"], "J_N0_EDGE": ["J0", "XJ", "J_N0_EDGE"], "J_R3_NOEDGE": ["J0", "JR", "J_R3_NOEDGE"], "XJ": ["J0", "JR", "XJ"], "JQ": ["J0", "XJ", "JQ"]},
+                            "s4": {w: ["J0@W104_D121", f"{w}@W104_D121", "J0", w] for w in ("JQ", "XJ", "F0")}}     # s4 이식 §6: 두 골격 × (J0, WIN); 종전 s4 확인 예약(J0/JQ/WIN@W112) 을 대체
 RESERVATION_FILE = "work_dir/_pakd50/reservations.json"             # 서버 로컬: run → gate_hours (= reservation_h / MARGIN; trainer 가 margin 을 곱하면 reservation_h). gate 가 매 pass 갱신
 STAGE_BY_SERVER = {"s4": {1: ["J0", "AL0"], 2: ["JQ", "ALQ"]}, "s5": {1: ["J0", "D0"], 2: ["JQ", "DQ", "PQ"]}}     # --stage 용 (2026-09-14 기본 묶음; 재배정 목록은 --cases / 편성은 gate)
 EXTRA_PRIORITY_FILE = "work_dir/_pakd50/extra_priority.txt"
@@ -93,7 +111,7 @@ MANDATORY_FILE = "work_dir/_pakd50/mandatory_runs.txt"      # 서버 로컬: 이
 
 def write_mandatory_file(server, version="v1"):
     p = os.path.join(ROOT, MANDATORY_FILE); os.makedirs(os.path.dirname(p), exist_ok=True)
-    runs = [run_name(c, SERVER_SEED[server], version) for c in mandatory_for(server)]
+    runs = [to_tag(c, SERVER_SEED[server], version) for c in mandatory_for(server)]      # 항목이 case@arch 면 그 골격의 run 이름
     with open(p, "w") as f:
         f.write(f"# {server} 기본 묶음 (예산 gate 예약; 완료된 run 은 trainer 가 0 으로 센다) — gen_pakd50_configs.write_mandatory_file\n" + "\n".join(runs) + "\n")
     return runs
@@ -102,8 +120,10 @@ def write_mandatory_file(server, version="v1"):
 INIT_HASH_PATH = "assets/pakd50/init_hashes.json"          # seed → 저장 U 초기값(init_unet_seed<seed>.pt) 의 tensor sha256_16. 값이 있으면 config expect_init 으로 박혀 trainer 가 fail-fast (s5 보고 #3)
 
 
-def init_hash_for(seed):
-    return ((_load_json(INIT_HASH_PATH) or {}).get("unet") or {}).get(str(int(seed)))
+def init_hash_for(seed, arch=ARCH_DEFAULT):
+    """seed 별 저장 U 초기값 hash — 골격별 namespace (기본 골격 'unet', 그 외 'unet@<arch>'): W112 hash 를 W104 에 강제하지 않는다 (s4 이식 §9.1)."""
+    ns = "unet" if arch == ARCH_DEFAULT else f"unet@{arch}"
+    return ((_load_json(INIT_HASH_PATH) or {}).get(ns) or {}).get(str(int(seed)))
 
 
 def servers_sharing_seed(server):
@@ -134,19 +154,42 @@ def is_tag(item):
     return item.startswith("PAKD50_")
 
 
+def parse_item(item):
+    """편성 항목 → (case, arch, seed|None, version|None). 항목 형식: 'JQ' · 'JQ@W104_D121' · 전체 run 이름 PAKD50_<case>_<W…_D…>_WV3_T0_S<seed>_<proto>_<ver>."""
+    if is_tag(item):
+        m = RUN_RE.match(item)
+        if not m:
+            raise ValueError(f"run 이름 형식이 아니다: {item}")
+        return m.group("case"), m.group("arch"), int(m.group("seed")), m.group("ver")
+    case, _, arch = item.partition("@"); arch = arch or ARCH_DEFAULT
+    if arch not in ARCHS:
+        raise ValueError(f"알 수 없는 골격 {arch} (항목 {item}); 등록: {list(ARCHS)}")
+    return case, arch, None, None
+
+
 def to_tag(item, seed, version="v1"):
-    return item if is_tag(item) else run_name(item, seed, version)
+    if is_tag(item):
+        return item
+    case, arch, _, _ = parse_item(item); return run_name(case, seed, version, arch=arch)
 
 
 def case_of(item):
-    """run 이름 또는 case id → case id (PAKD50_<case>_W112_…)."""
-    return item[len("PAKD50_"):].split("_W112")[0] if is_tag(item) else item
+    """run 이름 또는 편성 항목 → case id."""
+    return parse_item(item)[0]
+
+
+def arch_of(item):
+    return parse_item(item)[1]
+
+
+def item_key(item):
+    """예약·실측 조회 키: 기본 골격이면 case, 아니면 'case@arch'."""
+    case, arch, _, _ = parse_item(item); return case if arch == ARCH_DEFAULT else f"{case}@{arch}"
 
 
 def seed_of(item, default=None):
-    """run 이름 → seed (…_S<seed>_<protocol>_); case id 면 default."""
-    m = re.search(r"_S(\d+)_", item) if is_tag(item) else None
-    return int(m.group(1)) if m else default
+    """run 이름 → seed; case 항목이면 default."""
+    return parse_item(item)[2] if is_tag(item) else default
 
 
 def reference_kind(case):
@@ -161,13 +204,15 @@ def reference_kind(case):
 def reference_hours(server, case, measured=None, confirm=False):
     """run 의 시간 산정 기준 h 와 출처. measured: 같은 서버 완료 run 의 실측 {case: h} (ledger) — 같은 case 실측이 있으면 그것이 우선(§3 '첫 실측이 나오면 곧바로 교체').
     없으면: confirm(확인 seed) → 1.80 가예약(§7) · ROUTING → 같은 서버 routing 실측 평균 → 없으면 1.80 가예약 · N0/T → 서버 계획 기준값 (s2 는 전부 2.33) → 없으면 실측 평균 → None."""
-    measured = measured or {}
-    if measured.get(case):
-        return float(measured[case]), "measured_same_case"
+    measured = measured or {}; key = item_key(case); case = case_of(case)
+    if measured.get(key):
+        return float(measured[key]), "measured_same_case"
     if confirm:
+        if server in CONFIRM_REFERENCE_CASE_H:
+            t = CONFIRM_REFERENCE_CASE_H[server]; return float(t.get(case, t["*"])), "confirm_reference_case"
         return (CONFIRM_REFERENCE_H[server], "confirm_reference") if server in CONFIRM_REFERENCE_H else (CONFIRM_PLACEHOLDER_H, "confirm_placeholder")
-    if case in REFERENCE_CASE_TRAIN_H.get(server, {}):
-        return float(REFERENCE_CASE_TRAIN_H[server][case]), "plan_reference_case"
+    if key in REFERENCE_CASE_TRAIN_H.get(server, {}):
+        return float(REFERENCE_CASE_TRAIN_H[server][key]), "plan_reference_case"
     kind = reference_kind(case)
     if kind == "ROUTING":
         rs = [float(h) for c, h in measured.items() if c in CASES and reference_kind(c) == "ROUTING"]
@@ -192,20 +237,24 @@ def measured_hours_from_ledger(server, ledger=None):
         if e.get("kind") != "run" or not str(e.get("status", "")).startswith("FINISHED") or not is_tag(rid) or "#" in rid:
             continue
         h = e.get("hours_total") or e.get("hours")
-        if not h or seed_of(rid) != SERVER_SEED.get(server):
+        try:
+            sd = seed_of(rid)
+        except ValueError:
             continue
-        acc.setdefault(case_of(rid), []).append(float(h))
+        if not h or sd != SERVER_SEED.get(server):
+            continue
+        acc.setdefault(item_key(rid), []).append(float(h))       # 골격이 다르면 다른 키 (W104 실측을 W112 로 덮어쓰지 않는다)
     return {c: sum(v) / len(v) for c, v in acc.items()}
 
 
 def reservation_for(server, item, measured=None, seed=None):
     """편성 항목(case id 또는 run 이름) → dict(run, case, seed, reference_train_h, reference_kind, reservation_h, gate_hours)."""
-    seed = seed or SERVER_SEED[server]; case = case_of(item); sd = seed_of(item, seed); confirm = (sd != SERVER_SEED[server])
-    ref, kind = reference_hours(server, case, measured, confirm=confirm)
+    seed = seed or SERVER_SEED[server]; case, arch, sd, _ = parse_item(item); sd = sd if sd is not None else seed; confirm = (sd != SERVER_SEED[server])
+    ref, kind = reference_hours(server, (case if arch == ARCH_DEFAULT else f"{case}@{arch}"), measured, confirm=confirm)
     if ref is None:
         return None
     res = reservation_hours(ref)
-    return dict(run=to_tag(item, seed), case=case, seed=sd, reference_train_h=ref, reference_kind=kind, reservation_h=res, gate_hours=res / MARGIN)
+    return dict(run=to_tag(item, seed), case=case, arch=arch, seed=sd, reference_train_h=ref, reference_kind=kind, reservation_h=res, gate_hours=res / MARGIN)
 
 
 def write_reservation_file(server, items, measured=None, seed=None, path=None):
@@ -226,7 +275,8 @@ def confirmation_cases(win_case, server=None):
     if server in CONFIRM_BUNDLE_BY_SERVER:
         b = CONFIRM_BUNDLE_BY_SERVER[server].get(win_case)
         if b is None:
-            raise SystemExit(f"!! {server}: 확인 묶음 표(§5) 에 없는 후보 {win_case} — 표에 있는 후보 {list(CONFIRM_BUNDLE_BY_SERVER[server])} 만")
+            raise SystemExit(f"!! {server}: 확인 묶음 표에 없는 후보 {win_case} — 표에 있는 후보 {list(CONFIRM_BUNDLE_BY_SERVER[server])} 만")
+        assert len(b) <= CONFIRM_MAX_RUNS_BY_SERVER.get(server, CONFIRM_MAX_RUNS)
         return list(b)
     ctl = BASELINE_OF[CASES[win_case][0]]; out = []
     for c in (win_case, ctl, "F0"):
@@ -238,8 +288,8 @@ PURPOSE.update(_PURPOSE_S5)
 NEEDS_LAMBDA_E = {c for c, (p, b) in CASES.items() if BACKEND[b]["edge"]}
 
 
-def run_name(case, seed, version="v1", protocol=PROTOCOL):
-    return f"PAKD50_{case}_W112_D123_WV3_T0_S{seed}_{protocol}_{version}"
+def run_name(case, seed, version="v1", protocol=PROTOCOL, arch=ARCH_DEFAULT):
+    return f"PAKD50_{case}_{arch}_WV3_T0_S{seed}_{protocol}_{version}"
 
 
 def pilot_run():
@@ -336,10 +386,11 @@ def schedule(has_lambda_e, is_terminal, remaining_hours, est_hours, margin=MARGI
     return todo, dropped
 
 
-def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=True):
-    """계획 §4·§6 의 FRESH50 kdv 블록. pin: calibration_resolved.json 의 τR/λE 를 숫자로 고정(서버 간 동일 package); 없으면 calibrate(그 서버에서 T0/pilot 로 산출)."""
-    pol_id, be_id = CASES[case]; P, B = POLICY[pol_id], BACKEND[be_id]; cal = cal if cal is not None else calibration()
-    sha, step = t0_identity(server); t0 = t0_dir(server); me = run_name(case, seed, version)
+def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=True, arch=ARCH_DEFAULT):
+    """계획 §4·§6 의 FRESH50 kdv 블록. pin: calibration_resolved.json 의 τR/λE 를 숫자로 고정(서버 간 동일 package); 없으면 calibrate(그 서버에서 T0/pilot 로 산출).
+    arch: Student U 골격 (기본 W112_D123; s4 이식 W104_D121 — T0·donor·τR·λE0 는 그대로, expect_arch 와 init hash namespace 만 바뀐다)."""
+    pol_id, be_id = CASES[case]; P, B = POLICY[pol_id], BACKEND[be_id]; cal = cal if cal is not None else calibration(); A = ARCHS[arch]
+    sha, step = t0_identity(server); t0 = t0_dir(server); me = run_name(case, seed, version, arch=arch); noalign = (P["pol"] == "A-ID")
     rec = dict(case=B["rec"])
     if B["rec"] != "N0":
         rec.update(alpha=float(B.get("alpha", 1.0)), kd_weight=(float(B.get("kd_weight", 0.1)) if B["rec"] == "R3" else 0.0), eps=1.0e-6, tau=(float(cal["tau_R"]) if (pin and cal.get("tau_R")) else "calibrate"), eps_scale=1.0e-6)
@@ -351,13 +402,15 @@ def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=Tr
         stat = dict(enabled=True, kind="EDGE", mode="H", window=5, alpha=1.0, kd_weight=0.1, tau="calibrate", outer_weight=(float(lam) * mult if (pin and lam) else "calibrate"), lambda_pilot=f"{pilot_run()}/last", r_grad=0.05 * mult, ramp_updates=0)
     needs_teacher = (B["rec"] != "N0")
     k = dict(campaign_id=CAMPAIGN_ID, plan_protocol_id=PROTOCOL, candidate_grid_id=GRID_ID, case_id=case, policy_id=pol_id, backend_id=be_id, run_kind="CONTROLLED", version=version, check_run_name=False,
-             input_protocol=P["proto"], aligner_policy=P["pol"], diag_every=1000, diag=dict(fixed_batch=True), calibration=dict(n_patches=3072, seed=1234), aligner_lr=P["alr"],
-             select=dict(primary="best_hqnr", secondary=["best_rr_val", "last"], retain_all_candidates=True), expect_arch=dict(width=112, depth=[1, 2, 3], noalign=False),
-             rec=rec, stat=stat, geom_kd=dict(mode="G0"), recipe="N2_SG", eval=dict(fixed_reference_from_donor=True),
-             **({"expect_init": dict(unet_sha256_16=init_hash_for(seed))} if init_hash_for(seed) else {}),
-             donor=dict(source=f"{t0}/{T0_TAG}", view_margin_hr=4, expected_sha256=sha, expected_step=step),
-             teacher=dict(id="T0", run=t0, tag=T0_TAG, expected_sha256=sha, bridge=False, **({} if needs_teacher else dict(eval_only=True))),
-             baseline_run=run_name(BASELINE_OF[pol_id], seed, version),
+             **({"experiment_branch_id": A["branch"], "architecture_signature": f"{arch}:model.pancrafter_paper.PANCrafterPaper:in_mode=paper:norm=ln:attn_locations=[]:n_attn=3:mode_modulation=false"} if A["branch"] else {}),
+             input_protocol=P["proto"], aligner_policy=P["pol"], diag_every=1000, diag=dict(fixed_batch=True), calibration=dict(n_patches=3072, seed=1234), **({} if noalign else dict(aligner_lr=P["alr"])),
+             select=dict(primary="best_hqnr", secondary=["best_rr_val", "last"], retain_all_candidates=True, **({"aligned_selector": False} if noalign else {})), expect_arch=dict(width=A["width"], depth=list(A["depth"]), noalign=noalign),
+             rec=rec, stat=stat, geom_kd=dict(mode="G0"), recipe=("NOALIGN" if noalign else "N2_SG"), **({} if noalign else dict(eval=dict(fixed_reference_from_donor=True))),
+             **({"expect_init": dict(unet_sha256_16=init_hash_for(seed, arch))} if init_hash_for(seed, arch) else {}),
+             **({"na_protocol": "NA-STRICT"} if noalign else dict(donor=dict(source=f"{t0}/{T0_TAG}", view_margin_hr=4, expected_sha256=sha, expected_step=step))),
+             # bridge: trainer/smoke 의 "Teacher 폭 == Student 폭" 검사를 푸는 명시 flag (kdv §3.2-3) — 골격 이식(cross-capacity, T0 고정) 에서만 True; 다른 동작 변화 없음
+             teacher=dict(id="T0", run=t0, tag=T0_TAG, expected_sha256=sha, bridge=(arch != ARCH_DEFAULT), **({} if needs_teacher else dict(eval_only=True))),
+             baseline_run=run_name(BASELINE_OF[pol_id], seed, version, arch=arch),
              budget=dict(ledger=LEDGER, total_gpu_hours=TOTAL_HOURS, reserve_hours=RESERVE_HOURS, margin=MARGIN, required=False, projected_hours=projected, projected_map={me: RUN_RESERVED_HOURS},
                          remaining_mandatory=[], remaining_mandatory_file=MANDATORY_FILE,     # 서버 기본 묶음 예약은 **서버 로컬 파일**(prepare 가 씀) — 같은 seed 서버(s1/s4, s3/s5) 가 config 파일을 공유하므로 config 에 박지 않는다 (s5 보고 #2)
                          projection_file=RESERVATION_FILE,                                     # 서버 로컬 run 별 예약 (재배정 §3 식; gate 가 씀) — 있으면 projected_map(4.0h 보수값) 보다 우선
@@ -379,33 +432,38 @@ def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=Tr
     return k
 
 
-def render(tag, case, seed, server, k, updates, eval_epoch, tpl):
+def render(tag, case, seed, server, k, updates, eval_epoch, tpl, arch=ARCH_DEFAULT):
     import yaml
-    sp = resolve(k); pol_id, be_id = CASES[case]; sha, step = t0_identity(server)
+    sp = resolve(k); pol_id, be_id = CASES[case]; sha, step = t0_identity(server); A = ARCHS[arch]
     t = re.sub(r"^(#.*\n)+", "", tpl)
+    if arch != ARCH_DEFAULT:                                                 # Student U 골격만 바꾼다 (model class·in_mode·norm·attn 은 template 그대로; s4 이식 §3·§9.1)
+        t = re.sub(r"^  hidden_size: 112$", f"  hidden_size: {A['width']}", t, flags=re.M); t = re.sub(r"^  depth: \[1, 2, 3\]", f"  depth: [{', '.join(map(str, A['depth']))}]", t, flags=re.M)
+        t = re.sub(r"^expect_params_m: [0-9.]+", f"expect_params_m: {A['params_m']}", t, flags=re.M)        # smoke 의 params 검사 (backbone 만)
     head = (f"# {tag} — {PURPOSE[case]}. 생성: tools/gen_pakd50_configs.py (seed {seed} 를 쓰는 서버 {'/'.join(servers_sharing_seed(server)) if seed == SERVER_SEED[server] else server} 공용 — 서버별 값은 config 에 없다). 손으로 고치지 말 것.\n"
             f"# 캠페인 {CAMPAIGN_ID} · protocol {PROTOCOL} · grid {GRID_ID} · 계획 {PLAN} · 요약 {SUMMARY} · 노트 {NOTE}\n"
-            f"# 세팅: {describe(sp)} · 정책 {pol_id}(A {'trainable' if sp['aligner_trainable'] else 'frozen'}, offset λ {k.get('aux', {}).get('offset_weight', 0)}, A LR {k['aligner_lr']}) · backend {be_id} (rec {k['rec']['case']}{', EDGE-H λE ' + str(k['stat'].get('outer_weight')) if k['stat'].get('enabled') else ''})\n"
+            f"# 세팅: {describe(sp)} · 정책 {pol_id}(A {'없음' if sp['policy'] == 'A-ID' else ('trainable' if sp['aligner_trainable'] else 'frozen')}, offset λ {k.get('aux', {}).get('offset_weight', 0)}, A LR {k.get('aligner_lr', '—')}) · backend {be_id} (rec {k['rec']['case']}{', EDGE-H λE ' + str(k['stat'].get('outer_weight')) if k['stat'].get('enabled') else ''})\n"
             f"# 약명→세팅: J0/JQ/JR/XJ = A trainable(joint) + N0/Q12/R1/X02 · F0/FQ/FR/XF = A frozen + … · AL0/ALQ = joint, A LR 3e-6 · Q12 = (1+αd)L1 + β(1−d)a|S−T| + λE·signed Scharr edge · R1 = (1+αd)L1 · X02 = R1 + edge\n"
             f"#           D*/LF* = joint 에서 A 를 0–4999 동결 / 25000 부터 동결 (kdv.aligner_schedule; 동결 구간 LO 없음, ε RNG 는 같은 순서) · P*/JK0/JE0 = A 가 직접 받는 항만 제한 (kdv.routing qA=(qD,qK,qE); U 는 backend 전체) · J_Q*/AL_Q* = Q12 계수만\n"
             f"#           J_R3_NOEDGE = J + R3 adaptive(edge 없음) · J_N0_EDGE = J + N0 + λE edge(Teacher 미사용) · RC0/RCQ = A trainable(LR 1e-5) 인데 offset 연습 없음(I-NATIVE-TRANSFER, radius 0) + N0/Q12 — 재배정 {ALLOC_PLAN}\n"
             f"# Teacher T0 = {T0_RUN}/{T0_TAG} (step {step}, file sha {(sha or '?')[:16]}…; A+U frozen, 자기 aligner 로 forward) · Student A = T0 aligner 복사(view margin 4), U = init_unet_seed{seed}.pt · τR/λE = {CAL_PATH} (고정) \n"
-            f"# 골격 W112·D123 · 9ch · 50K · batch 48 · AdamW 1e-4/{k['aligner_lr']} wd 0.01 cosine warmup100 · eval_epoch {eval_epoch} (= {GRID_ID}: 1010 update 마다 + exact 50000, 50 후보 보존) · 예산 {LEDGER} {TOTAL_HOURS}h(+감사 {RESERVE_HOURS}h)\n")
+            f"# 골격 W{A['width']}·D{''.join(map(str, A['depth']))} · 9ch · 50K · batch 48 · AdamW 1e-4/{k.get('aligner_lr', '—')} wd 0.01 cosine warmup100 · eval_epoch {eval_epoch} (= {GRID_ID}: 1010 update 마다 + exact 50000, 50 후보 보존) · 예산 {LEDGER} {TOTAL_HOURS}h(+감사 {RESERVE_HOURS}h)\n")
     t = re.sub(r"^eval_epoch: \d+$", f"eval_epoch: {eval_epoch}", t, flags=re.M)
     t = re.sub(r"work_dir: .*", f"work_dir: {ROOT}/work_dir/{tag}", t)
     t = re.sub(r"^trainer: po\npo:\n(  .*\n)+", "", t, flags=re.M)
     t = t.replace("mars: ms                      # PAN mode·loss·batch 복제 제거 (단일 task)",
                   "mars: ms                      # PAN mode·loss·batch 복제 제거 (단일 task)\ntrainer: kdv\nkdv:\n" + "\n".join("  " + l for l in yaml.safe_dump(k, sort_keys=False, allow_unicode=True, default_flow_style=False).splitlines()) + "\n")
     t = re.sub(r"^num_iter: \d+", f"num_iter: {updates}", t, flags=re.M); t = re.sub(r"^seed: \d+", f"seed: {seed}", t, flags=re.M)
-    assert "trainer: kdv" in t and "trainer: po" not in t and f"seed: {seed}" in t and "hidden_size: 112" in t and "depth: [1, 2, 3]" in t and f"eval_epoch: {eval_epoch}" in t
+    assert "trainer: kdv" in t and "trainer: po" not in t and f"seed: {seed}" in t and f"hidden_size: {A['width']}" in t and f"depth: [{', '.join(map(str, A['depth']))}]" in t and f"eval_epoch: {eval_epoch}" in t and f"expect_params_m: {A['params_m']}" in t
+    if arch != ARCH_DEFAULT:
+        head = head.replace("\n", f"\n# 골격 {arch}: {A['note']} · branch {A['branch']} · 편성 항목 <case>@{arch} · 시트 X열 'PAKD50 / <case> / {ARCH_LABEL[arch]} / FRESH50' · 계획 {ALLOC_PLAN_S4}\n", 1)
     return head + t
 
 
 def generate(server, cases, out_dir, updates=50000, eval_epoch=5, projected=None, version="v1", pin=True, seed=None):
     seed = seed or SERVER_SEED[server]; tpl = open(os.path.join(ROOT, "config", "PO10_N1_REC_W112_D123_WV3_S2025_R200_FRSTAT.yaml")).read(); made = []
-    for case in cases:
-        tag = run_name(case, seed, version); k = kdv_block(case, seed, server, projected=projected, version=version, pin=pin)
-        os.makedirs(out_dir, exist_ok=True); open(os.path.join(out_dir, tag + ".yaml"), "w").write(render(tag, case, seed, server, k, updates, eval_epoch, tpl)); made.append(tag)
+    for item in cases:
+        case, arch, _, _ = parse_item(item); tag = run_name(case, seed, version, arch=arch); k = kdv_block(case, seed, server, projected=projected, version=version, pin=pin, arch=arch)
+        os.makedirs(out_dir, exist_ok=True); open(os.path.join(out_dir, tag + ".yaml"), "w").write(render(tag, case, seed, server, k, updates, eval_epoch, tpl, arch=arch)); made.append(tag)
     return made
 
 
@@ -428,9 +486,10 @@ def plan_rows(server, measured=None, is_terminal=None, extra=()):
 
 def plan_table(server):
     rem = hours_to_deadline(); rows = plan_rows(server)
-    print(f"[{server}] seed {SERVER_SEED[server]} — 배정 {ALLOC_PLAN_S3 + ' §4' if server == 's3' else ALLOC_PLAN + ' §4'}; 예약 = {RESERVE_SLACK}×ref + {RESERVE_POST_H * 60:.0f}min; 학습 마감까지 {'?' if rem is None else '%.2f' % rem} h")
+    plan_doc = {"s3": ALLOC_PLAN_S3, "s4": ALLOC_PLAN_S4}.get(server, ALLOC_PLAN)
+    print(f"[{server}] seed {SERVER_SEED[server]} — 배정 {plan_doc} §4; 예약 = {RESERVE_SLACK}×ref + {RESERVE_POST_H * 60:.0f}min; 학습 마감까지 {'?' if rem is None else '%.2f' % rem} h")
     for r in rows:
-        print(f"  {r['case']:<12} {r['status']:<14} ref {r['reference_train_h']:.2f} h ({r['reference_kind']}) → 예약 {r['reservation_h']:.4f} h · 누적 {r['cumulative_h']:.4f} h")
+        print(f"  {(r['case'] + ('' if r['arch'] == ARCH_DEFAULT else '@' + r['arch'])):<18} {r['status']:<14} ref {r['reference_train_h']:.2f} h ({r['reference_kind']}) → 예약 {r['reservation_h']:.4f} h · 누적 {r['cumulative_h']:.4f} h")
     tot = sum(r["reservation_h"] for r in rows if r["status"] == "planned")
     print(f"  planned {sum(r['status'] == 'planned' for r in rows)} run · 예약 합 {tot:.4f} h" + ("" if rem is None else f" · 마감 안 {'OK' if tot <= rem else '초과 — gate admission 이 뒤를 민다'}"))
 
@@ -449,8 +508,8 @@ def main():
     cal = calibration()
     for srv in servers:
         cases = [c.strip() for c in a.cases.split(",")] if a.cases else stage_cases(srv, a.stage)
-        if not a.no_pin and (not cal.get("lambda_E")) and any(c in NEEDS_LAMBDA_E for c in cases):
-            sys.exit(f"!! {[c for c in cases if c in NEEDS_LAMBDA_E]} 는 λE 가 고정된 뒤에 만든다 — tools/pakd50_calibrate.py --lambda-e (J0 S1234 exact50K 필요). 현재 {CAL_PATH}: {list(cal)}")
+        if not a.no_pin and (not cal.get("lambda_E")) and any(case_of(c) in NEEDS_LAMBDA_E for c in cases):
+            sys.exit(f"!! {[c for c in cases if case_of(c) in NEEDS_LAMBDA_E]} 는 λE 가 고정된 뒤에 만든다 — tools/pakd50_calibrate.py --lambda-e (J0 S1234 exact50K 필요). 현재 {CAL_PATH}: {list(cal)}")
         made = generate(srv, cases, a.out_dir, a.updates, a.eval_epoch, a.projected_hours, a.version, not a.no_pin, seed=a.seed)
         if a.out_dir == os.path.join(ROOT, "config") and a.version == "v1" and a.seed is None and not a.cases:
             q = os.path.join(ROOT, "config", "queues", f"pakd50_{srv}_stage{a.stage}.txt")

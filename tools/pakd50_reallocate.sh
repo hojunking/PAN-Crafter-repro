@@ -23,7 +23,7 @@ if [ -n "$CONFIRM" ]; then
     "$PY" - "$SERVER" "$CONFIRM" <<'PYEOF' || fail "확인 seed 준비 실패"
 import os, subprocess, sys; sys.path.insert(0, "."); from tools import gen_pakd50_configs as G
 srv, win = sys.argv[1], sys.argv[2]; seed = G.CONFIRM_SEED.get(srv) or sys.exit(f"!! {srv} 에는 확인 seed 가 없다 (s4 3407 / s5 9091)")
-cases = G.confirmation_cases(win, srv); runs = [G.run_name(c, seed) for c in cases]
+cases = G.confirmation_cases(win, srv); runs = [G.to_tag(c, seed) for c in cases]
 r = subprocess.run([sys.executable, "tools/gen_pakd50_configs.py", "--server", srv, "--seed", str(seed), "--cases", ",".join(cases)], capture_output=True, text=True); print(r.stdout.strip().splitlines()[-1] if r.stdout.strip() else r.stderr[-300:])
 r.returncode == 0 or sys.exit("!! config 생성 실패")
 p = os.path.join(G.ROOT, G.EXTRA_PRIORITY_FILE); have = G.extra_priority(); os.makedirs(os.path.dirname(p), exist_ok=True)
@@ -48,13 +48,13 @@ import filecmp, os, subprocess, sys; sys.path.insert(0, "."); from tools import 
 srv, tmp = sys.argv[1], sys.argv[2]; seed = G.SERVER_SEED[srv]; ps = subprocess.run(["ps", "-eo", "args"], capture_output=True, text=True).stdout
 bad = []
 for c in G.priority_for(srv):
-    run = G.run_name(c, seed); f = os.path.join("config", run + ".yaml"); t = os.path.join(tmp, run + ".yaml")
+    run = G.to_tag(c, seed); f = os.path.join("config", run + ".yaml"); t = os.path.join(tmp, run + ".yaml")
     st = "완료/실패" if terminal(run) else ("실행 중" if any("main.py" in l and "--config" in l and run in l for l in ps.splitlines()) else "대기")
     if st != "대기":
-        print(f"   {c:<12} {st} — config 검사 생략"); continue
+        print(f"   {c:<18} {st} — config 검사 생략"); continue
     if not os.path.exists(f):
         bad.append(f"{c}: config/{run}.yaml 없음 (git pull)"); continue
-    same = filecmp.cmp(f, t, shallow=False); print(f"   {c:<12} 대기 — config {'== 생성기' if same else '!= 생성기'}")
+    same = filecmp.cmp(f, t, shallow=False); print(f"   {c:<18} 대기 — config {'== 생성기' if same else '!= 생성기'}")
     same or bad.append(f"{c}: config/{run}.yaml 가 생성기 출력과 다르다 (release 불일치 — pull 또는 생성기 확인)")
 if bad:
     print("\n".join("!! " + b for b in bad)); sys.exit(1)

@@ -170,11 +170,15 @@ INTEGRATED_HDR = "통합실험"
 
 
 def integrated_label(run):
+    """X열 '통합실험': PAKD50 / <case> / FRESH50 — 기본 골격(W112_D123) 이 아니면 골격 토큰을 끼운다: PAKD50 / JQ / A104D121 / FRESH50 (s4 이식 2026-09-15 §10)."""
     if not run or not run.startswith("PAKD50_"):
         return ""
-    case = run[len("PAKD50_"):].split("_W112")[0]
-    proto = "FRESH50" if "_FRESH50_" in run else run.rsplit("_", 2)[-2]
-    return f"PAKD50 / {case} / {proto}"
+    import re as _re
+    m = _re.match(r"^PAKD50_(?P<case>.+?)_(?P<arch>W\d+_D\d+)_WV3_T0_S\d+_(?P<proto>[A-Z0-9]+)_v\d+$", run)
+    if not m:
+        case = run[len("PAKD50_"):].split("_W112")[0]; proto = "FRESH50" if "_FRESH50_" in run else run.rsplit("_", 2)[-2]; return f"PAKD50 / {case} / {proto}"
+    arch = m.group("arch"); tok = "" if arch == "W112_D123" else " / A" + arch.replace("W", "").replace("_D", "D")
+    return f"PAKD50 / {m.group('case')}{tok} / {m.group('proto')}"
 
 
 def columns_for(ds):
@@ -617,6 +621,10 @@ def collect(tag, want_profile, server, peer=None):
             desc = (desc + " KDV " + _kdv_describe(_kdv_resolve(getattr(a, "kdv", {}) or {}))).strip()
         except Exception as _e:                      # 설명 실패가 업로드를 막지 않게
             desc = (desc + f" KDV (spec 해석 실패: {_e})").strip()
+        _kb = getattr(a, "kdv", {}) or {}
+        if _kb.get("experiment_branch_id"):          # 골격 이식 branch (s4 W104_D121, 2026-09-15 §10): Student 골격·Teacher 골격·A 출처·branch·계수 이식을 Notes 에
+            _ea = _kb.get("expect_arch") or {}; _tr_ = _kb.get("teacher") or {}
+            desc = (desc + f" Student=W{_ea.get('width')}D{''.join(str(x) for x in (_ea.get('depth') or []))}; Teacher={_tr_.get('id', 'T0')}/W112D123; A_source={'none' if _kb.get('aligner_policy') == 'A-ID' else _tr_.get('id', 'T0')}; branch={_kb['experiment_branch_id']}; E0=fixed-transfer").strip()
     elif _tr == "uvs":
         _u = getattr(a, "uvs", {}) or {}; _v = _u.get("variant", "?")
         desc = (desc + " UVS " + {"b0": "B0(lms baseline)", "k0": "K0(output KD)", "k1": "K1(U routing)", "k2": "K2(U+GT var)",
