@@ -79,7 +79,9 @@ DESC = {
             "RC0/RCQ = A trainable(LR 1e-5) 인데 Student 단계 offset 연습 없음(입력 매 update native, I-NATIVE-TRANSFER) + N0/Q12. "
             "s3 추가 2026-09-15(PAN_PAKD50_Latest_Sheet_Analysis_and_S3_Experiments_2026-09-15.md; seed 2026·확인 4321): J_R3_NOEDGE → J_N0_EDGE → LF0 → LFQ → LFX(= LF 일정 + X02: 25K 뒤 A 동결, soft 없음). "
             "s4 골격 이식 2026-09-15(PAN_PAKD50_S4_W104D121_Architecture_Allocation_2026-09-15.md; branch A104D121_T0FIX_E0_v1): 실행명 토큰 _W104_D121_ = Student U 만 W104·depth[1,2,1](backbone 1.9036 M), Teacher T0/A·τR·λE0 는 W112 그대로(coefficient transfer) — "
-            "NA0(aligner 없음, plain GT) → J0 → JQ → XJ → F0 @ seed 1234, 확인 seed 3407 은 J0/WIN × 두 골격. X열 'PAKD50 / <case> / A104D121 / FRESH50'. 작은 JQ 가 큰 JQ 보다 높아도 KD 효과가 커진 것이 아니다 — 각 골격의 J0 대비 차이와 절대 HQNR 을 같이 본다. "
+            "QEDGE9 2026-09-15(PAN_QEDGE9_W104D121_S5_S4_Experiment_Plan_2026-09-15.md; 캠페인 QEDGE9_A104D121_20260915_v1 / branch A104D121_T0FIX_QEDGE9_v1, W104·D121 전용, 50h·09-16 마감 미상속): QE50 = Q12 hard/soft 그대로 + GT edge 는 고정 T0 aligner 의 q(AXIS16 probe) < θq(train calibration 중앙값) 인 patch 만 · "
+            "QEC = 모든 patch edge × c_E(고정 pilot 의 gated/전체 edge 오차 비) · QES = low_q gate 를 (T0 e_roi32 decile × aug state) stratum 안에서 permutation(51515). s5 seed 2026·777 J0→JQ→QE50 · s4 seed 1234 QE50→QEC→QES (@W104). X열 'PAKD50 / <case> / A104D121 / QEDGE9 / FRESH50'. "
+                        "NA0(aligner 없음, plain GT) → J0 → JQ → XJ → F0 @ seed 1234, 확인 seed 3407 은 J0/WIN × 두 골격. X열 'PAKD50 / <case> / A104D121 / FRESH50'. 작은 JQ 가 큰 JQ 보다 높아도 KD 효과가 커진 것이 아니다 — 각 골격의 J0 대비 차이와 절대 HQNR 을 같이 본다. "
             "τR·λE 는 공통 package assets/pakd50/calibration_resolved.json. 시트 HQNR = best_raw raw_original(주 판정, 후보 격자 GRID1010_50K_v1). X열 '통합실험' = PAKD50 / <case> / FRESH50."),
  "NA104": ("[캠페인] W104·D122 no-align KD · s2·s3 · Teacher seed 2025 / Student seed 1234(반복 2025·777) · 2026-09-11 · research_log/PAN_S2_W104_D122_NoAlign_KD_Experiment_Plan_2026-09-11.md. "
            "aligner 도 PAN warp 도 없는 동일 골격(2.0989 M)에서 'Teacher 가 남긴 복원·구조 오차를 GT 중심으로 더 fitting하는 KD' 만 본다 — 정합 연구(PA/PO10/NF16/KDV) 와 직접 대응하지 않는다. "

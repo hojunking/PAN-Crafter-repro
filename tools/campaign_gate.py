@@ -384,7 +384,14 @@ def gate_pakd50():
     def _reservation(it):                                                  # 재배정 §3: reservation_h = 1.10 × reference_train_h + 10/60 (여유 포함 — schedule 은 margin 을 다시 곱하지 않는다)
         r = G.reservation_for(srv, it, measured, seed)
         return r["reservation_h"] if r else G.reservation_hours(est)
-    todo, dropped = G.schedule(bool(cal.get("lambda_E")), lambda it: terminal(tag_of(it)) or _running(tag_of(it)), rem, _reservation, priority=G.priority_for(srv), extra=extra)
+    exempt = lambda it: G.branch_for(srv, it) == "QEDGE9"                 # QEDGE9 §0.7·§9.3: 절대 마감 admission 제외 (soft target 만; NaN/오류/중복 보호는 그대로)
+    blocked = lambda it: not G.cue_ready(it)                                # QEDGE9 §11.3: θq/c_E 자산이 없는 gate run 은 이번 pass 에 편성하지 않는다 (placeholder 금지)
+    todo, dropped = G.schedule(bool(cal.get("lambda_E")), lambda it: terminal(tag_of(it)) or _running(tag_of(it)), rem, _reservation, priority=G.priority_for(srv), extra=extra, exempt=exempt, blocked=blocked)
+    waiting = [it for it in list(G.priority_for(srv)) + list(extra) if not (terminal(tag_of(it)) or _running(tag_of(it))) and blocked(it)]
+    if waiting:
+        log(f"QEDGE9: cue 자산 대기 — θq({G.QEDGE9_CUE_ASSET}) / c_E({G.QEDGE9_CE_FILE}) 미산출: {' '.join(waiting)} (tools/qedge9_cue.py build|pilot 뒤 다음 pass)")
+    if any(exempt(it) for it in todo):
+        log(f"QEDGE9: 시간 정책 soft target {G.QEDGE9_SOFT_HOURS}h — 절대 마감·50h 상속 없음 (해당 run 은 admission 제외, ledger {G.QEDGE9_LEDGER})")
     try:                                                                   # 서버 로컬 예약 파일 (trainer budget.projection_file) — 편성·밀린 run 전부 (완료 run 은 trainer 가 0 으로 센다)
         G.write_reservation_file(srv, list(todo) + list(dropped), measured, seed)
     except Exception as e:                                                 # noqa — 예약 파일 실패가 편성을 막지 않는다 (trainer 는 projected_map 보수값으로)
@@ -395,7 +402,7 @@ def gate_pakd50():
     for it in todo:
         r = G.reservation_for(srv, it, measured, seed); cum += _reservation(it)
         src = f"ref {r['reference_train_h']:.2f}h {r['reference_kind']}" if r else f"ref {est:.2f}h ledger_mean"
-        emit(tag_of(it), f"PAKD50 {G.case_of(it)} ({srv} 명시 순서 편성; λE {lam}, τR {cal.get('tau_R'):.4g}; 남은 {rem_s}h, 예약 {_reservation(it):.2f}h [{src}], 누적 {cum:.2f}h)")
+        emit(tag_of(it), f"{'QEDGE9' if exempt(it) else 'PAKD50'} {G.case_of(it)} ({srv} 명시 순서 편성; λE {lam}, τR {cal.get('tau_R'):.4g}; 남은 {rem_s}h{' (QEDGE9: 마감 제외)' if exempt(it) else ''}, 예약 {_reservation(it):.2f}h [{src}], 누적 {cum:.2f}h)")
 
 
 GATES = {"uvs": ("gate_uvs", "UVS-KD (2026-09-01 s2)"), "sr": ("gate_sr", "shift-robust (SR/AF)"),

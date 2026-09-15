@@ -37,7 +37,8 @@ from kdv.registry import resolve, run_name, describe, stat_tag, arch_prefix
 from kdv.teacher_assets import load_donor_aligner, load_run_model, load_state, freeze, state_hash, assert_param_disjoint, sha256_file, tensors_sha
 from pa.aligner import PANGlobalAligner
 from pa.evalviews import PROTOCOL_ID, evaluator_hash, fixed_roi, VIEWS, scene_views
-from pa.losses import output_edge_loss, direct_geometry_loss, lambda_ramp, geometry_support_margin, scharr
+from pa.losses import output_edge_loss, output_edge_loss_per_sample, direct_geometry_loss, lambda_ramp, geometry_support_margin, scharr
+from kdv.edge_gate import EdgeGate
 from pa.model import PAModel
 from pa.offset import offset_loss, predict_c, lambda_off, sample_offsets
 from pa.selector import BestSelector
@@ -181,7 +182,7 @@ class KDVTrainer(PATrainer):
         self._roi = None; self._rr_val_last = float("nan"); self._rr_val_fit = {}
         self._init_selectors()
         # --- calibration → criteria
-        self._calib = {}; self._calibrate_and_build()
+        self._calib = {}; self.edge_gate = None; self._calibrate_and_build()
         if self.accelerator.is_main_process:
             json.dump(self.init_hashes, open(os.path.join(args.work_dir, "initialization_hashes.json"), "w"), indent=1)
             self._write_manifests(); self._write_kdv_manifests()
@@ -324,6 +325,7 @@ class KDVTrainer(PATrainer):
             if end > dl_s:
                 dec.update(decision=("RUN" if required else "DEFERRED_BUDGET"), warn=bool(required), ok=False)
         rec = dict(started=time.strftime("%Y-%m-%dT%H:%M:%S"), required=required, case=self.case, kind="run", status="RUNNING", used_hours_before=used, projected_hours=proj, margin=margin,
+                   time_policy=self.budget.get("time_policy"),                          # QEDGE9 §9.3: soft target 만 (절대 마감·50h 상속 없음) — 기록용
                    remaining_mandatory=rem_ids, remaining_mandatory_source=("file" if self.budget.get("remaining_mandatory_file") else "config"), pair_with=self.budget.get("pair_with"), **dec)
         d["entries"][self.run_id] = rec if dec["decision"] == "RUN" else dict(rec, status="DEFERRED_BUDGET")
         os.makedirs(os.path.dirname(p), exist_ok=True); json.dump(d, open(p, "w"), indent=1); json.dump(d["entries"][self.run_id], open(os.path.join(self.args.work_dir, "budget_status.json"), "w"), indent=1)
@@ -560,6 +562,15 @@ class KDVTrainer(PATrainer):
                         self.tri_state["lambda_q"] = float(lq); cal["lambda_q"] = dict(lambda_q=float(lq), source="config")
             self.calibration["tri"] = dict(cal, state={kk: (v.tolist() if torch.is_tensor(v) else v) for kk, v in self.tri_state.items() if kk != "prec_fn"})
             self.M.train(was_training)
+        # QEDGE9 (2026-09-15 §3·§7·§8.2): q-gated GT edge — cue 자산(고정 T0 q·θq·gate) 을 Teacher aligner hash·train h5 sha·feeder 계약과 대조해 싣는다. 자산/θq/c_E 가 없으면 여기서 멈춘다(placeholder 금지).
+        self.edge_gate = None
+        if sp.get("edge_gate"):
+            fa = dict(self.args.train_feeder_args)
+            self.edge_gate = EdgeGate.load(sp["edge_gate"], teacher=self.teacher, train_h5=fa["dataroot"], feeder_args=fa, sha_fn=lambda p_: sha_cached(p_, self.init_dir))
+            if self.edge_gate.needs_meta and not bool(fa.get("return_meta", False)):
+                raise ValueError("edge_gate low_q/shuffle 는 train_feeder_args.return_meta: true (sample index·augmentation state) 가 필요하다 — RNG 를 더 소비하지 않는 feeder meta")
+            self.calibration["edge_gate"] = self.edge_gate.summary()
+            print(f"[kdv] edge_gate {self.edge_gate.mode}: θq {self.edge_gate.theta_q} · c_E {self.edge_gate.c_E} · 자산 {self.edge_gate.asset}")
         self._calib.pop("batches", None)
         if self.accelerator.is_main_process:
             json.dump(dict(self.calibration, calibration_set=self._calib.get("set_manifest")), open(os.path.join(self.args.work_dir, "calibration_resolved.json"), "w"), indent=1)
@@ -623,6 +634,7 @@ class KDVTrainer(PATrainer):
                        na_protocol=sp.get("na_protocol"), rec_control=sp.get("rec_control"), resumed=bool(self.resumed_from), resumed_nonexact=bool(self.resumed_from), resumed_from=(str(self.resumed_from) if self.resumed_from else None), stat_axes=dict(windows=sp.get("stat_windows"), transform=sp.get("stat_transform"), domain=sp.get("stat_domain"),
                                                                                                             transform_eps=sp.get("stat_transform_eps"), lambda_scale=sp.get("stat_lambda_scale"), tau_scale=sp.get("rec_tau_scale")),
                        lambda_V=self.lam_V, stat_ramp_updates=self.stat_ramp, lambda_GKD=self.lam_gkd, k0=self.k0, cov_source=sp["cov_source"], cov_status=(self.cov or {}).get("status"),
+                       edge_gate=(self.edge_gate.summary() if getattr(self, "edge_gate", None) is not None else None),
                        tri=sp["tri"], tri_state={kk: (v.tolist() if torch.is_tensor(v) else v) for kk, v in self.tri_state.items() if kk != "prec_fn"},
                        aligner_view_margin=self.aligner_view_margin, guard_margin_hr=self.guard_margin,
                        corruption_seed=self.corr_seed, evaluator_hash=evaluator_hash(), protocol_id=PROTOCOL_ID,
@@ -757,7 +769,7 @@ class KDVTrainer(PATrainer):
                        open(os.path.join(self.args.work_dir, "parent_and_phase.yaml"), "w"))
 
     # ------------------------------------------------------------------ 한 update 의 loss (§12)
-    def _step(self, gt, ms, lpan, pan, step):
+    def _step(self, gt, ms, lpan, pan, step, meta=None):
         sp = self.spec; M = self.M; dev = gt.device; act = self.aligner_active(step)
         pan_view, eps, corrupted = prepare_view(pan, self.protocol, step, self.radius_hr, self.gen)
         t0 = time.time()
@@ -841,7 +853,17 @@ class KDVTrainer(PATrainer):
                 yts = ((y_t.float() - _mb) if _res else y_t.float()) if y_t is not None else None
                 gts = (gt.float() - _mb) if _res else gt.float()
                 if sp["stat_kind"] == "edge":
-                    loss_stat_raw = output_edge_loss(y.float(), gt.float()); info["stat_hard"] = float(loss_stat_raw)
+                    eg = getattr(self, "edge_gate", None)
+                    if eg is not None and eg.mode in ("low_q", "shuffle"):          # QEDGE9 §3.2: λE·(1/B)Σ g_i E_i — Q12 edge 항 교체, active 수로 재정규화 없음; g 는 sg(cue)
+                        edge_i = output_edge_loss_per_sample(y.float(), gt.float()); g_i = eg.gate_for(meta, dev).detach()
+                        loss_stat_raw = (g_i * edge_i).mean(); ga = g_i.sum()
+                        info.update(stat_hard=float(loss_stat_raw), stat_edge_gate_frac=float(g_i.mean()), stat_edge_i_mean=float(edge_i.detach().mean()),
+                                    stat_edge_i_active=float((g_i * edge_i.detach()).sum() / ga) if float(ga) > 0 else 0.0, stat_edge_ungated=float(edge_i.detach().mean()))
+                    elif eg is not None and eg.mode == "const":                       # QEC §6.1: λE·c_E·mean_i E_i
+                        _le = output_edge_loss(y.float(), gt.float()); loss_stat_raw = float(eg.c_E) * _le
+                        info.update(stat_hard=float(loss_stat_raw), stat_edge_c_E=float(eg.c_E), stat_edge_ungated=float(_le))
+                    else:
+                        loss_stat_raw = output_edge_loss(y.float(), gt.float()); info["stat_hard"] = float(loss_stat_raw)
                 elif tri["enabled"] and (tri["b_mode"] != "off" or (tri["c_mode"] != "off" and tri["c_phi"] == "stat")):
                     kind, w = sp["stat_kind"], sp["stat_window"]
                     v_s, v_t, v_g = stat_maps(ys, yts, gts, kind=kind, window=w, transform=tf, transform_eps=tfe)
@@ -1134,12 +1156,12 @@ class KDVTrainer(PATrainer):
     def _diagnose_fixed(self, step, M):
         """고정 diagnostic batch 의 §9.3 분해 (PALSV18 §11.2). 별도 forward graph; ε 는 전용 generator(corr_seed+777, 매번 같은 열); 전역 RNG 는 fork_rng 로 격리;
         self.gen(학습 ε 열)·EMA 통계·optimizer·.grad 를 건드리지 않는다. 기록 gradient_diagnostics_fixed.jsonl."""
-        gt, ms, lpan, pan = self._fixed_batch; dev = gt.device
+        gt, ms, lpan, pan = self._fixed_batch[:4]; meta_f = (self._fixed_batch[4] if len(self._fixed_batch) > 4 else None); dev = gt.device
         gen_train, ema0 = self.gen, dict(self._ema); rr0 = self._rr_val_last
         g = torch.Generator(device="cpu"); g.manual_seed(int(self.corr_seed) + 777); self.gen = g
         try:
             with torch.random.fork_rng(devices=([dev] if dev.type == "cuda" else [])):
-                total, info = self._step(gt, ms, lpan, pan, step)
+                total, info = self._step(gt, ms, lpan, pan, step, meta=meta_f)
                 bp = [p for p in M.backbone.parameters() if p.requires_grad]; ap = list(M.aligner.parameters()) if self.aligner_active(step) else []
                 out = dict(step=int(step), fixed_batch=True, aligner_active=bool(ap), route_A=list(getattr(self, "route_A", (1.0, 1.0, 1.0))), loss_rec=float(info["loss_rec"]), delta_mean=info["delta"].detach().mean(0).tolist(), delta_norm_mean=float(info["delta"].detach().norm(dim=1).mean()))
                 v_rf, out["grad_rec_F"] = self._gnorm(info["loss_rec"], bp)
@@ -1190,7 +1212,8 @@ class KDVTrainer(PATrainer):
         report = Train_Report(); start = time.time()
         B = self.args.batch_size; dev, dt = self.accelerator.device, self.weight_dtype; M = self.M
         times = dict(native=[], corrupt=[], forward=[])
-        for idx, (gt, lms, ms, lpan, pan) in enumerate(self.train_data_loader):
+        for idx, batch in enumerate(self.train_data_loader):
+            gt, lms, ms, lpan, pan = batch[:5]; meta = (batch[5] if len(batch) > 5 else None)     # feeder return_meta (QEDGE9): (index, rot, hflip, vflip) — 없으면 None
             t0 = time.time()
             with self.accelerator.accumulate(self.model):
                 gt, ms, lpan, pan = (t.to(dev, dtype=dt) for t in (gt, ms, lpan, pan))
@@ -1199,7 +1222,7 @@ class KDVTrainer(PATrainer):
                     if self.accelerator.is_main_process and act != self._sched_last:   # 경계 기록 (S5-G03): 0-based next update index, A hash, 그 시점 A LR
                         self._jsonl("aligner_schedule_events.jsonl", dict(step=int(global_step), aligner_active=act, aligner_hash=state_hash(M.aligner), lr_aligner=float(self.optimizer.param_groups[-1]["lr"]),
                                                                           freeze_until=self.freeze_until, freeze_from=self.freeze_from, route_A=list(self.route_A))); self._sched_last = act
-                total, info = self._step(gt, ms, lpan, pan, global_step)
+                total, info = self._step(gt, ms, lpan, pan, global_step, meta=meta)
                 if not torch.isfinite(total):
                     train_log.write(f'[abort] non-finite loss at step {global_step}: {total.item()}'); self._runs_csv("NAN"); self._finish_ledger("NAN"); sys.exit(3)
                 dmax = float(info["delta"].detach().abs().max())
@@ -1209,7 +1232,7 @@ class KDVTrainer(PATrainer):
                     self._diagnose(global_step, info, M)
                     if self._fixed_diag_on:
                         if self._fixed_batch is None:
-                            self._fixed_batch = tuple(t.detach().clone() for t in (gt, ms, lpan, pan))
+                            self._fixed_batch = tuple(t.detach().clone() for t in (gt, ms, lpan, pan)) + ((meta.detach().clone(),) if meta is not None else ())
                         self._diagnose_fixed(global_step, M)
                 routed_now = self._routed and self.aligner_active(global_step)
                 self.accelerator.backward(total, retain_graph=routed_now)

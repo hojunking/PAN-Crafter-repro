@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 """PAKD50 launch gate (계획 §14.1 중 코드로 닫는 것). 하나라도 실패하면 exit 1.   python tools/pakd50_unit_tests.py
 T0 binding · 정책/backend 매핑 · Q12↔X02↔R1↔N0 관계 · edge 정의 · gate detach · offset 수신자 · frozen A · 후보 격자 · 큐 · λE 의존성 · 캠페인 gate 격리
-K17–K20 (2026-09-15 재배정): RC 정책·J_R3_NOEDGE/J_N0_EDGE 정의 · RC trainer step(offset 연습 없음, L_rec → A) · 서버별 명시 순서·예약식·admission · trainer projection_file"""
+K17–K20 (2026-09-15 재배정): RC 정책·J_R3_NOEDGE/J_N0_EDGE 정의 · RC trainer step(offset 연습 없음, L_rec → A) · 서버별 명시 순서·예약식·admission · trainer projection_file
+K23–K28 (2026-09-15 QEDGE9): case/branch/시간 정책 · registry 거부 · per-sample edge·trainer 경로(g=1/0/혼합/const) · q 수식·θq·셔플·cue 자산 · s5/s4 편성·schedule(blocked/exempt) · feeder return_meta · 생성 config"""
 import copy, json, os, subprocess, sys, tempfile
 import torch, yaml
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0, ROOT)
-from kdv.registry import resolve
+from kdv.registry import resolve, stat_tag
 from kdv.losses_rec import GTAnchoredReconstructionKD
 from kdv.teacher_assets import load_run_model, load_donor_aligner, sha256_file, freeze, state_hash
 from pa.aligner import PANGlobalAligner
@@ -34,7 +35,7 @@ check("K01 T0 는 A(0.105M, view margin 4)+U(2.6589M) 한 쌍, 같은 checkpoint
 check("K01 T0 head 가 재초기화되지 않았고(0 아님) donor 와 Teacher 의 aligner state 가 같다", float(al.fc2.weight.abs().sum()) > 0 and state_hash(al) == state_hash(T0.aligner))
 
 # ---------------- K02 정책/backend 매핑 (§4·§6·§7)
-cal = dict(tau_R=0.012, lambda_E=0.3); spec = {c: resolve(G.kdv_block(c, SEED, SRV, cal=cal)) for c in G.CASES}
+cal = dict(tau_R=0.012, lambda_E=0.3); spec = {c: resolve(G.kdv_block(c, SEED, SRV, cal=cal)) for c in G.CASES if c not in G.QEDGE9_CASES}
 check("K02 J*: A-FT + I-AEQ + offset 1e-4 (홀수 update, b=2) · F*: A-FR + I-NATIVE-TRANSFER + offset 0 · AL*: A LR 3e-6", all(spec[c]["policy"] == "A-FT" and spec[c]["protocol"] == "I-AEQ" and abs(spec[c]["offset_weight_effective"] - 1e-4) < 1e-15 for c in ("J0", "JQ", "JR", "XJ", "AL0", "ALQ"))
       and all(spec[c]["policy"] == "A-FR" and not spec[c]["aligner_trainable"] and spec[c]["offset_weight_effective"] == 0 for c in ("F0", "FQ", "FR", "XF")) and G.kdv_block("AL0", SEED, SRV, cal=cal)["aligner_lr"] == 3e-6 and G.kdv_block("J0", SEED, SRV, cal=cal)["aligner_lr"] == 1e-5)
 check("K02 backend: N0=gt(Teacher eval_only) · R1=hard_only(α1, β0) · Q12=adaptive(α1, β0.1)+EDGE-H · X02=hard_only+EDGE-H", spec["J0"]["rec_mode"] == "gt" and spec["J0"]["teacher_eval_only"] and spec["JR"]["rec_mode"] == "hard_only" and not spec["JR"]["stat_enabled"]
@@ -168,7 +169,7 @@ d0, dq, pq, px, lfq, jk0, je0, dpq = (G.kdv_block(c, 2026, "s5", cal=cal4) for c
 check("K11 D0/DQ: freeze_until 5000 · routing 없음 · A LR 1e-5 · 계수 JQ 와 같음 · control D0", d0["aligner_schedule"] == dict(freeze_until=5000) and "routing" not in d0 and dq["aligner_lr"] == 1e-5 and dq["rec"]["kd_weight"] == 0.1 and dq["baseline_run"] == G.run_name("D0", 2026))
 check("K11 PQ: qD=qK=qE=0 · 일정 없음 · control J0 | PX(X02): qK 없음 | JK0: qK=0 만 | JE0: qE=0 만 | DPQ: 일정+routing", pq["routing"] == dict(qD=0.0, qK=0.0, qE=0.0) and "aligner_schedule" not in pq and pq["baseline_run"] == G.run_name("J0", 2026)
       and px["routing"] == dict(qD=0.0, qE=0.0) and jk0["routing"] == dict(qK=0.0) and je0["routing"] == dict(qE=0.0) and dpq["aligner_schedule"] == dict(freeze_until=5000) and dpq["routing"]["qD"] == 0.0)
-check("K11 LFQ: freeze_from 25000 · s5 seed 2026 · 2026-09-14 기본 묶음 J0→JQ→D0→DQ→PQ(PREVIOUS) · stage 1 = J0/D0 · s5 case 전부 registry 통과", lfq["aligner_schedule"] == dict(freeze_from=25000) and G.SERVER_SEED["s5"] == 2026 and G.PREVIOUS_PRIORITY_BY_SERVER["s5"] == ["J0", "JQ", "D0", "DQ", "PQ"] and G.priority_for("s5") == ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"]
+check("K11 LFQ: freeze_from 25000 · s5 seed 2026 · 2026-09-14 기본 묶음 J0→JQ→D0→DQ→PQ(PREVIOUS) · stage 1 = J0/D0 · s5 case 전부 registry 통과", lfq["aligner_schedule"] == dict(freeze_from=25000) and G.SERVER_SEED["s5"] == 2026 and G.PREVIOUS_PRIORITY_BY_SERVER["s5"] == ["J0", "JQ", "D0", "DQ", "PQ"] and G.PREVIOUS_PRIORITY_BY_SERVER["s5_20260915"] == ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"]
       and G.stage_cases("s5", 1) == ["J0", "D0"] and all(_res(G.kdv_block(c, 2026, "s5", cal=cal4)) for c in ("D0", "DQ", "DR", "DX", "PQ", "PR", "PX", "DPQ", "DPX", "LF0", "LFQ", "JK0", "JE0")))
 def _stub(case, seed_gen=3234):        # 실제 KDVTrainer._step 을 CPU 에서 (감사 verify_readonly.py 와 같은 방식). Student = T0 복사 + U 에 작은 잡음 (e_S ≠ e_T 라 soft 항이 살아 있게)
     tr = object.__new__(KDVTrainer); tr.k = G.kdv_block(case, 2026, "s5", cal=cal4); sp_ = tr.spec = resolve(tr.k)
@@ -265,9 +266,9 @@ check("K18 J_N0_EDGE: Teacher forward 없음(y_t None) · edge 항 > 0 · offset
 del tR, tJ, tQ, tE, totR, totQ, totE, totJ
 # K19 서버별 명시 순서·예약식 (§3–§4 검산)·admission (§8)·확인 seed (§7)
 check("K19 명시 순서(§4): s2 JR→XJ→J_R3_NOEDGE→J_N0_EDGE · s4 F0→RC0→RCQ→JR→XJ→J_R3_NOEDGE · s5 PQ→F0→LF0→LFQ→RC0→RCQ; mandatory == priority; s1 은 기본 PRIORITY(s3 는 09-15 s3 추가 전 기본); 완료 묶음은 순서에 없다(FR 도)",
-      G.priority_for("s2") == ["JR", "XJ", "J_R3_NOEDGE", "J_N0_EDGE"] and G.PREVIOUS_PRIORITY_BY_SERVER["s4"] == ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"] and G.priority_for("s5") == ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"]
-      and all(G.mandatory_for(s) == G.priority_for(s) for s in ("s2", "s4", "s5")) and G.priority_for("s1") == G.PRIORITY and G.PREVIOUS_PRIORITY_BY_SERVER["s3"] == G.PRIORITY and not ({"J0", "JQ", "F0", "FQ", "FR"} & set(G.priority_for("s2"))) and "PQ" in G.priority_for("s5"))
-_sum = lambda srv: sum(G.reservation_for(srv, c)["reservation_h"] for c in (G.PREVIOUS_PRIORITY_BY_SERVER["s4"] if srv == "s4" else G.priority_for(srv)))
+      G.priority_for("s2") == ["JR", "XJ", "J_R3_NOEDGE", "J_N0_EDGE"] and G.PREVIOUS_PRIORITY_BY_SERVER["s4"] == ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"] and G.PREVIOUS_PRIORITY_BY_SERVER["s5_20260915"] == ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"]
+      and all(G.mandatory_for(s) == G.priority_for(s) for s in ("s2", "s4", "s5")) and G.priority_for("s1") == G.PRIORITY and G.PREVIOUS_PRIORITY_BY_SERVER["s3"] == G.PRIORITY and not ({"J0", "JQ", "F0", "FQ", "FR"} & set(G.priority_for("s2"))) and "PQ" in G.PREVIOUS_PRIORITY_BY_SERVER["s5_20260915"])
+_sum = lambda srv: sum(G.reservation_for(srv, c)["reservation_h"] for c in (G.PREVIOUS_PRIORITY_BY_SERVER["s4"] if srv == "s4" else (G.PREVIOUS_PRIORITY_BY_SERVER["s5_20260915"] if srv == "s5" else G.priority_for(srv))))
 check("K19 예약식 reservation_h = 1.10×ref + 10/60 (§3 검산): s2 4×2.33 → 10.9187 · s4 2×1.17+4×1.39 → 9.6900 · s5 1.80+3×1.35+2×1.36 → 10.4270 (측정값 없이)",
       abs(_sum("s2") - 10.9186667) < 1e-6 and abs(_sum("s4") - 9.69) < 1e-6 and abs(_sum("s5") - 10.427) < 1e-6 and abs(G.reservation_hours(2.33) - 2.7296667) < 1e-6)
 check("K19 기준값 출처: N0 형/T 형은 서버 계획값(s2 는 전부 2.33) · PQ 는 routing 가예약 1.80 · 같은 서버 같은 case 실측이 있으면 그것 · routing 실측이 생기면 다른 routing case 도 그 평균 · 확인 seed 는 1.80 가예약",
@@ -278,7 +279,7 @@ _est = lambda srv: (lambda it: G.reservation_for(srv, it)["reservation_h"])
 check("K19 편성: s2 완료(J0/F0/JQ/FQ) 뒤 남은 전부 명시 순서 · s4/s5 도 · 실행 중 PQ 는 제외(그 뒤부터) · s2 남은 5.0h 면 JR 만(2.73+2.73 > 5) · est callable 이면 margin 을 다시 곱하지 않는다",
       G.schedule(True, term({"J0", "F0", "JQ", "FQ"}), 40.0, _est("s2"), priority=G.priority_for("s2")) == (["JR", "XJ", "J_R3_NOEDGE", "J_N0_EDGE"], [])
       and G.schedule(True, term({"AL0", "J0", "JQ", "ALQ"}), 40.0, _est("s4"), priority=G.PREVIOUS_PRIORITY_BY_SERVER["s4"]) == (["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"], [])
-      and G.schedule(True, term({"J0", "JQ", "D0", "DQ", "PQ"}), 40.0, _est("s5"), priority=G.priority_for("s5")) == (["F0", "LF0", "LFQ", "RC0", "RCQ"], [])
+      and G.schedule(True, term({"J0", "JQ", "D0", "DQ", "PQ"}), 40.0, _est("s5"), priority=G.PREVIOUS_PRIORITY_BY_SERVER["s5_20260915"]) == (["F0", "LF0", "LFQ", "RC0", "RCQ"], [])
       and G.schedule(True, term({"J0", "F0", "JQ", "FQ"}), 5.0, _est("s2"), priority=G.priority_for("s2")) == (["JR"], ["XJ", "J_R3_NOEDGE", "J_N0_EDGE"])
       and G.schedule(True, term({"J0", "F0", "JQ", "FQ"}), 5.46, _est("s2"), priority=G.priority_for("s2")) == (["JR", "XJ"], ["J_R3_NOEDGE", "J_N0_EDGE"]))
 check("K19 확인 seed(§7): s4 3407 / s5 9091 · 묶음 = WIN → 같은 policy no-KD control → F0 (F0 가 control 이면 2 run) · 최대 3", G.CONFIRM_SEED["s4"] == 3407 and G.CONFIRM_SEED["s5"] == 9091 and G.confirmation_cases("RCQ") == ["RCQ", "RC0", "F0"] and G.confirmation_cases("LFQ") == ["LFQ", "LF0", "F0"]
@@ -324,9 +325,9 @@ try:
 except ValueError:
     check("K22 알 수 없는 골격은 ValueError", True)
 _s4 = lambda it: G.reservation_for("s4", it)["reservation_h"]
-check("K22 s4 명시 순서 NA0→J0→JQ→XJ→F0 (@W104_D121) · 파생 묶음(F0/RC0/RCQ/JR/XJ/J_R3_NOEDGE@W112) 은 PREVIOUS · reference 1.18/1.18/1.40/1.39/1.14 → 예약 합 7.752333 h(§8.2) · 편성은 W112 완료 run 과 별개(같은 case 라도 골격이 다르면 다른 run)",
-      G.priority_for("s4") == ["NA0@W104_D121", "J0@W104_D121", "JQ@W104_D121", "XJ@W104_D121", "F0@W104_D121"] and G.PREVIOUS_PRIORITY_BY_SERVER["s4"] == ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"] and abs(sum(_s4(c) for c in G.priority_for("s4")) - 7.7523333) < 1e-6
-      and G.reference_hours("s4", "JQ@W104_D121") == (1.40, "plan_reference_case") and G.reference_hours("s4", "JQ") == (1.39, "plan_reference") and G.schedule(True, term({G.run_name("F0", 1234), G.run_name("JQ", 1234)}), 40.0, _s4, priority=G.priority_for("s4")) == (G.priority_for("s4"), [])
+check("K22 s4 명시 순서 NA0→J0→JQ→XJ→F0 (@W104_D121; 뒤 QEDGE9 3 항목은 K26) · 파생 묶음(F0/RC0/RCQ/JR/XJ/J_R3_NOEDGE@W112) 은 PREVIOUS · reference 1.18/1.18/1.40/1.39/1.14 → 예약 합 7.752333 h(§8.2) · 편성은 W112 완료 run 과 별개(같은 case 라도 골격이 다르면 다른 run)",
+      G.priority_for("s4")[:5] == ["NA0@W104_D121", "J0@W104_D121", "JQ@W104_D121", "XJ@W104_D121", "F0@W104_D121"] and G.PREVIOUS_PRIORITY_BY_SERVER["s4"] == ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"] and abs(sum(_s4(c) for c in G.priority_for("s4")[:5]) - 7.7523333) < 1e-6
+      and G.reference_hours("s4", "JQ@W104_D121") == (1.40, "plan_reference_case") and G.reference_hours("s4", "JQ") == (1.39, "plan_reference") and G.schedule(True, term({G.run_name("F0", 1234), G.run_name("JQ", 1234)}), 40.0, _s4, priority=G.priority_for("s4")[:5]) == (G.priority_for("s4")[:5], [])
       and G.measured_hours_from_ledger("s4", dict(entries={G.run_name("JQ", 1234): dict(kind="run", status="FINISHED", hours=1.39), G.run_name("JQ", 1234, arch="W104_D121"): dict(kind="run", status="FINISHED", hours=0.9)})) == {"JQ": 1.39, "JQ@W104_D121": 0.9})
 _cb = G.confirmation_cases("JQ", "s4"); _cr = [G.reservation_for("s4", G.to_tag(it, 3407)) for it in _cb]
 check("K22 s4 확인(§6): seed 3407 · 묶음 J0@W104 → WIN@W104 → J0@W112 → WIN@W112 (WIN ∈ JQ/XJ/F0; 최대 4) · reference J0 1.18 · WIN 1.40 → 6.342667 h(§8.2) · 표 밖 후보(RC0) 거부",
@@ -376,4 +377,158 @@ r0 = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "campaign_gate.
 check("K05 campaign gate 기본 닫힘", r0.stdout.strip() == "")
 src = open(os.path.join(ROOT, "train_kdv.py")).read()
 check("K05 trainer: 후보 보존·고정 batch 진단·ledger 잠금·donor expected_step 검사·frozen aligner hash gate(L03) 존재", all(x in src for x in ("retain_all_candidates", "gradient_diagnostics_fixed.jsonl", "_LedgerLock", "_check_donor_step", "frozen aligner(A-FR) state")))
+
+# ================= K23–K28 QEDGE9 (research_log/PAN_QEDGE9_W104D121_S5_S4_Experiment_Plan_2026-09-15.md): W104·D121 q-gated GT edge · s5 두 seed + s4 · soft time policy · cue 자산
+import filecmp, random as _random
+import h5py as _h5, numpy as _np
+from kdv import edge_gate as EG
+from kdv.edge_gate import EdgeGate
+from kdv.registry import describe as _desc
+from pa.losses import output_edge_loss_per_sample
+from feeders.feeder import PanFeeder
+calQ = dict(tau_R=0.012463942170143127, lambda_E=0.09075170336956798)
+_kQ = {c: G.kdv_block(c, 2026, "s5", cal=calQ, arch="W104_D121", branch="QEDGE9") for c in ("QE50", "QEC", "QES", "J0", "JQ")}; _sQ = {c: resolve(k) for c, k in _kQ.items()}
+check("K23 QEDGE9 case(§3·§4·§6): QE50/QEC/QES = J 정책(A-FT·I-AEQ·offset 1e-4 홀수·A LR 1e-5) + R3 adaptive(α1 β0.1 τR 고정) + EDGE-H(λE0 고정) + edge_gate low_q/const/shuffle · J0/JQ 는 gate 없음 · 전부 W104 expect_arch · 토큰 EDGEHQ50/QC/QS · describe 에 gate 서술",
+      all(_sQ[c]["policy"] == "A-FT" and _sQ[c]["protocol"] == "I-AEQ" and _sQ[c]["rec_mode"] == "adaptive" and _sQ[c]["stat_key"] == "EDGE" and _sQ[c]["stat_mode"] == "H" and _kQ[c]["aligner_lr"] == 1e-5
+          and abs(_sQ[c]["offset_weight_effective"] - 1e-4) < 1e-12 and _kQ[c]["rec"]["tau"] == calQ["tau_R"] and _kQ[c]["rec"]["alpha"] == 1.0 and _kQ[c]["rec"]["kd_weight"] == 0.1 and _kQ[c]["stat"]["outer_weight"] == calQ["lambda_E"] for c in ("QE50", "QEC", "QES"))
+      and [_sQ[c]["edge_gate"]["mode"] for c in ("QE50", "QEC", "QES")] == ["low_q", "const", "shuffle"] and _sQ["J0"]["edge_gate"] is None and _sQ["JQ"]["edge_gate"] is None
+      and all(_kQ[c]["expect_arch"] == dict(width=104, depth=[1, 2, 1], noalign=False) for c in _kQ) and _kQ["QE50"]["edge_gate"]["asset"] == G.QEDGE9_CUE_ASSET and _kQ["QEC"]["edge_gate"]["c_E_file"] == G.QEDGE9_CE_FILE
+      and _kQ["QES"]["edge_gate"]["perm_seed"] == 51515 and [stat_tag(_sQ[c]) for c in ("QE50", "QEC", "QES", "JQ")] == ["EDGEHQ50", "EDGEHQC", "EDGEHQS", "EDGEH"] and "GT edge gate low_q" in _desc(_sQ["QE50"]) and "hard/soft 는 Q12 그대로" in _desc(_sQ["QES"]))
+check("K23 QEDGE9 branch·시간 정책(§0.7·§9.3·§11.1): campaign QEDGE9_A104D121_20260915_v1 · parent PAKD50 · branch A104D121_T0FIX_QEDGE9_v1 · 자체 ledger soft 9h · required True(경고만) · training_deadline 없음 · time_policy soft_target_only/inherit False · projected 1.5h · s4 JQ@W104(E0) 는 마감 상속 그대로",
+      all(_kQ[c]["campaign_id"] == "QEDGE9_A104D121_20260915_v1" and _kQ[c]["parent_campaign_id"] == G.CAMPAIGN_ID and _kQ[c]["experiment_branch_id"] == "A104D121_T0FIX_QEDGE9_v1" and _kQ[c]["budget"]["ledger"] == G.QEDGE9_LEDGER
+          and _kQ[c]["budget"]["required"] is True and "training_deadline" not in _kQ[c]["budget"] and _kQ[c]["budget"]["time_policy"] == dict(mode="soft_target_only", target_elapsed_hours=9.0, hard_deadline=None, inherit_parent_deadline=False)
+          and _kQ[c]["budget"]["total_gpu_hours"] == 9.0 and list(_kQ[c]["budget"]["projected_map"].values()) == [1.5] and _kQ[c]["budget"]["remaining_mandatory_file"] == G.QEDGE9_MANDATORY_FILE for c in _kQ)
+      and G.kdv_block("JQ", 1234, "s4", cal=calQ, arch="W104_D121")["budget"].get("training_deadline") == G.training_deadline() and G.kdv_block("JQ", 1234, "s4", cal=calQ, arch="W104_D121")["experiment_branch_id"] == "A104D121_T0FIX_E0_v1")
+check("K23 gate case 는 branch 를 안 줘도 QEDGE9 (자동)", G.kdv_block("QE50", 1234, "s4", cal=calQ, arch="W104_D121")["campaign_id"] == "QEDGE9_A104D121_20260915_v1")
+for _lab, _fn in (("K23 QEDGE9 는 W104 전용 (W112 거부)", lambda: G.kdv_block("QE50", 1234, "s4", cal=calQ, arch="W112_D123", branch="QEDGE9")), ("K23 gate case 는 W112 기본 골격에서 거부", lambda: G.kdv_block("QE50", 1234, "s4", cal=calQ))):
+    try:
+        _fn(); check(_lab, False)
+    except SystemExit:
+        check(_lab, True)
+def _rejQ(**kw):
+    k = copy.deepcopy(_kQ["QE50"]); k.update(kw)
+    try:
+        resolve(k); return False
+    except ValueError:
+        return True
+check("K23 registry: edge_gate 는 EDGE-H 위에서만(stat OFF 거부) · routing 결합 거부 · Teacher 없으면 거부 · asset 없으면 거부 · const 의 c_E/c_E_file 둘 다·둘 다 없음 거부 · shuffle seed≠51515 거부 · 알 수 없는 키·mode 거부 · 정상은 통과",
+      _rejQ(stat=dict(enabled=False)) and _rejQ(routing=dict(qE=0.0)) and _rejQ(teacher=None, rec=dict(case="N0")) and _rejQ(edge_gate=dict(mode="low_q")) and _rejQ(edge_gate=dict(mode="const", asset=G.QEDGE9_CUE_ASSET))
+      and _rejQ(edge_gate=dict(mode="const", asset=G.QEDGE9_CUE_ASSET, c_E=0.5, c_E_file="x.json")) and _rejQ(edge_gate=dict(mode="shuffle", asset=G.QEDGE9_CUE_ASSET, perm_seed=7)) and _rejQ(edge_gate=dict(mode="low_q", asset=G.QEDGE9_CUE_ASSET, foo=1))
+      and _rejQ(edge_gate=dict(mode="nope", asset=G.QEDGE9_CUE_ASSET)) and not _rejQ() and not _rejQ(edge_gate=dict(mode="const", asset=G.QEDGE9_CUE_ASSET, c_E=0.61)))
+# ---- K24 per-sample edge · trainer 경로 (실제 KDVTrainer._step, CPU): g=1 == JQ · g=0 → edge 0 / hard·soft·offset gradient 유지 · 혼합 · const · 저오차 patch · Teacher·GT detach
+g11 = torch.Generator().manual_seed(11); _yh = torch.rand(3, 8, 64, 64, generator=g11); _yy = torch.rand(3, 8, 64, 64, generator=g11)
+check("K24 E_i: output_edge_loss_per_sample [B] 의 평균 == output_edge_loss (1e-7)", tuple(output_edge_loss_per_sample(_yh, _yy).shape) == (3,) and abs(float(output_edge_loss_per_sample(_yh, _yy).mean()) - float(output_edge_loss(_yh, _yy))) < 1e-7)
+def _stubQ(case, student, eg=None, seed_gen=3234):
+    tr = object.__new__(KDVTrainer); tr.k = G.kdv_block(case, 2026, "s5", cal=calQ, arch="W104_D121", branch="QEDGE9"); sp_ = tr.spec = resolve(tr.k)
+    tr.model = student; tr.accelerator = types.SimpleNamespace(unwrap_model=lambda m: m, gradient_accumulation_steps=1, scaler=None, is_main_process=True)
+    tr.teacher = T0; tr.aligner_trainable = True; tr.aligner_view_margin = 4; tr.share_correction = False; tr.protocol = sp_["protocol"]; tr.radius_hr = sp_["radius_hr"]; tr.diag_every = 10 ** 9
+    tr.rec_crit = GTAnchoredReconstructionKD(calQ["tau_R"], alpha=1.0, kd_weight=0.1, eps=1e-6, mode="adaptive"); tr.tri = sp_["tri"]; tr.stat_extra = []; tr.lam_V = calQ["lambda_E"]; tr.stat_ramp = 0
+    tr.lam_edge = 0; tr.lam_geo = 0; tr.ramp = 5000; tr.lam_gkd = 0; tr.gen = torch.Generator().manual_seed(seed_gen); tr.corr_seed = seed_gen; tr._ema = {}; tr._rr_val_last = float("nan"); tr.args = types.SimpleNamespace(num_iter=50000)
+    tr.freeze_until, tr.freeze_from = None, None; tr.route_A = (1.0, 1.0, 1.0); tr._routed = False; tr._sched_last = None; tr.edge_gate = eg
+    return tr
+_metaQ = torch.tensor([[0, 0, 1, 1], [1, 2, 1, 1]], dtype=torch.int64); _S = lambda: copy.deepcopy(_S104).train().requires_grad_(True)
+_g = lambda loss, m: torch.cat([(x if x is not None else torch.zeros_like(p_)).flatten() for x, p_ in zip(torch.autograd.grad(loss, list(m.parameters()), retain_graph=True, allow_unused=True), list(m.parameters()))])
+trJ = _stubQ("JQ", _S()); totJ, infoJ = trJ._step(_gt, _ms, _lp, _pn, 1); LEwJ = infoJ["_edge_w_t"]; gU_J = _g(totJ, trJ.M.backbone); gA_J = _g(totJ, trJ.M.aligner); gU_J0 = _g(totJ - LEwJ, trJ.M.backbone); gA_J0 = _g(totJ - LEwJ, trJ.M.aligner)
+tr1 = _stubQ("QE50", _S(), EdgeGate.synthetic("low_q", table=torch.ones(2, 4))); tot1, info1 = tr1._step(_gt, _ms, _lp, _pn, 1, meta=_metaQ)
+tr0 = _stubQ("QE50", _S(), EdgeGate.synthetic("low_q", table=torch.zeros(2, 4))); tot0, info0 = tr0._step(_gt, _ms, _lp, _pn, 1, meta=_metaQ)
+trm = _stubQ("QES", _S(), EdgeGate.synthetic("shuffle", table=torch.tensor([[1., 1, 1, 1], [0, 0, 0, 0]]))); totm, infom = trm._step(_gt, _ms, _lp, _pn, 1, meta=_metaQ)
+trc = _stubQ("QEC", _S(), EdgeGate.synthetic("const", c_E=0.37)); totc, infoc = trc._step(_gt, _ms, _lp, _pn, 1)
+_rel = lambda a, b: float((a - b).abs().max()) / (1.0 + float(b.abs().max()))
+_Ei = output_edge_loss_per_sample(info1["y"].detach().float(), _gt.float())
+check("K24 g=1: total·λE·L_E 가 JQ 와 같다(1e-6) · U/A gradient 동일(1e-6 상대) · g=0: edge 항 정확히 0, total = JQ − λE L_E, U/A gradient == ∇(L_H + L_K + λoff L_off) · 혼합(sample0 만): λE·E_0/2, gate 비율 0.5 · const: 0.37·L_E",
+      abs(float(tot1) - float(totJ)) < 1e-6 and abs(float(info1["_edge_w_t"]) - float(LEwJ)) < 1e-7 and _rel(_g(tot1, tr1.M.backbone), gU_J) < 1e-6 and _rel(_g(tot1, tr1.M.aligner), gA_J) < 1e-6
+      and float(info0["_edge_w_t"]) == 0.0 and abs(float(tot0) - float(totJ - LEwJ)) < 1e-6 and _rel(_g(tot0, tr0.M.backbone), gU_J0) < 1e-6 and _rel(_g(tot0, tr0.M.aligner), gA_J0) < 1e-6
+      and abs(float(infom["loss_stat_raw"]) - float(_Ei[0]) / 2) < 1e-6 and infom["stat_edge_gate_frac"] == 0.5 and abs(float(infoc["loss_stat_raw"]) - 0.37 * float(output_edge_loss(infoc["y"].detach().float(), _gt.float()))) < 1e-7,
+      f"Δtot {abs(float(tot1) - float(totJ)):.2e} ΔLE {abs(float(info1['_edge_w_t']) - float(LEwJ)):.2e}")
+_rQ = tr1.rec_crit(info1["y_t"], info1["y_t"], _gt.float(), return_maps=True)
+check("K24 저오차 patch(§2.2·§8.2): w_H = 1 + α d_T ≥ 1 어디서나(GT hard 삭제 없음) · e_S ≤ e_T 면 a_T = 0 → soft 0 · Teacher/GT detach(y_t 에 grad 없음, T0 parameter requires_grad False) · gate 조회 (index, rot) 표",
+      float(_rQ.maps["hard_weight"].min()) >= 1.0 and float(_rQ.soft) == 0.0 and float(tr1.rec_crit(info1["y"].detach(), info1["y_t"], _gt.float(), return_maps=True).maps["hard_weight"].min()) >= 1.0
+      and not info1["y_t"].requires_grad and all(not p_.requires_grad for p_ in T0.parameters())
+      and torch.equal(EdgeGate.synthetic("low_q", table=torch.tensor([[1., 1, 1, 1], [0, 0, 0, 0]])).gate_for(_metaQ, torch.device("cpu")), torch.tensor([1., 0.])))
+try:
+    EdgeGate.synthetic("low_q", table=torch.ones(2, 4)).gate_for(None, torch.device("cpu")); check("K24 meta 없이 gate 조회는 ValueError", False)
+except ValueError:
+    check("K24 meta 없이 gate 조회는 ValueError", True)
+# ---- K25 cue 수식·자산: q 부호/단위 · θq 중앙값·동일값 0 · 셔플 stratum 보존 · 실제 자산(있으면) 검증
+class _IdealA(torch.nn.Module):
+    """top 절반 = a·y ramp, bottom 절반 = b·x ramp 인 PAN 에 대해 warp 를 정확히 읽는 aligner: c = −ε (c0 = 0). bicubic 은 선형 ramp 를 내부에서 정확히 재현한다."""
+    def __init__(self, a, b, base):
+        super().__init__(); self.a, self.b = a, b; self.w = torch.nn.Parameter(torch.zeros(1)); self.m_top = float(base[..., 4:20, 4:52].mean()); self.m_bot = float(base[..., 36:52, 4:52].mean())
+    def forward(self, pan_view, ms_view):
+        cy = (pan_view[..., 4:20, 4:52].mean(dim=(1, 2, 3)) - self.m_top) / self.a; cx = (pan_view[..., 36:52, 4:52].mean(dim=(1, 2, 3)) - self.m_bot) / self.b
+        return torch.stack((-cy, -cx), 1) + 0 * self.w
+class _ConstA(torch.nn.Module):
+    def __init__(self):
+        super().__init__(); self.w = torch.nn.Parameter(torch.zeros(1))
+    def forward(self, pan_view, ms_view):
+        return torch.zeros(pan_view.shape[0], 2) + 0 * self.w
+_yy_, _xx_ = torch.meshgrid(torch.arange(64.), torch.arange(64.), indexing="ij"); _P = torch.where(_yy_ < 32, 0.01 * _yy_, 0.02 * _xx_)[None, None].expand(2, 1, 64, 64).contiguous()
+_Pv = _P[..., 4:-4, 4:-4]; _A = _IdealA(0.01, 0.02, _Pv); _q_ideal, _c0 = EG.teacher_q(_A, _P, torch.zeros(2, 8, 16, 16), 4); _q_const, _ = EG.teacher_q(_ConstA(), _P, torch.zeros(2, 8, 16, 16), 4)
+class _WrongA(_IdealA):
+    def forward(self, pan_view, ms_view):
+        return -super().forward(pan_view, ms_view)                              # 부호 반대(ĉε = ĉ0 + ε) → 잔차 2ε
+_q_wrong, _ = EG.teacher_q(_WrongA(0.01, 0.02, _Pv), _P, torch.zeros(2, 8, 16, 16), 4)
+_exact = max(float((predict_c(_A, warp_pan(_P, torch.tensor([e_]).expand(2, 2)), torch.zeros(2, 8, 64, 64), 4)[0] + torch.tensor(e_)).abs().max()) for e_ in ([1.0, 0.0], [0.0, 2.0], [0.5, 0.0], [0.0, -1.0]))
+check("K25 q 부호·단위(§2.1·§8.2): 이상 aligner(ĉε = ĉ0 − ε) 에서 정수·반정수 이동은 잔차 < 1e-4(정확), bank 전체 q < 0.01(r=.25 의 bicubic a=−0.75 보간 오차만) ≪ 무반응 aligner q = mean|ε| 성분 0.46875 ≪ 부호 반대 aligner q ≈ 0.9375 · bank = 16 probe, r {.25,.5,1,2} × 축 4 방향, λoff 없음",
+      _exact < 1e-4 and float(_q_ideal.abs().max()) < 0.01 and abs(float(_q_const[0]) - 0.46875) < 1e-9 and abs(float(_q_wrong[0]) - 0.9375) < 0.02 and abs(EG.q_const_component() - 0.46875) < 1e-12 and len(EG.probe_bank()) == 16
+      and all((p_["ey"] == 0) != (p_["ex"] == 0) for p_ in EG.probe_bank()), f"exact {_exact:.1e} q_ideal {float(_q_ideal.abs().max()):.2e} q_wrong {float(_q_wrong[0]):.4f}")
+_qs = _np.array([0.1, 0.3, 0.3, 0.5, 0.2, 0.9]); _th = EG.theta_from(_qs)
+_rng = _np.random.RandomState(3); _gate = (_rng.rand(4000) < 0.5).astype(_np.int8); _st = _rng.randint(0, 40, 4000); _st[:50] = 99; _gate[:50] = 1
+_g1, _st1 = EG.shuffle_gate(_gate, _st); _g2, _ = EG.shuffle_gate(_gate, _st)
+check("K25 θq = 중앙값 · g = 1[q < θq] (동일값 0) · QES 셔플: stratum 별 active 수 보존 · 결정적(seed 51515) · 단일 라벨 stratum 은 그대로(비율 기록) · 라벨이 실제로 바뀐다",
+      _th == 0.3 and EG.gate_low_q(_qs, _th).tolist() == [1, 0, 0, 0, 1, 0] and all(_g1[_st == s_].sum() == _gate[_st == s_].sum() for s_ in _np.unique(_st)) and _np.array_equal(_g1, _g2) and _np.array_equal(_g1[:50], _gate[:50])
+      and _st1["n_degenerate"] == 1 and _st1["n_shuffled"] == 40 and (_g1 != _gate).mean() > 0.2)
+_asset = os.path.join(ROOT, G.QEDGE9_CUE_ASSET)
+if os.path.exists(_asset):
+    _man, _z = EG.read_asset(G.QEDGE9_CUE_ASSET); _cm = _z["calib_mask"]
+    _egL = EdgeGate.load(dict(mode="low_q", asset=G.QEDGE9_CUE_ASSET), teacher=T0, train_h5=os.path.join(ROOT, _man["dataset"]["train"]), feeder_args=dict(hflip=True, vflip=True, rot=True, crop=False), sha_fn=lambda p_: _man["dataset"]["train_sha256"])
+    try:
+        EdgeGate.load(dict(mode="low_q", asset=G.QEDGE9_CUE_ASSET), teacher=T0, feeder_args=dict(hflip=True, vflip=True, rot=False, crop=False)); _bad_contract = False
+    except ValueError:
+        _bad_contract = True
+    check("K25 실제 cue 자산: θq == median(q[calibration view]) · gate == 1[q<θq] · calibration 3072 base × 4 · 선택 비율 ≈ 0.5 · Teacher A hash == T0 · EdgeGate.load 통과(표 완비) · feeder 계약 다르면 거부 · 셔플 gate 의 stratum 별 active 수 == low_q",
+          abs(_man["theta_q"] - float(_np.median(_z["q"][_cm]))) < 1e-12 and _np.array_equal(_z["gate_low_q"], (_z["q"] < _man["theta_q"]).astype(_np.int8)) and int(_cm.sum()) == 3072 * 4 and abs(_man["selection"]["all_frac"] - 0.5) < 0.02
+          and _man["teacher"]["aligner_state_hash"] == state_hash(T0.aligner) and _egL.table.shape == (_man["dataset"]["n_train"], 4) and not bool(torch.isnan(_egL.table).any()) and _bad_contract
+          and all(_z["gate_shuffle"][(_z["e_decile"] == d_) & (_z["rot"] == r_)].sum() == _z["gate_low_q"][(_z["e_decile"] == d_) & (_z["rot"] == r_)].sum() for d_ in range(10) for r_ in range(4)) and _man["bank"]["id"] == EG.BANK_ID and _man["calibration"]["seed"] == 1234)
+else:
+    check("K25 실제 cue 자산 (assets/qedge9) — 없음: tools/qedge9_cue.py build (s1) 뒤 git 으로 전달", False)
+# ---- K26 편성(§5·§6·§9.2)
+_p5 = G.priority_for("s5"); _p4 = G.priority_for("s4"); _r = lambda srv, it: G.reservation_for(srv, it)
+check("K26 s5 명시 순서(§5): J0→JQ→QE50 @W104 S2026 → J0→JQ→QE50 @W104 S777(run 이름 항목) · 전부 QEDGE9 branch · 777 은 허용 seed(확인 seed 아님; 9091 은 확인) · 예약 1.6517/1.6627/1.8167 ×2 = 10.2620 h · 옛 순서는 PREVIOUS['s5_20260915'] · cue 없는 QEC 는 cue_ready False",
+      _p5 == ["J0@W104_D121", "JQ@W104_D121", "QE50@W104_D121", G.run_name("J0", 777, arch="W104_D121"), G.run_name("JQ", 777, arch="W104_D121"), G.run_name("QE50", 777, arch="W104_D121")]
+      and all(G.branch_for("s5", it) == "QEDGE9" for it in _p5) and G.allowed_seeds("s5") == {2026, 777} and abs(sum(_r("s5", it)["reservation_h"] for it in _p5) - 10.262) < 1e-6
+      and [_r("s5", it)["reference_kind"] for it in _p5] == ["plan_reference_case"] * 6 and [_r("s5", it)["seed"] for it in _p5] == [2026, 2026, 2026, 777, 777, 777] and _r("s5", G.run_name("J0", 9091, arch="W104_D121"))["reference_kind"] == "confirm_placeholder"
+      and G.PREVIOUS_PRIORITY_BY_SERVER["s5_20260915"] == ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"] and G.mandatory_for("s5") == _p5 and G.cue_ready("J0@W104_D121") is True and G.cue_ready("QEC@W104_D121") == os.path.exists(os.path.join(ROOT, G.QEDGE9_CE_FILE)))
+check("K26 s4 명시 순서(§6): NA0→J0→JQ→XJ→F0 @W104(기존 E0, 마감 상속) → QE50→QEC→QES @W104(QEDGE9) · 새 3 run 예약 1.8167/1.7067/1.8167 = 5.3401 h · 잔여 JQ/XJ/F0 1.7067/1.6957/1.4207 = 4.8231 h(§9.2 합 10.163) · 확인 seed 3407 규칙은 그대로",
+      _p4 == ["NA0@W104_D121", "J0@W104_D121", "JQ@W104_D121", "XJ@W104_D121", "F0@W104_D121", "QE50@W104_D121", "QEC@W104_D121", "QES@W104_D121"] and [G.branch_for("s4", it) for it in _p4] == [None] * 5 + ["QEDGE9"] * 3
+      and abs(sum(_r("s4", it)["reservation_h"] for it in _p4[5:]) - 5.3401) < 1e-4 and abs(sum(_r("s4", it)["reservation_h"] for it in _p4[2:5]) - 4.8231) < 1e-4 and G.allowed_seeds("s4") == {1234} and G.confirmation_cases("JQ", "s4") == ["J0@W104_D121", "JQ@W104_D121", "J0", "JQ"])
+check("K26 schedule(gate): blocked(cue 없음) 항목은 그 pass 에서 건너뛰고 뒤 항목은 계속 · exempt(QEDGE9) 는 남은 시간 admission 을 소비하지 않는다 · 옛 동작 불변 · measured_hours_from_ledger 가 s5 의 777 run 실측을 받는다(case@arch 키; 9091 은 제외)",
+      G.schedule(True, term(set()), 2.0, lambda c: 1.7, priority=["A", "B", "C"], blocked=lambda c: c == "B") == (["A"], ["C"]) and G.schedule(True, term(set()), 2.0, lambda c: 1.7, priority=["A", "B", "C"], blocked=lambda c: c == "B", exempt=lambda c: c == "C") == (["A", "C"], [])
+      and G.schedule(True, term(set()), 2.0, lambda c: 1.7, priority=["A", "B", "C"]) == (["A"], ["B", "C"])
+      and G.measured_hours_from_ledger("s5", dict(entries={G.run_name("J0", 777, arch="W104_D121"): dict(kind="run", status="FINISHED", hours=1.2), G.run_name("J0", 9091, arch="W104_D121"): dict(kind="run", status="FINISHED", hours=1.0)})) == {"J0@W104_D121": 1.2})
+# ---- K27 feeder return_meta: 같은 RNG 상태에서 텐서 bitwise 동일 · meta = (index, rot, hflip, vflip) · RNG 소비 동일 · apply_view/to_feeder_tensor == feeder 출력
+_td = tempfile.mkdtemp(); _h5p = os.path.join(_td, "train_wv3_tiny.h5"); _rs = _np.random.RandomState(0)
+with _h5.File(_h5p, "w") as _f:
+    _f["gt"] = _rs.randint(0, 2048, (3, 8, 64, 64)).astype(_np.float32); _f["lms"] = _rs.randint(0, 2048, (3, 8, 64, 64)).astype(_np.float32); _f["ms"] = _rs.randint(0, 2048, (3, 8, 16, 16)).astype(_np.float32); _f["pan"] = _rs.randint(0, 2048, (3, 1, 64, 64)).astype(_np.float32)
+with _h5.File(_h5p.replace(".h5", "_pan.h5"), "w") as _f:
+    _f["lpan"] = _rs.randint(0, 2048, (3, 1, 16, 16)).astype(_np.float32)
+_dsM = PanFeeder(_h5p, crop=False, hflip=True, vflip=True, rot=True, return_meta=True); _ds0 = PanFeeder(_h5p, crop=False, hflip=True, vflip=True, rot=True)
+_random.seed(77); _oM = _dsM[1]; _stM = _random.getstate(); _random.seed(77); _o0 = _ds0[1]; _st0 = _random.getstate()
+_okM = len(_oM) == 6 and len(_o0) == 5 and all(torch.equal(a_, b_) for a_, b_ in zip(_oM[:5], _o0)) and _stM == _st0 and _oM[5].tolist()[0] == 1 and _oM[5].tolist()[2:] == [1, 1] and _oM[5].dtype == torch.int64
+_random.seed(77); _rotk = _random.randint(0, 3)                                            # 같은 RNG 열에서 feeder 가 뽑은 rot
+with _h5.File(_h5p) as _f:
+    _raw = dict(gt=_f["gt"][1:2], ms=_f["ms"][1:2], pan=_f["pan"][1:2])
+_v = {k_: EG.apply_view(EG.to_feeder_tensor(a_, 2047.0), True, True, _rotk)[0] for k_, a_ in _raw.items()}
+check("K27 feeder return_meta(§7.1–7.2): 5 텐서 bitwise 동일 · meta = [index, rot, 1, 1] int64 · random 상태(RNG 소비) 동일 · 뽑힌 rot 가 meta 와 같다 · kdv.edge_gate.apply_view/to_feeder_tensor == feeder 출력(bitwise; gt/ms/pan)",
+      _okM and int(_oM[5][1]) == _rotk and torch.equal(_v["gt"], _oM[0]) and torch.equal(_v["ms"], _oM[2]) and torch.equal(_v["pan"], _oM[4]) and _dsM.split == "train", f"rot {_rotk} meta {_oM[5].tolist() if len(_oM) == 6 else None}")
+# ---- K28 생성 config: QEDGE9 9 벌(s5 6 + s4 3) — gated 는 return_meta true · J0/JQ 는 없음 · training_deadline 없음 · campaign QEDGE9 · s4 JQ@W104(E0) config 는 생성기와 그대로 같다(회귀 없음)
+_tmpc = tempfile.mkdtemp(); G.generate("s4", ["JQ@W104_D121"], _tmpc, projected=None)
+_gen9 = {G.run_name(c, sd, arch="W104_D121"): (c, sd) for c, sd in (("J0", 2026), ("JQ", 2026), ("QE50", 2026), ("J0", 777), ("JQ", 777), ("QE50", 777), ("QE50", 1234), ("QEC", 1234), ("QES", 1234))}
+_cfgs = {r_: (yaml.safe_load(open(os.path.join(ROOT, "config", r_ + ".yaml"))) if os.path.exists(os.path.join(ROOT, "config", r_ + ".yaml")) else None) for r_ in _gen9}
+check("K28 QEDGE9 config 9 벌 존재 · gate case 만 train_feeder_args.return_meta true(J0/JQ 없음; QEC 는 const 라 없음) · kdv.campaign_id QEDGE9 · budget 에 training_deadline 없음·time_policy 있음 · edge_gate 모드 일치 · seed/hidden 104 · s4 JQ@W104 기존 config == 생성기(회귀 없음)",
+      all(v_ is not None for v_ in _cfgs.values()) and all(bool(v_["train_feeder_args"].get("return_meta", False)) == (_gen9[r_][0] in ("QE50", "QES")) for r_, v_ in _cfgs.items() if v_)
+      and all(v_["kdv"]["campaign_id"] == "QEDGE9_A104D121_20260915_v1" and "training_deadline" not in v_["kdv"]["budget"] and v_["kdv"]["budget"]["time_policy"]["inherit_parent_deadline"] is False and v_["seed"] == _gen9[r_][1] and v_["model_args"]["hidden_size"] == 104 for r_, v_ in _cfgs.items() if v_)
+      and all((v_["kdv"].get("edge_gate") or {}).get("mode") == {"QE50": "low_q", "QEC": "const", "QES": "shuffle"}.get(_gen9[r_][0]) for r_, v_ in _cfgs.items() if v_)
+      and filecmp.cmp(os.path.join(ROOT, "config", G.run_name("JQ", 1234, arch="W104_D121") + ".yaml"), os.path.join(_tmpc, G.run_name("JQ", 1234, arch="W104_D121") + ".yaml"), shallow=False),
+      f"missing {[r_ for r_, v_ in _cfgs.items() if v_ is None]}")
 print(f"\n{'FAIL ' + str(FAIL) if FAIL else 'ALL OK'} ({len(FAIL)} failed)"); sys.exit(1 if FAIL else 0)

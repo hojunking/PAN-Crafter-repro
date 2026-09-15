@@ -1,5 +1,5 @@
 {
- "note": "seed → init_unet_seed<seed>.pt 의 tensor sha256_16 (train_pa._sha_tensors). 값이 있으면 gen_pakd50_configs 가 config expect_init 으로 박고 trainer 가 fail-fast. 다른 서버 값은 그 서버의 work_dir/<run>/initialization_hashes.json 의 unet_init_sha256_16 으로 채운다 (s2 777 · s3 2026). 골격별 namespace: 기본 W112_D123 은 'unet', 그 외는 'unet@<arch>' (s4 이식 2026-09-15: W104_D121 의 seed 1234/3407 은 s4 첫 run 뒤 채운다).",
+ "note": "seed → init_unet_seed<seed>.pt 의 tensor sha256_16 (train_pa._sha_tensors). 값이 있으면 gen_pakd50_configs 가 config expect_init 으로 박고 trainer 가 fail-fast. 다른 서버 값은 그 서버의 work_dir/<run>/initialization_hashes.json 의 unet_init_sha256_16 으로 채운다 (s2 777 · s3 2026). 골격별 namespace: 기본 W112_D123 은 'unet', 그 외는 'unet@<arch>' (s4 이식 2026-09-15: W104_D121 의 seed 1234/3407 은 s4 첫 run 뒤 채운다). QEDGE9(2026-09-15): s5 의 W104 seed 2026/777 도 첫 run 뒤 채운다 (case 사이 공유는 trainer 의 init_dir 파일이 보장).",
  "unet": {
   "1234": "c988a6c95b17f4fd",
   "2025": "881bdb65878c2e05",
@@ -11,6 +11,8 @@
  },
  "unet@W104_D121": {
   "1234": null,
-  "3407": null
+  "3407": null,
+  "2026": null,
+  "777": null
  }
 }

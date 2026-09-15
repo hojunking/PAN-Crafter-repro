@@ -311,7 +311,35 @@ def resolve(k):
         _bad("routing.qE 는 stat EDGE-H 가 켜져 있을 때만")
     if rt and (tri_on or geom != 'G0' or extra or rec_control != 'none'):
         _bad("routing 은 plain rec(hard/soft) + EDGE-H 분해 위에서만 정의한다 — TRI/geomKD/stat.extra/rec.control 과 결합하지 않는다")
-    return dict(recipe=recipe, protocol=protocol, policy=policy, rec_case=rec_case, rec_mode=REC_CASES[rec_case], tri=tri_spec,
+    # --- QEDGE9 (2026-09-15, research_log/PAN_QEDGE9_W104D121_S5_S4_Experiment_Plan_2026-09-15.md §3): GT edge 항의 **sample gate** — Q12 의 e 배분(hard/soft, wH≥1) 은 그대로 두고
+    # edge 를 적용할 patch 만 고정 T0 aligner 의 q 로 고른다(low_q) / 상수 대조(const) / e-조건부 셔플 대조(shuffle). routing·TRI·stat.extra·rec.control·geomKD 와 결합하지 않는다 (§3.4).
+    eg = dict(k.get('edge_gate') or {}); eg_spec = None
+    if eg:
+        from kdv.edge_gate import MODES as EG_MODES
+        eg_mode = eg.get('mode')
+        if eg_mode not in EG_MODES:
+            _bad(f"edge_gate.mode {eg_mode!r} ∉ {EG_MODES}")
+        if set(eg) - {'mode', 'asset', 'c_E', 'c_E_file', 'perm_seed', 'theta_source'}:
+            _bad(f"edge_gate 의 알 수 없는 키 {sorted(set(eg) - {'mode', 'asset', 'c_E', 'c_E_file', 'perm_seed', 'theta_source'})}")
+        if not (stat_enabled and stat_key == 'EDGE' and stat_mode == 'H'):
+            _bad("edge_gate 는 stat EDGE-H(GT signed Scharr) 위에서만 — 기존 edge 항을 교체한다 (더하지 않는다)")
+        if rt:
+            _bad("edge_gate 와 routing(qD/qK/qE) 을 같이 바꾸지 않는다 (QEDGE9 §3.4)")
+        if tri_on or extra or rec_control != 'none' or geom != 'G0':
+            _bad("edge_gate 는 plain rec(hard/soft) + EDGE-H 위에서만 (TRI/stat.extra/rec.control/geomKD 와 결합하지 않는다)")
+        if not has_teacher:
+            _bad("edge_gate 의 q 는 고정 Teacher(T0) aligner 의 것 — kdv.teacher.run 이 필요하다 (Student q 로 gate 를 만들지 않는다, §2.1)")
+        if not eg.get('asset'):
+            _bad("edge_gate.asset (assets/qedge9/<cue>.json) 이 필요하다 — θq/gate 는 자산에서만 (placeholder 0 으로 학습하지 않는다, §11.3)")
+        if eg_mode == 'const' and (eg.get('c_E') is None) == (not eg.get('c_E_file')):
+            _bad("edge_gate const 는 c_E 또는 c_E_file 중 하나 (분모 퇴화면 calibration 실패; 0.5 같은 임의 상수 금지, §6.1)")
+        if eg_mode != 'const' and (eg.get('c_E') is not None or eg.get('c_E_file')):
+            _bad("c_E 는 edge_gate const 에만")
+        ps = int(eg.get('perm_seed', 51515))
+        if eg_mode == 'shuffle' and ps != 51515:
+            _bad("QES permutation seed 는 51515 로 고정 (§6.2)")
+        eg_spec = dict(mode=eg_mode, asset=eg['asset'], c_E=eg.get('c_E'), c_E_file=eg.get('c_E_file'), perm_seed=(ps if eg_mode == 'shuffle' else None), theta_source=eg.get('theta_source', 'asset'))
+    return dict(recipe=recipe, protocol=protocol, policy=policy, rec_case=rec_case, rec_mode=REC_CASES[rec_case], tri=tri_spec, edge_gate=eg_spec,
                 aligner_freeze_until=f_until, aligner_freeze_from=f_from, route_A=(qD, qK, qE), expect_init=ei,
                 rec_control=rec_control, rec_tau_scale=rec_tau_scale, na_protocol=na, expect_arch=ea, select_secondary=secondary, select_primary=primary, aligned_selector=aligned_selector, stat_lambda_from_run=stat_lambda_from_run,
                 stat_windows=windows, stat_transform=stat_transform, stat_transform_eps=stat_transform_eps, stat_domain=stat_domain, stat_lambda_scale=stat_lambda_scale, stat_extra=extra,
@@ -341,6 +369,8 @@ def stat_tag(spec):
         t += 'W' + ''.join(str(w) for w in ws)
     elif ws[0] != 5:
         t += f'W{ws[0]}'
+    if spec.get('edge_gate'):                                  # QEDGE9: EDGEHQ50(low_q) · EDGEHQC(const) · EDGEHQS(shuffle)
+        t += {'low_q': 'Q50', 'const': 'QC', 'shuffle': 'QS'}[spec['edge_gate']['mode']]
     for e in spec.get('stat_extra') or []:                     # 두 번째 통계 항 (GV-H + SC-H → GVH_SCH)
         t += '_' + e['key'] + e['mode'] + {'none': '', 'std': 'STD', 'logvar': 'LOG'}[e['transform']] + ('RES' if e['domain'] == 'residual' else '') + ('' if e['window'] == 5 else f"W{e['window']}")
     return t
@@ -416,4 +446,9 @@ def describe(spec, k=None):
     sch = '' if (fu is None and ff is None) else (' · A 일정' + (f" 앞 {fu} update 동결(D)" if fu is not None else '') + (f" {ff} 부터 동결(LF)" if ff is not None else ''))
     q = tuple(spec.get('route_A') or (1.0, 1.0, 1.0))
     rt = '' if q == (1.0, 1.0, 1.0) else f" · A 수신 qA(D,K,E)={q} (U 는 전체; A 는 L0+LO+q·추가항)"
-    return f"{spec['protocol']} · {pol} · rec {rec} · {st} · {gk}{src}{t}{tr}{na}{sel}{sch}{rt}"
+    eg = spec.get('edge_gate'); egs = ''
+    if eg:                                                     # QEDGE9: 시트 Notes 에 gate 정의가 서술형으로 남는다 (약명 단독 금지)
+        egs = ' · GT edge gate ' + {'low_q': 'low_q: 고정 T0 aligner 의 q(AXIS16 probe) < θq(train calibration 중앙값) 인 patch 만 λE·E_i (sum/B, 재정규화 없음)',
+                                    'const': 'const: 모든 patch edge × c_E' + ('' if eg.get('c_E') is None else f"={eg['c_E']}") + ' (고정 pilot 의 gated/전체 edge 오차 비; 단순 edge 감소 대조)',
+                                    'shuffle': 'shuffle: low_q gate 를 (e_T_roi32 decile × aug state) stratum 안에서 고정 permutation(51515) — q–sample 연결 대조'}[eg['mode']] + ' · hard/soft 는 Q12 그대로(wH≥1)'
+    return f"{spec['protocol']} · {pol} · rec {rec} · {st} · {gk}{src}{t}{tr}{na}{sel}{sch}{rt}{egs}"

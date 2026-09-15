@@ -17,8 +17,10 @@ import h5py
 import random
 
 class PanFeeder(Dataset):
-    def __init__(self, dataroot, max_pixel=0., crop=False, hflip=False, vflip=False, rot=False, crop_ratio=0.5, ms_size=16):
+    def __init__(self, dataroot, max_pixel=0., crop=False, hflip=False, vflip=False, rot=False, crop_ratio=0.5, ms_size=16, return_meta=False):
         random.seed(2025)
+        # return_meta (QEDGE9 2026-09-15): 학습 항목 뒤에 meta = LongTensor[index, rot, hflip, vflip] 를 하나 더 돌려준다 — augmentation RNG 소비·순서는 그대로(값만 보고한다).
+        self.return_meta = bool(return_meta); self._last_rot = 0
         self.dataroot = dataroot
         if max_pixel == 0.:
             if "wv3" in dataroot or "qb" in dataroot or "wv2" in dataroot:
@@ -100,8 +102,9 @@ class PanFeeder(Dataset):
             pan = pan[::-1, :, :]
 
         # random rotate
+        self._last_rot = 0
         if self.rot:
-            rot = random.randint(0, 3)
+            rot = random.randint(0, 3); self._last_rot = int(rot)
             gt = np.rot90(gt, rot, (0, 1))
             lms = np.rot90(lms, rot, (0, 1))
             ms = np.rot90(ms, rot, (0, 1))
@@ -144,8 +147,9 @@ class PanFeeder(Dataset):
             pan = pan[::-1, :, :]
 
         # random rotate
+        self._last_rot = 0
         if self.rot:
-            rot = random.randint(0, 3)
+            rot = random.randint(0, 3); self._last_rot = int(rot)
             lms = np.rot90(lms, rot, (0, 1))
             ms = np.rot90(ms, rot, (0, 1))
             lpan = np.rot90(lpan, rot, (0, 1))
@@ -168,15 +172,20 @@ class PanFeeder(Dataset):
         lpan = np.array(self.lpan[index])
         pan = np.array(self.pan[index])
 
+        self._last_rot = 0
         if self.has_gt:
             gt = np.array(self.gt[index])
             if self.split == 'train':
                 gt, lms, ms, lpan, pan = self.augment(gt, lms, ms, lpan, pan)
-            return self.np2tensor(gt), self.np2tensor(lms), self.np2tensor(ms), self.np2tensor(lpan), self.np2tensor(pan)
+            out = (self.np2tensor(gt), self.np2tensor(lms), self.np2tensor(ms), self.np2tensor(lpan), self.np2tensor(pan))
         else:
             if self.split == 'train':
                 lms, ms, lpan, pan = self.augment_without_gt(lms, ms, lpan, pan)
-            return self.np2tensor(lms), self.np2tensor(ms), self.np2tensor(lpan), self.np2tensor(pan)
+            out = (self.np2tensor(lms), self.np2tensor(ms), self.np2tensor(lpan), self.np2tensor(pan))
+        if self.return_meta:
+            tr = (self.split == 'train')
+            out = out + (torch.tensor([int(index), int(self._last_rot) if tr else 0, int(bool(self.hflip) and tr), int(bool(self.vflip) and tr)], dtype=torch.int64),)
+        return out
 
     def __len__(self):
         return self.pan.shape[0]

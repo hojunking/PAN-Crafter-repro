@@ -169,16 +169,18 @@ def sheet_name(ds, server):
 INTEGRATED_HDR = "통합실험"
 
 
-def integrated_label(run):
-    """X열 '통합실험': PAKD50 / <case> / FRESH50 — 기본 골격(W112_D123) 이 아니면 골격 토큰을 끼운다: PAKD50 / JQ / A104D121 / FRESH50 (s4 이식 2026-09-15 §10)."""
+def integrated_label(run, branch=None):
+    """X열 '통합실험': PAKD50 / <case> / FRESH50 — 기본 골격(W112_D123) 이 아니면 골격 토큰을 끼운다: PAKD50 / JQ / A104D121 / FRESH50 (s4 이식 2026-09-15 §10).
+    branch 가 QEDGE9(experiment_branch_id 에 'QEDGE9') 면 캠페인 토큰을 덧붙인다: PAKD50 / QE50 / A104D121 / QEDGE9 / FRESH50 (QEDGE9 §11.3)."""
     if not run or not run.startswith("PAKD50_"):
         return ""
     import re as _re
     m = _re.match(r"^PAKD50_(?P<case>.+?)_(?P<arch>W\d+_D\d+)_WV3_T0_S\d+_(?P<proto>[A-Z0-9]+)_v\d+$", run)
+    btok = " / QEDGE9" if (branch and "QEDGE9" in str(branch)) else ""
     if not m:
-        case = run[len("PAKD50_"):].split("_W112")[0]; proto = "FRESH50" if "_FRESH50_" in run else run.rsplit("_", 2)[-2]; return f"PAKD50 / {case} / {proto}"
+        case = run[len("PAKD50_"):].split("_W112")[0]; proto = "FRESH50" if "_FRESH50_" in run else run.rsplit("_", 2)[-2]; return f"PAKD50 / {case}{btok} / {proto}"
     arch = m.group("arch"); tok = "" if arch == "W112_D123" else " / A" + arch.replace("W", "").replace("_D", "D")
-    return f"PAKD50 / {m.group('case')}{tok} / {m.group('proto')}"
+    return f"PAKD50 / {m.group('case')}{tok}{btok} / {m.group('proto')}"
 
 
 def columns_for(ds):
@@ -544,7 +546,7 @@ def collect(tag, want_profile, server, peer=None):
     hs = ma.get("hidden_size")
     row = {
         # 캠페인은 **꾸미기 전 실행명**으로 정한다 — tag 는 뒤에서 "(50K) · w96 …"·"·peerB" 가 붙는다
-        "campaign": classify(tag), "_run": tag,
+        "campaign": classify(tag), "_run": tag, "_branch": ((getattr(a, "kdv", {}) or {}).get("experiment_branch_id") if getattr(a, "kdv", None) else None),
         "tag": tag, "_ds": ds.upper(),
         "model": a.model.rsplit(".", 1)[-1],
         "seed": a.seed, "iter": a.num_iter,   # iter 는 비고와 실행명 양쪽에 들어간다
@@ -625,6 +627,11 @@ def collect(tag, want_profile, server, peer=None):
         if _kb.get("experiment_branch_id"):          # 골격 이식 branch (s4 W104_D121, 2026-09-15 §10): Student 골격·Teacher 골격·A 출처·branch·계수 이식을 Notes 에
             _ea = _kb.get("expect_arch") or {}; _tr_ = _kb.get("teacher") or {}
             desc = (desc + f" Student=W{_ea.get('width')}D{''.join(str(x) for x in (_ea.get('depth') or []))}; Teacher={_tr_.get('id', 'T0')}/W112D123; A_source={'none' if _kb.get('aligner_policy') == 'A-ID' else _tr_.get('id', 'T0')}; branch={_kb['experiment_branch_id']}; E0=fixed-transfer").strip()
+            if _kb.get("edge_gate"):                 # QEDGE9 §11.3: q 출처·bank·cut·θq·gate 방향·hard 유지·cue sha (+ QEC c_E / QES perm seed) — run 의 calibration_resolved.json(edge_gate) 에서 실측값
+                _eg = _kb["edge_gate"]; _cr = os.path.join(ROOT, "work_dir", tag, "calibration_resolved.json"); _egr = ((json.load(open(_cr)).get("edge_gate") or {}) if os.path.exists(_cr) else {})
+                _th = _egr.get("theta_q"); _sha = (_egr.get("npz_sha256") or "")[:16]; _tp = (_kb.get("budget") or {}).get("time_policy") or {}
+                desc = (desc + f"; q_source=T0; q_bank=AXIS16; q_cut=median; theta_q={_th if _th is not None else 'asset'}; edge_gate={_eg['mode']}; hard_always=1; cue_sha={_sha or 'asset'}; time_policy={_tp.get('mode', 'inherit')}"
+                        + (f"; cE={_egr.get('c_E')}" if _eg["mode"] == "const" else "") + (f"; perm_seed={_eg.get('perm_seed')}" if _eg["mode"] == "shuffle" else "")).strip()
     elif _tr == "uvs":
         _u = getattr(a, "uvs", {}) or {}; _v = _u.get("variant", "?")
         desc = (desc + " UVS " + {"b0": "B0(lms baseline)", "k0": "K0(output KD)", "k1": "K1(U routing)", "k2": "K2(U+GT var)",
@@ -1026,12 +1033,12 @@ def upload(rows, server, replace=False):
                 i = ORIGIN_ROW + 2 + len(tags)
                 tags.append(r["tag"]); added += 1
             pending.append({"range": f"{_a1(i, ORIGIN_COL)}:{_a1(i, ORIGIN_COL + n - 1)}", "values": [v]})
-            lab = integrated_label(r.get("_run", ""))
+            lab = integrated_label(r.get("_run", ""), r.get("_branch"))
             if lab:                                                # 표 오른쪽 다음 열(WV3 는 X열) '통합실험' — 열 배치 검사(B:W) 밖이라 기존 탭과 충돌하지 않는다
                 pending.append({"range": _a1(i, ORIGIN_COL + n), "values": [[lab]]})
             last = max(last, i)
             total += 1
-        if any(integrated_label(r.get("_run", "")) for r in rs):
+        if any(integrated_label(r.get("_run", ""), r.get("_branch")) for r in rs):
             pending.append({"range": _a1(ORIGIN_ROW + 1, ORIGIN_COL + n), "values": [[INTEGRATED_HDR]]})
         if pending:
             _retry(ws.batch_update, pending)                       # 값 전체를 한 요청으로

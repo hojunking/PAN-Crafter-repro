@@ -24,6 +24,13 @@ def output_edge_loss(y_hat, y):
     return 0.5 * (gx_h[s] - gx[s]).abs().mean() + 0.5 * (gy_h[s] - gy[s]).abs().mean()
 
 
+def output_edge_loss_per_sample(y_hat, y):
+    """output_edge_loss 의 sample 별 값 [B] (QEDGE9 §3.2 E_i: 같은 signed Scharr·reflect pad·내부 1px·band 평균). batch 평균 = output_edge_loss (같은 원소 수)."""
+    gx_h, gy_h = scharr(y_hat); gx, gy = scharr(y)
+    s = (slice(None), slice(None), slice(1, -1), slice(1, -1))
+    return 0.5 * (gx_h[s] - gx[s]).abs().flatten(1).mean(1) + 0.5 * (gy_h[s] - gy[s]).abs().flatten(1).mean(1)
+
+
 def gaussian_kernel_1d(sigma, device, dtype):
     r = int(math.ceil(3.0 * sigma))
     ax = torch.arange(-r, r + 1, device=device, dtype=dtype)

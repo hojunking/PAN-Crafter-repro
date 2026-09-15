@@ -1,0 +1,145 @@
+{
+ "name": "cue_T0_AXIS16_v1",
+ "version": "cue_v1",
+ "plan": "research_log/PAN_QEDGE9_W104D121_S5_S4_Experiment_Plan_2026-09-15.md",
+ "campaign_id": "QEDGE9_A104D121_20260915_v1",
+ "computed_at": "2026-09-15T15:50:48",
+ "server": "s1",
+ "git_commit": "1a3edb9df34edeb07571989a926248bdec8cda85",
+ "device": "cuda",
+ "gpu": "NVIDIA GeForce RTX 4090",
+ "torch": "2.4.0",
+ "teacher": {
+  "run": "T0_run",
+  "tag": "best_hqnr",
+  "file_sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+  "tensors_sha256_16": "7d9b52112797bbff",
+  "aligner_state_hash": "493aca181f93ae68",
+  "aligner_view_margin": 4,
+  "selected_step": 24240,
+  "adapter": "predict_c(aligner, view(P, margin), view(bicubic↑4 M, margin)) — Teacher forward 와 동일; U 는 q 에 쓰지 않음"
+ },
+ "dataset": {
+  "train": "data/PanCollection/WV3/train_wv3.h5",
+  "train_sha256": "f9e7ec381390ff36ddffd0714df7af07a3c5f456078b219a25f3e18372228f82",
+  "train_pan": "data/PanCollection/WV3/train_wv3_pan.h5",
+  "train_pan_sha256": "3ce697e7d57b04a02175b2f393fb762c897ed47c1a1e11e7f1a27018be5a5628",
+  "n_train": 9714,
+  "bands": 8,
+  "max_pixel": 2047.0,
+  "normalization": "feeder.np2tensor: float64→float32, 2x/max_pixel−1 (float32)"
+ },
+ "feeder_contract": {
+  "hflip": true,
+  "vflip": true,
+  "rot": true,
+  "crop": false,
+  "states": 4,
+  "rot_states": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "note": "hflip/vflip 는 조건 없이 적용(feeder), rot 만 random.randint(0,3) → 유효 상태 4 (§7.2)"
+ },
+ "bank": {
+  "id": "EQREC4_A_AXIS16",
+  "radii_hr": [
+   0.25,
+   0.5,
+   1.0,
+   2.0
+  ],
+  "angles_deg": [
+   0,
+   90,
+   180,
+   270
+  ],
+  "K": 16,
+  "q_const_component": 0.46875,
+  "epsilon": "(dy,dx) = (r sinθ, r cosθ) HR px; W(P,ε)[y,x] = P[y+ε_y, x+ε_x] bicubic/border",
+  "q": "(1/2K) Σ_k ‖ĉ_k + ε_k − ĉ_0‖_1 (HR px; λoff 없음; EPE/정규화 아님)"
+ },
+ "calibration": {
+  "n_base": 3072,
+  "seed": 1234,
+  "index_sha256_16": "02122e2554783774",
+  "n_views": 12288,
+  "matches_pakd50_calibration": true,
+  "rule": "θq = median q over calibration views; FR20/RR 미사용"
+ },
+ "theta_q": 0.3276133416220546,
+ "selection": {
+  "calib_frac": 0.5,
+  "all_frac": 0.49961395923409513,
+  "ties_calib": 0,
+  "ties_all": 0,
+  "rule": "g = 1[q < θq]; q == θq → 0"
+ },
+ "q_stats": {
+  "all": {
+   "p10": 0.30864917556755245,
+   "p50": 0.32762106717564166,
+   "p90": 0.3563416446559131,
+   "mean": 0.3307763594697438
+  },
+  "calib": {
+   "p10": 0.3086168885231018,
+   "p50": 0.3276133416220546,
+   "p90": 0.35684707076288763,
+   "mean": 0.3306830221917494
+  },
+  "by_rot": {
+   "0": 0.3397440532069375,
+   "1": 0.3358374152854388,
+   "2": 0.32498741878307047,
+   "3": 0.32253655060352865
+  }
+ },
+ "e_roi32": {
+  "roi": [
+   16,
+   48
+  ],
+  "decile_edges": [
+   0.007039358653128147,
+   0.008988194540143013,
+   0.011856654286384582,
+   0.01426363568753004,
+   0.016400585882365704,
+   0.019099248200654985,
+   0.022123214788734916,
+   0.02576872818171978,
+   0.031130176410079004
+  ],
+  "calib_p50": 0.016400586813688278,
+  "note": "T0 native 복원 중앙 ROI L1 (정규화 단위); 학습 loss 는 full-domain 그대로"
+ },
+ "qes": {
+  "seed": 51515,
+  "bins": 10,
+  "strata": "e_T_roi32 decile(calibration edges) × aug state(rot)",
+  "n_strata": 40,
+  "n_shuffled": 40,
+  "n_degenerate": 0,
+  "n_small": 0,
+  "n_views_shuffled": 38856,
+  "changed_frac": 0.3672534486308421,
+  "rule": "stratum 내 고정 permutation; active 수 보존; 원소<2·단일 라벨 stratum 은 그대로"
+ },
+ "timing": {
+  "bench": {
+   "views": 512,
+   "seconds": 0.9579246044158936
+  },
+  "total_seconds": 46.55358028411865,
+  "views_per_second": 834.651164590565,
+  "n_views": 38856,
+  "note": "T_cue 실측 (§7.4) — 학습 시간표 밖의 일회성 비용"
+ },
+ "npz": "assets/qedge9/cue_T0_AXIS16_v1.npz",
+ "npz_sha256": "b83cc5d1a25e8766d1813c9d19d956efc24e0f152553e53c4894fa18dcdf563e",
+ "npz_arrays": "index int32 · rot int8 · q float64 · c0 float32[2] · e_roi32 float32 · gate_low_q/gate_shuffle int8 · e_decile int8 · calib_mask bool (row = base×4 + rot)"
+}
