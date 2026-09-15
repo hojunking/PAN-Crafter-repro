@@ -72,6 +72,7 @@ DESC = {
             "s5(seed 2026·확인 9091): D* = 0–4999 A 동결 · LF* = 25K 뒤 A 동결 · P* = A 는 L0+offset 만(U 는 backend 전체) · DP* = D+P · JK0/JE0 = A 로 가는 soft/edge 만 차단 (뒤 글자 0/Q/R/X = N0/Q12/R1/X02). "
             "재배정 2026-09-15(research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md; s2 seed 777 / s4 1234 / s5 2026): J_R3_NOEDGE = J + R3 adaptive soft, GT edge 없음 · J_N0_EDGE = J + GT L1 + λE GT edge(Teacher 를 loss 에 쓰지 않음) · "
             "RC0/RCQ = A trainable(LR 1e-5) 인데 Student 단계 offset 연습 없음(입력 매 update native, I-NATIVE-TRANSFER) + N0/Q12. "
+            "s3 추가 2026-09-15(PAN_PAKD50_Latest_Sheet_Analysis_and_S3_Experiments_2026-09-15.md; seed 2026·확인 4321): J_R3_NOEDGE → J_N0_EDGE → LF0 → LFQ → LFX(= LF 일정 + X02: 25K 뒤 A 동결, soft 없음). "
             "τR·λE 는 공통 package assets/pakd50/calibration_resolved.json. 시트 HQNR = best_raw raw_original(주 판정, 후보 격자 GRID1010_50K_v1). X열 '통합실험' = PAKD50 / <case> / FRESH50."),
  "NA104": ("[캠페인] W104·D122 no-align KD · s2·s3 · Teacher seed 2025 / Student seed 1234(반복 2025·777) · 2026-09-11 · research_log/PAN_S2_W104_D122_NoAlign_KD_Experiment_Plan_2026-09-11.md. "
            "aligner 도 PAN warp 도 없는 동일 골격(2.0989 M)에서 'Teacher 가 남긴 복원·구조 오차를 GT 중심으로 더 fitting하는 KD' 만 본다 — 정합 연구(PA/PO10/NF16/KDV) 와 직접 대응하지 않는다. "

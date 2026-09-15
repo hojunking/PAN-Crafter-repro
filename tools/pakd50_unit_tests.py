@@ -263,9 +263,9 @@ tE = _stub("J_N0_EDGE"); totE, infE = tE._step(*inp5, 1)
 check("K18 J_N0_EDGE: Teacher forward 없음(y_t None) · edge 항 > 0 · offset 연습은 J 와 같음(odd 에 ε)", infE["y_t"] is None and float(infE["_edge_w_t"]) > 0 and infE.get("eq_exercise") == 1.0 and float(infE.get("rec_soft", 0.0)) == 0.0)
 del tR, tJ, tQ, tE, totR, totQ, totE, totJ
 # K19 서버별 명시 순서·예약식 (§3–§4 검산)·admission (§8)·확인 seed (§7)
-check("K19 명시 순서(§4): s2 JR→XJ→J_R3_NOEDGE→J_N0_EDGE · s4 F0→RC0→RCQ→JR→XJ→J_R3_NOEDGE · s5 PQ→F0→LF0→LFQ→RC0→RCQ; mandatory == priority; s1/s3 는 기본 PRIORITY; 완료 묶음은 순서에 없다(FR 도)",
+check("K19 명시 순서(§4): s2 JR→XJ→J_R3_NOEDGE→J_N0_EDGE · s4 F0→RC0→RCQ→JR→XJ→J_R3_NOEDGE · s5 PQ→F0→LF0→LFQ→RC0→RCQ; mandatory == priority; s1 은 기본 PRIORITY(s3 는 09-15 s3 추가 전 기본); 완료 묶음은 순서에 없다(FR 도)",
       G.priority_for("s2") == ["JR", "XJ", "J_R3_NOEDGE", "J_N0_EDGE"] and G.priority_for("s4") == ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"] and G.priority_for("s5") == ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"]
-      and all(G.mandatory_for(s) == G.priority_for(s) for s in ("s2", "s4", "s5")) and G.priority_for("s1") == G.priority_for("s3") == G.PRIORITY and not ({"J0", "JQ", "F0", "FQ", "FR"} & set(G.priority_for("s2"))) and "PQ" in G.priority_for("s5"))
+      and all(G.mandatory_for(s) == G.priority_for(s) for s in ("s2", "s4", "s5")) and G.priority_for("s1") == G.PRIORITY and G.PREVIOUS_PRIORITY_BY_SERVER["s3"] == G.PRIORITY and not ({"J0", "JQ", "F0", "FQ", "FR"} & set(G.priority_for("s2"))) and "PQ" in G.priority_for("s5"))
 _sum = lambda srv: sum(G.reservation_for(srv, c)["reservation_h"] for c in G.priority_for(srv))
 check("K19 예약식 reservation_h = 1.10×ref + 10/60 (§3 검산): s2 4×2.33 → 10.9187 · s4 2×1.17+4×1.39 → 9.6900 · s5 1.80+3×1.35+2×1.36 → 10.4270 (측정값 없이)",
       abs(_sum("s2") - 10.9186667) < 1e-6 and abs(_sum("s4") - 9.69) < 1e-6 and abs(_sum("s5") - 10.427) < 1e-6 and abs(G.reservation_hours(2.33) - 2.7296667) < 1e-6)
@@ -280,8 +280,28 @@ check("K19 편성: s2 완료(J0/F0/JQ/FQ) 뒤 남은 전부 명시 순서 · s4/
       and G.schedule(True, term({"J0", "JQ", "D0", "DQ", "PQ"}), 40.0, _est("s5"), priority=G.priority_for("s5")) == (["F0", "LF0", "LFQ", "RC0", "RCQ"], [])
       and G.schedule(True, term({"J0", "F0", "JQ", "FQ"}), 5.0, _est("s2"), priority=G.priority_for("s2")) == (["JR"], ["XJ", "J_R3_NOEDGE", "J_N0_EDGE"])
       and G.schedule(True, term({"J0", "F0", "JQ", "FQ"}), 5.46, _est("s2"), priority=G.priority_for("s2")) == (["JR", "XJ"], ["J_R3_NOEDGE", "J_N0_EDGE"]))
-check("K19 확인 seed(§7): s4 3407 / s5 9091 · 묶음 = WIN → 같은 policy no-KD control → F0 (F0 가 control 이면 2 run) · 최대 3", G.CONFIRM_SEED == {"s4": 3407, "s5": 9091} and G.confirmation_cases("RCQ") == ["RCQ", "RC0", "F0"] and G.confirmation_cases("LFQ") == ["LFQ", "LF0", "F0"]
+check("K19 확인 seed(§7): s4 3407 / s5 9091 · 묶음 = WIN → 같은 policy no-KD control → F0 (F0 가 control 이면 2 run) · 최대 3", G.CONFIRM_SEED["s4"] == 3407 and G.CONFIRM_SEED["s5"] == 9091 and G.confirmation_cases("RCQ") == ["RCQ", "RC0", "F0"] and G.confirmation_cases("LFQ") == ["LFQ", "LF0", "F0"]
       and G.confirmation_cases("F0") == ["F0"] and G.confirmation_cases("JQ") == ["JQ", "J0", "F0"] and G.CONFIRM_MAX_RUNS == 3)
+# K21 s3 추가 (research_log/PAN_PAKD50_Latest_Sheet_Analysis_and_S3_Experiments_2026-09-15.md §4–§7): LFX 등록 · s3 명시 순서·예약 검산 · 확인 seed 4321 후보별 묶음
+lfx = G.kdv_block("LFX", 2026, "s3", cal=cal4); s_lfx = resolve(lfx); xj = G.kdv_block("XJ", 2026, "s3", cal=cal4); lfq = G.kdv_block("LFQ", 2026, "s3", cal=cal4)
+check("K21 LFX = LF 일정(freeze_from 25000) + X02(rec R1 hard-only α1 β0 + EDGE-H λE0, soft 없음) · routing 없음 · offset 1e-4(I-AEQ) · control LF0 · λE 필요 · 0–24999 계약이 XJ 와 같다(일정 키만 추가) · Teacher 필요(R1 재가중)",
+      lfx["aligner_schedule"] == dict(freeze_from=25000) and lfx["rec"] == xj["rec"] and lfx["stat"] == xj["stat"] and "routing" not in lfx and lfx["aux"]["offset_weight"] == 1e-4 and lfx["baseline_run"] == G.run_name("LF0", 2026) and "LFX" in G.NEEDS_LAMBDA_E
+      and s_lfx["rec_mode"] == "hard_only" and s_lfx["stat_enabled"] and s_lfx["needs_teacher"] and s_lfx["aligner_freeze_from"] == 25000 and {k: v for k, v in lfx.items() if k not in ("aligner_schedule", "case_id", "baseline_run", "policy_id", "budget")} == {k: v for k, v in xj.items() if k not in ("case_id", "baseline_run", "policy_id", "budget")}
+      and lfq["rec"] == G.kdv_block("JQ", 2026, "s3", cal=cal4)["rec"] and G.reference_kind("LFX") == "T" and G.reference_kind("LF0") == "N0")
+_s3 = lambda it: G.reservation_for("s3", it)["reservation_h"]
+check("K21 s3 명시 순서 J_R3_NOEDGE→J_N0_EDGE→LF0→LFQ→LFX · mandatory == priority · 기존 control(J0/JQ/JR/XJ/F0/FQ/FR) 은 순서에 없다 · reference 1.34/1.34/1.16(J0)/1.34/1.33(XJ, case 대용값) · 예약 합 7.9943 h(§6 검산)",
+      G.priority_for("s3") == ["J_R3_NOEDGE", "J_N0_EDGE", "LF0", "LFQ", "LFX"] and G.mandatory_for("s3") == G.priority_for("s3") and not (set(G.PRIORITY) & set(G.priority_for("s3")))
+      and G.reference_hours("s3", "LFX") == (1.33, "plan_reference_case") and G.reference_hours("s3", "LF0") == (1.16, "plan_reference") and G.reference_hours("s3", "J_N0_EDGE") == (1.34, "plan_reference")
+      and abs(sum(_s3(c) for c in G.priority_for("s3")) - 7.9943333) < 1e-6 and G.schedule(True, term({"J0", "JQ", "JR", "XJ", "F0", "FQ", "FR"}), 40.0, _s3, priority=G.priority_for("s3")) == (["J_R3_NOEDGE", "J_N0_EDGE", "LF0", "LFQ", "LFX"], [])
+      and "s3" in G.ALLOCATED_SERVERS)
+check("K21 s3 확인(§5): seed 4321(3407/9091 과 분리) · 후보별 묶음 LFQ→JQ/LF0/LFQ · LFX→XJ/LF0/LFX · J_N0_EDGE→J0/XJ/J_N0_EDGE · J_R3_NOEDGE→J0/JR/J_R3_NOEDGE · XJ→J0/JR/XJ · JQ→J0/XJ/JQ · 표 밖 후보(RC0) 거부 · 확인 reference 1.34 (s4 는 종전 규칙·1.80)",
+      G.CONFIRM_SEED["s3"] == 4321 and len({G.CONFIRM_SEED[s] for s in ("s3", "s4", "s5")}) == 3 and G.confirmation_cases("LFQ", "s3") == ["JQ", "LF0", "LFQ"] and G.confirmation_cases("LFX", "s3") == ["XJ", "LF0", "LFX"] and G.confirmation_cases("J_N0_EDGE", "s3") == ["J0", "XJ", "J_N0_EDGE"]
+      and G.confirmation_cases("J_R3_NOEDGE", "s3") == ["J0", "JR", "J_R3_NOEDGE"] and G.confirmation_cases("XJ", "s3") == ["J0", "JR", "XJ"] and G.confirmation_cases("JQ", "s3") == ["J0", "XJ", "JQ"]
+      and (lambda: (lambda f: (f() and False))(lambda: G.confirmation_cases("RC0", "s3")) if False else True)() and G.reference_hours("s3", "LFQ", {}, confirm=True) == (1.34, "confirm_reference") and G.reference_hours("s4", "RCQ", {}, confirm=True) == (1.8, "confirm_placeholder") and G.confirmation_cases("RCQ", "s4") == ["RCQ", "RC0", "F0"])
+try:
+    G.confirmation_cases("RC0", "s3"); check("K21 s3 확인 표 밖 후보는 SystemExit", False)
+except SystemExit:
+    check("K21 s3 확인 표 밖 후보는 SystemExit", True)
 # K20 trainer 예산 gate 가 서버 로컬 예약 파일을 본다 (gate_hours × margin = reservation_h; 없으면 config projected_map 4.0h)
 _tdir = tempfile.mkdtemp(); _rf = os.path.join(_tdir, "reservations.json"); _run_id = G.run_name("RCQ", 2026)
 _out = G.write_reservation_file("s5", ["RCQ", "F0"], {}, path=_rf); _e = _out["runs"][_run_id]

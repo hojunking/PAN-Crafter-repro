@@ -11,7 +11,9 @@ U LR 1e-4 / A LR 1e-5 · offset λ 1e-4(J 만, 홀수 update, b=2) · candidate 
 2026-09-15 재배정(research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md): s2/s4/s5 의 명시 순서(PRIORITY_BY_SERVER) + 새 case J_R3_NOEDGE(J / R3, edge 없음) · J_N0_EDGE(J / N0 + EDGE-H, Teacher 미사용) ·
 RC0/RCQ(RC = A trainable LR 1e-5 인데 Student 단계 offset 연습 없음: I-NATIVE-TRANSFER, radius 0, offset 0 / N0·Q12) + slot 예약식 reservation_h = 1.10 × reference_train_h + 10/60 (gate 편성·trainer 예산 gate 공통).
     python tools/gen_pakd50_configs.py --server s4 --cases F0,RC0,RCQ,JR,XJ,J_R3_NOEDGE     # 재배정 목록 config (큐 파일은 그대로 J0 만; 편성은 gate)
-    python tools/gen_pakd50_configs.py --plan [--server s2]                                # 재배정 순서·예약·누적 (dry-run; 완료·실행 중 run 은 work_dir 로 제외)"""
+    python tools/gen_pakd50_configs.py --plan [--server s2]                                # 재배정 순서·예약·누적 (dry-run; 완료·실행 중 run 은 work_dir 로 제외)
+2026-09-15 s3 추가(research_log/PAN_PAKD50_Latest_Sheet_Analysis_and_S3_Experiments_2026-09-15.md §4–§7): s3(seed 2026) 명시 순서 J_R3_NOEDGE → J_N0_EDGE → LF0 → LFQ → LFX(새 case: LF 일정 + X02 backend),
+확인 seed 4321 은 후보별 묶음(§5 표) 최대 3 run, 확인 reference 는 s3 JQ 1.34 h."""
 import argparse, json, os, re, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0, ROOT)
 from kdv.registry import resolve, describe
@@ -46,14 +48,16 @@ for _p in ("J", "AL"):                                    # J_QA05 … J_QE10 (a
         CASES[f"{_p}_{_v}"] = (_p, "Q12_" + _v[1:])
 CASES.update({"D0": ("D", "N0"), "DQ": ("D", "Q12"), "DR": ("D", "R1"), "DX": ("D", "X02"), "PQ": ("P", "Q12"), "PR": ("P", "R1"), "PX": ("P", "X02"),
               "DPQ": ("DP", "Q12"), "DPX": ("DP", "X02"), "LF0": ("LF", "N0"), "LFQ": ("LF", "Q12"), "JK0": ("JK0", "Q12"), "JE0": ("JE0", "Q12"),
-              "J_R3_NOEDGE": ("J", "R3_NOEDGE"), "J_N0_EDGE": ("J", "N0_EDGE"), "RC0": ("RC", "N0"), "RCQ": ("RC", "Q12")})     # 재배정 2026-09-15 §5
+              "J_R3_NOEDGE": ("J", "R3_NOEDGE"), "J_N0_EDGE": ("J", "N0_EDGE"), "RC0": ("RC", "N0"), "RCQ": ("RC", "Q12"),     # 재배정 2026-09-15 §5
+              "LFX": ("LF", "X02")})                                                                                              # s3 추가 2026-09-15 §4.3: 0–24999 XJ 와 같은 joint, 25000 부터 A 동결(offset 중단), U 는 X02(R1 + λE edge; soft 없음) 50K
 _PURPOSE_S5 = {"D0": "s5: 초기 5K A 동결 뒤 joint, N0 (delayed-joint 의 no-KD control)", "DQ": "s5: 초기 5K A 동결, U 는 처음부터 Q12 (delayed joint KD)", "DR": "s5 fallback: D 일정 + R1", "DX": "s5: DQ 의 soft 제거 대조 (D 일정 + X02)",
                 "PQ": "s5: protected routing — A 는 L0+LO 만, U 는 Q12 전체", "PR": "s5 fallback: protected + R1", "PX": "s5: PQ 의 soft 제거 대조 (protected + X02)",
                 "DPQ": "s5: delayed + protected 결합 (Q12)", "DPX": "s5: DPQ 의 soft 제거 대조", "LF0": "s5: 25K 이후 A 동결, N0 (late-freeze control)", "LFQ": "s5: 25K 이후 A 동결, Q12",
                 "JK0": "s5: JQ 에서 A 로 가는 L_K(soft) 만 차단", "JE0": "s5: JQ 에서 A 로 가는 λE L_E 만 차단",
                 # 재배정 2026-09-15 §5: JR = weighted_GT · J_R3_NOEDGE = weighted_GT + adaptive soft · XJ = weighted_GT + λE edge · JQ = 셋 다 · J_N0_EDGE = plain GT + λE edge (Teacher 없이)
                 "J_R3_NOEDGE": "재배정 s2/s4: joint + R3 adaptive soft, GT edge 전체 제거 (JQ − edge)", "J_N0_EDGE": "재배정 s2: joint + plain GT L1 + λE GT edge, Teacher 를 loss 에 쓰지 않음 (Teacher-free edge 대조)",
-                "RC0": "재배정 s4/s5: A trainable(LR 1e-5) 인데 Student 단계 offset 연습 없음(native 만), N0 (RC 의 no-KD control)", "RCQ": "재배정 s4/s5: RC 정합 정책 + Q12 전체"}
+                "RC0": "재배정 s4/s5: A trainable(LR 1e-5) 인데 Student 단계 offset 연습 없음(native 만), N0 (RC 의 no-KD control)", "RCQ": "재배정 s4/s5: RC 정합 정책 + Q12 전체",
+                "LFX": "s3: 25K 이후 A 동결 + X02(재가중 GT hard + λE GT edge, output soft 없음) — XJ 의 LF 판 (control LF0; 비교 LFX−XJ, LFQ−LFX)"}
 PURPOSE = {"J0": "Teacher-final-A → fresh-U, native GT + offset (joint baseline; seed1234 는 λE pilot)", "JQ": "주력: joint + Q12 (실패 지도 + adaptive soft + GT edge)", "JR": "joint + R1 (실패 지도 재가중만)", "XJ": "joint + X02 (Q12 의 soft 제거 대조)",
            "F0": "frozen T0 aligner + native GT (frozen baseline)", "FQ": "frozen + Q12", "FR": "frozen + R1", "XF": "frozen + X02", "AL0": "joint, A LR 3e-6, N0", "ALQ": "joint, A LR 3e-6, Q12"}
 STAGE1 = ["J0", "F0", "JR", "FR"]; STAGE2 = ["JQ", "FQ", "XJ"]
@@ -66,17 +70,21 @@ QUEUE_STAGE = {1: ["J0"], 2: ["JQ"]}                      # 큐 파일 내용 (s
 # 2026-09-15 재배정 (research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md §4·§9): s2/s4/s5 의 **명시 순서** — 완료된 기본 묶음(s2 J0/F0/JQ/FQ · s4 AL0/J0/JQ/ALQ · s5 J0/JQ/D0/DQ) 은
 # 다시 넣지 않고(work_dir 완료 판정으로도 제외), 옛 꼬리(s2 FR 등) 는 편성에서 빠진다. s5 PQ 는 실행 중이면 그 run 을 유지하고 남은 시간만 센다. s1/s3 는 신규 배정 없음(기본 PRIORITY 유지).
 # 그 전 묶음(2026-09-14): s4 J0→JQ→AL0→ALQ · s5 J0→JQ→D0→DQ→PQ (research_log/2026-09-14_pakd50-s{4,5}-review-and-implementation.md).
-PRIORITY_BY_SERVER = {"s2": ["JR", "XJ", "J_R3_NOEDGE", "J_N0_EDGE"], "s4": ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"], "s5": ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"]}
-MANDATORY_BY_SERVER = dict(PRIORITY_BY_SERVER)        # 기본 16 run(4+6+6) 전부가 예산 예약 대상 (완료된 run 은 trainer 가 0 으로 센다)
-PREVIOUS_PRIORITY_BY_SERVER = {"s4": ["J0", "JQ", "AL0", "ALQ"], "s5": ["J0", "JQ", "D0", "DQ", "PQ"]}
-ALLOC_PLAN = "research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md"
-ALLOCATED_SERVERS = ("s2", "s4", "s5")
+PRIORITY_BY_SERVER = {"s2": ["JR", "XJ", "J_R3_NOEDGE", "J_N0_EDGE"], "s4": ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"], "s5": ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"],
+                      "s3": ["J_R3_NOEDGE", "J_N0_EDGE", "LF0", "LFQ", "LFX"]}      # s3 (2026-09-15 §4: 기존 J0/JQ/JR/XJ/F0/FQ/FR 은 control 재사용; 개발 seed 2026)
+MANDATORY_BY_SERVER = dict(PRIORITY_BY_SERVER)        # 기본 run 전부가 예산 예약 대상 (완료된 run 은 trainer 가 0 으로 센다)
+PREVIOUS_PRIORITY_BY_SERVER = {"s4": ["J0", "JQ", "AL0", "ALQ"], "s5": ["J0", "JQ", "D0", "DQ", "PQ"], "s3": list(PRIORITY)}
+ALLOC_PLAN = "research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md"; ALLOC_PLAN_S3 = "research_log/PAN_PAKD50_Latest_Sheet_Analysis_and_S3_Experiments_2026-09-15.md"
+ALLOCATED_SERVERS = ("s2", "s3", "s4", "s5")
 # 시간 산정 (재배정 §2–§3): 같은 서버 완료 case 의 Sheet Train(h)(2026-09-15 00:05 live read; 새 case 실측이 아니라 **계획 기준값**) — N0 형(rec N0·edge 없음) 은 J0, Teacher/Q12 형은 JQ 의 값.
 # s2 는 이번 4 case 전부 2.33 (보수). s5 D0 1.15 는 일반화하지 않는다. routing case(PQ 등) 는 완료 기록이 없어 1.80h 가예약 — 같은 서버에서 첫 실측이 나오면 그것으로 바꾼다 (reference_hours).
-REFERENCE_TRAIN_H = {"s2": dict(N0=1.97, T=2.33, all=2.33), "s4": dict(N0=1.17, T=1.39), "s5": dict(N0=1.35, T=1.36)}
+REFERENCE_TRAIN_H = {"s2": dict(N0=1.97, T=2.33, all=2.33), "s4": dict(N0=1.17, T=1.39), "s5": dict(N0=1.35, T=1.36), "s3": dict(N0=1.16, T=1.34)}     # s3: J0 1.16 / JQ 1.34 (§6)
+REFERENCE_CASE_TRAIN_H = {"s3": {"LFX": 1.33}}                       # case 별 대용값 (s3 §4: LFX 는 XJ 1.33) — 유형 표보다 우선
 ROUTING_PLACEHOLDER_H = 1.80; CONFIRM_PLACEHOLDER_H = 1.80          # 미실측 경로 가예약 (실측·성능 예측이 아니다; 결과 수치로 기록하지 않는다)
+CONFIRM_REFERENCE_H = {"s3": 1.34}                                   # 확인 run 의 서버별 공통 대용값 (s3 §6: JQ 1.34; 상한 보장 아님) — 없으면 CONFIRM_PLACEHOLDER_H
 RESERVE_SLACK = 1.10; RESERVE_POST_H = 10.0 / 60.0                   # reservation_h = 1.10 × reference_train_h + 10/60 (10 % 변동 여유 + run 뒤 export/업로드/전환 10 분 가예약)
-CONFIRM_SEED = {"s4": 3407, "s5": 9091}; CONFIRM_MAX_RUNS = 3        # §7: 외부 분석의 WIN 확정 뒤에만, 서버당 최대 3 run (WIN · 같은 policy 의 no-KD control · F0; F0 가 control 이면 2)
+CONFIRM_SEED = {"s4": 3407, "s5": 9091, "s3": 4321}; CONFIRM_MAX_RUNS = 3   # §7: 외부 분석의 WIN 확정 뒤에만, 서버당 최대 3 run (s2/s4/s5: WIN · 같은 policy 의 no-KD control · F0; s3: §5 표의 후보별 묶음)
+CONFIRM_BUNDLE_BY_SERVER = {"s3": {"LFQ": ["JQ", "LF0", "LFQ"], "LFX": ["XJ", "LF0", "LFX"], "J_N0_EDGE": ["J0", "XJ", "J_N0_EDGE"], "J_R3_NOEDGE": ["J0", "JR", "J_R3_NOEDGE"], "XJ": ["J0", "JR", "XJ"], "JQ": ["J0", "XJ", "JQ"]}}
 RESERVATION_FILE = "work_dir/_pakd50/reservations.json"             # 서버 로컬: run → gate_hours (= reservation_h / MARGIN; trainer 가 margin 을 곱하면 reservation_h). gate 가 매 pass 갱신
 STAGE_BY_SERVER = {"s4": {1: ["J0", "AL0"], 2: ["JQ", "ALQ"]}, "s5": {1: ["J0", "D0"], 2: ["JQ", "DQ", "PQ"]}}     # --stage 용 (2026-09-14 기본 묶음; 재배정 목록은 --cases / 편성은 gate)
 EXTRA_PRIORITY_FILE = "work_dir/_pakd50/extra_priority.txt"
@@ -157,7 +165,9 @@ def reference_hours(server, case, measured=None, confirm=False):
     if measured.get(case):
         return float(measured[case]), "measured_same_case"
     if confirm:
-        return CONFIRM_PLACEHOLDER_H, "confirm_placeholder"
+        return (CONFIRM_REFERENCE_H[server], "confirm_reference") if server in CONFIRM_REFERENCE_H else (CONFIRM_PLACEHOLDER_H, "confirm_placeholder")
+    if case in REFERENCE_CASE_TRAIN_H.get(server, {}):
+        return float(REFERENCE_CASE_TRAIN_H[server][case]), "plan_reference_case"
     kind = reference_kind(case)
     if kind == "ROUTING":
         rs = [float(h) for c, h in measured.items() if c in CASES and reference_kind(c) == "ROUTING"]
@@ -209,10 +219,15 @@ def write_reservation_file(server, items, measured=None, seed=None, path=None):
     return out
 
 
-def confirmation_cases(win_case):
-    """§7 확인 seed 묶음: WIN · 같은 policy 의 no-KD control · F0 (control 이 F0 면 2 run). 순서 유지, 중복 제거."""
+def confirmation_cases(win_case, server=None):
+    """확인 seed 묶음 (≤3 run). s2/s4/s5 (§7): WIN · 같은 policy 의 no-KD control · F0 (control 이 F0 면 2 run). s3 (§5 표): 후보별 고정 묶음 (표에 없는 후보는 거부). 순서 유지, 중복 제거."""
     if win_case not in CASES:
         raise SystemExit(f"!! 알 수 없는 case {win_case}")
+    if server in CONFIRM_BUNDLE_BY_SERVER:
+        b = CONFIRM_BUNDLE_BY_SERVER[server].get(win_case)
+        if b is None:
+            raise SystemExit(f"!! {server}: 확인 묶음 표(§5) 에 없는 후보 {win_case} — 표에 있는 후보 {list(CONFIRM_BUNDLE_BY_SERVER[server])} 만")
+        return list(b)
     ctl = BASELINE_OF[CASES[win_case][0]]; out = []
     for c in (win_case, ctl, "F0"):
         if c not in out:
@@ -413,7 +428,7 @@ def plan_rows(server, measured=None, is_terminal=None, extra=()):
 
 def plan_table(server):
     rem = hours_to_deadline(); rows = plan_rows(server)
-    print(f"[{server}] seed {SERVER_SEED[server]} — 재배정 {ALLOC_PLAN} §4; 예약 = {RESERVE_SLACK}×ref + {RESERVE_POST_H * 60:.0f}min; 학습 마감까지 {'?' if rem is None else '%.2f' % rem} h")
+    print(f"[{server}] seed {SERVER_SEED[server]} — 배정 {ALLOC_PLAN_S3 + ' §4' if server == 's3' else ALLOC_PLAN + ' §4'}; 예약 = {RESERVE_SLACK}×ref + {RESERVE_POST_H * 60:.0f}min; 학습 마감까지 {'?' if rem is None else '%.2f' % rem} h")
     for r in rows:
         print(f"  {r['case']:<12} {r['status']:<14} ref {r['reference_train_h']:.2f} h ({r['reference_kind']}) → 예약 {r['reservation_h']:.4f} h · 누적 {r['cumulative_h']:.4f} h")
     tot = sum(r["reservation_h"] for r in rows if r["status"] == "planned")

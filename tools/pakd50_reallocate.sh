@@ -2,7 +2,7 @@
 # PAKD50 파생 실험 재배정 (research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md) — s2/s4/s5 에서 pull 뒤 한 번.
 #   ./tools/pakd50_reallocate.sh                 # 명시 순서로 전환 (다음 run 경계에서; 진행 중 학습은 건드리지 않는다 — §9.2)
 #   ./tools/pakd50_reallocate.sh --dry-run       # 검사·예약 표만
-#   ./tools/pakd50_reallocate.sh --confirm <WIN>  # §7: 기본 단계 뒤 외부 분석의 WIN 이 오면 — 확인 seed(s4 3407 / s5 9091) config 생성 + extra_priority 등록 (최대 3 run)
+#   ./tools/pakd50_reallocate.sh --confirm <WIN>  # 기본 단계 뒤 외부 분석의 WIN 이 오면 — 확인 seed(s4 3407 / s5 9091 / s3 4321) config 생성 + extra_priority 등록 (최대 3 run; s3 은 §5 표의 후보별 묶음)
 #   ① gate 'pakd50' 켜짐 확인 · λE 사본 동기화 · unit gate ② 순서의 config 가 생성기와 같은지 검사 (config 는 git 으로 받는다 — 여기서 쓰지 않는다)
 #   ③ 서버 로컬 mandatory_runs.txt(기본 묶음 = 명시 순서) · reservations.json(1.10×ref + 10/60) ④ 예약 표 ⑤ requeue: runner 만 교체 → 현재 학습이 끝나면 gate 가 새 순서로 편성
 set -uo pipefail
@@ -12,7 +12,7 @@ export PANCRAFTER_DLPAN="${PANCRAFTER_DLPAN:-/home/knuvi/Desktop/song/DLPan-Tool
 SERVER="$(tr -d '[:space:]' < gspread/server.txt)"; DRY=0; CONFIRM=""
 while [ $# -gt 0 ]; do case "$1" in --dry-run) DRY=1;; --confirm) CONFIRM="${2:-}"; shift;; *) echo "!! 알 수 없는 인자 $1"; exit 1;; esac; shift; done
 fail() { echo "!! $1"; exit 1; }
-case "$SERVER" in s2|s4|s5) ;; *) fail "재배정 대상은 s2/s4/s5 뿐이다 (이 서버: $SERVER; s1 은 분석용, s3 은 신규 배정 없음 — 계획 §1)";; esac
+case "$SERVER" in s2|s3|s4|s5) ;; *) fail "재배정 대상은 s2/s3/s4/s5 다 (이 서버: $SERVER; s1 은 분석용). s3 은 2026-09-15 s3 추가 계획(PAN_PAKD50_Latest_Sheet_Analysis_and_S3_Experiments) 의 5 case";; esac
 [ -f work_dir/_pakd50/ledger.json ] || fail "work_dir/_pakd50/ledger.json 없음 — 이 서버는 pakd50_prepare 를 아직 안 했다"
 grep -qx 'pakd50' work_dir/campaign_gates_enabled.txt 2>/dev/null || fail "work_dir/campaign_gates_enabled.txt 에 pakd50 이 없다"
 echo "[realloc] ① $SERVER — λE 사본 동기화 + unit gate"
@@ -23,7 +23,7 @@ if [ -n "$CONFIRM" ]; then
     "$PY" - "$SERVER" "$CONFIRM" <<'PYEOF' || fail "확인 seed 준비 실패"
 import os, subprocess, sys; sys.path.insert(0, "."); from tools import gen_pakd50_configs as G
 srv, win = sys.argv[1], sys.argv[2]; seed = G.CONFIRM_SEED.get(srv) or sys.exit(f"!! {srv} 에는 확인 seed 가 없다 (s4 3407 / s5 9091)")
-cases = G.confirmation_cases(win); runs = [G.run_name(c, seed) for c in cases]
+cases = G.confirmation_cases(win, srv); runs = [G.run_name(c, seed) for c in cases]
 r = subprocess.run([sys.executable, "tools/gen_pakd50_configs.py", "--server", srv, "--seed", str(seed), "--cases", ",".join(cases)], capture_output=True, text=True); print(r.stdout.strip().splitlines()[-1] if r.stdout.strip() else r.stderr[-300:])
 r.returncode == 0 or sys.exit("!! config 생성 실패")
 p = os.path.join(G.ROOT, G.EXTRA_PRIORITY_FILE); have = G.extra_priority(); os.makedirs(os.path.dirname(p), exist_ok=True)
@@ -36,7 +36,7 @@ with open(mp, "a") as f:
     for rn in runs:
         if rn not in cur:
             f.write(rn + "\n")
-print(f"   확인 seed {seed}: {' → '.join(cases)} ({len(runs)} run; WIN {win} · control {G.BASELINE_OF[G.CASES[win][0]]} · F0) → {G.EXTRA_PRIORITY_FILE} + {G.MANDATORY_FILE}. 계수·release 는 여기서 고정 — 결과를 본 뒤 바꾸지 않는다 (§7)")
+print(f"   확인 seed {seed}: {' → '.join(cases)} ({len(runs)} run; WIN {win}; 묶음 규칙 {'§5 표(s3)' if srv in G.CONFIRM_BUNDLE_BY_SERVER else 'WIN·control·F0'}) → {G.EXTRA_PRIORITY_FILE} + {G.MANDATORY_FILE}. 계수·release 는 여기서 고정 — 결과를 본 뒤 바꾸지 않는다")
 print("   config 는 이 서버 로컬 생성(미커밋) — 공유가 필요하면 커밋할 것. 예약 = 1.80h 가예약 (같은 case 실측이 있으면 그 값; §7)")
 PYEOF
 fi
