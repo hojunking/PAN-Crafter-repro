@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# SMEC12 준비 학습 기동 (s2) — 계획 research_log/PAN_SMEC12_MultiDataset_SampleMechanism_ExperimentPlan_2026-09-15.md §2–§3, 노트 research_log/2026-09-15_smec12-implementation.md
+# SMEC12 준비 학습 기동 (서버 공용; 큐 config/queues/smec12_<server>.txt) — 계획 research_log/PAN_SMEC12_MultiDataset_SampleMechanism_ExperimentPlan_2026-09-15.md §2–§3, 노트 research_log/2026-09-15_smec12-implementation.md
 #   ./tools/smec12_prepare.sh [--dry-run] [--sensors qb,gf2]
-#   ① 데이터(QB msfix + _pan.h5, GF2 + _pan.h5, mat20 FR) · unit gate ② config == 생성기 ③ 예산 ledger(40 h) ④ 현재 chain(PAKD50 재배정) 이 끝날 때까지 detached 로 기다렸다가 campaign_start
+#   ① 데이터(QB msfix + _pan.h5, GF2 + _pan.h5, mat20 FR) · unit gate ② config == 생성기 ③ 예산 ledger(40 h) ④ 현재 chain 이 끝날 때까지 detached 로 기다렸다가 campaign_start
 #   기존 gate 'pakd50' 는 큐 종료 뒤 옛 run 을 재주입하므로 SMEC12 기동 시점에 비운다(백업 work_dir/_smec12_gates_backup.txt).
 set -uo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"

@@ -33,7 +33,8 @@ def manifest(T, cal):
             runs[f"{ck}_S{seed}"] = dict(case_id=ck, existing_case_alias=C.CASES[ck], run_id=C.run_name(ck, seed), seed=seed, status=run_status(ck, seed), config=f"config/{C.run_name(ck, seed)}.yaml",
                                          init_hashes=ih, init_unet_file_exists=os.path.exists(init_file), expect_init=(C.G.init_hash_for(seed)),
                                          candidates=(sorted(int(x.split('-')[1]) for x in os.listdir(os.path.join(rd, "candidates"))) if os.path.isdir(os.path.join(rd, "candidates")) else []),
-                                         selected=C.load_json(os.path.join(rd, "best_hqnr_meta.json"), None), meta_git=(open(os.path.join(rd, "meta", "git_commit.txt")).read().strip() if os.path.exists(os.path.join(rd, "meta", "git_commit.txt")) else None))
+                                         selected=C.load_json(os.path.join(rd, "best_hqnr_meta.json"), None), meta_git=(open(os.path.join(rd, "meta", "git_commit.txt")).read().strip() if os.path.exists(os.path.join(rd, "meta", "git_commit.txt")) else None),
+                                         trained_on=C.trained_on(ck, seed), provenance=C.provenance(ck, seed))
     th = C.load_json(os.path.join(C.ROOT, "work_dir", "_pakd50_budget", "ledger.json"), {}).get("throughput")
     gates = open(os.path.join(C.ROOT, "work_dir", "campaign_gates_enabled.txt")).read().split() if os.path.exists(os.path.join(C.ROOT, "work_dir", "campaign_gates_enabled.txt")) else []
     m = dict(plan_id=C.CAMPAIGN_ID, analysis_campaign_id=C.CAMPAIGN_ID, plan=C.PLAN, created=time.strftime("%Y-%m-%dT%H:%M:%S"), **C.host_info(),
@@ -43,8 +44,8 @@ def manifest(T, cal):
              kdv_contract=dict(protocol=k["input_protocol"], corruption=k.get("corruption"), aux=k.get("aux"), routing=k.get("routing"), rec=k["rec"], stat=k["stat"], donor_view_margin=k["donor"]["view_margin_hr"], candidate_grid=k["candidate_grid_id"], select=k["select"]),
              comparator="best_hqnr = raw-original HQNR (tie band 1e-4 → fSCC); 후보 50개 전부 보존", cases=dict(B0="FQ: A frozen(T0 복사) · U ← L_H + L_K + λE L_E", B1="JK0: A trainable LR 1e-5 · A ← L_H + λE L_E + odd·1e-4 L_off (soft→A 차단, routing qK=0) · U ← Q12 전체",
                                                                                                     B1_ALL="JQ (soft→A 포함) — 이번 학습 없음, 있으면 진단만", B2="FQ + 사분면 soft multiplier — 미구현·gate 통과 시만", B3="JK0 + multiplier — 미구현·gate 통과 시만"),
-             runs=runs, seeds=C.SEEDS, host_pairing="같은 호스트(s1) 안에서 B0/B1 pair 를 완성 (§8.2); s1 의 FQ S1234 v1 완료본을 B0-1234 로 재사용, 나머지 3 run 새 학습 (FQ S777 은 s2 완료본과 이름이 같지만 별개 host 학습)",
-             throughput_observed=th, execution_isolation=dict(campaign_gates_enabled=gates, note="s1 의 PAKD50 chain 은 2026-09-14 22:40 사용자 지시로 중단; gate 'pakd50' 는 DCR12 학습 큐가 옛 우선순위를 재주입하지 않도록 비운다 (D00 이 기록)",
+             runs=runs, seeds=C.SEEDS, host_pairing=dict(C.host_pairing(), reuse="B0 는 그 seed 서버의 PAKD50 FQ 완료본 재사용(s1: FQ S1234 v1 · s2: FQ S777 v1); 다른 호스트에서 옮긴 pair 는 tools/dcr12_bundle.py 로 install 한 것(work_dir/<run>/bundle_provenance.json) — 이 서버가 학습하지 않았다"),
+             throughput_observed=th, execution_isolation=dict(campaign_gates_enabled=gates, note="gate 'pakd50' 는 DCR12 학습 큐가 옛 우선순위를 재주입하지 않도록 runner 가 기동 전에 비운다(백업 work_dir/_dcr12_gates_backup.txt); s1 의 PAKD50 chain 은 2026-09-14 22:40 사용자 지시로 중단 (D00 이 기록)",
                                                               budget_ledger="config 의 kdv.budget 은 PAKD50 ledger(work_dir/_pakd50_budget/ledger.json; 50h·마감 09-16 11:22:31) 를 그대로 쓴다 — DCR12 별도 ledger 는 만들지 않고 이 manifest 에 예상 시간을 적는다"),
              panels=dict(seed=C.SPLIT_SEED, sizes=C.PANEL, grad=C.GRAD_N, disc128=C.DISC128_N, fr8=C.FR8_N, independence="patch_only"), probes=dict(r=list(C.PROBE_R), n_main=16, n_confirm=16), bias_hr=C.BIAS_HR,
              d03_steps=C.D03_STEPS, d04_steps=C.D04_STEPS, expected_hours=dict(train_per_run="≈2.2–2.5 (s1 PAKD50 FQ 2.15 h 실측)", train_total="3 run ≈ 7 h", diagnostics="≈1.5 h", total="≈ 9 h (계획 10–16 h 안)"))

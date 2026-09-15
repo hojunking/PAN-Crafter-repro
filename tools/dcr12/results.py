@@ -6,7 +6,8 @@ PLATEAU = [45450, 46460, 47470, 48480, 49490, 50000]
 
 
 def run_metrics(ck, seed):
-    rd = C.run_dir(ck, seed); out = dict(case=ck, alias=C.CASES[ck], seed=seed, run=C.run_name(ck, seed), status=("complete" if C.run_complete(ck, seed) else "incomplete"))
+    rd = C.run_dir(ck, seed); out = dict(case=ck, alias=C.CASES[ck], seed=seed, run=C.run_name(ck, seed), status=("complete" if C.run_complete(ck, seed) else "incomplete"), trained_on=C.trained_on(ck, seed),
+                                        finished_at=(open(os.path.join(rd, "meta", "finished_at.txt")).read().strip() if os.path.exists(os.path.join(rd, "meta", "finished_at.txt")) else None))
     if not C.run_complete(ck, seed):
         return out
     meta = C.load_json(os.path.join(rd, "best_hqnr_meta.json"), {}); fr = C.load_json(os.path.join(rd, "results", "fr_mat20.json"), {}); cm = pd.read_csv(os.path.join(rd, "checkpoint_metrics.csv"))

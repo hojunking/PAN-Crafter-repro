@@ -1,0 +1,4 @@
+# DCR12 (research_log/PAN_Consistency_Reconstruction_Quadrant_Validation_12H_2026-09-14.md §8.2 host A/B 배치) — s2 (seed 777). B0/FQ S777 v1 은 s2 의 PAKD50 완료본 재사용(큐에 넣지 않음), B1/JK0 S777 v1 만 새로 학습.
+# seed 1234 pair(FQ/JK0 S1234 v1) 는 s1 학습본을 tools/dcr12_bundle.py 로 옮겨 install 한다 — s2 가 다시 학습하지 않는다 (seed×host 결합은 REPORT 가 SEED_HOST_COUPLED 로 적는다).
+# 학습 정의는 PAKD50 generator 그대로(v1). config 의 kdv.budget 은 PAKD50 ledger·training_deadline(2026-09-16 11:22:31) 을 그대로 쓴다 — 마감 뒤에는 trainer 가 DEFERRED(rc=4) 로 시작하지 않는다 (노트 §5). gate 'pakd50' 는 runner 가 기동 전에 비운다.
+PAKD50_JK0_W112_D123_WV3_T0_S777_FRESH50_v1

@@ -1,4 +1,4 @@
-# SMEC12 준비 학습 (계획 research_log/PAN_SMEC12_MultiDataset_SampleMechanism_ExperimentPlan_2026-09-15.md §2; 노트 research_log/2026-09-15_smec12-implementation.md) — s2: 센서 QB, GF2 의 P0 → DON-N2 → L000 → L1E4 → L1E4-REP 를 lane 교차로.
+# SMEC12 준비 학습 (계획 research_log/PAN_SMEC12_MultiDataset_SampleMechanism_ExperimentPlan_2026-09-15.md §2; 노트 research_log/2026-09-15_smec12-implementation.md) — s1: 센서 QB, GF2 의 P0 → DON-N2 → L000 → L1E4 → L1E4-REP 를 lane 교차로.
 # 각 50K; 예약 2.6 h/run. donor(B02/last) 가 있어야 B03/B04 smoke 가 통과한다 — 순서가 의존성이다. 기존 chain 이 끝난 뒤 기동 (tools/smec12_prepare.sh).
 B01_QB_P0_W112_D123_S2025_BOOTSCRATCH
 B01_GF2_P0_W112_D123_S2025_BOOTSCRATCH

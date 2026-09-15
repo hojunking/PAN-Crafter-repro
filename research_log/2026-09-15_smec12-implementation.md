@@ -17,7 +17,7 @@
 
 **이번 release 에 구현·검증한 것**: (a) 전부(config·큐·기동 절차·smoke), (b) 의 backbone — A00 · D10(+D11-A/B 일부) · I20(A/B/C) · I23-B · I24-A · I25-A · X40 · REPORT — 를 센서 일반형(4/8 band, max_pixel, zero-shot tile) 으로 만들고 WV3 자산으로 검증. **미구현(pending_compute)**: D11-C edge profile, D12 descriptor bank·blind gallery, I21, I22, I23-A/C/D, I24-B/C, I25-B, S30, C50, R60. 보고서는 이 stage 를 `pending_compute` 로 적고 complete 로 쓰지 않는다(§19.3·§24).
 
-## 2. 준비 학습 (a): `tools/gen_smec12_bootstrap.py` + `config/queues/smec12_s2.txt` + `tools/smec12_prepare.sh`
+## 2. 준비 학습 (a): `tools/gen_smec12_bootstrap.py` + `config/queues/smec12_<server>.txt` + `tools/smec12_prepare.sh`
 
 | role | template(검증된 성공 run) | 센서 치환 | run id |
 |---|---|---|---|
@@ -56,21 +56,46 @@
 
 ## 5. WV3 backbone 실행 결과 (검증용; 결과 문서가 아니다)
 
-(실행 뒤 채움)
+s1, 2026-09-15 10:30–11:30, `work_dir/_smec12_s1_campaign/report_SMEC12.md`. 자산: WV3 P0/DON-N2/L000×3 seed/L1E4 S2025/L1E4-REP×2 seed(available) 중 분석 model 6 (L000 S1234/S2025/S7777 · L1E4 S2025 · L1E4-REP S1234/S7777) × best_hqnr/last. QB/GF2 는 pending_dependency(준비 학습 전). 관측 단위·panel·probe 는 §3. stage 시간: D10 5.2 min(첫 실행)/2.7 min · I20 0.5 · I23 0.3 · I24 0.3 · I25 0.8 · X40/REPORT < 0.5 → WV3 backbone 한 바퀴 ≈ 10 min(학습과 GPU 공유).
 
-## 6. s2 절차
+| 항목 | primary (WV3 L1E4 S2025 best_hqnr, DISC n 1536 / 48 source) | 다른 model·panel |
+|---|---|---|
+| D10 raw ρ(q, e) | **−0.169** CI [−0.223, −0.117] · r .25/.5/1/2: −0.068/−0.085/−0.128/−0.190 · LOSO [−0.179, −0.158] | 12 행 전부 음(−0.10 … −0.24, CI 상한 < 0); last 가 best_hqnr 보다 약간 덜 음 |
+| D11 대비 정규화 ρ(q, e/contrast) | **+0.498** CI [0.452, 0.542] · ρ(q, e_base) −0.548 · ρ(q, texture) −0.575 | 전부 양(+0.50 … +0.60) → 부호가 뒤집힌다 |
+| 네 집단 중앙값 (e / q / contrast) | EdCd .0129/.312/.384 · EdCu .0093/.330/.212 · EuCd .0223/.312/.636 · EuCu .0247/.332/.411 · boundary_near 0.21 | 같은 순서 |
+| I20 s_out(.25 px) | EdCd .0077 · EdCu .0057 · **EuCd .0176** · EuCu .0129 (n 32/집단) | REP S1234/S7777 같은 순서 |
+| I20 EuCd − EuCu | DISC **+0.00463** CI [−0.00107, +0.00943] · CONF +0.00571 CI [+0.00294, +0.00860] | REP S1234 +0.00388 · S7777 +0.00351 |
+| I23-B g_corr = e(0) − e(c0) | +0.00086 CI [0.00071, 0.00101] (양 0.98) · wrong−learned +0.0036 · CAL-median−learned +0.0012 · shuffle−learned +0.0015 · by quadrant EuCd 최대 +0.0017 | REP +0.00085 … +0.00124 (양 0.95–0.98) |
+| I24-A r=1 | seq−single 0.0065 · single−0 0.0364 → interp share 0.18 · known-inverse seq vs native 7.1e-3 | CONF 동일 |
+| I25-A cos(g_r, g_o) | −0.081 DISC / −0.062 CONF (음 비율 0.60) · 1e-4‖g_o‖/‖g_r‖ 0.016–0.020 | REP S1234 −0.02/−0.06 · REP S7777 **+0.03/+0.07** (부호 seed 의존) |
+| WV2 zero-shot (RR 20 scene × 16 tile) | raw ρ −0.366 CI [−0.543, −0.188] · 대비 정규화 −0.087 CI [−0.188, +0.024] | 3 model 전부 raw −0.37 … −0.41, 정규화 −0.06 … −0.14 (WV3 와 달리 부호가 뒤집히지 않음) |
+| X40 matched pair | EuCd~EuCu 169 · EuCd~EdCd 339 (Δcontrast +0.23, Δe_base +0.040) | WV2 52 / 63 |
+
+판정(`analysis/hypothesis_verdicts.csv`): **M1 supported_within_condition**(정규화만으로 원인 확정 아님) · **M3 insufficient**(규칙: DISC CI 가 0 을 포함; CONF·REP 두 model 은 양) · M2/M4/M5/M7 insufficient(pending_compute) · M6 insufficient(QB/GF2 pending). 열린 문제: X40 의 "동일 residual 출력 민감도" matched 행이 `measured_unmatched` 다 — I20 상세 subset(집단당 ≤32) 안에 matched pair 가 1 개뿐이라, matched pair 위에서 I20 을 따로 돌려야 한다(다음 release).
+
+검증 중 고친 것: D10 이 `PanFeeder(max_pixel=…)` 로 죽었다(feeder 에 그 인자가 없다 — 인자 없이 만들고 `fr.max_pixel` 을 확인) → model 단위로 즉시 기록하도록 바꿈(첫 실행 30 분 손실) · REPORT 의 M3 가 알파벳순으로 REP model 을 primary 로 집었다 → `|L1E4|S2025|` 로 고정하고 REP 는 따로 · X40 matched s_out 이 model 을 섞어 pooling 했다 → primary 만, WV2 는 CAL 이 없어 RRTILE 을 대신 쓴다.
+
+## 6. 실행 서버 절차 (s1/s2 공용 — 큐 `config/queues/smec12_<server>.txt`)
 
 ```bash
 git pull
-./tools/smec12_prepare.sh --dry-run     # 데이터·gate·config·ledger 검사
-./tools/smec12_prepare.sh               # 현재 PAKD50 재배정 chain 이 끝나면 자동 기동 (waiter; work_dir/_smec12_s2_campaign/launch.log)
+./tools/smec12_prepare.sh --dry-run     # 데이터·gate·config·ledger 검사 (s1 12:00 통과: QB 17139 · GF2 19809 patch, S01–S14 ALL OK)
+./tools/smec12_prepare.sh               # 현재 chain 이 끝나면 자동 기동 (waiter; work_dir/_smec12_<server>_campaign/launch.log)
 # 준비 학습 중/뒤 (증분):
-setsid nohup ./tools/smec12_run.sh >> work_dir/_smec12_s2_campaign/run.log 2>&1 < /dev/null &
+setsid nohup ./tools/smec12_run.sh >> work_dir/_smec12_<server>_campaign/run.log 2>&1 < /dev/null &
 ```
 
-- s2 의 8-band lane(WV3 자산) 은 s2 에 PALS24/NF16 run 이 없으면 A00 이 pending 으로 표시한다 — WV3 분석은 s1(자산 보유) 의 결과를 coordinator 로 쓴다(§3.2 reference packet).
+- WV3 lane(8-band 자산: PALS24/NF16/PO10 run) 은 **s1 에만 있다** — s1 에서 돌리면 A00 이 available, 다른 서버에서는 pending 으로 표시되고 WV3 분석은 s1 결과를 coordinator 로 쓴다(§3.2 reference packet). 이것이 §8 의 s1 이관 근거다.
 - 준비 학습이 끝나면 B02 의 exact50K sha 를 B03/B04 config 의 `donor.expected_sha256` 에 넣어 고정할 수 있다(A00 이 registry 에 기록; 현재 null = 검사 생략).
 
 ## 7. 남긴 것 (pending_compute)
 
 D11-C, D12, I21, I22, I23-A/C/D, I24-B/C, I25-B, S30, C50, R60. 계획 §19.3 우선순위(전 센서 sampling·primary atlas → primary 상세 개입 → 확인 seed) 대로 backbone 이 먼저이고, 위 항목은 같은 raw 표(join key: sample_id·source_group·model·part) 위에 추가한다.
+
+## 8. 서버 교체 준비 (2026-09-15 12:00; 사용자 제안 — 확인 대기)
+
+사용자가 "SMEC12 는 WV3 자산이 있는 s1 에서, 지금 s1 에서 도는 DCR12 는 s2 에서" 를 제안했다. 검토 결과 맞는 방향이라 **기동만 남기고 준비**했다 (DCR12 쪽은 `research_log/2026-09-15_dcr12-implementation.md` §5).
+
+- s1 의 DCR12 학습 chain 은 11:46 에 `work_dir/cases_deadline.txt` 를 과거로 돌려 **JK0 S1234(≈12:10 완료) 뒤 FQ/JK0 S777 을 시작하지 않게** 잡아 두었다(체크포인트·완료본 손실 없음; 되돌리기 = `./tools/campaign_start.sh --queue config/queues/dcr12_s1.txt --hours 20` + runner 재기동).
+- s1 용 큐 `config/queues/smec12_s1.txt`(생성기 `--server s1`; config 10 벌은 s2 와 같은 파일) · `smec12_prepare.sh --dry-run` s1 통과 · 40 h ledger 생성. **기동(`./tools/smec12_prepare.sh`) 은 사용자 확인 뒤** — waiter 가 JK0 S1234 종료 뒤 자동으로 chain 을 연다. 예상: 10 run × ≈2.3 h ≈ 23–26 h(s1 W112 50K 실측 1.9–2.5 h) → 09-16 저녁, 그 뒤 분석 backbone(WV3+QB+GF2+WV2) ≈ 1 h.
+- 교체하지 않으면(DCR12 를 s1 에서 마저) SMEC12 는 s1 에서 DCR12 뒤(≈20:00) 시작하거나 s2 에서 돌리되 WV3 lane 없이 간다.

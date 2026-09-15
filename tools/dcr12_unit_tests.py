@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """DCR12 gate (계획 §4.2 중 코드로 닫는 것 + 진단 도구 정의). 하나라도 실패하면 exit 1.   python tools/dcr12_unit_tests.py
-X01 probe 집합 · X02 closure 불변·RNG 격리 · X03 R/edge 정의 · X04 label 규칙 · X05 panel 분리 · X06 loss 항 == trainer 분해 · X07 D03 per-sample(자산 불변) · X08 D04 episode 분리 · X09 cosine LR · X10 gate 논리 · X11 개입 정의 · X12 완료 run 만 · X13 판정 라벨"""
+X01 probe 집합 · X02 closure 불변·RNG 격리 · X03 R/edge 정의 · X04 label 규칙 · X05 panel 분리 · X06 loss 항 == trainer 분해 · X07 D03 per-sample(자산 불변) · X08 D04 episode 분리 · X09 cosine LR · X10 gate 논리 · X11 개입 정의 · X12 완료 run 만 · X13 판정 라벨 · X14 pair bundle 정의 · X15 서버 큐"""
 import copy, math, os, sys
 import numpy as np, pandas as pd, torch
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0, ROOT); os.environ.setdefault("PANCRAFTER_DLPAN", "/home/knuvi/Desktop/song/DLPan-Toolbox")
@@ -63,4 +63,10 @@ from tools.dcr12.report import verdicts
 prA = pd.DataFrame([dict(status="paired", d_selected_hqnr=0.001), dict(status="paired", d_selected_hqnr=0.002)]); prB = pd.DataFrame([dict(status="paired", d_selected_hqnr=0.001), dict(status="paired", d_selected_hqnr=-0.002)])
 vA = verdicts({}, {}, {}, prA, None); vB = verdicts({}, {}, {}, prB, None)
 check("X13 판정 라벨 (§14.1): 두 seed 양 → TASK_ADAPTATION_CANDIDATE · 부호 반전 → INCONCLUSIVE", any(x.startswith("TASK_ADAPTATION_CANDIDATE") for x in vA["labels"]) and any(x.startswith("INCONCLUSIVE") for x in vB["labels"]))
+from tools import dcr12_bundle as BND
+ent = BND.entries(1234); req = [(e["run"], e["file"]) for e in ent if e["required"]]; rB0, rB1 = C.run_name("B0", 1234), C.run_name("B1", 1234)
+need = ("meta/config.yaml", "best_hqnr/model.safetensors", "best_hqnr_meta.json", "last/model.safetensors", "last_meta.json", "results/reduced_best_hqnr.mat", "results/full_best_hqnr.mat", "checkpoint_metrics.csv") + tuple(f"candidates/step-{st}/model.safetensors" for st in sorted(set(C.D03_STEPS + C.D04_STEPS)))
+check("X14 pair bundle 정의: seed pair 의 B0/B1 두 run · 필수 = config/best_hqnr/last(+meta)/results mat/checkpoint_metrics/candidates(D03∪D04 격자) · optimizer.bin 제외 · trained_on 은 provenance 없으면 이 서버", {e["run"] for e in ent} == {rB0, rB1} and all((r, f) in req for r in (rB0, rB1) for f in need) and not any("optimizer" in e["file"] for e in ent) and C.trained_on("B0", 1234) in (C.SERVER, None) and C.host_pairing()["note"].startswith("§8.2"))
+q = os.path.join(ROOT, "config", "queues", f"dcr12_{C.SERVER}.txt"); runs_q = [l.strip() for l in open(q) if l.strip() and not l.startswith("#")] if os.path.exists(q) else None; allowed = {C.run_name(ck, s) for s in C.SEEDS for ck in ("B0", "B1")}
+check("X15 서버 큐 config/queues/dcr12_<server>.txt: 있음 · DCR12 pair run 이름(v1)만 · config 존재", bool(runs_q) and set(runs_q) <= allowed and all(os.path.exists(os.path.join(ROOT, "config", r + ".yaml")) for r in runs_q), f"{C.SERVER}: {runs_q}")
 print(f"\n{'FAIL ' + str(FAIL) if FAIL else 'ALL OK'} ({len(FAIL)} failed)"); sys.exit(1 if FAIL else 0)

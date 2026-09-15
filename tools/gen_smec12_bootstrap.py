@@ -143,7 +143,7 @@ def main():
         srv = a.server or open(os.path.join(ROOT, "gspread", "server.txt")).read().strip(); q = os.path.join(ROOT, "config", "queues", f"smec12_{srv}.txt")
         with open(q, "w") as f:
             f.write(f"# SMEC12 준비 학습 (계획 {PLAN} §2; 노트 {NOTE}) — {srv}: 센서 {', '.join(SENSORS[s]['S'] for s in sensors)} 의 P0 → DON-N2 → L000 → L1E4 → L1E4-REP 를 lane 교차로.\n"
-                    f"# 각 50K; 예약 {RUN_RESERVED_HOURS} h/run. donor(B02/last) 가 있어야 B03/B04 smoke 가 통과한다 — 순서가 의존성이다. 기존 PAKD50 chain 이 끝난 뒤 기동 (tools/smec12_prepare.sh).\n" + "\n".join(queue_order(sensors)) + "\n")
+                    f"# 각 50K; 예약 {RUN_RESERVED_HOURS} h/run. donor(B02/last) 가 있어야 B03/B04 smoke 가 통과한다 — 순서가 의존성이다. 기존 chain 이 끝난 뒤 기동 (tools/smec12_prepare.sh).\n" + "\n".join(queue_order(sensors)) + "\n")
         print("queue:", os.path.relpath(q, ROOT))
     print("made:", " ".join(made))
 

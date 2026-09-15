@@ -39,16 +39,17 @@ def main(profile=False):
             if bq and "EuCd" in bq and "EuCu" in bq:
                 row("EuCd descriptor 차이", "measured" if s != "wv2" else "zero_shot", None, "median: " + "; ".join(f"{q}: e {v['e']:.4f} q {v['q']:.3f} e_base {v['e_base']} texture {v['texture']:.4f} contrast {v['contrast']}" for q, v in bq.items()) + " (descriptor bank D12 전체·blind gallery 는 pending_compute)")
                 # matched EuCd↔EuCu on e_base & contrast (CAL SD caliper .2), then s_out(.25) difference
-                g = sm[(sm.model == k.split("|")[1] + "|" + "|".join(k.split("|")[2:4])) & (sm.part == "DISC")] if False else sm[(sm.sensor == S) & (sm.part == ("DISC" if s != "wv2" else "RRTILE")) & sm.quadrant.notna()]
-                g = g[g.model == [m for m in g.model.unique() if "|L1E4|" in m][0]] if any("|L1E4|" in m for m in g.model.unique()) else g
-                cal = sm[(sm.sensor == S) & (sm.part == "CAL")]; sd = [float(cal.e_base.std()) if "e_base" in cal else 1.0, float(cal.contrast_gt.std()) if "contrast_gt" in cal else 1.0]
+                g = sm[(sm.sensor == S) & (sm.part == ("DISC" if s != "wv2" else "RRTILE")) & sm.quadrant.notna()]
+                prim_model = next((m for m in sorted(g.model.unique()) if "|L1E4|S2025|best_hqnr" in m), None); g = g[g.model == prim_model] if prim_model else g
+                cal = sm[(sm.sensor == S) & (sm.part == ("CAL" if s != "wv2" else "RRTILE")) & (sm.model == prim_model)] if prim_model else sm[(sm.sensor == S) & (sm.part == ("CAL" if s != "wv2" else "RRTILE"))]
+                sd = [float(cal.e_base.std()) if "e_base" in cal and cal.e_base.notna().any() else 1.0, float(cal.contrast_gt.std()) if "contrast_gt" in cal and cal.contrast_gt.notna().any() else 1.0]
                 a, b = g[g.quadrant == "EuCd"].set_index("sample_id"), g[g.quadrant == "EuCu"].set_index("sample_id")
                 if "e_base" in g and len(a) and len(b):
                     pairs = match_pairs(a, b, ["e_base", "contrast_gt"], sd); matched.append(dict(sensor=S, pair="EuCd~EuCu", matched_on="e_base,contrast_gt (caliper .2 CAL SD)", n_a=int(len(a)), n_b=int(len(b)), n_pairs=len(pairs), unmatched_frac=1 - len(pairs) / max(1, len(a))))
                     if pairs and len(fr):
-                        f25 = fr[(fr.sensor == S) & (fr.r == 0.25) & (fr.part == "DISC")].groupby("sample_id").s_out_full.mean(); dif = [f25.get(i) - f25.get(j) for i, j in pairs if i in f25 and j in f25]
+                        f25 = fr[(fr.sensor == S) & (fr.model == prim_model) & (fr.r == 0.25) & (fr.part == "DISC")].groupby("sample_id").s_out_full.mean(); dif = [f25.get(i) - f25.get(j) for i, j in pairs if i in f25 and j in f25]     # primary model 만 (REP 과 섞지 않는다)
                         if len(dif) >= 4:
-                            bs = C.block_bootstrap(np.array(dif), np.arange(len(dif))); row("동일 residual 출력 민감도", "measured", float(np.mean(dif)), f"matched EuCd−EuCu s_out(.25) [CI {bs['ci95']}] n_pairs {len(dif)} (raw diff 는 i20_stats); patch-level CI (source proxy) → descriptive")
+                            bs = C.block_bootstrap(np.array(dif), np.arange(len(dif))); row("동일 residual 출력 민감도", "measured", float(np.mean(dif)), f"matched(e_base·contrast) EuCd−EuCu s_out(.25), primary {prim_model} [CI {bs['ci95']}] n_pairs {len(dif)} (raw 집단 차이는 i20_stats); patch-level CI (source proxy) → descriptive")
                         else:
                             row("동일 residual 출력 민감도", "measured_unmatched", None, f"matched pair 에 I20 상세 subset 이 부족 (pairs {len(pairs)}, with I20 {len(dif)}) — raw 집단 차이는 i20_stats")
                     else:

@@ -49,16 +49,22 @@ def verdicts(d01, d02, d03, pr, gate):
 def main(profile=False):
     with C.Stage("REPORT", "report.md / run_status.json"):
         man = _j("manifest.json", {}); d00 = _j("d00_smoke.json", {}); d01 = _j("d01_stats.json", {}); d02 = _j("d02_stats.json", {}); d03 = _j("d03_summary.json", {}); gate = _j("routing_gate.json", None); rm = _j("run_metrics.json", []); pr = _csv("paired_results.csv"); qs = _csv("quadrant_summary.csv"); mu = _csv("micro_update_utility.csv")
-        v = verdicts(d01, d02, d03, pr, gate); C.dump_json(os.path.join(C.CAMP, "verdicts.json"), v)
+        v = verdicts(d01, d02, d03, pr, gate); hp = C.host_pairing()
+        if hp["seed_host_coupled"]:
+            v["labels"].append("SEED_HOST_COUPLED (§8.2 host A/B 배치: seed 간 학습 호스트가 다르다 — 두 seed 의 방향 일치는 호스트 차이와 결합; 최종 재현 주장은 한 호스트 두 seed 또는 pair 복제로 보강)")
+        C.dump_json(os.path.join(C.CAMP, "verdicts.json"), v)
         led = [json.loads(l) for l in open(os.path.join(C.CAMP, "time_ledger.jsonl"))] if os.path.exists(os.path.join(C.CAMP, "time_ledger.jsonl")) else []
         stages = {}
         for e in led:
             if e["status"] == "done":
                 stages[e["stage"]] = e["wall_hours"]
-        status = dict(campaign=C.CAMPAIGN_ID, generated=time.strftime("%Y-%m-%dT%H:%M:%S"), host=C.SERVER, runs={r["run"]: dict(case=r["case"], seed=r["seed"], status=r["status"], reused=(r["case"] == "B0" and r["seed"] == 1234)) for r in rm},
+        t0c = open(os.path.join(C.CAMP, "T0.txt")).read().strip() if os.path.exists(os.path.join(C.CAMP, "T0.txt")) else None
+        status = dict(campaign=C.CAMPAIGN_ID, generated=time.strftime("%Y-%m-%dT%H:%M:%S"), host=C.SERVER, host_pairing=hp,
+                      runs={r["run"]: dict(case=r["case"], seed=r["seed"], status=r["status"], trained_on=r.get("trained_on"), reused=bool(r["case"] == "B0" and r.get("finished_at") and t0c and r["finished_at"][:19] < t0c[:19])) for r in rm},
                       stages_done_hours=stages, D04=("run" if len(mu) else "not_run"), B2_B3=("NOT_OPENED_NO_INCREMENTAL_EVIDENCE" if not (gate and gate.get("passed")) else "CANDIDATE (not executed)"), CMASS="not_run", B1_NOOFF="not_run", labels=v["labels"])
         C.dump_json(os.path.join(C.CAMP, "run_status.json"), status)
         L = [f"# DCR12 report — {C.CAMPAIGN_ID} ({C.SERVER}, {status['generated']})", "", f"계획 `{C.PLAN}` · 출력 root `{os.path.relpath(C.CAMP, C.ROOT)}/` · Teacher {man.get('teacher', {}).get('logical')} (file sha {str(man.get('teacher', {}).get('file_sha256'))[:16]}…) · τR {man.get('calibration', {}).get('tau_R')} · λE {man.get('calibration', {}).get('lambda_E')}", "",
+             "- 학습 호스트: " + " · ".join(f"seed {k[1:]}: B0 {v['B0'] or '없음'} / B1 {v['B1'] or '없음'}" for k, v in hp["by_seed"].items()) + (" — pair 안 같은 호스트" if all(x for x in hp["pair_same_host"].values() if x is not None) else " — !! pair 안 호스트 불일치") + (" · seed 간 호스트 다름 (§8.2 host A/B 배치: seed×host 결합)" if hp["seed_host_coupled"] else " · 단일 호스트"), "",
              "관측 단위: CAL/DISC/CONF = train 64² patch (모든 model 이 학습에 본 자료; 분석 규칙의 개발/확인 분리) · RR20/FR20 = 논문 세트 scene · source group = 32 연속 index proxy(independence=patch_only). C = 16 probe(r 0.5/1.0) 의 offset-consistency 잔차 평균(HR px), R = plain GT L1(정규화 단위).", "",
              "## 1. 네 cell 의 개수·특성과 C 의 변동성", ""]
         t0 = d01.get("thresholds", {}).get("T0", {}); L.append(f"- T0 threshold (CAL median): tC {t0.get('tC', float('nan')):.4f} px · tR {t0.get('tR', float('nan')):.5f} · C IQR {t0.get('C_iqr', float('nan')):.4f} (수치 floor {t0.get('numerical_floor_C')}) · DEGENERATE_METRIC = {t0.get('degenerate_metric')} · C 상대 IQR {t0.get('C_cv', float('nan')):.3f}")

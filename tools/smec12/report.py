@@ -30,11 +30,12 @@ def verdicts(d10, i20, i23, i25, xs):
     else:
         v("M1 대비/척도", "insufficient", "WV3 atlas 없음", "")
     v("M2 구조 관측 가능성", "insufficient", "descriptor bank(D12) 미구현 — texture/contrast 중앙값만 (d10 by_quadrant)", "pending_compute")
-    ks = [k for k in i20 if k.startswith("WV3|") and k.endswith("|DISC") and "s_out_r0.25_EuCd_minus_EuCu" in i20[k]]
+    ks = [k for k in i20 if k.startswith("WV3|") and "|L1E4|S2025|" in k and k.endswith("|DISC") and "s_out_r0.25_EuCd_minus_EuCu" in i20[k]]          # primary 만 (REP 은 별도 행)
     if ks:
-        e = i20[ks[0]]["s_out_r0.25_EuCd_minus_EuCu"]; conf = [k for k in i20 if k.startswith("WV3|") and k.endswith("|CONF") and "s_out_r0.25_EuCd_minus_EuCu" in i20[k]]; ec = i20[conf[0]]["s_out_r0.25_EuCd_minus_EuCu"] if conf else None
+        e = i20[ks[0]]["s_out_r0.25_EuCd_minus_EuCu"]; conf = [k for k in i20 if k.startswith("WV3|") and "|L1E4|S2025|" in k and k.endswith("|CONF") and "s_out_r0.25_EuCd_minus_EuCu" in i20[k]]; ec = i20[conf[0]]["s_out_r0.25_EuCd_minus_EuCu"] if conf else None
+        reps = {k: i20[k]["s_out_r0.25_EuCd_minus_EuCu"]["diff"] for k in i20 if "L1E4REP" in k and "s_out_r0.25_EuCd_minus_EuCu" in i20[k]}
         st = "supported_within_condition" if (e["ci95"] and (e["ci95"][0] > 0) and ec and ec["ci95"] and ec["ci95"][0] > 0) else ("opposed" if (e["ci95"] and e["ci95"][1] < 0) else "insufficient")
-        v("M3 출력 민감도", st, f"s_out(.25 px) EuCd−EuCu: DISC {e['diff']:+.5f} CI {e['ci95']}" + (f" · CONF {ec['diff']:+.5f} CI {ec['ci95']}" if ec else ""), "raw 집단 차이(matched 는 x40); source proxy 라 CI 는 descriptive")
+        v("M3 출력 민감도", st, f"s_out(.25 px) EuCd−EuCu (primary L1E4 S2025): DISC {e['diff']:+.5f} CI {e['ci95']}" + (f" · CONF {ec['diff']:+.5f} CI {ec['ci95']}" if ec else "") + f" · REP {({k.split('|')[3]: round(x, 5) for k, x in reps.items()})}", "raw 집단 차이(matched 는 x40); source proxy 라 CI 는 descriptive; DISC 와 CONF 가 모두 0 을 제외해야 supported")
     else:
         v("M3 출력 민감도", "insufficient", "I20 미실행", "")
     v("M4 spectral 불일치", "insufficient", "I22 미구현", "pending_compute"); v("M5 context/모델", "insufficient", "S30 미구현 (seed 별 atlas 는 d10 에 있음 — membership 전이표는 pending)", "pending_compute")

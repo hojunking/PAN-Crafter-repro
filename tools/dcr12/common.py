@@ -124,6 +124,28 @@ def run_complete(case_key, seed):
     return os.path.exists(os.path.join(r, "reduced_best_hqnr.mat")) and os.path.exists(os.path.join(r, "full_best_hqnr.mat"))
 
 
+def provenance(case_key, seed):
+    """다른 호스트에서 옮겨 온 run 의 출처 (tools/dcr12_bundle.py install 이 쓰는 work_dir/<run>/bundle_provenance.json) — 없으면 None(이 서버 학습)."""
+    return load_json(os.path.join(run_dir(case_key, seed), "bundle_provenance.json"), None)
+
+
+def trained_on(case_key, seed):
+    """run 을 학습한 서버 id: bundle provenance 의 source_server, 아니면 이 서버(run 디렉토리가 있을 때), 없으면 None."""
+    p = provenance(case_key, seed)
+    if p and p.get("source_server"):
+        return p["source_server"]
+    return SERVER if os.path.exists(run_dir(case_key, seed)) else None
+
+
+def host_pairing():
+    """§8.2: pair(B0/B1, 같은 seed) 안은 같은 호스트여야 한다; seed 간 호스트가 다르면 host A/B 배치(seed×host 결합)."""
+    by = {f"S{s}": {ck: trained_on(ck, s) for ck in ("B0", "B1")} for s in SEEDS}
+    same = {k: ((v["B0"] == v["B1"]) if (v["B0"] and v["B1"]) else None) for k, v in by.items()}
+    hosts = sorted({h for v in by.values() for h in v.values() if h})
+    return dict(by_seed=by, pair_same_host=same, hosts=hosts, seeds_same_host=(len(hosts) <= 1), seed_host_coupled=(len(hosts) > 1),
+                note="§8.2: pair 안은 같은 호스트에서 완성. seed 간 호스트가 다르면(host A/B 배치) seed 와 host 가 결합돼 있다 — 최종 재현 주장은 한 호스트의 두 seed 또는 양쪽 pair 복제로 보강")
+
+
 def pipe_key(role, case_key=None, seed=None, tag=None):
     return "T0" if role == "T" else f"{case_key}_S{seed}_{tag.replace('cand:', 'cand')}"
 
