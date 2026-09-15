@@ -1,7 +1,7 @@
 # PAN-Crafter 재현 + 경량화 연구
 
-PAN-Crafter (ICCV 2025) 저자 배포 코드를 재현하고, **프루닝 + KD(상호학습)로
-손실을 회복하는 새 방법**의 베이스라인을 만드는 저장소다.
+PAN-Crafter (ICCV 2025) 저자 배포 코드를 재현하고, **경량화(골격 축소)와 정합 aligner 재사용·GT-anchored KD 로
+손실을 회복하는 방법**의 베이스라인을 만드는 저장소다(초기 목표였던 상호학습 KD 는 2026-08-20 no-go).
 원본은 `upstream` remote (KAIST-VICLab/PAN-Crafter), 이 저장소는 fork 가 아니라
 clone 에 작업을 얹은 것이다.
 
@@ -19,7 +19,7 @@ clone 에 작업을 얹은 것이다.
 ## 환경
 
 - conda env `pancrafter`. python 은 `/home/knuvi/miniconda3/envs/pancrafter/bin/python`
-- GPU 1장. Teacher 50K 학습 ≈ 5h, 25K ≈ 2.3h
+- GPU 1장. 현 골격(W112·D123 kdv, 9ch) 50K ≈ 1.2–2.5 h(서버별: s1 1.9 h · s2 2.3 h · s4/s5 1.2–1.5 h). 원 배포 모델(9.97 M) 은 50K ≈ 5 h
 - 새 서버·클라우드는 Docker 가 가장 빠르다 — `hojunqueen/pancrafter-env:latest`
   (환경만 담겨 있고 코드는 마운트한다. 코드가 바뀌어도 이미지 재빌드 불필요)
 - **지표 구현은 저장소 안에 있다** (`tools/metrics/`). CANConv 를 clone 할 필요 없다
@@ -36,6 +36,11 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지 
 ```
 
 실행 조건은 `work_dir/<실험>/meta/` 에 자동 스냅샷된다.
+
+큐 캠페인 기동·재개는 `./tools/campaign_start.sh --queue <큐파일> [--hours N(기본 24)] [--label 이름]` — 큐를 `work_dir/cases_queue.txt` 로 복사하고
+이전 `cases_chain.log` 를 `cases_chain_<label>.log` 로 옮긴 뒤 `_run_cases.sh` 를 detached 로 띄운다(살아 있는 체인이 있으면 거부). chain 마감은
+`work_dir/cases_deadline.txt`(ISO 시각) — **지난 마감이 남아 있으면 전 case 가 '마감 경과' 로 스킵되고 즉시 DONE 이 찍힌다**; 파일이 없으면 마감 없음
+(QEDGE9 switch/waiter 가 지우는 soft 정책). 사전 확인은 `python tools/gen_pakd50_configs.py --plan --server <srv>`(PAKD50 계열 편성 dry-run, config 생성 없음).
 
 **장애 대비가 걸려 있다** — cron 이 15분마다 `tools/_watchdog.sh` 로 체인 생존을 확인하고,
 죽어 있으면 재기동한다(재부팅 후 @reboot 포함). 체인은 완료분을 건너뛰고 이어 돈다.
@@ -64,6 +69,9 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지 
 - **그 격차는 우리 잘못이 아니다.** 평가기는 CANConv 배포 가중치로 논문 행을 6지표 0.5% 이내
   재현하고, 논문 명시 설정은 시드 2,025 까지 전부 일치한다.
   → `results_log/2026-08-24_paper-rebuild-and-reproduction-audit.md`
+- **재현은 완결됐다.** 논문 충실 재구성본 `s1_A1`(11ch·nocrop·LN, 50K 단일 시드) 이 ERGAS **2.0351** 로 논문 2.040 을 넘었다(HQNR 0.9493;
+  `research_log/lightweight_case_specs_v1.md` §기준). +6.09% 격차의 최대 원인은 배포 코드의 `crop`(실은 `cv2.resize` scale jitter, −3.63%;
+  기전은 `results_log/2026-08-25_divergences-and-tuning-review.md`).
 - **논문의 CANConv 대비 우위는 재현되지 않는다** (주장 −5.69% vs 재현 −0.34%, p=0.667).
 - **배포 코드는 논문이 기술한 모델이 아니다 — 재구성으로 확인했다.**
   논문 본문·Figure 3 대로 다시 구현하니 params 가 **7.1707 M** 으로 논문 주장 7.170 M 과
@@ -73,10 +81,11 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지 
   → `model/pancrafter_paper.py`, `results_log/2026-08-24_paper-rebuild-and-reproduction-audit.md`
 - **FLOPs 79.03 G 는 미해결.** 재구성본도 161.9 G 이고, 어텐션을 전부 빼도 125.9 G 다.
   "어텐션 미집계" 가설은 기각했다(배포 구조에서 79.2 G 가 나온 것은 무관한 우연).
-- **지표 선택**: ERGAS·SAM 만 판별력이 있다. Q8·SSIM·SCC 는 이 범위에서 포화(±0.15%)라
-  판별 근거로 인용하면 안 된다. D_s·HQNR 은 축소하면 거의 항상 좋아지는 기전이 있어 단독 해석 금지.
+- **지표 선택(2026-08 reduced-resolution 아키텍처 비교 시절의 판정; 2026-09 이후는 아래 '판정·표기 규약' 이 우선 — best 선택·판정은 raw HQNR)**:
+  당시엔 ERGAS·SAM 만 판별력이 있었고 Q8·SSIM·SCC 는 그 범위에서 포화(±0.15%)라 판별 근거로 인용하면 안 됐다. D_s·HQNR 은 축소하면 거의 항상
+  좋아지는 기전이 있어 **단독 해석 금지** — 지금은 raw HQNR 을 주 판정으로 쓰되 D_λ/D_s·fSCC·ERGAS 를 함께 본다.
 - **양방향 mutual learning 은 no-go** (`2026-08-20_submodule-sweep-and-mutual-nogo.md`).
-  단방향 T→S 증류는 별개이고 유효하다.
+  단방향 T→S 증류는 별개의 축이다(no-go 대상 아님) — 다만 09-01·09-14 결과에서 효과가 입증되진 않았고, 현재는 PAKD50(T0 aligner 재사용 + GT-anchored KD) 형태로만 진행한다.
 - **논문 비교 FR 세트는 PanCollection `.mat` 형식 20장이다 — 배포 H5 의 20장이 아니다** (KNOWN_ISSUES F-2,
   `2026-09-07_alignment-shift-robust-and-metric-v2.md`). H5 12-19 는 그중 6장만 겹친다. **시트의 FR 은
   `results/fr_mat20.json`(`tools/eval_fr_paperset.py`) = FR·paper mat20 열뿐이다** (2026-09-07 사용자 결정).
@@ -94,7 +103,7 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지 
   DLPan 파이썬 포트(정규화)가 아니라 `genMTF.m` 충실 재구현을 쓴다 — 2026-09-07 이전 HQNR 보다 ~3e-4 낮다.
   PSNR·SSIM 은 DLPan 프로토콜 밖이라 관례 추정이다.
 
-## 판정 규칙 — 시드 오차가 대부분의 차이를 삼킨다
+## 판정 규칙 — 시드 오차가 대부분의 차이를 삼킨다 (reduced ERGAS 기준, 2026-08 W96 계열)
 
 동일 구성을 시드만 바꿔 돌린 폭이 **0.81%** 다(2.2527 vs 2.2344). 이는 지금까지 인용해온
 차이 대부분보다 크다.
@@ -108,38 +117,28 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지 
 **대응표본 t-검정은 같은 가중치를 20장에 적용한 것이라 시드 변동을 포착하지 못한다.**
 p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
 
-- **0.8% 미만의 차이는 시드 3개 이상에서 방향이 일관될 때만 주장한다.**
+- **0.8%(ERGAS) / 0.0031(raw HQNR, 2026-09-12 실측) 미만의 차이는 시드 3개 이상에서 방향이 일관될 때만 주장한다.**
 - 단일 시드 대응표본 p 값만으로 구조 차이를 결론짓지 않는다.
 - 기존 결론들도 시드 σ 가 확정되면 **소급 재판정 대상**이다.
 
-## 진행 중 — 경량화 case 스크리닝 (HQNR 선택)
+## 판정·표기 규약 (경량화 스크리닝·정합 축에서 확정 — 지금도 유효)
 
-명세: `research_log/lightweight_case_specs_v1.md` · 실행: `tools/_run_cases.sh`
-
-- **재현은 완결됐다.** `s1_A1`(11ch·nocrop·LN) 이 ERGAS **2.0351** 로 논문 2.040 을 넘었다.
-  격차의 최대 원인은 배포 코드의 `crop`(실은 scale jitter, −3.63%)이었다.
-- **best 선택 기준이 HQNR 로 바뀌었다** (`select_on: hqnr`). FR 검증 split 이 없어 FR
-  테스트셋으로 고른다 — no-reference 라 GT 누출은 없지만 선택 편향은 있다. 산출물은
-  `best_hqnr` / `reduced_best_hqnr.mat` 이고, 체인 완료 판정도 이 파일이다. 2026-09-09 부터 그 FR 테스트셋은
-  **논문 세트(.mat 20장) 전체**다.
+- **best 선택 기준은 HQNR** (`select_on: hqnr`). FR 검증 split 이 없어 FR 테스트셋(논문 세트 .mat 20장 전체 — '확정된 사실' 참조)으로 고른다 —
+  no-reference 라 GT 누출은 없지만 선택 편향은 있다. 산출물은 `best_hqnr/` / `results/reduced_best_hqnr.mat`(체인 완료 판정은 '함정' 절: reduced+full 둘 다).
+- aligner 가 있는 trainer(pa/po/kdv)에서 `best_hqnr/` 는 **best_raw(raw_original HQNR 선택)** 의 alias 다(`kdv/registry.py` SELECTOR_ALIAS);
+  `best_rr_val/`(검증 ERGAS)·`last/`·`best_aligned/` 는 별도 산출물이고 판정엔 쓰지 않는다. A-ID/NOALIGN 이면 aligned view 는 raw_valid 와 같아 만들지 않는다.
 - 학습 로그에 매 eval epoch `[핵심] HQNR / SCC / ERGAS` 가 찍힌다.
-- **지표 우선순위: HQNR > SCC > ERGAS.** best 선택은 HQNR(논문 세트 20장 전체; 2026-09-09 이전 run 은 H5 12-19), 동률이면
-  SCC, 그 다음 ERGAS 로 가른다. 단 SCC 는 이 실험 범위에서 포화(0.9887~0.9914)라
+- **지표 우선순위: HQNR > SCC > ERGAS.** 동률이면 SCC, 그 다음 ERGAS. 단 SCC 는 이 범위에서 포화(0.9887~0.9914)라
   실질 tie-break 는 대부분 ERGAS 가 맡는다.
-- **HQNR 시드 2σ ≈ 1.18%** (ERGAS 0.11%). HQNR 차이가 이보다 작으면 위 순위의
-  다음 지표로 보조 판정.
-- 실험 case 를 대화에서 W1/W2 처럼 부르더라도 **시트·config·문서·보고서에는 약명 단독으로
-  쓰지 않는다.** 나중에 의미를 알 수 없다. 항상 서술형(c8_c4w96, "attn:0 w96 nocrop")으로
-  남기고, 보고서 표에서 축약이 필요하면 **같은 문서 안에 약명→세팅 대응을 반드시 둔다.**
-- s2 는 동일 config·동일 seed 로 같은 실험을 돌려 환경 변경을 검증한다 (명세 §5).
-
-**경량화 축이 바뀐다.** 배포 코드에선 CM3A 제거가 공짜였지만 재구성본엔 그 여지가 없다
-(AttnBlock 3개가 전부 mid/low 해상도에 있고, 무손실로 뺐던 것들이 애초에 없다).
-
-```
-배포 코드 :  CM3A 개수 -> PAN 브랜치 -> depth -> width
-재구성본  :  width  >>  full-res depth  >  AttnBlock 개수  >  bottleneck
-```
+- **HQNR 시드 판정선 2σ = 0.0031** (raw_original HQNR; 2026-09-12 실측 3 경로 일치, `results_log/2026-09-12_s1_alignment-axis-verdict.md`;
+  종전 1.18%≈0.011 은 3.5배 과대로 무효 — `2026-09-04_placement-and-band-invalidation.md`). 판정선은 raw HQNR 에만 적용하고 aligned/V64/last 는 진단.
+  PAKD50 계열의 작은 KD Δ 에는 threshold 가 아니라 provenance 로만 쓴다(계획 §6.1). 이보다 작은 차이는 SCC → ERGAS 순으로 보조 판정.
+- **비교표·판정 view 는 HQNR↑(raw_original, 전체 프레임, `tools/eval_fr_paperset.py` EVAL_VERSION 2026-09-10.5)** 이고 HQNR(V64)↑(가장자리 64 px 제외)·aligned·last 는 진단이다.
+  보조 지표 fSCC 는 원 PAN 참조(RR SCC 가 아니다).
+- 실험 case 를 대화에서 W1/W2 처럼 부르더라도 **시트·config·문서·보고서에는 약명 단독으로 쓰지 않는다.** 항상 서술형으로
+  남기고, 보고서 표에서 축약이 필요하면 **같은 문서 안에 약명→세팅 대응을 반드시 둔다.** kdv 계열 약명은 각 구현 노트의 표로만 읽는다.
+- 경량화 축(재구성본): width ≫ full-res depth > AttnBlock 개수 > bottleneck — 배포 코드의 "CM3A 제거 공짜" 는 재구성본에 없다
+  (`results_log/2026-08-29_arch-search-24h-results.md`, `2026-08-30_…`). 명세 `research_log/lightweight_case_specs_v1.md`, 실행 `tools/_run_cases.sh`.
 
 ## 함정 (전부 한 번씩 당한 것)
 
@@ -158,86 +157,81 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
   `tail -n +1 -f ... | grep --line-buffered` 를 쓴다.
 - **`${1:?메시지}` 안에 `}` 를 넣지 않는다.** 파라미터 확장이 끊겨 인자가 오염된다.
 - **`run.sh` 의 `trap ... EXIT` 는 실패해도 `finished_at.txt` 를 쓴다.**
-  체인의 완료 판정은 `results/reduced_best_val.mat` 존재로 한다.
+  체인(`tools/_run_cases.sh`)의 완료 판정은 `results/reduced_best_hqnr.mat` **와** `results/full_best_hqnr.mat` 둘 다 존재로 한다 —
+  `finished_at.txt` 로 판정하지 않는다(옛 runner 의 `reduced_best_val.mat` 도 아니다).
 - matplotlib 에 한글 글리프가 없다. 그림 라벨은 ASCII 로 쓴다.
 - 위성영상은 라이선스 제약이 있다. **외부 서비스에 업로드하지 않는다** (§6).
 
-## 현재 진행 상황
+## 현재 진행 상황 (2026-09-15 저녁 기준)
 
-`results_log/README.md` 최상단과 최신 `*_WIP_*.md` 를 보면 된다.
-진행 중인 체인은 `ps -eo pid,ppid,args | grep _run_` 으로 확인한다.
+확인은 `results_log/README.md` 맨 위 · `ps -eo pid,ppid,args | grep '[_]run_'` · `tail -f work_dir/cases_chain.log`. 캠페인별 상세는 아래 노트.
+각 캠페인의 계획서는 `research_log/PAN_*_<날짜>.md`, 구현 노트는 `research_log/<날짜>_<캠페인>-implementation.md`, config 생성기는 `tools/gen_<캠페인>_configs.py`,
+큐는 `config/queues/<캠페인>_<server>.txt`, 검사는 `tools/<캠페인>_unit_tests.py`, 기동은 `tools/<캠페인>_prepare.sh` 규칙이다.
 
-2026-09-09 19:58 부터 s1 은 **새 baseline WV3 3-seed**(`config/queues/base_w96_d124_mspan_wv3_3seed.txt` 큐, 아래 결정 참조)를 돌린다. 그 전 캠페인은 중지 —
-GF2 ×3 완료, QB S2025 중단(체크포인트 재개 가능), 6벌 미실행. 재개는 `campaign_start.sh --queue config/queues/arch_w168_multiset_3seed.txt`.
+| 서버 | 지금 | 그 다음 |
+|---|---|---|
+| s1 | **SMEC12 준비 학습** 10 run(12:34 기동, run 당 ≈1.3 h → 09-16 새벽) · 분석 runner 는 chain DONE 뒤 자동 | **QEDGE9 seed 1234 묶음**(v2; `qedge9_prepare_s1.sh` 가 띄운 `work_dir/_qedge9/launch_when_idle_s1.sh`·`pilot_when_ready_s1.sh` 가 SMEC12 DONE 뒤 자동 기동, 로그 `work_dir/_qedge9/launch_s1.log`) |
+| s2 | PAKD50 재배정 4 run(JR/XJ/J_R3_NOEDGE/J_N0_EDGE, 777) 완료(09-15 12:00 시트 확인) | **DCR12**: pull → s1 bundle(127 MB) rsync → `./tools/dcr12_prepare.sh` (사용자 조작; JK0 S777 config 는 PAKD50 마감 09-16 11:22 를 상속 — 09-16 07:00 이후 기동이면 `kdv.budget.required: true`, 노트 §5) |
+| s3 | PAKD50 s3 추가(J_R3_NOEDGE→J_N0_EDGE→LF0→LFQ→LFX, seed 2026) · EQREC4 s3 는 09-15 사용자 결정(bundle; 실행 여부는 s3 에서 확인) | 확인 seed 4321 은 `pakd50_reallocate.sh --confirm <WIN>` |
+| s4 | PAKD50 W104·D121 골격 이식 잔여(XJ/F0@W104; NA0 0.9580 · J0 0.9585 · JQ 0.9565 완료 — 시트 WV3-s4, best_raw raw HQNR, 09-15 15:00 확인) | 확인 seed 3407 (외부 WIN 뒤) — QEDGE9 는 s4 에 없다 |
+| s5 | 옛 s5 묶음(J0…RCQ, W112) 전부 완료 | **QEDGE9 두 seed 6 run**: pull → `./tools/qedge9_switch.sh` (사용자 조작) |
 
-2026-09-08 부터: **아키텍처 고정(S1_T05_W168_D123_DUAL) 다중 데이터셋 3-seed** — WV3/QB/GF2 × seed 2025·1234·7777 +
-WV2 zero-shot, 서버 3대가 같은 큐(`config/queues/arch_w168_multiset_3seed.txt`). 준비·기동은 `./tools/arch_multiset_prepare.sh`,
-계획은 `research_log/2026-09-08_arch-w168-multiset-3seed-plan.md`. config 는 `tools/gen_arch_multiset_configs.py` 가 만든다.
+### 기반 — 지금 캠페인들의 공통 기준
 
-2026-09-09 결정: **새 mainline 은 W96·D124 U-Net · MS+PAN 9ch · 단일 HRMS task(PAN 재구성·dual MARs·LPAN/HPAN 제거)** —
-`research_log/PAN_research_baseline_W96_D124_2026-09-09.md`. 과거 W168·d123 dual 은 직접 대조군이 아니다. 첫 실행은 WV3 3-seed(s3):
-config `BASE_W96_D124_MSPAN_WV3_S*`(`tools/gen_w96_d124_mspan_configs.py`), 기동 `./tools/base_w96_prepare.sh`,
-준비 문서 `research_log/2026-09-09_w96-d124-mspan-wv3-3seed-launch.md`.
+- **골격·task**: W112·D123 U-Net · MS+PAN 9ch · 단일 HRMS task(PAN 재구성·dual MARs·LPAN/HPAN 제거). 2026-09-09 mainline 결정(원안 W96·D124,
+  `research_log/PAN_research_baseline_W96_D124_2026-09-09.md`) → 09-10 PO10 R200 변경으로 W112·D123(2.6589 M). W104·D121(1.9036 M) 은 PAKD50 s4 골격 이식 branch **와 QEDGE9(s5·s1)** 의
+  Student 골격(Teacher T0/A 는 W112 그대로, `kdv.teacher.bridge`). SMEC12 의 QB/GF2 준비 학습은 같은 W112·D123 을 4-band 로(2.6508 M).
+  **골격이 다른 run 은 직접 대조군이 아니다** — W96·D124(BASE/PA/PO10 R100)·W168·D123 dual·W104·D122(NA104)·W104·D121 과 W112·D123 사이에서 절대 HQNR 을 빼지 않는다;
+  대조는 같은 골격·같은 서버·같은 seed 의 대응 run 으로만.
+- **trainer kdv** (`kdv/` + `train_kdv.py`, 노트 `research_log/2026-09-10_s2-w112-kdv-implementation.md`): aligner 정책 A-FR/A-FT/A-SC/A-ID · 입력 프로토콜 I-A/I-N/I-AEQ/I-NATIVE-TRANSFER ·
+  GT-anchored adaptive KD(rec N0/R0/R1/R2/R3) · 출력 통계(EDGE-H 등) · `aligner_schedule`/`routing`(s5) · `edge_gate`(QEDGE9) · `exact_resume`. registry(`kdv/registry.py`) 가 미지원 조합을 거부한다 —
+  key 만 적혀 다른 실험이 조용히 도는 일이 없게. 이름 규칙·약명은 각 구현 노트 표. 정합 진단은 `tools/po10_diag.py`(`--ckpt last --native-reference`, `--probe-set palsv18`; |Δ|·EPE·입력 반응).
+- **Teacher T0** = PALS24 L1E4 seed 2025 best_raw 의 A+U (`assets/pakd50/T0_run`, 모든 서버에서 같은 경로·sha 검사). τR 0.012463942170143127 · λE0 0.09075170336956798
+  (`assets/pakd50/calibration_resolved.json`, `tools/pakd50_calibrate.py`) · 후보 격자 `GRID1010_50K_v1`(eval_epoch 5, 50 후보 전부 보존).
+  git 자산(지우지 말 것): `assets/donor_aligner/`(PA_A1 S2025 aligner — kdv unit gate 가 읽는다) · `assets/pakd50/`(T0_run·calibration·clock·init_hashes) · `assets/qedge9/`(cue).
+  prepare 스크립트는 pa/kdv/nf16/pals24/pakd50 unit test 를 전부 돌린다.
+- **시트**: 탭 `WV3-<server>`(`gspread/server.txt`), 범주 ⑳ KDV ~ ㉖ SMEC12 는 `gspread/sheet_categories.py`, 옛 범주는 `WV3-<server>_v1` 탭. HQNR↑ = 전체 프레임(논문 프로토콜),
+  HQNR(V64)↑ = 가장자리 64 px 제외(판정은 HQNR↑ — '판정·표기 규약'). PAKD50 계열 X열 `PAKD50 / <case> / [A104D121 /] [QEDGE9 /] FRESH50`.
+  `gspread_upload.py --all` 은 `sheet_categories.ARCHIVED` 범주를 기본 제외(`--include-archived` 로 포함; 이전 도구 `gspread/archive_to_v1.py`, 백업 `gspread/_sheet_backup/`).
+- **캠페인 gate**: `work_dir/campaign_gates_enabled.txt` 에 적은 gate 만 `tools/campaign_gate.py` 가 연다(기본 전부 닫힘) — 캠페인 뒤 비운다. 돌던 체인의 재편성은 runner 교체
+  (`pakd50_requeue.sh`/`pakd50_reallocate.sh`) 또는 runner 를 두고 다음 gate pass 가 새 코드를 읽게 하는 방식(`qedge9_switch.sh`).
+- **예산·시계**: PAKD50 branch 는 공통 절대 시계 `assets/pakd50/campaign_clock.json`(학습 마감 2026-09-16 11:22:31; trainer `kdv.budget.training_deadline`·gate admission·체인 마감이 같은 시각) + 50 h ledger.
+  slot 예약 `reservation_h = 1.10 × reference_train_h + 10/60` → 서버 로컬 `work_dir/_pakd50/reservations.json`(= `kdv.budget.projection_file`) · `mandatory_runs.txt` ·
+  선택 `extra_priority.txt`(case id 또는 run 이름; 없으면 `PRIORITY_BY_SERVER` 기본 묶음만). QEDGE9 는 이를 상속하지 않는다(soft 9 h).
+- **판정**: 각 캠페인 계획서의 판정 절(PAKD50 `PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md`, QEDGE9 `PAN_QEDGE9_W104D121_S5_S4_Experiment_Plan_2026-09-15.md` §10 등) 그대로 —
+  공통 원칙: 같은 서버·같은 seed 안의 대응 차이를 먼저, 판정선 0.0031(raw HQNR), 서버 간 절대 HQNR 을 빼지 않는다. GPU 학습은 run-to-run 재현이 아니다(s4 J0 v1/v2 0.0026 차).
 
-그 다음 캠페인(2026-09-09 결정): **A1–A3 PAN 앞단 전역 정합** — 명세 `research_log/PAN_A1_A3_Global_PAN_Alignment_W96_D124_2026-09-09_v2.md`,
-구현 `pa/` + `train_pa.py`(trainer: pa), 검토·구현 노트 `research_log/2026-09-09_pa-a1-a3-implementation.md`. 서버-seed block: s1 2025 · s2 1234 · s3 7777,
-각 서버 `./tools/pa_prepare.sh`(gate `tools/pa_unit_tests.py` 포함). `best_hqnr/` 는 best_raw(raw_original HQNR) 의 alias, `best_aligned/`·`last/` 별도.
+### 활성 캠페인
 
-2026-09-10 s1 결과(`results_log/2026-09-10_pa-a1-a3-s1-results.md`): aligner 는 방향은 맞지만 입력 무반응 상수(0.2 px). 후속 **PO10**(PAN 추가 변위 + offset consistency,
-명세 `research_log/PAN_OffsetConsistency_10GPUh_W96_D124_2026-09-10.md`, 구현 `pa/offset.py` + `train_po.py`(trainer: po), 노트 `research_log/2026-09-10_po10-implementation.md`):
-s1 seed 2025, 예산 ledger `work_dir/_po10_budget/ledger.json`. **2026-09-10 오후 변경**(`research_log/PAN_OffsetConsistency_ChangeNote_R100_to_R200_2026-09-10.md`):
-R100(b=1.0, W96·D124)은 N1 만 기록으로 보존, 다음 실험부터 **R200(b=2.0, FR 입력 통계 참고) + 골격 W112·D123** — run `PO10_*_W112_D123_WV3_S2025_R200_FRSTAT`,
-큐 `config/queues/po10_s1_r200_frstat_w112_d123.txt`, 생성 `tools/gen_po10_configs.py --radius 2.0 --width 112 --depth 1,2,3`. 골격이 달라 B0/A1/R100 과 직접 대응하지 않는다.
-시트 FR·paper 에 **HQNR↑(전체 프레임, 논문 프로토콜)** 과 **HQNR(V64)↑(가장자리 64px 제외)** 두 열 — 비교표는 HQNR↑. evaluator 2026-09-10.5.
+**PAKD50 통합 (2026-09-14~)** — 계획 `research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md` + `PAN_Integrated_Method_Summary_2026-09-14.md`, 노트 `2026-09-14_pakd50-implementation.md`.
+T0 의 aligner 를 Student 가 복사(J: 공동 적응 / F: frozen)하고 U-Net 은 새로 학습, backend N0/R1/Q12/X02. seed s1 1234 · s2 777 · s3 2026 · s4 1234(교차) · s5 2026(교차); 목표 raw HQNR ≥ 0.959.
+config `PAKD50_<case>_<W…_D…>_WV3_T0_S<seed>_FRESH50_v<n>`(`tools/gen_pakd50_configs.py`; 약명→세팅은 config 머리 주석·노트 표), 큐는 J0 만·나머지는 gate `pakd50` 가 서버별 명시 순서(`PRIORITY_BY_SERVER`)로 편성,
+gate `tools/pakd50_unit_tests.py`(K01–K33), 기동 `pakd50_prepare.sh`. **s1 의 PAKD50 은 09-14 22:40 사용자 지시로 중단**(J0/JQ/F0/FQ/JR 완료).
+- 재배정 09-15 (`PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md`, 노트 `2026-09-15_pakd50-derived-allocation-implementation.md`): 새 case J_R3_NOEDGE/J_N0_EDGE/RC0/RCQ, 예약식, 전환 `pakd50_reallocate.sh`(사전 `gen_pakd50_configs.py --plan`), 확인 seed s4 3407 / s5 9091 / s3 4321.
+  남은 후속: PAKD50 감사 F07–F10(worktree·A gradient 분해·bin 자료원·package pin), TCOPY/CONT, DCR12 B2/B3/CMASS/B1-NOOFF — 각 구현 노트 §남긴 것.
+- s3 추가 09-15 (`PAN_PAKD50_Latest_Sheet_Analysis_and_S3_Experiments_2026-09-15.md`, 노트 `2026-09-15_pakd50-s3-additions-implementation.md`): LFX(= LF 일정 + X02), 후보별 확인 묶음 표.
+- s4 골격 이식 09-15 (`PAN_PAKD50_S4_W104D121_Architecture_Allocation_2026-09-15.md`, 노트 `2026-09-15_pakd50-s4-w104d121-implementation.md`): Student U 만 W104·D121(branch `A104D121_T0FIX_E0_v1`, `kdv.teacher.bridge`), 항목 `case@W104_D121`, init hash namespace `unet@W104_D121`.
+- s5 (`PAN_S5_Timing_Routing_Experiment_Plan_2026-09-14.md`, 노트 `2026-09-14_pakd50-s5-review-and-implementation.md`): A 의 업데이트 시점(D/LF)·수신 경로(P/JK0/JE0) — `kdv.aligner_schedule`·`kdv.routing`. s4 초기 배정은 `2026-09-14_pakd50-s4-review-and-implementation.md`.
 
-2026-09-10 저녁: **s2 캠페인 — W112·D123 GT-anchored adaptive KD · 출력 통계 variance · aligner 재사용** (계획 `research_log/PAN_S2_W112_KD_Variance_Plan_and_References_2026-09-10/`,
-검토·구현 노트 `research_log/2026-09-10_s2-w112-kdv-implementation.md`). 구현 `kdv/` + `train_kdv.py`(trainer: kdv), config `config/S2W112D123_*.yaml`(`tools/gen_kdv_configs.py`, depth 1,2,3),
-큐 `config/queues/kdv_s2.txt`(Q00 baseline → Q01 Teacher seed 2025 → Q02–Q08 Student seed 1234), 기동 `./tools/kdv_prepare.sh`(gate `tools/kdv_unit_tests.py` 포함), 시트 범주 ⑳ KDV.
-donor aligner 는 `assets/donor_aligner/`(s1 PA_A1 seed 2025 의 aligner.*, strict load). 이름 규칙 `S2W112D123_<recipe>_<input>_<aligner>_<rec>_<stat>_<geomKD>_s<seed>_<ver>` —
-약명은 구현 노트 §4 표로만 읽는다. **depth 는 사용자 결정으로 [1,2,3]**(계획 원안 [1,2,4]; s1 PO10 R200 과 같은 골격 2.6589 M). Teacher seed 2025 · Student 1234. **이동량 covariance KD G1–G5·G-STRUCT 는 구현됨**(`kdv/alignment_kd.py`, 출처 eq_closure/geo_curvature/struct, 구현 노트 §9) —
-실행은 보류 큐 `config/queues/kdv_s2_geomkd.txt`(`gen_kdv_configs.py --geomkd`): PO10 N2/N3(반응하는 aligner) 와 Q07/Q08 결과 뒤에 기동한다. 현재 A1 donor 는 무반응이라 G-EQ precision 이 낮다.
-**TRI-A/B/C**(addendum `research_log/PAN_S2_W112_D124_TGeo_ABC_Addendum_2026-09-10.md`: R3 soft 의 band/통계 성분 방향 gate, Teacher 출력의 correction 민감도 감쇠) 도 구현(`kdv/tri.py`, 구현 노트 §10) —
-큐 `config/queues/kdv_s2_triabc.txt`(`--triabc`, 22 run, P1 → MASS/SHUFFLE/GV-WH 대조 → P2/P3), 본 큐 뒤 기동. 이름 토큰 `TRI_A*_B*_C*`. C-DIAG(EQ) 는 현 donor 에서 C-SENS 와 정보가 같다(등방 Σ).
+**DCR12 — offset consistency × reconstruction 사분면 검증 (s1 → s2)** — 계획 `PAN_Consistency_Reconstruction_Quadrant_Validation_12H_2026-09-14.md`, 노트 `2026-09-15_dcr12-implementation.md`.
+T0/B0(FQ)/B1(JK0) 의 C×R 사분면(D01) → correction 개입(D02) → A gradient 충돌(D03) → 조건부 micro-update(D04) → 보고서. 구현 `tools/dcr12/`, runner `tools/dcr12_run.sh`(서버 공용, 큐 `config/queues/dcr12_<server>.txt`), gate `tools/dcr12_unit_tests.py` X01–X15.
+09-15 12:34 서버 교체: s1 은 JK0 S1234 까지만(12:05 완료) → seed 1234 pair 는 bundle(`tools/dcr12_bundle.py`, 127 MB, git 밖; provenance 로 완료 판정) 로 s2 에 옮기고, s2 는 자기 FQ S777 + 새 JK0 S777 뒤 D01–D04·REPORT. seed 간 호스트가 다르면 REPORT 가 `SEED_HOST_COUPLED`. 절차는 노트 §5(bundle 을 늦게 넣으면 `dcr12_prepare.sh --post`).
 
-2026-09-11 **시트 정리**: WV3 본 탭(WV3-s1/s2/s3(5090))에는 현 접근 범주만(REF · BASE_W*_MSPAN · PA · PO10 · KDV) 남긴다. 나머지 범주는 `WV3-<server>_v1` 탭 맨 아래로 옮겼다(`gspread/archive_to_v1.py`, 백업 `gspread/_sheet_backup/*.before_archive_2026-09-11.json`).
-`gspread_upload.py --all` 은 옮긴 범주(`sheet_categories.ARCHIVED`)를 다시 올리지 않는다. 시트의 HQNR↑ = 전체 프레임(논문 프로토콜), HQNR(V64)↑ = 가장자리 64 px 제외 고정 영역 — `results_log/2026-09-11_sheet-cleanup-and-hqnr-views.md`.
+**SMEC12 — 다중 데이터셋 sample 기전 검증 (s1)** — 계획 `PAN_SMEC12_MultiDataset_SampleMechanism_ExperimentPlan_2026-09-15.md`, 노트 `2026-09-15_smec12-implementation.md`.
+"q 는 낮은데 복원이 어려운 sample" 의 특성·기전을 WV3·QB·GF2(+WV2 zero-shot) 에서. (a) QB/GF2 준비 학습 10 run(P0 → DON-N2 → L000 → L1E4 → L1E4-REP × 2 센서; `tools/gen_smec12_bootstrap.py`, 큐 `config/queues/smec12_<server>.txt`, 기동 `tools/smec12_prepare.sh`)
+(b) 분석 backbone `tools/smec12/`(A00·D10/D11·I20·I23-B·I24-A·I25-A·X40·REPORT; runner `tools/smec12_run.sh`, gate `tools/smec12_unit_tests.py`) 는 있는 자산만 증분 처리, 미구현 stage 는 `pending_compute`. WV3 lane 자산이 s1 에만 있어 s1 에서(원안 s2 → 12:34 교체). WV3+WV2 검증 결과는 노트 §5.
 
-2026-09-11 **NF16** (`research_log/PAN_N2_NativeFitting_16GPUh_W112_D123_2026-09-11.md`, 노트 `research_log/2026-09-11_nf16-implementation.md`): N2 R200 `last` aligner 재사용 + native fitting P0–P4, s1, 16 GPU-h.
-구현은 KDV trainer 위 — 새 프로토콜 `I-AEQ`(복원은 매 update native, 홀수 update 에 P_ε 를 aligner 에만), `kdv.aligner_lr`, donor `expected_step`, 고정 donor 참조 view `aligned_fixed_v64`, 예산 gate(`kdv.budget`). config `NF16_P{0..4}_W112_D123_WV3_S{1234,7777}_N2LAST_v1`(`tools/gen_nf16_configs.py`),
-큐 `config/queues/nf16_s1.txt`, gate `tools/nf16_unit_tests.py`, 기동 `./tools/nf16_prepare.sh`. 진단은 `po10_diag.py --ckpt last --native-reference`(참조 = 원 P / 고정 donor). 시트 범주 ㉑ NF16.
+**QEDGE9 — W104·D121 q-gated GT edge (s5·s1)** — 계획 `PAN_QEDGE9_W104D121_S5_S4_Experiment_Plan_2026-09-15.md`, 노트 `2026-09-15_qedge9-implementation.md`, 감사 `PAN_QEDGE9_Implementation_Audit_2026-09-15.md`(F01–F08 대응은 노트 §8).
+case `QE50`(Q12 hard/soft 그대로, GT edge 는 고정 T0 aligner 의 q(AXIS16) < θq = 0.327613 인 patch 만: λE·Σ g_i E_i / B) · `QEC`(모든 patch edge × c_E, pilot = **s1 의 `PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v2`** exact50K — F02 로 identity 고정, s4 의 J0 v1 아님) · `QES`(gate 를 e_roi32 decile × aug state stratum 안에서 permutation 51515).
+캠페인 `QEDGE9_A104D121_20260915_v1` / branch `A104D121_T0FIX_QEDGE9_v1`, **PAKD50 마감·50 h 미상속**(자체 ledger soft 9 h). cue 자산 `assets/qedge9/cue_T0_AXIS16_v1.{json,npz}`(`tools/qedge9_cue.py build/verify/pilot/status/stamp`, asset_id·내부 일관성·재개 대조; 상태 `work_dir/_qedge9/status.json`),
+feeder `return_meta`, trainer `kdv.edge_gate`/`kdv.exact_resume`(`kdv/resume.py`). s5: J0→JQ→QE50 @W104 × seed 2026·777(`qedge9_switch.sh`; runner 를 죽이지 않는다, 대기자 `qedge9_waiter.sh`). s1(17:20 결정, s4 대신): J0→JQ→QE50→QES→QEC @W104 S1234 **v2**(큐 `config/queues/qedge9_s1.txt`, `qedge9_prepare_s1.sh`, SMEC12 뒤 자동). s4 는 QEDGE9 없음.
 
-2026-09-11 **NA104** (`research_log/PAN_S2_W104_D122_NoAlign_KD_Experiment_Plan_2026-09-11.md`, 노트 `research_log/2026-09-11_na104-implementation.md`): **s2·s3 두 서버**의 새 캠페인 —
-**정합 모듈이 전혀 없는** W104·depth[1,2,2](2.0989 M) 동일 골격에서 GT-anchored KD(REC N0/R0/R1/R2/R3) · 출력 통계(IV/GV/GC/SC/**M2** × H/T/FIX/WH/AD) · 방향 gate(TRI-A/B) · 필수 대조군(CTL) 을 87 case 로 분해한다.
-구현은 기존 kdv trainer 위 — 새 키 `na_protocol`(NA-STRICT: 학습 forward 에 PAN warp 금지 / NA-TSENS: Teacher 입력 민감도 probe 만 별도 cohort), `rec.control`(hscale·rshuffle), `stat.transform/domain/windows/extra`, `select.primary`, `teacher.eval_only`.
-config `NA104_*`(`tools/gen_na104_configs.py`), 큐 `config/queues/na104_s2.txt`·`na104_s3.txt`, gate `tools/na104_unit_tests.py`, 기동 `./tools/na104_prepare.sh`, 시트 범주 ㉒ NA104.
-**주 selector 는 best_hqnr**(저장소 확정 지시; best_rr_val·last 는 보조), aligned view/selector 는 만들지 않는다(aligner 가 없으면 raw_valid 와 같다). 정합 축(PA/PO10/NF16/KDV) 과 직접 대응하지 않는 별개 골격이다.
-**2026-09-12 FINAL 계획**(`research_log/01_S2_FINAL_EXPERIMENT_PLAN.md`·`02_S3_FINAL_EXPERIMENT_PLAN.md`, 노트 §10): 보류 case 전수 편성 + 신규 18 정의(X01–X12·PX·CX·LX, 통계 모드 HAD/WFIX/TMATCH) + core10×seed 777·2026 반복. 이름 규칙 기존 seed1234=v1·신규/추가 seed=v2, **Teacher(T00 S2025 v1/best_hqnr)·λ pilot(Q00 S1234 v1/last) 고정**. 큐 `na104_s2.txt`(87)·`na104_s3.txt`(97) + `na104_<srv>_stage_plan.json`(직접 대조). COSTMATCH 는 실측 후.
+**EQREC4 결과 (s1 완료 09-15 03:00; s3 반복은 사용자 결정)** — `results_log/2026-09-15_s1_eqrec4-results.md`: **q 는 patch 정합 품질의 표지가 아니다**(H1 native·H2 3 seed 반대, FR scene 수준만 양) · learned correction > zero(3/3) ·
+Student cue 로는 판정 불가, 5K pilot 은 모든 arm 에서 HQNR 하락 → **q_T Teacher-quality gate 채택 안 함**(q 는 GT edge 선택에만 — QEDGE9). 구현 `tools/eqrec4/`, s3 는 `eqrec4_bundle.py` + `eqrec4_prepare.sh`.
 
-2026-09-12 **PALS24** (`research_log/PAN_P2_P3_LambdaSweep_MetricAware_24GPUh_Plan_2026-09-12_v2.md`, 노트 `research_log/2026-09-12_pals24-implementation.md`): s1 의 다음 캠페인 — NF16 P2(λ_off 0)/P3(λ_off 0.01) recipe 에서 **λ_off 만 0.0001/0.001/0.003** 으로 (seed 1234 탐색 A1–A3), 규칙(raw best HQNR → fSCC → 더 작은 λ)으로 λ* 를 한 번 고정한 뒤 seed 7777·2025 에서 **CTRL-P0 · L000(λ 0) · λ*** 를 대응 비교. 24 GPU-h 상한(`work_dir/_pals24_budget/ledger.json`, gate margin 1.1 · reserve 4.0 · block(P0·L000·λ*) 완결 검사 · 초과면 DEFERRED).
-config `PALS24_<case>_W112_D123_WV3_S<seed>_N2LAST_R200_v1`(`tools/gen_pals24_configs.py`; 약명→세팅은 노트 §1 표), 큐 `config/queues/pals24_s1.txt`(A1–A3; stage 2 는 `tools/campaign_gate.py` 의 `pals24` gate 가 `work_dir/campaign_gates_enabled.txt` 로 연다 — 캠페인 뒤 이 파일을 지울 것), gate `tools/pals24_unit_tests.py` + `tools/pals24_metric_gate.py`(G-M0–G-M8, 재사용 registry), 기동 `./tools/pals24_prepare.sh`, 집계 `tools/pals24_report.py`, 시트 범주 ㉓ PALS24.
-seed 1234 의 CTRL-P0/L000/L1E2 는 NF16 P0/P2/P3 를 재사용한다(다시 학습하지 않음; P0 는 eval_epoch 5 라 10 격자 재선택값 병기). 주 판정은 best_raw raw_original HQNR → fSCC(원 PAN 참조; RR SCC 아님), 판정선 0.0031 은 raw HQNR 에만 — aligned/V64/last 는 진단.
+### 지난 캠페인 (결론만 — 상세·수치는 `results_log/README.md`)
 
-2026-09-13 **PALSV18** (`research_log/PAN_L1E4_Refinement_AlignmentValidation_S1_18GPUh_2026-09-13.md`, 노트 `research_log/2026-09-13_palsv18-implementation.md`): PALS24 결과(λ* 1e-4, 3 seed 양성 — `results_log/2026-09-13_s1_pals24-lambda-sweep.md`) 의 후속. 같은 recipe 에서 **λ_off 3e-5(L3E5)/3e-4(L3E4) × seed 1234·7777·2025** 6벌(50K) + 정합 검증 V0–V4. 18 GPU-h(`work_dir/_palsv18_budget/ledger.json`, seed pair 단위 gate, reserve 5.0).
-config `PALSV18_<case>_…_v1`(`tools/gen_palsv18_configs.py`, PALS24 생성기 재사용), 큐 `config/queues/palsv18_s1.txt`(조건부 gate 없음), gate `tools/palsv18_unit_tests.py` + `tools/pals24_metric_gate.py --campaign palsv18`, 기동 `./tools/palsv18_prepare.sh`, 검증 `./tools/palsv18_validate.sh pre|post`(`tools/po10_diag.py --probe-set palsv18` + `tools/palsv18_validate.py` V2–V4), 집계 `tools/palsv18_report.py`, 시트 범주 ㉔ PALSV18. 대조군 P0/L000/L1E4 × 3 seed 는 NF16/PALS24 재사용(`work_dir/_palsv18_campaign/reuse_registry.json`). 판정선 안이면 L1E4 를 working reference 로 유지한다.
-
-2026-09-13 **NA104 20H 우선순위**(`research_log/01_S2_20H_PRIORITY.md`·`02_S3_20H_PRIORITY.md`, 노트 `research_log/2026-09-13_na104-20h-implementation.md`): s2·s3 의 NA104 를 **Q36(N0+GC-H)·Q12(R3+EDGE-H)·CF01(N0+GC-FIX, λ_C = Q36 재사용)** 3 후보로 좁힌다. 큐 `config/queues/na104_20h_{s2,s3}.txt`(P1 4벌: Q36-777 → Q00-2026 → Q36-2026 → Q12-2026), 조건부 CF01/X02 는 `tools/campaign_gate.py` 의 `na104_20h` gate(3-seed common-grid 기준 + 20h 예산). 전환은 각 서버에서 `./tools/na104_20h_switch.sh`(현재 run 은 원 설정으로 마무리), 회신은 `python tools/na104_20h.py report`. 새 키 `stat.lambda_from_run`(다른 run 의 λ_V 를 그대로). s2 의 CF01 은 s3 pilot 확인 token(`work_dir/_na104_20h/cf01_approved_by_s3.txt`) 이 있어야 열린다.
-
-2026-09-14 **PAKD50** (`research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md` + `PAN_Integrated_Method_Summary_2026-09-14.md`, 노트 `research_log/2026-09-14_pakd50-implementation.md`): **통합 캠페인** — Teacher T0(PALS24 L1E4 seed 2025 best_raw 의 A+U, `assets/pakd50/T0_run`) 의 aligner 를 Student 가 복사(J: 공동 적응 / F: frozen)하고 U-Net 은 새로 학습, backend N0/R1/Q12/X02 = 기존 `rec N0/R1/R3(+stat EDGE-H)`. 세 서버 병렬 50h(서버당 학습 46h + 감사 4h), seed s1 1234 · s2 777 · s3 2026, 목표 raw HQNR ≥ 0.959.
-config `PAKD50_<case>_W112_D123_WV3_T0_S<seed>_FRESH50_v1`(`tools/gen_pakd50_configs.py`), 큐 `config/queues/pakd50_<srv>_stage1.txt` 는 **J0 만** — 나머지는 매 pass gate `pakd50` 가 우선순위 J0→JQ→F0→FQ→JR→FR→XJ 로 편성한다(`gen_pakd50_configs.schedule`; λE 없으면 τR-only 한 벌씩; s1 은 J0-1234 뒤 λE 고정 → `assets/pakd50/calibration_resolved.json` 사본으로 s2/s3 전달, pull 만으로 다음 pass 에 JQ 가 열린다). 공통 절대 시계 `assets/pakd50/campaign_clock.json`(학습 마감 09-16 11:22:31; trainer `kdv.budget.training_deadline`·gate admission·체인 마감이 같은 시각), 돌던 체인 재편성은 `tools/pakd50_requeue.sh`. 구현 감사 `research_log/PAN_Integrated_Implementation_Experiment_Audit_2026-09-14.md` 의 F01–F05 반영(노트 §6), F06–F10(exact resume·worktree·A gradient 분해·bin 자료원·package pin) 은 후속. τR/λE 는 `tools/pakd50_calibrate.py`(고정값 `assets/pakd50/calibration_resolved.json`), gate `tools/pakd50_unit_tests.py`, 기동 `./tools/pakd50_prepare.sh`. 후보 격자는 `GRID1010_50K_v1`(eval_epoch 5, 50 후보 전부 보존). C1/C2(routing P/JK0/JE0, D/LF, TCOPY/CONT) 는 미구현.
-**s4**(배정 `research_log/PAN_S4_Integrated_Experiment_Cases_2026-09-14.md`, 노트 `research_log/2026-09-14_pakd50-s4-review-and-implementation.md`): seed 1234 서버 교차(J0/JQ, 독립 seed 아님) → AL0/ALQ(A LR 3e-6) → 진단으로 고른 Q12 scalar ≤2(`J_QA05/J_QB005/J_QB02/J_QE025/J_QE10`, λE 는 λE0 배율) → 결합 ≤1 → seed 3407 확인. 기본 묶음은 gate 가 `PRIORITY_BY_SERVER["s4"]` 로, 추가는 `work_dir/_pakd50/extra_priority.txt`(case id 또는 run 이름). T0 경로는 모든 서버에서 `assets/pakd50/T0_run`. 시트는 `gspread/server.txt`=s4 → `WV3-s4` 탭 자동, 범주 ㉕ PAKD50, X열 `통합실험`(PAKD50 / case / FRESH50).
-**2026-09-14 22:40 s1 의 PAKD50 은 사용자 지시로 중단**(J0/JQ/F0/FQ-1234 완료, JR-1234 는 끝까지; s2–s5 는 계속). s1 은 **EQREC4-S1-v1**(계획 `research_log/PAN_S1_EQREC4_Alignment_Cue_Hypotheses_20h_2026-09-14.md`, 노트 `research_log/2026-09-14_eqrec4-implementation.md`): frozen checkpoint 의 sample 별 native error e 와 offset consistency q 의 4분면 atlas(D10) → 상대/절대/cross-modal 정합 검사(D20) → correction 치환·native proxy·landscape(D30) → stress·PAN 민감도·edge(D40) → gradient·one-step(D50) → hard/soft microtrial K10 → 조건부 gate pilot K20 → report. 구현 `tools/eqrec4/`(CLI `tools/eqrec4.py <stage>`, runner `tools/eqrec4_run.sh`, gate `tools/eqrec4_unit_tests.py`), 출력 `work_dir/_eqrec4_<server>_campaign/`(최종 `report_EQREC4.md`). **2026-09-15 s3 에서도 실행**(사용자 결정): registry checkpoint 는 s1 에서 `python tools/eqrec4_bundle.py pack` → `work_dir/_eqrec4_bundle/`(272 MB, git 밖) 을 옮긴 뒤 s3 에서 `./tools/eqrec4_prepare.sh`(verify/install → gate → G00 → 기동). run config 의 s1 절대경로는 `common.localize_cfg` 가 처리. 판정은 within-checkpoint·대응 개입·source-block bootstrap; L1E4 채택과 q gate 채택은 별개 결정. **결과(2026-09-15 03:00, `results_log/2026-09-15_s1_eqrec4-results.md`)**: q 는 patch 정합 품질의 표지가 아니다(H1 native·H2 3 seed 반대, FR scene 수준만 양) · learned correction > zero(3/3) · Student cue 로는 판정 불가, 5K pilot 은 모든 arm 에서 HQNR 하락 → **q_T Teacher-quality gate 채택 안 함**.
-**s5**(배정 `research_log/PAN_S5_Timing_Routing_Experiment_Plan_2026-09-14.md`, 노트 `research_log/2026-09-14_pakd50-s5-review-and-implementation.md`): aligner 의 **업데이트 시점·loss 수신 경로** — seed 2026(s3 교차) 로 J0 → JQ → D0(0–4999 A 동결) → DQ → PQ(A 는 L0+LO 만) 뒤 조건부 ≤2(LF0/LFQ 25K 뒤 동결 · JK0/JE0 · DPQ · soft-off DX/PX) → seed 9091 확인. trainer 새 키 `kdv.aligner_schedule{freeze_until,freeze_from}`·`kdv.routing{qD,qK,qE}`(registry 가 미지원 조합 거부; 기본값이면 J 와 동일), 검사 K10–K12(실제 `_step` 의 gradient 수식 대조). 시트 `WV3-s5`.
-
-2026-09-15 **PAKD50 재배정 (s2/s4/s5)** (`research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md`, 노트 `research_log/2026-09-15_pakd50-derived-allocation-implementation.md`): 기존 결과에서 파생된 **명시 순서** — s2(777) JR→XJ→J_R3_NOEDGE→J_N0_EDGE · s4(1234) F0→RC0→RCQ→JR→XJ→J_R3_NOEDGE · s5(2026) PQ→F0→LF0→LFQ→RC0→RCQ (16 run; 완료된 J0/JQ/F0/FQ/AL0/ALQ/D0/DQ 는 재편성 안 함, s1/s3 신규 배정 없음). 새 case: `J_R3_NOEDGE` = JQ 에서 GT edge 제거 · `J_N0_EDGE` = GT L1 + λE edge(Teacher 미사용) · `RC0/RCQ` = A trainable(LR 1e-5) 인데 **Student 단계 offset 연습 없음**(정책 RC: `I-NATIVE-TRANSFER`, radius 0, offset 0 — I-AEQ 에 offset 0 은 registry 가 거부) + N0/Q12.
-slot 예약 `reservation_h = 1.10 × reference_train_h + 10/60`(기준값 = 같은 서버 완료 case 의 Sheet Train(h) 대용값, PQ·확인 seed 는 1.80 h 가예약; 실측 아님) 을 gate 편성 admission 과 trainer 예산 gate(서버 로컬 `work_dir/_pakd50/reservations.json` → `kdv.budget.projection_file`) 가 같이 쓴다. 전환은 각 서버에서 `./tools/pakd50_reallocate.sh`(runner 만 교체 → 현재 학습이 끝난 뒤 gate 가 새 순서; `--plan` dry-run 은 `gen_pakd50_configs.py --plan`), 확인 seed(s4 3407 / s5 9091, ≤3 run) 는 외부 WIN 뒤 `--confirm <WIN>`. 검사 K17–K20.
-
-2026-09-15 **DCR12 (s1 → s2; 12:34 교체)** (`research_log/PAN_Consistency_Reconstruction_Quadrant_Validation_12H_2026-09-14.md`, 노트 `research_log/2026-09-15_dcr12-implementation.md`): PAKD50 Teacher/Student 에서 **offset consistency C × native 복원 R 의 네 사분면**(D01) → correction 치환 개입(D02) → Student A 의 task/offset/soft gradient 충돌(D03) → **B0/FQ ↔ B1/JK0 두 seed(1234·777) 같은 호스트 대응 학습** → 조건부 micro-update utility(D04, §9.2 gate) → 보고서. 구현 `tools/dcr12/`(CLI `tools/dcr12.py`, runner `tools/dcr12_run.sh`, gate `tools/dcr12_unit_tests.py` X01–X13), 출력 `work_dir/_dcr12_s1_campaign/`(§13 산출물 + `report.md`). B0-1234 는 s1 PAKD50 FQ 완료본 재사용, JK0-1234·FQ-777·JK0-777 은 큐 `config/queues/dcr12_s1.txt` 로 새 학습(v1 이름 그대로; s1 gate `pakd50` 는 비움). B2/B3/CMASS/B1-NOOFF 는 미구현(gate 통과 시 별도).
-**2026-09-15 12:34 서버 교체(사용자 결정)**: s1 은 JK0 S1234 까지만 학습하고 멈췄다(12:05 완료; FQ/JK0 S777 은 시작 안 함) — 나머지는 **s2** 가 한다: s2 자기 PAKD50 FQ S777 완료본(B0) + 새 JK0 S777(큐 `config/queues/dcr12_s2.txt`), seed 1234 pair(FQ/JK0, s1 학습) 는 **bundle**(`work_dir/_dcr12_bundle/`, 127 MB, git 밖 — `python tools/dcr12_bundle.py pack/verify/install`; results .mat 은 sha 증거만, 완료 판정은 provenance) 로 옮긴다. s2 절차: `git pull` → `rsync -a s1:/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_dcr12_bundle/ work_dir/_dcr12_bundle/` → `./tools/dcr12_prepare.sh`(자산·bundle install·gate X01–X15·마감 여유 검사 뒤 runner detached; **s2 의 chain 이 아직 돌면 끝난 뒤 자동 기동**, 출력 `work_dir/_dcr12_s2_campaign/`, gate 'pakd50' 는 runner 가 비움). bundle 을 나중에 넣으면 `./tools/dcr12_prepare.sh --post`. runner 는 서버 공용(`config/queues/dcr12_<server>.txt`); seed 간 학습 호스트가 다르면 REPORT 가 `SEED_HOST_COUPLED`(계획 §8.2 host A/B 배치) 를 붙인다. JK0 S777 config 의 `training_deadline`(09-16 11:22:31) 은 그대로라 그 뒤 기동은 노트 §5 의 처리. 노트 `research_log/2026-09-15_dcr12-implementation.md` §5.
-
-2026-09-15 **PAKD50 s3 추가** (`research_log/PAN_PAKD50_Latest_Sheet_Analysis_and_S3_Experiments_2026-09-15.md`, 노트 `research_log/2026-09-15_pakd50-s3-additions-implementation.md`): s3(seed 2026) 명시 순서 **J_R3_NOEDGE → J_N0_EDGE → LF0 → LFQ → LFX**(새 case: LF 일정 + X02 = 25K 뒤 A 동결·soft 없음; control LF0), 예약 합 7.99 h; 기존 J0/JQ/JR/XJ/F0/FQ/FR 은 control 재사용. 확인 seed **4321** 은 후보별 묶음(§5 표, ≤3 run, reference JQ 1.34 h) — `./tools/pakd50_reallocate.sh --confirm <후보>`. 전환은 s3 에서 `./tools/pakd50_reallocate.sh`. 검사 K21. LF 계열의 처음 25K 는 대응 recipe 와 정의·RNG 가 같지만 GPU 학습은 run-to-run 재현이 아니다(s4 J0 v1/v2 0.0026 차).
-
-2026-09-15 **PAKD50 s4 골격 이식** (`research_log/PAN_PAKD50_S4_W104D121_Architecture_Allocation_2026-09-15.md`, 노트 `research_log/2026-09-15_pakd50-s4-w104d121-implementation.md`): Student U 만 **W104·depth[1,2,1]**(backbone 1.9036 M = s3 GT-only 기록과 같은 template lineage), Teacher T0/A·τR·λE0 는 W112 그대로(branch `A104D121_T0FIX_E0_v1`, `kdv.teacher.bridge: true` 로 폭 불일치 검사를 명시적으로 푼다). s4 명시 순서 **NA0 → J0 → JQ → XJ → F0** `@W104_D121`(NA0 = A-ID/NOALIGN plain GT; 예약 합 7.75 h), 확인 seed 3407 = J0/WIN × 두 골격(≤4). generator 는 골격 인지형: 편성 항목·`--cases` 는 `case@arch`, run 이름 `PAKD50_<case>_<W…_D…>_…`, init hash namespace `unet@W104_D121`, 예약·실측 키 `case@arch`, 시트 X열 `PAKD50 / <case> / A104D121 / FRESH50`. 검사 K22(92 ALL OK).
-
-2026-09-15 **SMEC12 (s1; 원안 s2 → 12:34 교체)** (`research_log/PAN_SMEC12_MultiDataset_SampleMechanism_ExperimentPlan_2026-09-15.md`, 노트 `research_log/2026-09-15_smec12-implementation.md`): "q 는 낮은데 복원이 어려운 sample" 의 특성·기전을 **WV3·QB·GF2(+WV2 zero-shot)** 에서 검증. (a) QB/GF2 는 W112·D123 모델이 없어 **준비 학습 10 run**(P0 → DON-N2 → L000 → L1E4 → L1E4-REP × 2 센서; `tools/gen_smec12_bootstrap.py`, 큐 `config/queues/smec12_<server>.txt`, 기동 `tools/smec12_prepare.sh` — 현재 chain 이 끝나면 자동). **s1 에서 12:34 기동**(WV3 lane 자산 PALS24/NF16/PO10 이 s1 에만 있어서; chain 마감 09-17 04:34, 10 run ≈ 23–26 h; 분석 runner 는 chain DONE 뒤 `work_dir/_smec12_s1_campaign/analyze_when_done.sh` 가 자동, WV3+WV2 검증 결과는 노트 §5). s2 는 SMEC12 를 돌리지 않는다(DCR12 로) — WV3 recipe(NF16 P0 / PO10 N2 R200 / PALS24 L000·L1E4) 의 공통 이식, 4-band backbone 2.6508 M, 센서별 init_dir, exact25K/50K state. (b) 분석 backbone `tools/smec12/`(A00 · D10/D11 · I20 · I23-B · I24-A · I25-A · X40 · REPORT; CLI `tools/smec12.py`, runner `tools/smec12_run.sh`, gate `tools/smec12_unit_tests.py`) 는 있는 자산만 증분 처리하고 미구현 stage(D12·I21·I22·I23-A/C·I24-B/C·I25-B·S30·C50·R60) 는 `pending_compute` 로 보고. 시트 범주 ㉖ SMEC12.
-
-2026-09-15 **QEDGE9 (s5·s4)** (`research_log/PAN_QEDGE9_W104D121_S5_S4_Experiment_Plan_2026-09-15.md`, 노트 `research_log/2026-09-15_qedge9-implementation.md`): W104·D121 Student(T0 고정) 에서 **q 기반 GT edge gate** — 새 case `QE50`(Q12 hard/soft 그대로, GT edge 는 고정 T0 aligner 의 offset-consistency q(AXIS16 probe) < θq(train calibration 중앙값 0.327613) 인 patch 만: λE·Σ g_i E_i / B, 재정규화 없음) · `QEC`(모든 patch edge × c_E = Σ g E_pilot / Σ E_pilot, pilot = s4 W104 J0 S1234 exact50K — **s4 에서 산출**) · `QES`(gate 를 T0 e_roi32 decile × aug state stratum 안에서 permutation 51515). 새 캠페인 `QEDGE9_A104D121_20260915_v1` / branch `A104D121_T0FIX_QEDGE9_v1` — **PAKD50 의 50h·09-16 11:22 마감을 상속하지 않는다**(`kdv.budget`: 자체 ledger `work_dir/_qedge9_budget`, soft 9h, required=True 경고만, `time_policy`; gate admission 제외). s5(seed 2026·777, 시트상 옛 s5 묶음 전부 완료) J0→JQ→QE50 @W104 ×2 seed(예약 10.262 h) · **s1(seed 1234; 17:20 사용자 결정으로 s4 대신)** J0→JQ→QE50→QES→QEC @W104 **v2**(control 부터 새로; QEC pilot = s1 J0 v2 exact50K; 8.51 h; SMEC12 chain 뒤 자동, `./tools/qedge9_prepare_s1.sh`, 큐 `config/queues/qedge9_s1.txt`). s4 는 기존 E0 allocation 만. cue 자산 `assets/qedge9/cue_T0_AXIS16_v1.{json,npz}`(s1 이 `tools/qedge9_cue.py build` 로 0.8 min; git, hash 검증; 각 서버 `verify`) · feeder `return_meta`(index·rot; RNG 불변) · trainer `kdv.edge_gate`(registry: EDGE-H 위에서만, routing/TRI 와 결합 거부) · 전환: s5 `./tools/qedge9_switch.sh`(runner 를 죽이지 않는다 — 현재 run·후처리는 그 runner 가, 다음 gate pass 부터 새 순서; chain 없으면 기동; 마감 파일 제거 = soft; 대기자 `tools/qedge9_waiter.sh` 가 DONE-with-pending 을 다시 연다; gate K01–K33 117 검사 · cue verify · config 검사 · 완료 control 검증). **감사 대응(2026-09-15 `PAN_QEDGE9_Implementation_Audit_2026-09-15.md` F01–F08, 노트 §8)**: cue 자산 `asset_id`·내부 일관성·재개 대조, QEC pilot identity 강제·c_E 고정, `kdv.exact_resume`(`kdv/resume.py`: epoch 시작 RNG + batch skip → 재개 run 이 연속 실행과 같은 batch 열; e2e 20/20 동일), `verified_complete`(50K state·후보 격자·Teacher/데이터/init 동치), 실측 통합(PAKD50+QEDGE9 ledger), 옛 extra_priority 보존 분리. 시트 X열 `PAKD50 / <case> / A104D121 / QEDGE9 / FRESH50`, Notes 에 q_source/θq/gate/cue_sha(+cE/perm_seed). 판정은 seed 별 같은 서버의 QE50−JQ·QE50−J0, s4 QE50−QEC/QES.
+- 08-28~09-07 아키텍처 탐색·KD·SE·Swin·Teacher 4–6M: 9ch 성립, 고해상도 인접 용량이 핵심, 용량 확대·KD·SE 전부 K0(= Student 단독 학습 baseline, `results_log/2026-09-01_kd-se-msonly-campaigns.md`) 를 넘지 못함(`results_log/2026-08-29 … 09-04`).
+- 09-08 W168 multiset 3-seed(중단, `config/queues/arch_w168_multiset_3seed.txt` 로 재개 가능) → 09-09 BASE W96·D124 3-seed → 09-09 PA A1–A3(aligner 는 방향은 맞지만 입력 무반응 상수 0.2 px, `pa/`) → 09-10 PO10 offset consistency(R100→R200 + W112·D123, aligner 가 x 축 −0.5 반응, `pa/offset.py`) → 09-11 NF16 native fitting →
+  **09-12 정합 축 종합 판정: PAN 을 옮기는 접근은 성립하지 않는다**(BASE96·PA·PO10·NF16 17벌) → **09-13 PALS24: 작은 offset loss(λ* = 1e-4) 만 3 seed 양성** → 09-14 PALSV18: 3e-5/3e-4 는 넘지 못해 **L1E4 유지 = T0**.
+- 09-10 KDV s2(W112·D123 GT-anchored KD·통계 variance, Q00–Q08; TRI-A/B/C·geomKD G1–G5·G-STRUCT 구현, 큐 `kdv_s2_geomkd.txt`/`kdv_s2_triabc.txt` 는 보류) · 09-11 NA104(W104·D122 no-align KD 87+ case, s2·s3; 20H 우선순위 Q36/Q12/CF01) → **09-14 92벌 무소득**, 09-14 PAKD50 으로 대체.
