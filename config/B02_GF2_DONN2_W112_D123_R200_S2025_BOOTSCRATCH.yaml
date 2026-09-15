@@ -1,0 +1,77 @@
+# B02_GF2_DONN2_W112_D123_R200_S2025_BOOTSCRATCH — SMEC12 준비 학습 DONN2: N2 형 변위 사전학습(po: native/corrupt 1:1, SG offset .01 ramp 5K, b=2) 50K — exact50K aligner 가 donor. 생성: tools/gen_smec12_bootstrap.py (template config/PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT.yaml; 센서 항목만 치환). 손으로 고치지 말 것.
+# 계획 research_log/PAN_SMEC12_MultiDataset_SampleMechanism_ExperimentPlan_2026-09-15.md §2 · 노트 research_log/2026-09-15_smec12-implementation.md · 센서 GF2 (4 band, max_pixel 1023.0; 배포본 정상(F-1 해당 없음); max_pixel 1023; mat20 논문 세트) · seed 2025 · lineage BOOTSCRATCH
+# 골격 W112·D123 (backbone 2.6508 M) · 50K · batch 48 · AdamW 1e-4(U)/1e-5(A; kdv) wd 0.01 cosine warmup100 · eval_epoch 2 (= GRID824_50K_gf2) · save_iter 25000 (exact25K/50K 전체 state)
+# b=2 (HR px) · λ_off .01 ramp 5K · native/corrupt 1:1 · aligner head zero-init — WV3 N2 R200 recipe 의 공통 이식(센서 최적값 아님)
+# 예산 work_dir/_smec12_budget/ledger.json 40.0 h(reserve 2.0) · 준비 학습은 required(초과해도 경고만; 시간 때문에 취소하지 않는다 §2.3)
+expect_params_m: 2.6508
+seed: 2025
+num_worker: 4
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/B02_GF2_DONN2_W112_D123_R200_S2025_BOOTSCRATCH
+phase: train
+mars: ms
+trainer: po
+po:
+  case: N2_SG
+  radius_hr: 2.0
+  protocol_id: pan_offset_rel_smec12_gf2_r200
+  radius_profile: R200_FRSTAT
+  radius_source: results_log/2026-09-10_pa-a1-a3-s1-results.md §7 WV3 FR |δ| P95 1.98 HR px (FR-input-statistics-informed development)
+  radius_provenance: {dataset: GF2, profile: FRSTAT_R200, selected_radius_hr: 2.0, observed_statistic: report_abs_delta_P95, observed_value_hr: 1.98, source_split: FR_paper_mat20, source_scene_count: 20,
+    report_file: 2026-09-10_pa-a1-a3-s1-results.md, report_section: 7, reference_pair: PAN_b_from_bicubic_upsampled_MS, calibration_quality: common_recipe_transfer_from_wv3 (b=2 는 WV3 FR 통계에서 온 공통 recipe;
+      이 센서의 최적값 아님 — SMEC12 §2.1/§2.5), uses_evaluation_input_statistics: true, uses_FR_HRMS_ground_truth: false, selection_note: nearby_execution_scale_chosen_before_new_run, radius_is_trainable: false,
+    radius_changes_within_pure_run: false, runtime_recalibration: false, transferred_from: WV3 R200_FRSTAT}
+  training_regime: restart_pure
+  lambda_off_max: 0.01
+  ramp_updates: 5000
+  diag_every: 1000
+  corruption_seed_offset: 2000
+  budget_total_gpu_hours: 10.0
+  budget_diag_reserve_hours: 1.0
+  init_dir: work_dir/_pa_init_w112_d123_gf2
+  smec12:
+    campaign_id: SMEC12_BOOT_v1
+    role: DONN2
+    lineage: BOOTSCRATCH
+    sensor: GF2
+    donor_of: [B03_GF2_L000_W112_D123_S2025_DONB02, B03_GF2_L1E4_W112_D123_S2025_DONB02, B04_GF2_L1E4_W112_D123_S1234_DONB02]
+    note: donor = exact50K(last) 의 aligner; best_raw 로 대체하지 않는다
+select_on: hqnr
+fr_select_indices: 0-19
+feeder: feeders.feeder.PanFeeder
+train_feeder_args: {dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/train_gf2.h5, crop: false, hflip: true, vflip: true, rot: true, crop_ratio: 0.75, ms_size: 16}
+val_feeder_args: {dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/valid_gf2.h5}
+test_reduced_feeder_args: {dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/reduced_examples_h5/test_gf2_multiExm1.h5}
+test_full_feeder_args: {dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/full_examples_mat20/test_gf2_OrigScale_mat20.h5}
+num_bands: 4
+max_pixel: 1023.0
+model: model.pancrafter_paper.PANCrafterPaper
+model_args:
+  in_channels: 1
+  out_channels: 4
+  hidden_size: 112
+  depth: [1, 2, 3]
+  dropout: 0.0
+  num_heads: 8
+  mlp_ratio: 4.0
+  ks: 3
+  ka: 3
+  norm: ln
+  in_mode: paper
+  attn_locations: []
+  mode_modulation: false
+  n_attn: 3
+optimizer: AdamW
+learning_rate: 1e-4
+weight_decay: 0.01
+lr_scheduler: cosine
+num_iter: 50000
+num_warmup: 100
+res: true
+w_off: 1.0
+log_iter: 100
+save_iter: 25000
+save_epoch: 25
+eval_epoch: 2
+gpu: 0
+batch_size: 48
+test_batch_size: 1

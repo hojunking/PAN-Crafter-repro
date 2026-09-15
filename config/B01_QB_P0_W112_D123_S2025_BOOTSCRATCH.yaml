@@ -1,0 +1,88 @@
+# B01_QB_P0_W112_D123_S2025_BOOTSCRATCH — SMEC12 준비 학습 P0: aligner 없음(A-ID/NOALIGN), 새 U, plain L1 50K — 무정합 baseline. 생성: tools/gen_smec12_bootstrap.py (template config/NF16_P0_W112_D123_WV3_S1234_N2LAST_v1.yaml; 센서 항목만 치환). 손으로 고치지 말 것.
+# 계획 research_log/PAN_SMEC12_MultiDataset_SampleMechanism_ExperimentPlan_2026-09-15.md §2 · 노트 research_log/2026-09-15_smec12-implementation.md · 센서 QB (4 band, max_pixel 2047.0; train/valid ms 복구본(KNOWN_ISSUES F-3), FR lpan 복구(F-1); mat20 논문 세트) · seed 2025 · lineage BOOTSCRATCH
+# 골격 W112·D123 (backbone 2.6508 M) · 50K · batch 48 · AdamW 1e-4(U)/1e-5(A; kdv) wd 0.01 cosine warmup100 · eval_epoch 3 (= GRID1071_50K_qb) · save_iter 25000 (exact25K/50K 전체 state)
+# init work_dir/_kdv_init_w112_d123_qb/init_unet_seed2025.pt — 같은 센서 L000/L1E4 가 같은 파일을 쓴다 (§2.4)
+# 예산 work_dir/_smec12_budget/ledger.json 40.0 h(reserve 2.0) · 준비 학습은 required(초과해도 경고만; 시간 때문에 취소하지 않는다 §2.3)
+expect_params_m: 2.6508
+seed: 2025
+num_worker: 4
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/B01_QB_P0_W112_D123_S2025_BOOTSCRATCH
+phase: train
+mars: ms
+trainer: kdv
+kdv:
+  campaign_id: SMEC12_BOOT_v1
+  run_kind: CONTROLLED
+  version: v1
+  check_run_name: false
+  input_protocol: I-A
+  aligner_policy: A-ID
+  diag_every: 1000
+  calibration: {n_patches: 3072, seed: 1234}
+  rec: {case: N0}
+  stat: {enabled: false}
+  geom_kd: {mode: G0}
+  eval: {}
+  budget:
+    ledger: work_dir/_smec12_budget/ledger.json
+    total_gpu_hours: 40.0
+    reserve_hours: 2.0
+    margin: 1.1
+    required: true
+    projected_hours: null
+    projected_map: {B01_QB_P0_W112_D123_S2025_BOOTSCRATCH: 2.6, B02_QB_DONN2_W112_D123_R200_S2025_BOOTSCRATCH: 2.6, B03_QB_L000_W112_D123_S2025_DONB02: 2.6, B03_QB_L1E4_W112_D123_S2025_DONB02: 2.6, B04_QB_L1E4_W112_D123_S1234_DONB02: 2.6}
+    remaining_mandatory: [B02_QB_DONN2_W112_D123_R200_S2025_BOOTSCRATCH, B03_QB_L000_W112_D123_S2025_DONB02, B03_QB_L1E4_W112_D123_S2025_DONB02, B04_QB_L1E4_W112_D123_S1234_DONB02]
+  recipe: NOALIGN
+  case_id: P0
+  experiment_branch_id: SMEC12_BOOT_QB_BOOTSCRATCH
+  init_dir: work_dir/_kdv_init_w112_d123_qb
+  candidate_grid_id: GRID1071_50K_qb
+  select:
+    primary: best_hqnr
+    secondary: [best_rr_val, last]
+    retain_all_candidates: true
+  diag: {fixed_batch: true}
+  expect_arch:
+    width: 112
+    depth: [1, 2, 3]
+    noalign: true
+select_on: hqnr
+fr_select_indices: 0-19
+feeder: feeders.feeder.PanFeeder
+train_feeder_args: {dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb_msfix.h5, crop: false, hflip: true, vflip: true, rot: true, crop_ratio: 0.75, ms_size: 16}
+val_feeder_args: {dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb_msfix.h5}
+test_reduced_feeder_args: {dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/reduced_examples_h5/test_qb_multiExm1.h5}
+test_full_feeder_args: {dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5}
+num_bands: 4
+max_pixel: 2047.0
+model: model.pancrafter_paper.PANCrafterPaper
+model_args:
+  in_channels: 1
+  out_channels: 4
+  hidden_size: 112
+  depth: [1, 2, 3]
+  dropout: 0.0
+  num_heads: 8
+  mlp_ratio: 4.0
+  ks: 3
+  ka: 3
+  norm: ln
+  in_mode: paper
+  attn_locations: []
+  mode_modulation: false
+  n_attn: 3
+optimizer: AdamW
+learning_rate: 1e-4
+weight_decay: 0.01
+lr_scheduler: cosine
+num_iter: 50000
+num_warmup: 100
+res: true
+w_off: 1.0
+log_iter: 100
+save_iter: 25000
+save_epoch: 25
+eval_epoch: 3
+gpu: 0
+batch_size: 48
+test_batch_size: 1

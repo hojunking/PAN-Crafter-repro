@@ -3,6 +3,8 @@ import re
 
 # (범주키, 표시명, 판별함수)  — 위에서부터 처음 맞는 것으로 확정한다
 CATS = [
+ ("SMEC12", "㉖ SMEC12 준비 학습 (센서별 P0 / DON-N2 / L000 / L1E4 / L1E4-REP — W112·D123, WV3 recipe 의 공통 이식; QB·GF2) — 실행명 B01_<S>_P0_… / B02_<S>_DONN2_… / B03_<S>_{L000,L1E4}_… / B04_<S>_L1E4_S1234_…",
+  lambda t: re.match(r"^B0[1-4]_(QB|GF2|WV3|WV2)_", t) is not None),
  ("PAKD50", "㉕ 통합 캠페인 PAKD50 (T0 = PALS24 L1E4 seed 2025 aligner 재사용·적응 × N0/R1/Q12/X02, FRESH50, s1–s5) — 실행명 PAKD50_<case>_W112_D123_WV3_T0_S<seed>_FRESH50_v1",
   lambda t: t.startswith("PAKD50_")),
  ("MS", "⑨ MS-only (MARs PAN mode 제거) 계열 — 시드복제·dual 대조군 포함",
@@ -57,7 +59,7 @@ CATS = [
 ORDER = [c[0] for c in CATS]
 # 2026-09-11 시트 정리: 현 접근(BASE/PA/PO10/KDV)과 무관한 범주는 WV3-<server>_v1 탭으로 옮겼다 (gspread/archive_to_v1.py).
 # gspread_upload.py --all 은 이 범주의 run 을 다시 올리지 않는다 (--include-archived 로만).
-KEEP = ("REF", "BASE96", "PA", "PO10", "KDV", "NF16", "NA104", "PALS24", "PALSV18", "PAKD50")
+KEEP = ("REF", "BASE96", "PA", "PO10", "KDV", "NF16", "NA104", "PALS24", "PALSV18", "PAKD50", "SMEC12")
 ARCHIVED = tuple(k for k in ORDER if k not in KEEP)
 NAME  = {c[0]: c[1] for c in CATS}
 SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload 가 같이 쓴다
@@ -65,6 +67,9 @@ SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload �
 # 캠페인 설명 — 구분행의 Notes 에 들어간다. 여기 있는 범주만 업로드 시 구분행을 자동으로 넣는다
 # (업로드는 시트 맨 아래에 덧붙이므로, 새 캠페인이 지난 실험과 섞여 보이지 않게 한다).
 DESC = {
+ "SMEC12": ("[캠페인] SMEC12 준비 학습 (Recon–Consistency 불일치의 원인·sample 특성 검증의 센서별 모델 세트; research_log/PAN_SMEC12_MultiDataset_SampleMechanism_ExperimentPlan_2026-09-15.md §2) · s2 · seed 2025(확인 1234) · 2026-09-15. "
+            "P0 = aligner 없음 plain L1 · DON-N2 = N2 형 변위 사전학습(b=2, offset .01 ramp 5K; exact50K aligner 가 donor) · L000 = donor A + 새 U, offset 0 · L1E4 = 같은 donor·같은 U 초기값, 홀수 update 1e-4 offset · L1E4-REP = seed 1234. "
+            "b=2·λ=1e-4 는 WV3 recipe 의 공통 이식(센서 최적값 아님); 1 seed 의 방법 우월성 주장 금지 — sample 기전 분석용. 시트 HQNR = best_raw raw_original(논문 세트 mat20)."),
  "PAKD50": ("[캠페인] PAKD50 통합 (raw HQNR 0.959–0.960 목표, 50h 병렬) · s1 seed 1234 / s2 777 / s3 2026 / s4 1234(s1 교차)+3407(확인) · 2026-09-14 · "
             "research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md (+ s4: PAN_S4_Integrated_Experiment_Cases_2026-09-14.md). "
             "Teacher T0 = PALS24_L1E4_…_S2025 best_hqnr 의 A+U(frozen); Student 는 T0 aligner 복사(J: 공동 적응 A LR 1e-5 / F: frozen / AL: A LR 3e-6) + 새 U-Net(W112·D123, seed 별 초기값). "
