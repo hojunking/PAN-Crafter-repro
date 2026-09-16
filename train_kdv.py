@@ -40,7 +40,8 @@ from pa.evalviews import PROTOCOL_ID, evaluator_hash, fixed_roi, VIEWS, scene_vi
 from pa.losses import output_edge_loss, output_edge_loss_per_sample, direct_geometry_loss, lambda_ramp, geometry_support_margin, scharr
 from kdv.edge_gate import EdgeGate, AffineEdgeWeight
 from kdv.qrecon import QWeight
-from kdv.resume import EpochState, begin_epoch
+from kdv.resume import EpochState, begin_epoch, ExactResumeMismatch
+_PROC_T0 = time.time()                                                     # 프로세스(모듈 import) 시각 — ledger 의 setup_hours 근사 (QRECON24 감사 F05)
 from pa.model import PAModel
 from pa.offset import offset_loss, predict_c, lambda_off, sample_offsets
 from pa.selector import BestSelector
@@ -353,6 +354,10 @@ class KDVTrainer(PATrainer):
         with self._LedgerLock(p0):
             p, d = self._ledger(); e = d["entries"].get(self.run_id, {}); hrs = (time.time() - self._t_run0) / 3600.0
             e.update(status=status, finished=time.strftime("%Y-%m-%dT%H:%M:%S"), **({"hours_total": hrs} if total else {"hours": hrs}))
+            e.setdefault("setup_hours", max(0.0, (self._t_run0 - _PROC_T0) / 3600.0))          # QRECON24 감사 F05: 시간 구분 — setup(프로세스 시작→학습 시작) · train(hours) · postprocess(hours_total − hours)
+            if total and e.get("hours") is not None:
+                e["train_hours"] = float(e["hours"]); e["postprocess_hours"] = max(0.0, float(hrs) - float(e["hours"]))
+            e["hours_note"] = "hours = 학습 종료(마지막 update) 까지 · hours_total = 평가/export/manifest 까지 · setup_hours = 프로세스 시작→학습 시작 (24h 최소 운영구간 집계는 train_hours 만; §8.3)"
             d["entries"][self.run_id] = e; json.dump(d, open(p, "w"), indent=1); json.dump(e, open(os.path.join(self.args.work_dir, "budget_status.json"), "w"), indent=1)
 
     # ------------------------------------------------------------------ selectors (+ rr_val)
@@ -673,6 +678,18 @@ class KDVTrainer(PATrainer):
                     sampler=M.sampler, params_total=n_all, params_trainable=n_tr, params_frozen=n_all - n_tr, backbone_params=sum(p.numel() for p in bb.parameters()),
                     teacher=(None if self.teacher is None else dict(params=sum(p.numel() for p in self.teacher.parameters()), width=self.teacher_manifest["width"], depth=self.teacher_manifest["depth"])))
 
+    def _optimizer_manifest(self):
+        opt = self.optimizer; o = getattr(opt, "optimizer", opt)                                       # accelerate wrapper 안의 torch optimizer
+        groups = []
+        for g in o.param_groups:
+            names = [n for n, p_ in self.M.named_parameters() if any(p_ is q for q in g["params"])]
+            groups.append(dict(name=g.get("name"), n_params=len(g["params"]), n_elements=int(sum(p_.numel() for p_ in g["params"])), initial_lr=float(g.get("initial_lr", g["lr"])), lr_now=float(g["lr"]), weight_decay=float(g.get("weight_decay", 0.0)),
+                               betas=[float(b) for b in g.get("betas", (0.9, 0.999))], eps=float(g.get("eps", 1e-8)), amsgrad=bool(g.get("amsgrad", False)), first_names=names[:3]))
+        return dict(optimizer_class=type(o).__name__, param_groups=groups, weight_decay_exclusions="none (all parameters incl. norm/bias decay 0.01)", scheduler_detail=dict(kind=str(self.args.lr_scheduler), source="diffusers.optimization.get_scheduler", num_warmup_steps=int(self.args.num_warmup), num_training_steps=int(self.args.num_iter), min_lr=0.0, per_group_multiplier="same LambdaLR factor for every group (A/U ratio constant)"),
+                    gradient_accumulation_steps=int(getattr(self.accelerator, "gradient_accumulation_steps", 1) or 1), grad_clip=None, mixed_precision=str(self.accelerator.mixed_precision), scaler=(getattr(self.accelerator, "scaler", None) is not None),
+                    tf32=dict(matmul=bool(torch.backends.cuda.matmul.allow_tf32) if torch.cuda.is_available() else None, cudnn=bool(torch.backends.cudnn.allow_tf32) if torch.cuda.is_available() else None, cudnn_benchmark=bool(torch.backends.cudnn.benchmark), cudnn_deterministic=bool(torch.backends.cudnn.deterministic)),
+                    torch=torch.__version__)
+
     def _write_kdv_manifests(self):
         wd = self.args.work_dir; sp = self.spec
         json.dump(self._architecture_manifest(), open(os.path.join(wd, "architecture_manifest.json"), "w"), indent=1)
@@ -697,7 +714,9 @@ class KDVTrainer(PATrainer):
                        aligner_view_margin=self.aligner_view_margin, guard_margin_hr=self.guard_margin,
                        corruption_seed=self.corr_seed, evaluator_hash=evaluator_hash(), protocol_id=PROTOCOL_ID,
                        training=dict(optimizer="AdamW", lr=self.args.learning_rate, weight_decay=self.args.weight_decay, scheduler=self.args.lr_scheduler, warmup=self.args.num_warmup,
-                                     batch=self.args.batch_size, updates=self.args.num_iter, amp=str(self.accelerator.mixed_precision), seed=self.args.seed)),
+                                     batch=self.args.batch_size, updates=self.args.num_iter, amp=str(self.accelerator.mixed_precision), seed=self.args.seed,
+                                     # QRECON24 감사 F10: 계획 §3·§6.4 의 명시 고정 — optimizer betas/eps · param group 별 이름/개수/LR/WD · decay 제외 없음 · cosine 최저 0(diffusers get_scheduler) · accumulation/clip · TF32/cudnn
+                                     **self._optimizer_manifest())),
                   open(os.path.join(wd, "kdv_config_resolved.json"), "w"), indent=1)
         json.dump(dict(case=self.case, lambda_edge=self.lam_edge, lambda_geo=self.lam_geo, ramp_steps=self.ramp, geometry_sigma_hr=self.geo_sigma, geometry_margin_hr=self.geo_margin,
                        support_guard_margin_hr=self.guard_margin, warp="bicubic/border/align_corners=False, no zero bypass" if self.M.sampler else "none (A-ID)",
@@ -1364,9 +1383,14 @@ class KDVTrainer(PATrainer):
         report = Train_Report(); start = time.time()
         B = self.args.batch_size; dev, dt = self.accelerator.device, self.weight_dtype; M = self.M
         times = dict(native=[], corrupt=[], forward=[])
-        it, skip, rinfo = begin_epoch(self.train_data_loader, self._epoch_state, global_step, self._resume_pending and self.exact_resume); self._resume_pending = False
+        try:
+            it, skip, rinfo = begin_epoch(self.train_data_loader, self._epoch_state, global_step, self._resume_pending and self.exact_resume)
+        except ExactResumeMismatch as ex:                                  # 감사 F01: 재개 불일치는 exit 4 (runner 가 같은 id 로 fresh 재실행하지 않는다; 사람이 판단)
+            train_log.write(f'[abort] exact resume 불일치: {ex}'); self._jsonl("resume_events.jsonl", dict(time=time.strftime("%Y-%m-%dT%H:%M:%S"), exact=False, error=str(ex), action="exit 4 — no automatic fresh restart"))
+            self._runs_csv("RESUME_MISMATCH"); self._finish_ledger("RESUME_MISMATCH"); sys.exit(4)
+        self._resume_pending = False
         if rinfo["exact"] and self.accelerator.is_main_process:
-            self._jsonl("resume_events.jsonl", dict(time=time.strftime("%Y-%m-%dT%H:%M:%S"), exact=True, resumed_at_step=int(global_step), epoch_start_step=rinfo["epoch_start_step"], skipped_batches=rinfo["skipped"],
+            self._jsonl("resume_events.jsonl", dict(time=time.strftime("%Y-%m-%dT%H:%M:%S"), exact=True, resumed_at_step=int(global_step), epoch_start_step=rinfo["epoch_start_step"], skipped_batches=rinfo["skipped"], epoch_boundary=bool(rinfo.get("boundary")),
                                                     restored="epoch 시작 전역 RNG → 같은 permutation·worker seed, 소비 batch skip; optimizer·scheduler·scaler·RNG(corruption/TRI)", note="연속 실행과 같은 batch 열 (kdv.exact_resume)"))
             print(f"[kdv] exact resume: epoch 시작 step {rinfo['epoch_start_step']} 부터 {rinfo['skipped']} batch 건너뜀 → step {global_step} 에서 이어간다")
         for idx, batch in enumerate(it, start=skip):

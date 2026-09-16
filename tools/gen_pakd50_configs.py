@@ -85,6 +85,14 @@ QRC24_PROFILES = {**{f"G{i}{j}": dict(lam=l, rA=r) for i, l in ((1, 3e-4), (2, 1
                   **{f"H{i}{j}": dict(alpha=al, beta=be) for i, al in ((1, 0.5), (2, 1.0), (3, 1.5)) for j, be in ((1, 0.05), (2, 0.1), (3, 0.2))}, "H_ALPHA0": dict(alpha=0.0), "H_BETA0": dict(beta=0.0),
                   "L100": dict(ulr=1e-4), "L070": dict(ulr=7e-5), "L050": dict(ulr=5e-5)}
 QRC24_CANONICAL = {"H22": "G22", "L100": "G22"}                                                  # 같은 수학적 설정의 별칭 (§4.4; 같은 server+seed 에 중복 편성 없음)
+
+
+def qrc24_control_profile(server, seed):
+    """그 서버·seed 에 **실제로 편성된** canonical-G22 profile(s4 H22 · s5 L100 · 그 밖 G22) — run id 는 alias 가 아니다 (감사 F09). 없으면 'G22' 이름(존재하지 않을 수 있음; note)."""
+    for p_, sd_ in QRC24_QUEUES.get(server, []):
+        if sd_ == seed and QRC24_CANONICAL.get(p_, p_) == "G22":
+            return p_
+    return "G22"
 QRC24_QUEUES = {"s1": [(p, sd) for sd in (1234, 3407) for p in ("G22", "A_UNIF", "A_FREEZE", "G21", "G23", "A_SHUF")],
                 "s2": [(p, 777) for p in ("G22", "G12", "G32", "G21", "G23", "G11", "G13", "G31", "G33", "E_UNIF", "E_SHUF", "ALL_UNIF")],
                 "s3": [(p, sd) for sd in (2026, 4321) for p in ("G22", "G12", "G32", "G21", "G23", "G11", "G13", "G31", "G33")],
@@ -492,29 +500,47 @@ def measured_hours_all(server):
     return {c: sum(v) / len(v) for c, v in acc.items()}
 
 
-def verified_complete(run, expect_step=50000, min_candidates=45):
-    """완료 marker(results .mat 두 개) 를 넘어 계획 §8.2·§8.3 의 완결·동치 검사 (감사 F06): exact-50K last state · 평가 후보 격자 · Teacher 파일 sha == T0 · train h5 sha == cue 자산 · U init hash == seed 공유 init 파일.
-    반환 dict(ok, checks{name: bool|None}, notes) — None 은 판단 자료 없음(예: cue 자산/Teacher 없는 run)."""
+GRID_STEPS_50K = tuple(range(1010, 50000, 1010)) + (50000,)                    # GRID1010_50K_v1: 1010 간격 49 + exact 50000 = 50 후보
+
+
+def verified_complete(run, expect_step=50000, min_candidates=50):
+    """완료 marker(results .mat 두 개) 를 넘어 계획 §8.2·§8.3 / QRECON24 §7.3·§10.1 의 완결·동치 검사 (QEDGE9 감사 F06 → QRECON24 감사 F08 강화):
+    results mat 두 개가 비어 있지 않음 · exact-50K last state · 후보 격자 = GRID1010_50K_v1 의 **고유** step 50 개 전부 + 각 step 의 실제 checkpoint(candidates/step-N/model.safetensors) · kdv manifest ·
+    Teacher 를 쓰는 run 이면 Teacher 파일 sha == T0 **필수** · cue 자산이 있으면 train h5 sha == cue **필수** · 저장 U 초기값 파일이 있으면 hash 일치 **필수** · exact_resume run 은 비정확 재개(resumed_nonexact) 없음.
+    반환 dict(ok, checks{name: bool|None}, notes) — None 은 그 검사가 해당 없음(예: Teacher 없는 run) 이고 ok 에서 제외; 필요한 증거가 없는데 판단 불가면 False."""
     rd = os.path.join(ROOT, "work_dir", run); c = {}; notes = []
-    c["results_mats"] = os.path.exists(os.path.join(rd, "results", "reduced_best_hqnr.mat")) and os.path.exists(os.path.join(rd, "results", "full_best_hqnr.mat"))
-    lm = _load_json(os.path.join("work_dir", run, "last_meta.json")); c["last_exact_step"] = (lm.get("step") == expect_step) and os.path.exists(os.path.join(rd, "last", "model.safetensors"))
+    _nonempty = lambda p_: os.path.exists(p_) and os.path.getsize(p_) > 1024
+    c["results_mats"] = _nonempty(os.path.join(rd, "results", "reduced_best_hqnr.mat")) and _nonempty(os.path.join(rd, "results", "full_best_hqnr.mat"))
+    lm = _load_json(os.path.join("work_dir", run, "last_meta.json")); c["last_exact_step"] = (lm.get("step") == expect_step) and _nonempty(os.path.join(rd, "last", "model.safetensors"))
     cm = os.path.join(rd, "checkpoint_metrics.csv"); rows = []
     if os.path.exists(cm):
         import csv as _csv
         rows = list(_csv.DictReader(open(cm)))
-    steps = {int(float(r["step"])) for r in rows if r.get("step")}
-    c["candidate_grid"] = (expect_step in steps) and (len(rows) >= min_candidates)
+    steps = sorted({int(float(r["step"])) for r in rows if r.get("step")}); grid = [s_ for s_ in GRID_STEPS_50K if s_ <= expect_step]
+    c["candidate_grid"] = (expect_step in steps) and (len(steps) >= min_candidates) and all(s_ in steps for s_ in grid)
+    missing_ck = [s_ for s_ in steps if not _nonempty(os.path.join(rd, "candidates", f"step-{s_}", "model.safetensors"))]
+    c["candidate_checkpoints"] = (len(steps) > 0) and not missing_ck
+    if missing_ck:
+        notes.append(f"후보 checkpoint 없음 {len(missing_ck)} step (예 {missing_ck[:3]})")
     kc = _load_json(os.path.join("work_dir", run, "kdv_config_resolved.json")); c["kdv_manifest"] = bool(kc)
-    ith = _load_json(os.path.join("work_dir", run, "init_and_teacher_hashes.json")); t = (ith.get("teacher") or {})
+    if kc:
+        c["exact_resume_ok"] = (None if not kc.get("exact_resume") else not bool(kc.get("resumed_nonexact")))
+    else:
+        c["exact_resume_ok"] = False; notes.append("kdv manifest 없음")
+    ith = _load_json(os.path.join("work_dir", run, "init_and_teacher_hashes.json")); t = (ith.get("teacher") or {}); needs_t = bool((kc.get("teacher") or {}) if kc else False)
     if t:
         sha, _ = t0_identity(None); c["teacher_is_T0"] = (t.get("file_sha256") == sha)
+    elif needs_t:
+        c["teacher_is_T0"] = False; notes.append("Teacher 를 쓰는 run 인데 Teacher hash 기록이 없다")
     else:
         c["teacher_is_T0"] = None; notes.append("Teacher 없음(no-KD/no-align run)")
     ds = _load_json(os.path.join("work_dir", run, "dataset_hashes.json")); cue = _load_json(QEDGE9_CUE_ASSET)
-    if ds and cue:
-        c["train_sha_matches_cue"] = ((ds.get("train_feeder_args") or {}).get("sha256") == (cue.get("dataset") or {}).get("train_sha256"))
+    if cue:
+        c["train_sha_matches_cue"] = bool(ds) and ((ds.get("train_feeder_args") or {}).get("sha256") == (cue.get("dataset") or {}).get("train_sha256"))
+        if not ds:
+            notes.append("dataset_hashes 없음")
     else:
-        c["train_sha_matches_cue"] = None; notes.append("dataset_hashes 또는 cue 자산 없음")
+        c["train_sha_matches_cue"] = None; notes.append("cue 자산 없음(이 서버)")
     ih = _load_json(os.path.join("work_dir", run, "initialization_hashes.json")); init_f = ih.get("unet_init_file")
     if ih.get("unet_init_sha256_16") and init_f and os.path.exists(init_f):
         try:
@@ -522,11 +548,14 @@ def verified_complete(run, expect_step=50000, min_candidates=45):
             from train_pa import _sha_tensors
             c["init_matches_shared_file"] = (_sha_tensors(torch.load(init_f, map_location="cpu")) == ih["unet_init_sha256_16"])
         except Exception as ex:                                                        # noqa
-            c["init_matches_shared_file"] = None; notes.append(f"init 파일 검사 실패 {ex!r}")
+            c["init_matches_shared_file"] = False; notes.append(f"init 파일 검사 실패 {ex!r}")
+    elif ih.get("unet_init_sha256_16"):
+        c["init_matches_shared_file"] = None; notes.append("저장 초기값 파일이 이 서버에 없다(hash 기록만)")
     else:
-        c["init_matches_shared_file"] = None; notes.append("초기값 hash/파일 없음")
-    ok = all(v for v in c.values() if v is not None) and c["results_mats"] and c["last_exact_step"] and c["candidate_grid"] and c["kdv_manifest"]
-    return dict(run=run, ok=bool(ok), checks=c, notes=notes)
+        c["init_matches_shared_file"] = False; notes.append("초기값 hash 기록 없음")
+    required = ("results_mats", "last_exact_step", "candidate_grid", "candidate_checkpoints", "kdv_manifest")
+    ok = all(c[k_] for k_ in required) and all(v for v in c.values() if v is not None)
+    return dict(run=run, ok=bool(ok), checks=c, notes=notes, required=list(required))
 
 
 def reservation_for(server, item, measured=None, seed=None):
@@ -747,7 +776,7 @@ def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=Tr
         k["qrc24"] = dict(profile=prof, canonical=Pq["canonical"], lambda_E=float(Pq["lam"]), rA=(0.0 if Pq["frozen"] else float(Pq["rA"])), U_lr=float(Pq["ulr"]), A_lr=float(Pq["alr"]), alpha=float(Pq["alpha"]), beta=float(Pq["beta"]),
                        a_weight=Pq["a"], e_weight=Pq["e"], A_frozen=bool(Pq["frozen"]), q_ref=QRC24_QREF, method="qrecon_continuous_v1", A_loss="weighted_H_only", A_soft=0, A_edge=0, student_offset=0)
         k.update(campaign_id=QRC24_CAMPAIGN_ID, parent_campaign_id=CAMPAIGN_ID, lineage_campaign_ids=[CAMPAIGN_ID, QEDGE9_CAMPAIGN_ID, QEGX_CAMPAIGN_ID, EDGEBAL_CAMPAIGN_ID], experiment_branch_id=QRC24_BRANCH, exact_resume=True,
-                 control_runs={"G22": qrc24_run_name(server, "G22", seed, version)}, baseline_run=qrc24_run_name(server, "G22", seed, version),
+                 control_runs={"G22": qrc24_run_name(server, qrc24_control_profile(server, seed), seed, version), "canonical": "G22", "control_profile": qrc24_control_profile(server, seed)}, baseline_run=qrc24_run_name(server, qrc24_control_profile(server, seed), seed, version),
                  budget=dict(ledger=QRC24_LEDGER, total_gpu_hours=QRC24_SOFT_HOURS, reserve_hours=0.0, margin=MARGIN, required=True, projected_hours=projected, projected_map={me: reservation_hours(QRC24_REFERENCE_H[server], QRC24_RESERVE_SLACK)},
                              remaining_mandatory=[], remaining_mandatory_file=QRC24_MANDATORY_FILE, projection_file=RESERVATION_FILE, time_policy=dict(QRC24_TIME_POLICY)))
     if branch == "EDGEBAL":                                                 # EDGEBAL §10.1–10.2·§7: 새 캠페인(parent PAKD50, lineage QEDGE9·QEGX), 시간 상한 없음(total 1000h + required 경고만, 절대 마감·9h·50h 미상속), exact_resume

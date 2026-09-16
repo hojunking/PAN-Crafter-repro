@@ -6,7 +6,8 @@
 set -uo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
 PY="${PYTHON:-/home/knuvi/miniconda3/envs/pancrafter/bin/python}"; export PANCRAFTER_DLPAN="${PANCRAFTER_DLPAN:-/home/knuvi/Desktop/song/DLPan-Toolbox}"
-SERVER="$("$PY" -c "import sys; sys.path.insert(0, '.'); from tools.gen_pakd50_configs import server_id; print(server_id(open('gspread/server.txt').read()))")"; CAMP=work_dir/_qrecon24; QUEUE="config/queues/qrecon24_${SERVER}.txt"; mkdir -p "$CAMP"
+SERVER="$("$PY" -c "import sys; sys.path.insert(0, '.'); from tools.gen_pakd50_configs import server_id; print(server_id(open('gspread/server.txt').read()))")"; CAMP=work_dir/_qrecon24; mkdir -p "$CAMP"
+queue_file() { if [ -f "$CAMP/queue_active.txt" ]; then echo "$CAMP/queue_active.txt"; else echo "config/queues/qrecon24_${SERVER}.txt"; fi; }     # §8.3 확장 뒤에는 활성 큐(기본 + 확장) 로 재기동 (감사 F03)
 exec 8>"$CAMP/.waiter.lock"; flock -n 8 || { echo "[qrecon24-waiter] 이미 실행 중"; exit 0; }
 status() { "$PY" - "$SERVER" <<'PYEOF'
 import json, os, subprocess, sys, time; sys.path.insert(0, "."); from tools import gen_pakd50_configs as G; from tools.campaign_gate import terminal
@@ -25,8 +26,8 @@ while true; do
     RUNNING) :;;
     WAITING_FOR_CUE) echo "[qrecon24-waiter] $(date -Iseconds) chain 없음 · 미완 run 은 cue 대기 — 자산이 생기면 자동 재기동";;
     READY_TO_RESTART)
-      echo "[qrecon24-waiter] $(date -Iseconds) chain 없음 · 준비된 미완 run 있음 → chain 재기동 ($QUEUE; 마감 파일 제거 = 상한 없음)"
-      ./tools/campaign_start.sh --queue "$QUEUE" --hours 24 --label "qrecon24-$SERVER-restart-$(date +%m%d-%H%M)" >> "$CAMP/waiter.log" 2>&1 && rm -f work_dir/cases_deadline.txt && ./tools/_watchdog.sh --install > /dev/null 2>&1;;
+      echo "[qrecon24-waiter] $(date -Iseconds) chain 없음 · 준비된 미완 run 있음 → chain 재기동 ($(queue_file); 마감 파일 제거 = 상한 없음)"
+      QUEUE="$(queue_file)"; ./tools/campaign_start.sh --queue "$QUEUE" --hours 24 --label "qrecon24-$SERVER-restart-$(date +%m%d-%H%M)" >> "$CAMP/waiter.log" 2>&1 && rm -f work_dir/cases_deadline.txt && ./tools/_watchdog.sh --install > /dev/null 2>&1;;
   esac
   sleep 300
 done

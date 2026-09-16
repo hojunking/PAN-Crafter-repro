@@ -21,6 +21,7 @@
 #     수동 재도전: 그 줄을 지우고 로그를 교대한 뒤 재기동
 #   - work_dir/cases_deadline.txt(ISO 시각)를 지나면 새 case 를 시작하지 않는다
 #   - 체인 자체가 죽는 경우는 tools/_watchdog.sh(cron) 가 재기동한다
+#   - work_dir/cases_queue_handover.txt 가 생기면 다음 case 경계에서 남은 큐를 그 파일의 큐로 바꾼다 (전환 스크립트용; 진행 중 run 은 끝까지)
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
 # 수동 재기동과 cron 감시자가 겹쳐도 체인은 하나만 뜬다
 exec 8>"$REPO/work_dir/.cases_chain.lock"; flock -n 8 || { echo "[cases] 이미 실행 중 — 종료"; exit 0; }
@@ -119,9 +120,18 @@ run_case(){  # $1=TAG $2=순번표시
     fi
 }
 
-i=0
-for TAG in "${ORDER[@]}"; do
-    i=$((i+1)); run_case "$TAG" "$i/${#ORDER[@]}"
+# 큐 인계 (QRECON24 감사 F02): 전환 스크립트가 work_dir/cases_queue_handover.txt 를 두면 **case 경계에서** 남은 옛 큐를 버리고 새 큐로 바꾼다
+# (진행 중 학습은 건드리지 않는다; 적용한 파일은 .applied.<시각> 으로 옮긴다). 새 큐의 완료·실패 항목은 run_case 가 그대로 건너뛴다.
+HANDOVER_FILE="$REPO/work_dir/cases_queue_handover.txt"
+QUEUE=("${ORDER[@]}"); i=0
+while [ $i -lt ${#QUEUE[@]} ]; do
+    if [ -f "$HANDOVER_FILE" ]; then
+        mapfile -t NEWQ < <(grep -vE '^[[:space:]]*(#|$)' "$HANDOVER_FILE")
+        mv "$HANDOVER_FILE" "$HANDOVER_FILE.applied.$(date +%m%d-%H%M%S)"
+        echo "[cases] 큐 인계(case 경계 $(date -Iseconds)): 남은 $(( ${#QUEUE[@]} - i ))건 폐기 → 새 큐 ${#NEWQ[@]}건"
+        QUEUE=("${NEWQ[@]}"); i=0; continue
+    fi
+    TAG=${QUEUE[$i]}; i=$((i+1)); run_case "$TAG" "$i/${#QUEUE[@]}"
 done
 
 # 본 큐 종료 후: 결과 기반 조건부 case. 게이트는 **다중 패스**로 평가한다 —

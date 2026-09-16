@@ -140,6 +140,8 @@ kdv:
   exact_resume: true
   control_runs:
     G22: PAKD50_QRC24_S3_G22_W104_D121_WV3_T0_S2026_FRESH50_v1
+    canonical: G22
+    control_profile: G22
   aux:
     offset_weight: 0.0
     geometry_weight: 0.0

@@ -577,6 +577,22 @@ try:
     begin_epoch(loaderC, esC, 7, True); _bad_skip = False
 except RuntimeError:
     _bad_skip = True
+# QRECON24 감사 F01: epoch 끝 checkpoint(save_epoch; global_step = epoch_start + n) 에서의 재개 — 그 epoch 는 끝났으므로 다음 epoch 를 checkpoint 시점 RNG 에서 새로 시작 (연속 실행과 같은 열)
+torch.manual_seed(2026); _random.seed(2026); esD = EpochState(); loaderD = _mk_loader(); seqD1 = []; gD = 0
+it, skip, _ = begin_epoch(loaderD, esD, 0, False)
+for b in it:
+    seqD1.append((int(b[5][0, 0]), int(b[5][0, 1]))); gD += 1                                                                # epoch 0 을 끝까지(3 batch) — save_checkpoint 시점
+_sdD = {k: (v.clone() if torch.is_tensor(v) else v) for k, v in esD.state_dict().items()}; _ckD = torch.get_rng_state()
+torch.manual_seed(999); _random.seed(999); esD2 = EpochState(); esD2.load_state_dict(_sdD); torch.set_rng_state(_ckD); itD2, skipD2, infoD2 = begin_epoch(_mk_loader(), esD2, gD, True)
+seqD2 = [(int(b[5][0, 0]), int(b[5][0, 1])) for b in itD2]
+from kdv.resume import ExactResumeMismatch
+try:
+    begin_epoch(_mk_loader(), esD2, gD + 4, True); _mm = False
+except ExactResumeMismatch:
+    _mm = True
+check("K29b epoch 경계 재개(QRECON24 감사 F01): epoch 끝 checkpoint(skip == n_batches) 는 RuntimeError 가 아니라 **다음 epoch 를 새로 시작**(skipped 0, boundary True, epoch_start_step = global_step) 하고 그 열이 연속 실행의 다음 epoch 와 같다 · 범위 밖은 ExactResumeMismatch(trainer 가 exit 4; 같은 id fresh 재실행 없음)",
+      seqD1 == seqA[:3] and seqD2 == seqA[3:6] and skipD2 == 0 and infoD2["exact"] and infoD2["boundary"] and infoD2["epoch_start_step"] == 3 and esD2.epoch_start_step == 3 and _mm and issubclass(ExactResumeMismatch, RuntimeError)
+      and "except ExactResumeMismatch" in src and "sys.exit(4)" in src.split("except ExactResumeMismatch")[1][:600], f"D1 {seqD1} D2 {seqD2} A {seqA}")
 check("K29 exact resume(F04): 연속 실행의 (index, rot) 열 == 2 batch 뒤 checkpoint(EpochState) 재개 열 (worker rot 포함) · 오염된 RNG 에서도 동일 · skip 범위 밖(step 7 > 3 batch/epoch) 은 RuntimeError · 기록 exact/skipped",
       seqB1 + seqB2 == seqA and len(seqA) == 6 and _bad_skip and esA.epoch_start_step == 3 and esB2.epoch_start_step == 3, f"A {seqA} · B {seqB1 + seqB2}")
 # ---- K30 cue 자산 식별·일관성 (F03): asset_id 고정 · 내부 모순(θq/gate 반전/bank/QES seed)·margin·재개 asset_id 불일치 거부 · 정상은 통과
@@ -640,11 +656,17 @@ _tdr = tempfile.mkdtemp(); _fake = "PAKD50_QEX_W104_D121_WV3_T0_S1234_FRESH50_v1
 try:
     os.makedirs(os.path.join(_fd, "results"), exist_ok=True); open(os.path.join(_fd, "results", "reduced_best_hqnr.mat"), "w").close(); open(os.path.join(_fd, "results", "full_best_hqnr.mat"), "w").close()
     json.dump(dict(step=1010), open(os.path.join(_fd, "last_meta.json"), "w")); _vf = G.verified_complete(_fake)
+    # 감사 F08 fixture: 50000 만 45 번 중복한 CSV · 빈 mat · 빈 last · resumed_nonexact · Teacher/데이터/init 증거 없음 → ok 이면 안 된다
+    open(os.path.join(_fd, "checkpoint_metrics.csv"), "w").write("step,raw_original.hqnr\n" + "".join("50000,0.96\n" for _ in range(45)))
+    json.dump(dict(step=50000), open(os.path.join(_fd, "last_meta.json"), "w")); os.makedirs(os.path.join(_fd, "last"), exist_ok=True); open(os.path.join(_fd, "last", "model.safetensors"), "w").close()
+    json.dump(dict(exact_resume=True, resumed_nonexact=True, teacher=dict(id="T0")), open(os.path.join(_fd, "kdv_config_resolved.json"), "w")); _vf2 = G.verified_complete(_fake)
 finally:
     import shutil as _sh; _sh.rmtree(_fd, ignore_errors=True)
 _real = G.run_name("FQ", 1234); _vr = G.verified_complete(_real) if os.path.exists(os.path.join(ROOT, "work_dir", _real, "last_meta.json")) else None
-check("K33 완료 검증(F06): marker 만 있는 run → ok False (last_exact_step/candidate_grid/kdv_manifest 불통과) · 실제 완료 run(s1 PAKD50 FQ S1234: exact50K last·50 후보·Teacher T0·train sha == cue·init 파일 hash) → ok True",
-      _vf["ok"] is False and _vf["checks"]["results_mats"] and _vf["checks"]["last_exact_step"] is False and _vf["checks"]["candidate_grid"] is False and (_vr is None or _vr["ok"]), f"fake {_vf['checks']} · real {(_vr or {}).get('checks')}")
+check("K33 완료 검증(F06 → QRECON24 감사 F08 강화): marker 만(빈 mat) → ok False · 50000 45 중복 CSV·빈 last·resumed_nonexact·증거 없음 → ok False(candidate_grid/checkpoints/exact_resume/teacher/init False) · 실제 완료 run(s1 FQ S1234: 고유 50 step 격자·후보 checkpoint 전부·Teacher T0·train sha == cue·init hash) → ok True",
+      _vf["ok"] is False and _vf["checks"]["results_mats"] is False and _vf["checks"]["last_exact_step"] is False and _vf["checks"]["candidate_grid"] is False and (_vr is None or _vr["ok"])
+      and _vf2["ok"] is False and _vf2["checks"]["candidate_grid"] is False and _vf2["checks"]["candidate_checkpoints"] is False and _vf2["checks"]["exact_resume_ok"] is False and _vf2["checks"]["teacher_is_T0"] is False and _vf2["checks"]["init_matches_shared_file"] is False
+      and (_vr is None or (_vr["checks"]["candidate_checkpoints"] and _vr["checks"]["teacher_is_T0"] and _vr["checks"]["train_sha_matches_cue"] and _vr["checks"]["candidate_grid"])), f"fake {_vf['checks']} · fake2 {_vf2['checks']} · real {(_vr or {}).get('checks')}")
 
 # ================= K34–K38 QEGX s3·s4 (research_log/PAN_QEGX_S3_S4_W104D121_Experiment_Plan_2026-09-15.md §4–§6·§9·§11–§12)
 _kX = {c: G.kdv_block(c, 2026, "s3", cal=calQ, arch="W104_D121", version="v2") for c in ("QX50", "QEC3", "QE50_B005")}
@@ -955,6 +977,8 @@ check("K44 kdv block(§2–§3): G22 = R3 α1 β.1 τR 고정 · stat EDGE-H out
       and (_kQ["A_UNIF"]["qrecon"]["a_weight"], _kQ["A_SHUF"]["qrecon"]["a_weight"], _kQ["E_UNIF"]["qrecon"]["e_weight"], _kQ["E_SHUF"]["qrecon"]["e_weight"], _kQ["ALL_UNIF"]["qrecon"]["a_weight"], _kQ["ALL_UNIF"]["qrecon"]["e_weight"]) == ("uniform", "shuffle", "uniform", "shuffle", "uniform", "uniform")
       and _kQ["H12"]["rec"]["alpha"] == 0.5 and _kQ["H_BETA0"]["rec"]["kd_weight"] == 0.0 and _kQ["H_ALPHA0"]["rec"]["alpha"] == 0.0 and (_kQ["L070"]["qrc24"]["U_lr"], _kQ["L070"]["aligner_lr"], _kQ["L050"]["aligner_lr"]) == (7e-5, 7e-7, 5e-7)
       and _core(_kQ["H22"]) == _core(G.kdv_block("QRC24_S4_G22", 1234, "s4", cal=calQ, arch="W104_D121")) and _core(_kQ["L100"]) == _core(G.kdv_block("QRC24_S5_G22", 2026, "s5", cal=calQ, arch="W104_D121")) and _kQ["H22"]["qrc24"]["canonical"] == "G22"
+      and _kQ["H12"]["control_runs"]["G22"] == _qn("s4", "H22", 1234) and _kQ["H12"]["control_runs"]["control_profile"] == "H22" and _kQ["L070"]["control_runs"]["G22"] == _qn("s5", "L100", 2026) and _kQ22["control_runs"]["G22"] == _qn("s2", "G22", 777)
+      and G.kdv_block("QRC24_S4_H11", 3407, "s4", cal=calQ, arch="W104_D121")["baseline_run"] == _qn("s4", "H22", 3407) and G.kdv_block("QRC24_S5_L050", 1103, "s5", cal=calQ, arch="W104_D121")["control_runs"]["G22"] == _qn("s5", "L100", 1103)     # 감사 F09: 실제 편성된 alias run id
       and all(k_["campaign_id"] == G.QRC24_CAMPAIGN_ID and k_["experiment_branch_id"] == "A104D121_T0FIX_QRECON24_v1" and k_["budget"]["ledger"] == G.QRC24_LEDGER and k_["budget"]["required"] is True and "training_deadline" not in k_["budget"]
               and k_["budget"]["time_policy"]["mode"] == "no_hard_limit" and k_["budget"]["time_policy"]["min_operating_hours"] == 24.0 and k_["exact_resume"] is True and k_["control_runs"]["G22"].startswith("PAKD50_QRC24_") for k_ in list(_kQ.values()) + [_kQ22]))
 for _lab, _fn in (("K44 서버 토큰 ≠ 생성 서버 → SystemExit", lambda: G.kdv_block("QRC24_S3_G22", 2026, "s5", cal=calQ, arch="W104_D121")), ("K44 QRECON24 는 W104 전용 (W112 거부)", lambda: G.kdv_block("QRC24_S2_G22", 777, "s2", cal=calQ)),
@@ -1079,7 +1103,7 @@ def _sel_struct_ok():
     rows_ = list(_csv2.DictReader(open(os.path.join(ROOT, "work_dir", _selfix, "checkpoint_metrics.csv")))); H_ = [(int(float(r_["step"])), float(r_["raw_original.hqnr"])) for r_ in rows_ if r_.get("raw_original.hqnr") not in (None, "", "nan")]
     steps_ = {st_ for st_, _ in H_}; n_el = sum(1 for _, h_ in H_ if h_ >= 0.9585); bm_ = json.load(open(os.path.join(ROOT, "work_dir", _selfix, "best_hqnr_meta.json")))
     late_ = [st_ for st_ in (45450, 46460, 47470, 48480, 49490, 50000) if st_ in steps_]
-    return (_sel.get("n_candidates") == len(rows_) and _sel.get("n_eligible") == n_el and _sel.get("target_feasible") == (n_el > 0) and _sel.get("official") is False and (_sel.get("legacy_best") or {}).get("step") == bm_.get("step")
+    return (_sel.get("n_candidates") == len(rows_) and _sel.get("n_eligible") == n_el and _sel.get("target_feasible") == (n_el > 0) and _sel.get("official") is False and _sel.get("target_status") in ("proxy", "no_eligible") and (_sel.get("legacy_best") or {}).get("step") == bm_.get("step")
             and (_sel.get("raw_max") or {}).get("step") == max(H_, key=lambda t_: t_[1])[0] and (bool(_sel.get("exact50K")) == (50000 in steps_)) and ((_sel.get("late6") or {}).get("n", 0) == len(late_)) and ((_sel.get("h_consistency") is None) or abs(_sel["h_consistency"]["abs_diff"]) < 5e-4)
             and (not _selfix_strict or (_sel.get("n_candidates") == 50 and _sel.get("n_eligible") == 0 and _sel.get("target_feasible") is False and _sel["h_consistency"]["abs_diff"] == 0.0 and _sel["late6"]["n"] == 6)))
 import importlib.util as _ilu2; _spq = _ilu2.spec_from_file_location("_qsel", os.path.join(ROOT, "tools", "qrecon24_select.py")); _qsel = _ilu2.module_from_spec(_spq); _spq.loader.exec_module(_qsel)
@@ -1095,4 +1119,40 @@ check(("K48c selector HQNR9585_RR_v1 proxy 출력(§7.2–§7.3) — " + ("s1 fi
                                                                     else (f"이 서버의 완료 run {_selfix}: 구조 불변량(후보 수·적격 수·feasible·legacy/raw-max/exact50K/late6·h_consistency<5e-4)" if _selfix else "SKIP — 이 서버에 완료 run(checkpoint_metrics.csv + best_hqnr_meta.json) 이 없어 fixture 없음; 공식 RR 경로는 s1 검증(노트 §5)"))),
       (_selfix is None) or (_srsel is not None and _srsel.returncode == 0 and bool(_sel) and _sel_struct_ok()),
       (f"selector rc {_srsel.returncode} {_srsel.stderr[-300:] if _srsel.returncode else ''} keys {sorted(_sel)[:8]}" if _srsel is not None else "fixture 없음"))
+
+# ================= K49 QRECON24 감사(2026-09-16) 대응: F02 case 경계 인계 · F03/F05 --extend 집계 · F04 extra 보존 · F06 selector 불완전 상태 · F07 캐시 hash · F10 manifest
+_rsrc = open(os.path.join(ROOT, "tools", "_run_cases.sh")).read()
+_td49 = tempfile.mkdtemp(); _h49 = os.path.join(_td49, "cases_queue_handover.txt")
+_loop = r"""
+run_case(){ echo "$1" >> "$OUT"; if [ "$1" = "OLD_CURRENT" ]; then printf 'NEW_1\nNEW_2\n' > "$HANDOVER_FILE"; fi; }
+ORDER=(OLD_CURRENT OLD_PENDING_1 OLD_PENDING_2)
+""" + _rsrc.split("HANDOVER_FILE=\"$REPO/work_dir/cases_queue_handover.txt\"")[1].split("# 본 큐 종료 후")[0]
+_r49 = subprocess.run(["bash", "-c", f'set -u; OUT="{_td49}/order.txt"; HANDOVER_FILE="{_h49}"; ' + _loop], capture_output=True, text=True)
+_order = open(os.path.join(_td49, "order.txt")).read().split() if os.path.exists(os.path.join(_td49, "order.txt")) else []
+check("K49 runner 인계(F02): 실제 tools/_run_cases.sh 의 큐 loop 를 stub run_case 로 실행 — 첫 case 뒤 handover 파일이 생기면 남은 옛 큐(OLD_PENDING_1/2) 를 버리고 NEW_1/NEW_2 로 이어간다 · 적용한 파일은 .applied.* 로 옮긴다 · switch 는 chain 이 살아 있을 때 인계 파일을 쓴다",
+      _r49.returncode == 0 and _order == ["OLD_CURRENT", "NEW_1", "NEW_2"] and not os.path.exists(_h49) and any(f.startswith("cases_queue_handover.txt.applied.") for f in os.listdir(_td49))
+      and "cases_queue_handover.txt" in open(os.path.join(ROOT, "tools", "qrecon24_switch.sh")).read(), f"rc {_r49.returncode} order {_order} err {_r49.stderr[-200:]}")
+_sw = open(os.path.join(ROOT, "tools", "qrecon24_switch.sh")).read(); _wt = open(os.path.join(ROOT, "tools", "qrecon24_waiter.sh")).read()
+check("K49 --extend(F03/F05): 학습 시간(train_hours/hours) 합으로 24h 판정(hours_total 아님) · ≥24h 는 rc 0 · 확장 3 run 을 extra_priority + QRECON24 mandatory + 활성 큐(queue_active.txt) + reservations + 인계 파일에 반영, chain 없으면 활성 큐로 campaign_start, 대기자 기동 · 대기자는 활성 큐 우선 · extra 보존은 옮기기 전에 읽는다(F04; qegx/edgebal 도)",
+      all(x in _sw for x in ('e.get("train_hours") or e.get("hours")', 'print("   train_h ≥ 24h — 확장 불필요 (§8.3)"); sys.exit(0)', "queue_active.txt", "G.QRC24_MANDATORY_FILE", "G.write_reservation_file(srv, active", "cases_queue_handover.txt", "campaign_start.sh --queue work_dir/_qrecon24/queue_active.txt", "qrecon24_waiter.sh >>"))
+      and "queue_file()" in _wt and "queue_active.txt" in _wt and 'keep = [x for x in cur if G.branch_for(srv, x) == "QRECON24"]' in _sw and '"\\n".join(keep)' in _sw
+      and all('keep = [x for x in cur if G.branch_for(srv, x) == "' in open(os.path.join(ROOT, "tools", f)).read() for f in ("qegx_switch.sh", "edgebal_switch.sh"))
+      and 'e["train_hours"] = float(e["hours"]); e["postprocess_hours"]' in src and '"setup_hours"' in src)
+# selector: synthetic run — proxy 상태, official 불완전(적격 후보 중 checkpoint 없음) 은 target 미확정, display_tie
+_sr = os.path.join(ROOT, "work_dir", "_qrecon24", "_selftest_run"); os.makedirs(os.path.join(_sr, "results"), exist_ok=True)
+try:
+    open(os.path.join(_sr, "checkpoint_metrics.csv"), "w").write("step,raw_original.hqnr,raw_original.fscc,rr_scc,rr_ergas,rr_sam\n1010,0.9590,0.87,0.9990,2.05,2.8\n2020,0.9586,0.87,0.9870,2.00,2.7\n3030,0.9500,0.86,0.9880,2.10,2.9\n")
+    json.dump(dict(step=1010), open(os.path.join(_sr, "best_hqnr_meta.json"), "w"))
+    _r1 = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "qrecon24_select.py"), "_qrecon24/_selftest_run", "--out", os.path.join(_td49, "p.json")], capture_output=True, text=True, cwd=ROOT); _p = json.load(open(os.path.join(_td49, "p.json"))) if _r1.returncode == 0 else {}
+    _r2 = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "qrecon24_select.py"), "_qrecon24/_selftest_run", "--official", "--device", "cpu", "--out", os.path.join(_td49, "o.json")], capture_output=True, text=True, cwd=ROOT); _o = json.load(open(os.path.join(_td49, "o.json"))) if _r2.returncode == 0 else {}
+finally:
+    import shutil as _sh49; _sh49.rmtree(_sr, ignore_errors=True)
+_dt = _qsel.display_tie(dict(scc=0.9881, ergas=2.0396, psnr=37.9563, sam=2.79, q8=0.9224, ssim=0.976))
+check("K49 selector(F06/F07/F10): proxy 는 target_status 'proxy'·official false·proxy_target 기록(적격 2, step 1010 이 SCC 로 앞섬) · --official 에서 checkpoint 없는 적격 후보가 있으면 target 미확정(status incomplete_official_rr, target None, target_feasible None, 미평가 목록) — proxy 값을 순위에 섞지 않는다 · display_tie(표시 자리 반올림) · 캐시 sidecar 에 checkpoint/config/h5/evaluator sha 검증 코드",
+      _r1.returncode == 0 and _p.get("target_status") == "proxy" and _p.get("official") is False and _p.get("n_eligible") == 2 and (_p.get("target") or {}).get("step") == 1010 and (_p.get("proxy_target") or {}).get("step") == 1010
+      and _r2.returncode == 0 and _o.get("target_status") == "incomplete_official_rr" and _o.get("target") is None and _o.get("target_feasible") is None and sorted(c_["step"] for c_ in _o.get("eligible_unevaluated", [])) == [1010, 2020] and _o.get("official") is False
+      and _dt == dict(scc=True, ergas=True, psnr=True, sam=False, q8=True, ssim=True) and all(x in open(os.path.join(ROOT, "tools", "qrecon24_select.py")).read() for x in ("checkpoint_sha256", "reduced_h5_sha256", "evaluator", "rr_eval_seconds", "display_tie")),
+      f"p {_r1.returncode} {(_p or {}).get('target_status')} o {_r2.returncode} {(_o or {}).get('target_status')} {_r2.stderr[-200:] if _r2.returncode else ''}")
+check("K49 manifest(F10): training manifest 에 optimizer betas/eps/param group/decay 제외/cosine 최저/accumulation/clip/AMP/TF32 (_optimizer_manifest) · qrecon 요약에 w/shuffle/permutation/raw q 의 full sha256",
+      "_optimizer_manifest" in src and all(x in src for x in ('"betas"', "weight_decay_exclusions", "min_lr=0.0", "gradient_accumulation_steps", "grad_clip", "tf32")) and all(x in open(os.path.join(ROOT, "kdv", "qrecon.py")).read() for x in ("w_sha256=_sha_full(w)", "permutation_sha256", "q_raw_sha256")))
 print(f"\n{'FAIL ' + str(FAIL) if FAIL else 'ALL OK'} ({len(FAIL)} failed)"); sys.exit(1 if FAIL else 0)

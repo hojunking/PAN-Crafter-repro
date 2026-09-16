@@ -87,7 +87,7 @@ kdv:
     tag: best_hqnr
     expected_sha256: 16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32
     bridge: true
-  baseline_run: PAKD50_QRC24_S4_G22_W104_D121_WV3_T0_S1234_FRESH50_v1
+  baseline_run: PAKD50_QRC24_S4_H22_W104_D121_WV3_T0_S1234_FRESH50_v1
   budget:
     ledger: work_dir/_qrecon24_budget/ledger.json
     total_gpu_hours: 1000.0
@@ -139,7 +139,9 @@ kdv:
   - EDGEBAL_A104D121_S2S5_20260916_v1
   exact_resume: true
   control_runs:
-    G22: PAKD50_QRC24_S4_G22_W104_D121_WV3_T0_S1234_FRESH50_v1
+    G22: PAKD50_QRC24_S4_H22_W104_D121_WV3_T0_S1234_FRESH50_v1
+    canonical: G22
+    control_profile: H22
   aux:
     offset_weight: 0.0
     geometry_weight: 0.0

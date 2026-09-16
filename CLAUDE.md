@@ -40,7 +40,7 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지 
 큐 캠페인 기동·재개는 `./tools/campaign_start.sh --queue <큐파일> [--hours N(기본 24)] [--label 이름]` — 큐를 `work_dir/cases_queue.txt` 로 복사하고
 이전 `cases_chain.log` 를 `cases_chain_<label>.log` 로 옮긴 뒤 `_run_cases.sh` 를 detached 로 띄운다(살아 있는 체인이 있으면 거부). chain 마감은
 `work_dir/cases_deadline.txt`(ISO 시각) — **지난 마감이 남아 있으면 전 case 가 '마감 경과' 로 스킵되고 즉시 DONE 이 찍힌다**; 파일이 없으면 마감 없음
-(QEDGE9·QEGX·EDGEBAL·QRECON24 switch/waiter 가 지우는 soft·무상한 정책). 사전 확인은 `python tools/gen_pakd50_configs.py --plan --server <srv>`(PAKD50 계열 편성 dry-run, config 생성 없음).
+(QEDGE9·QEGX·EDGEBAL·QRECON24 switch/waiter 가 지우는 soft·무상한 정책). 돌고 있는 chain 의 큐 교체는 `work_dir/cases_queue_handover.txt`(runner 가 case 경계에서 적용) 로 한다 — chain 을 죽이지 않는다.. 사전 확인은 `python tools/gen_pakd50_configs.py --plan --server <srv>`(PAKD50 계열 편성 dry-run, config 생성 없음).
 
 **장애 대비가 걸려 있다** — cron 이 15분마다 `tools/_watchdog.sh` 로 체인 생존을 확인하고,
 죽어 있으면 재기동한다(재부팅 후 @reboot 포함). 체인은 완료분을 건너뛰고 이어 돈다.
@@ -240,7 +240,8 @@ s3 = 15 run **v2**(J0→JQ→QE50→XJ→QX50→J_R3_NOEDGE→QEC3→QES→J_QB0
 method `kdv.qrecon`(continuous_v1): **w_i = 2·qref/(qref + q_T(i))**(raw q, qref 0.3276133416220546; threshold 아님; 실제 w 0.79–1.09, 평균 0.996) 를 A 와 U 가 공유 — **U ← L_U = mean(H + K + λE·w^E·E)**, **A ← L_A = mean(w^A·H) 만**(soft·edge·offset 없음), 같은 forward 에서 parameter 집합별 `autograd.grad`(`_qrecon_backward`; 단일 total backward 금지, optimizer.step 한 번).
 Student 는 T0 A 복사 + fresh U(W104·D121), native 입력(I-NATIVE-TRANSFER, jitter·offset 없음), λE **절대값**, A LR = rA × U LR. profile: G<ij>(λE 3e-4/1e-3/3e-3 × rA .003/.01/.03; **G22 기준**) · A_UNIF/A_SHUF/A_FREEZE · E_UNIF/E_SHUF · ALL_UNIF · H<ij>(α .5/1/1.5 × β .05/.1/.2) · H_ALPHA0/H_BETA0 · L100/L070/L050(U LR 1e-4/7e-5/5e-5). G22 = H22 = L100.
 이름 `PAKD50_QRC24_<SRV>_<PROFILE>_W104_D121_WV3_T0_S<seed>_FRESH50_v1`(서버 토큰은 충돌 방지; X열 `PAKD50 / QRC24 / <PROFILE> / A104D121 / FRESH50`). 캠페인 `QRECON24_A104D121_S1S5_20260916_v1` / branch `A104D121_T0FIX_QRECON24_v1`, 상한 없음(24h 는 최소 운영구간; ledger `work_dir/_qrecon24_budget/`), 예약 1.20×R_s + 10/60.
-큐 `config/queues/qrecon24_s{1..5}.txt`(사전 고정; 승자 대기 없음), 전환 `tools/qrecon24_switch.sh`(`--dry-run` / `--extend` §8.3), 대기자 `tools/qrecon24_waiter.sh`, **target selector** `tools/qrecon24_select.py <run> --official`(raw H ≥ 0.9585 후보 안에서 RR SCC→ERGAS→PSNR→SAM→Q8→SSIM; legacy best 보존; `results/qrecon24_target_selection.json`). 검사 K44–K48(171 ALL OK).
+큐 `config/queues/qrecon24_s{1..5}.txt`(사전 고정; 승자 대기 없음), 전환 `tools/qrecon24_switch.sh`(`--dry-run` / `--extend` §8.3), 대기자 `tools/qrecon24_waiter.sh`, **target selector** `tools/qrecon24_select.py <run> --official`(raw H ≥ 0.9585 후보 안에서 RR SCC→ERGAS→PSNR→SAM→Q8→SSIM; legacy best 보존; `results/qrecon24_target_selection.json`; 공식 RR 없는 적격 후보가 있으면 target 미확정). 검사 K44–K49(176 ALL OK).
+감사 대응(09-16 저녁, `PAN_QRECON24_Implementation_Audit_2026-09-16.md` F01–F10, 노트 §8): epoch 끝 checkpoint 의 exact resume(다음 epoch 새로 시작; 불일치는 exit 4, 같은 id fresh 재실행 금지) · runner 가 **case 경계에서 `work_dir/cases_queue_handover.txt` 로 큐를 인계**(전환 스크립트가 chain 을 죽이지 않고 이 파일을 둔다) · `--extend` 는 활성 큐/mandatory/reservations 까지 · ledger `train_hours/postprocess_hours/setup_hours` · `verified_complete` 는 고유 50 격자·후보 checkpoint·T0/cue/init 필수 · s4/s5 control id 는 H22/L100.
 **판정**: raw-original HQNR ≥ 0.9585 하한 + 같은 checkpoint 의 RR(논문 표시값 SCC .988 / ERGAS 2.040 / PSNR 37.956 / SAM 2.787 / Q8 .922 / SSIM .976). Asset board(seed 최고 자산) 와 Method board(profile 의 모든 seed 평균·σ·하한 통과 수) 를 분리. 같은 seed 의 다른 서버 실행은 host 반복이지 독립 seed 가 아니다.
 
 **EDGEBAL — GT edge 를 얼마나·언제 (s2·s5, 09-16)** — 계획 `PAN_EDGEBAL_S2_S5_Experiment_Plan_2026-09-16.md`, 노트 `2026-09-16_edgebal-implementation.md`. q gate 를 더 복잡하게 만들기 전에 edge 강도·시간배분·완만한 cue 를 분리한다.

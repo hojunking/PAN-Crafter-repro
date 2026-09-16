@@ -2,9 +2,10 @@
 # QRECON24 전환 (s1–s5; 계획 research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md §9–§10, 노트 research_log/2026-09-16_qrecon24-implementation.md) — pull 뒤 한 번.
 #   ./tools/qrecon24_switch.sh --dry-run   # 검사만: gate(K01–K48) · cue verify(이 서버 T0) · 명시 큐 config == 생성기 · 예약 표 — 운영 파일은 **쓰지 않는다**
 #   ./tools/qrecon24_switch.sh             # 적용: 위 검사 + 서버 로컬 mandatory(PAKD50 + QRECON24)·reservations · 옛 extra_priority 보존 분리 · chain 마감 파일 제거(상한 없음)
-#                                          #      · chain 이 살아 있으면 **그대로 둔다**(현재 run 은 그 runner 가 마지막 update 까지; gate 가 켜진 서버는 다음 pass 부터 새 순서, s1 은 chain DONE 뒤 대기자가 큐로 재기동)
+#                                          #      · chain 이 살아 있으면 **그대로 두고** work_dir/cases_queue_handover.txt 를 둔다 → runner 가 **현재 run 이 끝난 case 경계에서** 남은 옛 큐를 버리고 QRECON24 큐로 바꾼다 (감사 F02; 옛 pending 을 더 돌리지 않는다)
 #                                          #      · chain 이 없으면 큐 config/queues/qrecon24_<srv>.txt 로 campaign_start · 대기자 tools/qrecon24_waiter.sh
-#   ./tools/qrecon24_switch.sh --extend    # §8.3: 기본 큐를 다 마쳤는데 신규 완료 Train(h) 합 < 24h 이면 지정 3 run(추가 seed) 을 extra_priority 에 추가 (+config 생성)
+#   ./tools/qrecon24_switch.sh --extend    # §8.3: 기본 큐를 다 마쳤는데 신규 완료 **학습** 시간(train_hours) 합 < 24h 이면 지정 3 run(추가 seed) 을 편성: config 생성 + extra_priority + QRECON24 mandatory + 활성 큐(work_dir/_qrecon24/queue_active.txt)
+#                                          #   + 예약 파일 갱신, chain 이 살아 있으면 case 경계 인계 파일, 없으면 campaign_start(활성 큐) + 대기자 (감사 F03/F05). ≥ 24h 면 rc 0 으로 '불필요' 만 출력
 # 원칙(§9.1·§10.1): Sheet 만 보고 프로세스를 kill 하지 않는다 · 완료 ID 덮어쓰기 없음 · 실행 중 코드에 pull 하지 않는다(현재 run 은 그 코드로 끝난다) · 실패/NaN 자동 반복 없음
 set -uo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
@@ -21,21 +22,41 @@ GATE_ON=0; grep -qx 'pakd50' work_dir/campaign_gates_enabled.txt 2>/dev/null && 
 if [ "$EXTEND" = 1 ]; then
   [ "$DRY" = 1 ] && fail "--extend 는 --dry-run 과 같이 쓰지 않는다"
   "$PY" - "$SERVER" <<'PYEOF' || fail "--extend 실패"
-import json, os, sys; sys.path.insert(0, "."); from tools import gen_pakd50_configs as G; from tools.campaign_gate import terminal, complete
+import json, os, sys, time; sys.path.insert(0, "."); from tools import gen_pakd50_configs as G; from tools.campaign_gate import terminal, complete
 srv = sys.argv[1]; base = G.priority_for(srv); pend = [r for r in base if not terminal(r)]
 if pend: sys.exit(f"!! 기본 큐 미완 {len(pend)} run — 확장은 기본 큐를 다 마친 뒤 (§8.3)")
-m = G.measured_hours_all(srv); led = G._load_json(G.QRC24_LEDGER); hrs = [float(e.get("hours_total") or e.get("hours") or 0) for rid, e in (led.get("entries") or {}).items() if e.get("kind") == "run" and str(e.get("status", "")).startswith("FINISHED") and "QRC24" in rid and "#" not in rid]
-tot = sum(hrs); print(f"   신규 완료 Train(h) 합 {tot:.2f} h ({len(hrs)} run; ledger {G.QRC24_LEDGER})")
-if tot >= 24.0: sys.exit("   ≥ 24h — 확장 불필요 (§8.3)")
-sd0, profs = G.QRC24_EXTRA[srv]; seeds = [sd0] + list(G.QRC24_RESERVE_SEEDS); items = None
-for sd in seeds:
+led = G._load_json(G.QRC24_LEDGER); ent = [(rid, e) for rid, e in (led.get("entries") or {}).items() if e.get("kind") == "run" and str(e.get("status", "")).startswith("FINISHED") and "QRC24" in rid and "#" not in rid]
+# 감사 F05: 24h 판정은 **학습 시간**(train_hours = 학습 종료까지; hours) 만 — hours_total(평가/export 포함)·setup 은 따로 보인다
+tr_h = [float(e.get("train_hours") or e.get("hours") or 0.0) for _, e in ent]; tot_h = [float(e.get("hours_total") or e.get("hours") or 0.0) for _, e in ent]; setup_h = [float(e.get("setup_hours") or 0.0) for _, e in ent]
+tot = sum(tr_h); print(f"   신규 완료 {len(ent)} run: train_h 합 {tot:.2f} h · hours_total(평가/export 포함) 합 {sum(tot_h):.2f} h · postprocess 합 {sum(tot_h) - tot:.2f} h · setup 합 {sum(setup_h):.2f} h (ledger {G.QRC24_LEDGER})")
+if tot >= 24.0:
+    print("   train_h ≥ 24h — 확장 불필요 (§8.3)"); sys.exit(0)
+sd0, profs = G.QRC24_EXTRA[srv]; items = None
+for sd in [sd0] + list(G.QRC24_RESERVE_SEEDS):
     cand = [G.qrc24_run_name(srv, p, sd) for p in profs]
-    if not any(complete(r) for r in cand): items = cand; break
+    if not any(complete(r) or terminal(r) for r in cand): items = cand; break
 if items is None: sys.exit("!! 지정 seed 와 reserve seed 전부 이미 결과가 있다 — 사람이 결정")
-G.generate(srv, items, os.path.join(G.ROOT, "config"), projected=None); xp = os.path.join(G.ROOT, G.EXTRA_PRIORITY_FILE); cur = G.extra_priority()
-with open(xp, "a") as fh: fh.write("# QRECON24 §8.3 확장 (신규 완료 Train(h) 합 < 24h)\n" + "\n".join(r for r in items if r not in cur) + "\n")
-print("   추가:", items, "→", G.EXTRA_PRIORITY_FILE, "(config 생성; gate/대기자가 편성)")
+G.generate(srv, items, os.path.join(G.ROOT, "config"), projected=None)
+xp = os.path.join(G.ROOT, G.EXTRA_PRIORITY_FILE); cur = G.extra_priority(); add = [r for r in items if r not in cur]        # 감사 F04: 기존 항목을 읽은 뒤 덧붙인다
+with open(xp, "a") as fh: fh.write("# QRECON24 §8.3 확장 (신규 완료 train_h 합 < 24h; %s)\n" % time.strftime("%Y-%m-%dT%H:%M") + "\n".join(add) + "\n")
+mp = os.path.join(G.ROOT, G.QRC24_MANDATORY_FILE); mand = [l.strip() for l in open(mp) if l.strip() and not l.startswith("#")] if os.path.exists(mp) else list(base)
+with open(mp, "a") as fh: fh.write("# §8.3 확장\n" + "\n".join(r for r in items if r not in mand) + "\n")
+qa = os.path.join(G.ROOT, "work_dir", "_qrecon24", "queue_active.txt"); active = list(base) + [r for r in G.extra_priority() if r not in base]
+open(qa, "w").write("# QRECON24 활성 큐 = 기본 큐 + §8.3 확장 (tools/qrecon24_switch.sh --extend; 대기자·재기동이 이 파일을 쓴다)\n" + "\n".join(active) + "\n")
+G.write_reservation_file(srv, active, G.measured_hours_all(srv))
+open(os.path.join(G.ROOT, "work_dir", "cases_queue_handover.txt"), "w").write("# QRECON24 --extend 인계 (runner 가 case 경계에서 적용; chain 이 없으면 campaign_start 가 지운다)\n" + "\n".join(items) + "\n")
+open(os.path.join(G.ROOT, "work_dir", "_qrecon24", "extend_added.txt"), "w").write("\n".join(items) + "\n")
+print("   추가:", items, "→ extra_priority + mandatory + queue_active + reservations + handover (config 생성)")
 PYEOF
+  rc=$?; [ $rc -eq 0 ] || exit $rc
+  [ -f work_dir/_qrecon24/extend_added.txt ] || { echo "[qrecon24] 확장 없음 — 끝"; exit 0; }; rm -f work_dir/_qrecon24/extend_added.txt
+  if ps -eo args | grep -q '[_]run_cases\.sh'; then
+    echo "   chain 살아 있음 — 확장 3 run 은 case 경계 인계 파일(work_dir/cases_queue_handover.txt) 로 이어 붙는다; gate 가 켜진 서버는 다음 pass 에도 편성"
+  else
+    rm -f work_dir/cases_queue_handover.txt
+    ./tools/campaign_start.sh --queue work_dir/_qrecon24/queue_active.txt --hours 24 --label "qrecon24-$SERVER-extend-$(date +%m%d-%H%M)" || fail "확장 기동 실패"; rm -f work_dir/cases_deadline.txt; ./tools/_watchdog.sh --install > /dev/null && echo "   chain 기동(활성 큐) · 마감 파일 제거 · 감시자 cron 등록"
+  fi
+  if ! ps -eo args | grep -q '[q]recon24_waiter\.sh'; then setsid nohup ./tools/qrecon24_waiter.sh >> "$CAMP/waiter.log" 2>&1 < /dev/null & sleep 1; echo "   대기자 pid $!"; fi
   exit 0
 fi
 echo "[qrecon24] ① $SERVER — unit gate (K01–K48; 임시 fixture — 운영 파일 기록 없음)"
@@ -68,10 +89,10 @@ if [ "$DRY" = 1 ]; then echo "[qrecon24] --dry-run — 운영 파일·chain·cro
 echo "[qrecon24] ⑤ 서버 로컬 기본 묶음·예약 파일 · 옛 extra_priority 보존 분리"
 "$PY" - "$SERVER" <<'PYEOF' || fail "로컬 파일 기록 실패"
 import os, sys, time; sys.path.insert(0, "."); from tools import gen_pakd50_configs as G
-srv = sys.argv[1]; xp = os.path.join(G.ROOT, G.EXTRA_PRIORITY_FILE); old = [x for x in G.extra_priority() if G.branch_for(srv, x) != "QRECON24"]
+srv = sys.argv[1]; xp = os.path.join(G.ROOT, G.EXTRA_PRIORITY_FILE); cur = G.extra_priority(); old = [x for x in cur if G.branch_for(srv, x) != "QRECON24"]; keep = [x for x in cur if G.branch_for(srv, x) == "QRECON24"]   # 감사 F04: 옮기기 전에 읽는다
 if old:
     keep = xp.replace("extra_priority.txt", f"extra_priority.pre_qrecon24_{time.strftime('%m%d-%H%M')}.txt"); os.replace(xp, keep)
-    open(xp, "w").write(f"# QRECON24 전환({time.strftime('%Y-%m-%dT%H:%M')}): 이전 추가 편성 {len(old)} 항목은 {os.path.basename(keep)} 에 보존 — QRECON24 의 추가(§8.3 --extend; run 이름) 만 여기에\n" + "\n".join(x for x in G.extra_priority() if G.branch_for(srv, x) == "QRECON24") + "\n")
+    open(xp, "w").write(f"# QRECON24 전환({time.strftime('%Y-%m-%dT%H:%M')}): 이전 추가 편성 {len(old)} 항목은 {os.path.basename(keep)} 에 보존 — QRECON24 의 추가(§8.3 --extend; run 이름) 만 여기에\n" + "\n".join(keep) + "\n")
     print(f"   extra_priority {len(old)} 항목(비 QRECON24) → {os.path.basename(keep)} (보존; 편성에서 제외 — 이전 QEDGE9/QEGX/EDGEBAL 미완 항목은 superseded, 필요하면 run 이름으로 다시 적는다)")
 runs = G.write_mandatory_file(srv); m = G.measured_hours_all(srv); res = G.write_reservation_file(srv, G.priority_for(srv) + G.extra_priority(), m)
 q = [it for it in G.priority_for(srv) + G.extra_priority() if G.branch_for(srv, it) == "QRECON24"]; p = os.path.join(G.ROOT, G.QRC24_MANDATORY_FILE); os.makedirs(os.path.dirname(p), exist_ok=True)
@@ -81,8 +102,10 @@ PYEOF
 echo "[qrecon24] ⑥ chain: 상한 없음 — 마감 파일 제거; runner 는 그대로(현재 run·후처리 유지), 없으면 기동; 대기자 기동"
 if [ -f work_dir/cases_deadline.txt ]; then cp work_dir/cases_deadline.txt "$CAMP/cases_deadline.before_qrecon24.txt"; rm -f work_dir/cases_deadline.txt; echo "   cases_deadline.txt 제거 (사본 $CAMP/cases_deadline.before_qrecon24.txt)"; fi
 if ps -eo args | grep -q '[_]run_cases\.sh'; then
-  if [ "$GATE_ON" = 1 ]; then echo "   chain 살아 있음 — 손대지 않는다. 현재 run 은 그 runner 가 끝내고 다음 gate pass 부터 QRECON24 순서"; else echo "   chain 살아 있음(gate 꺼짐: $SERVER) — 현재 큐를 끝내면 DONE; 대기자가 QRECON24 큐로 재기동한다"; fi
+  { echo "# QRECON24 인계 $(date -Iseconds) — runner 가 현재 run 이 끝난 case 경계에서 남은 옛 큐를 버리고 이 큐로 바꾼다 (tools/_run_cases.sh HANDOVER)"; grep -vE '^[[:space:]]*(#|$)' "$QUEUE"; } > work_dir/cases_queue_handover.txt
+  echo "   chain 살아 있음 — 죽이지 않는다. 현재 run 은 마지막 update 까지 돌고, case 경계에서 work_dir/cases_queue_handover.txt 의 QRECON24 큐로 인계된다 (옛 pending 은 더 돌지 않는다; 옛 runner 코드면 인계 파일을 못 읽으므로 다음 gate pass/대기자가 이어받는다)"
 else
+  rm -f work_dir/cases_queue_handover.txt
   ./tools/campaign_start.sh --queue "$QUEUE" --hours 24 --label "qrecon24-$SERVER-$(date +%m%d-%H%M)" || fail "기동 실패"; rm -f work_dir/cases_deadline.txt; ./tools/_watchdog.sh --install > /dev/null && echo "   chain 기동($QUEUE) · 마감 파일 제거 · 감시자 cron 등록"
 fi
 setsid nohup ./tools/qrecon24_waiter.sh >> "$CAMP/waiter.log" 2>&1 < /dev/null & sleep 1; echo "   대기자 pid $! ($CAMP/waiter.log · 상태 $CAMP/status.json)"

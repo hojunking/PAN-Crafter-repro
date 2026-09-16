@@ -73,3 +73,23 @@ R_s 대용값 s1 2.20 / s2 2.30 / s3 1.35 / s4 1.94 / s5 2.17 h, 예약 = 1.20×
 - s1 은 현재 idle(09-16 저녁; QEDGE9 5 벌 완료) — 기동은 사용자. 다른 서버의 진행 중 QEGX/EDGEBAL run 은 정상 종료 뒤 전환.
 - w 의 실제 범위가 0.79–1.09 로 좁아(계획 §7.4 "q 의 변화폭이 작으면 결과 차이도 작을 수 있다") uniform/shuffle 대조 차이가 작을 수 있다 — 그대로 보고한다.
 - 계획 §11 의 선택적 fine-tuning 확장(FT +10K) 은 미구현.
+
+## 8. 구현 감사(`research_log/PAN_QRECON24_Implementation_Audit_2026-09-16.md`, F01–F10) 대응 — 2026-09-16 저녁
+
+감사는 release `15204de`(+`48c0fad`, `8a50aec`) 를 대상으로 핵심 수식·68 편성은 통과, 전환·재개·24h 보충·선택 은 수정 필요로 판정했다. 각 항목을 코드로 대조한 결과와 조치:
+
+| 항목 | 대조 | 조치 |
+|---|---|---|
+| F01 epoch 끝 checkpoint 의 exact resume 실패 | 확인. `save_epoch` 로 저장한 `epoch-N` 은 global_step = epoch_start + n_batches 라 `begin_epoch` 의 `skip < n` 에 걸려 RuntimeError, runner 는 rc 1 을 같은 id fresh 재실행으로 처리 | `kdv/resume.py`: skip == n 은 "그 epoch 완료" 로 보고 checkpoint 시점(= epoch 끝) 전역 RNG 에서 **다음 epoch 를 새로 시작**(연속 실행과 같은 permutation·worker seed; K29b 로 열 일치 확인). 그 밖 불일치는 `ExactResumeMismatch` → trainer 가 `resume_events.jsonl` 에 남기고 **exit 4**(runner 가 재시도하지 않는 코드; 같은 id fresh 재실행 금지) |
+| F02 old pending 이 남은 서버에서 전환이 늦다 | 확인. runner 는 ORDER 를 한 번 읽고 소진한 뒤 gate | `tools/_run_cases.sh`: case 경계마다 `work_dir/cases_queue_handover.txt` 를 보고 있으면 남은 큐를 그 파일의 큐로 교체(적용 파일은 `.applied.<시각>`; 진행 중 학습은 그대로). `qrecon24_switch.sh` 는 chain 이 살아 있으면 이 파일을 쓴다. runner 파일은 새 inode 로 교체(s1 의 실행 중 chain 은 옛 스크립트로 끝까지 — 이미 QRECON24 큐라 무관). K49 가 실제 loop 를 stub 으로 실행해 OLD_CURRENT → NEW_1 → NEW_2 확인 |
+| F03 `--extend` 가 실행으로 이어지지 않음 | 확인 | `--extend`: config 생성 + extra_priority + **QRECON24 mandatory** + 활성 큐 `work_dir/_qrecon24/queue_active.txt`(기본 + 확장) + reservations + 인계 파일; chain 이 없으면 활성 큐로 `campaign_start`, 대기자 없으면 기동. 대기자는 활성 큐 우선 |
+| F04 extra 보존 시 QRC 항목 소실 | 확인(`open(...,"w")` 뒤 재읽기) | 옮기기 전에 메모리에 읽어 보존 (`qrecon24/qegx/edgebal_switch.sh`) |
+| F05 24h 집계가 학습/export 를 안 나눔, 불필요 시 rc 1 | 확인 | ledger 에 `train_hours`(학습 종료까지) · `postprocess_hours`(= hours_total − hours) · `setup_hours`(프로세스 시작→학습 시작) 기록; `--extend` 는 **train_hours 합** 으로 판정하고 hours_total/postprocess/setup 을 따로 출력; ≥ 24h 는 rc 0 |
+| F06 `--official` 이 proxy 와 공식 RR 를 섞어 정렬 | 확인 | 공식 RR 가 있는 후보만 순위; 적격 후보 중 하나라도 없으면 `target_status = incomplete_official_rr`, target/target_feasible 미확정, `eligible_unevaluated` 목록. proxy 모드는 `target_status = proxy`, `proxy_target` 별도 |
+| F07 공식 RR 캐시가 hash 에 안 묶임 | 확인 | sidecar `reduced_candidate_step-N.json`(checkpoint sha256 · meta/config sha256 · reduced h5 sha256 · evaluator 코드 sha/버전 · step) 이 현재와 같을 때만 재사용; 선택 결과에 같은 identity 와 `rr_eval_seconds` 기록 |
+| F08 완료 판정이 격자·자산 동일성을 강제 안 함 | 확인 | `verified_complete`: mat 두 개 비어 있지 않음 · **고유** step 50 = GRID1010_50K_v1 전부 · 각 step 의 `candidates/step-N/model.safetensors` 존재 · Teacher 쓰는 run 은 T0 sha **필수** · cue 자산 있으면 train sha **필수** · init 파일 있으면 hash **필수** · exact_resume run 은 resumed_nonexact 없음. 감사 fixture(50000 ×45 CSV·빈 mat·resumed_nonexact) 는 False, 실제 완료 run(QEDGE9 v2 3 벌·PAKD50 FQ/JQ) 은 True (K33) |
+| F09 s4/s5 control id 가 편성에 없는 G22 | 확인 | `qrc24_control_profile(server, seed)`: 그 서버·seed 에 실제 편성된 canonical-G22 profile(s4 H22 · s5 L100) 의 run id 로; config 재생성(68 벌 — s1–s3 는 `control_runs.canonical/control_profile` 키만 추가) |
+| F10 manifest 의 optimizer/precision·full hash | 확인 | `kdv_config_resolved.training` 에 optimizer class·param group(이름/개수/원소/LR/WD/betas/eps)·decay 제외 없음·cosine 최저 0·accumulation·clip·AMP·TF32/cudnn 기록; qrecon 요약에 w/shuffle/permutation/raw q 의 full sha256; selector 에 `display_tie`·`rr_eval_seconds` |
+
+- 미조치(감사가 명시한 한계): s2–s5 원격 프로세스·SHA·자산 배포 상태는 s1 에서 확인할 수 없다(각 서버 switch 가 확인) · CPU 재추론 vs GPU export 의 RR 미세 차이(PSNR 1e-3 등) 는 같은 운영 GPU 에서 selector `--official` 을 돌려 대조해야 한다(selector 는 sidecar 에 device 를 기록) · 계획 §6.3 의 profile 별 200–500 update smoke 전수는 G22 200 / A_FREEZE·E_SHUF 40 + 29 profile gradient 검사로 대신했다(추가 smoke 는 GPU 가 비면).
+- **release**: s1 의 첫 run(G22 S1234) 은 `15204de` 코드로 돈다. 이 대응 커밋 뒤 s1 의 나머지 run 과 s2–s5 는 새 커밋으로 돈다 — loss·gradient·config 의 학습 정의는 바뀌지 않았고(재개·ledger·manifest·선택·전환만), config 차이는 `kdv.control_runs` 의 metadata 키뿐이다(계획 §9.2 "진행 중 결함 수정은 새 release 로 구분"). unit gate K01–K49 **176 검사 ALL OK**.

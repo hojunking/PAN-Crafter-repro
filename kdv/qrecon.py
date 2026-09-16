@@ -43,8 +43,12 @@ def shuffle_values(vals, strata, seed=QES_SEED):
     return out, stats
 
 
+def _sha_full(arr, dtype=np.float64):
+    return hashlib.sha256(np.ascontiguousarray(np.asarray(arr, dtype=dtype)).tobytes()).hexdigest()
+
+
 def _sha16(arr):
-    return hashlib.sha256(np.ascontiguousarray(np.asarray(arr, dtype=np.float64)).tobytes()).hexdigest()[:16]
+    return _sha_full(arr)[:16]
 
 
 class QWeight:
@@ -68,6 +72,7 @@ class QWeight:
         w = q_weight(z["q"], qref)
         strata = (z["e_decile"].astype(np.int64) * len(ROT_STATES) + rot)                     # (Teacher e_roi32 decile × 실제 rot state) — QES 와 같은 stratum
         w_sh, sh_stats = shuffle_values(w, strata, seed)
+        perm_map = shuffle_values(np.arange(len(w), dtype=np.float64), strata, seed)[0].astype(np.int64)      # 같은 permutation 의 index 사상(view i ← view perm_map[i]) — full sha 기록용 (감사 F10)
         tables = {}
         for name, arr in (("q", w), ("shuffle", w_sh)):
             t = torch.full((N, len(ROT_STATES)), float("nan"), dtype=torch.float32); t[torch.from_numpy(idx), torch.from_numpy(rot)] = torch.from_numpy(arr.astype(np.float32))
@@ -77,6 +82,7 @@ class QWeight:
         cm = z["calib_mask"].astype(bool)
         stats = dict(qref=qref, theta_q_asset=man.get("theta_q"), q_min=float(z["q"].min()), q_max=float(z["q"].max()), q_mean=float(z["q"].mean()), w_min=float(w.min()), w_max=float(w.max()), w_mean_all=float(w.mean()),
                      w_mean_calib=float(w[cm].mean()) if cm.any() else None, w_at_qref=1.0, w_shuffle_mean_all=float(w_sh.mean()), w_sha256_16=_sha16(w), w_shuffle_sha256_16=_sha16(w_sh), shuffle=sh_stats,
+                     w_sha256=_sha_full(w), w_shuffle_sha256=_sha_full(w_sh), permutation_sha256=_sha_full(perm_map, np.int64), q_raw_sha256=_sha_full(z["q"]),
                      multiset_preserved=bool(np.allclose(np.sort(w), np.sort(w_sh))), n_views=int(len(w)))
         checks = dict(gate.checks, asset_id=asset_id(man))
         if previous:
