@@ -7,7 +7,7 @@ K29–K33 (QEDGE9 감사 대응): exact resume(F04) · cue asset_id·내부 일�
 K34–K38 (2026-09-15 QEGX s3/s4): case/branch/시간 정책/편성·예약(§5·§6·§9) · registry edge_route 거부·통과 · trainer edge_route(g=1≡JQ · g=0≡JE0 · 혼합 autograd · QERS RNG) · LFQE50/β=0/g=0 동치 · c_E3 pilot 분리·시트 토큰·gate exempt
 K39–K43 (2026-09-16 EDGEBAL s2/s5): EB case 동치·상수 배수·schedule·floor 등록/편성/예약(§4–§7) · registry edge_schedule/edge_weight 거부·통과 · trainer 동치(EB_N0≡J0 · R3E100≡JQ · R3E000≡R3_NOEDGE · R1E100≡XJ · N0E100≡N0_EDGE) · 배수 · 25K 경계·A 계속 학습 · floor/shuffle/reverse 계수·no-grad · 시트/스크립트/config
 K44–K48 (2026-09-16 QRECON24 s1–s5): profile/큐 68/이름/예약 1.20×R_s(§4–§5·§8) · registry qrecon 거부·통과 · trainer 두 목적함수 분리(U←∇L_U · A←∇L_A 만, β/λE 불변, α 변화, A_FREEZE 불변, offset 없음, ALL_UNIF≡표준 total) · QWeight(w(qref)=1·q=0→2·fail-fast·셔플 multiset·실제 자산) · 시트/스크립트/config/selector"""
-import copy, json, os, subprocess, sys, tempfile
+import copy, glob, json, os, subprocess, sys, tempfile
 import torch, yaml
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0, ROOT)
 from kdv.registry import resolve, stat_tag
@@ -1068,8 +1068,20 @@ except Exception:                                                              #
 _allQ = [it for s_ in ("s1", "s2", "s3", "s4", "s5") for it in G.priority_for(s_)]; _cfgQ = {r_: (yaml.safe_load(open(os.path.join(ROOT, "config", r_ + ".yaml"))) if os.path.exists(os.path.join(ROOT, "config", r_ + ".yaml")) else None) for r_ in _allQ}
 _tmpq = tempfile.mkdtemp(); G.generate("s2", [_qn("s2", "G22", 777), _qn("s2", "E_SHUF", 777)], _tmpq, projected=None); G.generate("s5", [_qn("s5", "L070", 2026)], _tmpq, projected=None); G.generate("s1", [_qn("s1", "A_FREEZE", 3407)], _tmpq, projected=None)
 G.generate("s5", ["PAKD50_EB_QFLOOR_W104_D121_WV3_T0_S2026_FRESH50_v2", "PAKD50_J0_W104_D121_WV3_T0_S777_FRESH50_v1"], _tmpq, projected=None); G.generate("s4", ["PAKD50_QER50_W104_D121_WV3_T0_S1234_FRESH50_v1"], _tmpq, projected=None)
-_srsel = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "qrecon24_select.py"), "PAKD50_FQ_W112_D123_WV3_T0_S1234_FRESH50_v1", "--out", os.path.join(_tmpq, "sel.json")], capture_output=True, text=True, cwd=ROOT)
-_sel = json.load(open(os.path.join(_tmpq, "sel.json"))) if _srsel.returncode == 0 else {}
+# selector fixture: s1 의 FQ S1234(W112) 가 있으면 값까지 고정 검사, 없는 서버(s2–s5) 는 그 서버의 완료 run(checkpoint_metrics.csv + best_hqnr_meta.json) 하나로 구조 불변량만 검사, 완료 run 이 없으면 SKIP(사유 출력) — 서버 전용 run 을 하드코딩하지 않는다
+_selfix_s1 = "PAKD50_FQ_W112_D123_WV3_T0_S1234_FRESH50_v1"; _selfix_strict = os.path.exists(os.path.join(ROOT, "work_dir", _selfix_s1, "checkpoint_metrics.csv"))
+_selfix = _selfix_s1 if _selfix_strict else next((os.path.basename(os.path.dirname(c_)) for c_ in sorted(glob.glob(os.path.join(ROOT, "work_dir", "PAKD50_*", "checkpoint_metrics.csv"))) if os.path.exists(os.path.join(os.path.dirname(c_), "best_hqnr_meta.json"))), None)
+_srsel = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "qrecon24_select.py"), _selfix or "NONE", "--out", os.path.join(_tmpq, "sel.json")], capture_output=True, text=True, cwd=ROOT) if _selfix else None
+_sel = json.load(open(os.path.join(_tmpq, "sel.json"))) if (_srsel is not None and _srsel.returncode == 0) else {}
+def _sel_struct_ok():
+    """어느 서버의 완료 run 에서나 성립해야 하는 selector 불변량 (§7.2–§7.3): 후보 수 == CSV 행 수 · 적격 수 == H ≥ 0.9585 행 수 · target_feasible == (적격 > 0) · proxy 는 official False · legacy step == best_hqnr_meta · raw-max == argmax · exact50K/late6 는 CSV 에 있는 step 만."""
+    import csv as _csv2
+    rows_ = list(_csv2.DictReader(open(os.path.join(ROOT, "work_dir", _selfix, "checkpoint_metrics.csv")))); H_ = [(int(float(r_["step"])), float(r_["raw_original.hqnr"])) for r_ in rows_ if r_.get("raw_original.hqnr") not in (None, "", "nan")]
+    steps_ = {st_ for st_, _ in H_}; n_el = sum(1 for _, h_ in H_ if h_ >= 0.9585); bm_ = json.load(open(os.path.join(ROOT, "work_dir", _selfix, "best_hqnr_meta.json")))
+    late_ = [st_ for st_ in (45450, 46460, 47470, 48480, 49490, 50000) if st_ in steps_]
+    return (_sel.get("n_candidates") == len(rows_) and _sel.get("n_eligible") == n_el and _sel.get("target_feasible") == (n_el > 0) and _sel.get("official") is False and (_sel.get("legacy_best") or {}).get("step") == bm_.get("step")
+            and (_sel.get("raw_max") or {}).get("step") == max(H_, key=lambda t_: t_[1])[0] and (bool(_sel.get("exact50K")) == (50000 in steps_)) and ((_sel.get("late6") or {}).get("n", 0) == len(late_)) and ((_sel.get("h_consistency") is None) or abs(_sel["h_consistency"]["abs_diff"]) < 5e-4)
+            and (not _selfix_strict or (_sel.get("n_candidates") == 50 and _sel.get("n_eligible") == 0 and _sel.get("target_feasible") is False and _sel["h_consistency"]["abs_diff"] == 0.0 and _sel["late6"]["n"] == 6)))
 import importlib.util as _ilu2; _spq = _ilu2.spec_from_file_location("_qsel", os.path.join(ROOT, "tools", "qrecon24_select.py")); _qsel = _ilu2.module_from_spec(_spq); _spq.loader.exec_module(_qsel)
 _rk = _qsel.rank([dict(step=1, hqnr=0.959, scc=0.987, ergas=2.05, psnr=37.9, sam=2.8, q8=0.92, ssim=0.975), dict(step=2, hqnr=0.9586, scc=0.988, ergas=2.10, psnr=37.0, sam=2.9, q8=0.90, ssim=0.97), dict(step=3, hqnr=0.9585, scc=0.988, ergas=2.00, psnr=37.0, sam=2.9, q8=0.90, ssim=0.97)])
 check("K48a 시트 X열(§9.3) 'PAKD50 / QRC24 / G22 / A104D121 / FRESH50'(서버 토큰 제외) · gate 설명 · switch/waiter bash -n · rank 순서 SCC→ERGAS→PSNR→…",
@@ -1079,7 +1091,8 @@ _k48 = dict(n68=(len(_allQ) == 68), exist=all(v_ is not None for v_ in _cfgQ.val
             cmp={r_[:34]: filecmp.cmp(os.path.join(ROOT, "config", r_ + ".yaml"), os.path.join(_tmpq, r_ + ".yaml"), shallow=False) for r_ in (_qn("s2", "G22", 777), _qn("s2", "E_SHUF", 777), _qn("s5", "L070", 2026), _qn("s1", "A_FREEZE", 3407), "PAKD50_EB_QFLOOR_W104_D121_WV3_T0_S2026_FRESH50_v2", "PAKD50_J0_W104_D121_WV3_T0_S777_FRESH50_v1", "PAKD50_QER50_W104_D121_WV3_T0_S1234_FRESH50_v1")})
 check("K48b 생성 config 68 벌 존재 · return_meta 전부 · campaign QRECON24 · training_deadline 없음 · qrecon mode · learning_rate 줄(L070 7e-05 / 기본 1e-4) · A_FREEZE 에 aligner_lr 없음(A-FR) · 생성기와 filecmp(4 벌) · 옛 EDGEBAL/QEDGE9/QEGX config 회귀 없음",
       all(v_ if not isinstance(v_, dict) else all(v_.values()) for v_ in _k48.values()), str({k_: v_ for k_, v_ in _k48.items() if (v_ is False) or (isinstance(v_, dict) and not all(v_.values()))}))
-check("K48c selector HQNR9585_RR_v1 proxy 출력(§7.2–§7.3; FQ S1234: 후보 50, 적격 0, target_feasible false, official false, h_consistency(CSV raw H == fr_mat20 H) 0, legacy/raw-max/exact50K/late6 보존) — 공식 RR 6 지표 경로(--official) 는 09-16 s1 검증(best_hqnr 후보 == 업로더 _rr 값 일치, 노트 §5)",
-      _sel.get("n_candidates") == 50 and _sel.get("n_eligible") == 0 and _sel.get("target_feasible") is False and _sel.get("official") is False and (_sel.get("h_consistency") or {}).get("abs_diff") == 0.0 and all(_sel.get(k_) for k_ in ("legacy_best", "raw_max", "exact50K", "late6")) and _sel["late6"]["n"] == 6,
-      f"selector rc {_srsel.returncode} {_srsel.stderr[-300:] if _srsel.returncode else ''} keys {sorted(_sel)[:8]}")
+check(("K48c selector HQNR9585_RR_v1 proxy 출력(§7.2–§7.3) — " + ("s1 fixture FQ S1234: 후보 50, 적격 0, target_feasible false, official false, h_consistency(CSV raw H == fr_mat20 H) 0, legacy/raw-max/exact50K/late6 보존" if _selfix_strict
+                                                                    else (f"이 서버의 완료 run {_selfix}: 구조 불변량(후보 수·적격 수·feasible·legacy/raw-max/exact50K/late6·h_consistency<5e-4)" if _selfix else "SKIP — 이 서버에 완료 run(checkpoint_metrics.csv + best_hqnr_meta.json) 이 없어 fixture 없음; 공식 RR 경로는 s1 검증(노트 §5)"))),
+      (_selfix is None) or (_srsel is not None and _srsel.returncode == 0 and bool(_sel) and _sel_struct_ok()),
+      (f"selector rc {_srsel.returncode} {_srsel.stderr[-300:] if _srsel.returncode else ''} keys {sorted(_sel)[:8]}" if _srsel is not None else "fixture 없음"))
 print(f"\n{'FAIL ' + str(FAIL) if FAIL else 'ALL OK'} ({len(FAIL)} failed)"); sys.exit(1 if FAIL else 0)
