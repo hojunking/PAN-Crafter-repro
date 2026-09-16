@@ -24,7 +24,7 @@ QEGX (2026-09-15 저녁, research_log/PAN_QEGX_S3_S4_W104D121_Experiment_Plan_20
 캠페인 QEGX_A104D121_S3S4_20260915_v1 / branch A104D121_T0FIX_QEGX_v1, 시간 상한 없음(자체 ledger, required 경고만). 전환 tools/qegx_switch.sh, QEC3 pilot tools/qedge9_cue.py pilot --branch qegx.
 EDGEBAL (2026-09-16, research_log/PAN_EDGEBAL_S2_S5_Experiment_Plan_2026-09-16.md): GT edge 를 얼마나·언제 — s2(777·2026·9091, 12 run v1) 상수 배수 r·성분별 기여 · s5(2026·777·9091, 14 run v2) 시간배분 DOWN/UP/CONST075 + 완만한 q 가중 FLOOR/SHUF/REVERSE.
 캠페인 EDGEBAL_A104D121_S2S5_20260916_v1 / branch A104D121_T0FIX_EDGEBAL_v1, 상한 없음. 새 키 kdv.edge_schedule / kdv.edge_weight. 전환 tools/edgebal_switch.sh.
-QRECON24 (2026-09-16 저녁, research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md): 확정 method(연속 q 가중 w=2qref/(qref+q_T); U ← H+K+λE·w·E, A ← w·H 만; offset 없음) 의 전 서버 튜닝 68 run —
+QRECON24 (2026-09-16 저녁, research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md): 확정 method(연속 q 가중 w=qref/(qref+q_T) — 계획서의 분자 2 는 09-16 저녁 결정으로 뺐다; U ← H+K+λE·w·E, A ← w·H 만; offset 없음) 의 전 서버 튜닝 68 run —
 s1 12(1234·3407: G22/A_UNIF/A_FREEZE/G21/G23/A_SHUF) · s2 12(777: G 3×3 + E_UNIF/E_SHUF/ALL_UNIF) · s3 18(2026·4321: G 3×3) · s4 14(1234: H 3×3 + H_ALPHA0/H_BETA0; 3407: H22/H12/H11) · s5 12(2026·777·9091·1103: L100/L070/L050).
 캠페인 QRECON24_A104D121_S1S5_20260916_v1 / branch A104D121_T0FIX_QRECON24_v1, 상한 없음(24h 최소 운영구간). 새 키 kdv.qrecon. 이전 QEDGE9/QEGX/EDGEBAL 큐는 superseded(PREVIOUS_PRIORITY_BY_SERVER). 전환 tools/qrecon24_switch.sh."""
 import argparse, json, os, re, sys
@@ -72,15 +72,18 @@ EDGEBAL_CONTROLS = {"s2": {777: {"J0": "PAKD50_J0_W104_D121_WV3_T0_S777_FRESH50_
                     "s5": {2026: {"J0": "PAKD50_J0_W104_D121_WV3_T0_S2026_FRESH50_v1", "JQ": "PAKD50_JQ_W104_D121_WV3_T0_S2026_FRESH50_v1", "QE50": "PAKD50_QE50_W104_D121_WV3_T0_S2026_FRESH50_v1"},
                            777: {"J0": "PAKD50_J0_W104_D121_WV3_T0_S777_FRESH50_v1", "JQ": "PAKD50_JQ_W104_D121_WV3_T0_S777_FRESH50_v1", "QE50": "PAKD50_QE50_W104_D121_WV3_T0_S777_FRESH50_v1"}}}    # §6: s5 QEDGE9 두 seed
 CUE_CASES = ("QE50", "QEC", "QES", "QX50", "QEC3", "QE50_B005", "LFQE50", "QER50", "QERS", "EB_QFLOOR", "EB_QFSHUF", "EB_QFREV")   # cue 자산(θq/gate 표) 이 있어야 시작하는 case (gate 의 cue_ready); QRC24_* 도 (raw q)
-# QRECON24 (2026-09-16; research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md): 사용자 확정 method 의 전 서버 튜닝 — 연속 q 가중 w = 2qref/(qref+q_T) 를 A(weighted GT hard 만) 와 U(GT edge) 가 공유,
+# QRECON24 (2026-09-16; research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md): 사용자 확정 method 의 전 서버 튜닝 — 연속 q 가중 w = qref/(qref+q_T)(분자 2 없음; 09-16 저녁 결정) 를 A(weighted GT hard 만) 와 U(GT edge) 가 공유,
 # U ← H+K+λE·w·E / A ← w·H (같은 forward 에서 parameter 집합별 gradient 분리; Student offset·jitter 없음). 68 run FRESH50(s1 12 · s2 12 · s3 18 · s4 14 · s5 12), 상한 없음(24h 는 최소 운영구간).
-# 조정값: λE(절대) 3e-4/1e-3/3e-3 · rA .003/.01/.03 · α .5/1/1.5 · β .05/.1/.2 · U LR 1e-4/7e-5/5e-5 · seed. qref·q 함수 고정. 이름 PAKD50_QRC24_<SRV>_<PROFILE>_W104_D121_WV3_T0_S<seed>_FRESH50_v1 (서버 토큰 = 파일 충돌 방지).
+# 조정값: λE(절대) 6e-4/2e-3/6e-3(09-16 저녁: 분자 2 제거에 맞춘 2 배 환산; 계획서 3e-4/1e-3/3e-3) · rA .003/.01/.03 · α .5/1/1.5 · β .05/.1/.2 · U LR 1e-4/7e-5/5e-5 · seed. qref·q 함수 고정. uniform 대조 = s_q(qref) = 0.5.
+# 이름 PAKD50_QRC24_<SRV>_<PROFILE>_W104_D121_WV3_T0_S<seed>_FRESH50_v1 (서버 토큰 = 파일 충돌 방지).
 QRC24_PLAN = "research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md"; QRC24_NOTE = "research_log/2026-09-16_qrecon24-implementation.md"
 QRC24_CAMPAIGN_ID = "QRECON24_A104D121_S1S5_20260916_v1"; QRC24_BRANCH = "A104D121_T0FIX_QRECON24_v1"; QRC24_ARCH = QEDGE9_ARCH; QRC24_QREF = 0.3276133416220546
 QRC24_LEDGER = "work_dir/_qrecon24_budget/ledger.json"; QRC24_MANDATORY_FILE = "work_dir/_qrecon24/mandatory_runs.txt"; QRC24_SOFT_HOURS = 1000.0
 QRC24_TIME_POLICY = dict(mode="no_hard_limit", target_elapsed_hours=None, hard_deadline=None, inherit_parent_deadline=False, min_operating_hours=24.0)
-QRC24_DEFAULT = dict(lam=1e-3, rA=0.01, alpha=1.0, beta=0.1, ulr=1e-4, a="q", e="q", frozen=False)
-QRC24_PROFILES = {**{f"G{i}{j}": dict(lam=l, rA=r) for i, l in ((1, 3e-4), (2, 1e-3), (3, 3e-3)) for j, r in ((1, 0.003), (2, 0.01), (3, 0.03))},
+QRC24_LAMBDA = {1: 6e-4, 2: 2e-3, 3: 6e-3}; QRC24_LAMBDA_PLAN = {1: 3e-4, 2: 1e-3, 3: 3e-3}     # 09-16 저녁: 분자 2 제거 → λE 2 배 환산(λE_new·s_q = λE_old·w_q); 계획서 값은 PLAN 에 기록만
+QRC24_UNIFORM_W = 0.5                                                                             # uniform 대조 = s_q(qref) (종전 계획의 1 아님)
+QRC24_DEFAULT = dict(lam=QRC24_LAMBDA[2], rA=0.01, alpha=1.0, beta=0.1, ulr=1e-4, a="q", e="q", frozen=False)
+QRC24_PROFILES = {**{f"G{i}{j}": dict(lam=QRC24_LAMBDA[i], rA=r) for i in (1, 2, 3) for j, r in ((1, 0.003), (2, 0.01), (3, 0.03))},
                   "A_UNIF": dict(a="uniform"), "A_FREEZE": dict(frozen=True), "A_SHUF": dict(a="shuffle"), "E_UNIF": dict(e="uniform"), "E_SHUF": dict(e="shuffle"), "ALL_UNIF": dict(a="uniform", e="uniform"),
                   **{f"H{i}{j}": dict(alpha=al, beta=be) for i, al in ((1, 0.5), (2, 1.0), (3, 1.5)) for j, be in ((1, 0.05), (2, 0.1), (3, 0.2))}, "H_ALPHA0": dict(alpha=0.0), "H_BETA0": dict(beta=0.0),
                   "L100": dict(ulr=1e-4), "L070": dict(ulr=7e-5), "L050": dict(ulr=5e-5)}
@@ -597,13 +600,13 @@ def confirmation_cases(win_case, server=None):
     assert len(out) <= CONFIRM_MAX_RUNS
     return out
 PURPOSE.update(_PURPOSE_S5)
-_QRC_TXT = {"A_UNIF": "A 의 hard 가중 = 1 (q 배분 제외; edge 는 w(q))", "A_FREEZE": "T0 A 처음부터 동결(optimizer 밖; U 만 학습)", "A_SHUF": "A 의 w(q) 를 (e decile × rot) stratum 셔플(51515)", "E_UNIF": "U edge 가중 = 1 (A 는 w(q))",
-            "E_SHUF": "U edge 의 w(q) 를 stratum 셔플", "ALL_UNIF": "A·edge 모두 1 (q 없는 같은 loss 종류·직접 λE 기준)", "H_ALPHA0": "α = 0 (추가 hard 재가중 제거; GT hard 는 1)", "H_BETA0": "β = 0 (직접 soft 제거 대조)"}
+_QRC_TXT = {"A_UNIF": "A 의 hard 가중 = 0.5(= s_q(qref); q 배분 제외; edge 는 w(q))", "A_FREEZE": "T0 A 처음부터 동결(optimizer 밖; U 만 학습)", "A_SHUF": "A 의 w(q) 를 (e decile × rot) stratum 셔플(51515)", "E_UNIF": "U edge 가중 = 0.5(= s_q(qref); A 는 w(q))",
+            "E_SHUF": "U edge 의 w(q) 를 stratum 셔플", "ALL_UNIF": "A·edge 모두 0.5(= s_q(qref); q 없는 같은 loss 종류·직접 λE 기준)", "H_ALPHA0": "α = 0 (추가 hard 재가중 제거; GT hard 는 1)", "H_BETA0": "β = 0 (직접 soft 제거 대조)"}
 for _srv in SERVER_SEED:
     for _pf, _pd in QRC24_PROFILES.items():
         _P = qrc24_profile(_pf)
         PURPOSE[f"QRC24_{_srv.upper()}_{_pf}"] = (f"QRECON24 {_srv} {_pf}" + (f"(= {_P['canonical']})" if _P['canonical'] != _pf else "") + f": U ← H+K+λE·w·E(GT edge, λE 절대 {_P['lam']:g}) / A ← w·H 만(hard-only, offset 없음) · "
-                                                  f"w = 2qref/(qref+q_T) · α {_P['alpha']:g} β {_P['beta']:g} · U LR {_P['ulr']:g} / A LR {_P['alr']:g}(rA {_P['rA'] if not _P['frozen'] else 0})" + (f" · {_QRC_TXT[_pf]}" if _pf in _QRC_TXT else ""))
+                                                  f"w = qref/(qref+q_T) · α {_P['alpha']:g} β {_P['beta']:g} · U LR {_P['ulr']:g} / A LR {_P['alr']:g}(rA {_P['rA'] if not _P['frozen'] else 0})" + (f" · {_QRC_TXT[_pf]}" if _pf in _QRC_TXT else ""))
 _QV = {"QA05": "α 0.5 (L_D 재가중 절반)", "QB005": "β 0.05 (soft 절반)", "QB02": "β 0.2 (soft 두 배)", "QE025": "λE ×0.5", "QE10": "λE ×2"}          # Q12 단일축 scalar variant (s4 배정 §6) — 그 밖 정의는 JQ/ALQ 와 같다
 PURPOSE.update({f"J_{v}": f"s4 §6 (QEGX s3 §4.4 대응쌍): JQ 에서 {t} 만" for v, t in _QV.items()}); PURPOSE.update({f"AL_{v}": f"s4 §7: ALQ(A LR 3e-6) 에서 {t} 만" for v, t in _QV.items()})
 NEEDS_LAMBDA_E = {c for c, (p, b) in CASES.items() if BACKEND[b]["edge"]}
@@ -772,9 +775,10 @@ def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=Tr
             k["aligner_lr"] = float(Pq["alr"])
         else:
             k.pop("aligner_lr", None)
-        k["qrecon"] = dict(mode="continuous_v1", q_ref=QRC24_QREF, asset=QEDGE9_CUE_ASSET, a_weight=Pq["a"], e_weight=Pq["e"], perm_seed=51515)
+        k["qrecon"] = dict(mode="continuous_v1", q_ref=QRC24_QREF, asset=QEDGE9_CUE_ASSET, a_weight=Pq["a"], e_weight=Pq["e"], perm_seed=51515, uniform_weight=QRC24_UNIFORM_W)
         k["qrc24"] = dict(profile=prof, canonical=Pq["canonical"], lambda_E=float(Pq["lam"]), rA=(0.0 if Pq["frozen"] else float(Pq["rA"])), U_lr=float(Pq["ulr"]), A_lr=float(Pq["alr"]), alpha=float(Pq["alpha"]), beta=float(Pq["beta"]),
-                       a_weight=Pq["a"], e_weight=Pq["e"], A_frozen=bool(Pq["frozen"]), q_ref=QRC24_QREF, method="qrecon_continuous_v1", A_loss="weighted_H_only", A_soft=0, A_edge=0, student_offset=0)
+                       a_weight=Pq["a"], e_weight=Pq["e"], A_frozen=bool(Pq["frozen"]), q_ref=QRC24_QREF, method="qrecon_continuous_v1", A_loss="weighted_H_only", A_soft=0, A_edge=0, student_offset=0,
+                       q_weight_formula="qref/(qref+q_T)", lambda_E_plan=float(Pq["lam"]) / 2.0, uniform_weight=QRC24_UNIFORM_W, change_note="2026-09-16 저녁: 분자 2 제거 → λE 2 배 환산, uniform 0.5; rA/α/β/qref 유지")
         k.update(campaign_id=QRC24_CAMPAIGN_ID, parent_campaign_id=CAMPAIGN_ID, lineage_campaign_ids=[CAMPAIGN_ID, QEDGE9_CAMPAIGN_ID, QEGX_CAMPAIGN_ID, EDGEBAL_CAMPAIGN_ID], experiment_branch_id=QRC24_BRANCH, exact_resume=True,
                  control_runs={"G22": qrc24_run_name(server, qrc24_control_profile(server, seed), seed, version), "canonical": "G22", "control_profile": qrc24_control_profile(server, seed)}, baseline_run=qrc24_run_name(server, qrc24_control_profile(server, seed), seed, version),
                  budget=dict(ledger=QRC24_LEDGER, total_gpu_hours=QRC24_SOFT_HOURS, reserve_hours=0.0, margin=MARGIN, required=True, projected_hours=projected, projected_map={me: reservation_hours(QRC24_REFERENCE_H[server], QRC24_RESERVE_SLACK)},
@@ -867,8 +871,8 @@ def render(tag, case, seed, server, k, updates, eval_epoch, tpl, arch=ARCH_DEFAU
         head = head.replace("\n", f"\n# QRECON24 (계획 {QRC24_PLAN}, 노트 {QRC24_NOTE}): 캠페인 {QRC24_CAMPAIGN_ID} · branch {QRC24_BRANCH} (parent {CAMPAIGN_ID}) · 시간 정책 no_hard_limit(24h 는 최소 운영구간; 자체 ledger {QRC24_LEDGER}, required 경고만) · "
                             + f"profile {Q['profile']}(canonical {Q['canonical']}) · λE 절대 {Q['lambda_E']:g} · rA {Q['rA']:g} (U LR {Q['U_lr']:g} / A LR {Q['A_lr']:g}{'; A 동결' if Q['A_frozen'] else ''}) · α {Q['alpha']:g} β {Q['beta']:g} · A weight {Q['a_weight']} / edge weight {Q['e_weight']} · qref {QRC24_QREF}"
                             + f" · 시트 X열 'PAKD50 / QRC24 / {Q['profile']} / {ARCH_LABEL[arch]} / FRESH50'\n"
-                            + "# method qrecon_continuous_v1: w = 2qref/(qref+q_T) (T0 AXIS16 raw q, sg) · U ← mean(H + K + λE·w^E·E) · A ← mean(w^A·H) 만(soft·edge·offset 없음; 같은 forward 에서 parameter 집합별 autograd.grad, 단일 total backward 금지) · native 입력(I-NATIVE-TRANSFER, jitter 없음)\n"
-                            + "# 약명→세팅: G<ij> = λE {3e-4,1e-3,3e-3}[i] × rA {.003,.01,.03}[j] · H<ij> = α {.5,1,1.5}[i] × β {.05,.1,.2}[j] · L100/070/050 = U LR 1e-4/7e-5/5e-5 (rA .01 고정) · A_UNIF/A_SHUF/A_FREEZE = A 가중 1/셔플/동결 · E_UNIF/E_SHUF = edge 가중 1/셔플 · ALL_UNIF = 둘 다 1 · H_ALPHA0/H_BETA0 = α 0/β 0 · G22 = H22 = L100\n", 1)
+                            + "# method qrecon_continuous_v1: w = qref/(qref+q_T) (T0 AXIS16 raw q, sg; 계획서의 분자 2 는 09-16 저녁 결정으로 제거 — w(qref)=0.5) · U ← mean(H + K + λE·w^E·E) · A ← mean(w^A·H) 만(soft·edge·offset 없음; 같은 forward 에서 parameter 집합별 autograd.grad, 단일 total backward 금지) · native 입력(I-NATIVE-TRANSFER, jitter 없음)\n"
+                            + "# 약명→세팅: G<ij> = λE {6e-4,2e-3,6e-3}[i](계획서 3e-4/1e-3/3e-3 의 2 배 환산) × rA {.003,.01,.03}[j] · H<ij> = α {.5,1,1.5}[i] × β {.05,.1,.2}[j] · L100/070/050 = U LR 1e-4/7e-5/5e-5 (rA .01 고정) · A_UNIF/A_SHUF/A_FREEZE = A 가중 0.5(= s_q(qref))/셔플/동결 · E_UNIF/E_SHUF = edge 가중 0.5/셔플 · ALL_UNIF = 둘 다 0.5 · H_ALPHA0/H_BETA0 = α 0/β 0 · G22 = H22 = L100\n", 1)
     if branch == "EDGEBAL":
         B_ = BACKEND[be_id]; mult = float(B_.get("lam_mult", 1.0)) if B_["edge"] else 0.0
         what = (f" GT edge w(t) = {k['edge_schedule']['before']} (t<{k['edge_schedule']['switch']}) → {k['edge_schedule']['after']} (kdv.edge_schedule; A 계속 학습, optimizer/cosine 재시작 없음)" if k.get("edge_schedule")

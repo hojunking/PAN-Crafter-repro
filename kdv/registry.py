@@ -422,13 +422,13 @@ def resolve(k):
         if ew['mode'] == 'floor_shuffle' and pse != 51515:
             _bad("EB_QFSHUF permutation seed 는 51515 로 고정 (QES 와 같은 셔플 라벨)")
         ew_spec = dict(mode=ew['mode'], low=float(ew['low']), high=float(ew['high']), asset=ew['asset'], perm_seed=(pse if ew['mode'] == 'floor_shuffle' else None))
-    # --- QRECON24 (2026-09-16, research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md §2·§6): 연속 q 가중 w = 2qref/(qref+q) 를 A(hard-only) 와 U(edge) 가 같이 쓴다.
+    # --- QRECON24 (2026-09-16, research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md §2·§6): 연속 q 가중 w = qref/(qref+q)(09-16 저녁 결정: 분자 2 없음) 를 A(hard-only) 와 U(edge) 가 같이 쓴다.
     # L_U = mean(H + K + λE·w^E·E) → U 만, L_A = mean(w^A·H) → A 만 (같은 forward 에서 parameter 집합별 autograd.grad; 단일 total backward 금지). Student offset/jitter 없음(I-NATIVE-TRANSFER, radius 0).
     # 다른 gate/route/schedule/routing/TRI 와 결합하지 않는다 — "검사만 끄는 우회" 금지 (§6.4). λE 는 절대값(stat.outer_weight 숫자 > 0).
     qr = dict(k.get('qrecon') or {}); qr_spec = None
     if qr:
         from kdv.qrecon import MODES as QR_MODES
-        _QRK = {'mode', 'q_ref', 'asset', 'a_weight', 'e_weight', 'perm_seed'}
+        _QRK = {'mode', 'q_ref', 'asset', 'a_weight', 'e_weight', 'perm_seed', 'uniform_weight'}
         if set(qr) - _QRK:
             _bad(f"qrecon 의 알 수 없는 키 {sorted(set(qr) - _QRK)}")
         if qr.get('mode') != 'continuous_v1':
@@ -461,7 +461,10 @@ def resolve(k):
             _bad("qrecon 은 edge_gate/edge_route/routing/edge_schedule/edge_weight/aligner_schedule 과 결합하지 않는다 (§6.4)")
         if tri_on or extra or rec_control != 'none' or geom != 'G0':
             _bad("qrecon 은 plain rec R3 + EDGE-H 위에서만 (TRI/stat.extra/rec.control/geomKD 와 결합하지 않는다)")
-        qr_spec = dict(mode='continuous_v1', q_ref=float(qref), asset=qr['asset'], a_weight=qr.get('a_weight', 'q'), e_weight=qr.get('e_weight', 'q'), perm_seed=pq, a_trainable=trainable, lambda_E=float(_ow))
+        uw = qr.get('uniform_weight', 0.5)
+        if isinstance(uw, bool) or not isinstance(uw, (int, float)) or abs(float(uw) - 0.5) > 1e-12:
+            _bad(f"qrecon.uniform_weight 는 s_q(qref) = 0.5 로 고정 (현재 {uw!r}; 종전 계획의 1 아님 — 사용자 §3)")
+        qr_spec = dict(mode='continuous_v1', q_ref=float(qref), asset=qr['asset'], a_weight=qr.get('a_weight', 'q'), e_weight=qr.get('e_weight', 'q'), perm_seed=pq, a_trainable=trainable, lambda_E=float(_ow), uniform_weight=float(uw))
     return dict(recipe=recipe, protocol=protocol, policy=policy, rec_case=rec_case, rec_mode=REC_CASES[rec_case], tri=tri_spec, edge_gate=eg_spec, edge_route=er_spec, edge_schedule=es_spec, edge_cue_weight=ew_spec, qrecon=qr_spec,
                 aligner_freeze_until=f_until, aligner_freeze_from=f_from, route_A=(qD, qK, qE), expect_init=ei,
                 rec_control=rec_control, rec_tau_scale=rec_tau_scale, na_protocol=na, expect_arch=ea, select_secondary=secondary, select_primary=primary, aligned_selector=aligned_selector, stat_lambda_from_run=stat_lambda_from_run,
@@ -595,7 +598,7 @@ def describe(spec, k=None):
                                         + f" (q-low {w_['low']:g} / q-high {w_['high']:g}; hard/soft 는 Q12 그대로)")
     qrs = ''
     if spec.get('qrecon'):                                     # QRECON24 §2.3–§2.5
-        q_ = spec['qrecon']; _wm = {'q': 'w(q) = 2qref/(qref+q_T)', 'uniform': '1', 'shuffle': 'w(q) 의 stratum 셔플(51515)'}
+        q_ = spec['qrecon']; _wm = {'q': 'w(q) = qref/(qref+q_T)', 'uniform': f"{q_.get('uniform_weight', 0.5):g}(= s_q(qref))", 'shuffle': 'w(q) 의 stratum 셔플(51515)'}
         qrs = (f" · qrecon: U ← H + K + λE·{_wm[q_['e_weight']]}·E(GT edge, λE 절대값 {q_['lambda_E']:g}) / A ← {_wm[q_['a_weight']]}·H 만(soft·edge·offset 없음; {'T0 복사 trainable' if q_['a_trainable'] else 'T0 동결 대조'}) "
                f"· qref {q_['q_ref']:.10g} (T0 AXIS16 raw q; threshold 아님) · 두 목적함수를 parameter 집합별로 따로 미분")
     return f"{spec['protocol']} · {pol} · rec {rec} · {st} · {gk}{src}{t}{tr}{na}{sel}{sch}{rt}{egs}{ers}{ess}{ews}{qrs}"

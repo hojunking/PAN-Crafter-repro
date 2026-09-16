@@ -1,10 +1,10 @@
-# PAKD50_QRC24_S1_A_UNIF_W104_D121_WV3_T0_S1234_FRESH50_v1 — QRECON24 s1 A_UNIF: U ← H+K+λE·w·E(GT edge, λE 절대 0.001) / A ← w·H 만(hard-only, offset 없음) · w = 2qref/(qref+q_T) · α 1 β 0.1 · U LR 0.0001 / A LR 1e-06(rA 0.01) · A 의 hard 가중 = 1 (q 배분 제외; edge 는 w(q)). 생성: tools/gen_pakd50_configs.py (seed 1234 를 쓰는 서버 s1/s4 공용 — 서버별 값은 config 에 없다). 손으로 고치지 말 것.
-# QRECON24 (계획 research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md, 노트 research_log/2026-09-16_qrecon24-implementation.md): 캠페인 QRECON24_A104D121_S1S5_20260916_v1 · branch A104D121_T0FIX_QRECON24_v1 (parent PAKD50_W112D123_WV3_20260914_v1) · 시간 정책 no_hard_limit(24h 는 최소 운영구간; 자체 ledger work_dir/_qrecon24_budget/ledger.json, required 경고만) · profile A_UNIF(canonical A_UNIF) · λE 절대 0.001 · rA 0.01 (U LR 0.0001 / A LR 1e-06) · α 1 β 0.1 · A weight uniform / edge weight q · qref 0.3276133416220546 · 시트 X열 'PAKD50 / QRC24 / A_UNIF / A104D121 / FRESH50'
-# method qrecon_continuous_v1: w = 2qref/(qref+q_T) (T0 AXIS16 raw q, sg) · U ← mean(H + K + λE·w^E·E) · A ← mean(w^A·H) 만(soft·edge·offset 없음; 같은 forward 에서 parameter 집합별 autograd.grad, 단일 total backward 금지) · native 입력(I-NATIVE-TRANSFER, jitter 없음)
-# 약명→세팅: G<ij> = λE {3e-4,1e-3,3e-3}[i] × rA {.003,.01,.03}[j] · H<ij> = α {.5,1,1.5}[i] × β {.05,.1,.2}[j] · L100/070/050 = U LR 1e-4/7e-5/5e-5 (rA .01 고정) · A_UNIF/A_SHUF/A_FREEZE = A 가중 1/셔플/동결 · E_UNIF/E_SHUF = edge 가중 1/셔플 · ALL_UNIF = 둘 다 1 · H_ALPHA0/H_BETA0 = α 0/β 0 · G22 = H22 = L100
+# PAKD50_QRC24_S1_A_UNIF_W104_D121_WV3_T0_S1234_FRESH50_v1 — QRECON24 s1 A_UNIF: U ← H+K+λE·w·E(GT edge, λE 절대 0.002) / A ← w·H 만(hard-only, offset 없음) · w = qref/(qref+q_T) · α 1 β 0.1 · U LR 0.0001 / A LR 1e-06(rA 0.01) · A 의 hard 가중 = 0.5(= s_q(qref); q 배분 제외; edge 는 w(q)). 생성: tools/gen_pakd50_configs.py (seed 1234 를 쓰는 서버 s1/s4 공용 — 서버별 값은 config 에 없다). 손으로 고치지 말 것.
+# QRECON24 (계획 research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md, 노트 research_log/2026-09-16_qrecon24-implementation.md): 캠페인 QRECON24_A104D121_S1S5_20260916_v1 · branch A104D121_T0FIX_QRECON24_v1 (parent PAKD50_W112D123_WV3_20260914_v1) · 시간 정책 no_hard_limit(24h 는 최소 운영구간; 자체 ledger work_dir/_qrecon24_budget/ledger.json, required 경고만) · profile A_UNIF(canonical A_UNIF) · λE 절대 0.002 · rA 0.01 (U LR 0.0001 / A LR 1e-06) · α 1 β 0.1 · A weight uniform / edge weight q · qref 0.3276133416220546 · 시트 X열 'PAKD50 / QRC24 / A_UNIF / A104D121 / FRESH50'
+# method qrecon_continuous_v1: w = qref/(qref+q_T) (T0 AXIS16 raw q, sg; 계획서의 분자 2 는 09-16 저녁 결정으로 제거 — w(qref)=0.5) · U ← mean(H + K + λE·w^E·E) · A ← mean(w^A·H) 만(soft·edge·offset 없음; 같은 forward 에서 parameter 집합별 autograd.grad, 단일 total backward 금지) · native 입력(I-NATIVE-TRANSFER, jitter 없음)
+# 약명→세팅: G<ij> = λE {6e-4,2e-3,6e-3}[i](계획서 3e-4/1e-3/3e-3 의 2 배 환산) × rA {.003,.01,.03}[j] · H<ij> = α {.5,1,1.5}[i] × β {.05,.1,.2}[j] · L100/070/050 = U LR 1e-4/7e-5/5e-5 (rA .01 고정) · A_UNIF/A_SHUF/A_FREEZE = A 가중 0.5(= s_q(qref))/셔플/동결 · E_UNIF/E_SHUF = edge 가중 0.5/셔플 · ALL_UNIF = 둘 다 0.5 · H_ALPHA0/H_BETA0 = α 0/β 0 · G22 = H22 = L100
 # 골격 W104_D121: s4 이식: Student U 만 W104·depth[1,2,1] (backbone 1.9036 M; s3 GT-only 기록과 같은 model_args), T0/A·τR·λE0 고정 · branch A104D121_T0FIX_E0_v1 · 편성 항목 <case>@W104_D121 · 시트 X열 'PAKD50 / <case> / A104D121 / FRESH50' · 계획 research_log/PAN_PAKD50_S4_W104D121_Architecture_Allocation_2026-09-15.md
 # 캠페인 PAKD50_W112D123_WV3_20260914_v1 · protocol FRESH50 · grid GRID1010_50K_v1 · 계획 research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md · 요약 research_log/PAN_Integrated_Method_Summary_2026-09-14.md · 노트 research_log/2026-09-14_pakd50-implementation.md
-# 세팅: I-NATIVE-TRANSFER · aligner donor 초기화 후 학습 · rec (1+α d_T)·L1 + β(1−d_T)a_T|S−T| (adaptive) · stat edge w5 mode H · geomKD 없음 Teacher T0 · 주 selector best_hqnr (보조 best_rr_val·last) · qrecon: U ← H + K + λE·w(q) = 2qref/(qref+q_T)·E(GT edge, λE 절대값 0.001) / A ← 1·H 만(soft·edge·offset 없음; T0 복사 trainable) · qref 0.3276133416 (T0 AXIS16 raw q; threshold 아님) · 두 목적함수를 parameter 집합별로 따로 미분 · 정책 QRC(A trainable, offset λ 0.0, A LR 1e-06) · backend QRC24 (rec R3, EDGE-H λE 0.001)
+# 세팅: I-NATIVE-TRANSFER · aligner donor 초기화 후 학습 · rec (1+α d_T)·L1 + β(1−d_T)a_T|S−T| (adaptive) · stat edge w5 mode H · geomKD 없음 Teacher T0 · 주 selector best_hqnr (보조 best_rr_val·last) · qrecon: U ← H + K + λE·w(q) = qref/(qref+q_T)·E(GT edge, λE 절대값 0.002) / A ← 0.5(= s_q(qref))·H 만(soft·edge·offset 없음; T0 복사 trainable) · qref 0.3276133416 (T0 AXIS16 raw q; threshold 아님) · 두 목적함수를 parameter 집합별로 따로 미분 · 정책 QRC(A trainable, offset λ 0.0, A LR 1e-06) · backend QRC24 (rec R3, EDGE-H λE 0.002)
 # 약명→세팅: J0/JQ/JR/XJ = A trainable(joint) + N0/Q12/R1/X02 · F0/FQ/FR/XF = A frozen + … · AL0/ALQ = joint, A LR 3e-6 · Q12 = (1+αd)L1 + β(1−d)a|S−T| + λE·signed Scharr edge · R1 = (1+αd)L1 · X02 = R1 + edge
 #           D*/LF* = joint 에서 A 를 0–4999 동결 / 25000 부터 동결 (kdv.aligner_schedule; 동결 구간 LO 없음, ε RNG 는 같은 순서) · P*/JK0/JE0 = A 가 직접 받는 항만 제한 (kdv.routing qA=(qD,qK,qE); U 는 backend 전체) · J_Q*/AL_Q* = Q12 계수만
 #           J_R3_NOEDGE = J + R3 adaptive(edge 없음) · J_N0_EDGE = J + N0 + λE edge(Teacher 미사용) · RC0/RCQ = A trainable(LR 1e-5) 인데 offset 연습 없음(I-NATIVE-TRANSFER, radius 0) + N0/Q12 — 재배정 research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md
@@ -68,7 +68,7 @@ kdv:
     alpha: 1.0
     kd_weight: 0.1
     tau: calibrate
-    outer_weight: 0.001
+    outer_weight: 0.002
     lambda_note: absolute (QRECON24 §2.4; not a multiple of lambda_E0)
     ramp_updates: 0
   geom_kd:
@@ -113,10 +113,11 @@ kdv:
     a_weight: uniform
     e_weight: q
     perm_seed: 51515
+    uniform_weight: 0.5
   qrc24:
     profile: A_UNIF
     canonical: A_UNIF
-    lambda_E: 0.001
+    lambda_E: 0.002
     rA: 0.01
     U_lr: 0.0001
     A_lr: 1.0e-06
@@ -131,6 +132,10 @@ kdv:
     A_soft: 0
     A_edge: 0
     student_offset: 0
+    q_weight_formula: qref/(qref+q_T)
+    lambda_E_plan: 0.001
+    uniform_weight: 0.5
+    change_note: '2026-09-16 저녁: 분자 2 제거 → λE 2 배 환산, uniform 0.5; rA/α/β/qref 유지'
   parent_campaign_id: PAKD50_W112D123_WV3_20260914_v1
   lineage_campaign_ids:
   - PAKD50_W112D123_WV3_20260914_v1

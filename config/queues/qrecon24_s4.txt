@@ -1,6 +1,6 @@
 # QRECON24 s4 (2026-09-16 저녁; 계획 research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md §5, 노트 research_log/2026-09-16_qrecon24-implementation.md). 14 run FRESH50, 서버·profile·seed 사전 고정(승자 대기 없음). 전부 W104·D121·T0 고정.
-# method qrecon_continuous_v1: w = 2qref/(qref+q_T) · U ← H+K+λE·w·E / A ← w·H 만(offset 없음; 두 목적함수 분리). R_s 1.94 h 대용, 예약 1.20×R_s + 10/60 = 34.9253 h (24h 는 최소 운영구간, 상한 아님).
-# 기동은 tools/qrecon24_switch.sh (현재 run 은 끝까지; DONE 이면 이 큐로 campaign_start; gate 'pakd50' 가 켜진 서버는 다음 pass 부터 이 순서). 24h 미달 시 추가 3 run: tools/qrecon24_switch.sh --extend (§8.3).
+# method qrecon_continuous_v1: w = qref/(qref+q_T)(분자 2 없음 — 09-16 저녁 결정; λE 는 2 배 환산 6e-4/2e-3/6e-3, uniform 대조 0.5) · U ← H+K+λE·w·E / A ← w·H 만(offset 없음; 두 목적함수 분리). R_s 1.94 h 대용, 예약 1.20×R_s + 10/60 = 34.9253 h (24h 는 최소 운영구간, 상한 아님).
+# 기동은 tools/qrecon24_switch.sh (현재 run 은 끝까지; DONE 이면 이 큐로 campaign_start; chain 이 살아 있으면 case 경계 인계 파일). 24h 미달 시 추가 3 run: tools/qrecon24_switch.sh --extend (§8.3).
 PAKD50_QRC24_S4_H22_W104_D121_WV3_T0_S1234_FRESH50_v1
 PAKD50_QRC24_S4_H12_W104_D121_WV3_T0_S1234_FRESH50_v1
 PAKD50_QRC24_S4_H21_W104_D121_WV3_T0_S1234_FRESH50_v1

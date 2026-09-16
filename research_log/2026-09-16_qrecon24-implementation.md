@@ -93,3 +93,24 @@ R_s 대용값 s1 2.20 / s2 2.30 / s3 1.35 / s4 1.94 / s5 2.17 h, 예약 = 1.20×
 
 - 미조치(감사가 명시한 한계): s2–s5 원격 프로세스·SHA·자산 배포 상태는 s1 에서 확인할 수 없다(각 서버 switch 가 확인) · CPU 재추론 vs GPU export 의 RR 미세 차이(PSNR 1e-3 등) 는 같은 운영 GPU 에서 selector `--official` 을 돌려 대조해야 한다(selector 는 sidecar 에 device 를 기록) · 계획 §6.3 의 profile 별 200–500 update smoke 전수는 G22 200 / A_FREEZE·E_SHUF 40 + 29 profile gradient 검사로 대신했다(추가 smoke 는 GPU 가 비면).
 - **release**: s1 의 첫 run(G22 S1234) 은 `15204de` 코드로 돈다. 이 대응 커밋 뒤 s1 의 나머지 run 과 s2–s5 는 새 커밋으로 돈다 — loss·gradient·config 의 학습 정의는 바뀌지 않았고(재개·ledger·manifest·선택·전환만), config 차이는 `kdv.control_runs` 의 metadata 키뿐이다(계획 §9.2 "진행 중 결함 수정은 새 release 로 구분"). unit gate K01–K49 **176 검사 ALL OK**.
+
+## 9. q 가중 함수 변경 — 분자의 2 제거 (2026-09-16 저녁, 사용자 결정)
+
+- 계획서 §2.3 은 w = 2·qref/(qref+q_T)(case_registry `twice_median_over_median_plus_q`) 이고 최초 구현(`15204de`)·감사(`PAN_QRECON24_Implementation_Audit_2026-09-16.md`) 도 그 식이었다. 사용자 결정으로 구현을 **w = qref/(qref+q_T)** 로 바꿨다(계획서 본문은 그대로 두고 여기와 config 머리·manifest `formula`/`formula_note`/`numerator_factor` 로 기록).
+- 효과: w(qref) = 0.5, w(0) = 1, 0 < w ≤ 1. 실제 자산에서 w 0.3972–0.5475, 평균 0.4982(calib 0.498). A 의 L_A 와 U 의 λE·w·E 가 종전의 절반 크기다 — A 는 Adam 이라 update 크기는 대체로 scale 에 무관하지만, U 의 edge 항은 H+K 대비 절반이 된다(λE 절대값 3e-4/1e-3/3e-3 의 뜻이 그만큼 바뀐다). uniform(=1)·shuffle 대조는 그대로(uniform 은 이제 w 평균의 약 2 배).
+- **s1 의 첫 run `PAKD50_QRC24_S1_G22_W104_D121_WV3_T0_S1234_FRESH50_v1` 은 2 가 있던 코드로 시작했다**(16:21 기동). 이 run 은 나머지 67 run 과 method 가 다르므로 그대로 두면 비교에서 뺀다 — 사용자 판단으로 중단·재학습(같은 이름은 fresh 재실행 금지 원칙상 work_dir 를 옮긴 뒤 다시) 하거나, 끝난 뒤 별도 표기(`numerator_factor 2`) 로 보존한다. manifest 의 `qrecon.formula` 로 구분된다.
+- 검사: K45(describe)·K47(w(qref)=0.5, w(0)=1, 실제 자산 범위 0.35–0.65, `numerator_factor` 1, formula 에 `2*qref` 없음) 갱신. gate 176 ALL OK. config 68 벌 머리 주석 재생성(학습 정의 키는 불변).
+
+### 9.1 같은 결정의 환산 (사용자 §2–§3, 09-16 저녁)
+
+| 항목 | 반영 |
+|---|---|
+| q 가중식 | w = qref/(qref+q_T) (분자 2 제거) |
+| λE | 종전 값의 2 배: G1x 3e-4→**6e-4**, G2x 1e-3→**2e-3**, G3x 3e-3→**6e-3**(기본 2e-3). λE_new·s_q = λE_old·w_q 라 같은 Student 출력에서 edge loss/gradient 가 보존된다(config `kdv.qrc24.lambda_E` 는 새 값, `lambda_E_plan` 에 계획서 값) |
+| rA | .003/.01/.03 유지(자동 2 배 없음) — A LR 3e-7/1e-6/3e-6 |
+| α·β·Teacher·qref·seed | 유지 |
+| A | L_A = mean(s_q·H); 같은 parameter 상태에서 A 의 loss·데이터 gradient 는 종전의 절반(보상 계수 없음; optimizer 업데이트·성능 동일을 보장하지 않는다) |
+| uniform 대조(A_UNIF/E_UNIF/ALL_UNIF) | 가중치 **0.5 = s_q(qref)**(종전 계획의 1 아님; q 를 뺀 대조에서 총 강도가 두 배가 되지 않게). config `kdv.qrecon.uniform_weight: 0.5`, registry 가 0.5 외 값을 거부 |
+| shuffle | 새 연속 가중치를 그대로 stratum 셔플 |
+
+검사 K44/K45/K46/K47 을 새 값으로 갱신(λE 2e-3 기준, uniform 0.5 의 L_A = 0.5·mean H, L_U = loss_rec + λE·0.5·L_E). gate ALL OK. config 68 벌·큐 머리 재생성 — 학습 정의(stat.outer_weight·qrecon.uniform_weight) 가 바뀐 재생성이다.

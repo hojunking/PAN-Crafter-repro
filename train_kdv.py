@@ -615,7 +615,7 @@ class KDVTrainer(PATrainer):
             print(f"[kdv] edge_weight {self.edge_weight.mode}: w = {self.edge_weight.high} + ({self.edge_weight.low} − {self.edge_weight.high})·g (θq {self.edge_weight.theta_q}) · 자산 {sp['edge_cue_weight']['asset']}")
         if self.edge_schedule:
             print(f"[kdv] edge_schedule: GT edge 계수 {self.edge_schedule['before']}×λE (update < {self.edge_schedule['switch']}) → {self.edge_schedule['after']}×λE (A 는 계속 학습; 재시작 없음)")
-        # QRECON24 (2026-09-16 §2.3·§4.2·§6): raw q → w = 2qref/(qref+q) 표(+stratum 셔플 표). 자산·Teacher·데이터·feeder·재개 대조는 EdgeGate.load 와 같다.
+        # QRECON24 (2026-09-16 §2.3·§4.2·§6): raw q → w = qref/(qref+q) 표(+stratum 셔플 표; 분자 2 없음 — 09-16 저녁 결정). 자산·Teacher·데이터·feeder·재개 대조는 EdgeGate.load 와 같다.
         self.qrecon = None
         if sp.get("qrecon"):
             fa = dict(self.args.train_feeder_args)
