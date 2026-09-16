@@ -880,7 +880,8 @@ def plan_rows(server, measured=None, is_terminal=None, extra=()):
 def plan_table(server):
     rem = hours_to_deadline(); rows = plan_rows(server)
     plan_doc = {srv: QRC24_PLAN + f" §5.{i} ({len(QRC24_QUEUES[srv])} run; R_s {QRC24_REFERENCE_H[srv]} h, 예약 1.20×R_s + 10/60)" for i, srv in enumerate(("s1", "s2", "s3", "s4", "s5"), 1)}.get(server, ALLOC_PLAN)
-    print(f"[{server}] seed {SERVER_SEED[server]} — 배정 {plan_doc} §4; 예약 = {RESERVE_SLACK}×ref + {RESERVE_POST_H * 60:.0f}min; 학습 마감까지 {'?' if rem is None else '%.2f' % rem} h")
+    slacks = sorted({r.get("slack", RESERVE_SLACK) for r in rows}) or [RESERVE_SLACK]
+    print(f"[{server}] seed {SERVER_SEED[server]} — 배정 {plan_doc}; 예약 = {'/'.join(f'{x:g}' for x in slacks)}×ref + {RESERVE_POST_H * 60:.0f}min (QRECON24 1.2, 그 밖 1.1); PAKD50 절대 마감까지 {'?' if rem is None else '%.2f' % rem} h (마감 제외 branch 에는 무관)")
     for r in rows:
         print(f"  {(r['case'] + ('' if r['arch'] == ARCH_DEFAULT else '@' + r['arch'])):<18} S{r['seed']:<5} {(branch_for(server, r['run']) or 'PAKD50'):<7} {r['status']:<14} ref {r['reference_train_h']:.2f} h ({r['reference_kind']}) → 예약 {r['reservation_h']:.4f} h · 누적 {r['cumulative_h']:.4f} h")
     tot = sum(r["reservation_h"] for r in rows if r["status"] == "planned"); tot_x = sum(r["reservation_h"] for r in rows if r["status"] == "planned" and branch_for(server, r["run"]) in ("QEDGE9", "QEGX", "EDGEBAL", "QRECON24"))
