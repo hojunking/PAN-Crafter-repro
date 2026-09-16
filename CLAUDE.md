@@ -40,7 +40,7 @@ setsid nohup ./tools/run.sh wv3 > /dev/null 2>&1 &       # SSH 끊겨도 유지 
 큐 캠페인 기동·재개는 `./tools/campaign_start.sh --queue <큐파일> [--hours N(기본 24)] [--label 이름]` — 큐를 `work_dir/cases_queue.txt` 로 복사하고
 이전 `cases_chain.log` 를 `cases_chain_<label>.log` 로 옮긴 뒤 `_run_cases.sh` 를 detached 로 띄운다(살아 있는 체인이 있으면 거부). chain 마감은
 `work_dir/cases_deadline.txt`(ISO 시각) — **지난 마감이 남아 있으면 전 case 가 '마감 경과' 로 스킵되고 즉시 DONE 이 찍힌다**; 파일이 없으면 마감 없음
-(QEDGE9·QEGX·EDGEBAL switch/waiter 가 지우는 soft·무상한 정책). 사전 확인은 `python tools/gen_pakd50_configs.py --plan --server <srv>`(PAKD50 계열 편성 dry-run, config 생성 없음).
+(QEDGE9·QEGX·EDGEBAL·QRECON24 switch/waiter 가 지우는 soft·무상한 정책). 사전 확인은 `python tools/gen_pakd50_configs.py --plan --server <srv>`(PAKD50 계열 편성 dry-run, config 생성 없음).
 
 **장애 대비가 걸려 있다** — cron 이 15분마다 `tools/_watchdog.sh` 로 체인 생존을 확인하고,
 죽어 있으면 재기동한다(재부팅 후 @reboot 포함). 체인은 완료분을 건너뛰고 이어 돈다.
@@ -162,7 +162,7 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
 - matplotlib 에 한글 글리프가 없다. 그림 라벨은 ASCII 로 쓴다.
 - 위성영상은 라이선스 제약이 있다. **외부 서비스에 업로드하지 않는다** (§6).
 
-## 현재 진행 상황 (2026-09-16 기준)
+## 현재 진행 상황 (2026-09-16 저녁 기준)
 
 확인은 `results_log/README.md` 맨 위 · `ps -eo pid,ppid,args | grep '[_]run_'` · `tail -f work_dir/cases_chain.log`. 캠페인별 상세는 아래 노트.
 각 캠페인의 계획서는 `research_log/PAN_*_<날짜>.md`, 구현 노트는 `research_log/<날짜>_<캠페인>-implementation.md`, config 생성기는 `tools/gen_<캠페인>_configs.py`,
@@ -170,11 +170,13 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
 
 | 서버 | 지금 | 그 다음 |
 |---|---|---|
-| s1 | **SMEC12 준비 학습** 10 run(12:34 기동, run 당 ≈1.3 h → 09-16 새벽) · 분석 runner 는 chain DONE 뒤 자동 | **QEDGE9 seed 1234 묶음**(v2; `qedge9_prepare_s1.sh` 가 띄운 `work_dir/_qedge9/launch_when_idle_s1.sh`·`pilot_when_ready_s1.sh` 가 SMEC12 DONE 뒤 자동 기동, 로그 `work_dir/_qedge9/launch_s1.log`) |
-| s2 | PAKD50 재배정 4 run(JR/XJ/J_R3_NOEDGE/J_N0_EDGE, 777) 완료(09-15 12:00 시트 확인) · QEDGE9 W104 S777 **v2** 3 벌(J0/JQ/QE50) 완료(09-16 s2 보고서; s1 생성기 밖에서 만든 이름) | **EDGEBAL 12 run(v1)**: pull → `./tools/edgebal_switch.sh` (사용자 조작; runner 를 죽이지 않는다). **DCR12** 인계(`dcr12_prepare.sh`; JK0 S777 config 는 PAKD50 마감 09-16 11:22 를 상속 → 지금 기동이면 `kdv.budget.required: true`, 노트 §5) 와 GPU 를 나누므로 순서는 사용자 결정 |
-| s3 | PAKD50 s3 추가(J_R3_NOEDGE→J_N0_EDGE→LF0→LFQ→LFX, seed 2026; QEGX 계획 §9.1 에 실측 있음 → 완료로 본다) · EQREC4 s3 는 09-15 사용자 결정(bundle; 실행 여부는 s3 에서 확인) | **QEGX 15 run(v2)**: pull → `./tools/qegx_switch.sh` (사용자 조작; runner 를 죽이지 않는다). 확인 seed 4321 은 명시 표 안(C 5 run) — 옛 `--confirm` 불필요 |
-| s4 | PAKD50 W104·D121 골격 이식(NA0/J0/JQ/XJ/F0@W104; NA0 0.9580 · J0 0.9585 · JQ 0.9565 — 시트 WV3-s4, best_raw raw HQNR, 09-15 15:00 확인; QEGX 계획 §9.1 에 5 run 실측 → 완료로 본다) | **QEGX 14 run(v1)**: pull → `./tools/qegx_switch.sh` (J0/JQ/XJ v1 은 `verified_complete` 뒤 재사용; 불통과면 `--refresh-controls` = v3). 확인 seed 3407 은 명시 표 안(C 6 run) — QEDGE9 는 s4 에 없다 |
-| s5 | QEDGE9 두 seed 6 run 중 J0/JQ/QE50 S2026 · J0/JQ S777 완료, QE50 S777 은 09-16 시트에 완료 행 없음(실행 중이면 끝까지) | **EDGEBAL 14 run(v2)**: pull → `./tools/edgebal_switch.sh` (QEDGE9 6 항목은 순서 앞에 그대로; 완료분 terminal) |
+| s1 | idle(09-16 저녁; SMEC12 준비 학습·QEDGE9 seed 1234 v2 5 벌 완료 — 시트 WV3-s1 61–65) | **QRECON24 12 run**(1234·3407: G22/A_UNIF/A_FREEZE/G21/G23/A_SHUF): `./tools/qrecon24_switch.sh` (사용자 조작; gate 꺼짐 → 큐로 기동) |
+| s2 | EDGEBAL 12 run 중 4 완료(EB_R3E000/050/025/200 S777) · QEDGE9 W104 S777 v2 3 벌 완료 | **QRECON24 12 run**(777: G 3×3 + E_UNIF/E_SHUF/ALL_UNIF): pull → `./tools/qrecon24_switch.sh` (진행 중 run 은 끝까지; EDGEBAL 잔여는 superseded). DCR12 인계는 별개(사용자 결정) |
+| s3 | QEGX 15 run 중 14 완료(QX50 S4321 남음) | **QRECON24 18 run**(2026·4321: G 3×3): pull → `./tools/qrecon24_switch.sh` |
+| s4 | QEGX 14 run 중 13 완료(QERS S3407 남음) · E0 5 완료 | **QRECON24 14 run**(1234: H 3×3 + H_ALPHA0/H_BETA0; 3407: H22/H12/H11): pull → `./tools/qrecon24_switch.sh` |
+| s5 | QEDGE9 6 완료 · EDGEBAL 14 run 중 5 완료(EB_R3E050/075/EDOWN/EUP/QFLOOR S2026) | **QRECON24 12 run**(2026·777·9091·1103: L100/L070/L050): pull → `./tools/qrecon24_switch.sh` |
+
+(직전 순서·완료 현황은 QRECON24 계획 부록 A(09-16 15:18 시트) 기준; 각 서버의 실제 프로세스 상태는 switch 가 확인한다 — Sheet 만 보고 kill 하지 않는다.)
 
 ### 기반 — 지금 캠페인들의 공통 기준
 
@@ -184,20 +186,20 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
   **골격이 다른 run 은 직접 대조군이 아니다** — W96·D124(BASE/PA/PO10 R100)·W168·D123 dual·W104·D122(NA104)·W104·D121 과 W112·D123 사이에서 절대 HQNR 을 빼지 않는다;
   대조는 같은 골격·같은 서버·같은 seed 의 대응 run 으로만.
 - **trainer kdv** (`kdv/` + `train_kdv.py`, 노트 `research_log/2026-09-10_s2-w112-kdv-implementation.md`): aligner 정책 A-FR/A-FT/A-SC/A-ID · 입력 프로토콜 I-A/I-N/I-AEQ/I-NATIVE-TRANSFER ·
-  GT-anchored adaptive KD(rec N0/R0/R1/R2/R3) · 출력 통계(EDGE-H 등) · `aligner_schedule`/`routing`(s5) · `edge_gate`(QEDGE9) · `edge_route`(QEGX) · `edge_schedule`/`edge_weight`(EDGEBAL) · `exact_resume`. registry(`kdv/registry.py`) 가 미지원 조합을 거부한다 —
+  GT-anchored adaptive KD(rec N0/R0/R1/R2/R3) · 출력 통계(EDGE-H 등) · `aligner_schedule`/`routing`(s5) · `edge_gate`(QEDGE9) · `edge_route`(QEGX) · `edge_schedule`/`edge_weight`(EDGEBAL) · `qrecon`(QRECON24: U/A 목적함수 분리) · `exact_resume`. registry(`kdv/registry.py`) 가 미지원 조합을 거부한다 —
   key 만 적혀 다른 실험이 조용히 도는 일이 없게. 이름 규칙·약명은 각 구현 노트 표. 정합 진단은 `tools/po10_diag.py`(`--ckpt last --native-reference`, `--probe-set palsv18`; |Δ|·EPE·입력 반응).
 - **Teacher T0** = PALS24 L1E4 seed 2025 best_raw 의 A+U (`assets/pakd50/T0_run`, 모든 서버에서 같은 경로·sha 검사). τR 0.012463942170143127 · λE0 0.09075170336956798
   (`assets/pakd50/calibration_resolved.json`, `tools/pakd50_calibrate.py`) · 후보 격자 `GRID1010_50K_v1`(eval_epoch 5, 50 후보 전부 보존).
   git 자산(지우지 말 것): `assets/donor_aligner/`(PA_A1 S2025 aligner — kdv unit gate 가 읽는다) · `assets/pakd50/`(T0_run·calibration·clock·init_hashes) · `assets/qedge9/`(cue).
   prepare 스크립트는 pa/kdv/nf16/pals24/pakd50 unit test 를 전부 돌린다.
 - **시트**: 탭 `WV3-<server>`(`gspread/server.txt`), 범주 ⑳ KDV ~ ㉖ SMEC12 는 `gspread/sheet_categories.py`, 옛 범주는 `WV3-<server>_v1` 탭. HQNR↑ = 전체 프레임(논문 프로토콜),
-  HQNR(V64)↑ = 가장자리 64 px 제외(판정은 HQNR↑ — '판정·표기 규약'). PAKD50 계열 X열 `PAKD50 / <case> / [A104D121 /] [QEDGE9 | QEGX | EDGEBAL /] FRESH50`.
+  HQNR(V64)↑ = 가장자리 64 px 제외(판정은 HQNR↑ — '판정·표기 규약'). PAKD50 계열 X열 `PAKD50 / <case> / [A104D121 /] [QEDGE9 | QEGX | EDGEBAL /] FRESH50`; QRECON24 는 `PAKD50 / QRC24 / <PROFILE> / A104D121 / FRESH50`.
   `gspread_upload.py --all` 은 `sheet_categories.ARCHIVED` 범주를 기본 제외(`--include-archived` 로 포함; 이전 도구 `gspread/archive_to_v1.py`, 백업 `gspread/_sheet_backup/`).
 - **캠페인 gate**: `work_dir/campaign_gates_enabled.txt` 에 적은 gate 만 `tools/campaign_gate.py` 가 연다(기본 전부 닫힘) — 캠페인 뒤 비운다. 돌던 체인의 재편성은 runner 교체
   (`pakd50_requeue.sh`/`pakd50_reallocate.sh`) 또는 runner 를 두고 다음 gate pass 가 새 코드를 읽게 하는 방식(`qedge9_switch.sh`).
 - **예산·시계**: PAKD50 branch 는 공통 절대 시계 `assets/pakd50/campaign_clock.json`(학습 마감 2026-09-16 11:22:31; trainer `kdv.budget.training_deadline`·gate admission·체인 마감이 같은 시각) + 50 h ledger.
   slot 예약 `reservation_h = 1.10 × reference_train_h + 10/60` → 서버 로컬 `work_dir/_pakd50/reservations.json`(= `kdv.budget.projection_file`) · `mandatory_runs.txt` ·
-  선택 `extra_priority.txt`(case id 또는 run 이름; 없으면 `PRIORITY_BY_SERVER` 기본 묶음만). QEDGE9(soft 9 h)·QEGX·EDGEBAL(상한 없음) 는 이를 상속하지 않는다.
+  선택 `extra_priority.txt`(case id 또는 run 이름; 없으면 `PRIORITY_BY_SERVER` 기본 묶음만). QEDGE9(soft 9 h)·QEGX·EDGEBAL·QRECON24(상한 없음) 는 이를 상속하지 않는다. **09-16 저녁부터 `PRIORITY_BY_SERVER` 는 다섯 서버 전부 QRECON24** — 직전 순서는 `PREVIOUS_PRIORITY_BY_SERVER`.
 - **판정**: 각 캠페인 계획서의 판정 절(PAKD50 `PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md`, QEDGE9 `PAN_QEDGE9_W104D121_S5_S4_Experiment_Plan_2026-09-15.md` §10 등) 그대로 —
   공통 원칙: 같은 서버·같은 seed 안의 대응 차이를 먼저, 판정선 0.0031(raw HQNR), 서버 간 절대 HQNR 을 빼지 않는다. GPU 학습은 run-to-run 재현이 아니다(s4 J0 v1/v2 0.0026 차).
 
@@ -233,6 +235,13 @@ feeder `return_meta`, trainer `kdv.edge_gate`/`kdv.exact_resume`(`kdv/resume.py`
 s3 = 15 run **v2**(J0→JQ→QE50→XJ→QX50→J_R3_NOEDGE→QEC3→QES→J_QB005→QE50_B005 S2026 → J0/JQ/XJ/QE50/QX50 S4321; 예약 25.20 h) — s5 QEDGE9 의 J0/JQ/QE50@W104 S2026 v1 config 와 이름 충돌을 피한 것(정의는 같다). s4 = E0 5 완료 뒤 14 run v1(QE50→LF0→LFQ→LFQE50→LFX→JE0→QER50→QERS S1234 → J0/JQ/QE50/JE0/QER50/QERS S3407; 26.28 h).
 큐 `config/queues/qegx_{s3,s4}.txt`, 전환 `tools/qegx_switch.sh`(`--dry-run`/`--pilot`(s3 c_E3)/`--refresh-controls`(s4)), 대기자 `tools/qegx_waiter.sh`(s3 는 J0 v2 exact50K 뒤 c_E3 자동), QEC3 pilot `tools/qedge9_cue.py pilot --branch qegx`. 검사 K34–K38(136 ALL OK). 시트 X열 `… / QEGX / FRESH50`, Notes `edge_U/edge_A/beta/freeze_from/cE_pilot`.
 **함정**: bare `QE50@W104_D121` 항목은 QEDGE9 자동 규칙(9 h ledger) 으로 간다 — QEGX 큐/extra 에는 **run 이름만** 쓴다(switch 가 검사).
+
+**QRECON24 — 확정 method 의 전 서버 튜닝 68 run (s1–s5, 09-16 저녁; 현재 큐)** — 계획 `PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md`, 노트 `2026-09-16_qrecon24-implementation.md`. 미실행 QETUNE24 86 run 은 superseded.
+method `kdv.qrecon`(continuous_v1): **w_i = 2·qref/(qref + q_T(i))**(raw q, qref 0.3276133416220546; threshold 아님; 실제 w 0.79–1.09, 평균 0.996) 를 A 와 U 가 공유 — **U ← L_U = mean(H + K + λE·w^E·E)**, **A ← L_A = mean(w^A·H) 만**(soft·edge·offset 없음), 같은 forward 에서 parameter 집합별 `autograd.grad`(`_qrecon_backward`; 단일 total backward 금지, optimizer.step 한 번).
+Student 는 T0 A 복사 + fresh U(W104·D121), native 입력(I-NATIVE-TRANSFER, jitter·offset 없음), λE **절대값**, A LR = rA × U LR. profile: G<ij>(λE 3e-4/1e-3/3e-3 × rA .003/.01/.03; **G22 기준**) · A_UNIF/A_SHUF/A_FREEZE · E_UNIF/E_SHUF · ALL_UNIF · H<ij>(α .5/1/1.5 × β .05/.1/.2) · H_ALPHA0/H_BETA0 · L100/L070/L050(U LR 1e-4/7e-5/5e-5). G22 = H22 = L100.
+이름 `PAKD50_QRC24_<SRV>_<PROFILE>_W104_D121_WV3_T0_S<seed>_FRESH50_v1`(서버 토큰은 충돌 방지; X열 `PAKD50 / QRC24 / <PROFILE> / A104D121 / FRESH50`). 캠페인 `QRECON24_A104D121_S1S5_20260916_v1` / branch `A104D121_T0FIX_QRECON24_v1`, 상한 없음(24h 는 최소 운영구간; ledger `work_dir/_qrecon24_budget/`), 예약 1.20×R_s + 10/60.
+큐 `config/queues/qrecon24_s{1..5}.txt`(사전 고정; 승자 대기 없음), 전환 `tools/qrecon24_switch.sh`(`--dry-run` / `--extend` §8.3), 대기자 `tools/qrecon24_waiter.sh`, **target selector** `tools/qrecon24_select.py <run> --official`(raw H ≥ 0.9585 후보 안에서 RR SCC→ERGAS→PSNR→SAM→Q8→SSIM; legacy best 보존; `results/qrecon24_target_selection.json`). 검사 K44–K48(171 ALL OK).
+**판정**: raw-original HQNR ≥ 0.9585 하한 + 같은 checkpoint 의 RR(논문 표시값 SCC .988 / ERGAS 2.040 / PSNR 37.956 / SAM 2.787 / Q8 .922 / SSIM .976). Asset board(seed 최고 자산) 와 Method board(profile 의 모든 seed 평균·σ·하한 통과 수) 를 분리. 같은 seed 의 다른 서버 실행은 host 반복이지 독립 seed 가 아니다.
 
 **EDGEBAL — GT edge 를 얼마나·언제 (s2·s5, 09-16)** — 계획 `PAN_EDGEBAL_S2_S5_Experiment_Plan_2026-09-16.md`, 노트 `2026-09-16_edgebal-implementation.md`. q gate 를 더 복잡하게 만들기 전에 edge 강도·시간배분·완만한 cue 를 분리한다.
 case `EB_*`(prefix; 전부 J 정책·R3 기본): 상수 배수 `EB_R3E025/050/075/100/200`(= r×λE0, `lam_mult`; 050 = J_QE025, 100 = JQ, 200 = J_QE10) · `EB_N0`(= J0) · `EB_R3E000`(= J_R3_NOEDGE) · `EB_N0E100`(= J_N0_EDGE) · `EB_R1E100`(= XJ) ·

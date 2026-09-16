@@ -180,6 +180,8 @@ def integrated_label(run, branch=None):
     if not m:
         case = run[len("PAKD50_"):].split("_W112")[0]; proto = "FRESH50" if "_FRESH50_" in run else run.rsplit("_", 2)[-2]; return f"PAKD50 / {case}{btok} / {proto}"
     arch = m.group("arch"); tok = "" if arch == "W112_D123" else " / A" + arch.replace("W", "").replace("_D", "D")
+    if m.group("case").startswith("QRC24_"):                 # QRECON24 §9.3: 'PAKD50 / QRC24 / G22 / A104D121 / FRESH50' (서버 토큰은 파일 충돌 방지용 — X열에서 뺀다)
+        _parts = m.group("case").split("_"); return f"PAKD50 / QRC24 / {'_'.join(_parts[2:])}{tok} / {m.group('proto')}"
     return f"PAKD50 / {m.group('case')}{tok}{btok} / {m.group('proto')}"
 
 
@@ -639,7 +641,15 @@ def collect(tag, want_profile, server, peer=None):
                 _th = _err.get("theta_q"); _sha = (_err.get("npz_sha256") or "")[:16]; _tp = (_kb.get("budget") or {}).get("time_policy") or {}
                 desc = (desc + f"; q_source=T0; q_bank=AXIS16; q_cut=median; theta_q={_th if _th is not None else 'asset'}; edge_route={_er['mode']}; edge_U=1; edge_A={'g_shuffle' if _er['mode'] == 'shuffle' else 'g'}; hard_always=1; cue_sha={_sha or 'asset'}; time_policy={_tp.get('mode', 'inherit')}"
                         + (f"; perm_seed={_er.get('perm_seed')}" if _er["mode"] == "shuffle" else "")).strip()
-            if "EDGEBAL" in str(_kb.get("experiment_branch_id", "")):  # EDGEBAL §10.4 Notes: edge_mult · edge_schedule · edge_low/high · gt_hard_always · T0_sha · cue_asset_id · seed · release_sha · control_run_id
+            if _kb.get("qrecon"):                    # QRECON24 §9.3 Notes: method · A_loss · λE 절대값 · rA · U/A LR · α/β · qref · A/E weight mode · w/perm hash · init seed · T0 · release · selector 상태
+                _q = _kb["qrecon"]; _qc = _kb.get("qrc24") or {}; _cr = os.path.join(ROOT, "work_dir", tag, "calibration_resolved.json"); _qr = ((json.load(open(_cr)).get("qrecon") or {}) if os.path.exists(_cr) else {}); _qs = _qr.get("stats") or {}
+                _gc = os.path.join(ROOT, "work_dir", tag, "meta", "git_commit.txt"); _rel = (open(_gc).read().strip()[:12] if os.path.exists(_gc) else "?")
+                _sel = os.path.join(ROOT, "work_dir", tag, "results", "qrecon24_target_selection.json"); _sj = (json.load(open(_sel)) if os.path.exists(_sel) else {})
+                desc = (desc + f"; method=qrecon_continuous_v1; A_loss=weighted_H_only; A_soft=0; A_edge=0; student_offset=0; profile={_qc.get('profile')}({_qc.get('canonical')}); lambda_E_abs={_qc.get('lambda_E')}; rA={_qc.get('rA')}; U_lr={_qc.get('U_lr')}; A_lr={_qc.get('A_lr')}"
+                        + f"; alpha={_qc.get('alpha')}; beta={_qc.get('beta')}; qref={_q.get('q_ref')}; A_weight={_q.get('a_weight')}; E_weight={_q.get('e_weight')}; w_sha={_qs.get('w_sha256_16') or '?'}; perm_sha={_qs.get('w_shuffle_sha256_16') or '?'}; w_mean={_qs.get('w_mean_all')}"
+                        + f"; init_seed={getattr(a, 'seed', '?')}; T0_sha={str((_kb.get('teacher') or {}).get('expected_sha256') or '')[:16]}; cue_asset_id={_qr.get('asset_id') or 'asset'}; release_sha={_rel}; control_run_id={_kb.get('control_runs')}"
+                        + (f"; target_feasible={_sj.get('target_feasible')}; target_selected_step={(_sj.get('target') or {}).get('step')}; target_official={_sj.get('official')}" if _sj else "; target_selector=pending(tools/qrecon24_select.py)")).strip()
+            elif "EDGEBAL" in str(_kb.get("experiment_branch_id", "")):  # EDGEBAL §10.4 Notes: edge_mult · edge_schedule · edge_low/high · gt_hard_always · T0_sha · cue_asset_id · seed · release_sha · control_run_id
                 _st = _kb.get("stat") or {}; _cal = json.load(open(os.path.join(ROOT, "assets", "pakd50", "calibration_resolved.json"))) if os.path.exists(os.path.join(ROOT, "assets", "pakd50", "calibration_resolved.json")) else {}
                 _lam0 = float(_cal.get("lambda_E") or 0.0); _ow = _st.get("outer_weight") if _st.get("enabled") else 0.0
                 _mult = (round(float(_ow) / _lam0, 4) if (_lam0 > 0 and isinstance(_ow, (int, float))) else ("calibrate" if _ow == "calibrate" else 0.0))

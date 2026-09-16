@@ -5,7 +5,8 @@ K17–K20 (2026-09-15 재배정): RC 정책·J_R3_NOEDGE/J_N0_EDGE 정의 · RC 
 K23–K28 (2026-09-15 QEDGE9): case/branch/시간 정책 · registry 거부 · per-sample edge·trainer 경로(g=1/0/혼합/const) · q 수식·θq·셔플·cue 자산 · s5/s4 편성·schedule(blocked/exempt) · feeder return_meta · 생성 config
 K29–K33 (QEDGE9 감사 대응): exact resume(F04) · cue asset_id·내부 일관성·재개 대조(F03) · QEC pilot identity(F02) · 실측 통합(F07) · 완료 검증(F06)
 K34–K38 (2026-09-15 QEGX s3/s4): case/branch/시간 정책/편성·예약(§5·§6·§9) · registry edge_route 거부·통과 · trainer edge_route(g=1≡JQ · g=0≡JE0 · 혼합 autograd · QERS RNG) · LFQE50/β=0/g=0 동치 · c_E3 pilot 분리·시트 토큰·gate exempt
-K39–K43 (2026-09-16 EDGEBAL s2/s5): EB case 동치·상수 배수·schedule·floor 등록/편성/예약(§4–§7) · registry edge_schedule/edge_weight 거부·통과 · trainer 동치(EB_N0≡J0 · R3E100≡JQ · R3E000≡R3_NOEDGE · R1E100≡XJ · N0E100≡N0_EDGE) · 배수 · 25K 경계·A 계속 학습 · floor/shuffle/reverse 계수·no-grad · 시트/스크립트/config"""
+K39–K43 (2026-09-16 EDGEBAL s2/s5): EB case 동치·상수 배수·schedule·floor 등록/편성/예약(§4–§7) · registry edge_schedule/edge_weight 거부·통과 · trainer 동치(EB_N0≡J0 · R3E100≡JQ · R3E000≡R3_NOEDGE · R1E100≡XJ · N0E100≡N0_EDGE) · 배수 · 25K 경계·A 계속 학습 · floor/shuffle/reverse 계수·no-grad · 시트/스크립트/config
+K44–K48 (2026-09-16 QRECON24 s1–s5): profile/큐 68/이름/예약 1.20×R_s(§4–§5·§8) · registry qrecon 거부·통과 · trainer 두 목적함수 분리(U←∇L_U · A←∇L_A 만, β/λE 불변, α 변화, A_FREEZE 불변, offset 없음, ALL_UNIF≡표준 total) · QWeight(w(qref)=1·q=0→2·fail-fast·셔플 multiset·실제 자산) · 시트/스크립트/config/selector"""
 import copy, json, os, subprocess, sys, tempfile
 import torch, yaml
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0, ROOT)
@@ -38,7 +39,7 @@ check("K01 T0 는 A(0.105M, view margin 4)+U(2.6589M) 한 쌍, 같은 checkpoint
 check("K01 T0 head 가 재초기화되지 않았고(0 아님) donor 와 Teacher 의 aligner state 가 같다", float(al.fc2.weight.abs().sum()) > 0 and state_hash(al) == state_hash(T0.aligner))
 
 # ---------------- K02 정책/backend 매핑 (§4·§6·§7)
-cal = dict(tau_R=0.012, lambda_E=0.3); spec = {c: resolve(G.kdv_block(c, SEED, SRV, cal=cal)) for c in G.CASES if c not in G.QEDGE9_CASES and c not in G.QEGX_CASES and c not in G.EDGEBAL_CASES}      # QEDGE9/QEGX/EDGEBAL case 는 W104 전용 (K23/K34/K39)
+cal = dict(tau_R=0.012, lambda_E=0.3); spec = {c: resolve(G.kdv_block(c, SEED, SRV, cal=cal)) for c in G.CASES if c not in G.QEDGE9_CASES and c not in G.QEGX_CASES and c not in G.EDGEBAL_CASES and not c.startswith("QRC24_")}      # QEDGE9/QEGX/EDGEBAL/QRC24 case 는 W104 전용 (K23/K34/K39/K44)
 check("K02 J*: A-FT + I-AEQ + offset 1e-4 (홀수 update, b=2) · F*: A-FR + I-NATIVE-TRANSFER + offset 0 · AL*: A LR 3e-6", all(spec[c]["policy"] == "A-FT" and spec[c]["protocol"] == "I-AEQ" and abs(spec[c]["offset_weight_effective"] - 1e-4) < 1e-15 for c in ("J0", "JQ", "JR", "XJ", "AL0", "ALQ"))
       and all(spec[c]["policy"] == "A-FR" and not spec[c]["aligner_trainable"] and spec[c]["offset_weight_effective"] == 0 for c in ("F0", "FQ", "FR", "XF")) and G.kdv_block("AL0", SEED, SRV, cal=cal)["aligner_lr"] == 3e-6 and G.kdv_block("J0", SEED, SRV, cal=cal)["aligner_lr"] == 1e-5)
 check("K02 backend: N0=gt(Teacher eval_only) · R1=hard_only(α1, β0) · Q12=adaptive(α1, β0.1)+EDGE-H · X02=hard_only+EDGE-H", spec["J0"]["rec_mode"] == "gt" and spec["J0"]["teacher_eval_only"] and spec["JR"]["rec_mode"] == "hard_only" and not spec["JR"]["stat_enabled"]
@@ -149,7 +150,7 @@ try:
     G.kdv_block("J_QE10", 1234, "s4", cal=dict(tau_R=0.012)); check("K09 λE 배율 case 는 λE0 없이 만들 수 없다", False)
 except SystemExit:
     check("K09 λE 배율 case 는 λE0 없이 만들 수 없다", True)
-check("K09 s4: seed 1234(s1 과 같은 run id), T0 경로는 모든 서버에서 자산 사본, 2026-09-14 기본 묶음 J0→JQ→AL0→ALQ(완료; PREVIOUS_PRIORITY_BY_SERVER), stage 1 = J0/AL0", G.SERVER_SEED["s4"] == 1234 and G.t0_dir("s1") == G.t0_dir("s4") == G.T0_ASSET_DIR and G.PREVIOUS_PRIORITY_BY_SERVER["s4_20260914"] == ["J0", "JQ", "AL0", "ALQ"] and G.stage_cases("s4", 1) == ["J0", "AL0"] and G.priority_for("s9") == G.PRIORITY and G.priority_for("s1") == G.QEDGE9_ITEMS_BY_SERVER["s1"])
+check("K09 s4: seed 1234(s1 과 같은 run id), T0 경로는 모든 서버에서 자산 사본, 2026-09-14 기본 묶음 J0→JQ→AL0→ALQ(완료; PREVIOUS_PRIORITY_BY_SERVER), stage 1 = J0/AL0", G.SERVER_SEED["s4"] == 1234 and G.t0_dir("s1") == G.t0_dir("s4") == G.T0_ASSET_DIR and G.PREVIOUS_PRIORITY_BY_SERVER["s4_20260914"] == ["J0", "JQ", "AL0", "ALQ"] and G.stage_cases("s4", 1) == ["J0", "AL0"] and G.priority_for("s9") == G.PRIORITY and G.QEDGE9_ITEMS_BY_SERVER["s1"] == G.QEDGE9_S1_ITEMS)
 check("K09 s4 기본 묶음(예산 예약, 서버 로컬 파일로) = 현재 명시 순서 (mandatory_for == priority_for; 09-15 재배정 묶음은 PREVIOUS['s4']) · config 자체에는 서버별 목록 없음", G.mandatory_for("s4") == G.priority_for("s4") and G.PREVIOUS_PRIORITY_BY_SERVER["s4"] == ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"] and G.kdv_block("ALQ", 1234, "s4", cal=cal4)["budget"]["remaining_mandatory"] == [])
 ex = ["J_QA05", G.run_name("JQ", 3407), "J_QA05"]
 check("K09 추가 편성: case id 와 전체 run 이름 혼용, 기본 묶음 뒤·중복 제거; λE 없으면 λE case 는 미편성", G.schedule(True, term({"J0", "JQ", "AL0", "ALQ"}), 40.0, 1.9, priority=G.PREVIOUS_PRIORITY_BY_SERVER["s4_20260914"], extra=ex) == (["J_QA05", G.run_name("JQ", 3407)], []) and G.schedule(False, term({"J0", "AL0"}), 40.0, 1.9, priority=G.PREVIOUS_PRIORITY_BY_SERVER["s4_20260914"], extra=ex) == ([], []))
@@ -270,7 +271,7 @@ del tR, tJ, tQ, tE, totR, totQ, totE, totJ
 # K19 서버별 명시 순서·예약식 (§3–§4 검산)·admission (§8)·확인 seed (§7)
 check("K19 명시 순서(§4; s2 는 09-16 EDGEBAL 로 교체 → PREVIOUS['s2_20260915']): s2 JR→XJ→J_R3_NOEDGE→J_N0_EDGE · s4 F0→RC0→RCQ→JR→XJ→J_R3_NOEDGE · s5 PQ→F0→LF0→LFQ→RC0→RCQ; mandatory == priority; 항목 없는 서버는 기본 PRIORITY(s1 은 17:20 QEDGE9 v2 목록; s3 는 09-15 s3 추가 전 기본); 완료 묶음은 순서에 없다(FR 도)",
       G.PREVIOUS_PRIORITY_BY_SERVER["s2_20260915"] == ["JR", "XJ", "J_R3_NOEDGE", "J_N0_EDGE"] and G.PREVIOUS_PRIORITY_BY_SERVER["s4"] == ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"] and G.PREVIOUS_PRIORITY_BY_SERVER["s5_20260915"] == ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"]
-      and all(G.mandatory_for(s) == G.priority_for(s) for s in ("s2", "s4", "s5", "s1")) and G.priority_for("s9") == G.PRIORITY and G.priority_for("s1") == G.QEDGE9_ITEMS_BY_SERVER["s1"] and G.PREVIOUS_PRIORITY_BY_SERVER["s3"] == G.PRIORITY and not ({"J0", "JQ", "F0", "FQ", "FR"} & set(G.priority_for("s2"))) and "PQ" in G.PREVIOUS_PRIORITY_BY_SERVER["s5_20260915"])
+      and all(G.mandatory_for(s) == G.priority_for(s) for s in ("s2", "s4", "s5", "s1")) and G.priority_for("s9") == G.PRIORITY and G.QEDGE9_ITEMS_BY_SERVER["s1"] == G.QEDGE9_S1_ITEMS and G.PREVIOUS_PRIORITY_BY_SERVER["s3"] == G.PRIORITY and not ({"J0", "JQ", "F0", "FQ", "FR"} & set(G.priority_for("s2"))) and "PQ" in G.PREVIOUS_PRIORITY_BY_SERVER["s5_20260915"])
 _sum = lambda srv: sum(G.reservation_for(srv, c)["reservation_h"] for c in (G.PREVIOUS_PRIORITY_BY_SERVER["s4"] if srv == "s4" else (G.PREVIOUS_PRIORITY_BY_SERVER["s5_20260915"] if srv == "s5" else (G.PREVIOUS_PRIORITY_BY_SERVER["s2_20260915"] if srv == "s2" else G.priority_for(srv)))))
 check("K19 예약식 reservation_h = 1.10×ref + 10/60 (§3 검산): s2 4×2.33 → 10.9187 · s4 2×1.17+4×1.39 → 9.6900 · s5 1.80+3×1.35+2×1.36 → 10.4270 (측정값 없이)",
       abs(_sum("s2") - 10.9186667) < 1e-6 and abs(_sum("s4") - 9.69) < 1e-6 and abs(_sum("s5") - 10.427) < 1e-6 and abs(G.reservation_hours(2.33) - 2.7296667) < 1e-6)
@@ -329,8 +330,8 @@ except ValueError:
     check("K22 알 수 없는 골격은 ValueError", True)
 _s4 = lambda it: G.reservation_for("s4", it)["reservation_h"]
 check("K22 s4 명시 순서 앞 5 = NA0→J0→JQ→XJ→F0 (@W104_D121; 완료; 뒤 QEGX 14 항목은 K34) · 파생 묶음(F0/RC0/RCQ/JR/XJ/J_R3_NOEDGE@W112) 은 PREVIOUS · reference 는 QEGX §9.1 Sheet 실측 1.27/1.17/1.38/1.37/1.13(종전 대용 1.18/1.18/1.40/1.39/1.14 교체) → 예약 합 7.785333 h · 편성은 W112 완료 run 과 별개",
-      G.priority_for("s4")[:5] == ["NA0@W104_D121", "J0@W104_D121", "JQ@W104_D121", "XJ@W104_D121", "F0@W104_D121"] and G.PREVIOUS_PRIORITY_BY_SERVER["s4"] == ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"] and abs(sum(_s4(c) for c in G.priority_for("s4")[:5]) - 7.7853333) < 1e-6
-      and G.reference_hours("s4", "JQ@W104_D121") == (1.38, "plan_reference_case") and G.reference_hours("s4", "JQ") == (1.39, "plan_reference") and G.schedule(True, term({G.run_name("F0", 1234), G.run_name("JQ", 1234)}), 40.0, _s4, priority=G.priority_for("s4")[:5]) == (G.priority_for("s4")[:5], [])
+      G.QEGX_S4_ITEMS[:5] == ["NA0@W104_D121", "J0@W104_D121", "JQ@W104_D121", "XJ@W104_D121", "F0@W104_D121"] and G.PREVIOUS_PRIORITY_BY_SERVER["s4"] == ["F0", "RC0", "RCQ", "JR", "XJ", "J_R3_NOEDGE"] and abs(sum(_s4(c) for c in G.QEGX_S4_ITEMS[:5]) - 7.7853333) < 1e-6
+      and G.reference_hours("s4", "JQ@W104_D121") == (1.38, "plan_reference_case") and G.reference_hours("s4", "JQ") == (1.39, "plan_reference") and G.schedule(True, term({G.run_name("F0", 1234), G.run_name("JQ", 1234)}), 40.0, _s4, priority=G.QEGX_S4_ITEMS[:5]) == (G.QEGX_S4_ITEMS[:5], [])
       and G.measured_hours_from_ledger("s4", dict(entries={G.run_name("JQ", 1234): dict(kind="run", status="FINISHED", hours=1.39), G.run_name("JQ", 1234, arch="W104_D121"): dict(kind="run", status="FINISHED", hours=0.9)})) == {"JQ": 1.39, "JQ@W104_D121": 0.9})
 _cb = G.confirmation_cases("JQ", "s4"); _cr = [G.reservation_for("s4", G.to_tag(it, 3407)) for it in _cb]
 check("K22 s4 옛 --confirm 묶음(§6) 은 그대로 정의(J0@W104 → WIN@W104 → J0@W112 → WIN@W112; 최대 4; 표 밖 후보 거부) — 단 seed 3407 은 이제 QEGX 명시 표의 허용 seed 라 예약은 confirm 가예약이 아니라 plan reference(J0@W104 1.17 · JQ@W104 1.38 · J0 1.17 · JQ 1.39 → 6.2877 h); QEGX §12: 옛 --confirm 은 명시 표를 대신하지 않는다",
@@ -497,18 +498,18 @@ if os.path.exists(_asset):
 else:
     check("K25 실제 cue 자산 (assets/qedge9) — 없음: tools/qedge9_cue.py build (s1) 뒤 git 으로 전달", False)
 # ---- K26 편성(§5·§6·§9.2)
-_p5 = G.priority_for("s5"); _p4 = G.priority_for("s4"); _r = lambda srv, it: G.reservation_for(srv, it)
+_p5 = list(G.PREVIOUS_PRIORITY_BY_SERVER["s5_20260916_edgebal"]); _p4 = list(G.QEGX_S4_ITEMS); _r = lambda srv, it: G.reservation_for(srv, it)   # 09-16 저녁 QRECON24 로 교체된 직전 순서 (K44)
 check("K26 s5 명시 순서(§5): J0→JQ→QE50 @W104 S2026 → J0→JQ→QE50 @W104 S777(run 이름 항목) · 전부 QEDGE9 branch · 777 은 허용 seed(확인 seed 아님; 9091 은 확인) · 예약(EDGEBAL §7.1 실측 1.38/1.57/1.65 로 교체) 1.6847/1.8937/1.9817 ×2 = 11.1200 h · 9091 은 EDGEBAL 허용 seed(K39) · 옛 순서는 PREVIOUS['s5_20260915'] · cue 없는 QEC 는 cue_ready False",
       _p5[:6] == ["J0@W104_D121", "JQ@W104_D121", "QE50@W104_D121", G.run_name("J0", 777, arch="W104_D121"), G.run_name("JQ", 777, arch="W104_D121"), G.run_name("QE50", 777, arch="W104_D121")]
-      and all(G.branch_for("s5", it) == "QEDGE9" for it in _p5[:6]) and G.allowed_seeds("s5") == {2026, 777, 9091} and abs(sum(_r("s5", it)["reservation_h"] for it in _p5[:6]) - 11.12) < 1e-6
+      and all(G.branch_for("s5", it) == "QEDGE9" for it in _p5[:6]) and G.allowed_seeds("s5") == {2026, 777, 9091, 1103} and abs(sum(_r("s5", it)["reservation_h"] for it in _p5[:6]) - 11.12) < 1e-6
       and [_r("s5", it)["reference_kind"] for it in _p5[:6]] == ["plan_reference_case"] * 6 and [_r("s5", it)["seed"] for it in _p5[:6]] == [2026, 2026, 2026, 777, 777, 777] and _r("s5", G.run_name("J0", 9999, arch="W104_D121"))["reference_kind"] == "confirm_placeholder"
-      and G.PREVIOUS_PRIORITY_BY_SERVER["s5_20260915"] == ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"] and G.mandatory_for("s5") == _p5 and G.cue_ready("J0@W104_D121") is True and G.cue_ready("QEC@W104_D121") == os.path.exists(os.path.join(ROOT, G.QEDGE9_CE_FILE)))
-_p1 = G.priority_for("s1")
+      and G.PREVIOUS_PRIORITY_BY_SERVER["s5_20260915"] == ["PQ", "F0", "LF0", "LFQ", "RC0", "RCQ"] and G.PREVIOUS_PRIORITY_BY_SERVER["s5_20260916_edgebal"] == _p5 and G.cue_ready("J0@W104_D121") is True and G.cue_ready("QEC@W104_D121") == os.path.exists(os.path.join(ROOT, G.QEDGE9_CE_FILE)))
+_p1 = list(G.QEDGE9_S1_ITEMS)
 check("K26 s4 앞 5 는 기존 E0 allocation(NA0→J0→JQ→XJ→F0 @W104, 마감 상속; QEDGE9 항목 없음 — QEGX 14 는 K34) · JQ/XJ/F0 1.6847/1.6737/1.4097 = 4.7680 h · 확인 seed 3407 은 이제 QEGX 명시 표(allowed)·옛 --confirm 규칙은 그대로",
       _p4[:5] == ["NA0@W104_D121", "J0@W104_D121", "JQ@W104_D121", "XJ@W104_D121", "F0@W104_D121"] and [G.branch_for("s4", it) for it in _p4[:5]] == [None] * 5 and "s4" not in G.QEDGE9_ITEMS_BY_SERVER
       and abs(sum(_r("s4", it)["reservation_h"] for it in _p4[2:5]) - 4.7680) < 1e-4 and G.allowed_seeds("s4") == {1234, 3407} and G.confirmation_cases("JQ", "s4") == ["J0@W104_D121", "JQ@W104_D121", "J0", "JQ"])
 check("K26 s1 명시 순서(17:20 s4→s1): J0→JQ→QE50→QES→QEC @W104 S1234 **v2**(run 이름 항목; E0 v1 config 와 충돌 없음) · 전부 QEDGE9 branch · QEC 마지막(pilot = s1 J0 v2 exact50K) · 예약 1.4647/1.7067/1.8167/1.8167/1.7067 = 8.5113 h · 허용 seed {1234} · v2 config 의 work_dir·baseline 도 v2",
-      _p1 == [G.run_name(c, 1234, "v2", arch="W104_D121") for c in ("J0", "JQ", "QE50", "QES", "QEC")] and all(G.branch_for("s1", it) == "QEDGE9" for it in _p1) and G.allowed_seeds("s1") == {1234}
+      _p1 == [G.run_name(c, 1234, "v2", arch="W104_D121") for c in ("J0", "JQ", "QE50", "QES", "QEC")] and all(G.branch_for("s1", it) == "QEDGE9" for it in _p1) and G.allowed_seeds("s1") == {1234, 3407}
       and abs(sum(_r("s1", it)["reservation_h"] for it in _p1) - 8.5113) < 1e-4 and [_r("s1", it)["reference_kind"] for it in _p1] == ["plan_reference_case"] * 5 and G.QEDGE9_PILOT_BY_SERVER["s1"] == _p1[0] and G.QEDGE9_PILOT_BY_SERVER["s4"] == G.QEDGE9_PILOT_RUN
       and G.kdv_block("QEC", 1234, "s1", cal=calQ, arch="W104_D121", version="v2")["edge_gate"]["pilot_run"] == _p1[0] and G.kdv_block("QEC", 1234, "s1", cal=calQ, arch="W104_D121", version="v2")["baseline_run"] == _p1[0]
       and G.kdv_block("J0", 1234, "s1", cal=calQ, arch="W104_D121", version="v2", branch="QEDGE9")["campaign_id"] == G.QEDGE9_CAMPAIGN_ID and [l.strip() for l in open(os.path.join(ROOT, "config", "queues", "qedge9_s1.txt")) if l.strip() and not l.startswith("#")] == _p1)
@@ -667,14 +668,14 @@ for _lab, _fn in (("K34 QEC3 는 s3 만 (s4 에는 pilot 이 없다 → SystemEx
         _fn(); check(_lab, False)
     except SystemExit:
         check(_lab, True)
-_p3 = G.priority_for("s3"); _p4x = [it for it in G.priority_for("s4") if G.is_tag(it)]
+_p3 = list(G.QEGX_S3_ITEMS); _p4x = [it for it in G.QEGX_S4_ITEMS if G.is_tag(it)]
 _want3 = [G.run_name(c, 2026, "v2", arch="W104_D121") for c in ("J0", "JQ", "QE50", "XJ", "QX50", "J_R3_NOEDGE", "QEC3", "QES", "J_QB005", "QE50_B005")] + [G.run_name(c, 4321, "v2", arch="W104_D121") for c in ("J0", "JQ", "XJ", "QE50", "QX50")]
 _want4 = [G.run_name(c, 1234, arch="W104_D121") for c in ("QE50", "LF0", "LFQ", "LFQE50", "LFX", "JE0", "QER50", "QERS")] + [G.run_name(c, 3407, arch="W104_D121") for c in ("J0", "JQ", "QE50", "JE0", "QER50", "QERS")]
 check("K34 편성(§5·§6): s3 = 15 run **v2**(2026 A/B 10 → 4321 C 5) · s4 = E0 5 뒤 14 run v1(1234 A 8 → 3407 C 6) · 전부 QEGX branch · allowed seed s3 {2026,4321} / s4 {1234,3407} · 옛 s3 순서는 PREVIOUS · bare 'QE50@W104_D121' 은 QEDGE9 자동 규칙(큐에는 run 이름만) · 큐 파일 == 순서 · refresh v3 는 QEGX",
       _p3 == _want3 and _p4x == _want4 and all(G.branch_for("s3", it) == "QEGX" for it in _p3) and all(G.branch_for("s4", it) == "QEGX" for it in _p4x) and G.allowed_seeds("s3") == {2026, 4321} and G.allowed_seeds("s4") == {1234, 3407}
       and G.branch_for("s3", "QE50@W104_D121") == "QEDGE9" and G.branch_for("s3", "J0@W104_D121") is None and G.branch_for("s4", G.QEGX_REFRESH_CONTROLS["s4"][0]) == "QEGX" and G.QEGX_REFRESH_CONTROLS["s4"][0].endswith("_v3")
       and [l.strip() for l in open(os.path.join(ROOT, "config", "queues", "qegx_s3.txt")) if l.strip() and not l.startswith("#")] == _p3 and [l.strip() for l in open(os.path.join(ROOT, "config", "queues", "qegx_s4.txt")) if l.strip() and not l.startswith("#")] == _p4x
-      and G.mandatory_for("s3") == _p3 and G.server_id("s3(5090)") == "s3" and G.server_id(" s4\n") == "s4" and {"QX50", "QEC3", "QE50_B005", "LFQE50", "QER50", "QERS"} <= G.NEEDS_LAMBDA_E)
+      and G.PREVIOUS_PRIORITY_BY_SERVER["s3_20260915_qegx"] == _p3 and G.server_id("s3(5090)") == "s3" and G.server_id(" s4\n") == "s4" and {"QX50", "QEC3", "QE50_B005", "LFQE50", "QER50", "QERS"} <= G.NEEDS_LAMBDA_E)
 _r3 = [G.reservation_for("s3", it) for it in _p3]; _r4 = [G.reservation_for("s4", it) for it in _p4x]
 check(f"K34 예약(§9.2): s3 ref 1.16/1.34/1.50/1.33/1.50/1.30/1.34/1.50/1.34/1.50 + C 5 → 합 25.2039 h (실측 {sum(r['reservation_h'] for r in _r3):.4f}) · s4 14 run 합 26.2803 h ({sum(r['reservation_h'] for r in _r4):.4f}) · 전부 plan_reference_case(확인 seed 도 명시 표; confirm_placeholder 아님) · routing 1.80(*) · gate 1.50(*)",
       abs(sum(r["reservation_h"] for r in _r3) - 25.2039) < 2e-4 and abs(sum(r["reservation_h"] for r in _r4) - 26.2803) < 2e-4 and all(r["reference_kind"] == "plan_reference_case" for r in _r3 + _r4)
@@ -824,13 +825,13 @@ for _lab, _fn in (("K39 EB case 를 QEGX/QEDGE9 branch 로 만들면 SystemExit"
         _fn(); check(_lab, False)
     except SystemExit:
         check(_lab, True)
-_p2 = G.priority_for("s2"); _p5e = [it for it in G.priority_for("s5") if it.startswith("PAKD50_EB_")]
+_p2 = list(G.EDGEBAL_S2_ITEMS); _p5e = list(G.EDGEBAL_S5_ITEMS)
 _w2 = [G.run_name(c, 777, arch="W104_D121") for c in ("EB_R3E000", "EB_R3E050", "EB_R3E025", "EB_R3E200", "EB_N0E100", "EB_R1E100")] + [G.run_name(c, sd, arch="W104_D121") for sd in (2026, 9091) for c in ("EB_N0", "EB_R3E100", "EB_R3E050")]
 _w5 = [G.run_name(c, 2026, "v2", arch="W104_D121") for c in ("EB_R3E050", "EB_R3E075", "EB_EDOWN", "EB_EUP", "EB_QFLOOR", "EB_QFSHUF", "EB_QFREV", "EB_N0E100")] + [G.run_name(c, 777, "v2", arch="W104_D121") for c in ("EB_R3E075", "EB_EDOWN")] + [G.run_name(c, 9091, "v2", arch="W104_D121") for c in ("EB_N0", "EB_R3E100", "EB_R3E075", "EB_EDOWN")]
 check("K39 편성(§5·§6): s2 = 12 run v1(777 A 6 → 2026 B 3 → 9091 C 3) · s5 = QEDGE9 6 그대로 뒤 14 run **v2**(2026 A 8 → 777 B 2 → 9091 C 4) · 전부 EDGEBAL branch(s5 앞 6 은 QEDGE9 유지) · allowed seed s2/s5 {777, 2026, 9091} · 큐 파일 == 순서 · 옛 s2 순서 PREVIOUS · QF* 는 cue case · λE 의존(EB_N0/EB_R3E000 제외)",
-      _p2 == _w2 and _p5e == _w5 and G.priority_for("s5")[:6] == G.QEDGE9_S5_ITEMS == G.QEDGE9_ITEMS_BY_SERVER["s5"] and all(G.branch_for("s2", it) == "EDGEBAL" for it in _p2) and all(G.branch_for("s5", it) == "EDGEBAL" for it in _p5e) and all(G.branch_for("s5", it) == "QEDGE9" for it in G.QEDGE9_S5_ITEMS)
-      and G.allowed_seeds("s2") == {777, 2026, 9091} == G.allowed_seeds("s5") and G.EDGEBAL_ITEMS_BY_SERVER == {"s2": _w2, "s5": _w5} and G.mandatory_for("s2") == _p2
-      and [l.strip() for l in open(os.path.join(ROOT, "config", "queues", "edgebal_s2.txt")) if l.strip() and not l.startswith("#")] == _p2 and [l.strip() for l in open(os.path.join(ROOT, "config", "queues", "edgebal_s5.txt")) if l.strip() and not l.startswith("#")] == G.priority_for("s5")
+      _p2 == _w2 and _p5e == _w5 and G.QEDGE9_ITEMS_BY_SERVER["s5"] == G.QEDGE9_S5_ITEMS and all(G.branch_for("s2", it) == "EDGEBAL" for it in _p2) and all(G.branch_for("s5", it) == "EDGEBAL" for it in _p5e) and all(G.branch_for("s5", it) == "QEDGE9" for it in G.QEDGE9_S5_ITEMS)
+      and G.allowed_seeds("s2") == {777, 2026, 9091} and G.allowed_seeds("s5") == {2026, 777, 9091, 1103} and G.EDGEBAL_ITEMS_BY_SERVER == {"s2": _w2, "s5": _w5} and G.PREVIOUS_PRIORITY_BY_SERVER["s2_20260916_edgebal"] == _p2
+      and [l.strip() for l in open(os.path.join(ROOT, "config", "queues", "edgebal_s2.txt")) if l.strip() and not l.startswith("#")] == _p2 and [l.strip() for l in open(os.path.join(ROOT, "config", "queues", "edgebal_s5.txt")) if l.strip() and not l.startswith("#")] == G.PREVIOUS_PRIORITY_BY_SERVER["s5_20260916_edgebal"]
       and {"EB_QFLOOR", "EB_QFSHUF", "EB_QFREV"} <= set(G.CUE_CASES) and {"EB_R3E025", "EB_R3E050", "EB_R3E075", "EB_R3E100", "EB_R3E200", "EB_N0E100", "EB_R1E100", "EB_EDOWN", "EB_EUP", "EB_QFLOOR"} <= G.NEEDS_LAMBDA_E and not ({"EB_N0", "EB_R3E000"} & G.NEEDS_LAMBDA_E)
       and G.cue_ready(_w5[4]) == G.cue_ready("QE50@W104_D121") and G.cue_ready(_w5[2]) is True and G.EDGEBAL_VERSION_BY_SERVER == {"s2": "v1", "s5": "v2"})
 _r2 = [G.reservation_for("s2", it) for it in _p2]; _r5 = [G.reservation_for("s5", it) for it in _p5e]
@@ -928,4 +929,157 @@ check("K43 시트 X열(§10.4) 'PAKD50 / EB_EDOWN / A104D121 / EDGEBAL / FRESH50
       and all(v_["kdv"]["campaign_id"] == G.EDGEBAL_CAMPAIGN_ID and "training_deadline" not in v_["kdv"]["budget"] and v_["kdv"]["budget"]["time_policy"]["mode"] == "no_hard_limit" and v_["seed"] == G.seed_of(r_) and v_["model_args"]["hidden_size"] == 104 and r_.endswith("_v1" if r_ in _p2 else "_v2") for r_, v_ in _cfgB.items() if v_)
       and all(("edge_schedule" in v_["kdv"]) == (G.case_of(r_) in ("EB_EDOWN", "EB_EUP")) and ("edge_weight" in v_["kdv"]) == (G.case_of(r_) in ("EB_QFLOOR", "EB_QFSHUF", "EB_QFREV")) for r_, v_ in _cfgB.items() if v_)
       and all(filecmp.cmp(os.path.join(ROOT, "config", r_ + ".yaml"), os.path.join(_tmpb, r_ + ".yaml"), shallow=False) for r_ in (_p2[1], _p2[4], _p5e[2], _p5e[4], "PAKD50_J0_W104_D121_WV3_T0_S777_FRESH50_v1")), f"missing {[r_ for r_, v_ in _cfgB.items() if v_ is None]}")
+
+def _raises(fn, exc):
+    try:
+        fn(); return False
+    except exc:
+        return True
+# ================= K44–K48 QRECON24 s1–s5 (research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md §2–§9)
+from kdv import qrecon as QR
+from kdv.qrecon import QWeight
+_qn = lambda srv, prof, sd: G.qrc24_run_name(srv, prof, sd)
+check("K44 profile/큐(§4–§5): profile 29(G 9·A/E 대조 6·H 11·L 3) · 큐 s1 12 / s2 12 / s3 18 / s4 14 / s5 12 = 68 · 이름 PAKD50_QRC24_<SRV>_<PROFILE>_W104_D121_WV3_T0_S<seed>_FRESH50_v1 (RUN_RE 파싱, case 'QRC24_S3_G22') · A LR = rA×U LR(G21 3e-7 / G22 1e-6 / G23 3e-6 / L070 7e-7 / L050 5e-7; A_FREEZE 0) · canonical H22=L100=G22 · 같은 server+seed 중복 없음",
+      len(G.QRC24_PROFILES) == 29 and [len(G.QRC24_QUEUES[s_]) for s_ in ("s1", "s2", "s3", "s4", "s5")] == [12, 12, 18, 14, 12] and sum(len(v) for v in G.QRC24_QUEUES.values()) == 68
+      and _qn("s3", "G22", 2026) == "PAKD50_QRC24_S3_G22_W104_D121_WV3_T0_S2026_FRESH50_v1" and G.parse_item(_qn("s3", "G22", 2026)) == ("QRC24_S3_G22", "W104_D121", 2026, "v1") and G.qrc24_parse("QRC24_S3_G22") == ("s3", "G22") and G.qrc24_parse("QRC24_S1_A_FREEZE") == ("s1", "A_FREEZE")
+      and [G.qrc24_profile(p_)["alr"] for p_ in ("G21", "G22", "G23", "L070", "L050", "A_FREEZE")] == [3e-7, 1e-6, 3e-6, 7e-7, 5e-7, 0.0] and G.qrc24_profile("H22")["canonical"] == G.qrc24_profile("L100")["canonical"] == "G22" and G.qrc24_profile("G11")["canonical"] == "G11"
+      and all(len(set(G.QRC24_QUEUES[s_])) == len(G.QRC24_QUEUES[s_]) for s_ in G.QRC24_QUEUES) and G.QRC24_QUEUES["s1"][:3] == [("G22", 1234), ("A_UNIF", 1234), ("A_FREEZE", 1234)] and G.QRC24_QUEUES["s4"][-3:] == [("H22", 3407), ("H12", 3407), ("H11", 3407)])
+_kQ22 = G.kdv_block("QRC24_S2_G22", 777, "s2", cal=calQ, arch="W104_D121"); _kQ = {p_: G.kdv_block(f"QRC24_S2_{p_}", 777, "s2", cal=calQ, arch="W104_D121") for p_ in ("G12", "G32", "G21", "E_UNIF", "E_SHUF", "ALL_UNIF")}
+_kQ.update({p_: G.kdv_block(f"QRC24_S1_{p_}", 1234, "s1", cal=calQ, arch="W104_D121") for p_ in ("A_UNIF", "A_FREEZE", "A_SHUF")}); _kQ.update({p_: G.kdv_block(f"QRC24_S4_{p_}", 1234, "s4", cal=calQ, arch="W104_D121") for p_ in ("H22", "H12", "H_BETA0", "H_ALPHA0")})
+_kQ.update({p_: G.kdv_block(f"QRC24_S5_{p_}", 2026, "s5", cal=calQ, arch="W104_D121") for p_ in ("L100", "L070", "L050")}); _sQR = {p_: resolve(k_) for p_, k_ in _kQ.items()}; _sQ22 = resolve(_kQ22)
+_core = lambda k_: (k_["rec"], k_["stat"]["outer_weight"], k_.get("aligner_lr"), k_["qrecon"], k_["input_protocol"], k_["aligner_policy"], k_["corruption"], k_["aux"])
+check("K44 kdv block(§2–§3): G22 = R3 α1 β.1 τR 고정 · stat EDGE-H outer_weight 1e-3 **절대값**(λE0 배율 아님) · aligner_lr 1e-6 · qrecon{continuous_v1, qref .3276133416220546, asset, a/e q, perm 51515} · I-NATIVE-TRANSFER radius 0 offset 0 · A-FT · G12/G32 λ 3e-4/3e-3 · G21 alr 3e-7 · A_FREEZE = A-FR(aligner_lr 없음) · A_UNIF/A_SHUF/E_UNIF/E_SHUF/ALL_UNIF weight mode · H12 α.5 · H_BETA0 β0 · H_ALPHA0 α0 · L070/L050 U LR·A LR · H22 ≡ L100 ≡ G22 (core 동일)",
+      _kQ22["rec"] == dict(case="R3", alpha=1.0, kd_weight=0.1, eps=1e-6, tau=calQ["tau_R"], eps_scale=1e-6) and _kQ22["stat"]["outer_weight"] == 1e-3 and abs(_kQ22["stat"]["outer_weight"] / calQ["lambda_E"] - 0.5) > 0.4 and _kQ22["aligner_lr"] == 1e-6
+      and _kQ22["qrecon"] == dict(mode="continuous_v1", q_ref=0.3276133416220546, asset=G.QEDGE9_CUE_ASSET, a_weight="q", e_weight="q", perm_seed=51515) and _kQ22["input_protocol"] == "I-NATIVE-TRANSFER" and _kQ22["corruption"] == dict(radius_hr=0.0) and _kQ22["aux"]["offset_weight"] == 0.0 and _kQ22["aligner_policy"] == "A-FT"
+      and _kQ["G12"]["stat"]["outer_weight"] == 3e-4 and _kQ["G32"]["stat"]["outer_weight"] == 3e-3 and _kQ["G21"]["aligner_lr"] == 3e-7 and _kQ["A_FREEZE"]["aligner_policy"] == "A-FR" and "aligner_lr" not in _kQ["A_FREEZE"] and not _sQR["A_FREEZE"]["aligner_trainable"]
+      and (_kQ["A_UNIF"]["qrecon"]["a_weight"], _kQ["A_SHUF"]["qrecon"]["a_weight"], _kQ["E_UNIF"]["qrecon"]["e_weight"], _kQ["E_SHUF"]["qrecon"]["e_weight"], _kQ["ALL_UNIF"]["qrecon"]["a_weight"], _kQ["ALL_UNIF"]["qrecon"]["e_weight"]) == ("uniform", "shuffle", "uniform", "shuffle", "uniform", "uniform")
+      and _kQ["H12"]["rec"]["alpha"] == 0.5 and _kQ["H_BETA0"]["rec"]["kd_weight"] == 0.0 and _kQ["H_ALPHA0"]["rec"]["alpha"] == 0.0 and (_kQ["L070"]["qrc24"]["U_lr"], _kQ["L070"]["aligner_lr"], _kQ["L050"]["aligner_lr"]) == (7e-5, 7e-7, 5e-7)
+      and _core(_kQ["H22"]) == _core(G.kdv_block("QRC24_S4_G22", 1234, "s4", cal=calQ, arch="W104_D121")) and _core(_kQ["L100"]) == _core(G.kdv_block("QRC24_S5_G22", 2026, "s5", cal=calQ, arch="W104_D121")) and _kQ["H22"]["qrc24"]["canonical"] == "G22"
+      and all(k_["campaign_id"] == G.QRC24_CAMPAIGN_ID and k_["experiment_branch_id"] == "A104D121_T0FIX_QRECON24_v1" and k_["budget"]["ledger"] == G.QRC24_LEDGER and k_["budget"]["required"] is True and "training_deadline" not in k_["budget"]
+              and k_["budget"]["time_policy"]["mode"] == "no_hard_limit" and k_["budget"]["time_policy"]["min_operating_hours"] == 24.0 and k_["exact_resume"] is True and k_["control_runs"]["G22"].startswith("PAKD50_QRC24_") for k_ in list(_kQ.values()) + [_kQ22]))
+for _lab, _fn in (("K44 서버 토큰 ≠ 생성 서버 → SystemExit", lambda: G.kdv_block("QRC24_S3_G22", 2026, "s5", cal=calQ, arch="W104_D121")), ("K44 QRECON24 는 W104 전용 (W112 거부)", lambda: G.kdv_block("QRC24_S2_G22", 777, "s2", cal=calQ)),
+                  ("K44 QRC case 를 다른 branch 로 만들면 SystemExit", lambda: G.kdv_block("QRC24_S2_G22", 777, "s2", cal=calQ, arch="W104_D121", branch="EDGEBAL")), ("K44 다른 case 를 QRECON24 branch 로 만들면 SystemExit", lambda: G.kdv_block("JQ", 777, "s2", cal=calQ, arch="W104_D121", branch="QRECON24"))):
+    try:
+        _fn(); check(_lab, False)
+    except SystemExit:
+        check(_lab, True)
+_rsum = lambda srv: sum(G.reservation_for(srv, it)["reservation_h"] for it in G.priority_for(srv))
+check("K44 편성·예약(§5·§8): PRIORITY 다섯 서버 전부 QRC24 run 이름(= qrc24_items) · branch QRECON24 · allowed seed(현재 + superseded branch 의 명시 seed) s1 {1234,3407} s2 {777,2026,9091} s3 {2026,4321} s4 {1234,3407} s5 {2026,777,9091,1103} · 예약 1.20×R_s + 10/60 → s1 33.68 / s2 35.12 / s3 32.16 / s4 34.9253 / s5 33.248 h (kind plan_reference_qrc24, slack 1.2) · 옛 순서는 PREVIOUS · 큐 파일 == 순서 · cue 필요 · §8.3 확장 3 run",
+      all(G.priority_for(s_) == G.qrc24_items(s_) and all(G.branch_for(s_, it) == "QRECON24" for it in G.priority_for(s_)) for s_ in ("s1", "s2", "s3", "s4", "s5")) and [G.allowed_seeds(s_) for s_ in ("s1", "s2", "s3", "s4", "s5")] == [{1234, 3407}, {777, 2026, 9091}, {2026, 4321}, {1234, 3407}, {2026, 777, 9091, 1103}]
+      and all(abs(_rsum(s_) - v_) < 1e-4 for s_, v_ in (("s1", 33.68), ("s2", 35.12), ("s3", 32.16), ("s4", 34.9253), ("s5", 33.248))) and G.reservation_for("s4", G.priority_for("s4")[0])["reference_kind"] == "plan_reference_qrc24" and G.reservation_for("s4", G.priority_for("s4")[0])["slack"] == 1.2
+      and G.reservation_for("s4", "JQ@W104_D121")["slack"] == 1.1 and all(k_ in G.PREVIOUS_PRIORITY_BY_SERVER for k_ in ("s1_20260915_qedge9", "s2_20260916_edgebal", "s3_20260915_qegx", "s4_20260915_qegx", "s5_20260916_edgebal"))
+      and all([l.strip() for l in open(os.path.join(ROOT, "config", "queues", f"qrecon24_{s_}.txt")) if l.strip() and not l.startswith("#")] == G.priority_for(s_) for s_ in ("s1", "s2", "s3", "s4", "s5"))
+      and G.cue_ready(G.priority_for("s1")[0]) == G.cue_ready("QE50@W104_D121") and G.qrc24_extension_items("s1") == [_qn("s1", p_, 9091) for p_ in ("G22", "A_UNIF", "A_FREEZE")] and G.qrc24_extension_items("s5")[0].endswith("_S2909_FRESH50_v1"))
+# ---- K45 registry qrecon
+def _rejQ2(base, **kw):
+    k = copy.deepcopy(base); k.update(kw)
+    try:
+        resolve(k); return False
+    except ValueError:
+        return True
+_qb = _kQ22
+check("K45 registry qrecon(§6.4): G22 spec(mode·qref·a/e·λE 1e-3·a_trainable) · 토큰 EDGEHQRC / EDGEHQRCAU / EDGEHQRCES / EDGEHQRCAUEU · A_FREEZE a_trainable False · describe 서술 · 거부: mode 오류 · qref 0 · a_weight 오류 · asset 없음 · shuffle perm 7 · rec N0 · stat OFF · λE calibrate/0 · I-AEQ · A-ID · +edge_gate/routing/aligner_schedule/edge_route/edge_schedule/edge_weight · 알 수 없는 키 · Teacher 없음",
+      _sQ22["qrecon"] == dict(mode="continuous_v1", q_ref=0.3276133416220546, asset=G.QEDGE9_CUE_ASSET, a_weight="q", e_weight="q", perm_seed=51515, a_trainable=True, lambda_E=1e-3) and not _sQR["A_FREEZE"]["qrecon"]["a_trainable"]
+      and [stat_tag(_sQ22), stat_tag(_sQR["A_UNIF"]), stat_tag(_sQR["E_SHUF"]), stat_tag(_sQR["ALL_UNIF"])] == ["EDGEHQRC", "EDGEHQRCAU", "EDGEHQRCES", "EDGEHQRCAUEU"] and "A ← w(q) = 2qref/(qref+q_T)·H 만" in _desc(_sQ22) and "T0 동결 대조" in _desc(_sQR["A_FREEZE"])
+      and _rejQ2(_qb, qrecon=dict(_qb["qrecon"], mode="v2")) and _rejQ2(_qb, qrecon=dict(_qb["qrecon"], q_ref=0.0)) and _rejQ2(_qb, qrecon=dict(_qb["qrecon"], a_weight="soft")) and _rejQ2(_qb, qrecon={k_: v_ for k_, v_ in _qb["qrecon"].items() if k_ != "asset"})
+      and _rejQ2(_qb, qrecon=dict(_qb["qrecon"], e_weight="shuffle", perm_seed=7)) and _rejQ2(_qb, rec=dict(case="N0")) and _rejQ2(_qb, stat=dict(enabled=False)) and _rejQ2(_qb, stat=dict(_qb["stat"], outer_weight="calibrate")) and _rejQ2(_qb, stat=dict(_qb["stat"], outer_weight=0.0))
+      and _rejQ2(_qb, input_protocol="I-AEQ", corruption=dict(radius_hr=2.0), aux=dict(offset_weight=1e-4, geometry_weight=0.0)) and _rejQ2(_qb, aligner_policy="A-ID", recipe="NOALIGN", input_protocol="I-A", corruption={}, donor=None, na_protocol="NA-STRICT")
+      and _rejQ2(_qb, edge_gate=dict(mode="low_q", asset=G.QEDGE9_CUE_ASSET)) and _rejQ2(_qb, routing=dict(qE=0.0)) and _rejQ2(_qb, aligner_schedule=dict(freeze_from=25000)) and _rejQ2(_qb, edge_route=dict(mode="low_q", asset=G.QEDGE9_CUE_ASSET))
+      and _rejQ2(_qb, edge_schedule=dict(before=1.0, after=0.5, switch=25000)) and _rejQ2(_qb, edge_weight=dict(mode="floor", low=0.75, high=0.25, asset=G.QEDGE9_CUE_ASSET)) and _rejQ2(_qb, qrecon=dict(_qb["qrecon"], foo=1)) and _rejQ2(_qb, teacher=None) and not _rejQ2(_qb))
+# ---- K46 trainer: 두 목적함수 분리 (실제 KDVTrainer._step + _qrecon_backward, CPU)
+def _stubQR(case, student, qw, server="s2", seed=777, seed_gen=3234):
+    tr = object.__new__(KDVTrainer); tr.k = G.kdv_block(case, seed, server, cal=calQ, arch="W104_D121", branch="QRECON24"); sp_ = tr.spec = resolve(tr.k)
+    tr.model = student; tr.accelerator = types.SimpleNamespace(unwrap_model=lambda m: m, gradient_accumulation_steps=1, scaler=None, is_main_process=True)
+    tr.teacher = T0; tr.aligner_trainable = sp_["aligner_trainable"]; tr.aligner_view_margin = 4; tr.share_correction = False; tr.protocol = sp_["protocol"]; tr.radius_hr = sp_["radius_hr"]; tr.diag_every = 10 ** 9
+    if not tr.aligner_trainable:
+        tr.model.aligner.requires_grad_(False)
+    tr.rec_crit = GTAnchoredReconstructionKD(calQ["tau_R"], alpha=float(tr.k["rec"]["alpha"]), kd_weight=float(tr.k["rec"]["kd_weight"]), eps=1e-6, mode=sp_["rec_mode"])
+    tr.tri = sp_["tri"]; tr.stat_extra = []; tr.lam_V = float(tr.k["stat"]["outer_weight"]); tr.stat_ramp = 0; tr.lam_edge = 0; tr.lam_geo = 0; tr.ramp = 5000; tr.lam_gkd = 0
+    tr.gen = torch.Generator().manual_seed(seed_gen); tr.corr_seed = seed_gen; tr._ema = {}; tr._rr_val_last = float("nan"); tr.args = types.SimpleNamespace(num_iter=50000)
+    tr.freeze_until, tr.freeze_from = None, None; tr.route_A = (1.0, 1.0, 1.0); tr._routed = False; tr._sched_last = None; tr.edge_gate = None; tr.edge_route = None; tr._edge_routed = False; tr.edge_schedule = None; tr.edge_weight = None; tr._edge_sched_last = None
+    tr.qrecon = qw
+    return tr
+_tq = torch.tensor([[1.2, 0.9, 1.0, 1.1], [0.8, 1.05, 0.95, 1.0]]); _ts = torch.tensor([[0.8, 1.05, 0.95, 1.0], [1.2, 0.9, 1.0, 1.1]])
+_QW = lambda a="q", e="q": QWeight.synthetic(_tq, _ts, a_mode=a, e_mode=e)
+def _runQ(case, qw, **kw):
+    tr = _stubQR(case, _S(), qw, **kw); tot, info = tr._step(_gt, _ms, _lp, _pn, 1, meta=_metaQ); return tr, tot, info
+_grad_of = lambda loss, params: torch.cat([(x if x is not None else torch.zeros_like(p_)).flatten() for x, p_ in zip(torch.autograd.grad(loss, params, retain_graph=True, allow_unused=True), params)])
+trG, totG, infoG = _runQ("QRC24_S2_G22", _QW()); apG = [p_ for p_ in trG.M.aligner.parameters() if p_.requires_grad]; bpG = [p_ for p_ in trG.M.backbone.parameters() if p_.requires_grad]
+LU, LA = infoG["_L_U_t"], infoG["_L_A_t"]; gU_LU = _grad_of(LU, bpG); gU_LA = _grad_of(LA, bpG); gA_LA = _grad_of(LA, apG); gA_LU = _grad_of(LU, apG)
+nU, nA = trG._qrecon_backward(infoG, trG.M, True); gU_set = torch.cat([p_.grad.flatten() for p_ in bpG]); gA_set = torch.cat([p_.grad.flatten() for p_ in apG])
+_wa, _we = _QW().weights(_metaQ, torch.device("cpu"))
+check(f"K46 두 목적함수 분리(§2.5·§6.1): total == L_U · U .grad == ∇θL_U (1e-6 상대) 이고 ∇θL_A(≠0, ‖·‖ {float(gU_LA.norm()):.2e}) 는 U 에 누적되지 않는다 · A .grad == ∇φL_A (1e-6) 이고 ∇φL_U(‖·‖ {float(gA_LU.norm()):.2e}) 와 다르다 · w_a [1.2, .95] w_e 동일 · U {nU}/A {nA} param · offset 없음(L_O 0, eq_exercise 없음, ε RNG 미소비) · y_t/w 에 grad 없음",
+      float(totG) == float(LU) and _rel(gU_set, gU_LU) < 1e-6 and float(gU_LA.norm()) > 0 and _rel(gU_set, gU_LU + gU_LA) > 1e-4 and _rel(gA_set, gA_LA) < 1e-6 and float((gA_set - gA_LU).abs().max()) > 0 and nU == len(bpG) and nA == len(apG) > 0
+      and torch.allclose(_wa, torch.tensor([1.2, 0.95])) and infoG["qrc_w_a_mean"] == float(_wa.mean()) and float(infoG["loss_off"]) == 0.0 and "eq_exercise" not in infoG and torch.equal(trG.gen.get_state(), torch.Generator().manual_seed(3234).get_state())
+      and not infoG["y_t"].requires_grad and not _wa.requires_grad and not infoG["corrupt"], f"U {_rel(gU_set, gU_LU):.1e} A {_rel(gA_set, gA_LA):.1e}")
+_yf, _gf, _ytf = infoG["y"].float(), _gt.float(), infoG["y_t"].float(); _r2 = trG.rec_crit(_yf, _ytf, _gf, return_maps=True)
+_Hi = (_r2.maps["hard_weight"] * (_yf - _gf).abs().mean(1, keepdim=True)).mean((1, 2, 3)); _Ki = (_r2.maps["soft_weight"] * (_yf - _ytf).abs().mean(1, keepdim=True)).mean((1, 2, 3)); _Ei = output_edge_loss_per_sample(_yf, _gf)
+trU, totU, infoU = _runQ("QRC24_S2_ALL_UNIF", _QW("uniform", "uniform"))
+check("K46 손 계산(§2.2·§2.4·§6.2): L_U == mean(H_i + K_i + λE·w_e·E_i) · L_A == mean(w_a·H_i) (1e-9) · mean(H+K) == loss_rec (1e-6) · ALL_UNIF: L_U == loss_rec + λE·L_E (표준 total 과 같은 식; 1e-6) · L_A == r.hard · λE 1e-3 가 그대로 곱해진다(qrc_lambda_E == 1e-3, 다른 배율 없음)",
+      abs(float(LU) - float((_Hi + _Ki + 1e-3 * _we * _Ei).mean())) < 1e-9 and abs(float(LA) - float((_wa * _Hi).mean())) < 1e-9 and abs(float((_Hi + _Ki).mean()) - float(infoG["loss_rec"])) < 1e-6
+      and abs(float(infoU["_L_U_t"]) - (float(infoU["loss_rec"]) + 1e-3 * float(output_edge_loss(infoU["y"].detach().float(), _gt.float())))) < 1e-6 and abs(float(infoU["_L_A_t"]) - float(trU.rec_crit(infoU["y"].detach().float(), infoU["y_t"].float(), _gt.float()).hard)) < 1e-6
+      and infoG["qrc_lambda_E"] == 1e-3 and abs(infoG["qrc_lambda_wE"] - 1e-3 * float((_we * _Ei.detach()).mean())) < 1e-9)
+_gA_of = lambda case, srv, sd: (lambda t_: _grad_of(t_[2]["_L_A_t"], [p_ for p_ in t_[0].M.aligner.parameters() if p_.requires_grad]))(_runQ(case, _QW(), server=srv, seed=sd))
+gA_G22, gA_H21, gA_G32, gA_H12 = _gA_of("QRC24_S2_G22", "s2", 777), _gA_of("QRC24_S4_H21", "s4", 1234), _gA_of("QRC24_S2_G32", "s2", 777), _gA_of("QRC24_S4_H12", "s4", 1234)
+tr12, _, info12 = _runQ("QRC24_S2_G12", _QW()); tr32, _, info32 = _runQ("QRC24_S2_G32", _QW()); trAU, _, infoAU = _runQ("QRC24_S1_A_UNIF", _QW("uniform", "q"), server="s1", seed=1234); trAS, _, infoAS = _runQ("QRC24_S1_A_SHUF", _QW("shuffle", "q"), server="s1", seed=1234)
+trEU, _, infoEU = _runQ("QRC24_S2_E_UNIF", _QW("q", "uniform")); trES, _, infoES = _runQ("QRC24_S2_E_SHUF", _QW("q", "shuffle"))
+check("K46 불변(§6.2·§6.3): 같은 Student·batch 에서 ∇φL_A 는 β(H21 .05)·λE(G32 3e-3) 를 바꿔도 bitwise 같고 α(H12 .5) 를 바꾸면 다르다 · λE 선형(G12/G22/G32 의 λ·w·E = .3/1/3 배) · A_UNIF w_a=1 → L_A=mean H · A_SHUF 는 shuffle 표 [.8, 1.0] · E_UNIF w_e=1 → L_U = loss_rec + λ L_E · E_SHUF w_e 셔플 · U 의 H/K 에는 w 를 곱하지 않는다",
+      torch.equal(gA_G22, gA_H21) and torch.equal(gA_G22, gA_G32) and not torch.equal(gA_G22, gA_H12) and abs(info12["qrc_lambda_wE"] / infoG["qrc_lambda_wE"] - 0.3) < 1e-6 and abs(info32["qrc_lambda_wE"] / infoG["qrc_lambda_wE"] - 3.0) < 1e-6
+      and infoAU["qrc_w_a_mean"] == 1.0 and abs(float(infoAU["_L_A_t"]) - float(_Hi.mean())) < 1e-6 and torch.allclose(_QW("shuffle", "q").weights(_metaQ, torch.device("cpu"))[0], torch.tensor([0.8, 1.0])) and abs(infoAS["qrc_w_a_mean"] - 0.9) < 1e-6
+      and infoEU["qrc_w_e_mean"] == 1.0 and abs(float(infoEU["_L_U_t"]) - (float(infoEU["loss_rec"]) + 1e-3 * float(output_edge_loss(infoEU["y"].detach().float(), _gt.float())))) < 1e-6 and abs(infoES["qrc_w_e_mean"] - 0.9) < 1e-6
+      and abs(float((_Hi + _Ki).mean()) - float(infoG["loss_rec"])) < 1e-6)
+trF, totF, infoF = _runQ("QRC24_S1_A_FREEZE", _QW(), server="s1", seed=1234); hF0 = state_hash(trF.M.aligner); bufF0 = [b_.clone() for b_ in trF.M.aligner.buffers()]
+nUF, nAF = trF._qrecon_backward(infoF, trF.M, trF.aligner_active(1)); optF = torch.optim.AdamW([dict(params=[p_ for p_ in trF.M.backbone.parameters() if p_.requires_grad])], lr=1e-4, weight_decay=0.01); optF.step()
+check("K46 A_FREEZE(§4.2·§6.2-7): aligner_trainable False · A .grad None(nA 0) · AdamW(U group 만) step 뒤 A parameter hash·buffer 불변 · U 는 gradient·update 있음 · total == L_U · Teacher hash 불변",
+      not trF.aligner_trainable and nAF == 0 and all(p_.grad is None for p_ in trF.M.aligner.parameters()) and state_hash(trF.M.aligner) == hF0 and all(torch.equal(a_, b_) for a_, b_ in zip(bufF0, trF.M.aligner.buffers())) and nUF > 0
+      and any(p_.grad is not None and float(p_.grad.abs().sum()) > 0 for p_ in trF.M.backbone.parameters()) and float(totF) == float(infoF["_L_U_t"]) and state_hash(T0.aligner) == state_hash(trG.teacher.aligner))
+try:
+    _stubQR("QRC24_S2_G22", _S(), _QW())._step(_gt, _ms, _lp, _pn, 1); check("K46 qrecon 에 meta 없음 → ValueError", False)
+except ValueError:
+    check("K46 qrecon 에 meta 없음 → ValueError", True)
+check("K46 학습 loop(§6.1): qrecon 이면 accelerator.backward(total) 대신 _qrecon_backward 로 두 gradient 를 놓고 optimizer.step 은 한 번 · L_A 비유한이면 exit 3", all(x in src for x in ("if getattr(self, \"qrecon\", None) is not None:", "nU_, nA_ = self._qrecon_backward(info, M, self.aligner_active(global_step))", "non-finite L_A")) and src.count("self.optimizer.step()") == 1)
+del trG, trU, tr12, tr32, trAU, trAS, trEU, trES, trF
+# ---- K47 QWeight (§2.3·§4.2·§6.3)
+_np_ = _np
+def _shuf_ok():
+    v_ = _np_.concatenate([_np_.random.RandomState(1).rand(400), _np_.full(10, 0.7), _np_.array([0.3])]); s_ = _np_.concatenate([_np_.repeat(_np_.arange(4), 100), _np_.full(10, 9), _np_.array([11])])
+    o_, st_ = QR.shuffle_values(v_, s_)
+    return all(_np_.allclose(_np_.sort(o_[s_ == k_]), _np_.sort(v_[s_ == k_])) for k_ in _np_.unique(s_)) and _np_.array_equal(o_, QR.shuffle_values(v_, s_)[0]) and (o_ != v_).mean() > 0.3 and st_["n_shuffled"] == 4 and st_["n_degenerate"] == 1 and st_["n_small"] == 1
+check("K47 q_weight(§2.3): w(qref) = 1 · w(0) = 2 · 0 < w ≤ 2 · 단조 감소 · q<0 / NaN / qref 0 → ValueError · shuffle_values 는 stratum 별 multiset 보존·결정적(51515)·값을 실제로 바꾼다·degenerate/small stratum 그대로",
+      QR.q_weight([QR.QREF_DEFAULT], QR.QREF_DEFAULT)[0] == 1.0 and QR.q_weight([0.0], QR.QREF_DEFAULT)[0] == 2.0 and all(0 < w_ <= 2 for w_ in QR.q_weight(_np_.linspace(0, 5, 50), QR.QREF_DEFAULT)) and _np_.all(_np_.diff(QR.q_weight(_np_.linspace(0, 5, 50), QR.QREF_DEFAULT)) < 0)
+      and all(_raises(lambda v_=v_, r_=r_: QR.q_weight(v_, r_), ValueError) for v_, r_ in (([-0.1], 0.3), ([float("nan")], 0.3), ([0.2], 0.0), ([0.2], float("nan")))) and _shuf_ok())
+if os.path.exists(_asset):
+    _qw = QWeight.load(dict(mode="continuous_v1", q_ref=QR.QREF_DEFAULT, asset=G.QEDGE9_CUE_ASSET, a_weight="q", e_weight="shuffle", perm_seed=51515), teacher=T0); _st = _qw.stats; _manQ = json.load(open(_asset))
+    _pr1 = _raises(lambda: QWeight.load(dict(mode="continuous_v1", q_ref=QR.QREF_DEFAULT, asset=G.QEDGE9_CUE_ASSET), teacher=T0, previous=dict(asset_id="0" * 32)), ValueError)
+    _pr2 = _raises(lambda: QWeight.load(dict(mode="continuous_v1", q_ref=QR.QREF_DEFAULT, asset=G.QEDGE9_CUE_ASSET), teacher=T0, previous=dict(asset_id=_manQ["asset_id"], stats=dict(w_sha256_16="deadbeefdeadbeef"))), ValueError)
+    _okp = QWeight.load(dict(mode="continuous_v1", q_ref=QR.QREF_DEFAULT, asset=G.QEDGE9_CUE_ASSET), teacher=T0, previous=dict(asset_id=_manQ["asset_id"], qref=QR.QREF_DEFAULT, stats=dict(w_sha256_16=_st["w_sha256_16"])))
+    check(f"K47 실제 cue 자산: w = 2qref/(qref+raw q) 표 완비(38,856 view; 0/1 gate 표 아님) · 범위 {_st['w_min']:.4f}–{_st['w_max']:.4f} 평균 {_st['w_mean_all']:.4f}(1 이 아님; 기록) · calib 평균 {_st['w_mean_calib']:.4f} · shuffle 표 multiset 보존·표 다름·40 stratum · w/perm sha 기록 · Teacher hash 대조(QEDGE9 와 동일) · 재개 asset_id/w_sha 불일치 거부·일치 통과 · summary 에 A_loss 등",
+          _qw.tables["q"].shape == (_manQ["dataset"]["n_train"], 4) and not bool(torch.isnan(_qw.tables["q"]).any()) and len(set(torch.unique(_qw.tables["q"]).tolist())) > 100 and 0.7 < _st["w_min"] < _st["w_max"] < 1.3 and abs(_st["w_at_qref"] - 1.0) < 1e-12
+          and _st["multiset_preserved"] and not torch.equal(_qw.tables["q"], _qw.tables["shuffle"]) and _st["shuffle"]["n_strata"] == 40 and len(_st["w_sha256_16"]) == 16 and _st["w_sha256_16"] != _st["w_shuffle_sha256_16"] and _qw.checks["teacher_aligner_hash"] == state_hash(T0.aligner)
+          and _pr1 and _pr2 and _okp.stats["w_sha256_16"] == _st["w_sha256_16"] and _qw.summary()["A_loss"] == "weighted_H_only" and _qw.summary()["asset_id"] == _manQ["asset_id"] and _qw.e_mode == "shuffle"
+          and torch.allclose(_qw.weight_for(torch.tensor([[0, 0, 1, 1], [5, 2, 1, 1]]), torch.device("cpu"), "q"), _qw.tables["q"][[0, 5], [0, 2]]) and torch.equal(_qw.weight_for(_metaQ, torch.device("cpu"), "uniform"), torch.ones(2)))
+else:
+    check("K47 실제 cue 자산 — 없음", False)
+# ---- K48 시트 토큰 · gate · 스크립트 · config · selector
+try:
+    _lab48 = (_il("PAKD50_QRC24_S3_G22_W104_D121_WV3_T0_S2026_FRESH50_v1", "A104D121_T0FIX_QRECON24_v1") == "PAKD50 / QRC24 / G22 / A104D121 / FRESH50" and _il("PAKD50_QRC24_S1_A_FREEZE_W104_D121_WV3_T0_S1234_FRESH50_v1", None) == "PAKD50 / QRC24 / A_FREEZE / A104D121 / FRESH50")
+except Exception:                                                              # noqa
+    _lab48 = False
+_allQ = [it for s_ in ("s1", "s2", "s3", "s4", "s5") for it in G.priority_for(s_)]; _cfgQ = {r_: (yaml.safe_load(open(os.path.join(ROOT, "config", r_ + ".yaml"))) if os.path.exists(os.path.join(ROOT, "config", r_ + ".yaml")) else None) for r_ in _allQ}
+_tmpq = tempfile.mkdtemp(); G.generate("s2", [_qn("s2", "G22", 777), _qn("s2", "E_SHUF", 777)], _tmpq, projected=None); G.generate("s5", [_qn("s5", "L070", 2026)], _tmpq, projected=None); G.generate("s1", [_qn("s1", "A_FREEZE", 3407)], _tmpq, projected=None)
+G.generate("s5", ["PAKD50_EB_QFLOOR_W104_D121_WV3_T0_S2026_FRESH50_v2", "PAKD50_J0_W104_D121_WV3_T0_S777_FRESH50_v1"], _tmpq, projected=None); G.generate("s4", ["PAKD50_QER50_W104_D121_WV3_T0_S1234_FRESH50_v1"], _tmpq, projected=None)
+_srsel = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "qrecon24_select.py"), "PAKD50_FQ_W112_D123_WV3_T0_S1234_FRESH50_v1", "--out", os.path.join(_tmpq, "sel.json")], capture_output=True, text=True, cwd=ROOT)
+_sel = json.load(open(os.path.join(_tmpq, "sel.json"))) if _srsel.returncode == 0 else {}
+import importlib.util as _ilu2; _spq = _ilu2.spec_from_file_location("_qsel", os.path.join(ROOT, "tools", "qrecon24_select.py")); _qsel = _ilu2.module_from_spec(_spq); _spq.loader.exec_module(_qsel)
+_rk = _qsel.rank([dict(step=1, hqnr=0.959, scc=0.987, ergas=2.05, psnr=37.9, sam=2.8, q8=0.92, ssim=0.975), dict(step=2, hqnr=0.9586, scc=0.988, ergas=2.10, psnr=37.0, sam=2.9, q8=0.90, ssim=0.97), dict(step=3, hqnr=0.9585, scc=0.988, ergas=2.00, psnr=37.0, sam=2.9, q8=0.90, ssim=0.97)])
+check("K48a 시트 X열(§9.3) 'PAKD50 / QRC24 / G22 / A104D121 / FRESH50'(서버 토큰 제외) · gate 설명 · switch/waiter bash -n · rank 순서 SCC→ERGAS→PSNR→…",
+      _lab48 and "QRECON24" in __import__("tools.campaign_gate", fromlist=["GATES"]).GATES["pakd50"][1] and all(subprocess.run(["bash", "-n", os.path.join(ROOT, "tools", f)], capture_output=True).returncode == 0 for f in ("qrecon24_switch.sh", "qrecon24_waiter.sh")) and [c_["step"] for c_ in _rk] == [3, 2, 1])
+_k48 = dict(n68=(len(_allQ) == 68), exist=all(v_ is not None for v_ in _cfgQ.values()), meta=all(v_["train_feeder_args"].get("return_meta") is True and v_["kdv"]["campaign_id"] == G.QRC24_CAMPAIGN_ID and "training_deadline" not in v_["kdv"]["budget"] and v_["kdv"]["qrecon"]["mode"] == "continuous_v1" for v_ in _cfgQ.values()),
+            lr=(_cfgQ[_qn("s5", "L070", 2026)]["learning_rate"] == 7e-5 and _cfgQ[_qn("s2", "G22", 777)]["learning_rate"] == 1e-4), frz=("aligner_lr" not in _cfgQ[_qn("s1", "A_FREEZE", 1234)]["kdv"] and _cfgQ[_qn("s1", "A_FREEZE", 1234)]["kdv"]["aligner_policy"] == "A-FR"),
+            cmp={r_[:34]: filecmp.cmp(os.path.join(ROOT, "config", r_ + ".yaml"), os.path.join(_tmpq, r_ + ".yaml"), shallow=False) for r_ in (_qn("s2", "G22", 777), _qn("s2", "E_SHUF", 777), _qn("s5", "L070", 2026), _qn("s1", "A_FREEZE", 3407), "PAKD50_EB_QFLOOR_W104_D121_WV3_T0_S2026_FRESH50_v2", "PAKD50_J0_W104_D121_WV3_T0_S777_FRESH50_v1", "PAKD50_QER50_W104_D121_WV3_T0_S1234_FRESH50_v1")})
+check("K48b 생성 config 68 벌 존재 · return_meta 전부 · campaign QRECON24 · training_deadline 없음 · qrecon mode · learning_rate 줄(L070 7e-05 / 기본 1e-4) · A_FREEZE 에 aligner_lr 없음(A-FR) · 생성기와 filecmp(4 벌) · 옛 EDGEBAL/QEDGE9/QEGX config 회귀 없음",
+      all(v_ if not isinstance(v_, dict) else all(v_.values()) for v_ in _k48.values()), str({k_: v_ for k_, v_ in _k48.items() if (v_ is False) or (isinstance(v_, dict) and not all(v_.values()))}))
+check("K48c selector HQNR9585_RR_v1 proxy 출력(§7.2–§7.3; FQ S1234: 후보 50, 적격 0, target_feasible false, official false, h_consistency(CSV raw H == fr_mat20 H) 0, legacy/raw-max/exact50K/late6 보존) — 공식 RR 6 지표 경로(--official) 는 09-16 s1 검증(best_hqnr 후보 == 업로더 _rr 값 일치, 노트 §5)",
+      _sel.get("n_candidates") == 50 and _sel.get("n_eligible") == 0 and _sel.get("target_feasible") is False and _sel.get("official") is False and (_sel.get("h_consistency") or {}).get("abs_diff") == 0.0 and all(_sel.get(k_) for k_ in ("legacy_best", "raw_max", "exact50K", "late6")) and _sel["late6"]["n"] == 6,
+      f"selector rc {_srsel.returncode} {_srsel.stderr[-300:] if _srsel.returncode else ''} keys {sorted(_sel)[:8]}")
 print(f"\n{'FAIL ' + str(FAIL) if FAIL else 'ALL OK'} ({len(FAIL)} failed)"); sys.exit(1 if FAIL else 0)

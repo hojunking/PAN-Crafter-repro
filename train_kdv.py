@@ -39,6 +39,7 @@ from pa.aligner import PANGlobalAligner
 from pa.evalviews import PROTOCOL_ID, evaluator_hash, fixed_roi, VIEWS, scene_views
 from pa.losses import output_edge_loss, output_edge_loss_per_sample, direct_geometry_loss, lambda_ramp, geometry_support_margin, scharr
 from kdv.edge_gate import EdgeGate, AffineEdgeWeight
+from kdv.qrecon import QWeight
 from kdv.resume import EpochState, begin_epoch
 from pa.model import PAModel
 from pa.offset import offset_loss, predict_c, lambda_off, sample_offsets
@@ -133,6 +134,7 @@ class KDVTrainer(PATrainer):
         self.route_A = tuple(float(q) for q in (sp.get("route_A") or (1.0, 1.0, 1.0))); self._routed = any(q != 1.0 for q in self.route_A); self._sched_last = None
         self.edge_route = None; self._edge_routed = bool(sp.get("edge_route"))          # QEGX §4.5: U all-edge / A gated edge — 자산은 _calibrate_and_build_inner 에서 싣는다
         self.edge_schedule = sp.get("edge_schedule"); self.edge_weight = None; self._edge_sched_last = None     # EDGEBAL §3.3/§3.4: GT edge 계수 w(t) / w_i(cue) — 자산은 _calibrate_and_build_inner
+        self.qrecon = None                                                                # QRECON24 §2: 연속 q 가중 + U/A 목적함수 분리 — 자산은 _calibrate_and_build_inner
         if pol == "A-FR":
             freeze(aligner)
         self.model = PAModel(model, aligner, aligner_margin=margin, sampler=(pol != "A-ID"))
@@ -608,6 +610,21 @@ class KDVTrainer(PATrainer):
             print(f"[kdv] edge_weight {self.edge_weight.mode}: w = {self.edge_weight.high} + ({self.edge_weight.low} − {self.edge_weight.high})·g (θq {self.edge_weight.theta_q}) · 자산 {sp['edge_cue_weight']['asset']}")
         if self.edge_schedule:
             print(f"[kdv] edge_schedule: GT edge 계수 {self.edge_schedule['before']}×λE (update < {self.edge_schedule['switch']}) → {self.edge_schedule['after']}×λE (A 는 계속 학습; 재시작 없음)")
+        # QRECON24 (2026-09-16 §2.3·§4.2·§6): raw q → w = 2qref/(qref+q) 표(+stratum 셔플 표). 자산·Teacher·데이터·feeder·재개 대조는 EdgeGate.load 와 같다.
+        self.qrecon = None
+        if sp.get("qrecon"):
+            fa = dict(self.args.train_feeder_args)
+            prev_p = os.path.join(self.args.work_dir, "kdv_config_resolved.json"); prev = None
+            if getattr(self.args, "resume", None) and os.path.exists(prev_p):
+                prev = (json.load(open(prev_p)).get("qrecon") or {}) or {}
+            self.qrecon = QWeight.load(sp["qrecon"], teacher=self.teacher, train_h5=fa["dataroot"], feeder_args=fa, sha_fn=lambda p_: sha_cached(p_, self.init_dir), previous=prev)
+            if not bool(fa.get("return_meta", False)):
+                raise ValueError("qrecon 은 train_feeder_args.return_meta: true (sample index·augmentation state) 가 필요하다")
+            if getattr(self.accelerator, "scaler", None) is not None:
+                raise NotImplementedError("qrecon: AMP scaler 경로(두 gradient 의 scale/unscale) 는 검증되지 않았다 — mixed_precision 없이 돈다 (§6.1)")
+            self.calibration["qrecon"] = self.qrecon.summary()
+            st_ = self.qrecon.stats
+            print(f"[kdv] qrecon continuous_v1: qref {self.qrecon.qref} · w 범위 {st_.get('w_min'):.4f}–{st_.get('w_max'):.4f} 평균 {st_.get('w_mean_all'):.4f} · A weight {self.qrecon.a_mode} / edge weight {self.qrecon.e_mode} · λE(절대) {self.lam_V:g} · A {'trainable(hard-only)' if self.aligner_trainable else 'frozen'}")
         self._calib.pop("batches", None)
         if self.accelerator.is_main_process:
             json.dump(dict(self.calibration, calibration_set=self._calib.get("set_manifest")), open(os.path.join(self.args.work_dir, "calibration_resolved.json"), "w"), indent=1)
@@ -675,6 +692,7 @@ class KDVTrainer(PATrainer):
                        edge_gate=(self.edge_gate.summary() if getattr(self, "edge_gate", None) is not None else None),
                        edge_route=(dict(self.edge_route.summary(), edge_U=1.0, edge_A=sp["edge_route"]["edge_A"]) if getattr(self, "edge_route", None) is not None else None),
                        edge_schedule=(dict(self.edge_schedule) if getattr(self, "edge_schedule", None) else None), edge_cue_weight=(self.edge_weight.summary() if getattr(self, "edge_weight", None) is not None else None),
+                       qrecon=(self.qrecon.summary() if getattr(self, "qrecon", None) is not None else None),
                        tri=sp["tri"], tri_state={kk: (v.tolist() if torch.is_tensor(v) else v) for kk, v in self.tri_state.items() if kk != "prec_fn"},
                        aligner_view_margin=self.aligner_view_margin, guard_margin_hr=self.guard_margin,
                        corruption_seed=self.corr_seed, evaluator_hash=evaluator_hash(), protocol_id=PROTOCOL_ID,
@@ -1051,6 +1069,19 @@ class KDVTrainer(PATrainer):
         info["_edge_route_hi_w_t"] = (lam_v * info["_edge_route_hi_t"]) if info.get("_edge_route_hi_t") is not None else None   # QEGX: λE·mean((1−g)E_i) — A 에서 빼는 몫
         if info.get("stat_edge_w_mean") is not None:                                                                            # EDGEBAL §10.4: effective λ = λE × mean w (loss ratio 지 gradient ratio 가 아니다)
             info["stat_edge_lambda_eff"] = float(lam_v) * float(info["stat_edge_w_mean"])
+        if getattr(self, "qrecon", None) is not None:                                        # QRECON24 §2.5: per-sample H_i/K_i/E_i (sample 축소 전에 w 를 곱한다; 재정규화 없음) → L_U(U 만) · L_A(A 만)
+            with torch.autocast(device_type=dev.type, enabled=False):
+                yf, gf, ytf = y.float(), gt.float(), y_t.float()
+                r2 = self.rec_crit(yf, ytf, gf, return_maps=True)                              # 같은 α·τR·β·d_T·a_T (detach 된 가중 지도) — loss_rec 와 같은 정의
+                e_gt = (yf - gf).abs().mean(dim=1, keepdim=True); k_st = (yf - ytf.detach()).abs().mean(dim=1, keepdim=True)
+                H_i = (r2.maps["hard_weight"] * e_gt).mean(dim=(1, 2, 3)); K_i = (r2.maps["soft_weight"] * k_st).mean(dim=(1, 2, 3)); E_i = output_edge_loss_per_sample(yf, gf)
+                w_a, w_e = self.qrecon.weights(meta, dev)
+                L_U = (H_i + K_i + lam_v * w_e * E_i).mean(); L_A = (w_a * H_i).mean()
+            Ed, Hd, Kd = E_i.detach(), H_i.detach(), K_i.detach(); loss_stat_raw = (w_e * E_i).mean()
+            info.update(_L_U_t=L_U, _L_A_t=L_A, qrc_w_a_mean=float(w_a.mean()), qrc_w_e_mean=float(w_e.mean()), qrc_w_a_min=float(w_a.min()), qrc_w_a_max=float(w_a.max()), qrc_H_mean=float(Hd.mean()), qrc_K_mean=float(Kd.mean()),
+                        qrc_E_mean=float(Ed.mean()), qrc_wE_mean=float((w_e * Ed).mean()), qrc_wH_A_mean=float((w_a * Hd).mean()), qrc_lambda_E=float(lam_v), qrc_lambda_wE=float(lam_v) * float((w_e * Ed).mean()),
+                        qrc_L_U=float(L_U), qrc_L_A=float(L_A), stat_hard=float(loss_stat_raw), stat_edge_ungated=float(Ed.mean()))
+            info["_edge_w_t"] = lam_v * loss_stat_raw; total = L_U                                  # total = L_U (U 의 목적함수; 기록·NaN 검사용) — A 는 L_A 로만 (train loop _qrecon_backward)
         info.update(loss_rec=loss_rec, loss_stat_raw=loss_stat_raw, lam_v=lam_v, loss_edge=float(loss_edge), loss_geo=float(loss_geo), _loss_geo=loss_geo, loss_off=loss_off, loss_gkd=float(loss_gkd),
                     lam_e=lam_e, lam_g=lam_g, lam_off=lam_off, lam_gkd=lam_gkd, loss_aux=loss_aux, geo_info=geo_info)
         return total, info
@@ -1088,6 +1119,24 @@ class KDVTrainer(PATrainer):
                 if gi is not None and p.grad is not None:
                     p.grad.sub_(gi.to(p.grad.dtype)); n += 1
         return n
+
+    def _qrecon_backward(self, info, M, active):
+        """QRECON24 §2.5·§6.1: 같은 forward 에서 G_U = ∇θ L_U (U 만), G_A = ∇φ L_A (A 만; U 의 입력 Jacobian 은 통과하되 U parameter 에는 누적하지 않는다) 를 autograd.grad 로 따로 얻어 .grad 에 놓는다.
+        단일 scalar backward 가 아니다. optimizer step 은 한 번(train loop). scaler(AMP) 는 거부(적재 시 검사). 반환 (U param 수, A param 수)."""
+        bp = [p for p in M.backbone.parameters() if p.requires_grad]; ap = ([p for p in M.aligner.parameters() if p.requires_grad] if (M.aligner is not None and active) else [])
+        scale = 1.0 / float(getattr(self.accelerator, "gradient_accumulation_steps", 1) or 1)
+        L_U, L_A = info["_L_U_t"], info["_L_A_t"]
+        gU = torch.autograd.grad(L_U * scale, bp, retain_graph=bool(ap), allow_unused=True); nU = 0
+        for p, g in zip(bp, gU):
+            if g is not None:
+                p.grad = (g if p.grad is None else p.grad + g); nU += 1
+        nA = 0
+        if ap:
+            gA = torch.autograd.grad(L_A * scale, ap, retain_graph=False, allow_unused=True)
+            for p, g in zip(ap, gA):
+                if g is not None:
+                    p.grad = (g if p.grad is None else p.grad + g); nA += 1
+        return nU, nA
 
     def edge_schedule_factor(self, step):
         """EDGEBAL §3.3: GT edge 계수 w(t) — 0-based optimizer update 만의 순수 함수(before if t < switch else after) 라 재개에 안전하다. 일정이 없으면 1.0."""
@@ -1135,6 +1184,11 @@ class KDVTrainer(PATrainer):
     def _diagnose(self, step, info, M):
         bp = [p for p in M.backbone.parameters() if p.requires_grad]; ap = list(M.aligner.parameters()) if self.aligner_active(step) else []
         out = dict(step=int(step), corrupt=bool(info["corrupt"]), aligner_active=bool(ap), route_A=list(getattr(self, "route_A", (1.0, 1.0, 1.0))))
+        if getattr(self, "qrecon", None) is not None:                                      # QRECON24 §9.3·§10.1: w 통계·H/K/E·λE·두 목적함수 값 + gradient 규모(A 가 실제 받는 ∇φL_A vs 제외된 ∇φL_U, U 의 ∇θL_U; 검증용 ∇θL_A)
+            out.update({kk: v for kk, v in info.items() if kk.startswith("qrc_")}); out["qrc_grad_params_A"] = self._ema.get("qrc_grad_params_A")
+            _, out["grad_LU_U"] = self._gnorm(info["_L_U_t"], bp); _, out["grad_LA_U_excluded"] = self._gnorm(info["_L_A_t"], bp)
+            if ap:
+                _, out["grad_LA_A"] = self._gnorm(info["_L_A_t"], ap); _, out["grad_LU_A_excluded"] = self._gnorm(info["_L_U_t"], ap)
         if getattr(self, "edge_weight", None) is not None or getattr(self, "edge_schedule", None):     # EDGEBAL §10.4: w 평균·λ_eff·q-low/high E·schedule 계수 (loss ratio; gradient 는 고정 진단)
             out.update({kk: info.get(kk) for kk in ("stat_edge_w_mean", "stat_edge_lambda_eff", "stat_edge_sched", "stat_edge_raw", "stat_edge_eff", "stat_edge_gate_frac", "stat_edge_E_qlow", "stat_edge_E_qhigh") if info.get(kk) is not None})
         if getattr(self, "edge_route", None) is not None:                                  # QEGX §13: gate 활성 비율 · gated/ungated edge · 직전 update 의 A 보정 param 수 · A 가 받는 all-edge vs routed-edge gradient 규모
@@ -1278,6 +1332,8 @@ class KDVTrainer(PATrainer):
                              LK=info.get("_rec_soft_t"), LEw=info.get("_edge_w_t"), LOw=lo_w)
                 if info.get("_edge_route_hi_w_t") is not None:                                # QEGX §13: A 가 실제로 받는 routed edge λE·E(g) = LEw − λE·mean((1−g)E_i) 를 따로 (U 는 LEw 전체)
                     terms["LEwA"] = info["_edge_w_t"] - info["_edge_route_hi_w_t"]
+                if info.get("_L_A_t") is not None:                                            # QRECON24: A 의 실제 목적함수 L_A = mean(w^A H_i) 와 U 의 L_U 를 따로 (LA_U 는 훈련에서 제외되는 몫)
+                    terms["LA"] = info["_L_A_t"]; terms["LU"] = info["_L_U_t"]
                 dec = {}
                 for mod, params in (("A", ap), ("U", bp)):
                     if not params:
@@ -1331,6 +1387,8 @@ class KDVTrainer(PATrainer):
                         self._jsonl("edge_schedule_events.jsonl", dict(step=int(global_step), factor=r_, lambda_eff=float(self.lam_V) * r_, switch=int(self.edge_schedule["switch"]), aligner_active=bool(self.aligner_active(global_step)),
                                                                      lr_aligner=(float(self.optimizer.param_groups[-1]["lr"]) if M.aligner is not None else None))); self._edge_sched_last = r_
                 total, info = self._step(gt, ms, lpan, pan, global_step, meta=meta)
+                if info.get("_L_A_t") is not None and not torch.isfinite(info["_L_A_t"]):
+                    train_log.write(f'[abort] non-finite L_A at step {global_step}: {info["_L_A_t"].item()}'); self._runs_csv("NAN"); self._finish_ledger("NAN"); sys.exit(3)
                 if not torch.isfinite(total):
                     train_log.write(f'[abort] non-finite loss at step {global_step}: {total.item()}'); self._runs_csv("NAN"); self._finish_ledger("NAN"); sys.exit(3)
                 dmax = float(info["delta"].detach().abs().max())
@@ -1343,7 +1401,10 @@ class KDVTrainer(PATrainer):
                             self._fixed_batch = tuple(t.detach().clone() for t in (gt, ms, lpan, pan)) + ((meta.detach().clone(),) if meta is not None else ())
                         self._diagnose_fixed(global_step, M)
                 routed_now = (self._routed or self._edge_routed) and self.aligner_active(global_step)
-                self.accelerator.backward(total, retain_graph=routed_now)
+                if getattr(self, "qrecon", None) is not None:                              # QRECON24 §2.5: L_U → U, L_A → A 를 같은 forward 에서 따로 (단일 total backward 금지)
+                    nU_, nA_ = self._qrecon_backward(info, M, self.aligner_active(global_step)); self._ema["qrc_grad_params_U"] = float(nU_); self._ema["qrc_grad_params_A"] = float(nA_)
+                else:
+                    self.accelerator.backward(total, retain_graph=routed_now)
                 if routed_now and self._routed:                                            # s5 routing: A 의 .grad 만 보정, U 는 전체 L_Q, step 은 한 번
                     self._ema["routing_params_adjusted"] = float(self._apply_routing(info, M))
                 if routed_now and self._edge_routed:                                       # QEGX edge_route: A 의 .grad 에서 λE·mean((1−g)E_i) 를 뺀다 (registry 가 routing 과의 결합을 막는다)

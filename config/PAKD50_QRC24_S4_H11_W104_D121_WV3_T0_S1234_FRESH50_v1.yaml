@@ -1,0 +1,220 @@
+# PAKD50_QRC24_S4_H11_W104_D121_WV3_T0_S1234_FRESH50_v1 — QRECON24 s4 H11: U ← H+K+λE·w·E(GT edge, λE 절대 0.001) / A ← w·H 만(hard-only, offset 없음) · w = 2qref/(qref+q_T) · α 0.5 β 0.05 · U LR 0.0001 / A LR 1e-06(rA 0.01). 생성: tools/gen_pakd50_configs.py (seed 1234 를 쓰는 서버 s1/s4 공용 — 서버별 값은 config 에 없다). 손으로 고치지 말 것.
+# QRECON24 (계획 research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md, 노트 research_log/2026-09-16_qrecon24-implementation.md): 캠페인 QRECON24_A104D121_S1S5_20260916_v1 · branch A104D121_T0FIX_QRECON24_v1 (parent PAKD50_W112D123_WV3_20260914_v1) · 시간 정책 no_hard_limit(24h 는 최소 운영구간; 자체 ledger work_dir/_qrecon24_budget/ledger.json, required 경고만) · profile H11(canonical H11) · λE 절대 0.001 · rA 0.01 (U LR 0.0001 / A LR 1e-06) · α 0.5 β 0.05 · A weight q / edge weight q · qref 0.3276133416220546 · 시트 X열 'PAKD50 / QRC24 / H11 / A104D121 / FRESH50'
+# method qrecon_continuous_v1: w = 2qref/(qref+q_T) (T0 AXIS16 raw q, sg) · U ← mean(H + K + λE·w^E·E) · A ← mean(w^A·H) 만(soft·edge·offset 없음; 같은 forward 에서 parameter 집합별 autograd.grad, 단일 total backward 금지) · native 입력(I-NATIVE-TRANSFER, jitter 없음)
+# 약명→세팅: G<ij> = λE {3e-4,1e-3,3e-3}[i] × rA {.003,.01,.03}[j] · H<ij> = α {.5,1,1.5}[i] × β {.05,.1,.2}[j] · L100/070/050 = U LR 1e-4/7e-5/5e-5 (rA .01 고정) · A_UNIF/A_SHUF/A_FREEZE = A 가중 1/셔플/동결 · E_UNIF/E_SHUF = edge 가중 1/셔플 · ALL_UNIF = 둘 다 1 · H_ALPHA0/H_BETA0 = α 0/β 0 · G22 = H22 = L100
+# 골격 W104_D121: s4 이식: Student U 만 W104·depth[1,2,1] (backbone 1.9036 M; s3 GT-only 기록과 같은 model_args), T0/A·τR·λE0 고정 · branch A104D121_T0FIX_E0_v1 · 편성 항목 <case>@W104_D121 · 시트 X열 'PAKD50 / <case> / A104D121 / FRESH50' · 계획 research_log/PAN_PAKD50_S4_W104D121_Architecture_Allocation_2026-09-15.md
+# 캠페인 PAKD50_W112D123_WV3_20260914_v1 · protocol FRESH50 · grid GRID1010_50K_v1 · 계획 research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md · 요약 research_log/PAN_Integrated_Method_Summary_2026-09-14.md · 노트 research_log/2026-09-14_pakd50-implementation.md
+# 세팅: I-NATIVE-TRANSFER · aligner donor 초기화 후 학습 · rec (1+α d_T)·L1 + β(1−d_T)a_T|S−T| (adaptive) · stat edge w5 mode H · geomKD 없음 Teacher T0 · 주 selector best_hqnr (보조 best_rr_val·last) · qrecon: U ← H + K + λE·w(q) = 2qref/(qref+q_T)·E(GT edge, λE 절대값 0.001) / A ← w(q) = 2qref/(qref+q_T)·H 만(soft·edge·offset 없음; T0 복사 trainable) · qref 0.3276133416 (T0 AXIS16 raw q; threshold 아님) · 두 목적함수를 parameter 집합별로 따로 미분 · 정책 QRC(A trainable, offset λ 0.0, A LR 1e-06) · backend QRC24 (rec R3, EDGE-H λE 0.001)
+# 약명→세팅: J0/JQ/JR/XJ = A trainable(joint) + N0/Q12/R1/X02 · F0/FQ/FR/XF = A frozen + … · AL0/ALQ = joint, A LR 3e-6 · Q12 = (1+αd)L1 + β(1−d)a|S−T| + λE·signed Scharr edge · R1 = (1+αd)L1 · X02 = R1 + edge
+#           D*/LF* = joint 에서 A 를 0–4999 동결 / 25000 부터 동결 (kdv.aligner_schedule; 동결 구간 LO 없음, ε RNG 는 같은 순서) · P*/JK0/JE0 = A 가 직접 받는 항만 제한 (kdv.routing qA=(qD,qK,qE); U 는 backend 전체) · J_Q*/AL_Q* = Q12 계수만
+#           J_R3_NOEDGE = J + R3 adaptive(edge 없음) · J_N0_EDGE = J + N0 + λE edge(Teacher 미사용) · RC0/RCQ = A trainable(LR 1e-5) 인데 offset 연습 없음(I-NATIVE-TRANSFER, radius 0) + N0/Q12 — 재배정 research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md
+# Teacher T0 = PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1/best_hqnr (step 24240, file sha 16b5cf78614be121…; A+U frozen, 자기 aligner 로 forward) · Student A = T0 aligner 복사(view margin 4), U = init_unet_seed1234.pt · τR/λE = work_dir/_pakd50/calibration_resolved.json (고정) 
+# 골격 W104·D121 · 9ch · 50K · batch 48 · AdamW 1e-4/1e-06 wd 0.01 cosine warmup100 · eval_epoch 5 (= GRID1010_50K_v1: 1010 update 마다 + exact 50000, 50 후보 보존) · 예산 work_dir/_pakd50_budget/ledger.json 50.0h(+감사 4.0h)
+expect_params_m: 1.9036     # backbone 만 (aligner 0.1053M 은 smoke 가 따로 확인)
+seed: 1234
+num_worker: 4
+work_dir: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_QRC24_S4_H11_W104_D121_WV3_T0_S1234_FRESH50_v1
+
+phase: train
+
+mars: ms                      # PAN mode·loss·batch 복제 제거 (단일 task)
+trainer: kdv
+kdv:
+  campaign_id: QRECON24_A104D121_S1S5_20260916_v1
+  plan_protocol_id: FRESH50
+  candidate_grid_id: GRID1010_50K_v1
+  case_id: QRC24_S4_H11
+  policy_id: QRC
+  backend_id: QRC24
+  run_kind: CONTROLLED
+  version: v1
+  check_run_name: false
+  experiment_branch_id: A104D121_T0FIX_QRECON24_v1
+  architecture_signature: W104_D121:model.pancrafter_paper.PANCrafterPaper:in_mode=paper:norm=ln:attn_locations=[]:n_attn=3:mode_modulation=false
+  input_protocol: I-NATIVE-TRANSFER
+  aligner_policy: A-FT
+  diag_every: 1000
+  diag:
+    fixed_batch: true
+  calibration:
+    n_patches: 3072
+    seed: 1234
+  aligner_lr: 1.0e-06
+  select:
+    primary: best_hqnr
+    secondary:
+    - best_rr_val
+    - last
+    retain_all_candidates: true
+  expect_arch:
+    width: 104
+    depth:
+    - 1
+    - 2
+    - 1
+    noalign: false
+  rec:
+    case: R3
+    alpha: 0.5
+    kd_weight: 0.05
+    eps: 1.0e-06
+    tau: 0.012463942170143127
+    eps_scale: 1.0e-06
+  stat:
+    enabled: true
+    kind: EDGE
+    mode: H
+    window: 5
+    alpha: 1.0
+    kd_weight: 0.1
+    tau: calibrate
+    outer_weight: 0.001
+    lambda_note: absolute (QRECON24 §2.4; not a multiple of lambda_E0)
+    ramp_updates: 0
+  geom_kd:
+    mode: G0
+  recipe: N2_SG
+  eval:
+    fixed_reference_from_donor: true
+  donor:
+    source: assets/pakd50/T0_run/best_hqnr
+    view_margin_hr: 4
+    expected_sha256: 16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32
+    expected_step: 24240
+  teacher:
+    id: T0
+    run: assets/pakd50/T0_run
+    tag: best_hqnr
+    expected_sha256: 16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32
+    bridge: true
+  baseline_run: PAKD50_QRC24_S4_G22_W104_D121_WV3_T0_S1234_FRESH50_v1
+  budget:
+    ledger: work_dir/_qrecon24_budget/ledger.json
+    total_gpu_hours: 1000.0
+    reserve_hours: 0.0
+    margin: 1.1
+    required: true
+    projected_hours: null
+    projected_map:
+      PAKD50_QRC24_S4_H11_W104_D121_WV3_T0_S1234_FRESH50_v1: 2.4946666666666664
+    remaining_mandatory: []
+    remaining_mandatory_file: work_dir/_qrecon24/mandatory_runs.txt
+    projection_file: work_dir/_pakd50/reservations.json
+    time_policy:
+      mode: no_hard_limit
+      target_elapsed_hours: null
+      hard_deadline: null
+      inherit_parent_deadline: false
+      min_operating_hours: 24.0
+  qrecon:
+    mode: continuous_v1
+    q_ref: 0.3276133416220546
+    asset: assets/qedge9/cue_T0_AXIS16_v1.json
+    a_weight: q
+    e_weight: q
+    perm_seed: 51515
+  qrc24:
+    profile: H11
+    canonical: H11
+    lambda_E: 0.001
+    rA: 0.01
+    U_lr: 0.0001
+    A_lr: 1.0e-06
+    alpha: 0.5
+    beta: 0.05
+    a_weight: q
+    e_weight: q
+    A_frozen: false
+    q_ref: 0.3276133416220546
+    method: qrecon_continuous_v1
+    A_loss: weighted_H_only
+    A_soft: 0
+    A_edge: 0
+    student_offset: 0
+  parent_campaign_id: PAKD50_W112D123_WV3_20260914_v1
+  lineage_campaign_ids:
+  - PAKD50_W112D123_WV3_20260914_v1
+  - QEDGE9_A104D121_20260915_v1
+  - QEGX_A104D121_S3S4_20260915_v1
+  - EDGEBAL_A104D121_S2S5_20260916_v1
+  exact_resume: true
+  control_runs:
+    G22: PAKD50_QRC24_S4_G22_W104_D121_WV3_T0_S1234_FRESH50_v1
+  aux:
+    offset_weight: 0.0
+    geometry_weight: 0.0
+  corruption:
+    radius_hr: 0.0
+
+
+
+
+# KNOWN_ISSUES.md E-1: 검증셋으로 best 를 고른다. 테스트셋은 곡선 기록용으로만 본다.
+select_on: hqnr
+fr_select_indices: "0-19"   # 논문 세트 20장 전체로 선택 (부분집합 없음)
+
+# feeder
+feeder: feeders.feeder.PanFeeder
+train_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5
+  crop: False
+  hflip: True
+  vflip: True
+  rot: True
+  return_meta: true
+  crop_ratio: 0.75
+  ms_size: 16
+
+val_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5
+
+test_reduced_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5
+
+test_full_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5
+
+# data
+num_bands: 8
+max_pixel: 2047.0
+
+# model
+model: model.pancrafter_paper.PANCrafterPaper
+model_args:
+  in_channels: 1
+  out_channels: 8
+  hidden_size: 104
+  depth: [1, 2, 1]          # full-res / H/2 / H/4(bottleneck)
+  dropout: 0.0
+  num_heads: 8
+  mlp_ratio: 4.0
+  ks: 3                     # 논문: "local attention kernel size to k = 3" (bottleneck 포함)
+  ka: 3
+  norm: ln                  # 논문 Eq (5): x <- Conv(SiLU(LN(x)))
+  in_mode: paper            # 논문 9ch: concat(PAN, ↑MS)
+  attn_locations: []
+  mode_modulation: false   # MARs mode 조건 γ/β 제거 (단일 task)
+  n_attn: 3                 # Figure 3: AttnBlock 3개 (H/2 enc, H/4 bottleneck, H/2 dec)
+
+# optim
+optimizer: AdamW
+learning_rate: 1.0e-04
+weight_decay: 0.01
+lr_scheduler: cosine
+num_iter: 50000
+num_warmup: 100
+
+# loss
+res: True
+w_off: 1.0
+
+# logging
+log_iter: 100
+save_iter: 10000
+save_epoch: 25
+eval_epoch: 5
+
+# training
+gpu: 0
+batch_size: 48  # duplicate
+test_batch_size: 1
