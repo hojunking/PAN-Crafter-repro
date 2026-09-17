@@ -134,3 +134,25 @@ s1 만 그 뒤 `python tools/s1_aligner_analysis.py --assets --split rr --scenes
 **공동 목표는 아직 아무도 달성하지 못했다.** 시트 376 행 중 H ≥ .9585 와 E < 2.040 을 같은 checkpoint 에서 만족한 행이 0 건이고, QRECON24 90 행에서는 E < 2.040 자체가 0 건이다(최저 2.0544 = s3 G12·2026, 그 run 의 H 는 .9501). s1 로컬 14 run 의 후보 격자 50 개를 전부 봐도 두 조건을 같이 만족하는 checkpoint 는 없다. run 안에서 HQNR 은 중반(17K–31K)에 정점이고 ERGAS 는 끝(43K–50K)까지 계속 내려간다 — 두 지표가 같은 축에서 반대로 움직인다. 이 사실은 lock 결정과 함께 보고해야 하며, seed 반복만으로 해소된다고 가정하지 않는다.
 
 gate: **201 ALL OK** (K01–K52). 로그 `work_dir/_qrecon24/gate_k52.log`.
+
+
+## 11. 실측으로 드러난 것 — ERGAS 차이는 계수가 아니라 checkpoint 선택이다 (2026-09-18)
+
+s4 의 다음 case 를 설계하려고 90 개 QRECON24 행과 s1 로컬 13 run·후보 650 개를 전수 측정한 결과다. **해석·판정 문서는 `results_log/` 에 따로 쓴다** — 여기에는 구현이 참조할 사실만 적는다.
+
+| 측정 | 값 |
+|---|---|
+| 계수 8 축(λE·rA·α·β·U LR·A q·edge q·A 동결)의 ΔHQNR 평균 | 전부 \|0.00075\| 이하 = 판정선 0.0031 의 1/4 이하 |
+| 같은 설정(G22=H22=L100) 11 벌 반복 폭 | HQNR 0.0038 · ERGAS 0.0625(3.0%) — **어떤 축 효과보다 크다** |
+| 선택 step 과 시트 ERGAS 상관 | **−0.967 (R² 0.936)** — 시트 ERGAS 분산의 93.6% 가 "HQNR selector 가 몇 step 에서 멈췄나" |
+| 공통 step(50K) 에서 다시 재면 profile 간 ERGAS 폭 | **0.0073 (0.35%)** — 선택 checkpoint 기준 0.0718 에서 붕괴, 판정선 0.8% 의 절반 미만 (`tools/qrc24_fixed_step_rr.py` 로 재현) |
+| corr(시트 ERGAS, 50K ERGAS) | −0.274 — 시트의 ERGAS 순서는 고정 지점 ERGAS 를 예측하지 못한다 |
+| 650 후보 전수 | H ≥ .9585 **2 개**(둘 다 G23 S1234) · E < 2.040 **0 개** · 동시 **0 개** |
+| 골격 축(같은 seed·case·50K) | W112·D123(2.76 M) 2.0339–2.0395 **전부 2.040 미만** vs W104·D121(2.01 M) 2.0509–2.0598 **전부 초과**; 단 W112 쪽 HQNR 은 .9478–.9545 로 하한 미달 |
+
+구현에 직결되는 결론 둘.
+
+1. **새 selector(v2) 로 재선택해도 기존 자료에서 선택이 바뀌지 않는다.** s1 에서 적격 후보가 있는 유일한 run(G23 S1234, 적격 2)에서 v1·v2 가 같은 step 31310 을 고른다(두 결과 파일 대조 확인). v2 는 규약을 맞추는 것이고 없던 자산을 만들지 않는다.
+2. **R2 seed 단계는 lock 이 서면 실제로 생성된다** — 검토에서 `qrc24_control_profile` 이 41xxx seed 를 canonical-G22 부재로 막는 버그를 찾아 고쳤다. seed 단계 run 의 `control_runs` 는 가상 id 가 아니라 `recipe_lock` + 같은 profile 의 `reference_block` 이고 `baseline_run` 은 비운다(같은 C* 의 seed 반복이라 seed 별 기준이 없다). K52 가 lock 을 임시로 세워 4 벌 생성을 확인하고 파일을 원상복구한다.
+
+새 도구: `tools/qrc24_fixed_step_rr.py` — 저장된 `results/reduced_last.mat`(exact 50K) 을 시트와 같은 경로로 다시 재 profile 간 ERGAS 폭을 낸다. GPU 추론 없음, run 당 약 5 초. gate **202 ALL OK**.

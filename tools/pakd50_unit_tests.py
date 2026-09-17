@@ -1460,6 +1460,22 @@ _sp52 = _ilu52.spec_from_file_location("_tu52", os.path.join(ROOT, "gspread", "t
 check("K52 시트 target 열(§8.2·회귀 6·10): target 열 묶음 키가 계획과 같다 · legacy 열을 교체하지 않고(batch_clear/--replace 없음) 자기 범위만 쓴다 · 같은 checkpoint 의 값만 한 행에(v2 결과의 target 하나에서) · 열 배치와 쓰기를 같은 flock 안에서(NOA 업로더와 충돌 방지) · 등록 건수 하드코딩 없음",
       [c_[2] for c_ in _TU.COLUMNS] == ["target_selector", "target_step", "target_HQNR_raw", "target_ERGAS", "target_SCC", "target_PSNR", "target_joint_pass", "target_official_complete", "recipe_lock_id", "queue_revision"]
       and ".batch_clear(" not in _tu52 and '"--replace"' not in _tu52 and "run_tag" in _tu52 and "fcntl.flock" in _tu52 and f"qrecon24_target_selection_{{G.QRC24_R2_SELECTOR}}" in _tu52)
+_tmp52 = tempfile.mkdtemp(); _lkp52 = os.path.join(ROOT, G.QRC24_LOCK_FILE); _had52 = os.path.exists(_lkp52)
+try:                                                                                   # lock 이 서면 seed 단계 config 가 실제로 생성되는지 (검토 지적: qrc24_control_profile 이 41xxx 를 SystemExit 로 막던 버그)
+    os.makedirs(os.path.dirname(_lkp52), exist_ok=True)
+    if not _had52:
+        json.dump(dict(lock_id=G.QRC24_LOCK_ID, profile="G23", recipe_sha256="0" * 64, selector=G.QRC24_R2_SELECTOR, decided_at="K52"), open(_lkp52, "w"))
+    _ks52 = G.kdv_block("QRC24_S4_G23", 41004, "s4", cal=calQ, arch="W104_D121")
+    _made52 = G.generate("s4", G.qrc24_seed_items("s4"), _tmp52, projected=None)
+    _seed_ok52 = (len(_made52) == 4 and _ks52["control_runs"]["recipe_lock"] == G.QRC24_LOCK_ID and _ks52["control_runs"]["canonical"] is None
+                  and _ks52["control_runs"]["reference_block"] and _ks52["qrc24_lock"]["profile"] == G.qrc24_locked_profile() and _ks52["baseline_run"] is None)
+except SystemExit as _e52:
+    _seed_ok52 = False; _made52 = [str(_e52)[:120]]
+finally:
+    if not _had52 and os.path.exists(_lkp52):
+        os.remove(_lkp52)
+check("K52 seed 단계 config(§6.1·§6.3; 검토 지적 수정): lock 이 있으면 41xxx seed 의 config 가 **생성된다** — seed 별 G22 가 없다고 SystemExit 로 죽지 않는다 · 대조는 가상 id 가 아니라 recipe_lock 과 같은 profile 의 reference_block · baseline_run 은 비운다(같은 C* 의 seed 반복이라 seed 별 기준이 없다) · lock 파일은 검사 뒤 원상복구",
+      _seed_ok52 and (os.path.exists(_lkp52) == _had52), f"made {_made52[:1]}")
 check("K52 문서·revision: R2 계획 참조 상수 · 도구 존재 · CLAUDE.md 에 Narrow R2 · selector/lock id 가 한 값으로 일치",
       G.QRC24_R2_REVISION == "QRC24_NARROW_R2_20260917" and G.QRC24_LOCK_ID == "QRC24_LOCK_V1_20260917" and G.QRC24_R2_SELECTOR == _QS.SELECTOR_V2
       and all(os.path.exists(os.path.join(ROOT, f_)) for f_ in ("tools/qrc24_lock.py", "gspread/target_upload.py"))

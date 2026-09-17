@@ -966,8 +966,16 @@ def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=Tr
         k["qrc24"] = dict(profile=prof, canonical=Pq["canonical"], lambda_E=float(Pq["lam"]), rA=(0.0 if Pq["frozen"] else float(Pq["rA"])), U_lr=float(Pq["ulr"]), A_lr=float(Pq["alr"]), alpha=float(Pq["alpha"]), beta=float(Pq["beta"]),
                        a_weight=Pq["a"], e_weight=Pq["e"], A_frozen=bool(Pq["frozen"]), q_ref=QRC24_QREF, method="qrecon_continuous_v1", A_loss="weighted_H_only", A_soft=0, A_edge=0, student_offset=0,
                        q_weight_formula="qref/(qref+q_T)", lambda_E_plan=float(Pq["lam"]) / 2.0, uniform_weight=QRC24_UNIFORM_W, change_note="2026-09-16 저녁: 분자 2 제거 → λE 2 배 환산, uniform 0.5; rA/α/β/qref 유지")
-        _adj = (version == QRC24_ADJ_VERSION); _ctl = qrc24_control_run(server, seed)      # 대조 id 는 편성된 실제 version(v1) — v2 run 이 가상 '..._v2' G22 를 가리키지 않는다 (ADJ-R1 §11.2)
-        _ctrl = {"G22": _ctl, "canonical": "G22", "control_profile": qrc24_control_profile(server, seed)}
+        _adj = (version == QRC24_ADJ_VERSION)
+        if int(seed) >= QRC24_R2_SEED_MIN:                                    # R2 seed 단계: seed 별 G22 대조가 없다(같은 C* 를 seed 만 바꿔 20 번 돈다) — 가상 id 를 만들지 않고 lock 과 비교 block 을 가리킨다
+            _lk2 = qrc24_recipe_lock()
+            _ctl = None
+            _ctrl = {"recipe_lock": _lk2.get("lock_id"), "locked_profile": _lk2.get("profile"), "canonical": None, "control_profile": None,
+                     "reference_block": [qrc24_run_name(server, prof, sd_, "v1") for _p, sd_, _v in QRC24_QUEUES.get(server, []) if _p == prof][:1] or None,
+                     "note": "seed 단계는 같은 C* 의 seed 반복이다 — 대조는 같은 lock 의 다른 seed 들(§6.3 분포 보고)이지 seed 별 G22 가 아니다"}
+        else:
+            _ctl = qrc24_control_run(server, seed)                             # 대조 id 는 편성된 실제 version(v1) — v2 run 이 가상 '..._v2' G22 를 가리키지 않는다 (ADJ-R1 §11.2)
+            _ctrl = {"G22": _ctl, "canonical": "G22", "control_profile": qrc24_control_profile(server, seed)}
         if _adj:                                                              # ADJ-R1: 같은 서버·seed 의 2×2/대조 상대(실제 id) + revision·출처 (v1 config 는 바이트 불변)
             _ctrl.update({p_: qrc24_control_run(server, seed, p_) for p_ in ("G23", "H23", "B20A03") if p_ != prof and qrc24_item_version(server, p_, seed)})
             k["qrc24"].update(queue_revision=QRC24_ADJ_REVISION, adjustment="ADJ-R1", source_plan=QRC24_ADJ_PLAN, block_2x2=qrc24_block_2x2(server, seed), numerator_factor=1.0, lambda_E_plan=float(Pq["lam"]),
