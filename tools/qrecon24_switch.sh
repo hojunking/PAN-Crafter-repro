@@ -19,6 +19,7 @@ while [ $# -gt 0 ]; do case "$1" in --dry-run) DRY=1;; --extend) EXTEND=1;; *) e
 fail() { echo "!! $1"; exit 1; }
 case "$SERVER" in s1|s2|s3|s4|s5) ;; *) fail "QRECON24 switch 는 s1–s5 용 (이 서버: $SERVER)";; esac
 [ -f work_dir/_pakd50/ledger.json ] || fail "work_dir/_pakd50/ledger.json 없음 — 이 서버는 pakd50_prepare 를 아직 안 했다"
+[ -f work_dir/_eval_phase/hold.json ] && fail "평가 phase hold 중이다 (계획 2026-09-18 §2) — 새 학습을 기동하지 않는다. 확인: python tools/eval_phase.py status · 해제: python tools/eval_phase.py release"
 CAMP=work_dir/_qrecon24; QUEUE="config/queues/qrecon24_${SERVER}.txt"; [ -f "$QUEUE" ] || fail "$QUEUE 없음 (git pull)"
 mkdir -p "$CAMP" work_dir/_qrecon24_budget; TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 GATE_ON=0; grep -qx 'pakd50' work_dir/campaign_gates_enabled.txt 2>/dev/null && GATE_ON=1

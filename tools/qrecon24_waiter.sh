@@ -13,8 +13,9 @@ status() { "$PY" - "$SERVER" <<'PYEOF'
 import json, os, subprocess, sys, time; sys.path.insert(0, "."); from tools import gen_pakd50_configs as G; from tools.campaign_gate import terminal
 srv = sys.argv[1]; p = os.path.join(G.ROOT, G.QRC24_MANDATORY_FILE); runs = [l.strip() for l in open(p) if l.strip() and not l.startswith("#")] if os.path.exists(p) else []
 pending = [r for r in runs if not terminal(r)]; ready = [r for r in pending if G.cue_ready(r)]; waiting = [r for r in pending if not G.cue_ready(r)]
+hold = G.eval_hold()          # 계획 2026-09-18 §2: 평가 phase 중에는 chain 을 재기동하지 않는다 (진행 중 학습은 그대로 끝난다)
 ps = subprocess.run(["ps", "-eo", "args"], capture_output=True, text=True).stdout; alive = any("tools/_run_cases.sh" in l and "bash" in l for l in ps.splitlines()); training = any("main.py" in l and "--config" in l for l in ps.splitlines())
-st = "DONE" if not pending else ("RUNNING" if (alive or training) else ("READY_TO_RESTART" if ready else "WAITING_FOR_CUE"))
+st = "DONE" if not pending else ("RUNNING" if (alive or training) else ("HOLD_EVAL" if hold else ("READY_TO_RESTART" if ready else "WAITING_FOR_CUE")))
 json.dump(dict(server=srv, status=st, pending=pending, ready=ready, waiting_for_cue=waiting, chain_alive=alive, training=training, checked=time.strftime("%Y-%m-%dT%H:%M:%S")), open(os.path.join(G.ROOT, "work_dir", "_qrecon24", "status.json"), "w"), indent=1)
 print(st)
 PYEOF
@@ -24,6 +25,7 @@ while true; do
   case "$ST" in
     DONE) echo "[qrecon24-waiter] $(date -Iseconds) QRECON24 필수 run 전부 종료 — 대기자 종료 (24h 확인·확장은 tools/qrecon24_switch.sh --extend)"; exit 0;;
     RUNNING) :;;
+    HOLD_EVAL) echo "[qrecon24-waiter] $(date -Iseconds) 평가 phase hold — chain 을 재기동하지 않는다 (tools/eval_phase.py status)";;
     WAITING_FOR_CUE) echo "[qrecon24-waiter] $(date -Iseconds) chain 없음 · 미완 run 은 cue 대기 — 자산이 생기면 자동 재기동";;
     READY_TO_RESTART)
       echo "[qrecon24-waiter] $(date -Iseconds) chain 없음 · 준비된 미완 run 있음 → chain 재기동 ($(queue_file); 마감 파일 제거 = 상한 없음)"

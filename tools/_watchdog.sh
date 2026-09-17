@@ -13,6 +13,7 @@ LOG="$REPO/work_dir/cases_chain.log"
 LOCK="$REPO/work_dir/.watchdog.lock"
 exec 9>"$LOCK"; flock -n 9 || exit 0
 pgrep -f "bash .*tools/_run_cases.sh" > /dev/null && exit 0          # 체인 살아있음
+[ -f work_dir/_eval_phase/hold.json ] && { echo "$(date -Iseconds) 평가 phase hold — 재기동하지 않는다 (tools/eval_phase.py)" >> "$LOG"; exit 0; }   # 계획 2026-09-18 §2
 grep -q "\[cases\] DONE" "$LOG" 2>/dev/null && exit 0                # 이미 끝남
 echo "[watchdog] $(date -Iseconds) 체인 재기동" >> "$REPO/work_dir/watchdog.log"
 cd "$REPO"

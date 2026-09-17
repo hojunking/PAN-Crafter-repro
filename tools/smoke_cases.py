@@ -536,7 +536,21 @@ def smoke_one(name, dev):
             ("dual" if dual else "ms") + ("" if mm else "+plain") + extra_note)
 
 
+def _eval_hold():
+    """평가 phase hold (계획 PAN_ALLSERVER_NOA_AUDIT_METHOD_v2_20260918 §2): 새 학습 case 를 시작하지 않는다.
+    rc 2 = 일시 사유라 runner 가 실패 원장에 남기지 않고 이 pass 만 건너뛴다 (tools/_run_cases.sh:77-79)."""
+    try:
+        from tools.eval_phase import hold_state
+        return hold_state()
+    except Exception:                                                                  # noqa
+        return {}
+
+
 def main():
+    _h = _eval_hold()
+    if _h:
+        print(f"[smoke] 평가 phase hold — 새 학습 case 를 시작하지 않는다 ({_h.get('phase')}: {_h.get('reason')}). 해제: python tools/eval_phase.py release", file=sys.stderr)
+        sys.exit(2)
     names = sys.argv[1:]
     if not names:
         print(__doc__)

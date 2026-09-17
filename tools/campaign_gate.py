@@ -441,6 +441,14 @@ def enabled_gates():
 
 
 def main():
+    try:
+        from tools.gen_pakd50_configs import eval_hold
+        _h = eval_hold()
+    except Exception:                                                                  # noqa
+        _h = {}
+    if _h:
+        log(f"평가 phase hold ({_h.get('phase')}) — 조건부 실행을 열지 않는다 (계획 2026-09-18 §2; 해제 python tools/eval_phase.py release)")
+        return
     on = enabled_gates()
     if not on:
         log("캠페인 게이트 비활성 — 이 큐의 캠페인에 속하지 않는 과거 조건부 실행(UVS·shift-robust·s2 KD)을 열지 않는다. "

@@ -1328,4 +1328,81 @@ check("K50 문서(§11): 구현 노트·CLAUDE.md ADJ-R1·generator 상수(PLAN/
                                                                                                      else "이 서버에 없다(계획 PAN_*.md 는 저장소에 두지 않는 규약) — 존재 검사 건너뜀; 나머지 K50 검사는 그대로 돈다"),
       os.path.exists(os.path.join(ROOT, G.QRC24_ADJ_NOTE)) and "ADJ-R1" in open(os.path.join(ROOT, "CLAUDE.md")).read() and G.QRC24_ADJ_VERSION == "v2" and G.QRC24_ADJ_PLAN.startswith("research_log/PAN_") and _plan_ok,
       f"plan_here {_plan_here} plan_ok {_plan_ok}")
+
+# ================= K51 NOA/A_ON 전수 평가 (research_log/PAN_AllServers_StudentEval_AlignerAnalysis_CurrentMethod_Integrated_2026-09-18.md §2·§4·§6·§7·§11.2 V01–V18)
+import importlib.util as _ilu51
+from kdv.eval_modes import MODES as _EMODES, CallCounter as _CC, forward_mode as _fmode, state_hash as _shash, expected_calls as _ecalls, consensus_delta as _cons, sampler_off as _soff
+from pa.model import PAModel as _PAM
+from pa.aligner import PANGlobalAligner as _PGA
+class _Bk51(torch.nn.Module):
+    def __init__(s): super().__init__(); s.c = torch.nn.Conv2d(9, 8, 3, padding=1); s.seen = []
+    def forward(s, pan, lpan, ms, sw):
+        s.seen.append(tuple(ms.shape[-2:]))                                            # LRMS 그대로 받아야 한다 (V04)
+        return s.c(torch.cat([pan, torch.nn.functional.interpolate(ms, scale_factor=4, mode="bicubic")], 1))
+torch.manual_seed(51); _m51 = _PAM(_Bk51(), _PGA(8), aligner_margin=4, sampler=True).eval()
+with torch.no_grad():
+    _m51.aligner.fc2.weight.normal_(0, 0.01); _m51.aligner.fc2.bias.copy_(torch.tensor([0.3, -0.2]))     # zero-init 이면 모드 차이가 공허하다 (zero_module 함정)
+_p51 = torch.randn(1, 1, 128, 128); _ms51 = torch.randn(1, 8, 32, 32); _lp51 = torch.randn(1, 1, 128, 128)
+_h51 = _shash(_m51); _calls51, _y51 = {}, {}
+for _mo in _EMODES:
+    with _CC(_m51) as _c51:
+        _y51[_mo] = _fmode(_m51, _p51, _ms51, _lp51, _mo)
+    _calls51[_mo] = _c51.as_dict()
+_exp51 = {m_: _ecalls(m_, 1) for m_ in _EMODES}
+_msb51 = torch.nn.functional.interpolate(_ms51, scale_factor=4, mode="bicubic")
+with torch.no_grad():
+    _res51 = _m51.backbone(_p51, _lp51, _ms51, torch.ones(1))
+check("K51 모드 호출·잔차(V02·V03·V04·V06): A_ON 1/1 · **NOA aligner 0회·warp 0회** · ZERO A 0회+sampler 1회 · CROP64_MED crop 수만큼 A + warp 1회 · backbone 은 LRMS(32²) 를 그대로 받는다(이미 확대된 M 아님) · M 은 정확히 한 번 더해진다(NOA y == M + backbone(P,·)) · 평가 전후 state hash 동일·grad 없음 · sampler 복원",
+      _calls51["A_ON"] == dict(aligner_calls=1, warp_calls=1) and _calls51["A_BYPASS_RAW"] == dict(aligner_calls=0, warp_calls=0) and _calls51["A_ZERO_WARP"] == dict(aligner_calls=0, warp_calls=1)
+      and _calls51["A_CROP64_MED"] == dict(aligner_calls=4, warp_calls=1) and all(v_ is None or _calls51[m_][k_] == v_ for m_, e_ in _exp51.items() for k_, v_ in e_.items())
+      and set(_m51.backbone.seen) == {(32, 32)} and torch.allclose(_y51["A_BYPASS_RAW"], _msb51 + _res51, atol=1e-6)
+      and _shash(_m51) == _h51 and all(p_.grad is None for p_ in _m51.parameters()) and _m51.sampler is True, f"{_calls51}")
+_yon51, _ynoa51 = _y51["A_ON"], _y51["A_BYPASS_RAW"]
+with _soff(_m51):
+    _inside51 = _m51.sampler
+_med51, _D51 = _cons(_m51, _p51, _msb51, size=64)
+_man51 = torch.stack(sorted(_D51[:, 0, 0].tolist()) and [torch.tensor(sorted(_D51[:, 0, 0].tolist())), torch.tensor(sorted(_D51[:, 0, 1].tolist()))])
+_mid51 = torch.tensor([float((_man51[0][1] + _man51[0][2]) / 2), float((_man51[1][1] + _man51[1][2]) / 2)])     # 4개 → 가운데 두 값 평균
+check("K51 consensus 정의(V18·§7.4): non-overlap 64 grid(128² → 4 crop) · **성분별 중앙값, 짝수는 가운데 두 값 평균**(torch.median 의 '작은 쪽' 아님) · 전체 PAN 을 그 한 쌍으로 **한 번만** warp · sampler_off 는 블록 안에서만 False 이고 밖에서 복원 · A_ON 과 NOA 출력이 실제로 다르다(모드 비교가 공허하지 않다)",
+      _D51.shape[0] == 4 and torch.allclose(_med51[0], _mid51, atol=1e-6) and not torch.allclose(_med51[0], torch.tensor([float(_man51[0][1]), float(_man51[1][1])]), atol=1e-9)
+      and _inside51 is False and _m51.sampler is True and _calls51["A_CROP64_MED"]["warp_calls"] == 1 and float((_yon51 - _ynoa51).abs().max()) > 1e-4,
+      f"med {[round(float(v), 5) for v in _med51[0]]} mid {[round(float(v), 5) for v in _mid51]} ON−NOA {float((_yon51 - _ynoa51).abs().max()):.2e}")
+_ne51 = _ilu51.spec_from_file_location("_noaeval51", os.path.join(ROOT, "tools", "noa_eval.py")); _NE = _ilu51.module_from_spec(_ne51); _ne51.loader.exec_module(_NE)
+_ep51 = _ilu51.spec_from_file_location("_evalphase51", os.path.join(ROOT, "tools", "eval_phase.py")); _EP = _ilu51.module_from_spec(_ep51); _ep51.loader.exec_module(_EP)
+_nu51 = _ilu51.spec_from_file_location("_noaup51", os.path.join(ROOT, "gspread", "noa_upload.py")); _NU = _ilu51.module_from_spec(_nu51); _nu51.loader.exec_module(_NU)
+_d1 = _NE.eval_dir("R", "a" * 64, "A_ON"); _d2 = _NE.eval_dir("R", "a" * 64, "A_BYPASS_RAW")
+_rec51 = dict(run="R", modes=dict(A_ON=dict(rr=dict(ergas=2.05), fr=dict(hqnr_raw=0.9590)), A_BYPASS_RAW=dict(rr=dict(ergas=2.03), fr=dict(hqnr_raw=0.9600))))
+_del51 = _NE.deltas_vs_on(_rec51)
+_rec51b = dict(run="R", modes=dict(A_ON=dict(rr=dict(ergas=2.05), fr=dict(hqnr_raw=0.9590)), A_BYPASS_RAW=dict(rr=dict(ergas=2.041), fr=dict(hqnr_raw=0.95849))))
+check("K51 캐시 분리·Δ 부호·공동목표(V07·V09·§5.2·§5.3): 모드별 결과 경로가 다르다(ON 캐시를 NOA 로 쓰지 않는다) · identity 에 eval_mode·checkpoint/config/h5/evaluator sha 가 들어간다 · ΔE = E_NOA − E_ON, ΔH = H_NOA − H_ON(원본값) · joint_pass 는 **같은 모드·같은 checkpoint** 에서 H ≥ .9585 **그리고** E < 2.040 (반올림 아님: H .95849 는 불통과)",
+      _d1 != _d2 and _d1.endswith("A_ON") and _d2.endswith("A_BYPASS_RAW") and abs(_del51["delta_rr_ergas"] - (2.03 - 2.05)) < 1e-12 and abs(_del51["delta_fr_hqnr_raw"] - (0.9600 - 0.9590)) < 1e-12
+      and _del51["noa_joint_pass"] is True and _del51["on_joint_pass"] is False and _NE.deltas_vs_on(_rec51b)["noa_joint_pass"] is False
+      and all(k_ in open(os.path.join(ROOT, "tools", "noa_eval.py")).read() for k_ in ("eval_mode=mode", "checkpoint_sha256=sha256_file(ckf)", "fr_h5_sha256", "evaluator=ev")))
+_src51 = open(os.path.join(ROOT, "tools", "noa_eval.py")).read(); _up51 = open(os.path.join(ROOT, "gspread", "noa_upload.py")).read(); _ph51 = open(os.path.join(ROOT, "tools", "eval_phase.py")).read()
+check("K51 업로더(V10·V11·V12·§6.2·§6.3): NOA 26 열 키가 계획 §6.2 와 같다 · 자기 서버 탭만(gspread/server.txt) · run id 매칭은 run_tag(장식 문자열 완전일치 아님) · batch_clear/--replace/레이아웃 재생성 없음 · 기존 B..X 를 쓰지 않는다 · 학습 uploader 와 같은 로컬 flock · 같은 run id 의 중복 행을 전부 갱신(alias)",
+      [c_[2] for c_ in _NU.COLUMNS] == ["noa_rr_ergas", "noa_rr_sam", "noa_rr_psnr", "noa_rr_ssim", "noa_rr_scc", "noa_rr_q8", "noa_rr_rmse", "noa_rr_cc", "noa_fr_d_lambda", "noa_fr_d_s", "noa_fr_hqnr_raw",
+                                        "paired_on_rr_ergas", "paired_on_fr_hqnr_raw", "delta_rr_ergas", "delta_fr_hqnr_raw", "eval_mode", "eval_step", "eval_ckpt_sha", "source_selector",
+                                        "eval_status", "legacy_on_check", "noa_joint_pass", "eval_date", "eval_server", "protocol_id", "eval_hours"]
+      and ".batch_clear(" not in _up51 and "replace=True" not in _up51 and '"--replace"' not in _up51 and "run_tag" in _up51 and "fcntl.flock" in _up51 and "rows = [i for i, t in enumerate(ids) if t == run]" in _up51
+      and 'sheet_name("WV3", srv)' in _up51 and "source_train_server" in _up51)
+_sm51 = open(os.path.join(ROOT, "tools", "smoke_cases.py")).read(); _wd51 = open(os.path.join(ROOT, "tools", "_watchdog.sh")).read(); _wt51 = open(os.path.join(ROOT, "tools", "qrecon24_waiter.sh")).read()
+_sw51 = open(os.path.join(ROOT, "tools", "qrecon24_switch.sh")).read(); _cg51 = open(os.path.join(ROOT, "tools", "campaign_gate.py")).read()
+_fx51 = os.path.join(ROOT, "work_dir", "_eval_phase", "hold.json"); _had51 = os.path.exists(_fx51)
+check("K51 phase hold(V15·V16·§2): 새 학습을 시작할 수 있는 네 경로가 전부 hold 를 본다 — smoke_cases(rc 2 = 원장 기록 없는 일시 사유) · waiter(HOLD_EVAL, 재기동 안 함) · cron watchdog · switch(기동 거부) · campaign_gate(조건부 실행 안 염) · hold 는 진행 중 학습을 죽이지 않는다(preempt_running_training False) · 복귀 manifest 에 큐 파일 내용·sha·revision·다음 미완 case 를 담는다 · 평가 우회가 학습 경로에 남지 않는다(sampler 복원 검사)",
+      "_eval_hold()" in _sm51 and "sys.exit(2)" in _sm51 and "hold.json" in _wd51 and "HOLD_EVAL" in _wt51 and "G.eval_hold()" in _wt51
+      and "평가 phase hold 중이다" in _sw51 and "eval_hold" in _cg51 and hasattr(G, "eval_hold")
+      and all(k_ in _ph51 for k_ in ("queue_files", "sha256", "next_unfinished", "approved_main_queue_revision", "preempt_running_training=False", "restore_main_forward_mode"))
+      and _EP.PHASES[:3] == ("MAIN_RUNNING", "DRAIN_CURRENT_CASE", "LOCAL_STUDENT_EVAL") and _EP.PHASES[-1] == "MAIN_RESUME"
+      and (G.eval_hold() != {}) == _had51)
+check("K51 독립 복귀·분석 순서(V13·V14·V17·§1.3·§10.5): 평가/복귀 코드 어디에도 '다른 서버 평가 완료' 나 's1 분석 완료' 를 기다리는 조건이 없다 · 평가 완료가 recipe lock 을 만들거나 본 방법(정상 추론 A_ON)을 바꾸지 않는다 · s1 분석 도구는 §7.1 네 자산과 §7.3 AXIS16(반경 .25/.5/1/2 × 4 축 = 16) 을 쓰고 q_size 를 학습 q 와 분리해 적는다",
+      not any(t_ in (_src51 + _ph51 + _up51) for t_ in ("wait_for_s1", "WAIT_S1_AUDIT", "other_server_eval", "all_servers_done"))
+      and "recipe_lock" not in _src51 and "recipe_lock" not in _up51 and _EP.hold_state.__doc__ is not None
+      and (lambda _a51: len(_a51.probes()) == 16 and sorted({r_ for r_, _e in _a51.probes()}) == [0.25, 0.5, 1.0, 2.0] and _a51.SIZES["fr"] == (64, 128, 256) and _a51.FULL == {"rr": 256, "fr": 512}
+           and len(_a51.crop_origins(512, 64)) == 64 and len(_a51.crop_origins(512, 128)) == 16 and len(_a51.crop_origins(256, 64)) == 16 and len(_a51.S1_ASSETS) == 3
+           and "학습 q cache" in open(os.path.join(ROOT, "tools", "s1_aligner_analysis.py")).read())(_ilu51.module_from_spec(_ilu51.spec_from_file_location("_s1a51", os.path.join(ROOT, "tools", "s1_aligner_analysis.py"))) if False else __import__("tools.s1_aligner_analysis", fromlist=["x"])))
+check("K51 문서·protocol: 계획서(있으면 protocol id 일치) · 구현 노트 · 도구 5 종 존재 · 모든 도구가 같은 protocol id 를 쓴다",
+      all(os.path.exists(os.path.join(ROOT, f_)) for f_ in ("kdv/eval_modes.py", "tools/noa_eval.py", "tools/eval_phase.py", "gspread/noa_upload.py", "tools/s1_aligner_analysis.py", "research_log/2026-09-18_noa-eval-implementation.md"))
+      and _NE.PROTOCOL_ID == _EP.PROTOCOL_ID == _NU.PROTOCOL_ID == "PAN_ALLSERVER_NOA_AUDIT_METHOD_v2_20260918"
+      and (not os.path.exists(os.path.join(ROOT, "research_log", "PAN_AllServers_StudentEval_AlignerAnalysis_CurrentMethod_Integrated_2026-09-18.md"))
+           or _NE.PROTOCOL_ID in open(os.path.join(ROOT, "research_log", "PAN_AllServers_StudentEval_AlignerAnalysis_CurrentMethod_Integrated_2026-09-18.md")).read()))
 print(f"\n{'FAIL ' + str(FAIL) if FAIL else 'ALL OK'} ({len(FAIL)} failed)"); sys.exit(1 if FAIL else 0)

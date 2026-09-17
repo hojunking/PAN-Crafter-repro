@@ -188,6 +188,18 @@ def qrc24_held_runs(server):
     return {qrc24_run_name(server, p, sd): why for (p, sd), why in QRC24_HELD.get(server, {}).items()}
 
 
+def eval_hold():
+    """평가 phase hold 상태 (계획 PAN_ALLSERVER_NOA_AUDIT_METHOD_v2_20260918 §2). {} 면 평상시.
+    대기자·gate 가 매 pass 이 모듈을 새로 import 하므로, 이 함수 하나로 '새 학습 금지' 가 전 경로에 즉시 먹는다."""
+    p_ = os.path.join(ROOT, "work_dir", "_eval_phase", "hold.json")
+    if not os.path.exists(p_):
+        return {}
+    try:
+        return json.load(open(p_)) or dict(phase="LOCAL_STUDENT_EVAL")
+    except Exception:                                                                  # noqa
+        return dict(phase="LOCAL_STUDENT_EVAL", reason="hold.json 손상 — 안전하게 hold 로 본다")
+
+
 def run_started(run):
     """runner 기준 '시작됨': work_dir/<run>/{epoch-*, checkpoint-*} 가 있다 (tools/_run_cases.sh latest_ckpt 와 같은 규칙; last/ 는 세지 않는다). 재개 가능한 중단 run 을 '미시작' 으로 보지 않기 위한 것."""
     d = os.path.join(ROOT, "work_dir", run)
