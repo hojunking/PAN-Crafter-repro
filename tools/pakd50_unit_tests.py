@@ -1320,6 +1320,12 @@ finally:
     G.ROOT, sys.argv = _R0, _AV0; shutil.rmtree(_fxr, ignore_errors=True)
 check("K50 switch ⑤ 실행(검토 지적: 백업 경로 재바인딩 버그): 임시 ROOT 에서 ⑤ python 블록을 실제로 실행 — extra_priority 의 비 QRECON24 항목만 백업 파일로 옮기고 QRC24 항목은 남긴다(한 글자씩 쪼개지지 않는다) · 백업에 원본 두 줄 · queue_effective(미완만; 완료 run 은 빼서 재업로드 walk 방지)·mandatory(전체)·reservations·queue_revision·held_runs 기록 · KeyError 없이 끝난다",
       _ok5, f"xp {_xp_after} bak {_bak_after}")
-check("K50 문서(§11): 계획·구현 노트 존재 · CLAUDE.md 에 ADJ-R1 · generator 상수(QRC24_ADJ_PLAN/NOTE/REVISION/VERSION)",
-      os.path.exists(os.path.join(ROOT, G.QRC24_ADJ_PLAN)) and os.path.exists(os.path.join(ROOT, G.QRC24_ADJ_NOTE)) and "ADJ-R1" in open(os.path.join(ROOT, "CLAUDE.md")).read() and G.QRC24_ADJ_VERSION == "v2")
+# 계획 원문 PAN_*.md 는 **저장소에 두지 않는 규약**이라 서버마다 있을 수도 없을 수도 있다 (K48c·PL02 와 같은 방식): 있으면 내용 대조, 없으면 그 항목만 사유와 함께 건너뛴다. 구현 노트·CLAUDE.md·상수는 언제나 강한 검사.
+_planp = os.path.join(ROOT, G.QRC24_ADJ_PLAN); _plan_here = os.path.exists(_planp); _plan_txt = open(_planp).read() if _plan_here else ""
+_plan_ok = (not _plan_here) or (all(r_ in _plan_txt for r_ in _v2all) and all(p_ in _plan_txt for p_ in G.QRC24_ADJ_PROFILES) and all(f"{p_} · {sd_}" in _plan_txt or f"{p_} | {sd_}" in _plan_txt or p_ in _plan_txt for p_, sd_ in [(G.case_of(h_).split("_", 2)[2], G.seed_of(h_)) for hs_ in _held.values() for h_ in hs_])
+                              and G.QRC24_ADJ_REVISION in _plan_txt and "0.9585" in _plan_txt)
+check("K50 문서(§11): 구현 노트·CLAUDE.md ADJ-R1·generator 상수(PLAN/NOTE/REVISION/VERSION) · 계획 원문은 " + (f"이 서버에 있다 → 내용 대조(부록 B 16 id · 신규 profile 3 · 보류 profile · revision · 하한 .9585): {os.path.basename(_planp)}" if _plan_here
+                                                                                                     else "이 서버에 없다(계획 PAN_*.md 는 저장소에 두지 않는 규약) — 존재 검사 건너뜀; 나머지 K50 검사는 그대로 돈다"),
+      os.path.exists(os.path.join(ROOT, G.QRC24_ADJ_NOTE)) and "ADJ-R1" in open(os.path.join(ROOT, "CLAUDE.md")).read() and G.QRC24_ADJ_VERSION == "v2" and G.QRC24_ADJ_PLAN.startswith("research_log/PAN_") and _plan_ok,
+      f"plan_here {_plan_here} plan_ok {_plan_ok}")
 print(f"\n{'FAIL ' + str(FAIL) if FAIL else 'ALL OK'} ({len(FAIL)} failed)"); sys.exit(1 if FAIL else 0)

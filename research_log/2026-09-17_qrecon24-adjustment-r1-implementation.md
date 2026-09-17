@@ -45,6 +45,7 @@ A LR × β 2×2(§6.1) 의 실제 id 는 각 v2 config 의 `kdv.qrc24.block_2x2`
 ## 3. 검사 (`tools/pakd50_unit_tests.py`)
 
 - K44/K48b 갱신: profile 32, 원계획 개수는 `QRC24_QUEUES_20260916` 기준, 활성 81 config, 예약 합(measured 없이 v1 R_s / v2 ADJ R_s).
+- **K50 문서 검사는 계획 원문(`research_log/PAN_*.md`) 의 존재를 요구하지 않는다** — 계획 원문은 저장소에 두지 않는 규약이라 s1 에만 있었고, 그대로 두면 s2–s5 에서 gate 가 막힌다(09-17 s3 보고). K48c·PL02 와 같은 방식으로 **있으면 내용 대조**(부록 B 16 id · 신규 profile 3 · 보류 profile · revision · 하한 .9585), **없으면 그 항목만 사유와 함께 건너뛴다**; 구현 노트·CLAUDE.md·generator 상수는 언제나 강한 검사. 두 갈래 모두 s1 에서 188 ALL OK 로 확인(원문을 잠시 치우고 재실행).
 - **K50** (12 check): 신규 profile 계수·동치(B20A03 = G23+β / = H23+rA; A03_* = G23+a_weight) · §5 순서·부록 B 16 id·보류 3·등록 39·활성 81·큐 파일 일치 · **원계획 68 v1 config 바이트 불변**(생성기 재생성 filecmp)·v2 16 == 생성기·v2 metadata·control 실제 id·projected_map · kdv block 차이 집합(B20A03−G23 = rec.kd_weight 만, B20A03−H23 = aligner_lr 만, A03_*−G23 = qrecon.a_weight 만; expect_init 같은 seed) · **실제 trainer**(K46 harness): B20A03 == H23 손실 bitwise, B20A03 vs G23 의 L_A·∇φL_A bitwise 동일 + L_U 차 == mean(K)(β 2 배), A03_UNIF L_A = .5·mean H, A03_SHUF w_a = 셔플 표, 세 run 의 ∇θL_U 는 G23 과 같다 · 시트 X열/Notes·스크립트(bash -n, postrun hook, switch 항목) · 도구 fixture(버전 감사 4 종 판정·보존 sha256·postrun dry-run) + 실제 s1 G22 S1234 판정 · 문서.
 - gate 결과(s1, 2026-09-17): `tools/pakd50_unit_tests.py` **188 ALL OK** (K01–K50 + heredoc import 검사; K32 는 이 서버의 실제 QRC24 ledger 실측이 fixture 에 섞이던 것을 격리). 로그 `work_dir/_qrecon24/gate_s1_adjr1.log`.
 
