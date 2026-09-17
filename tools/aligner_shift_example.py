@@ -1,12 +1,13 @@
-"""PAN aligner 가 실제로 무엇을 바꾸는가 — 가장 크게 이동한 scene 의 육안 확인.
+"""PAN aligner 가 PAN 을 어디로 옮기는가 — 전/후 이미지와 이동 방향만.
 
-sub-pixel 이동은 나란히 놓으면 보이지 않는다. 그래서
-  (1) 확대 crop 전/후, (2) 차분 지도(정합된 PAN − 원본 PAN), (3) 경계 단면 프로파일,
-  (4) 모델 출력의 차분 — 네 가지로 보인다.
+가장 크게 이동한 scene 을 골라 확대 crop 의 before/after 를 크게 보이고,
+화살표로 **PAN 내용이 움직인 방향**을 표시한다. (차분·단면 패널은 뺐다 — 2026-09-17 요청)
 
-대상은 FR 논문 세트에서 |c| 가 최대인 scene:
-  T0 (lam*=1e-4)  scene 19  |c| 0.564 px   <- 실제 배포 Teacher
-  donor N2        scene 18  |c| 1.839 px   <- 가장 강한 aligner (육안 확인용)
+부호: warp 규약은 aligned[y,x] = original[y+dy, x+dx] 이므로 원본 (y+dy, x+dx) 의 내용이
+      (y,x) 로 온다 = 내용은 (-dy, -dx) 만큼 움직인다. 화면 좌표(행이 아래로 증가)에서
+      화살표 벡터는 (-dx, -dy).
+
+화살표 길이는 보이도록 과장했다 — 실제 크기는 라벨에 적는다.
 
 산출 → results_log/assets/0917_aligner_shift_example.png
 """
@@ -15,29 +16,26 @@ import sys
 
 import numpy as np
 import torch
-from scipy.ndimage import map_coordinates
 import yaml
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 os.environ.setdefault("PANCRAFTER_DLPAN", "/home/knuvi/Desktop/song/DLPan-Toolbox")
 
 from tools.eqrec4 import common as CM                      # noqa: E402
-from pa.warp import warp_pan                                # noqa: E402
 from main import import_class                               # noqa: E402
 
 OUT = os.path.join(ROOT, "results_log", "assets")
-CASES = [("L1E4", 2025, "best_raw", "T0   lambda* = 1e-4  (deployed teacher)"),
-         ("N2", 2025, "last", "donor N2  (strongest aligner)")]
-Z = 72                                                      # 확대 crop 한 변
+CASES = [("L1E4", 2025, "best_raw", "T0   lambda* = 1e-4\n(deployed teacher)"),
+         ("N2", 2025, "last", "donor N2\n(strongest aligner)")]
+Z = 128                     # 확대 crop 한 변
+EXAG = 14.0                 # 화살표 과장 배율 (실제 이동량은 라벨에)
 
 
 def best_window(g, z=Z, margin=40):
-    """경사 에너지가 가장 큰 z x z 창 (가장자리 margin 제외)."""
     H, W = g.shape
     best, bij = -1, (H // 2, W // 2)
     for i in range(margin, H - margin - z, 16):
@@ -57,11 +55,9 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     cfg = CM.localize_cfg(yaml.safe_load(open(os.path.join(
         ROOT, "work_dir/PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1/meta/config.yaml"))))
-    Feeder = import_class(cfg["feeder"])
-    ds = Feeder(**cfg["test_full_feeder_args"])
+    ds = import_class(cfg["feeder"])(**cfg["test_full_feeder_args"])
 
-    fig = plt.figure(figsize=(18.2, 8.4))
-    gs = GridSpec(2, 5, hspace=.50, wspace=.40, width_ratios=[1, 1, 1, 1, 1.55])
+    fig, axes = plt.subplots(2, 2, figsize=(11.8, 12.4))
 
     for r, (fam, seed, tag, lab) in enumerate(CASES):
         L = CM.load_model(fam, seed, tag)
@@ -76,83 +72,50 @@ def main():
 
         lms, ms, lpan, pan = [x.unsqueeze(0).to(CM.DEV) for x in ds[k]]
         with torch.no_grad():
-            o_on = L.m(pan, ms, lpan)
-            o_off = L.m(pan, ms, lpan, aligner_enabled=False)
+            o = L.m(pan, ms, lpan)
         p0 = pan[0, 0].float().cpu().numpy()
-        p1 = o_on["pan_aligned"][0, 0].float().cpu().numpy()
-        y_on = o_on["y"][0].float().cpu().numpy().mean(0)
-        y_off = o_off["y"][0].float().cpu().numpy().mean(0)
+        p1 = o["pan_aligned"][0, 0].float().cpu().numpy()
 
         gx = np.gradient(p0, axis=1); gy = np.gradient(p0, axis=0)
         i0, j0 = best_window(np.sqrt(gx ** 2 + gy ** 2))
         sl = (slice(i0, i0 + Z), slice(j0, j0 + Z))
 
-        a = fig.add_subplot(gs[r, 0])
-        a.imshow(stretch(p0[sl]), cmap="gray"); a.set_xticks([]); a.set_yticks([])
-        a.set_ylabel(f"{lab}\nscene #{k}   |c| = {np.linalg.norm(c):.3f} px\n"
-                     f"(dy {c[0]:+.3f}, dx {c[1]:+.3f})", fontsize=8.5)
-        if r == 0:
-            a.set_title("PAN  original  (zoom)", fontsize=10)
+        ax_, ay_ = -float(c[1]), -float(c[0])          # 내용이 움직이는 방향 (화면 좌표)
+        mag = float(np.hypot(c[0], c[1]))
+        vert = "up" if ay_ < 0 else "down"
+        horz = "right" if ax_ > 0 else "left"
 
-        a = fig.add_subplot(gs[r, 1])
-        a.imshow(stretch(p1[sl]), cmap="gray"); a.set_xticks([]); a.set_yticks([])
-        if r == 0:
-            a.set_title("PAN  after aligner  (zoom)\nlooks identical to the eye", fontsize=10)
+        for col, (img, ttl) in enumerate([(p0, "BEFORE   original PAN"),
+                                          (p1, "AFTER   aligner applied")]):
+            a = axes[r, col]
+            a.imshow(stretch(img[sl]), cmap="gray", interpolation="nearest")
+            a.set_xticks([]); a.set_yticks([])
+            if r == 0:
+                a.set_title(ttl, fontsize=13.5, pad=9)
+            if col == 0:
+                a.set_ylabel(f"{lab}\nscene #{k}   |c| = {mag:.2f} px",
+                             fontsize=11.5, labelpad=10)
+            else:
+                cx, cy = Z * .5, Z * .5
+                a.annotate("", xy=(cx + ax_ * EXAG, cy + ay_ * EXAG), xytext=(cx, cy),
+                           arrowprops=dict(arrowstyle="-|>,head_width=.5,head_length=.9",
+                                           color="#FF3B30", lw=3.6, shrinkA=0, shrinkB=0))
+                a.plot([cx], [cy], "o", ms=6.5, color="#FF3B30")
+                a.text(.5, .045,
+                       f"PAN content moves {mag:.2f} px\n"
+                       f"{vert} {abs(c[0]):.2f}  ·  {horz} {abs(c[1]):.2f}",
+                       transform=a.transAxes, ha="center", fontsize=11.5, color="#C1121F",
+                       bbox=dict(boxstyle="round,pad=.35", fc="white", ec="#FF3B30", alpha=.92))
+        print(f"{lab.splitlines()[0]}: scene {k}  |c|={mag:.3f}px  "
+              f"(dy {c[0]:+.3f}, dx {c[1]:+.3f})  content -> {vert}/{horz}")
 
-        a = fig.add_subplot(gs[r, 2])
-        d = (p1 - p0)[sl]
-        v = np.percentile(np.abs(d), 99.5)
-        im = a.imshow(d, cmap="RdBu_r", vmin=-v, vmax=v)
-        a.set_xticks([]); a.set_yticks([])
-        plt.colorbar(im, ax=a, fraction=.046, pad=.02)
-        if r == 0:
-            a.set_title("difference  (aligned - original)\nthe shift lives on edges", fontsize=10)
-
-        a = fig.add_subplot(gs[r, 3])
-        dy_ = (y_on - y_off)[sl]
-        v2 = np.percentile(np.abs(dy_), 99.5)
-        im = a.imshow(dy_, cmap="PuOr_r", vmin=-v2, vmax=v2)
-        a.set_xticks([]); a.set_yticks([])
-        plt.colorbar(im, ax=a, fraction=.046, pad=.02)
-        if r == 0:
-            a.set_title("model OUTPUT difference\n(aligner on - off), band mean", fontsize=10)
-
-        # 가장 가파른 행을 골라 단면 프로파일
-        a = fig.add_subplot(gs[r, 4])
-        seg0 = p0[sl]; seg1 = p1[sl]
-        row = int(np.abs(np.diff(seg0, axis=1)).sum(1).argmax())
-        xs = np.arange(Z)
-        a.plot(xs, seg0[row], "-", lw=1.6, color="#4C78A8", label="original, same row")
-        a.plot(xs, seg1[row], "-", lw=2.6, color="#E45756", alpha=.55, label="after aligner")
-        # 원본을 (y+dy, x+dx) 에서 재샘플 -> 이동이 순수 평행이동이면 위 곡선과 겹친다
-        rs = map_coordinates(p0, [np.full(Z, i0 + row + c[0]), j0 + xs + c[1]],
-                             order=3, mode="nearest")
-        a.plot(xs, rs, ":", lw=1.5, color="#111",
-               label=r"original resampled at $(y+dy,\,x+dx)$")
-        rho = float(np.corrcoef(rs, seg1[row])[0, 1])
-        rho_same = float(np.corrcoef(seg0[row], seg1[row])[0, 1])
-        j = int(np.abs(np.diff(seg0[row])).argmax())
-        lo_, hi_ = max(0, j - 11), min(Z - 1, j + 11)
-        if hi_ - lo_ < 12:
-            lo_, hi_ = max(0, min(lo_, Z - 23)), min(Z - 1, max(hi_, 22))
-        a.set_xlim(lo_, hi_)
-        a.legend(fontsize=7.2, loc="best")
-        a.set_xlabel("column (px)", fontsize=8.5)
-        a.set_ylabel("PAN value", fontsize=8.5, labelpad=1)
-        a.tick_params(labelsize=7.5)
-        a.set_title(f"cut along row {row}:  it IS a pure translation\n"
-                    f"resampled vs aligned r={rho:.4f}   (same row only r={rho_same:.2f})",
-                    fontsize=9.2, pad=6)
-
-        print(f"{lab}: scene {k}  |c|={np.linalg.norm(c):.3f}  "
-              f"PAN diff RMS={np.sqrt((d**2).mean()):.4f}  "
-              f"output diff RMS={np.sqrt((dy_**2).mean()):.4f}")
-
-    fig.suptitle("What the PAN aligner actually does — the most-shifted scene of the FR paper set "
-                 "(72x72 zoom on the strongest-gradient window)", fontsize=12)
-    fig.tight_layout(rect=[0, 0, 1, .91])
+    fig.suptitle("PAN before / after the aligner — most-shifted scene of the FR paper set\n"
+                 f"{Z}x{Z} zoom;  arrow = DIRECTION only, length exaggerated {EXAG:.0f}x "
+                 "(the real shift is sub-pixel to ~2 px and is invisible by eye)",
+                 fontsize=12.5)
+    fig.tight_layout(rect=[0, 0, 1, .935])
     p = os.path.join(OUT, "0917_aligner_shift_example.png")
-    fig.savefig(p, dpi=120); plt.close(fig)
+    fig.savefig(p, dpi=125); plt.close(fig)
     print("wrote", p)
 
 
