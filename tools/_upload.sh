@@ -20,7 +20,16 @@ LOG="$REPO/work_dir/gspread_upload.log"
   # 논문 세트(.mat FR 20장) 평가 — 시트의 FR 열. run 의 센서에 맞는 h5 가 없으면 스크립트가 건너뛴다 (KNOWN_ISSUES F-2).
   FR_T0=$(date +%s)
   python tools/eval_fr_paperset.py "$@" 2>&1 | grep -v Warning || true
-  FR_SEC=$(( $(date +%s) - FR_T0 )); NF16_N=$(printf '%s\n' "$@" | grep -c '^NF16_\|^PALS24_\|^PALSV18_' || true); [ "${NF16_N:-0}" -gt 0 ] || NF16_N=1   # 예산 ledger 가 있는 캠페인(NF16·PALS24) 의 FR 평가 시간 분담
+  FR_SEC=$(( $(date +%s) - FR_T0 )); NF16_N=$(printf '%s\n' "$@" | grep -c '^NF16_\|^PALS24_\|^PALSV18_' || true); [ "${NF16_N:-0}" -gt 0 ] || NF16_N=1
+  # QRECON24 §7.2 / ADJ-R1 §7.2·§11: 공식 RR selector(--official; 같은 checkpoint 의 raw HQNR ≥ .9585 후보만 재추론) 는 run 뒤처리(case 경계, 다음 학습 시작 전) 에서 GPU 로 —
+  # 이 run + 이 서버의 완료 QRC24 run 중 공식 선택이 안 끝난 backlog(예: s1 G23 S1234) 를 함께. 버전 감사(§8.1) 도 같은 자리. 시간은 QRC24 ledger 에 select_<run>(kind diag) 으로 따로 적는다 — Train(h) 에 섞지 않는다.
+  for t in "$@"; do
+    case "$t" in PAKD50_QRC24_*)
+      set +e; python tools/qrecon24_postrun.py "$t" --backlog > "$REPO/work_dir/$t/results/qrecon24_postrun.log" 2>&1; rc=$?; set -e
+      grep -v Warning "$REPO/work_dir/$t/results/qrecon24_postrun.log" | tail -6
+      [ $rc -eq 0 ] || echo "[upload] !! qrecon24_postrun 실패 (rc=$rc): $t — work_dir/$t/results/qrecon24_postrun.log";;
+    esac
+  done   # 예산 ledger 가 있는 캠페인(NF16·PALS24) 의 FR 평가 시간 분담
   # 아키텍처 고정 다중 데이터셋 캠페인: WV3 학습 run 이 끝나면 WV2 zero-shot run 도 만들어 함께 올린다
   ZS=()
   for t in "$@"; do

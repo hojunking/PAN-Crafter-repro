@@ -644,11 +644,12 @@ else:
 _tdl = tempfile.mkdtemp(); _lp, _lq = os.path.join(_tdl, "p.json"), os.path.join(_tdl, "q.json")
 json.dump(dict(entries={G.run_name("JQ", 1234, arch="W104_D121"): dict(kind="run", status="FINISHED", hours=1.38)}), open(_lp, "w"))
 json.dump(dict(entries={G.run_name("QE50", 1234, arch="W104_D121"): dict(kind="run", status="FINISHED_TRAIN", hours_total=2.75), G.run_name("QE50", 9091, arch="W104_D121"): dict(kind="run", status="FINISHED", hours=1.0)}), open(_lq, "w"))
-_L0, _Q0 = G.LEDGER, G.QEDGE9_LEDGER; G.LEDGER, G.QEDGE9_LEDGER = _lp, _lq
+_L0, _Q0, _X0, _E0, _R0 = G.LEDGER, G.QEDGE9_LEDGER, G.QEGX_LEDGER, G.EDGEBAL_LEDGER, G.QRC24_LEDGER; G.LEDGER, G.QEDGE9_LEDGER = _lp, _lq
+G.QEGX_LEDGER = G.EDGEBAL_LEDGER = G.QRC24_LEDGER = os.path.join(_tdl, "none.json")     # 이 서버의 실제 QEGX/EDGEBAL/QRC24 ledger(완료 run 이 생기면 같은 seed 실측이 섞인다) 도 fixture 로 — 검사는 두 ledger 통합만 본다
 try:
     _mall = G.measured_hours_all("s4"); _res4 = G.reservation_for("s4", "QE50@W104_D121", _mall)
 finally:
-    G.LEDGER, G.QEDGE9_LEDGER = _L0, _Q0
+    G.LEDGER, G.QEDGE9_LEDGER, G.QEGX_LEDGER, G.EDGEBAL_LEDGER, G.QRC24_LEDGER = _L0, _Q0, _X0, _E0, _R0
 check("K32 실측 통합(F07): PAKD50 ledger 의 JQ@W104 1.38 + QEDGE9 ledger 의 QE50@W104 2.75(확인 seed 9091 은 제외) → 예약이 실측(1.10×2.75+10/60) 으로 바뀐다(measured_same_case)",
       _mall == {"JQ@W104_D121": 1.38, "QE50@W104_D121": 2.75} and _res4["reference_kind"] == "measured_same_case" and abs(_res4["reservation_h"] - (1.1 * 2.75 + 10 / 60)) < 1e-9)
 # ---- K33 완료 검증 (F06): marker 만 있는 가짜 run 은 불통과(사유 명시) · 실제 완료 PAKD50 run(s1 FQ S1234) 은 통과
@@ -962,10 +963,10 @@ from kdv import qrecon as QR
 from kdv.qrecon import QWeight
 _qn = lambda srv, prof, sd: G.qrc24_run_name(srv, prof, sd)
 check("K44 profile/큐(§4–§5; λE 는 09-16 저녁 2 배 환산 6e-4/2e-3/6e-3): profile 29(G 9·A/E 대조 6·H 11·L 3) · 큐 s1 12 / s2 12 / s3 18 / s4 14 / s5 12 = 68 · 이름 PAKD50_QRC24_<SRV>_<PROFILE>_W104_D121_WV3_T0_S<seed>_FRESH50_v1 (RUN_RE 파싱, case 'QRC24_S3_G22') · A LR = rA×U LR(G21 3e-7 / G22 1e-6 / G23 3e-6 / L070 7e-7 / L050 5e-7; A_FREEZE 0) · canonical H22=L100=G22 · 같은 server+seed 중복 없음",
-      len(G.QRC24_PROFILES) == 29 and [len(G.QRC24_QUEUES[s_]) for s_ in ("s1", "s2", "s3", "s4", "s5")] == [12, 12, 18, 14, 12] and sum(len(v) for v in G.QRC24_QUEUES.values()) == 68
+      len(G.QRC24_PROFILES) == 32 and [len(G.QRC24_QUEUES_20260916[s_]) for s_ in ("s1", "s2", "s3", "s4", "s5")] == [12, 12, 18, 14, 12] and sum(len(v) for v in G.QRC24_QUEUES_20260916.values()) == 68
       and _qn("s3", "G22", 2026) == "PAKD50_QRC24_S3_G22_W104_D121_WV3_T0_S2026_FRESH50_v1" and G.parse_item(_qn("s3", "G22", 2026)) == ("QRC24_S3_G22", "W104_D121", 2026, "v1") and G.qrc24_parse("QRC24_S3_G22") == ("s3", "G22") and G.qrc24_parse("QRC24_S1_A_FREEZE") == ("s1", "A_FREEZE")
       and [G.qrc24_profile(p_)["alr"] for p_ in ("G21", "G22", "G23", "L070", "L050", "A_FREEZE")] == [3e-7, 1e-6, 3e-6, 7e-7, 5e-7, 0.0] and G.qrc24_profile("H22")["canonical"] == G.qrc24_profile("L100")["canonical"] == "G22" and G.qrc24_profile("G11")["canonical"] == "G11"
-      and all(len(set(G.QRC24_QUEUES[s_])) == len(G.QRC24_QUEUES[s_]) for s_ in G.QRC24_QUEUES) and G.QRC24_QUEUES["s1"][:3] == [("G22", 1234), ("A_UNIF", 1234), ("A_FREEZE", 1234)] and G.QRC24_QUEUES["s4"][-3:] == [("H22", 3407), ("H12", 3407), ("H11", 3407)])
+      and all(len(set(G.QRC24_QUEUES_20260916[s_])) == len(G.QRC24_QUEUES_20260916[s_]) for s_ in G.QRC24_QUEUES_20260916) and G.QRC24_QUEUES_20260916["s1"][:3] == [("G22", 1234), ("A_UNIF", 1234), ("A_FREEZE", 1234)] and G.QRC24_QUEUES_20260916["s4"][-3:] == [("H22", 3407), ("H12", 3407), ("H11", 3407)])
 _kQ22 = G.kdv_block("QRC24_S2_G22", 777, "s2", cal=calQ, arch="W104_D121"); _kQ = {p_: G.kdv_block(f"QRC24_S2_{p_}", 777, "s2", cal=calQ, arch="W104_D121") for p_ in ("G12", "G32", "G21", "E_UNIF", "E_SHUF", "ALL_UNIF")}
 _kQ.update({p_: G.kdv_block(f"QRC24_S1_{p_}", 1234, "s1", cal=calQ, arch="W104_D121") for p_ in ("A_UNIF", "A_FREEZE", "A_SHUF")}); _kQ.update({p_: G.kdv_block(f"QRC24_S4_{p_}", 1234, "s4", cal=calQ, arch="W104_D121") for p_ in ("H22", "H12", "H_BETA0", "H_ALPHA0")})
 _kQ.update({p_: G.kdv_block(f"QRC24_S5_{p_}", 2026, "s5", cal=calQ, arch="W104_D121") for p_ in ("L100", "L070", "L050")}); _sQR = {p_: resolve(k_) for p_, k_ in _kQ.items()}; _sQ22 = resolve(_kQ22)
@@ -988,9 +989,11 @@ for _lab, _fn in (("K44 서버 토큰 ≠ 생성 서버 → SystemExit", lambda:
     except SystemExit:
         check(_lab, True)
 _rsum = lambda srv: sum(G.reservation_for(srv, it)["reservation_h"] for it in G.priority_for(srv))
-check("K44 편성·예약(§5·§8): PRIORITY 다섯 서버 전부 QRC24 run 이름(= qrc24_items) · branch QRECON24 · allowed seed(현재 + superseded branch 의 명시 seed) s1 {1234,3407} s2 {777,2026,9091} s3 {2026,4321} s4 {1234,3407} s5 {2026,777,9091,1103} · 예약 1.20×R_s + 10/60 → s1 33.68 / s2 35.12 / s3 32.16 / s4 34.9253 / s5 33.248 h (kind plan_reference_qrc24, slack 1.2) · 옛 순서는 PREVIOUS · 큐 파일 == 순서 · cue 필요 · §8.3 확장 3 run",
+check("K44 편성·예약(§5·§8; ADJ-R1 활성 편성 = 등록 + 남은 순서, 보류 제외): PRIORITY 다섯 서버 전부 QRC24 run 이름(= qrc24_items) · branch QRECON24 · allowed seed(현재 + superseded branch 의 명시 seed) s1 {1234,3407} s2 {777,2026,9091} s3 {2026,4321} s4 {1234,3407} s5 {2026,777,9091,1103} · 예약 1.20×R_s + 10/60 (R_s 는 ADJ-R1 §10 대용 — v1·v2 공통, s1 A_FREEZE 2.15; measured 우선) → s1 42.34 / s2 38.86 / s3 38.61 / s4 37.59 / s5 52.20 h (kind plan_reference_qrc24_adj_r1, slack 1.2) · 옛 순서는 PREVIOUS · 큐 파일 == 순서 · cue 필요 · §8.3 확장 3 run",
       all(G.priority_for(s_) == G.qrc24_items(s_) and all(G.branch_for(s_, it) == "QRECON24" for it in G.priority_for(s_)) for s_ in ("s1", "s2", "s3", "s4", "s5")) and [G.allowed_seeds(s_) for s_ in ("s1", "s2", "s3", "s4", "s5")] == [{1234, 3407}, {777, 2026, 9091}, {2026, 4321}, {1234, 3407}, {2026, 777, 9091, 1103}]
-      and all(abs(_rsum(s_) - v_) < 1e-4 for s_, v_ in (("s1", 33.68), ("s2", 35.12), ("s3", 32.16), ("s4", 34.9253), ("s5", 33.248))) and G.reservation_for("s4", G.priority_for("s4")[0])["reference_kind"] == "plan_reference_qrc24" and G.reservation_for("s4", G.priority_for("s4")[0])["slack"] == 1.2
+      and all(abs(_rsum(s_) - v_) < 1e-3 for s_, v_ in (("s1", 12 * 3.070667 + 2 * 2.746667), ("s2", 12 * 3.238667), ("s3", 20 * 1.930667), ("s4", 19 * 1.978667), ("s5", 16 * 3.262667))) and G.reservation_for("s4", G.priority_for("s4")[0])["reference_kind"] == "plan_reference_qrc24_adj_r1" and G.reservation_for("s4", G.priority_for("s4")[0])["slack"] == 1.2
+      and G.reference_hours("s2", "QRC24_S2_G13@W104_D121", {}, version="v1") == (2.56, "plan_reference_qrc24_adj_r1") and G.reference_hours("s1", "QRC24_S1_A_FREEZE@W104_D121", {}, version="v1") == (2.15, "plan_reference_qrc24_adj_r1")     # §10 대용은 v1·v2 공통, s1 frozen 2.15
+      and abs(G.reservation_for("s4", G.priority_for("s4")[-1])["reservation_h"] - (1.2 * 1.51 + 10 / 60)) < 1e-9 and G.reference_hours("s3", "QRC24_S3_G23@W104_D121", {"QRC24_S3_G23@W104_D121": 1.4}) == (1.4, "measured_same_case")
       and G.reservation_for("s4", "JQ@W104_D121")["slack"] == 1.1 and all(k_ in G.PREVIOUS_PRIORITY_BY_SERVER for k_ in ("s1_20260915_qedge9", "s2_20260916_edgebal", "s3_20260915_qegx", "s4_20260915_qegx", "s5_20260916_edgebal"))
       and all([l.strip() for l in open(os.path.join(ROOT, "config", "queues", f"qrecon24_{s_}.txt")) if l.strip() and not l.startswith("#")] == G.priority_for(s_) for s_ in ("s1", "s2", "s3", "s4", "s5"))
       and G.cue_ready(G.priority_for("s1")[0]) == G.cue_ready("QE50@W104_D121") and G.qrc24_extension_items("s1") == [_qn("s1", p_, 9091) for p_ in ("G22", "A_UNIF", "A_FREEZE")] and G.qrc24_extension_items("s5")[0].endswith("_S2909_FRESH50_v1"))
@@ -1111,10 +1114,10 @@ import importlib.util as _ilu2; _spq = _ilu2.spec_from_file_location("_qsel", os
 _rk = _qsel.rank([dict(step=1, hqnr=0.959, scc=0.987, ergas=2.05, psnr=37.9, sam=2.8, q8=0.92, ssim=0.975), dict(step=2, hqnr=0.9586, scc=0.988, ergas=2.10, psnr=37.0, sam=2.9, q8=0.90, ssim=0.97), dict(step=3, hqnr=0.9585, scc=0.988, ergas=2.00, psnr=37.0, sam=2.9, q8=0.90, ssim=0.97)])
 check("K48a 시트 X열(§9.3) 'PAKD50 / QRC24 / G22 / A104D121 / FRESH50'(서버 토큰 제외) · gate 설명 · switch/waiter bash -n · rank 순서 SCC→ERGAS→PSNR→…",
       _lab48 and "QRECON24" in __import__("tools.campaign_gate", fromlist=["GATES"]).GATES["pakd50"][1] and all(subprocess.run(["bash", "-n", os.path.join(ROOT, "tools", f)], capture_output=True).returncode == 0 for f in ("qrecon24_switch.sh", "qrecon24_waiter.sh")) and [c_["step"] for c_ in _rk] == [3, 2, 1])
-_k48 = dict(n68=(len(_allQ) == 68), exist=all(v_ is not None for v_ in _cfgQ.values()), meta=all(v_["train_feeder_args"].get("return_meta") is True and v_["kdv"]["campaign_id"] == G.QRC24_CAMPAIGN_ID and "training_deadline" not in v_["kdv"]["budget"] and v_["kdv"]["qrecon"]["mode"] == "continuous_v1" for v_ in _cfgQ.values()),
+_k48 = dict(n81=(len(_allQ) == 81), exist=all(v_ is not None for v_ in _cfgQ.values()), meta=all(v_["train_feeder_args"].get("return_meta") is True and v_["kdv"]["campaign_id"] == G.QRC24_CAMPAIGN_ID and "training_deadline" not in v_["kdv"]["budget"] and v_["kdv"]["qrecon"]["mode"] == "continuous_v1" for v_ in _cfgQ.values()),
             lr=(_cfgQ[_qn("s5", "L070", 2026)]["learning_rate"] == 7e-5 and _cfgQ[_qn("s2", "G22", 777)]["learning_rate"] == 1e-4), frz=("aligner_lr" not in _cfgQ[_qn("s1", "A_FREEZE", 1234)]["kdv"] and _cfgQ[_qn("s1", "A_FREEZE", 1234)]["kdv"]["aligner_policy"] == "A-FR"),
             cmp={r_[:34]: filecmp.cmp(os.path.join(ROOT, "config", r_ + ".yaml"), os.path.join(_tmpq, r_ + ".yaml"), shallow=False) for r_ in (_qn("s2", "G22", 777), _qn("s2", "E_SHUF", 777), _qn("s5", "L070", 2026), _qn("s1", "A_FREEZE", 3407), "PAKD50_EB_QFLOOR_W104_D121_WV3_T0_S2026_FRESH50_v2", "PAKD50_J0_W104_D121_WV3_T0_S777_FRESH50_v1", "PAKD50_QER50_W104_D121_WV3_T0_S1234_FRESH50_v1")})
-check("K48b 생성 config 68 벌 존재 · return_meta 전부 · campaign QRECON24 · training_deadline 없음 · qrecon mode · learning_rate 줄(L070 7e-05 / 기본 1e-4) · A_FREEZE 에 aligner_lr 없음(A-FR) · 생성기와 filecmp(4 벌) · 옛 EDGEBAL/QEDGE9/QEGX config 회귀 없음",
+check("K48b 생성 config 81 벌(ADJ-R1 활성: v1 65 + v2 16; 보류 3 제외) 존재 · return_meta 전부 · campaign QRECON24 · training_deadline 없음 · qrecon mode · learning_rate 줄(L070 7e-05 / 기본 1e-4) · A_FREEZE 에 aligner_lr 없음(A-FR) · 생성기와 filecmp(4 벌) · 옛 EDGEBAL/QEDGE9/QEGX config 회귀 없음",
       all(v_ if not isinstance(v_, dict) else all(v_.values()) for v_ in _k48.values()), str({k_: v_ for k_, v_ in _k48.items() if (v_ is False) or (isinstance(v_, dict) and not all(v_.values()))}))
 check(("K48c selector HQNR9585_RR_v1 proxy 출력(§7.2–§7.3) — " + ("s1 fixture FQ S1234: 후보 50, 적격 0, target_feasible false, official false, h_consistency(CSV raw H == fr_mat20 H) 0, legacy/raw-max/exact50K/late6 보존" if _selfix_strict
                                                                     else (f"이 서버의 완료 run {_selfix}: 구조 불변량(후보 수·적격 수·feasible·legacy/raw-max/exact50K/late6·h_consistency<5e-4)" if _selfix else "SKIP — 이 서버에 완료 run(checkpoint_metrics.csv + best_hqnr_meta.json) 이 없어 fixture 없음; 공식 RR 경로는 s1 검증(노트 §5)"))),
@@ -1128,11 +1131,19 @@ _loop = r"""
 run_case(){ echo "$1" >> "$OUT"; if [ "$1" = "OLD_CURRENT" ]; then printf 'NEW_1\nNEW_2\n' > "$HANDOVER_FILE"; fi; }
 ORDER=(OLD_CURRENT OLD_PENDING_1 OLD_PENDING_2)
 """ + _rsrc.split("HANDOVER_FILE=\"$REPO/work_dir/cases_queue_handover.txt\"")[1].split("# 본 큐 종료 후")[0]
-_r49 = subprocess.run(["bash", "-c", f'set -u; OUT="{_td49}/order.txt"; HANDOVER_FILE="{_h49}"; ' + _loop], capture_output=True, text=True)
+_q49 = os.path.join(_td49, "cases_queue.txt"); open(_q49, "w").write("# 옛 큐\nOLD_CURRENT\nOLD_PENDING_1\nOLD_PENDING_2\n")
+_r49 = subprocess.run(["bash", "-c", f'set -u; OUT="{_td49}/order.txt"; HANDOVER_FILE="{_h49}"; QUEUE_FILE="{_q49}"; ' + _loop], capture_output=True, text=True)
 _order = open(os.path.join(_td49, "order.txt")).read().split() if os.path.exists(os.path.join(_td49, "order.txt")) else []
-check("K49 runner 인계(F02): 실제 tools/_run_cases.sh 의 큐 loop 를 stub run_case 로 실행 — 첫 case 뒤 handover 파일이 생기면 남은 옛 큐(OLD_PENDING_1/2) 를 버리고 NEW_1/NEW_2 로 이어간다 · 적용한 파일은 .applied.* 로 옮긴다 · switch 는 chain 이 살아 있을 때 인계 파일을 쓴다",
+_q49_after = [l.strip() for l in open(_q49) if l.strip() and not l.startswith("#")]
+_td49b = tempfile.mkdtemp(); _h49b = os.path.join(_td49b, "cases_queue_handover.txt"); _q49b = os.path.join(_td49b, "cases_queue.txt"); open(_q49b, "w").write("OLD_CURRENT\nOLD_PENDING_1\n")
+_loopb = _loop.replace(r"printf 'NEW_1\nNEW_2\n'", r"printf '# 주석만\n'")
+_r49b = subprocess.run(["bash", "-c", f'set -u; OUT="{_td49b}/order.txt"; HANDOVER_FILE="{_h49b}"; QUEUE_FILE="{_q49b}"; ' + _loopb], capture_output=True, text=True)
+_orderb = open(os.path.join(_td49b, "order.txt")).read().split() if os.path.exists(os.path.join(_td49b, "order.txt")) else []
+check("K49 runner 인계(F02 + ADJ-R1 검토): 실제 tools/_run_cases.sh 의 큐 loop 를 stub run_case 로 실행 — 첫 case 뒤 handover 파일이 생기면 남은 옛 큐(OLD_PENDING_1/2) 를 버리고 NEW_1/NEW_2 로 이어가고 **cases_queue.txt 도 같은 순서로 갱신**(재기동이 옛 큐를 읽지 않게) · 적용한 파일은 .applied.* · 비어 있는 인계 파일은 무시(.empty.*, 큐 유지) · switch 는 chain 이 살아 있을 때 인계 파일을 쓴다",
       _r49.returncode == 0 and _order == ["OLD_CURRENT", "NEW_1", "NEW_2"] and not os.path.exists(_h49) and any(f.startswith("cases_queue_handover.txt.applied.") for f in os.listdir(_td49))
-      and "cases_queue_handover.txt" in open(os.path.join(ROOT, "tools", "qrecon24_switch.sh")).read(), f"rc {_r49.returncode} order {_order} err {_r49.stderr[-200:]}")
+      and _q49_after == ["NEW_1", "NEW_2"]                                                             # ADJ-R1 검토: 영속 큐도 갱신 — 감시자·재부팅 재기동이 옛 순서를 읽지 않는다
+      and _r49b.returncode == 0 and _orderb == ["OLD_CURRENT", "OLD_PENDING_1", "OLD_PENDING_2"] and [l.strip() for l in open(_q49b) if l.strip()] == ["OLD_CURRENT", "OLD_PENDING_1"] and any(f.startswith("cases_queue_handover.txt.empty.") for f in os.listdir(_td49b))     # 빈 인계 파일은 무시(조기 DONE 방지)
+      and "cases_queue_handover.txt" in open(os.path.join(ROOT, "tools", "qrecon24_switch.sh")).read(), f"rc {_r49.returncode} order {_order} queue {_q49_after} empty {_orderb} err {_r49.stderr[-200:]}")
 _sw = open(os.path.join(ROOT, "tools", "qrecon24_switch.sh")).read(); _wt = open(os.path.join(ROOT, "tools", "qrecon24_waiter.sh")).read()
 check("K49 --extend(F03/F05): 학습 시간(train_hours/hours) 합으로 24h 판정(hours_total 아님) · ≥24h 는 rc 0 · 확장 3 run 을 extra_priority + QRECON24 mandatory + 활성 큐(queue_active.txt) + reservations + 인계 파일에 반영, chain 없으면 활성 큐로 campaign_start, 대기자 기동 · 대기자는 활성 큐 우선 · extra 보존은 옮기기 전에 읽는다(F04; qegx/edgebal 도)",
       all(x in _sw for x in ('e.get("train_hours") or e.get("hours")', 'print("   train_h ≥ 24h — 확장 불필요 (§8.3)"); sys.exit(0)', "queue_active.txt", "G.QRC24_MANDATORY_FILE", "G.write_reservation_file(srv, active", "cases_queue_handover.txt", "campaign_start.sh --queue work_dir/_qrecon24/queue_active.txt", "qrecon24_waiter.sh >>"))
@@ -1156,4 +1167,159 @@ check("K49 selector(F06/F07/F10): proxy 는 target_status 'proxy'·official fals
       f"p {_r1.returncode} {(_p or {}).get('target_status')} o {_r2.returncode} {(_o or {}).get('target_status')} {_r2.stderr[-200:] if _r2.returncode else ''}")
 check("K49 manifest(F10): training manifest 에 optimizer betas/eps/param group/decay 제외/cosine 최저/accumulation/clip/AMP/TF32 (_optimizer_manifest) · qrecon 요약에 w/shuffle/permutation/raw q 의 full sha256",
       "_optimizer_manifest" in src and all(x in src for x in ('"betas"', "weight_decay_exclusions", "min_lr=0.0", "gradient_accumulation_steps", "grad_clip", "tf32")) and all(x in open(os.path.join(ROOT, "kdv", "qrecon.py")).read() for x in ("w_sha256=_sha_full(w)", "permutation_sha256", "q_raw_sha256")))
+
+# ================= K50 QRECON24 ADJ-R1 (research_log/PAN_QRECON24_S1_S5_Queue_Adjustment_2026-09-17.md §4–§7·§9·§11·부록 B; 노트 2026-09-17_qrecon24-adjustment-r1-implementation.md)
+import filecmp, hashlib, shutil
+_pf50 = {p_: G.qrc24_profile(p_) for p_ in ("B20A03", "A03_UNIF", "A03_SHUF", "G23", "H23", "G22")}
+_pfx = lambda P_, *skip: {k_: v_ for k_, v_ in P_.items() if k_ not in ("profile", "canonical") + skip}
+check("K50 신규 profile(§4; 새 loss 아님): B20A03 = λE .002·rA .03·α 1·β .2·U 1e-4/A 3e-6·a/e q (= G23 에서 β 만 / = H23 에서 rA·A LR 만) · A03_UNIF/A03_SHUF = G23 에서 a_weight 만 uniform/shuffle · profile 32 · canonical 은 자기 자신 · G/H/A/E/L 기존 표 불변(G23 λE .002 rA .03, H23 β .2)",
+      len(G.QRC24_PROFILES) == 32 and (_pf50["B20A03"]["lam"], _pf50["B20A03"]["rA"], _pf50["B20A03"]["alpha"], _pf50["B20A03"]["beta"], _pf50["B20A03"]["ulr"], _pf50["B20A03"]["alr"], _pf50["B20A03"]["a"], _pf50["B20A03"]["e"], _pf50["B20A03"]["frozen"]) == (2e-3, 0.03, 1.0, 0.2, 1e-4, 3e-6, "q", "q", False)
+      and _pfx(_pf50["B20A03"], "beta") == _pfx(_pf50["G23"], "beta") and _pfx(_pf50["B20A03"], "rA", "alr") == _pfx(_pf50["H23"], "rA", "alr") and _pfx(_pf50["A03_UNIF"], "a") == _pfx(_pf50["G23"], "a") and _pfx(_pf50["A03_SHUF"], "a") == _pfx(_pf50["G23"], "a")
+      and (_pf50["A03_UNIF"]["a"], _pf50["A03_SHUF"]["a"], _pf50["A03_UNIF"]["e"]) == ("uniform", "shuffle", "q") and all(G.qrc24_profile(p_)["canonical"] == p_ for p_ in G.QRC24_ADJ_PROFILES) and G.QRC24_ADJ_PROFILES == ("B20A03", "A03_UNIF", "A03_SHUF")
+      and (_pf50["G23"]["lam"], _pf50["G23"]["rA"], _pf50["H23"]["beta"], _pf50["H23"]["rA"], _pf50["G22"]["rA"], _pf50["G22"]["beta"]) == (2e-3, 0.03, 0.2, 0.01, 0.01, 0.1))
+_ADJ_B = """PAKD50_QRC24_S1_A03_UNIF_W104_D121_WV3_T0_S1234_FRESH50_v2 PAKD50_QRC24_S1_A03_SHUF_W104_D121_WV3_T0_S1234_FRESH50_v2 PAKD50_QRC24_S3_H23_W104_D121_WV3_T0_S4321_FRESH50_v2 PAKD50_QRC24_S3_B20A03_W104_D121_WV3_T0_S4321_FRESH50_v2
+PAKD50_QRC24_S4_H23_W104_D121_WV3_T0_S3407_FRESH50_v2 PAKD50_QRC24_S4_H13_W104_D121_WV3_T0_S3407_FRESH50_v2 PAKD50_QRC24_S4_H32_W104_D121_WV3_T0_S3407_FRESH50_v2 PAKD50_QRC24_S4_H33_W104_D121_WV3_T0_S3407_FRESH50_v2
+PAKD50_QRC24_S4_G23_W104_D121_WV3_T0_S1234_FRESH50_v2 PAKD50_QRC24_S4_B20A03_W104_D121_WV3_T0_S1234_FRESH50_v2 PAKD50_QRC24_S5_G23_W104_D121_WV3_T0_S9091_FRESH50_v2 PAKD50_QRC24_S5_H23_W104_D121_WV3_T0_S9091_FRESH50_v2
+PAKD50_QRC24_S5_B20A03_W104_D121_WV3_T0_S9091_FRESH50_v2 PAKD50_QRC24_S5_G23_W104_D121_WV3_T0_S1103_FRESH50_v2 PAKD50_QRC24_S5_H23_W104_D121_WV3_T0_S1103_FRESH50_v2 PAKD50_QRC24_S5_B20A03_W104_D121_WV3_T0_S1103_FRESH50_v2""".split()
+_v2all = [r_ for s_ in ("s1", "s2", "s3", "s4", "s5") for r_ in G.qrc24_adj_runs(s_)]; _orig68 = {G.qrc24_run_name(s_, p_, sd_) for s_ in G.QRC24_QUEUES_20260916 for p_, sd_ in G.QRC24_QUEUES_20260916[s_]}
+_v1kept = [r_ for s_ in ("s1", "s2", "s3", "s4", "s5") for p_, sd_, v_ in G.QRC24_ADJ_ORDER[s_] if v_ == "v1" for r_ in [G.qrc24_run_name(s_, p_, sd_)]]; _held = {s_: list(G.qrc24_held_runs(s_)) for s_ in ("s1", "s2", "s3", "s4", "s5")}
+check("K50 편성(§5·§9·부록 B): 남은 순서 s1 G22@3407→G23@3407→A03_UNIF@1234 v2→A03_SHUF@1234 v2→A_UNIF→A_FREEZE→A_SHUF→G21@3407 · s2 G13→E_UNIF→E_SHUF→ALL_UNIF→G31→G33@777 · s3 G23@4321→H23 v2→B20A03 v2→G13→G12→G21→G11→G32→G31→G33 · s4 H_BETA0@1234→H22@3407→H23 v2→H12→H13 v2→H32 v2→H33 v2→G23@1234 v2→B20A03@1234 v2 · s5 L070→L050@9091→G23/H23/B20A03@9091 v2→L100@1103→G23/H23/B20A03@1103 v2 · v2 16 == 부록 B · 유지 26 v1 ⊂ 원계획 · 보류 s4 H11@3407, s5 L070/L050@1103 (priority·mandatory 밖) · 등록 39 · 활성 14/12/20/19/16 = 81 · 큐 파일 == 활성",
+      G.QRC24_ADJ_ORDER["s1"] == [("G22", 3407, "v1"), ("G23", 3407, "v1"), ("A03_UNIF", 1234, "v2"), ("A03_SHUF", 1234, "v2"), ("A_UNIF", 3407, "v1"), ("A_FREEZE", 3407, "v1"), ("A_SHUF", 3407, "v1"), ("G21", 3407, "v1")]
+      and G.QRC24_ADJ_ORDER["s2"] == [(p_, 777, "v1") for p_ in ("G13", "E_UNIF", "E_SHUF", "ALL_UNIF", "G31", "G33")] and G.QRC24_ADJ_ORDER["s3"] == [("G23", 4321, "v1"), ("H23", 4321, "v2"), ("B20A03", 4321, "v2")] + [(p_, 4321, "v1") for p_ in ("G13", "G12", "G21", "G11", "G32", "G31", "G33")]
+      and G.QRC24_ADJ_ORDER["s4"] == [("H_BETA0", 1234, "v1"), ("H22", 3407, "v1"), ("H23", 3407, "v2"), ("H12", 3407, "v1"), ("H13", 3407, "v2"), ("H32", 3407, "v2"), ("H33", 3407, "v2"), ("G23", 1234, "v2"), ("B20A03", 1234, "v2")]
+      and G.QRC24_ADJ_ORDER["s5"] == [("L070", 9091, "v1"), ("L050", 9091, "v1"), ("G23", 9091, "v2"), ("H23", 9091, "v2"), ("B20A03", 9091, "v2"), ("L100", 1103, "v1"), ("G23", 1103, "v2"), ("H23", 1103, "v2"), ("B20A03", 1103, "v2")]
+      and _v2all == _ADJ_B and set(_v1kept) <= _orig68 and len(_v1kept) == 26 and not (set(_v2all) & _orig68) and _held == {"s1": [], "s2": [], "s3": [], "s4": [_qn("s4", "H11", 3407)], "s5": [_qn("s5", "L070", 1103), _qn("s5", "L050", 1103)]}
+      and all(h_ not in G.priority_for(s_) and h_ not in G.mandatory_for(s_) and h_ in _orig68 for s_, hs_ in _held.items() for h_ in hs_) and [len(G.QRC24_REGISTERED[s_]) for s_ in ("s1", "s2", "s3", "s4", "s5")] == [6, 6, 10, 10, 7]
+      and [len(G.priority_for(s_)) for s_ in ("s1", "s2", "s3", "s4", "s5")] == [14, 12, 20, 19, 16] and all(G.priority_for(s_) == [G.qrc24_run_name(s_, p_, sd_, v_) for p_, sd_, v_ in G.QRC24_REGISTERED[s_]] + [G.qrc24_run_name(s_, p_, sd_, v_) for p_, sd_, v_ in G.QRC24_ADJ_ORDER[s_]] for s_ in ("s1", "s2", "s3", "s4", "s5")) and all(v_ == "v1" for l_ in G.QRC24_REGISTERED.values() for _, _, v_ in l_)
+      and all([l.strip() for l in open(os.path.join(ROOT, "config", "queues", f"qrecon24_{s_}.txt")) if l.strip() and not l.startswith("#")] == G.priority_for(s_) for s_ in ("s1", "s2", "s3", "s4", "s5")) and G.QRC24_ADJ_REVISION == "QRC24_ADJ_R1_20260917" and G.QRC24_HELD_STATUS == "superseded_pending"
+      and all(f"queue_revision {G.QRC24_ADJ_REVISION}" in open(os.path.join(ROOT, "config", "queues", f"qrecon24_{s_}.txt")).read() for s_ in ("s1", "s2", "s3", "s4", "s5")) and all(h_ in open(os.path.join(ROOT, "config", "queues", f"qrecon24_{s_}.txt")).read() for s_, hs_ in _held.items() for h_ in hs_))
+_tmp50 = tempfile.mkdtemp(); _bad50v1 = []; _bad50v2 = []
+for s_ in ("s1", "s2", "s3", "s4", "s5"):
+    _v1s = [r_ for r_ in G.priority_for(s_) if r_.endswith("_v1")] + _held[s_]; G.generate(s_, _v1s, _tmp50, projected=None); _bad50v1 += [r_ for r_ in _v1s if not filecmp.cmp(os.path.join(ROOT, "config", r_ + ".yaml"), os.path.join(_tmp50, r_ + ".yaml"), shallow=False)]
+    _v2s = G.qrc24_adj_runs(s_); G.generate(s_, _v2s, _tmp50, projected=None); _bad50v2 += [r_ for r_ in _v2s if not (os.path.exists(os.path.join(ROOT, "config", r_ + ".yaml")) and filecmp.cmp(os.path.join(ROOT, "config", r_ + ".yaml"), os.path.join(_tmp50, r_ + ".yaml"), shallow=False))]
+_cv2 = {r_: yaml.safe_load(open(os.path.join(ROOT, "config", r_ + ".yaml")))["kdv"] for r_ in _v2all}; _cv1 = {r_: yaml.safe_load(open(os.path.join(ROOT, "config", r_ + ".yaml")))["kdv"] for r_ in _v1kept}
+_b3 = _cv2[_qn("s3", "B20A03", 4321).replace("_v1", "_v2")]; _h4 = _cv2["PAKD50_QRC24_S4_H23_W104_D121_WV3_T0_S3407_FRESH50_v2"]; _g5 = _cv2["PAKD50_QRC24_S5_G23_W104_D121_WV3_T0_S1103_FRESH50_v2"]
+check("K50 config(§11.1-2·§11.2): 원계획 68 v1(보류 3 포함) 바이트 불변 · v2 16 == 생성기 · v2 kdv.qrc24{queue_revision, adjustment ADJ-R1, source_plan, block_2x2, numerator_factor 1} · control_runs 는 같은 서버·seed 의 **실제** id(s3 4321 B20A03 → G22 v1 · G23 v1 · H23 v2 · baseline G22 v1; s4 3407 H23 → H22 v1; s5 1103 G23 → L100 v1) · v1 config 에 queue_revision 없음 · v2 projected_map = 1.2×ADJ R_s + 10/60 · qrecon 블록(uniform .5·perm 51515) 은 v1 과 같은 꼴",
+      not _bad50v1 and not _bad50v2 and all(c_["qrc24"]["queue_revision"] == G.QRC24_ADJ_REVISION and c_["qrc24"]["adjustment"] == "ADJ-R1" and c_["qrc24"]["source_plan"] == G.QRC24_ADJ_PLAN and c_["qrc24"]["numerator_factor"] == 1.0 and set(c_["qrc24"]["block_2x2"]) == {"rA01_beta1", "rA03_beta1", "rA01_beta2", "rA03_beta2"} for c_ in _cv2.values())
+      and _b3["control_runs"]["G22"] == _qn("s3", "G22", 4321) and _b3["control_runs"]["G23"] == _qn("s3", "G23", 4321) and _b3["control_runs"]["H23"] == "PAKD50_QRC24_S3_H23_W104_D121_WV3_T0_S4321_FRESH50_v2" and _b3["baseline_run"] == _qn("s3", "G22", 4321) and "B20A03" not in _b3["control_runs"]
+      and _h4["control_runs"]["G22"] == _qn("s4", "H22", 3407) and _h4["control_runs"]["control_profile"] == "H22" and _g5["control_runs"]["G22"] == _qn("s5", "L100", 1103) and _g5["qrc24"]["block_2x2"]["rA01_beta1"] == _qn("s5", "L100", 1103) and _g5["qrc24"]["block_2x2"]["rA03_beta2"].endswith("_S1103_FRESH50_v2")
+      and all("queue_revision" not in c_["qrc24"] for c_ in _cv1.values()) and abs(list(_b3["budget"]["projected_map"].values())[0] - (1.2 * 1.47 + 10 / 60)) < 1e-9 and all(c_["qrecon"] == dict(_cv1[_qn("s3", "G23", 4321)]["qrecon"], a_weight=c_["qrecon"]["a_weight"]) for c_ in _cv2.values()),
+      f"v1 diff {_bad50v1[:3]} v2 diff {_bad50v2[:3]}")
+_kb50 = lambda p_, sd_, srv_, ver_: G.kdv_block(f"QRC24_{srv_.upper()}_{p_}", sd_, srv_, cal=calQ, arch="W104_D121", version=ver_)
+_g23s3, _h23s3, _b20s3 = _kb50("G23", 4321, "s3", "v1"), _kb50("H23", 4321, "s3", "v2"), _kb50("B20A03", 4321, "s3", "v2"); _g23s1, _aus1, _ass1 = _kb50("G23", 1234, "s1", "v1"), _kb50("A03_UNIF", 1234, "s1", "v2"), _kb50("A03_SHUF", 1234, "s1", "v2")
+_dk = lambda a_, b_: {k_ for k_ in set(a_) | set(b_) if a_.get(k_) != b_.get(k_)}; _META50 = {"qrc24", "control_runs", "baseline_run", "budget", "case_id", "version"}          # 이름·version·대조·예산 metadata 만 다르다
+check("K50 kdv block 차이(§11.3): B20A03 − G23 = rec.kd_weight(β .2) 만 · B20A03 − H23 = aligner_lr(3e-6 vs 1e-6) 만 · A03_UNIF/A03_SHUF − G23 = qrecon.a_weight 만 (그 밖은 metadata: qrc24/control/budget) · stat(λE .002)·input(I-NATIVE-TRANSFER)·A-FT·corruption·aux·teacher·exact_resume·expect_init(같은 seed U 초기값 hash) 동일",
+      _dk(_b20s3, _g23s3) <= {"rec"} | _META50 and dict(_b20s3["rec"], kd_weight=0.1) == _g23s3["rec"] and _b20s3["rec"]["kd_weight"] == 0.2 and _b20s3["aligner_lr"] == _g23s3["aligner_lr"] == 3e-6 and _b20s3["stat"] == _g23s3["stat"]
+      and _dk(_b20s3, _h23s3) <= {"aligner_lr"} | _META50 and _b20s3["rec"] == _h23s3["rec"] and _h23s3["aligner_lr"] == 1e-6 and _dk(_aus1, _g23s1) <= {"qrecon"} | _META50 and _dk(_ass1, _g23s1) <= {"qrecon"} | _META50
+      and dict(_aus1["qrecon"], a_weight="q") == _g23s1["qrecon"] and dict(_ass1["qrecon"], a_weight="q") == _g23s1["qrecon"] and _aus1["qrecon"]["uniform_weight"] == 0.5 and _ass1["qrecon"]["perm_seed"] == 51515
+      and _aus1.get("expect_init") == _g23s1.get("expect_init") == _ass1.get("expect_init") and (G.init_hash_for(1234, "W104_D121") is None or _aus1.get("expect_init") is not None) and _b20s3["input_protocol"] == "I-NATIVE-TRANSFER" and _b20s3["aligner_policy"] == "A-FT" and _b20s3["exact_resume"] is True,
+      f"B−G {_dk(_b20s3, _g23s3)} B−H {_dk(_b20s3, _h23s3)} AU−G {_dk(_aus1, _g23s1)}")
+# 실제 trainer (K46 harness): B20A03 vs H23 손실 bitwise 동일(LR 만 다름) · B20A03 vs G23: L_A·∇φL_A bitwise 동일(β 는 A 에 없음), L_U 차 = mean(K_G23)(β 2 배) · A03_UNIF: L_A = .5·mean H, L_U == G23 · A03_SHUF: w_a = 셔플 표, L_U == G23
+trB, totB, infoB = _runQ("QRC24_S3_B20A03", _QW(), server="s3", seed=4321); trH, totH, infoH = _runQ("QRC24_S3_H23", _QW(), server="s3", seed=4321); trG3, totG3, infoG3 = _runQ("QRC24_S3_G23", _QW(), server="s3", seed=4321)
+_apB = [p_ for p_ in trB.M.aligner.parameters() if p_.requires_grad]; _apG3 = [p_ for p_ in trG3.M.aligner.parameters() if p_.requires_grad]
+_r3 = trG3.rec_crit(infoG3["y"].float(), infoG3["y_t"].float(), _gt.float(), return_maps=True); _K3 = (_r3.maps["soft_weight"] * (infoG3["y"].float() - infoG3["y_t"].float()).abs().mean(1, keepdim=True)).mean((1, 2, 3))
+trAU, totAU, infoAU2 = _runQ("QRC24_S1_A03_UNIF", _QW("uniform", "q"), server="s1", seed=1234); trAS, totAS, infoAS2 = _runQ("QRC24_S1_A03_SHUF", _QW("shuffle", "q"), server="s1", seed=1234); trG1, totG1, infoG1 = _runQ("QRC24_S1_G23", _QW(), server="s1", seed=1234)
+_rA = trAU.rec_crit(infoAU2["y"].float(), infoAU2["y_t"].float(), _gt.float(), return_maps=True); _HA = (_rA.maps["hard_weight"] * (infoAU2["y"].float() - _gt.float()).abs().mean(1, keepdim=True)).mean((1, 2, 3))
+check("K50 trainer(§11.3; 실제 KDVTrainer._step, CPU, 같은 pre-step 상태): B20A03 == H23 (total·L_U·L_A bitwise; LR 만 다름) · B20A03 vs G23: L_A 와 ∇φL_A bitwise 같고 L_U 차 == mean(K_G23) (β .1→.2 = soft 2 배; 1e-6) · A03_UNIF: w_a 0.5·L_A == 0.5·mean H·L_U == G23 · A03_SHUF: w_a == 셔플 표 [.8, 1.0]·L_U == G23 · 세 run 의 U ∇θL_U 는 uniform/shuffle 과 무관하게 G23 과 같다(1e-6) · λE 2e-3",
+      float(totB) == float(totH) and float(infoB["_L_U_t"]) == float(infoH["_L_U_t"]) and float(infoB["_L_A_t"]) == float(infoH["_L_A_t"]) and trB.k["aligner_lr"] == 3e-6 and trH.k["aligner_lr"] == 1e-6
+      and float(infoB["_L_A_t"]) == float(infoG3["_L_A_t"]) and torch.equal(_grad_of(infoB["_L_A_t"], _apB), _grad_of(infoG3["_L_A_t"], _apG3)) and abs((float(infoB["_L_U_t"]) - float(infoG3["_L_U_t"])) - float(_K3.mean())) < 1e-6 and float(_K3.mean()) > 0
+      and infoAU2["qrc_w_a_mean"] == 0.5 and abs(float(infoAU2["_L_A_t"]) - 0.5 * float(_HA.mean())) < 1e-6 and float(infoAU2["_L_U_t"]) == float(infoG1["_L_U_t"]) and float(infoAS2["_L_U_t"]) == float(infoG1["_L_U_t"])
+      and torch.allclose(_QW("shuffle", "q").weights(_metaQ, torch.device("cpu"))[0], torch.tensor([0.8, 1.0])) and abs(infoAS2["qrc_w_a_mean"] - 0.9) < 1e-6 and sorted(_tq.flatten().tolist()) == sorted(_ts.flatten().tolist())
+      and _rel(_grad_of(infoAU2["_L_U_t"], [p_ for p_ in trAU.M.backbone.parameters() if p_.requires_grad]), _grad_of(infoG1["_L_U_t"], [p_ for p_ in trG1.M.backbone.parameters() if p_.requires_grad])) < 1e-6 and infoB["qrc_lambda_E"] == 2e-3,
+      f"B/H {float(totB)} {float(totH)} · ΔL_U {float(infoB['_L_U_t']) - float(infoG3['_L_U_t']):.3e} vs K {float(_K3.mean()):.3e} · AU L_A {float(infoAU2['_L_A_t']):.4e} vs {0.5 * float(_HA.mean()):.4e}")
+# 시트 · 스크립트 · 도구
+try:
+    _lab50 = (_il("PAKD50_QRC24_S4_B20A03_W104_D121_WV3_T0_S1234_FRESH50_v2", "A104D121_T0FIX_QRECON24_v1") == "PAKD50 / QRC24 / B20A03 / A104D121 / ADJ-R1 / FRESH50" and _il("PAKD50_QRC24_S1_A03_SHUF_W104_D121_WV3_T0_S1234_FRESH50_v2", None) == "PAKD50 / QRC24 / A03_SHUF / A104D121 / ADJ-R1 / FRESH50"
+              and _il("PAKD50_QRC24_S3_G23_W104_D121_WV3_T0_S4321_FRESH50_v1", "A104D121_T0FIX_QRECON24_v1") == "PAKD50 / QRC24 / G23 / A104D121 / FRESH50")
+except Exception:                                                              # noqa
+    _lab50 = False
+_sw50 = open(os.path.join(ROOT, "tools", "qrecon24_switch.sh")).read(); _up50 = open(os.path.join(ROOT, "tools", "_upload.sh")).read(); _gu50 = open(os.path.join(ROOT, "gspread", "gspread_upload.py")).read()
+check("K50 시트·스크립트(§11.2·§7.2·§8.1): v2 X열 'PAKD50 / QRC24 / <PROFILE> / A104D121 / ADJ-R1 / FRESH50' · v1 그대로 · Notes 에 numerator_factor/uniform_weight/queue_revision(+source_plan/block_2x2) · _upload.sh 가 QRC24 run 뒤 tools/qrecon24_postrun.py --backlog(공식 selector + 버전 감사; case 경계) · switch 가 held_runs/queue_revision/version_audit/backlog 를 다룬다 · bash -n",
+      _lab50 and all(x in _gu50 for x in ("queue_revision=", "numerator_factor=", "uniform_weight=", "block_2x2=")) and "qrecon24_postrun.py" in _up50 and "PAKD50_QRC24_*)" in _up50
+      and all(x in _sw50 for x in ("held_runs.json", "queue_revision.json", "qrecon24_version_audit.py", "qrecon24_postrun.py --backlog", "qrc24_held_runs")) and all(subprocess.run(["bash", "-n", os.path.join(ROOT, "tools", f_)], capture_output=True).returncode == 0 for f_ in ("qrecon24_switch.sh", "_upload.sh", "qrecon24_waiter.sh")))
+def _heredoc_ok(src):
+    """bash 안 python heredoc(<<'PYEOF' … PYEOF) 전부: compile 되고, 쓰는 모듈(json/os/sys/time/subprocess) 의 import 가 그 블록 안에 있다 (switch ⑤ 의 NameError 재발 방지)."""
+    import re as _re
+    blocks = _re.findall(r"<<'PYEOF'[^\n]*\n(.*?)\nPYEOF", src, flags=_re.S)
+    if not blocks:
+        return False
+    for blk in blocks:
+        try:
+            compile(blk, "<heredoc>", "exec")
+        except SyntaxError:
+            return False
+        for mod in ("json", "os", "sys", "time", "subprocess"):
+            if _re.search(rf"\b{mod}\.", blk) and not _re.search(rf"^\s*import .*\b{mod}\b", blk, flags=_re.M):
+                return False
+    return True
+check("K50 switch/waiter heredoc python 블록: compile + 사용 모듈 import 존재 (⑤ NameError 회귀 방지)", _heredoc_ok(_sw50) and _heredoc_ok(open(os.path.join(ROOT, "tools", "qrecon24_waiter.sh")).read()))
+# 도구: 버전 감사(fixture 3 종) · 보존(fixture; sha256 manifest + --verify) · postrun --dry-run · 실제 s1 G22 S1234 가 있으면 §8.1 판정 single_definition_factor1 + 이전 시도 기록
+_fx = os.path.join(ROOT, "work_dir", f"_k50fix_{os.getpid()}"); os.makedirs(_fx, exist_ok=True)
+def _mk_fix(name, factor, uniform, lam, resume=False, manifest=True):
+    d_ = os.path.join(_fx, name); os.makedirs(os.path.join(d_, "meta"), exist_ok=True); os.makedirs(os.path.join(d_, "results"), exist_ok=True); os.makedirs(os.path.join(d_, "best_hqnr"), exist_ok=True)
+    if manifest:
+        json.dump(dict(qrecon=dict(formula=("w_i = qref/(qref + q_T(i))" if factor == 1.0 else "w_i = 2·qref/(qref + q_T(i))"), numerator_factor=factor, uniform_weight=uniform), spec=dict(qrecon=dict(lambda_E=lam, uniform_weight=uniform)), exact_resume=True, resumed_nonexact=False), open(os.path.join(d_, "kdv_config_resolved.json"), "w"))
+    yaml.safe_dump(dict(kdv=dict(stat=dict(outer_weight=0.002), qrecon=dict(uniform_weight=0.5), qrc24=dict(profile="G22"))), open(os.path.join(d_, "meta", "config.yaml"), "w"))
+    open(os.path.join(d_, "meta", "git_commit.txt"), "w").write("deadbeef" * 5 + "\n"); open(os.path.join(d_, "meta", "command.txt"), "w").write("./tools/run.sh X" + (" --resume work_dir/X/epoch-5" if resume else "") + "\npython -u main.py --config X\n")
+    json.dump(dict(step=31310, epoch=155, selection_view="raw_original", hqnr=0.9591, alias="best_hqnr"), open(os.path.join(d_, "best_raw_meta.json"), "w")); open(os.path.join(d_, "best_hqnr", "model.safetensors"), "wb").write(os.urandom(4096)); open(os.path.join(d_, "checkpoint_metrics.csv"), "w").write("step,raw_original.hqnr\n50000,0.95\n")
+    json.dump(dict(rows=[]), open(os.path.join(d_, "results", "fr_mat20.json"), "w")); return f"_k50fix_{os.getpid()}/{name}"
+import importlib.util as _ilu3; _spa = _ilu3.spec_from_file_location("_qva", os.path.join(ROOT, "tools", "qrecon24_version_audit.py")); _qva = _ilu3.module_from_spec(_spa); _spa.loader.exec_module(_qva)
+_spp = _ilu3.spec_from_file_location("_qpr", os.path.join(ROOT, "tools", "qrecon24_preserve.py")); _qpr = _ilu3.module_from_spec(_spp); _spp.loader.exec_module(_qpr)
+_va1 = _qva.audit_run(_mk_fix("f1", 1.0, 0.5, 0.002), write=False); _va2 = _qva.audit_run(_mk_fix("f2", 2.0, None, 0.001), write=False); _va3 = _qva.audit_run(_mk_fix("f3", 1.0, 0.5, 0.002, manifest=False), write=False); _va4 = _qva.audit_run(_mk_fix("f4", 1.0, 0.5, 0.001), write=False)
+_pdest = os.path.join(_tmp50, "preserved"); _prc = _qpr.preserve(f"_k50fix_{os.getpid()}/f1", os.path.relpath(_pdest, ROOT) if _pdest.startswith(ROOT) else _pdest); _pm = json.load(open(os.path.join(_pdest, f"_k50fix_{os.getpid()}", "f1", "preserve_manifest.json")))
+_pv = _qpr.preserve(f"_k50fix_{os.getpid()}/f1", os.path.relpath(_pdest, ROOT) if _pdest.startswith(ROOT) else _pdest, verify=True); _pr_dry = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "qrecon24_postrun.py"), "--backlog", "--dry-run"], capture_output=True, text=True, cwd=ROOT)
+shutil.rmtree(_fx, ignore_errors=True)
+_g22s1 = os.path.join(ROOT, "work_dir", _qn("s1", "G22", 1234)); _vaS1 = _qva.audit_run(_qn("s1", "G22", 1234), write=False) if os.path.exists(os.path.join(_g22s1, "kdv_config_resolved.json")) else None
+check("K50 도구(§7.1·§8.1): 버전 감사 fixture — factor 1/uniform .5/λE 일치 → single_definition_factor1 · factor 2 → factor2_or_old_definition · manifest 없음 → unverified · λE 불일치 → unverified · 보존 manifest 의 sha256 == 파일 해시(selected step 31310 기록) 이고 --verify 0 · postrun --backlog --dry-run rc 0"
+      + (f" · 실제 s1 G22 S1234: {_vaS1['verdict']} (이전 시도 {len(_vaS1['evidence']['previous_attempts'])})" if _vaS1 else " · (s1 G22 S1234 없음 — 실제 판정 생략)"),
+      _va1["verdict"] == "single_definition_factor1" and _va2["verdict"] == "factor2_or_old_definition" and _va3["verdict"] == "unverified" and _va4["verdict"] == "unverified" and _prc == 0 and _pv == 0 and _pm["selected"]["step"] == 31310
+      and _pm["files"]["best_hqnr/model.safetensors"] == _pm["files"]["best_hqnr/model.safetensors"] and len(_pm["files"]) >= 6 and all(hashlib.sha256(open(os.path.join(_pdest, f"_k50fix_{os.getpid()}", "f1", rel_), "rb").read()).hexdigest() == sha_ for rel_, sha_ in _pm["files"].items())
+      and _pr_dry.returncode == 0 and (_vaS1 is None or (_vaS1["verdict"] == "single_definition_factor1" and _vaS1["evidence"]["numerator_factor"] == 1.0 and _vaS1["evidence"]["lambda_E_spec"] == 0.002)),
+      f"va {_va1['verdict']}/{_va2['verdict']}/{_va3['verdict']}/{_va4['verdict']} preserve {_prc}/{_pv} postrun {_pr_dry.returncode} {_pr_dry.stderr[-200:] if _pr_dry.returncode else ''}")
+# ---- K50 (검토 대응): 확장 seed 대조 id · 보류 run 상태·활성 큐 · switch ⑤ 블록 실행 fixture
+_extra_ctl = {s_: (G.qrc24_control_run(s_, G.QRC24_EXTRA[s_][0]), G.qrc24_control_profile(s_, G.QRC24_EXTRA[s_][0])) for s_ in ("s1", "s2", "s3", "s4", "s5")}
+try:
+    G.qrc24_control_profile("s3", 424242); _virt = False
+except SystemExit:
+    _virt = True
+_k50e = G.kdv_block("QRC24_S4_H12", 2026, "s4", cal=calQ, arch="W104_D121"); _k50e5 = G.kdv_block("QRC24_S5_L070", 2909, "s5", cal=calQ, arch="W104_D121")
+check("K50 확장 seed 대조(§8.3·§11.2): §8.3 확장 seed(s1 9091 · s2 3407 · s3 1103 · s4 2026 · s5 2909) 와 reserve seed(17041/26017) 의 대조 id 는 그 묶음의 실제 alias(s4 H22 · s5 L100 · 그 밖 G22) — 가상 G22 id 를 만들지 않는다 · 편성·확장 어디에도 없는 seed 는 SystemExit · 확장 run 의 kdv block control_runs/baseline_run 도 그 id",
+      {s_: v_[1] for s_, v_ in _extra_ctl.items()} == {"s1": "G22", "s2": "G22", "s3": "G22", "s4": "H22", "s5": "L100"} and _extra_ctl["s4"][0] == _qn("s4", "H22", 2026) and _extra_ctl["s5"][0] == _qn("s5", "L100", 2909)
+      and all(G.qrc24_control_profile(s_, sd_) == _extra_ctl[s_][1] for s_ in ("s4", "s5") for sd_ in G.QRC24_RESERVE_SEEDS) and _virt
+      and _k50e["control_runs"]["G22"] == _qn("s4", "H22", 2026) and _k50e["baseline_run"] == _qn("s4", "H22", 2026) and _k50e5["control_runs"]["G22"] == _qn("s5", "L100", 2909), f"{_extra_ctl} virt_raise {_virt}")
+_hrun = f"_k50held_{os.getpid()}"; _hdir = os.path.join(ROOT, "work_dir", _hrun)
+try:
+    os.makedirs(_hdir, exist_ok=True); _st_none = G.qrc24_held_state("s4", _hrun, ps="")
+    os.makedirs(os.path.join(_hdir, "checkpoint-1000"), exist_ok=True); _st_ck = G.qrc24_held_state("s4", _hrun, ps="")
+    _st_run = G.qrc24_held_state("s4", _hrun, ps=f"python -u main.py --config /x/{_hrun}.yaml\n")
+finally:
+    shutil.rmtree(_hdir, ignore_errors=True)
+_h4 = _qn("s4", "H11", 3407); _psfake = f"bash ./tools/_run_cases.sh\npython -u main.py --config /x/{_h4}.yaml\n"
+_eff_run = G.qrc24_effective_queue("s4", ps=_psfake); _eff_plain = G.qrc24_effective_queue("s4", ps="")
+check("K50 보류 run 상태(§9 '미시작일 때만'): checkpoint/epoch 없음 → superseded_pending · checkpoint-1000 있음 → started_interrupted(원 정의로 끝낸다) · 학습 중 → running_original_definition · 완료 → terminal · 활성 실행 순서(qrc24_effective_queue) 는 시작된 보류 run 을 **맨 앞**에 두고 나머지는 편성 순서, 미시작이면 편성 그대로 · run_started 는 runner 의 latest_ckpt 와 같은 규칙",
+      (_st_none, _st_ck, _st_run) == (G.QRC24_HELD_STATUS, "started_interrupted", "running_original_definition") and _eff_run[0] == _h4 and _eff_run[1:] == G.qrc24_items("s4") and len(_eff_run) == len(G.qrc24_items("s4")) + 1
+      and _eff_plain == G.qrc24_items("s4") and G.qrc24_effective_queue("s1", ps="") == G.qrc24_items("s1") and not G.run_started(f"_k50nope_{os.getpid()}"), f"{(_st_none, _st_ck, _st_run)} eff0 {_eff_run[0][-28:]}")
+_blk5 = [b for b in __import__("re").findall(r"<<'PYEOF'[^\n]*\n(.*?)\nPYEOF", _sw50, flags=__import__("re").S) if "extra_priority.pre_qrecon24" in b]
+_fxr = tempfile.mkdtemp(); _keep_run = G.qrc24_run_name("s2", "G22", 3407); _old_item = "JQ@W104_D121"
+os.makedirs(os.path.join(_fxr, "work_dir", "_pakd50"), exist_ok=True); open(os.path.join(_fxr, "work_dir", "_pakd50", "extra_priority.txt"), "w").write(f"# 이전\n{_old_item}\n{_keep_run}\n")
+_R0, _AV0 = G.ROOT, sys.argv; _ok5 = False; _xp_after = _bak_after = None
+try:
+    G.ROOT = _fxr; sys.argv = ["-", "s2"]; exec(compile(_blk5[0], "<switch5>", "exec"), {"__name__": "__main__"})
+    _xp_after = [l.strip() for l in open(os.path.join(_fxr, "work_dir", "_pakd50", "extra_priority.txt")) if l.strip() and not l.startswith("#")]
+    _bakf = [f for f in os.listdir(os.path.join(_fxr, "work_dir", "_pakd50")) if f.startswith("extra_priority.pre_qrecon24_")]
+    _bak_after = [l.strip() for l in open(os.path.join(_fxr, "work_dir", "_pakd50", _bakf[0])) if l.strip() and not l.startswith("#")] if _bakf else None
+    _qeff5 = [l.strip() for l in open(os.path.join(_fxr, "work_dir", "_qrecon24", "queue_effective.txt")) if l.strip() and not l.startswith("#")]
+    _mand5 = [l.strip() for l in open(os.path.join(_fxr, "work_dir", "_qrecon24", "mandatory_runs.txt")) if l.strip() and not l.startswith("#")]
+    _rev5 = json.load(open(os.path.join(_fxr, "work_dir", "_qrecon24", "queue_revision.json"))); _held5 = json.load(open(os.path.join(_fxr, "work_dir", "_qrecon24", "held_runs.json")))
+    _res5 = json.load(open(os.path.join(_fxr, G.RESERVATION_FILE)))
+    from tools.campaign_gate import terminal as _term5
+    _mand_all = G.qrc24_items("s2") + [_keep_run]; _pend5 = [r_ for r_ in _mand_all if not _term5(r_)]
+    _ok5 = (_xp_after == [_keep_run] and _bak_after == [_old_item, _keep_run] and _mand5 == _mand_all and _qeff5 == _pend5 and _rev5["pending_queue"] == _pend5 and _rev5["completed_omitted"] == len(_mand_all) - len(_pend5)
+            and _rev5["queue_revision"] == G.QRC24_ADJ_REVISION and _rev5["effective_queue"] == _mand_all and _held5 == {} and len(_res5["runs"]) == len(_mand_all))
+finally:
+    G.ROOT, sys.argv = _R0, _AV0; shutil.rmtree(_fxr, ignore_errors=True)
+check("K50 switch ⑤ 실행(검토 지적: 백업 경로 재바인딩 버그): 임시 ROOT 에서 ⑤ python 블록을 실제로 실행 — extra_priority 의 비 QRECON24 항목만 백업 파일로 옮기고 QRC24 항목은 남긴다(한 글자씩 쪼개지지 않는다) · 백업에 원본 두 줄 · queue_effective(미완만; 완료 run 은 빼서 재업로드 walk 방지)·mandatory(전체)·reservations·queue_revision·held_runs 기록 · KeyError 없이 끝난다",
+      _ok5, f"xp {_xp_after} bak {_bak_after}")
+check("K50 문서(§11): 계획·구현 노트 존재 · CLAUDE.md 에 ADJ-R1 · generator 상수(QRC24_ADJ_PLAN/NOTE/REVISION/VERSION)",
+      os.path.exists(os.path.join(ROOT, G.QRC24_ADJ_PLAN)) and os.path.exists(os.path.join(ROOT, G.QRC24_ADJ_NOTE)) and "ADJ-R1" in open(os.path.join(ROOT, "CLAUDE.md")).read() and G.QRC24_ADJ_VERSION == "v2")
 print(f"\n{'FAIL ' + str(FAIL) if FAIL else 'ALL OK'} ({len(FAIL)} failed)"); sys.exit(1 if FAIL else 0)

@@ -127,9 +127,15 @@ QUEUE=("${ORDER[@]}"); i=0
 while [ $i -lt ${#QUEUE[@]} ]; do
     if [ -f "$HANDOVER_FILE" ]; then
         mapfile -t NEWQ < <(grep -vE '^[[:space:]]*(#|$)' "$HANDOVER_FILE")
-        mv "$HANDOVER_FILE" "$HANDOVER_FILE.applied.$(date +%m%d-%H%M%S)"
-        echo "[cases] 큐 인계(case 경계 $(date -Iseconds)): 남은 $(( ${#QUEUE[@]} - i ))건 폐기 → 새 큐 ${#NEWQ[@]}건"
-        QUEUE=("${NEWQ[@]}"); i=0; continue
+        if [ ${#NEWQ[@]} -eq 0 ]; then       # 빈/부분 인계 파일은 적용하지 않는다 (빈 큐로 조기 DONE 방지; ADJ-R1 검토)
+            mv "$HANDOVER_FILE" "$HANDOVER_FILE.empty.$(date +%m%d-%H%M%S)"; echo "[cases] 큐 인계 파일이 비어 있다 — 무시하고 현재 큐를 계속 ($(date -Iseconds))"
+        else
+            mv "$HANDOVER_FILE" "$HANDOVER_FILE.applied.$(date +%m%d-%H%M%S)"
+            # 영속 큐 파일도 같은 순서로 (감시자/재부팅 재기동이 옛 큐를 읽지 않게; tmp + mv 로 원자적) — ADJ-R1 검토 지적
+            { echo "# 인계 적용 $(date -Iseconds) (tools/_run_cases.sh HANDOVER; 재기동 시 이 순서)"; printf '%s\n' "${NEWQ[@]}"; } > "$QUEUE_FILE.tmp" && mv "$QUEUE_FILE.tmp" "$QUEUE_FILE"
+            echo "[cases] 큐 인계(case 경계 $(date -Iseconds)): 남은 $(( ${#QUEUE[@]} - i ))건 폐기 → 새 큐 ${#NEWQ[@]}건 (cases_queue.txt 갱신)"
+            QUEUE=("${NEWQ[@]}"); i=0; continue
+        fi
     fi
     TAG=${QUEUE[$i]}; i=$((i+1)); run_case "$TAG" "$i/${#QUEUE[@]}"
 done

@@ -175,13 +175,13 @@ def integrated_label(run, branch=None):
     if not run or not run.startswith("PAKD50_"):
         return ""
     import re as _re
-    m = _re.match(r"^PAKD50_(?P<case>.+?)_(?P<arch>W\d+_D\d+)_WV3_T0_S\d+_(?P<proto>[A-Z0-9]+)_v\d+$", run)
+    m = _re.match(r"^PAKD50_(?P<case>.+?)_(?P<arch>W\d+_D\d+)_WV3_T0_S\d+_(?P<proto>[A-Z0-9]+)_(?P<ver>v\d+)$", run)
     btok = " / EDGEBAL" if (branch and "EDGEBAL" in str(branch)) else (" / QEGX" if (branch and "QEGX" in str(branch)) else (" / QEDGE9" if (branch and "QEDGE9" in str(branch)) else ""))
     if not m:
         case = run[len("PAKD50_"):].split("_W112")[0]; proto = "FRESH50" if "_FRESH50_" in run else run.rsplit("_", 2)[-2]; return f"PAKD50 / {case}{btok} / {proto}"
     arch = m.group("arch"); tok = "" if arch == "W112_D123" else " / A" + arch.replace("W", "").replace("_D", "D")
-    if m.group("case").startswith("QRC24_"):                 # QRECON24 §9.3: 'PAKD50 / QRC24 / G22 / A104D121 / FRESH50' (서버 토큰은 파일 충돌 방지용 — X열에서 뺀다)
-        _parts = m.group("case").split("_"); return f"PAKD50 / QRC24 / {'_'.join(_parts[2:])}{tok} / {m.group('proto')}"
+    if m.group("case").startswith("QRC24_"):                 # QRECON24 §9.3: 'PAKD50 / QRC24 / G22 / A104D121 / FRESH50' (서버 토큰은 파일 충돌 방지용 — X열에서 뺀다) · ADJ-R1(2026-09-17 §11.2) 추가 run(_v2) 은 'PAKD50 / QRC24 / B20A03 / A104D121 / ADJ-R1 / FRESH50'
+        _parts = m.group("case").split("_"); _adj = " / ADJ-R1" if m.group("ver") == "v2" else ""; return f"PAKD50 / QRC24 / {'_'.join(_parts[2:])}{tok}{_adj} / {m.group('proto')}"
     return f"PAKD50 / {m.group('case')}{tok}{btok} / {m.group('proto')}"
 
 
@@ -648,6 +648,9 @@ def collect(tag, want_profile, server, peer=None):
                 desc = (desc + f"; method=qrecon_continuous_v1; A_loss=weighted_H_only; A_soft=0; A_edge=0; student_offset=0; profile={_qc.get('profile')}({_qc.get('canonical')}); lambda_E_abs={_qc.get('lambda_E')}; rA={_qc.get('rA')}; U_lr={_qc.get('U_lr')}; A_lr={_qc.get('A_lr')}"
                         + f"; alpha={_qc.get('alpha')}; beta={_qc.get('beta')}; qref={_q.get('q_ref')}; A_weight={_q.get('a_weight')}; E_weight={_q.get('e_weight')}; w_sha={_qs.get('w_sha256_16') or '?'}; perm_sha={_qs.get('w_shuffle_sha256_16') or '?'}; w_mean={_qs.get('w_mean_all')}"
                         + f"; init_seed={getattr(a, 'seed', '?')}; T0_sha={str((_kb.get('teacher') or {}).get('expected_sha256') or '')[:16]}; cue_asset_id={_qr.get('asset_id') or 'asset'}; release_sha={_rel}; control_run_id={_kb.get('control_runs')}"
+                        + f"; numerator_factor={_qr.get('numerator_factor', _qc.get('numerator_factor', '?'))}; uniform_weight={_q.get('uniform_weight', '?')}; queue_revision={_qc.get('queue_revision') or 'none'}"     # ADJ-R1 §11.2: formula factor·uniform·revision·U init hash 명시
+                        + f"; init_sha={((json.load(open(os.path.join(ROOT, 'work_dir', tag, 'initialization_hashes.json'))) if os.path.exists(os.path.join(ROOT, 'work_dir', tag, 'initialization_hashes.json')) else {}).get('unet_init_sha256_16') or '?')}"
+                        + (f"; source_plan={_qc.get('source_plan')}; block_2x2={_qc.get('block_2x2')}" if _qc.get("queue_revision") else "")
                         + (f"; target_feasible={_sj.get('target_feasible')}; target_selected_step={(_sj.get('target') or {}).get('step')}; target_official={_sj.get('official')}" if _sj else "; target_selector=pending(tools/qrecon24_select.py)")).strip()
             elif "EDGEBAL" in str(_kb.get("experiment_branch_id", "")):  # EDGEBAL §10.4 Notes: edge_mult · edge_schedule · edge_low/high · gt_hard_always · T0_sha · cue_asset_id · seed · release_sha · control_run_id
                 _st = _kb.get("stat") or {}; _cal = json.load(open(os.path.join(ROOT, "assets", "pakd50", "calibration_resolved.json"))) if os.path.exists(os.path.join(ROOT, "assets", "pakd50", "calibration_resolved.json")) else {}

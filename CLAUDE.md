@@ -162,7 +162,7 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
 - matplotlib 에 한글 글리프가 없다. 그림 라벨은 ASCII 로 쓴다.
 - 위성영상은 라이선스 제약이 있다. **외부 서비스에 업로드하지 않는다** (§6).
 
-## 현재 진행 상황 (2026-09-16 저녁 기준)
+## 현재 진행 상황 (2026-09-17 기준)
 
 확인은 `results_log/README.md` 맨 위 · `ps -eo pid,ppid,args | grep '[_]run_'` · `tail -f work_dir/cases_chain.log`. 캠페인별 상세는 아래 노트.
 각 캠페인의 계획서는 `research_log/PAN_*_<날짜>.md`, 구현 노트는 `research_log/<날짜>_<캠페인>-implementation.md`, config 생성기는 `tools/gen_<캠페인>_configs.py`,
@@ -170,13 +170,13 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
 
 | 서버 | 지금 | 그 다음 |
 |---|---|---|
-| s1 | idle(09-16 저녁; SMEC12 준비 학습·QEDGE9 seed 1234 v2 5 벌 완료 — 시트 WV3-s1 61–65) | **QRECON24 12 run**(1234·3407: G22/A_UNIF/A_FREEZE/G21/G23/A_SHUF): `./tools/qrecon24_switch.sh` (사용자 조작; gate 꺼짐 → 큐로 기동) |
-| s2 | EDGEBAL 12 run 중 4 완료(EB_R3E000/050/025/200 S777) · QEDGE9 W104 S777 v2 3 벌 완료 | **QRECON24 12 run**(777: G 3×3 + E_UNIF/E_SHUF/ALL_UNIF): pull → `./tools/qrecon24_switch.sh` (진행 중 run 은 끝까지; EDGEBAL 잔여는 superseded). DCR12 인계는 별개(사용자 결정) |
-| s3 | QEGX 15 run 중 14 완료(QX50 S4321 남음) | **QRECON24 18 run**(2026·4321: G 3×3): pull → `./tools/qrecon24_switch.sh` |
-| s4 | QEGX 14 run 중 13 완료(QERS S3407 남음) · E0 5 완료 | **QRECON24 14 run**(1234: H 3×3 + H_ALPHA0/H_BETA0; 3407: H22/H12/H11): pull → `./tools/qrecon24_switch.sh` |
-| s5 | QEDGE9 6 완료 · EDGEBAL 14 run 중 5 완료(EB_R3E050/075/EDOWN/EUP/QFLOOR S2026) | **QRECON24 12 run**(2026·777·9091·1103: L100/L070/L050): pull → `./tools/qrecon24_switch.sh` |
+| s1 | **QRECON24 진행 중**(seed 1234 6 완료 — G23 raw HQNR .9591 로 목표 초과; G22@3407 학습 중, chain 2110263) | **ADJ-R1 8 run**(09-17): G22@3407 → G23@3407 → A03_UNIF/A03_SHUF@1234 **v2** → A_UNIF/A_FREEZE/A_SHUF/G21@3407 — switch 적용 → case 경계 인계 |
+| s2 | QRECON24 6 완료(G22/G12/G32/G21/G23/G11 S777; 시트 WV3-s2 87–92) | **ADJ-R1 6 run**: G13 → E_UNIF → E_SHUF → ALL_UNIF → G31 → G33 @777: pull → `./tools/qrecon24_switch.sh` |
+| s3 | QRECON24 10 완료(2026 G 3×3 + G22@4321; 시트 WV3-s3 110–119) | **ADJ-R1 10 run**: G23@4321 → H23 **v2** → B20A03 **v2** → G13 → G12 → G21 → G11 → G32 → G31 → G33 @4321: pull → switch |
+| s4 | QRECON24 10 완료(1234 H 3×3 + H_ALPHA0; 시트 WV3-s4 39–48; β .2 가 세 α 에서 전부 개선) | **ADJ-R1 9 run**: H_BETA0@1234 → H22/H23v2/H12/H13v2/H32v2/H33v2 @3407 → G23v2/B20A03v2 @1234 (H11@3407 보류): pull → switch |
+| s5 | QRECON24 7 완료(L100/L070/L050 @2026·777 + L100@9091; 시트 WV3-s5 30–36) | **ADJ-R1 9 run**: L070/L050@9091 → G23/H23/B20A03 @9091 **v2** → L100@1103 → G23/H23/B20A03 @1103 **v2** (L070/L050@1103 보류): pull → switch |
 
-(직전 순서·완료 현황은 QRECON24 계획 부록 A(09-16 15:18 시트) 기준; 각 서버의 실제 프로세스 상태는 switch 가 확인한다 — Sheet 만 보고 kill 하지 않는다.)
+(완료 현황은 ADJ-R1 계획 부록 A(09-17 native Sheet 39 run) 기준; 각 서버의 실제 프로세스 상태는 switch 가 확인한다 — Sheet 만 보고 kill 하지 않는다. 진행 중 run 은 끝까지, 큐 교체는 case 경계 인계.)
 
 ### 기반 — 지금 캠페인들의 공통 기준
 
@@ -243,6 +243,12 @@ Student 는 T0 A 복사 + fresh U(W104·D121), native 입력(I-NATIVE-TRANSFER, 
 큐 `config/queues/qrecon24_s{1..5}.txt`(사전 고정; 승자 대기 없음), 전환 `tools/qrecon24_switch.sh`(`--dry-run` / `--extend` §8.3), 대기자 `tools/qrecon24_waiter.sh`, **target selector** `tools/qrecon24_select.py <run> --official`(raw H ≥ 0.9585 후보 안에서 RR SCC→ERGAS→PSNR→SAM→Q8→SSIM; legacy best 보존; `results/qrecon24_target_selection.json`; 공식 RR 없는 적격 후보가 있으면 target 미확정). 검사 K44–K49(176 ALL OK).
 감사 대응(09-16 저녁, `PAN_QRECON24_Implementation_Audit_2026-09-16.md` F01–F10, 노트 §8): epoch 끝 checkpoint 의 exact resume(다음 epoch 새로 시작; 불일치는 exit 4, 같은 id fresh 재실행 금지) · runner 가 **case 경계에서 `work_dir/cases_queue_handover.txt` 로 큐를 인계**(전환 스크립트가 chain 을 죽이지 않고 이 파일을 둔다) · `--extend` 는 활성 큐/mandatory/reservations 까지 · ledger `train_hours/postprocess_hours/setup_hours` · `verified_complete` 는 고유 50 격자·후보 checkpoint·T0/cue/init 필수 · s4/s5 control id 는 H22/L100.
 **판정**: raw-original HQNR ≥ 0.9585 하한 + 같은 checkpoint 의 RR(논문 표시값 SCC .988 / ERGAS 2.040 / PSNR 37.956 / SAM 2.787 / Q8 .922 / SSIM .976). Asset board(seed 최고 자산) 와 Method board(profile 의 모든 seed 평균·σ·하한 통과 수) 를 분리. 같은 seed 의 다른 서버 실행은 host 반복이지 독립 seed 가 아니다.
+
+**QRECON24 ADJ-R1 — 실행 순서·우선순위 조정 (s1–s5, 09-17; 현재 큐)** — 계획 `PAN_QRECON24_S1_S5_Queue_Adjustment_2026-09-17.md`, 노트 `2026-09-17_qrecon24-adjustment-r1-implementation.md`. 수식·gradient 경로·Teacher·q·λE 환산·uniform .5 는 불변; 바뀐 것은 편성과 metadata.
+관측(§1): s1 G23 S1234 raw HQNR **.9591**(목표 초과) · s4 β .1→.2 가 α .5/1/1.5 에서 3/3 개선 · rA .03 은 s2 777 −.0031 / s3 2026 +.0003 이라 일괄 적용하지 않음 · 낮은 U LR 확대 보류.
+신규 profile 3(§4; 새 loss 아님): **B20A03**(λE .002·rA .03·α 1·β .2 = G23 에서 β 만 / H23 에서 rA 만) · **A03_UNIF/A03_SHUF**(G23 에서 A 의 q 연결만 상수 .5 / stratum 셔플). 같은 서버·seed 의 A LR×β 2×2(G22 alias / G23 / H23 / B20A03) 를 s3 4321 · s4 1234 · s5 9091·1103 에 만든다(§6.1; I = H(B20A03)−H(G23)−H(H23)+H(G22)).
+편성(§5·§9): 활성 = 등록 완료 39(원 순서; runner 가 건너뜀) + 남은 42 = **81 run**(s1 14 · s2 12 · s3 20 · s4 19 · s5 16). 추가 16 run 은 **`_FRESH50_v2` id**(부록 B; 편성 이력 표시), 유지 26 run 은 v1 id — **원계획 68 v1 config 는 바이트 불변**(K50). 보류 3(s4 H11@3407 · s5 L070/L050@1103) 은 `superseded_pending`(편성·mandatory 밖; 이미 시작/완료면 원 정의로 끝냄). generator `QRC24_ADJ_ORDER/QRC24_HELD/QRC24_QUEUES_20260916`, 큐 `--qrc24-queues`, v2 config `kdv.qrc24.queue_revision = QRC24_ADJ_R1_20260917`(+ `block_2x2`, 실제 id 의 `control_runs`), 시트 X열 `PAKD50 / QRC24 / <PROFILE> / A104D121 / ADJ-R1 / FRESH50`.
+운영: 같은 `tools/qrecon24_switch.sh`(③-ADJ 보류 상태·버전 감사, ⑤ `queue_effective.txt`(미완만)·`cases_queue.txt` 영속 갱신, ⑦ selector backlog) · **공식 RR selector·버전 감사는 case 경계**(`tools/_upload.sh` → `tools/qrecon24_postrun.py --backlog`; 학습 중이면 건너뜀; GPU 시간은 ledger `select_<run>`) · `tools/qrecon24_version_audit.py`(§8.1: s1 완료 6 run 전부 `single_definition_factor1`; G22 S1234 의 옛 코드 시도는 ledger `#1` 로만 남음) · `tools/qrecon24_preserve.py`(§7.1: s1 G23 S1234 보존 완료). 24h 는 원 campaign 누적(다시 세지 않음). 판정은 계획 §12(같은 checkpoint raw H ≥ .9585 → RR SCC→ERGAS→PSNR→SAM→Q8→SSIM; 후보 최고치·seed 반복·host bridge·late6 분리).
 
 **EDGEBAL — GT edge 를 얼마나·언제 (s2·s5, 09-16)** — 계획 `PAN_EDGEBAL_S2_S5_Experiment_Plan_2026-09-16.md`, 노트 `2026-09-16_edgebal-implementation.md`. q gate 를 더 복잡하게 만들기 전에 edge 강도·시간배분·완만한 cue 를 분리한다.
 case `EB_*`(prefix; 전부 J 정책·R3 기본): 상수 배수 `EB_R3E025/050/075/100/200`(= r×λE0, `lam_mult`; 050 = J_QE025, 100 = JQ, 200 = J_QE10) · `EB_N0`(= J0) · `EB_R3E000`(= J_R3_NOEDGE) · `EB_N0E100`(= J_N0_EDGE) · `EB_R1E100`(= XJ) ·

@@ -709,6 +709,7 @@ class KDVTrainer(PATrainer):
                        edge_gate=(self.edge_gate.summary() if getattr(self, "edge_gate", None) is not None else None),
                        edge_route=(dict(self.edge_route.summary(), edge_U=1.0, edge_A=sp["edge_route"]["edge_A"]) if getattr(self, "edge_route", None) is not None else None),
                        edge_schedule=(dict(self.edge_schedule) if getattr(self, "edge_schedule", None) else None), edge_cue_weight=(self.edge_weight.summary() if getattr(self, "edge_weight", None) is not None else None),
+                       qrc24=(dict(self.k["qrc24"]) if isinstance(self.k.get("qrc24"), dict) else None),     # QRECON24 편성 metadata(profile·λE·rA·α/β·queue_revision·block_2x2; ADJ-R1 §11.2) — 학습 정의가 아니라 출처 기록
                        qrecon=(self.qrecon.summary() if getattr(self, "qrecon", None) is not None else None),
                        tri=sp["tri"], tri_state={kk: (v.tolist() if torch.is_tensor(v) else v) for kk, v in self.tri_state.items() if kk != "prec_fn"},
                        aligner_view_margin=self.aligner_view_margin, guard_margin_hr=self.guard_margin,

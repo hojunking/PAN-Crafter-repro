@@ -66,9 +66,9 @@ echo "[edgebal] ⑤ 서버 로컬 기본 묶음·예약 파일 · 옛 extra_prio
 import os, sys, time; sys.path.insert(0, "."); from tools import gen_pakd50_configs as G
 srv = sys.argv[1]; xp = os.path.join(G.ROOT, G.EXTRA_PRIORITY_FILE); cur = G.extra_priority(); old = [x for x in cur if G.branch_for(srv, x) != "EDGEBAL"]; keep = [x for x in cur if G.branch_for(srv, x) == "EDGEBAL"]   # 감사 F04: 옮기기 전에 메모리에 읽는다
 if old:
-    keep = xp.replace("extra_priority.txt", f"extra_priority.pre_edgebal_{time.strftime('%m%d-%H%M')}.txt"); os.replace(xp, keep)
-    open(xp, "w").write(f"# EDGEBAL 전환({time.strftime('%Y-%m-%dT%H:%M')}): 이전 추가 편성 {len(old)} 항목은 {os.path.basename(keep)} 에 보존 — EDGEBAL 의 추가 편성(§9 조건부 확장; run 이름) 만 여기에\n" + "\n".join(keep) + "\n")
-    print(f"   extra_priority {len(old)} 항목(비 EDGEBAL) → {os.path.basename(keep)} (보존; 편성에서 제외)")
+    bak = xp.replace("extra_priority.txt", f"extra_priority.pre_edgebal_{time.strftime('%m%d-%H%M')}.txt"); os.replace(xp, bak)
+    open(xp, "w").write(f"# EDGEBAL 전환({time.strftime('%Y-%m-%dT%H:%M')}): 이전 추가 편성 {len(old)} 항목은 {os.path.basename(bak)} 에 보존 — EDGEBAL 의 추가 편성(§9 조건부 확장; run 이름) 만 여기에\n" + "\n".join(keep) + "\n")
+    print(f"   extra_priority {len(old)} 항목(비 EDGEBAL) → {os.path.basename(bak)} (보존; 편성에서 제외)")
 runs = G.write_mandatory_file(srv); m = G.measured_hours_all(srv); res = G.write_reservation_file(srv, G.priority_for(srv) + G.extra_priority(), m)
 eb = [G.to_tag(it, G.SERVER_SEED[srv]) for it in G.priority_for(srv) + G.extra_priority() if G.branch_for(srv, it) == "EDGEBAL"]; p = os.path.join(G.ROOT, G.EDGEBAL_MANDATORY_FILE); os.makedirs(os.path.dirname(p), exist_ok=True)
 open(p, "w").write(f"# {srv} EDGEBAL run (자체 ledger {G.EDGEBAL_LEDGER}; 상한 없음, required 경고만; 대기자 tools/edgebal_waiter.sh 의 pending 목록) — tools/edgebal_switch.sh\n" + "\n".join(eb) + "\n")

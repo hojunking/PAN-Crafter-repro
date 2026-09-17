@@ -27,7 +27,7 @@ EDGEBAL (2026-09-16, research_log/PAN_EDGEBAL_S2_S5_Experiment_Plan_2026-09-16.m
 QRECON24 (2026-09-16 저녁, research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md): 확정 method(연속 q 가중 w=qref/(qref+q_T) — 계획서의 분자 2 는 09-16 저녁 결정으로 뺐다; U ← H+K+λE·w·E, A ← w·H 만; offset 없음) 의 전 서버 튜닝 68 run —
 s1 12(1234·3407: G22/A_UNIF/A_FREEZE/G21/G23/A_SHUF) · s2 12(777: G 3×3 + E_UNIF/E_SHUF/ALL_UNIF) · s3 18(2026·4321: G 3×3) · s4 14(1234: H 3×3 + H_ALPHA0/H_BETA0; 3407: H22/H12/H11) · s5 12(2026·777·9091·1103: L100/L070/L050).
 캠페인 QRECON24_A104D121_S1S5_20260916_v1 / branch A104D121_T0FIX_QRECON24_v1, 상한 없음(24h 최소 운영구간). 새 키 kdv.qrecon. 이전 QEDGE9/QEGX/EDGEBAL 큐는 superseded(PREVIOUS_PRIORITY_BY_SERVER). 전환 tools/qrecon24_switch.sh."""
-import argparse, json, os, re, sys
+import argparse, glob, json, os, re, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0, ROOT)
 from kdv.registry import resolve, describe
 
@@ -75,7 +75,7 @@ CUE_CASES = ("QE50", "QEC", "QES", "QX50", "QEC3", "QE50_B005", "LFQE50", "QER50
 # QRECON24 (2026-09-16; research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md): 사용자 확정 method 의 전 서버 튜닝 — 연속 q 가중 w = qref/(qref+q_T)(분자 2 없음; 09-16 저녁 결정) 를 A(weighted GT hard 만) 와 U(GT edge) 가 공유,
 # U ← H+K+λE·w·E / A ← w·H (같은 forward 에서 parameter 집합별 gradient 분리; Student offset·jitter 없음). 68 run FRESH50(s1 12 · s2 12 · s3 18 · s4 14 · s5 12), 상한 없음(24h 는 최소 운영구간).
 # 조정값: λE(절대) 6e-4/2e-3/6e-3(09-16 저녁: 분자 2 제거에 맞춘 2 배 환산; 계획서 3e-4/1e-3/3e-3) · rA .003/.01/.03 · α .5/1/1.5 · β .05/.1/.2 · U LR 1e-4/7e-5/5e-5 · seed. qref·q 함수 고정. uniform 대조 = s_q(qref) = 0.5.
-# 이름 PAKD50_QRC24_<SRV>_<PROFILE>_W104_D121_WV3_T0_S<seed>_FRESH50_v1 (서버 토큰 = 파일 충돌 방지).
+# 이름 PAKD50_QRC24_<SRV>_<PROFILE>_W104_D121_WV3_T0_S<seed>_FRESH50_v1 (서버 토큰 = 파일 충돌 방지). ADJ-R1(09-17) 추가 16 run 은 _v2 (조정 편성 이력 표시; q 정의는 같다).
 QRC24_PLAN = "research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md"; QRC24_NOTE = "research_log/2026-09-16_qrecon24-implementation.md"
 QRC24_CAMPAIGN_ID = "QRECON24_A104D121_S1S5_20260916_v1"; QRC24_BRANCH = "A104D121_T0FIX_QRECON24_v1"; QRC24_ARCH = QEDGE9_ARCH; QRC24_QREF = 0.3276133416220546
 QRC24_LEDGER = "work_dir/_qrecon24_budget/ledger.json"; QRC24_MANDATORY_FILE = "work_dir/_qrecon24/mandatory_runs.txt"; QRC24_SOFT_HOURS = 1000.0
@@ -86,22 +86,75 @@ QRC24_DEFAULT = dict(lam=QRC24_LAMBDA[2], rA=0.01, alpha=1.0, beta=0.1, ulr=1e-4
 QRC24_PROFILES = {**{f"G{i}{j}": dict(lam=QRC24_LAMBDA[i], rA=r) for i in (1, 2, 3) for j, r in ((1, 0.003), (2, 0.01), (3, 0.03))},
                   "A_UNIF": dict(a="uniform"), "A_FREEZE": dict(frozen=True), "A_SHUF": dict(a="shuffle"), "E_UNIF": dict(e="uniform"), "E_SHUF": dict(e="shuffle"), "ALL_UNIF": dict(a="uniform", e="uniform"),
                   **{f"H{i}{j}": dict(alpha=al, beta=be) for i, al in ((1, 0.5), (2, 1.0), (3, 1.5)) for j, be in ((1, 0.05), (2, 0.1), (3, 0.2))}, "H_ALPHA0": dict(alpha=0.0), "H_BETA0": dict(beta=0.0),
-                  "L100": dict(ulr=1e-4), "L070": dict(ulr=7e-5), "L050": dict(ulr=5e-5)}
+                  "L100": dict(ulr=1e-4), "L070": dict(ulr=7e-5), "L050": dict(ulr=5e-5),
+                  # ADJ-R1 (2026-09-17 §4) 신규 세 profile — 새 loss 가 아니라 기존 범위 안의 결합/대조: B20A03 = G23 에서 β 만 .1→.2 (= H23 에서 rA 만 .01→.03) · A03_UNIF/A03_SHUF = G23(rA .03) 에서 A 의 q 연결만 상수 .5 / stratum 셔플
+                  "B20A03": dict(rA=0.03, beta=0.2), "A03_UNIF": dict(rA=0.03, a="uniform"), "A03_SHUF": dict(rA=0.03, a="shuffle")}
 QRC24_CANONICAL = {"H22": "G22", "L100": "G22"}                                                  # 같은 수학적 설정의 별칭 (§4.4; 같은 server+seed 에 중복 편성 없음)
 
 
 def qrc24_control_profile(server, seed):
-    """그 서버·seed 에 **실제로 편성된** canonical-G22 profile(s4 H22 · s5 L100 · 그 밖 G22) — run id 는 alias 가 아니다 (감사 F09). 없으면 'G22' 이름(존재하지 않을 수 있음; note)."""
-    for p_, sd_ in QRC24_QUEUES.get(server, []):
+    """그 서버·seed 에 **실제로 편성된** canonical-G22 profile(s4 H22 · s5 L100 · 그 밖 G22) — run id 는 alias 가 아니다 (감사 F09).
+    §8.3 확장 seed(QRC24_EXTRA)·reserve seed 는 확장 묶음 안의 alias(s4 H22 · s5 L100). 어디에도 없으면 SystemExit — 가상 G22 id 를 만들지 않는다 (ADJ-R1 §11.2; 검토 지적)."""
+    for p_, sd_, _v in QRC24_QUEUES.get(server, []):
         if sd_ == seed and QRC24_CANONICAL.get(p_, p_) == "G22":
             return p_
-    return "G22"
-QRC24_QUEUES = {"s1": [(p, sd) for sd in (1234, 3407) for p in ("G22", "A_UNIF", "A_FREEZE", "G21", "G23", "A_SHUF")],
-                "s2": [(p, 777) for p in ("G22", "G12", "G32", "G21", "G23", "G11", "G13", "G31", "G33", "E_UNIF", "E_SHUF", "ALL_UNIF")],
-                "s3": [(p, sd) for sd in (2026, 4321) for p in ("G22", "G12", "G32", "G21", "G23", "G11", "G13", "G31", "G33")],
-                "s4": [(p, 1234) for p in ("H22", "H12", "H21", "H11", "H23", "H32", "H13", "H31", "H33", "H_ALPHA0", "H_BETA0")] + [(p, 3407) for p in ("H22", "H12", "H11")],
-                "s5": [(p, sd) for sd in (2026, 777, 9091, 1103) for p in ("L100", "L070", "L050")]}
-QRC24_REFERENCE_H = {"s1": 2.20, "s2": 2.30, "s3": 1.35, "s4": 1.94, "s5": 2.17}; QRC24_RESERVE_SLACK = 1.20            # §8.1 서버별 편성 대용 R_s(실측 아님) · §8.2 예약 = 1.20×R_s + 10/60 (신규 gradient 경로 미실측 여유)
+    sd0, profs = QRC24_EXTRA.get(server, (None, ()))
+    if seed == sd0 or seed in QRC24_RESERVE_SEEDS:
+        for p_ in profs:
+            if QRC24_CANONICAL.get(p_, p_) == "G22":
+                return p_
+    raise SystemExit(f"!! QRECON24 {server} S{seed}: 편성/확장 묶음에 canonical-G22 대조가 없다 — 가상 G22 id 를 만들지 않는다 (ADJ-R1 §11.2)")
+
+
+def qrc24_item_version(server, profile, seed):
+    """활성 큐(QRC24_QUEUES) 에 편성된 (profile, seed) 의 version ('v1' 원계획 / 'v2' ADJ-R1 추가) — 없으면 None."""
+    for p_, sd_, v_ in QRC24_QUEUES.get(server, []):
+        if p_ == profile and sd_ == seed:
+            return v_
+    return None
+
+
+def qrc24_control_run(server, seed, profile=None):
+    """같은 서버·seed 의 대조 run **실제 id**(편성된 version 으로; ADJ-R1 §11.2 '가상 G22 ID 참조 금지'). profile 없으면 canonical-G22 alias(s4 H22 · s5 L100; 확장 seed 는 확장 묶음의 alias — v1 이름)."""
+    p_ = profile or qrc24_control_profile(server, seed)
+    return qrc24_run_name(server, p_, seed, qrc24_item_version(server, p_, seed) or "v1")
+# 원계획 §5 (2026-09-16; 68 run) — 이력·등록 완료(부록 A 39) 판정의 기준. 편성은 아래 ADJ-R1 의 QRC24_QUEUES.
+QRC24_QUEUES_20260916 = {"s1": [(p, sd) for sd in (1234, 3407) for p in ("G22", "A_UNIF", "A_FREEZE", "G21", "G23", "A_SHUF")],
+                         "s2": [(p, 777) for p in ("G22", "G12", "G32", "G21", "G23", "G11", "G13", "G31", "G33", "E_UNIF", "E_SHUF", "ALL_UNIF")],
+                         "s3": [(p, sd) for sd in (2026, 4321) for p in ("G22", "G12", "G32", "G21", "G23", "G11", "G13", "G31", "G33")],
+                         "s4": [(p, 1234) for p in ("H22", "H12", "H21", "H11", "H23", "H32", "H13", "H31", "H33", "H_ALPHA0", "H_BETA0")] + [(p, 3407) for p in ("H22", "H12", "H11")],
+                         "s5": [(p, sd) for sd in (2026, 777, 9091, 1103) for p in ("L100", "L070", "L050")]}
+# ADJ-R1 (2026-09-17; research_log/PAN_QRECON24_S1_S5_Queue_Adjustment_2026-09-17.md §4–§5·§9·§11·부록 B): 미시작 run 순서 재편 + 기존 범위 안의 결합/대조 16 run 추가(v2 id) + 미시작 3 run 보류.
+# loss 식·gradient 경로·Teacher·q 정의·λE 환산(6e-4/2e-3/6e-3)·uniform .5·50K 는 그대로. 기존 26 run 은 v1 id 유지(config 바이트 불변 — K50 이 지킨다). 24h 규칙은 원 campaign 의 누적(0 부터 다시 세지 않음).
+QRC24_ADJ_PLAN = "research_log/PAN_QRECON24_S1_S5_Queue_Adjustment_2026-09-17.md"; QRC24_ADJ_NOTE = "research_log/2026-09-17_qrecon24-adjustment-r1-implementation.md"
+QRC24_ADJ_REVISION = "QRC24_ADJ_R1_20260917"; QRC24_ADJ_VERSION = "v2"; QRC24_ADJ_PROFILES = ("B20A03", "A03_UNIF", "A03_SHUF")
+QRC24_HELD = {"s4": {("H11", 3407): "H13/H23 의 β=.2 반복이 우선 (§9; 미시작일 때만 보류)"},
+              "s5": {("L070", 1103): "전체 LR 축소 효과가 두 seed 에서 일관되지 않음 (§1.4·§9; 미시작일 때만 보류)", ("L050", 1103): "위와 같음; seed 1103 은 결합 반복에 사용 (§9; 미시작일 때만 보류)"}}
+QRC24_HELD_STATUS = "superseded_pending"                                                                                     # 계획상 상태(실패·완료 아님; runner 상태명 아님) — 편성·mandatory 에서 제외, 이미 시작/완료면 원 정의로 끝난다
+QRC24_ADJ_ORDER = {"s1": [("G22", 3407, "v1"), ("G23", 3407, "v1"), ("A03_UNIF", 1234, "v2"), ("A03_SHUF", 1234, "v2"), ("A_UNIF", 3407, "v1"), ("A_FREEZE", 3407, "v1"), ("A_SHUF", 3407, "v1"), ("G21", 3407, "v1")],          # §5.1
+                   "s2": [(p, 777, "v1") for p in ("G13", "E_UNIF", "E_SHUF", "ALL_UNIF", "G31", "G33")],                                                                                                                       # §5.2
+                   "s3": [("G23", 4321, "v1"), ("H23", 4321, "v2"), ("B20A03", 4321, "v2")] + [(p, 4321, "v1") for p in ("G13", "G12", "G21", "G11", "G32", "G31", "G33")],                                                    # §5.3
+                   "s4": [("H_BETA0", 1234, "v1"), ("H22", 3407, "v1"), ("H23", 3407, "v2"), ("H12", 3407, "v1"), ("H13", 3407, "v2"), ("H32", 3407, "v2"), ("H33", 3407, "v2"), ("G23", 1234, "v2"), ("B20A03", 1234, "v2")],   # §5.4
+                   "s5": [("L070", 9091, "v1"), ("L050", 9091, "v1"), ("G23", 9091, "v2"), ("H23", 9091, "v2"), ("B20A03", 9091, "v2"), ("L100", 1103, "v1"), ("G23", 1103, "v2"), ("H23", 1103, "v2"), ("B20A03", 1103, "v2")]}   # §5.5
+
+
+def _qrc24_active(server):
+    """활성 편성 = 등록 완료(원계획 순서; 완료 history 유지 — runner 가 건너뛴다) + ADJ-R1 남은 순서(§5). 보류(QRC24_HELD) 는 빠진다."""
+    rem = {(p, sd) for p, sd, _ in QRC24_ADJ_ORDER[server]}; held = set(QRC24_HELD.get(server, {}))
+    return [(p, sd, "v1") for p, sd in QRC24_QUEUES_20260916[server] if (p, sd) not in rem and (p, sd) not in held] + list(QRC24_ADJ_ORDER[server])
+
+
+QRC24_QUEUES = {srv: _qrc24_active(srv) for srv in QRC24_QUEUES_20260916}
+QRC24_REGISTERED = {srv: [x for x in QRC24_QUEUES[srv] if (x[0], x[1]) not in {(p, sd) for p, sd, _ in QRC24_ADJ_ORDER[srv]}] for srv in QRC24_QUEUES}           # 부록 A 등록 39 (s1 6 · s2 6 · s3 10 · s4 10 · s5 7)
+for _srv, _lst in QRC24_ADJ_ORDER.items():                                                                                    # 정합 검사 (import 시): 유지 항목은 원계획 안 · 추가(v2) 는 원계획 밖 · 보류는 원계획 안이고 순서에 없음 · 중복 없음
+    _orig = set(QRC24_QUEUES_20260916[_srv])
+    assert all(((p, sd) in _orig) == (v == "v1") for p, sd, v in _lst), f"ADJ-R1 {_srv}: v1 는 원계획 항목, v2 는 신규 항목이어야 한다"
+    assert all(h in _orig and h not in {(p, sd) for p, sd, _ in _lst} for h in QRC24_HELD.get(_srv, {})), f"ADJ-R1 {_srv}: 보류 항목 불일치"
+    assert len({(p, sd) for p, sd, _ in QRC24_QUEUES[_srv]}) == len(QRC24_QUEUES[_srv]), f"ADJ-R1 {_srv}: 중복 편성"
+assert [len(QRC24_REGISTERED[s_]) for s_ in ("s1", "s2", "s3", "s4", "s5")] == [6, 6, 10, 10, 7] and sum(v == "v2" for l_ in QRC24_ADJ_ORDER.values() for _, _, v in l_) == 16 and sum(len(v) for v in QRC24_HELD.values()) == 3
+QRC24_REFERENCE_H = {"s1": 2.20, "s2": 2.30, "s3": 1.35, "s4": 1.94, "s5": 2.17}; QRC24_RESERVE_SLACK = 1.20            # 원 §8.1 서버별 편성 대용 R_s(실측 아님) · §8.2 예약 = 1.20×R_s + 10/60. ADJ-R1 뒤 이 값은 **v1 config 의 projected_map 에만**(바이트 불변) — 예약·계획표는 QRC24_ADJ_REFERENCE_H
+QRC24_ADJ_REFERENCE_H = {"s1": 2.42, "s2": 2.56, "s3": 1.47, "s4": 1.51, "s5": 2.58}                                    # ADJ-R1 §10 대용(이번 QRC24 Sheet Train(h); s5 는 느린 시나리오 2.58 — 빠른 1.46 은 큐 머리에 병기) — 남은 모든 QRC24 항목(v1·v2) 의 예약, 같은 case 실측이 없을 때; ledger 실측이 우선
+QRC24_ADJ_REFERENCE_CASE_H = {"s1": {"A_FREEZE": 2.15}}                                                                    # §10: s1 frozen(A_FREEZE) 2.15 h (7×2.42 + 1×2.15 = 19.09 h)
 QRC24_EXTRA = {"s1": (9091, ("G22", "A_UNIF", "A_FREEZE")), "s2": (3407, ("G12", "G22", "G32")), "s3": (1103, ("G21", "G22", "G23")), "s4": (2026, ("H22", "H12", "H11")), "s5": (2909, ("L100", "L070", "L050"))}   # §8.3 24h 미달 시 추가 3 run
 QRC24_RESERVE_SEEDS = (17041, 26017)
 
@@ -127,7 +180,66 @@ def qrc24_profile(prof):
 
 
 def qrc24_items(server):
-    return [qrc24_run_name(server, p, sd) for p, sd in QRC24_QUEUES[server]]
+    return [qrc24_run_name(server, p, sd, v) for p, sd, v in QRC24_QUEUES[server]]
+
+
+def qrc24_held_runs(server):
+    """보류 run id → 사유 (§9; v1 id — 원계획 항목이다)."""
+    return {qrc24_run_name(server, p, sd): why for (p, sd), why in QRC24_HELD.get(server, {}).items()}
+
+
+def run_started(run):
+    """runner 기준 '시작됨': work_dir/<run>/{epoch-*, checkpoint-*} 가 있다 (tools/_run_cases.sh latest_ckpt 와 같은 규칙; last/ 는 세지 않는다). 재개 가능한 중단 run 을 '미시작' 으로 보지 않기 위한 것."""
+    d = os.path.join(ROOT, "work_dir", run)
+    return bool(glob.glob(os.path.join(d, "epoch-*")) or glob.glob(os.path.join(d, "checkpoint-*")))
+
+
+def qrc24_held_state(server, run, ps=None):
+    """보류 run 의 실제 상태 (ADJ-R1 §9 '미시작일 때만 보류'): terminal(완료/실패) · running_original_definition(지금 학습 중) · started_interrupted(체크포인트가 있고 미완 — 원 정의로 끝낸다) · superseded_pending(미시작 = 보류)."""
+    from tools.campaign_gate import terminal as _terminal          # noqa
+    if _terminal(run):
+        return "terminal"
+    if ps is None:
+        ps = subprocess.run(["ps", "-eo", "args"], capture_output=True, text=True).stdout
+    if any("main.py" in l and "--config" in l and run in l for l in ps.splitlines()):
+        return "running_original_definition"
+    return "started_interrupted" if run_started(run) else QRC24_HELD_STATUS
+
+
+def qrc24_held_states(server, ps=None):
+    """{run: (state, reason)} — 보류 목록 전체."""
+    if ps is None:
+        ps = subprocess.run(["ps", "-eo", "args"], capture_output=True, text=True).stdout
+    return {r: (qrc24_held_state(server, r, ps), w) for r, w in qrc24_held_runs(server).items()}
+
+
+def qrc24_effective_queue(server, ps=None):
+    """이 서버에서 실제로 돌릴 순서: **시작됐는데 안 끝난 보류 run**(원 정의로 끝낸다 — §9) 을 맨 앞에, 그다음 활성 편성(qrc24_items). 완료 run 은 runner 가 건너뛴다."""
+    st = qrc24_held_states(server, ps); first = [r for r, (s_, _) in st.items() if s_ in ("running_original_definition", "started_interrupted")]
+    return first + [r for r in qrc24_items(server) if r not in first]
+
+
+def qrc24_adj_runs(server):
+    """ADJ-R1 에서 추가된 v2 run id (부록 B)."""
+    return [qrc24_run_name(server, p, sd, v) for p, sd, v in QRC24_ADJ_ORDER[server] if v == QRC24_ADJ_VERSION]
+
+
+def qrc24_block_2x2(server, seed):
+    """A LR × β 2×2 (§6.1; λE .002 · α 1 · U LR 1e-4): rA .01/β .1 = G22 alias · rA .03/β .1 = G23 · rA .01/β .2 = H23 · rA .03/β .2 = B20A03 — 같은 서버·seed 에 편성된 실제 id, 없으면 None."""
+    cells = {"rA01_beta1": qrc24_control_profile(server, seed), "rA03_beta1": "G23", "rA01_beta2": "H23", "rA03_beta2": "B20A03"}
+    return {k_: (qrc24_run_name(server, p_, seed, qrc24_item_version(server, p_, seed)) if qrc24_item_version(server, p_, seed) else None) for k_, p_ in cells.items()}
+
+
+def write_qrc24_queue_file(server, path=None):
+    """config/queues/qrecon24_<srv>.txt = 활성 편성(QRC24_QUEUES; 등록 완료 + ADJ-R1 순서) — 머리 주석에 revision·보류·시간 대용."""
+    items = qrc24_items(server); held = qrc24_held_runs(server); adj = qrc24_adj_runs(server); reg = len(QRC24_REGISTERED[server]); rem = len(QRC24_ADJ_ORDER[server])
+    t_fast = {"s5": " (빠른 시나리오 1.46 h 는 §10 병기; 예약은 느린 2.58 h)"}.get(server, "")
+    hdr = (f"# QRECON24 {server} — ADJ-R1 (2026-09-17; 계획 {QRC24_ADJ_PLAN} §5·§9·§11, 노트 {QRC24_ADJ_NOTE}; queue_revision {QRC24_ADJ_REVISION}). 원계획 {QRC24_PLAN} §5 의 등록 완료 {reg} run 은 앞에 그대로(runner 가 건너뜀), "
+           f"남은 편성 {rem} run(유지 {rem - len(adj)} v1 · 추가 {len(adj)} v2). 전부 W104·D121·T0 고정, FRESH50.\n"
+           f"# method qrecon_continuous_v1: w = qref/(qref+q_T)(분자 1) · λE 절대 6e-4/2e-3/6e-3(환산값; 다시 2 배 하지 않음) · uniform 대조 0.5 · U ← H+K+λE·w·E / A ← w·H 만. 신규 profile B20A03(λE .002·rA .03·α 1·β .2) · A03_UNIF/A03_SHUF(G23 에서 A 가중만 .5/셔플).\n"
+           f"# 보류(superseded_pending; 미시작일 때만 — 이미 시작/완료면 원 정의로 끝낸다): {', '.join(held) if held else '없음'}. 시간 대용 R_s {QRC24_ADJ_REFERENCE_H[server]} h{t_fast}, 예약 1.20×R_s + 10/60(ledger 실측 우선). 24h 는 원 campaign 누적 최소 운영구간(다시 세지 않음).\n"
+           f"# 적용은 tools/qrecon24_switch.sh (chain 이 살아 있으면 case 경계 인계 파일; 진행 중 run 은 끝까지). v2 config 는 kdv.qrc24.queue_revision 을 갖고 시트 X열에 ADJ-R1 토큰이 붙는다.\n")
+    path = path or os.path.join(ROOT, "config", "queues", f"qrecon24_{server}.txt"); open(path, "w").write(hdr + "\n".join(items) + "\n"); return items
 
 
 def qrc24_extension_items(server):
@@ -436,14 +548,15 @@ def reference_kind(case):
     return "N0" if (B["rec"] == "N0" and not B["edge"]) else "T"
 
 
-def reference_hours(server, case, measured=None, confirm=False):
+def reference_hours(server, case, measured=None, confirm=False, version=None):
     """run 의 시간 산정 기준 h 와 출처. measured: 같은 서버 완료 run 의 실측 {case: h} (ledger) — 같은 case 실측이 있으면 그것이 우선(§3 '첫 실측이 나오면 곧바로 교체').
     없으면: confirm(확인 seed) → 1.80 가예약(§7) · ROUTING → 같은 서버 routing 실측 평균 → 없으면 1.80 가예약 · N0/T → 서버 계획 기준값 (s2 는 전부 2.33) → 없으면 실측 평균 → None."""
     measured = measured or {}; key = item_key(case); case = case_of(case)
     if measured.get(key):
         return float(measured[key]), "measured_same_case"
-    if case.startswith("QRC24_"):                                             # QRECON24 §8.1: 서버별 편성 대용 R_s (실측 아님; 같은 case@arch 실측이 나오면 위에서 교체)
-        return float(QRC24_REFERENCE_H[server]), "plan_reference_qrc24"
+    if case.startswith("QRC24_"):                                             # ADJ-R1 §10 대용 R_s (v1·v2 공통; 실측 아님 — 같은 case@arch 실측이 나오면 위에서 교체). 원 §8.1 R_s(QRC24_REFERENCE_H) 는 v1 config 의 projected_map 에만 남는다
+        prof_ = qrc24_parse(case)[1]
+        return float(QRC24_ADJ_REFERENCE_CASE_H.get(server, {}).get(prof_, QRC24_ADJ_REFERENCE_H[server])), "plan_reference_qrc24_adj_r1"
     if confirm:
         if server in CONFIRM_REFERENCE_CASE_H:
             t = CONFIRM_REFERENCE_CASE_H[server]; return float(t.get(case, t["*"])), "confirm_reference_case"
@@ -563,8 +676,8 @@ def verified_complete(run, expect_step=50000, min_candidates=50):
 
 def reservation_for(server, item, measured=None, seed=None):
     """편성 항목(case id 또는 run 이름) → dict(run, case, seed, reference_train_h, reference_kind, reservation_h, gate_hours)."""
-    seed = seed or SERVER_SEED[server]; case, arch, sd, _ = parse_item(item); sd = sd if sd is not None else seed; confirm = (sd not in allowed_seeds(server))
-    ref, kind = reference_hours(server, (case if arch == ARCH_DEFAULT else f"{case}@{arch}"), measured, confirm=confirm)
+    seed = seed or SERVER_SEED[server]; case, arch, sd, ver = parse_item(item); sd = sd if sd is not None else seed; confirm = (sd not in allowed_seeds(server))
+    ref, kind = reference_hours(server, (case if arch == ARCH_DEFAULT else f"{case}@{arch}"), measured, confirm=confirm, version=ver)
     if ref is None:
         return None
     slack = QRC24_RESERVE_SLACK if case.startswith("QRC24_") else RESERVE_SLACK
@@ -601,7 +714,10 @@ def confirmation_cases(win_case, server=None):
     return out
 PURPOSE.update(_PURPOSE_S5)
 _QRC_TXT = {"A_UNIF": "A 의 hard 가중 = 0.5(= s_q(qref); q 배분 제외; edge 는 w(q))", "A_FREEZE": "T0 A 처음부터 동결(optimizer 밖; U 만 학습)", "A_SHUF": "A 의 w(q) 를 (e decile × rot) stratum 셔플(51515)", "E_UNIF": "U edge 가중 = 0.5(= s_q(qref); A 는 w(q))",
-            "E_SHUF": "U edge 의 w(q) 를 stratum 셔플", "ALL_UNIF": "A·edge 모두 0.5(= s_q(qref); q 없는 같은 loss 종류·직접 λE 기준)", "H_ALPHA0": "α = 0 (추가 hard 재가중 제거; GT hard 는 1)", "H_BETA0": "β = 0 (직접 soft 제거 대조)"}
+            "E_SHUF": "U edge 의 w(q) 를 stratum 셔플", "ALL_UNIF": "A·edge 모두 0.5(= s_q(qref); q 없는 같은 loss 종류·직접 λE 기준)", "H_ALPHA0": "α = 0 (추가 hard 재가중 제거; GT hard 는 1)", "H_BETA0": "β = 0 (직접 soft 제거 대조)",
+            # ADJ-R1 2026-09-17 §4 (같은 서버·seed 의 A LR × β 2×2: G22 alias / G23 / H23 / B20A03)
+            "B20A03": "ADJ-R1: G23(rA .03) 에서 β 만 .1→.2 (= H23 에서 rA 만 .01→.03); A LR×β 2×2 의 결합점 — 같은 q 식·gradient 경로", "A03_UNIF": "ADJ-R1: G23(rA .03·β .1) 에서 A 의 hard 가중만 상수 0.5(= s_q(qref)); edge 는 w(q) — 같은 LR 에서 A 의 실제 q 제거",
+            "A03_SHUF": "ADJ-R1: G23(rA .03·β .1) 에서 A 의 w(q) 만 (e decile × rot) stratum 셔플(51515); edge 는 w(q) — 같은 LR 에서 q–sample 연결 검증"}
 for _srv in SERVER_SEED:
     for _pf, _pd in QRC24_PROFILES.items():
         _P = qrc24_profile(_pf)
@@ -779,9 +895,16 @@ def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=Tr
         k["qrc24"] = dict(profile=prof, canonical=Pq["canonical"], lambda_E=float(Pq["lam"]), rA=(0.0 if Pq["frozen"] else float(Pq["rA"])), U_lr=float(Pq["ulr"]), A_lr=float(Pq["alr"]), alpha=float(Pq["alpha"]), beta=float(Pq["beta"]),
                        a_weight=Pq["a"], e_weight=Pq["e"], A_frozen=bool(Pq["frozen"]), q_ref=QRC24_QREF, method="qrecon_continuous_v1", A_loss="weighted_H_only", A_soft=0, A_edge=0, student_offset=0,
                        q_weight_formula="qref/(qref+q_T)", lambda_E_plan=float(Pq["lam"]) / 2.0, uniform_weight=QRC24_UNIFORM_W, change_note="2026-09-16 저녁: 분자 2 제거 → λE 2 배 환산, uniform 0.5; rA/α/β/qref 유지")
+        _adj = (version == QRC24_ADJ_VERSION); _ctl = qrc24_control_run(server, seed)      # 대조 id 는 편성된 실제 version(v1) — v2 run 이 가상 '..._v2' G22 를 가리키지 않는다 (ADJ-R1 §11.2)
+        _ctrl = {"G22": _ctl, "canonical": "G22", "control_profile": qrc24_control_profile(server, seed)}
+        if _adj:                                                              # ADJ-R1: 같은 서버·seed 의 2×2/대조 상대(실제 id) + revision·출처 (v1 config 는 바이트 불변)
+            _ctrl.update({p_: qrc24_control_run(server, seed, p_) for p_ in ("G23", "H23", "B20A03") if p_ != prof and qrc24_item_version(server, p_, seed)})
+            k["qrc24"].update(queue_revision=QRC24_ADJ_REVISION, adjustment="ADJ-R1", source_plan=QRC24_ADJ_PLAN, block_2x2=qrc24_block_2x2(server, seed), numerator_factor=1.0, lambda_E_plan=float(Pq["lam"]),
+                              lambda_E_plan_note="ADJ-R1 §2·§4 는 환산값(.0006/.002/.006) 을 직접 정의 — 다시 2 배 하지 않는다 (원계획 09-16 의 절반값이 아니다)",
+                              adj_note="2026-09-17 ADJ-R1: 미시작 순서 재편 + 기존 범위 안의 결합/대조 추가; loss·gradient 경로·Teacher·q·λE 환산·uniform .5 불변")
         k.update(campaign_id=QRC24_CAMPAIGN_ID, parent_campaign_id=CAMPAIGN_ID, lineage_campaign_ids=[CAMPAIGN_ID, QEDGE9_CAMPAIGN_ID, QEGX_CAMPAIGN_ID, EDGEBAL_CAMPAIGN_ID], experiment_branch_id=QRC24_BRANCH, exact_resume=True,
-                 control_runs={"G22": qrc24_run_name(server, qrc24_control_profile(server, seed), seed, version), "canonical": "G22", "control_profile": qrc24_control_profile(server, seed)}, baseline_run=qrc24_run_name(server, qrc24_control_profile(server, seed), seed, version),
-                 budget=dict(ledger=QRC24_LEDGER, total_gpu_hours=QRC24_SOFT_HOURS, reserve_hours=0.0, margin=MARGIN, required=True, projected_hours=projected, projected_map={me: reservation_hours(QRC24_REFERENCE_H[server], QRC24_RESERVE_SLACK)},
+                 control_runs=_ctrl, baseline_run=_ctl,
+                 budget=dict(ledger=QRC24_LEDGER, total_gpu_hours=QRC24_SOFT_HOURS, reserve_hours=0.0, margin=MARGIN, required=True, projected_hours=projected, projected_map={me: reservation_hours((QRC24_ADJ_REFERENCE_H if _adj else QRC24_REFERENCE_H)[server], QRC24_RESERVE_SLACK)},
                              remaining_mandatory=[], remaining_mandatory_file=QRC24_MANDATORY_FILE, projection_file=RESERVATION_FILE, time_policy=dict(QRC24_TIME_POLICY)))
     if branch == "EDGEBAL":                                                 # EDGEBAL §10.1–10.2·§7: 새 캠페인(parent PAKD50, lineage QEDGE9·QEGX), 시간 상한 없음(total 1000h + required 경고만, 절대 마감·9h·50h 미상속), exact_resume
         if arch != EDGEBAL_ARCH:
@@ -870,7 +993,9 @@ def render(tag, case, seed, server, k, updates, eval_epoch, tpl, arch=ARCH_DEFAU
         Q = k["qrc24"]
         head = head.replace("\n", f"\n# QRECON24 (계획 {QRC24_PLAN}, 노트 {QRC24_NOTE}): 캠페인 {QRC24_CAMPAIGN_ID} · branch {QRC24_BRANCH} (parent {CAMPAIGN_ID}) · 시간 정책 no_hard_limit(24h 는 최소 운영구간; 자체 ledger {QRC24_LEDGER}, required 경고만) · "
                             + f"profile {Q['profile']}(canonical {Q['canonical']}) · λE 절대 {Q['lambda_E']:g} · rA {Q['rA']:g} (U LR {Q['U_lr']:g} / A LR {Q['A_lr']:g}{'; A 동결' if Q['A_frozen'] else ''}) · α {Q['alpha']:g} β {Q['beta']:g} · A weight {Q['a_weight']} / edge weight {Q['e_weight']} · qref {QRC24_QREF}"
-                            + f" · 시트 X열 'PAKD50 / QRC24 / {Q['profile']} / {ARCH_LABEL[arch]} / FRESH50'\n"
+                            + f" · 시트 X열 'PAKD50 / QRC24 / {Q['profile']} / {ARCH_LABEL[arch]}{' / ADJ-R1' if Q.get('queue_revision') else ''} / FRESH50'\n"
+                            + (f"# ADJ-R1 (계획 {QRC24_ADJ_PLAN} §4–§6·§11, 노트 {QRC24_ADJ_NOTE}): queue_revision {Q['queue_revision']} · 추가 run(v2 id; 기존 26 run 은 v1 유지) · 2×2(rA .01/.03 × β .1/.2; 같은 서버·seed 실제 id) {Q['block_2x2']} · 대조 {k['control_runs']}"
+                               " · 신규 profile: B20A03 = λE .002·rA .03·α 1·β .2 (G23 에서 β 만 / H23 에서 rA 만) · A03_UNIF/A03_SHUF = G23 에서 A hard 가중만 상수 .5 / stratum 셔플(51515), edge 는 w(q)\n" if Q.get("queue_revision") else "")
                             + "# method qrecon_continuous_v1: w = qref/(qref+q_T) (T0 AXIS16 raw q, sg; 계획서의 분자 2 는 09-16 저녁 결정으로 제거 — w(qref)=0.5) · U ← mean(H + K + λE·w^E·E) · A ← mean(w^A·H) 만(soft·edge·offset 없음; 같은 forward 에서 parameter 집합별 autograd.grad, 단일 total backward 금지) · native 입력(I-NATIVE-TRANSFER, jitter 없음)\n"
                             + "# 약명→세팅: G<ij> = λE {6e-4,2e-3,6e-3}[i](계획서 3e-4/1e-3/3e-3 의 2 배 환산) × rA {.003,.01,.03}[j] · H<ij> = α {.5,1,1.5}[i] × β {.05,.1,.2}[j] · L100/070/050 = U LR 1e-4/7e-5/5e-5 (rA .01 고정) · A_UNIF/A_SHUF/A_FREEZE = A 가중 0.5(= s_q(qref))/셔플/동결 · E_UNIF/E_SHUF = edge 가중 0.5/셔플 · ALL_UNIF = 둘 다 0.5 · H_ALPHA0/H_BETA0 = α 0/β 0 · G22 = H22 = L100\n", 1)
     if branch == "EDGEBAL":
@@ -912,7 +1037,7 @@ def plan_rows(server, measured=None, is_terminal=None, extra=()):
 
 def plan_table(server):
     rem = hours_to_deadline(); rows = plan_rows(server)
-    plan_doc = {srv: QRC24_PLAN + f" §5.{i} ({len(QRC24_QUEUES[srv])} run; R_s {QRC24_REFERENCE_H[srv]} h, 예약 1.20×R_s + 10/60)" for i, srv in enumerate(("s1", "s2", "s3", "s4", "s5"), 1)}.get(server, ALLOC_PLAN)
+    plan_doc = {srv: QRC24_ADJ_PLAN + f" §5.{i} ADJ-R1 (활성 {len(QRC24_QUEUES[srv])} = 등록 {len(QRC24_REGISTERED[srv])} + 남은 {len(QRC24_ADJ_ORDER[srv])}; 보류 {len(QRC24_HELD.get(srv, {}))}; §10 R_s {QRC24_ADJ_REFERENCE_H[srv]} h{' (A_FREEZE 2.15)' if srv == 's1' else ''}, 예약 1.20×R_s + 10/60, ledger 실측 우선)" for i, srv in enumerate(("s1", "s2", "s3", "s4", "s5"), 1)}.get(server, ALLOC_PLAN)
     slacks = sorted({r.get("slack", RESERVE_SLACK) for r in rows}) or [RESERVE_SLACK]
     print(f"[{server}] seed {SERVER_SEED[server]} — 배정 {plan_doc}; 예약 = {'/'.join(f'{x:g}' for x in slacks)}×ref + {RESERVE_POST_H * 60:.0f}min (QRECON24 1.2, 그 밖 1.1); PAKD50 절대 마감까지 {'?' if rem is None else '%.2f' % rem} h (마감 제외 branch 에는 무관)")
     for r in rows:
@@ -929,7 +1054,12 @@ def main():
     ap.add_argument("--projected-hours", type=float, default=None); ap.add_argument("--version", default="v1"); ap.add_argument("--out-dir", default=os.path.join(ROOT, "config")); ap.add_argument("--no-pin", action="store_true", help="τR/λE 를 숫자로 고정하지 않고 그 서버에서 calibrate")
     ap.add_argument("--seed", type=int, default=None, help="서버 seed 대신 (s4 확인 seed 3407 등; 큐 파일은 만들지 않는다 — extra_priority.txt 에 run 이름을 적을 것)")
     ap.add_argument("--plan", action="store_true", help="재배정 순서·예약(1.10×ref+10/60)·누적 dry-run 표만 (config 를 만들지 않는다; 완료·실행 중 run 은 work_dir 로 제외)")
+    ap.add_argument("--qrc24-queues", action="store_true", help="config/queues/qrecon24_s{1..5}.txt 를 활성 편성(ADJ-R1) 으로 다시 쓴다 (config 생성 없음)")
     a = ap.parse_args()
+    if a.qrc24_queues:
+        for s_ in ("s1", "s2", "s3", "s4", "s5"):
+            print(s_, len(write_qrc24_queue_file(s_)), "run →", os.path.join("config", "queues", f"qrecon24_{s_}.txt"))
+        return
     if a.plan:
         return plan_table(a.server or open(os.path.join(ROOT, "gspread", "server.txt")).read().strip())
     servers = list(SERVER_SEED) if a.all else [a.server or open(os.path.join(ROOT, "gspread", "server.txt")).read().strip()]

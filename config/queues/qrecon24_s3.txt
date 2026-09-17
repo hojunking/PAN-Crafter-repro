@@ -1,6 +1,7 @@
-# QRECON24 s3 (2026-09-16 저녁; 계획 research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md §5, 노트 research_log/2026-09-16_qrecon24-implementation.md). 18 run FRESH50, 서버·profile·seed 사전 고정(승자 대기 없음). 전부 W104·D121·T0 고정.
-# method qrecon_continuous_v1: w = qref/(qref+q_T)(분자 2 없음 — 09-16 저녁 결정; λE 는 2 배 환산 6e-4/2e-3/6e-3, uniform 대조 0.5) · U ← H+K+λE·w·E / A ← w·H 만(offset 없음; 두 목적함수 분리). R_s 1.35 h 대용, 예약 1.20×R_s + 10/60 = 32.1600 h (24h 는 최소 운영구간, 상한 아님).
-# 기동은 tools/qrecon24_switch.sh (현재 run 은 끝까지; DONE 이면 이 큐로 campaign_start; chain 이 살아 있으면 case 경계 인계 파일). 24h 미달 시 추가 3 run: tools/qrecon24_switch.sh --extend (§8.3).
+# QRECON24 s3 — ADJ-R1 (2026-09-17; 계획 research_log/PAN_QRECON24_S1_S5_Queue_Adjustment_2026-09-17.md §5·§9·§11, 노트 research_log/2026-09-17_qrecon24-adjustment-r1-implementation.md; queue_revision QRC24_ADJ_R1_20260917). 원계획 research_log/PAN_QRECON24_S1_S5_FixedMethod_Tuning_Plan_2026-09-16.md §5 의 등록 완료 10 run 은 앞에 그대로(runner 가 건너뜀), 남은 편성 10 run(유지 8 v1 · 추가 2 v2). 전부 W104·D121·T0 고정, FRESH50.
+# method qrecon_continuous_v1: w = qref/(qref+q_T)(분자 1) · λE 절대 6e-4/2e-3/6e-3(환산값; 다시 2 배 하지 않음) · uniform 대조 0.5 · U ← H+K+λE·w·E / A ← w·H 만. 신규 profile B20A03(λE .002·rA .03·α 1·β .2) · A03_UNIF/A03_SHUF(G23 에서 A 가중만 .5/셔플).
+# 보류(superseded_pending; 미시작일 때만 — 이미 시작/완료면 원 정의로 끝낸다): 없음. 시간 대용 R_s 1.47 h, 예약 1.20×R_s + 10/60(ledger 실측 우선). 24h 는 원 campaign 누적 최소 운영구간(다시 세지 않음).
+# 적용은 tools/qrecon24_switch.sh (chain 이 살아 있으면 case 경계 인계 파일; 진행 중 run 은 끝까지). v2 config 는 kdv.qrc24.queue_revision 을 갖고 시트 X열에 ADJ-R1 토큰이 붙는다.
 PAKD50_QRC24_S3_G22_W104_D121_WV3_T0_S2026_FRESH50_v1
 PAKD50_QRC24_S3_G12_W104_D121_WV3_T0_S2026_FRESH50_v1
 PAKD50_QRC24_S3_G32_W104_D121_WV3_T0_S2026_FRESH50_v1
@@ -11,11 +12,13 @@ PAKD50_QRC24_S3_G13_W104_D121_WV3_T0_S2026_FRESH50_v1
 PAKD50_QRC24_S3_G31_W104_D121_WV3_T0_S2026_FRESH50_v1
 PAKD50_QRC24_S3_G33_W104_D121_WV3_T0_S2026_FRESH50_v1
 PAKD50_QRC24_S3_G22_W104_D121_WV3_T0_S4321_FRESH50_v1
-PAKD50_QRC24_S3_G12_W104_D121_WV3_T0_S4321_FRESH50_v1
-PAKD50_QRC24_S3_G32_W104_D121_WV3_T0_S4321_FRESH50_v1
-PAKD50_QRC24_S3_G21_W104_D121_WV3_T0_S4321_FRESH50_v1
 PAKD50_QRC24_S3_G23_W104_D121_WV3_T0_S4321_FRESH50_v1
-PAKD50_QRC24_S3_G11_W104_D121_WV3_T0_S4321_FRESH50_v1
+PAKD50_QRC24_S3_H23_W104_D121_WV3_T0_S4321_FRESH50_v2
+PAKD50_QRC24_S3_B20A03_W104_D121_WV3_T0_S4321_FRESH50_v2
 PAKD50_QRC24_S3_G13_W104_D121_WV3_T0_S4321_FRESH50_v1
+PAKD50_QRC24_S3_G12_W104_D121_WV3_T0_S4321_FRESH50_v1
+PAKD50_QRC24_S3_G21_W104_D121_WV3_T0_S4321_FRESH50_v1
+PAKD50_QRC24_S3_G11_W104_D121_WV3_T0_S4321_FRESH50_v1
+PAKD50_QRC24_S3_G32_W104_D121_WV3_T0_S4321_FRESH50_v1
 PAKD50_QRC24_S3_G31_W104_D121_WV3_T0_S4321_FRESH50_v1
 PAKD50_QRC24_S3_G33_W104_D121_WV3_T0_S4321_FRESH50_v1
