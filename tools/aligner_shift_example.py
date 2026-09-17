@@ -15,6 +15,7 @@ import sys
 
 import numpy as np
 import torch
+from scipy.ndimage import map_coordinates
 import yaml
 import matplotlib
 matplotlib.use("Agg")
@@ -59,8 +60,8 @@ def main():
     Feeder = import_class(cfg["feeder"])
     ds = Feeder(**cfg["test_full_feeder_args"])
 
-    fig = plt.figure(figsize=(17.5, 8.2))
-    gs = GridSpec(2, 5, hspace=.46, wspace=.40, width_ratios=[1, 1, 1, 1, 1.35])
+    fig = plt.figure(figsize=(18.2, 8.4))
+    gs = GridSpec(2, 5, hspace=.50, wspace=.40, width_ratios=[1, 1, 1, 1, 1.55])
 
     for r, (fam, seed, tag, lab) in enumerate(CASES):
         L = CM.load_model(fam, seed, tag)
@@ -121,18 +122,27 @@ def main():
         seg0 = p0[sl]; seg1 = p1[sl]
         row = int(np.abs(np.diff(seg0, axis=1)).sum(1).argmax())
         xs = np.arange(Z)
-        a.plot(xs, seg0[row], "-", lw=1.6, color="#4C78A8", label="original")
-        a.plot(xs, seg1[row], "--", lw=1.7, color="#E45756", label="after aligner")
+        a.plot(xs, seg0[row], "-", lw=1.6, color="#4C78A8", label="original, same row")
+        a.plot(xs, seg1[row], "-", lw=2.6, color="#E45756", alpha=.55, label="after aligner")
+        # 원본을 (y+dy, x+dx) 에서 재샘플 -> 이동이 순수 평행이동이면 위 곡선과 겹친다
+        rs = map_coordinates(p0, [np.full(Z, i0 + row + c[0]), j0 + xs + c[1]],
+                             order=3, mode="nearest")
+        a.plot(xs, rs, ":", lw=1.5, color="#111",
+               label=r"original resampled at $(y+dy,\,x+dx)$")
+        rho = float(np.corrcoef(rs, seg1[row])[0, 1])
+        rho_same = float(np.corrcoef(seg0[row], seg1[row])[0, 1])
         j = int(np.abs(np.diff(seg0[row])).argmax())
         lo_, hi_ = max(0, j - 11), min(Z - 1, j + 11)
         if hi_ - lo_ < 12:
             lo_, hi_ = max(0, min(lo_, Z - 23)), min(Z - 1, max(hi_, 22))
         a.set_xlim(lo_, hi_)
-        a.legend(fontsize=8, loc="best")
+        a.legend(fontsize=7.2, loc="best")
         a.set_xlabel("column (px)", fontsize=8.5)
         a.set_ylabel("PAN value", fontsize=8.5, labelpad=1)
         a.tick_params(labelsize=7.5)
-        a.set_title(f"edge cut along row {row}\nsub-pixel displacement", fontsize=9.5, pad=6)
+        a.set_title(f"cut along row {row}:  it IS a pure translation\n"
+                    f"resampled vs aligned r={rho:.4f}   (same row only r={rho_same:.2f})",
+                    fontsize=9.2, pad=6)
 
         print(f"{lab}: scene {k}  |c|={np.linalg.norm(c):.3f}  "
               f"PAN diff RMS={np.sqrt((d**2).mean()):.4f}  "
