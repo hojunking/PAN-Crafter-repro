@@ -1,13 +1,10 @@
-"""PAN aligner 가 PAN 을 어디로 옮기는가 — 전/후 이미지와 이동 방향만.
+"""PAN aligner 가 PAN 을 어디로 옮기는가 — 전/후와 이동 방향.
 
-가장 크게 이동한 scene 을 골라 확대 crop 의 before/after 를 크게 보이고,
-화살표로 **PAN 내용이 움직인 방향**을 표시한다. (차분·단면 패널은 뺐다 — 2026-09-17 요청)
-
-부호: warp 규약은 aligned[y,x] = original[y+dy, x+dx] 이므로 원본 (y+dy, x+dx) 의 내용이
-      (y,x) 로 온다 = 내용은 (-dy, -dx) 만큼 움직인다. 화면 좌표(행이 아래로 증가)에서
-      화살표 벡터는 (-dx, -dy).
-
-화살표 길이는 보이도록 과장했다 — 실제 크기는 라벨에 적는다.
+이동이 sub-pixel ~2 px 이라 넓게 보면 절대 안 보인다. 그래서
+  - **가로 경계**(세로 경사가 가장 큰 곳)를 아주 좁게(기본 22 px) 확대하고
+  - 픽셀을 블록으로(nearest) 그려 밝기 재분배가 보이게 하고
+  - **양쪽 패널에 똑같은 좌표로 기준선**을 그어 경계가 그 선에 대해 이동한 것을 보이게 한다
+  - 화살표는 내용이 움직인 방향 (실측 확인: delta (dy,dx) -> 내용은 (-dy,-dx))
 
 산출 → results_log/assets/0917_aligner_shift_example.png
 """
@@ -29,20 +26,28 @@ from tools.eqrec4 import common as CM                      # noqa: E402
 from main import import_class                               # noqa: E402
 
 OUT = os.path.join(ROOT, "results_log", "assets")
-CASES = [("L1E4", 2025, "best_raw", "T0   lambda* = 1e-4\n(deployed teacher)"),
+CASES = [("L1E4", 2025, "best_raw", "T0  lambda* = 1e-4\n(deployed teacher)"),
          ("N2", 2025, "last", "donor N2\n(strongest aligner)")]
-Z = 128                     # 확대 crop 한 변
-EXAG = 14.0                 # 화살표 과장 배율 (실제 이동량은 라벨에)
+Z = 22                      # 확대 crop 한 변 (px) — 아주 좁게
+CTX = 128                   # 왼쪽 맥락 이미지
 
 
-def best_window(g, z=Z, margin=40):
-    H, W = g.shape
-    best, bij = -1, (H // 2, W // 2)
-    for i in range(margin, H - margin - z, 16):
-        for j in range(margin, W - margin - z, 16):
-            v = g[i:i + z, j:j + z].sum()
+def horiz_edge_window(p, z=Z, margin=60):
+    """가로 경계가 **crop 중앙**에 오도록 창을 고른다. 경계 세기 x crop 대비 로 점수."""
+    gy = np.abs(np.gradient(p, axis=0))
+    H, W = p.shape
+    h = z // 2
+    best, bij = -1, (margin, margin)
+    for i in range(margin + h, H - margin - h, 3):
+        for j in range(margin, W - margin - z, 6):
+            crop = p[i - h:i - h + z, j:j + z]
+            if crop.shape != (z, z):
+                continue
+            edge = gy[i, j:j + z].mean()              # 중앙 행의 가로 경계 세기
+            spread = (gy[i, j:j + z] > gy[i, j:j + z].max() * .35).mean()   # 가로로 이어지는가
+            v = edge * spread * crop.std()            # 대비까지 반영
             if v > best:
-                best, bij = v, (i, j)
+                best, bij = v, (i - h, j)
     return bij
 
 
@@ -57,7 +62,8 @@ def main():
         ROOT, "work_dir/PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1/meta/config.yaml"))))
     ds = import_class(cfg["feeder"])(**cfg["test_full_feeder_args"])
 
-    fig, axes = plt.subplots(2, 2, figsize=(11.8, 12.4))
+    fig, axes = plt.subplots(2, 3, figsize=(15.2, 10.6),
+                             gridspec_kw=dict(width_ratios=[1.05, 1, 1], wspace=.13, hspace=.20))
 
     for r, (fam, seed, tag, lab) in enumerate(CASES):
         L = CM.load_model(fam, seed, tag)
@@ -69,51 +75,62 @@ def main():
         C = np.array(C)
         k = int(np.linalg.norm(C, axis=1).argmax())
         c = C[k]
-
         lms, ms, lpan, pan = [x.unsqueeze(0).to(CM.DEV) for x in ds[k]]
         with torch.no_grad():
             o = L.m(pan, ms, lpan)
         p0 = pan[0, 0].float().cpu().numpy()
         p1 = o["pan_aligned"][0, 0].float().cpu().numpy()
 
-        gx = np.gradient(p0, axis=1); gy = np.gradient(p0, axis=0)
-        i0, j0 = best_window(np.sqrt(gx ** 2 + gy ** 2))
+        i0, j0 = horiz_edge_window(p0)
         sl = (slice(i0, i0 + Z), slice(j0, j0 + Z))
-
-        ax_, ay_ = -float(c[1]), -float(c[0])          # 내용이 움직이는 방향 (화면 좌표)
+        a0, a1 = p0[sl], p1[sl]
+        vmin, vmax = np.percentile(np.r_[a0.ravel(), a1.ravel()], [1, 99])
+        # 경계가 지나는 행 (원본 기준)
+        er = float(np.abs(np.gradient(a0, axis=0)).sum(1).argmax())
         mag = float(np.hypot(c[0], c[1]))
-        vert = "up" if ay_ < 0 else "down"
-        horz = "right" if ax_ > 0 else "left"
+        vert, horz = ("up" if -c[0] < 0 else "down"), ("right" if -c[1] > 0 else "left")
 
-        for col, (img, ttl) in enumerate([(p0, "BEFORE   original PAN"),
-                                          (p1, "AFTER   aligner applied")]):
+        # --- 왼쪽: 맥락 + 확대 위치
+        ci = max(0, min(512 - CTX, i0 + Z // 2 - CTX // 2))
+        cj = max(0, min(512 - CTX, j0 + Z // 2 - CTX // 2))
+        a = axes[r, 0]
+        a.imshow(stretch(p0[ci:ci + CTX, cj:cj + CTX]), cmap="gray")
+        a.add_patch(plt.Rectangle((j0 - cj - .5, i0 - ci - .5), Z, Z, fill=False,
+                                  ec="#FFD60A", lw=2.2))
+        a.set_xticks([]); a.set_yticks([])
+        a.set_ylabel(f"{lab}\nscene #{k}   |c| = {mag:.2f} px", fontsize=11)
+        if r == 0:
+            a.set_title(f"context ({CTX}x{CTX})\nyellow box = zoom below", fontsize=11.5, pad=7)
+
+        # --- 가운데/오른쪽: 전·후 아주 좁은 확대 + 동일 기준선
+        for col, (img, ttl) in enumerate([(a0, "BEFORE  original PAN"),
+                                          (a1, "AFTER  aligner applied")], start=1):
             a = axes[r, col]
-            a.imshow(stretch(img[sl]), cmap="gray", interpolation="nearest")
+            a.imshow(img, cmap="gray", vmin=vmin, vmax=vmax, interpolation="nearest")
+            a.axhline(er, color="#00E5FF", lw=1.9, ls="-", alpha=.95)      # 동일 좌표 기준선
             a.set_xticks([]); a.set_yticks([])
             if r == 0:
-                a.set_title(ttl, fontsize=13.5, pad=9)
-            if col == 0:
-                a.set_ylabel(f"{lab}\nscene #{k}   |c| = {mag:.2f} px",
-                             fontsize=11.5, labelpad=10)
-            else:
-                cx, cy = Z * .5, Z * .5
-                a.annotate("", xy=(cx + ax_ * EXAG, cy + ay_ * EXAG), xytext=(cx, cy),
-                           arrowprops=dict(arrowstyle="-|>,head_width=.5,head_length=.9",
-                                           color="#FF3B30", lw=3.6, shrinkA=0, shrinkB=0))
-                a.plot([cx], [cy], "o", ms=6.5, color="#FF3B30")
-                a.text(.5, .045,
-                       f"PAN content moves {mag:.2f} px\n"
-                       f"{vert} {abs(c[0]):.2f}  ·  {horz} {abs(c[1]):.2f}",
-                       transform=a.transAxes, ha="center", fontsize=11.5, color="#C1121F",
-                       bbox=dict(boxstyle="round,pad=.35", fc="white", ec="#FF3B30", alpha=.92))
-        print(f"{lab.splitlines()[0]}: scene {k}  |c|={mag:.3f}px  "
-              f"(dy {c[0]:+.3f}, dx {c[1]:+.3f})  content -> {vert}/{horz}")
+                a.set_title(ttl + f"\n{Z}x{Z} px, pixels drawn as blocks", fontsize=11.5, pad=7)
+            if col == 2:
+                cx, cy = Z * .5, Z * .62
+                a.annotate("", xy=(cx - c[1] * 3.0, cy - c[0] * 3.0), xytext=(cx, cy),
+                           arrowprops=dict(arrowstyle="-|>,head_width=.45,head_length=.8",
+                                           color="#FF3B30", lw=3.0, shrinkA=0, shrinkB=0))
+                a.text(.5, .03, f"content moves {mag:.2f} px  ({vert} {abs(c[0]):.2f}, "
+                                f"{horz} {abs(c[1]):.2f})",
+                       transform=a.transAxes, ha="center", fontsize=10.5, color="#C1121F",
+                       bbox=dict(boxstyle="round,pad=.28", fc="white", ec="#FF3B30", alpha=.93))
+        # 기준선 위/아래 평균으로 이동을 수치로도 확인
+        up0, dn0 = a0[:int(er) + 1].mean(), a0[int(er) + 1:].mean()
+        up1, dn1 = a1[:int(er) + 1].mean(), a1[int(er) + 1:].mean()
+        print(f"{lab.splitlines()[0]}: scene {k} |c|={mag:.3f} (dy {c[0]:+.3f} dx {c[1]:+.3f}) "
+              f"-> {vert}/{horz};  기준선 위 평균 {up0:.3f}->{up1:.3f}, 아래 {dn0:.3f}->{dn1:.3f}")
 
-    fig.suptitle("PAN before / after the aligner — most-shifted scene of the FR paper set\n"
-                 f"{Z}x{Z} zoom;  arrow = DIRECTION only, length exaggerated {EXAG:.0f}x "
-                 "(the real shift is sub-pixel to ~2 px and is invisible by eye)",
+    fig.suptitle("PAN before / after the aligner — cyan line is at the SAME pixel row in both panels\n"
+                 "arrow = measured direction the PAN content moves (impulse-verified); "
+                 "drawn at 3x for visibility",
                  fontsize=12.5)
-    fig.tight_layout(rect=[0, 0, 1, .935])
+    fig.tight_layout(rect=[0, 0, 1, .93])
     p = os.path.join(OUT, "0917_aligner_shift_example.png")
     fig.savefig(p, dpi=125); plt.close(fig)
     print("wrote", p)
