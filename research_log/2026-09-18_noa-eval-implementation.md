@@ -75,7 +75,23 @@ RR 은 기존 공식 경로 그대로다 — `gspread_upload._rr`(= `tools/eval_
 
 gate 결과(s1, 2026-09-18): `tools/pakd50_unit_tests.py` **195 ALL OK** (K01–K51). 로그 `work_dir/_eval_phase/gate_k51.log`.
 
-## 8. 운영 절차 (서버 담당자)
+## 8. 운영 절차 (서버 담당자 — 이 문서가 서버용 지시서다)
+
+계획 원문 `research_log/PAN_AllServers_*.md` 는 **저장소에 두지 않는 규약**이라 s1 외 서버에는 없다. 서버에서 볼 것은 이 노트와 진입점 스크립트다.
+
+**진입점 하나로 끝난다 — 서버마다 독립이고 다른 서버·s1 분석을 기다리지 않는다.**
+
+```bash
+./tools/noa_eval_switch.sh --dry-run    # gate(K01–K51) · 현재 상태 · 평가 대상 미리보기 (아무것도 바꾸지 않는다)
+./tools/noa_eval_switch.sh --hold       # 새 학습만 정지 (진행 중 run 은 원 정의로 끝난다) + 복귀 manifest
+./tools/noa_eval_switch.sh              # 진행 중 학습이 끝난 뒤: 사전 검사 + 전수 A_ON/NOA 평가 (약 47 s/run)
+./tools/noa_eval_switch.sh --upload     # 자기 탭 NOA 26 열만 기록 (dry-run 을 보여주고 y 를 받는다)
+./tools/noa_eval_switch.sh --release    # 원래 본 실험 큐로 복귀
+```
+
+s1 만 `--upload` 와 `--release` 사이에 분석을 넣는다: `python tools/s1_aligner_analysis.py --assets --split rr --scenes 0-19` 와 `--modes`.
+
+개별 도구를 직접 부르고 싶으면:
 
 ```bash
 python tools/eval_phase.py status                      # 지금 상태

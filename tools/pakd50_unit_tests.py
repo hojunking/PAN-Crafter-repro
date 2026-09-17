@@ -1401,7 +1401,10 @@ check("K51 독립 복귀·분석 순서(V13·V14·V17·§1.3·§10.5): 평가/�
            and len(_a51.crop_origins(512, 64)) == 64 and len(_a51.crop_origins(512, 128)) == 16 and len(_a51.crop_origins(256, 64)) == 16 and len(_a51.S1_ASSETS) == 3
            and "학습 q cache" in open(os.path.join(ROOT, "tools", "s1_aligner_analysis.py")).read())(_ilu51.module_from_spec(_ilu51.spec_from_file_location("_s1a51", os.path.join(ROOT, "tools", "s1_aligner_analysis.py"))) if False else __import__("tools.s1_aligner_analysis", fromlist=["x"])))
 check("K51 문서·protocol: 계획서(있으면 protocol id 일치) · 구현 노트 · 도구 5 종 존재 · 모든 도구가 같은 protocol id 를 쓴다",
-      all(os.path.exists(os.path.join(ROOT, f_)) for f_ in ("kdv/eval_modes.py", "tools/noa_eval.py", "tools/eval_phase.py", "gspread/noa_upload.py", "tools/s1_aligner_analysis.py", "research_log/2026-09-18_noa-eval-implementation.md"))
+      all(os.path.exists(os.path.join(ROOT, f_)) for f_ in ("kdv/eval_modes.py", "tools/noa_eval.py", "tools/eval_phase.py", "gspread/noa_upload.py", "tools/s1_aligner_analysis.py", "tools/noa_eval_switch.sh", "research_log/2026-09-18_noa-eval-implementation.md"))
+      and subprocess.run(["bash", "-n", os.path.join(ROOT, "tools", "noa_eval_switch.sh")], capture_output=True).returncode == 0
+      and all(x_ in open(os.path.join(ROOT, "tools", "noa_eval_switch.sh")).read() for x_ in ("--dry-run", "--hold", "--upload", "--release", "s1_aligner_analysis"))     # 서버용 진입점(다른 서버는 계획 원문이 없다)
+      and all(x_ in open(os.path.join(ROOT, "CLAUDE.md")).read() for x_ in ("noa_eval_switch.sh", "2026-09-18_noa-eval-implementation.md"))
       and _NE.PROTOCOL_ID == _EP.PROTOCOL_ID == _NU.PROTOCOL_ID == "PAN_ALLSERVER_NOA_AUDIT_METHOD_v2_20260918"
       and (not os.path.exists(os.path.join(ROOT, "research_log", "PAN_AllServers_StudentEval_AlignerAnalysis_CurrentMethod_Integrated_2026-09-18.md"))
            or _NE.PROTOCOL_ID in open(os.path.join(ROOT, "research_log", "PAN_AllServers_StudentEval_AlignerAnalysis_CurrentMethod_Integrated_2026-09-18.md")).read()))

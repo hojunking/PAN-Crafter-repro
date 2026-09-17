@@ -162,7 +162,7 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
 - matplotlib 에 한글 글리프가 없다. 그림 라벨은 ASCII 로 쓴다.
 - 위성영상은 라이선스 제약이 있다. **외부 서비스에 업로드하지 않는다** (§6).
 
-## 현재 진행 상황 (2026-09-17 기준)
+## 현재 진행 상황 (2026-09-18 기준)
 
 확인은 `results_log/README.md` 맨 위 · `ps -eo pid,ppid,args | grep '[_]run_'` · `tail -f work_dir/cases_chain.log`. 캠페인별 상세는 아래 노트.
 각 캠페인의 계획서는 `research_log/PAN_*_<날짜>.md`, 구현 노트는 `research_log/<날짜>_<캠페인>-implementation.md`, config 생성기는 `tools/gen_<캠페인>_configs.py`,
@@ -170,12 +170,13 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
 
 | 서버 | 지금 | 그 다음 |
 |---|---|---|
-| s1 | **QRECON24 진행 중**(seed 1234 6 완료 — G23 raw HQNR .9591 로 목표 초과; G22@3407 학습 중, chain 2110263) | **ADJ-R1 8 run**(09-17): G22@3407 → G23@3407 → A03_UNIF/A03_SHUF@1234 **v2** → A_UNIF/A_FREEZE/A_SHUF/G21@3407 — switch 적용 → case 경계 인계 |
-| s2 | QRECON24 6 완료(G22/G12/G32/G21/G23/G11 S777; 시트 WV3-s2 87–92) | **ADJ-R1 6 run**: G13 → E_UNIF → E_SHUF → ALL_UNIF → G31 → G33 @777: pull → `./tools/qrecon24_switch.sh` |
-| s3 | QRECON24 10 완료(2026 G 3×3 + G22@4321; 시트 WV3-s3 110–119) | **ADJ-R1 10 run**: G23@4321 → H23 **v2** → B20A03 **v2** → G13 → G12 → G21 → G11 → G32 → G31 → G33 @4321: pull → switch |
-| s4 | QRECON24 10 완료(1234 H 3×3 + H_ALPHA0; 시트 WV3-s4 39–48; β .2 가 세 α 에서 전부 개선) | **ADJ-R1 9 run**: H_BETA0@1234 → H22/H23v2/H12/H13v2/H32v2/H33v2 @3407 → G23v2/B20A03v2 @1234 (H11@3407 보류): pull → switch |
-| s5 | QRECON24 7 완료(L100/L070/L050 @2026·777 + L100@9091; 시트 WV3-s5 30–36) | **ADJ-R1 9 run**: L070/L050@9091 → G23/H23/B20A03 @9091 **v2** → L100@1103 → G23/H23/B20A03 @1103 **v2** (L070/L050@1103 보류): pull → switch |
+| s1 | QRECON24 ADJ-R1 12/14 완료 · 마지막 학습(G21@3407) 진행 중 → 끝나면 큐 비움 | **① NOA 전수 평가**(`./tools/noa_eval_switch.sh --dry-run` → 학습 끝난 뒤 본 실행 → `--upload`) → **② s1 전용 aligner 분석**(`tools/s1_aligner_analysis.py --assets`) → ③ `--release` 로 본 실험 복귀 |
+| s2 | QRECON24 6 완료(S777) · ADJ-R1 6 run 편성 | **① 자기 서버 NOA 전수 평가**: pull → `./tools/noa_eval_switch.sh --dry-run` → `--hold`(진행 중 run 은 끝까지) → 본 실행 → `--upload` → **② `--release` 로 ADJ-R1 큐 복귀**. s1 분석·타 서버 완료를 기다리지 않는다 |
+| s3 | QRECON24 10 완료(2026 G 3×3 + G22@4321) · ADJ-R1 10 run 편성 | **① 자기 서버 NOA 전수 평가** 같은 순서 → **② `--release` 로 복귀**(독립) |
+| s4 | QRECON24 10 완료(1234 H 3×3 + H_ALPHA0) · ADJ-R1 9 run 편성 | **① 자기 서버 NOA 전수 평가** 같은 순서 → **② `--release` 로 복귀**(독립) |
+| s5 | QRECON24 7 완료(L 계열) · ADJ-R1 9 run 편성 | **① 자기 서버 NOA 전수 평가** 같은 순서 → **② `--release` 로 복귀**(독립) |
 
+**09-18: 전 서버가 자기 Student 전수 NOA 평가를 먼저 하고 각자 복귀한다 — 진입점은 `./tools/noa_eval_switch.sh` 하나, 서버용 지시서는 `research_log/2026-09-18_noa-eval-implementation.md` §8 이다(계획 원문 PAN_*.md 는 저장소에 두지 않으므로 서버에는 없다).**
 (완료 현황은 ADJ-R1 계획 부록 A(09-17 native Sheet 39 run) 기준; 각 서버의 실제 프로세스 상태는 switch 가 확인한다 — Sheet 만 보고 kill 하지 않는다. 진행 중 run 은 끝까지, 큐 교체는 case 경계 인계.)
 
 ### 기반 — 지금 캠페인들의 공통 기준
@@ -252,7 +253,7 @@ Student 는 T0 A 복사 + fresh U(W104·D121), native 입력(I-NATIVE-TRANSFER, 
 
 **NOA 전수 Student 평가 — 추론 정합 경로 검증 (전 서버, 09-18)** — 계획 `PAN_AllServers_StudentEval_AlignerAnalysis_CurrentMethod_Integrated_2026-09-18.md`(protocol `PAN_ALLSERVER_NOA_AUDIT_METHOD_v2_20260918`), 노트 `2026-09-18_noa-eval-implementation.md`. 학습 method(qrecon_continuous_v1)·Teacher·q cache·기존 checkpoint 를 바꾸지 않는다 — **추론 경로만** 비교한다.
 모드: `A_ON`(기존) · **`A_BYPASS_RAW`(표시명 NOA) = aligner 호출 0회·warp 호출 0회**, 원 PAN·원 LRMS 를 같은 U-Net 에 직접 · s1 분석에만 `A_ZERO_WARP`(A 0회지만 sampler 사용 — NOA 와 다른 모드) · `A_CROP64_MED`(non-overlap 64 crop Δ 의 성분별 중앙값으로 전체 PAN 한 번 warp). 구현 `kdv/eval_modes.py`(CallCounter 가 0회를 실제로 센다, sampler 복원 보장).
-절차(서버마다 독립): `tools/eval_phase.py hold`(진행 중 학습은 그대로 끝나고 **새 학습만** 멈춘다 — smoke_cases rc2·waiter HOLD_EVAL·watchdog·switch·gate 다섯 경로가 `work_dir/_eval_phase/hold.json` 을 본다) → `tools/noa_eval.py --capture-cohort --sanity --all`(같은 checkpoint 의 A_ON/NOA RR·FR 쌍; RR 은 gspread_upload._rr, FR 은 논문 .mat20) → `gspread/noa_upload.py`(자기 탭 NOA 26 열만, 기존 열 보존) → `tools/eval_phase.py release`. s1 만 그 뒤 `tools/s1_aligner_analysis.py`(크기 패널·AXIS16 q_size·네 모드). **다른 서버 평가나 s1 분석을 기다리지 않는다.**
+**진입점은 `./tools/noa_eval_switch.sh`** (`--dry-run` → `--hold` → 본 실행 → `--upload` → `--release`; 각 서버가 자기 것만 한다). 내부 절차: `tools/eval_phase.py hold`(진행 중 학습은 그대로 끝나고 **새 학습만** 멈춘다 — smoke_cases rc2·waiter HOLD_EVAL·watchdog·switch·gate 다섯 경로가 `work_dir/_eval_phase/hold.json` 을 본다) → `tools/noa_eval.py --capture-cohort --sanity --all`(같은 checkpoint 의 A_ON/NOA RR·FR 쌍; RR 은 gspread_upload._rr, FR 은 논문 .mat20) → `gspread/noa_upload.py`(자기 탭 NOA 26 열만, 기존 열 보존) → `tools/eval_phase.py release`. s1 만 그 뒤 `tools/s1_aligner_analysis.py`(크기 패널·AXIS16 q_size·네 모드). **다른 서버 평가나 s1 분석을 기다리지 않는다.**
 판정·주의: 같은 checkpoint·같은 모드에서 raw HQNR ≥ .9585 **그리고** RR ERGAS < 2.040(반올림 아님). ΔE = E_NOA − E_ON, ΔH = H_NOA − H_ON. NOA 가 좋아도 **학습·추론 정책을 자동으로 바꾸지 않는다**(계획 §10.5). q_size 는 사후 측정값이라 학습 q cache·q_ref 와 섞지 않는다. 검증: s1 G23 S1234 에서 paired A_ON 이 공식 저장값과 오차 0(legacy_on_check match), 한 run 두 모드 RR+FR 약 47 s. 검사 K51(V01–V18), gate 195 ALL OK.
 
 **EDGEBAL — GT edge 를 얼마나·언제 (s2·s5, 09-16)** — 계획 `PAN_EDGEBAL_S2_S5_Experiment_Plan_2026-09-16.md`, 노트 `2026-09-16_edgebal-implementation.md`. q gate 를 더 복잡하게 만들기 전에 edge 강도·시간배분·완만한 cue 를 분리한다.
