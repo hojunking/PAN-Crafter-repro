@@ -1297,8 +1297,10 @@ finally:
 _h4 = _qn("s4", "H11", 3407); _psfake = f"bash ./tools/_run_cases.sh\npython -u main.py --config /x/{_h4}.yaml\n"
 _eff_run = G.qrc24_effective_queue("s4", ps=_psfake); _eff_plain = G.qrc24_effective_queue("s4", ps="")
 check("K50 보류 run 상태(§9 '미시작일 때만'): checkpoint/epoch 없음 → superseded_pending · checkpoint-1000 있음 → started_interrupted(원 정의로 끝낸다) · 학습 중 → running_original_definition · 완료 → terminal · 활성 실행 순서(qrc24_effective_queue) 는 시작된 보류 run 을 **맨 앞**에 두고 나머지는 편성 순서, 미시작이면 편성 그대로 · run_started 는 runner 의 latest_ckpt 와 같은 규칙",
-      (_st_none, _st_ck, _st_run) == (G.QRC24_HELD_STATUS, "started_interrupted", "running_original_definition") and _eff_run[0] == _h4 and _eff_run[1:] == G.qrc24_items("s4") and len(_eff_run) == len(G.qrc24_items("s4")) + 1
-      and _eff_plain == G.qrc24_items("s4") and G.qrc24_effective_queue("s1", ps="") == G.qrc24_items("s1") and not G.run_started(f"_k50nope_{os.getpid()}"), f"{(_st_none, _st_ck, _st_run)} eff0 {_eff_run[0][-28:]}")
+      (_st_none, _st_ck, _st_run) == (G.QRC24_HELD_STATUS, "started_interrupted", "running_original_definition") and _eff_run[0] == _h4
+      and _eff_run[1:] == G.qrc24_items("s4") + [r_ for r_ in G.qrc24_r2_items("s4") if r_ not in G.qrc24_items("s4")]          # 꼬리에 Narrow R2 (β-close → lock 후 seed)
+      and _eff_plain == G.qrc24_items("s4") + [r_ for r_ in G.qrc24_r2_items("s4") if r_ not in G.qrc24_items("s4")]
+      and G.qrc24_effective_queue("s1", ps="")[:len(G.qrc24_items("s1"))] == G.qrc24_items("s1") and not G.run_started(f"_k50nope_{os.getpid()}"), f"{(_st_none, _st_ck, _st_run)} eff0 {_eff_run[0][-28:]}")
 _blk5 = [b for b in __import__("re").findall(r"<<'PYEOF'[^\n]*\n(.*?)\nPYEOF", _sw50, flags=__import__("re").S) if "extra_priority.pre_qrecon24" in b]
 _fxr = tempfile.mkdtemp(); _keep_run = G.qrc24_run_name("s2", "G22", 3407); _old_item = "JQ@W104_D121"
 os.makedirs(os.path.join(_fxr, "work_dir", "_pakd50"), exist_ok=True); open(os.path.join(_fxr, "work_dir", "_pakd50", "extra_priority.txt"), "w").write(f"# 이전\n{_old_item}\n{_keep_run}\n")
@@ -1408,4 +1410,58 @@ check("K51 문서·protocol: 계획서(있으면 protocol id 일치) · 구현 �
       and _NE.PROTOCOL_ID == _EP.PROTOCOL_ID == _NU.PROTOCOL_ID == "PAN_ALLSERVER_NOA_AUDIT_METHOD_v2_20260918"
       and (not os.path.exists(os.path.join(ROOT, "research_log", "PAN_AllServers_StudentEval_AlignerAnalysis_CurrentMethod_Integrated_2026-09-18.md"))
            or _NE.PROTOCOL_ID in open(os.path.join(ROOT, "research_log", "PAN_AllServers_StudentEval_AlignerAnalysis_CurrentMethod_Integrated_2026-09-18.md")).read()))
+
+# ================= K52 Narrow R2 (research_log/PAN_QRC24_Narrow_R2_SeedLock_ERGAS_2026-09-17.md §2·§4·§6·§8.3 회귀검사 1–10)
+import importlib.util as _ilu52
+_sel52 = _ilu52.spec_from_file_location("_qsel52", os.path.join(ROOT, "tools", "qrecon24_select.py")); _QS = _ilu52.module_from_spec(_sel52); _sel52.loader.exec_module(_QS)
+_lk52 = _ilu52.spec_from_file_location("_qlock52", os.path.join(ROOT, "tools", "qrc24_lock.py")); _QL = _ilu52.module_from_spec(_lk52); _lk52.loader.exec_module(_QL)
+_c52 = [dict(step=31310, hqnr=0.9586, ergas=2.039, scc=0.9870, psnr=37.0, sam=2.9, q8=0.90, ssim=0.97),        # §2.1 예시: 둘 다 하한 통과 → E 우선
+        dict(step=20200, hqnr=0.9600, ergas=2.070, scc=0.9900, psnr=38.0, sam=2.7, q8=0.93, ssim=0.98),
+        dict(step=10100, hqnr=0.9579, ergas=2.030, scc=0.9910, psnr=38.5, sam=2.6, q8=0.94, ssim=0.98)]       # H 미달 — E 가 낮아도 보상하지 않는다
+_el52 = [c for c in _c52 if c["hqnr"] >= 0.9585]
+_v1_52 = _QS.rank(_el52)[0]; _v2_52 = _QS.rank(_el52, _QS.ORDER_V2)[0]
+_tie52 = _QS.rank([dict(_c52[0], step=9), dict(_c52[0], step=5)], _QS.ORDER_V2)[0]["step"]
+check("K52 selector v2(§2.1·§2.2·회귀 4·5): H 하한 통과 집합 안에서 **ERGAS 우선**(v1 은 SCC 우선이라 다른 후보를 고른다) · H=.9586/E=2.039 가 H=.9600/E=2.070 보다 앞선다 · H=.9579/E=2.030 은 애초에 적격이 아니다 · 모든 수치가 같으면 step 이 결정적 tie-break · selector ID·ORDER 가 분리돼 있고 결과 파일명이 다르다 · joint_pass 는 official 일 때만",
+      _QS.SELECTOR_V2 == "HQNR9585_ERGAS2040_v2" and _QS.ORDER_V2[0] == ("ergas", 1) and _QS.ORDER[0] == ("scc", -1) and len(_el52) == 2
+      and _v2_52["step"] == 31310 and _v1_52["step"] == 20200 and _tie52 == 5 and 0.9585 == _QS.THRESHOLD
+      and all(x in open(os.path.join(ROOT, "tools", "qrecon24_select.py")).read() for x in ("qrecon24_target_selection_{a.selector}.json", "joint_pass=(None if (target is None or not official)", "--selector")))
+_lock52 = G.qrc24_recipe_lock(); _prof52 = G.qrc24_locked_profile()
+try:
+    G.qrc24_seed_items("s4"); _seed_guard = bool(_prof52)                                  # lock 이 없는데 성공하면 실패
+except SystemExit:
+    _seed_guard = not _prof52
+try:
+    G.kdv_block("QRC24_S4_G23", 41004, "s4", cal=calQ, arch="W104_D121"); _cfg_guard = bool(_prof52)
+except SystemExit:
+    _cfg_guard = not _prof52
+_rec52a, _rec52b = _QL.recipe_fields("G23"), _QL.recipe_fields("B20A03")
+_diff52 = {k_ for k_ in set(_rec52a) | set(_rec52b) if _rec52a.get(k_) != _rec52b.get(k_)}
+check("K52 recipe lock(§6.1·회귀 7·8): lock 파일이 없으면 seed 단계(41001–41020) run 목록·config 생성이 **SystemExit** 로 막힌다 · seed 20 개가 서버마다 4 개씩 사전 지정 · 후보는 G23/B20A03 둘뿐(β=.15·rA=.02 같은 제3 후보 없음) · 두 후보의 학습 정의 차이는 β(와 그로 인한 profile 이름) 뿐 · recipe hash 대상에 모델·loss·LR·전처리가 들어간다(seed·경로는 제외)",
+      _seed_guard and _cfg_guard and sum(len(v) for v in G.QRC24_R2_SEEDS.values()) == 20 and all(len(v) == 4 for v in G.QRC24_R2_SEEDS.values())
+      and sorted({sd for v in G.QRC24_R2_SEEDS.values() for sd in v}) == list(range(41001, 41021)) and G.QRC24_LOCK_CANDIDATES == ("G23", "B20A03")
+      and _diff52 <= {"beta", "profile"} and all(k_ in _rec52a for k_ in ("lambda_E", "rA", "alpha", "U_lr", "A_lr", "q_formula", "arch", "updates", "gradient_routing"))
+      and "seed" not in _rec52a and G.QRC24_R2_SEED_MIN == 41000, f"seed_guard {_seed_guard} cfg_guard {_cfg_guard} diff {_diff52}")
+_bc52 = {s_: G.qrc24_beta_close_items(s_) for s_ in ("s1", "s2", "s3", "s4", "s5")}
+_q52 = G.qrc24_effective_queue("s4", ps="")
+check("K52 β-close·큐(§4.1·§4.2·§8.1): 새로 도는 B20A03 은 **기존 G23 의 짝만** 4 개(s1 1234/3407 · s2 777 · s3 2026; s3 4321 은 이미 있고 s4 는 G23 host bridge 로 끝) · 편성 이력 표기는 v3 이고 수식 변경이 아니다 · 활성 실행 순서 꼬리에 R2 가 붙는다 · lock 전에는 seed run 이 큐에 없다",
+      [len(_bc52[s_]) for s_ in ("s1", "s2", "s3", "s4", "s5")] == [2, 1, 1, 0, 0] and all(r_.endswith("_FRESH50_v3") and "_B20A03_" in r_ for v_ in _bc52.values() for r_ in v_)
+      and _bc52["s1"][0].endswith("_S1234_FRESH50_v3") and _bc52["s3"][0].endswith("_S2026_FRESH50_v3")
+      and _q52[-1] == G.qrc24_run_name("s4", "B20A03", 1234, "v2") and not any("_S41" in r_ for r_ in _q52) == (not _prof52)
+      and all(os.path.exists(os.path.join(ROOT, "config", r_ + ".yaml")) for v_ in _bc52.values() for r_ in v_))
+_ycfg52 = yaml.safe_load(open(os.path.join(ROOT, "config", G.qrc24_beta_close_items("s1")[0] + ".yaml")))["kdv"]
+_g23ref = yaml.safe_load(open(os.path.join(ROOT, "config", G.qrc24_run_name("s1", "G23", 1234) + ".yaml")))["kdv"]
+_dk52 = {k_ for k_ in set(_ycfg52) | set(_g23ref) if _ycfg52.get(k_) != _g23ref.get(k_)}
+check("K52 대응 config 차이(회귀 1·2·3): B20A03·1234(v3) 와 기존 G23·1234 의 차이는 rec.kd_weight(β .2) 와 이름/대조 metadata 뿐 — q 함수·uniform .5·λE .002·rA .03·gradient routing·stat·input·aligner_lr 이 같다 · 같은 seed 의 U 초기값 기대 hash 도 같다",
+      _dk52 <= {"rec", "qrc24", "control_runs", "baseline_run", "budget", "case_id", "version"} and _ycfg52["rec"]["kd_weight"] == 0.2 and _g23ref["rec"]["kd_weight"] == 0.1
+      and dict(_ycfg52["rec"], kd_weight=0.1) == _g23ref["rec"] and _ycfg52["qrecon"] == _g23ref["qrecon"] and _ycfg52["stat"] == _g23ref["stat"]
+      and _ycfg52["aligner_lr"] == _g23ref["aligner_lr"] == 3.0e-06 and _ycfg52.get("expect_init") == _g23ref.get("expect_init"), f"diff {_dk52}")
+_tu52 = open(os.path.join(ROOT, "gspread", "target_upload.py")).read()
+_sp52 = _ilu52.spec_from_file_location("_tu52", os.path.join(ROOT, "gspread", "target_upload.py")); _TU = _ilu52.module_from_spec(_sp52); _sp52.loader.exec_module(_TU)
+check("K52 시트 target 열(§8.2·회귀 6·10): target 열 묶음 키가 계획과 같다 · legacy 열을 교체하지 않고(batch_clear/--replace 없음) 자기 범위만 쓴다 · 같은 checkpoint 의 값만 한 행에(v2 결과의 target 하나에서) · 열 배치와 쓰기를 같은 flock 안에서(NOA 업로더와 충돌 방지) · 등록 건수 하드코딩 없음",
+      [c_[2] for c_ in _TU.COLUMNS] == ["target_selector", "target_step", "target_HQNR_raw", "target_ERGAS", "target_SCC", "target_PSNR", "target_joint_pass", "target_official_complete", "recipe_lock_id", "queue_revision"]
+      and ".batch_clear(" not in _tu52 and '"--replace"' not in _tu52 and "run_tag" in _tu52 and "fcntl.flock" in _tu52 and f"qrecon24_target_selection_{{G.QRC24_R2_SELECTOR}}" in _tu52)
+check("K52 문서·revision: R2 계획 참조 상수 · 도구 존재 · CLAUDE.md 에 Narrow R2 · selector/lock id 가 한 값으로 일치",
+      G.QRC24_R2_REVISION == "QRC24_NARROW_R2_20260917" and G.QRC24_LOCK_ID == "QRC24_LOCK_V1_20260917" and G.QRC24_R2_SELECTOR == _QS.SELECTOR_V2
+      and all(os.path.exists(os.path.join(ROOT, f_)) for f_ in ("tools/qrc24_lock.py", "gspread/target_upload.py"))
+      and "Narrow R2" in open(os.path.join(ROOT, "CLAUDE.md")).read())
 print(f"\n{'FAIL ' + str(FAIL) if FAIL else 'ALL OK'} ({len(FAIL)} failed)"); sys.exit(1 if FAIL else 0)

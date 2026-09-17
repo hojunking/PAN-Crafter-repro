@@ -103,6 +103,9 @@ def ensure_header(ws, gu, c0, existing, dry=False):
 
 
 def upload(records, dry=False, limit=None):
+    """열 배치 계산과 쓰기를 **같은 로컬 flock** 안에서 한다 — NOA/target 두 업로더가 동시에 같은 빈 열을 잡는 것을 막는다."""
+    if not dry:
+        _lk = open(LOCK, "w"); fcntl.flock(_lk, fcntl.LOCK_EX)
     gu = _gu(); srv = _server()
     run_tag = _load_local("sheet_categories").run_tag                 # 같은 폴더의 gspread/sheet_categories.py (패키지 gspread 와 이름이 겹친다)
     import gspread as gs
@@ -132,9 +135,7 @@ def upload(records, dry=False, limit=None):
         print(f"   [dry] 쓸 범위 {len(pending)} 개 — Sheet 를 수정하지 않았다"); return 0
     if not pending:
         print("   쓸 것이 없다"); return 0
-    with open(LOCK, "w") as lk:
-        fcntl.flock(lk, fcntl.LOCK_EX)                                # 학습 uploader 와 공유하는 로컬 쓰기 잠금
-        gu._retry(ws.batch_update, pending)
+    gu._retry(ws.batch_update, pending)                               # 잠금은 함수 진입에서 이미 잡았다(학습 uploader 와 공유)
     for run, *_ in touched:
         p = os.path.join(RECORDS, run + ".json")
         if os.path.exists(p):

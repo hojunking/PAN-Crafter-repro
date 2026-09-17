@@ -113,3 +113,24 @@ s1 만 그 뒤 `python tools/s1_aligner_analysis.py --assets --split rr --scenes
 - per-scene RR CSV 는 아직 쓰지 않는다(FR 만). RR 장면별 값이 필요하면 `sr_rr.mat` 에서 기존 평가기로 뽑는다.
 - 평가 phase 상태 전이(`DRAIN_CURRENT_CASE` 등)는 `hold.json` 의 `phase` 문자열로만 기록한다. 상태 기계를 강제하는 별도 데몬은 두지 않았다.
 - s1 은 현재 마지막 학습 case 가 끝나면 큐가 비므로, hold 없이도 자연스럽게 평가 단계로 들어갈 수 있다.
+
+
+## 10. Narrow R2 구현 (2026-09-18 추가)
+
+계획 `research_log/PAN_QRC24_Narrow_R2_SeedLock_ERGAS_2026-09-17.md`(revision `QRC24_NARROW_R2_20260917`). 09-17 의 ADJ-R1 은 큐 재편만 반영했고 **R2 의 본체(새 selector·lock·seed 단계)는 반영되지 않았다** — 사용자 지적으로 확인해 이번에 구현했다.
+
+| R2 요구 | 구현 |
+|---|---|
+| §2 목표 2 순위를 SCC → **ERGAS** 로 | `tools/qrecon24_select.py` 에 `HQNR9585_ERGAS2040_v2`(ORDER_V2 = ergas → scc → psnr → sam → q8 → ssim → hqnr, 마지막 tie-break step). `--selector` 로 고르고 결과는 `results/qrecon24_target_selection_HQNR9585_ERGAS2040_v2.json` 로 **따로** 쓴다(v1·legacy best 보존). `joint_pass` 는 official 일 때만 판정 |
+| §4.1 마지막 β 비교 | `QRC24_R2_BETA_CLOSE` = B20A03 4 run(s1 1234/3407 · s2 777 · s3 2026) `_FRESH50_v3`. 기존 G23 을 재사용하고 짝만 채운다. s4 는 G23·1234 host bridge 로 끝(중복 seed 추가 없음). config 4 벌 생성, 활성 큐 꼬리에 자동 연결 |
+| §4.3 동결 규칙 | `tools/qrc24_lock.py --decide` 가 시트에서 짝이 맞는 block 만 모아 n_joint → n_H → med_E_H → G23 순으로 계산. 제3 후보(β .15·rA .02) 를 만들지 않는다 |
+| §6.1 recipe lock | `work_dir/_qrecon24/recipe_lock.json`(`QRC24_LOCK_V1_20260917`): profile·전 계수·gradient routing·Teacher/cue/evaluator·selector·seed 배정·근거. recipe sha 는 seed·경로를 뺀 학습 정의에서 계산. **lock 이 없으면 seed 단계 run 목록과 config 생성이 SystemExit 로 막힌다** |
+| §6.2 seed 20 | `QRC24_R2_SEEDS` (s1 41001/41006/41011/41016 … 서버마다 4). lock 의 C* 와 다른 profile 이면 거부 |
+| §8.2 시트 | `gspread/target_upload.py` — target 열 묶음만 자기 탭에 쓴다(legacy·NOA 열 불변, 같은 checkpoint 값만 한 행, 배치·쓰기를 같은 flock 안에서) |
+| §8.3 회귀 1–10 | K52 6 건 |
+
+**측정된 현재 상태(09-18).** 짝이 맞는 β block 은 s3 4321 과 s4 1234 둘뿐이고, 두 후보 모두 그 block 에서 H 하한을 통과한 seed 가 0 이라 규칙 4 로 **G23 유지**가 잠정값이다. R2 가 요구한 4 run 을 돌리면 최대 5 block 이 된다.
+
+**공동 목표는 아직 아무도 달성하지 못했다.** 시트 376 행 중 H ≥ .9585 와 E < 2.040 을 같은 checkpoint 에서 만족한 행이 0 건이고, QRECON24 90 행에서는 E < 2.040 자체가 0 건이다(최저 2.0544 = s3 G12·2026, 그 run 의 H 는 .9501). s1 로컬 14 run 의 후보 격자 50 개를 전부 봐도 두 조건을 같이 만족하는 checkpoint 는 없다. run 안에서 HQNR 은 중반(17K–31K)에 정점이고 ERGAS 는 끝(43K–50K)까지 계속 내려간다 — 두 지표가 같은 축에서 반대로 움직인다. 이 사실은 lock 결정과 함께 보고해야 하며, seed 반복만으로 해소된다고 가정하지 않는다.
+
+gate: **201 ALL OK** (K01–K52). 로그 `work_dir/_qrecon24/gate_k52.log`.

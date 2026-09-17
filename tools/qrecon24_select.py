@@ -18,6 +18,10 @@ import argparse, csv, hashlib, importlib.util, json, os, sys, time
 import numpy as np
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0, ROOT)
 SELECTOR = "HQNR9585_RR_v1"; THRESHOLD = 0.9585
+# Narrow R2 (research_log/PAN_QRC24_Narrow_R2_SeedLock_ERGAS_2026-09-17.md §2): 목표 2순위를 SCC → **ERGAS** 로 바꾼 selector. v1 결과·legacy best 는 그대로 보존하고 결과 파일만 따로 쓴다.
+SELECTOR_V2 = "HQNR9585_ERGAS2040_v2"
+ORDER_V2 = (("ergas", 1), ("scc", -1), ("psnr", -1), ("sam", 1), ("q8", -1), ("ssim", -1), ("hqnr", -1))     # H 하한 통과 집합 안에서 E 최소 → SCC → PSNR → SAM → Q8 → SSIM → H → step(결정적 tie-break)
+SELECTORS = {SELECTOR: None, SELECTOR_V2: ORDER_V2}                                                          # None = 모듈 기본 ORDER
 RR_TARGETS = dict(scc=(">", 0.988), ergas=("<", 2.040), psnr=(">", 37.956), sam=("<", 2.787), q8=(">", 0.922), ssim=(">", 0.976))     # PAN-Crafter Table 1 WV3 표시값 (§7.1)
 RR_DISPLAY_DECIMALS = dict(scc=3, ergas=3, psnr=3, sam=3, q8=3, ssim=3)
 ORDER = (("scc", -1), ("ergas", 1), ("psnr", -1), ("sam", 1), ("q8", -1), ("ssim", -1), ("hqnr", -1))
@@ -99,9 +103,11 @@ def official_rr(tag, wd, step, device, evid):
     return dict(scc=r.get("scc"), ergas=r.get("ergas"), psnr=r.get("psnr"), sam=r.get("sam"), q8=r.get("q2n", r.get("q8")), ssim=r.get("ssim"), mat=os.path.relpath(mat, ROOT), cached=cached, rr_eval_seconds=sec, identity=(json.load(open(side)) if os.path.exists(side) else ident)), "official"
 
 
-def rank(cands):
+def rank(cands, order=None):
+    """order 를 주면 그 순서로(v2 = ERGAS 우선). 마지막 tie-break 는 step — 모든 수치가 같아도 결정적이다 (R2 §2.1)."""
+    od = order or ORDER
     def key(c):
-        return tuple((s * c[k]) if (c.get(k) is not None and np.isfinite(c[k])) else float("inf") for k, s in ORDER)
+        return tuple((s * c[k]) if (c.get(k) is not None and np.isfinite(c[k])) else float("inf") for k, s in od) + (int(c.get("step") or 0),)
     return sorted(cands, key=key)
 
 
@@ -124,8 +130,10 @@ def display_tie(c):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--selector", default=SELECTOR, choices=tuple(SELECTORS), help="HQNR9585_RR_v1(기존 SCC 우선) | HQNR9585_ERGAS2040_v2(R2 §2: H 하한 통과 안에서 ERGAS 최소)")
     ap.add_argument("run"); ap.add_argument("--official", action="store_true"); ap.add_argument("--threshold", type=float, default=THRESHOLD); ap.add_argument("--device", default="cuda"); ap.add_argument("--out", default=None)
     a = ap.parse_args(); wd = os.path.join(ROOT, "work_dir", a.run); rows = load_rows(wd)
+    _ORD = SELECTORS.get(a.selector) or ORDER                                          # R2 §2.2: selector 는 순서만 바꾼다 — trainer/criterion 에 전달하지 않는다
     bm = os.path.join(wd, "best_hqnr_meta.json"); legacy = json.load(open(bm)) if os.path.exists(bm) else {}
     fr = os.path.join(wd, "results", "fr_mat20.json"); frj = json.load(open(fr)) if os.path.exists(fr) else {}
     by_step = {r["step"]: r for r in rows}; leg_step = legacy.get("step"); h_cons = None
@@ -141,21 +149,23 @@ def main():
             c.update({k: m[k] for k in RR_KEYS}); c.update(rr_mat=m["mat"], official_rr=True, rr_cached=m["cached"], rr_identity=m["identity"]); t_eval += float(m["rr_eval_seconds"])
         evaluated = [c for c in elig if c.get("official_rr")]; unevaluated = [c for c in elig if not c.get("official_rr")]
         official = bool(elig) and not unevaluated
-        ranked = rank(evaluated)                                                       # 감사 F06: proxy 값이 든 후보는 공식 순위에 넣지 않는다
+        ranked = rank(evaluated, _ORD)                                                 # 감사 F06: proxy 값이 든 후보는 공식 순위에 넣지 않는다
         if elig and unevaluated:
             target_status = "incomplete_official_rr"; target = None                     # 일부 후보의 공식 RR 가 없으면 target 을 확정하지 않는다
         else:
             target_status = ("official" if ranked else "no_eligible"); target = ranked[0] if ranked else None
     else:
-        evaluated, unevaluated = [], list(elig); official = False; ranked = rank(elig); target = ranked[0] if ranked else None; target_status = ("proxy" if ranked else "no_eligible")
+        evaluated, unevaluated = [], list(elig); official = False; ranked = rank(elig, _ORD); target = ranked[0] if ranked else None; target_status = ("proxy" if ranked else "no_eligible")
         notes.append("proxy 정렬: CSV 의 학습 중 rr_scc/rr_ergas/rr_sam 만 (PSNR/Q8/SSIM 없음; SCC 는 학습 로그 정의) — --official 로 공식 RR 6 지표를 채운다")
     six = [c for c in ranked if all(v is True for v in rr_pass(c).values())]
     raw_max = max(rows, key=lambda r: (r["hqnr"] if np.isfinite(r["hqnr"]) else -1)) if rows else None
     ex50 = by_step.get(50000); late = [by_step[s]["hqnr"] for s in LATE6 if s in by_step and np.isfinite(by_step[s]["hqnr"])]
     def _t(c):
         return None if c is None else dict(c, rr_pass=rr_pass(c), numeric_pass_all6=bool(all(v is True for v in rr_pass(c).values())), display_tie=display_tie(c))
-    out = dict(run=a.run, selector=SELECTOR, threshold=a.threshold, official=bool(official), target_status=target_status, n_candidates=len(rows), n_eligible=len(elig), n_official_evaluated=len(evaluated), n_unevaluated=len(unevaluated),
+    out = dict(run=a.run, selector=a.selector, selector_order=[k for k, _ in _ORD], threshold=a.threshold, official=bool(official), target_status=target_status, n_candidates=len(rows), n_eligible=len(elig), n_official_evaluated=len(evaluated), n_unevaluated=len(unevaluated),
                target_feasible=(bool(target is not None) if target_status != "incomplete_official_rr" else None), target=_t(target),
+               joint_pass=(None if (target is None or not official) else bool(target.get("hqnr", float("nan")) >= a.threshold and np.isfinite(target.get("ergas", float("nan"))) and target["ergas"] < 2.040)),      # R2 §2.1: 같은 checkpoint 에서 H 하한 **그리고** E<2.040 (반올림 아님)
+               joint_pass_note="official RR 이 완료된 target 에서만 판정한다. proxy 값으로는 joint_pass 를 확정하지 않는다 (R2 §2.2)",
                proxy_target=(_t(ranked[0]) if (not a.official and ranked) else None), six_pass_best=_t(six[0]) if six else None,
                legacy_best=dict(step=leg_step, hqnr=(by_step.get(leg_step) or {}).get("hqnr"), fr_mat20_hqnr=frj.get("hqnr")), h_consistency=h_cons,
                raw_max=(dict(step=raw_max["step"], hqnr=raw_max["hqnr"]) if raw_max else None), exact50K=(dict(step=50000, hqnr=ex50["hqnr"], scc=ex50["scc"], ergas=ex50["ergas"]) if ex50 else None),
@@ -163,7 +173,7 @@ def main():
                eligible_ranked=[{k: v for k, v in c.items()} for c in ranked], eligible_unevaluated=[dict(step=c["step"], hqnr=c["hqnr"]) for c in unevaluated],
                evaluator=evid, rr_eval_seconds_total=t_eval, notes=notes, rr_targets={k: f"{op} {thr}" for k, (op, thr) in RR_TARGETS.items()}, display_decimals=RR_DISPLAY_DECIMALS,
                note="같은 checkpoint 의 raw H(mat20 전체 frame) 하한 통과 뒤 RR 정렬; legacy/raw-max/exact50K/late6 는 보존·병기 (§7.2–§7.3). FR fSCC 와 RR SCC 는 다른 값이다. 공식 RR 는 candidate checkpoint 재추론(hash 로 캐시 검증).")
-    p = a.out or os.path.join(wd, "results", "qrecon24_target_selection.json"); os.makedirs(os.path.dirname(p), exist_ok=True); json.dump(out, open(p, "w"), indent=1, ensure_ascii=False)
+    p = a.out or os.path.join(wd, "results", "qrecon24_target_selection.json" if a.selector == SELECTOR else f"qrecon24_target_selection_{a.selector}.json"); os.makedirs(os.path.dirname(p), exist_ok=True); json.dump(out, open(p, "w"), indent=1, ensure_ascii=False)
     print(f"[qrecon24-select] {a.run}: 후보 {len(rows)} · 적격(H ≥ {a.threshold}) {len(elig)} · status {target_status} · target {'step %d (H %.6f, SCC %s, ERGAS %s)' % (target['step'], target['hqnr'], target.get('scc'), target.get('ergas')) if target else '없음'}"
           f" · legacy best step {leg_step} · raw-max step {raw_max['step'] if raw_max else '?'} · official {official}{' · 미평가 ' + str([c['step'] for c in unevaluated]) if (a.official and unevaluated) else ''} → {os.path.relpath(p, ROOT)}")
     return 0
