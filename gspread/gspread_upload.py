@@ -373,6 +373,7 @@ def _profile(args_ns, key, want_flops):
 # ----------------------------------------------------------------- 한 실행 수집
 sys.path.insert(0, os.path.join(ROOT, "gspread"))
 from sheet_categories import classify, DESC, separator_cell, SEP  # noqa: E402
+import sheet_categories  # noqa: E402  (2026-09-18 짧은 표시명·canonical 행 매칭)
 
 SERVER_FILE = os.path.join(ROOT, "gspread", "server.txt")
 
@@ -815,6 +816,10 @@ def collect(tag, want_profile, server, peer=None):
         row["tag"] = row["tag"] + "·peerB"
         desc = (desc + " peerB").strip()
     lbl = _iter_label(n_iter)
+    _disp = sheet_categories.short_run_name(row["tag"])                    # 2026-09-18: 고정 method 는 접두어로 포괄하고 profile·seed·version 만 남긴다 (긴 이름은 Notes 에 남는다)
+    if _disp != row["tag"]:
+        desc = (f"run={row['tag']}" + (f" · {desc}" if desc else "")).strip()
+        row["tag"] = _disp
     base = row["tag"] if lbl.lower() in row["tag"].lower() else f"{row['tag']} ({lbl})"
     row["tag"] = f"{base} · {desc}" if desc else base
     return row
@@ -1047,10 +1052,15 @@ def upload(rows, server, replace=False):
         # 부르면 --all --replace(150행)에서 429 로 죽는다 (2026-09-07 실제 발생).
         last = ORIGIN_ROW + 1
         pending, sep_rows = [], []
+        _keys = [sheet_categories.canonical_run_key(t, server) for t in tags]      # 긴 표기·짧은 표기를 같은 run 으로 묶는다 (중복 행 방지)
         for r in rs:
             v = fmt(r, cols)
+            _rk = sheet_categories.canonical_run_key(r.get("_run") or r["tag"], server)
             if r["tag"] in tags:
                 i = ORIGIN_ROW + 2 + tags.index(r["tag"])
+            elif _rk in _keys:
+                i = ORIGIN_ROW + 2 + _keys.index(_rk)                                 # 이미 있는 행(긴 이름 포함) 을 그대로 갱신한다 — 이름은 덮어쓰지 않는다
+                v = list(v); v[0] = tags[_keys.index(_rk)]
             else:
                 # 새 캠페인(DESC 가 정의된 범주)의 첫 행이면 그 위에 구분행을 먼저 넣는다 —
                 # 업로드는 맨 아래에 덧붙이므로 지난 실험과 섞여 보이지 않게. Notes 에 캠페인 설명.

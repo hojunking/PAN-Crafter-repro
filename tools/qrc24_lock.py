@@ -7,6 +7,9 @@
     python tools/qrc24_lock.py --write --profile G23    # 동결 (되돌리기 어렵다 — 확인을 받는다)
     python tools/qrc24_lock.py --verify                 # lock 과 현재 생성기 정의가 일치하는지
 
+**2026-09-18 사용자 결정: 이 도구는 더 이상 아무것도 막지 않는다.** seed 단계는 lock 없이 바로 돈다(설정은 `gen_pakd50_configs.qrc24_seed_profile()`, 기본 G23).
+공동 목표 통과 seed 수를 확인해 seed 실행을 보류하던 게이트를 없앴다. 아래 비교표·`--write` 는 **기록용**으로만 남는다 — 쓰더라도 seed 편성은 바뀌지 않는다.
+
 동결 규칙(§4.3, 사전 의사결정 정책이지 통계적 유의성 판정이 아니다):
   1) n_joint(H≥.9585 **그리고** E<2.040 을 같은 checkpoint 에서 만족한 seed 수) 큰 후보
   2) 동률이면 n_H(H 하한 통과 seed 수) 큰 후보

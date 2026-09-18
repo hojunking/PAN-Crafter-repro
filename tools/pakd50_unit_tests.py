@@ -1425,19 +1425,14 @@ check("K52 selector v2(§2.1·§2.2·회귀 4·5): H 하한 통과 집합 안에
       _QS.SELECTOR_V2 == "HQNR9585_ERGAS2040_v2" and _QS.ORDER_V2[0] == ("ergas", 1) and _QS.ORDER[0] == ("scc", -1) and len(_el52) == 2
       and _v2_52["step"] == 31310 and _v1_52["step"] == 20200 and _tie52 == 5 and 0.9585 == _QS.THRESHOLD
       and all(x in open(os.path.join(ROOT, "tools", "qrecon24_select.py")).read() for x in ("qrecon24_target_selection_{a.selector}.json", "joint_pass=(None if (target is None or not official)", "--selector")))
-_lock52 = G.qrc24_recipe_lock(); _prof52 = G.qrc24_locked_profile()
-try:
-    G.qrc24_seed_items("s4"); _seed_guard = bool(_prof52)                                  # lock 이 없는데 성공하면 실패
-except SystemExit:
-    _seed_guard = not _prof52
-try:
-    G.kdv_block("QRC24_S4_G23", 41004, "s4", cal=calQ, arch="W104_D121"); _cfg_guard = bool(_prof52)
-except SystemExit:
-    _cfg_guard = not _prof52
+_lock52 = G.qrc24_recipe_lock(); _prof52 = G.qrc24_seed_profile()
+_seed_items52 = G.qrc24_seed_items("s4"); _ks52a = G.kdv_block("QRC24_S4_G23", 41004, "s4", cal=calQ, arch="W104_D121")     # 2026-09-18: lock 게이팅 없음 — 바로 생성돼야 한다
+_seed_guard = len(_seed_items52) == 4 and all("_S41" in r_ for r_ in _seed_items52) and _prof52 == (G.qrc24_locked_profile() or G.QRC24_SEED_PROFILE)
+_cfg_guard = _ks52a["qrc24_lock"]["gated"] is False and _ks52a["qrc24_lock"]["profile"] == _prof52
 _rec52a, _rec52b = _QL.recipe_fields("G23"), _QL.recipe_fields("B20A03")
 _diff52 = {k_ for k_ in set(_rec52a) | set(_rec52b) if _rec52a.get(k_) != _rec52b.get(k_)}
-check("K52 recipe lock(§6.1·회귀 7·8): lock 파일이 없으면 seed 단계(41001–41020) run 목록·config 생성이 **SystemExit** 로 막힌다 · seed 20 개가 서버마다 4 개씩 사전 지정 · 후보는 G23/B20A03 둘뿐(β=.15·rA=.02 같은 제3 후보 없음) · 두 후보의 학습 정의 차이는 β(와 그로 인한 profile 이름) 뿐 · recipe hash 대상에 모델·loss·LR·전처리가 들어간다(seed·경로는 제외)",
-      _seed_guard and _cfg_guard and sum(len(v) for v in G.QRC24_R2_SEEDS.values()) == 20 and all(len(v) == 4 for v in G.QRC24_R2_SEEDS.values())
+check("K52 seed 단계(2026-09-18 사용자 결정으로 **lock 게이팅 제거**): lock 없이 seed 목록·config 가 바로 생성된다(공동 목표 통과 seed 수를 확인하지 않는다) · 설정은 qrc24_seed_profile()(lock 있으면 그것, 없으면 G23) 하나로 전 서버 공통 · seed 20 개가 서버마다 4 개씩 사전 지정 · 후보는 G23/B20A03 둘뿐(β=.15·rA=.02 같은 제3 후보 없음) · 두 후보의 학습 정의 차이는 β(와 그로 인한 profile 이름) 뿐 · recipe hash 대상에 모델·loss·LR·전처리가 들어간다(seed·경로는 제외)",
+      _seed_guard and _cfg_guard and all("_S41" in r_ for s_ in ("s1", "s2", "s3", "s4", "s5") for r_ in G.qrc24_r2_items(s_)[:4]) and sum(len(v) for v in G.QRC24_R2_SEEDS.values()) == 20 and all(len(v) == 4 for v in G.QRC24_R2_SEEDS.values())
       and sorted({sd for v in G.QRC24_R2_SEEDS.values() for sd in v}) == list(range(41001, 41021)) and G.QRC24_LOCK_CANDIDATES == ("G23", "B20A03")
       and _diff52 <= {"beta", "profile"} and all(k_ in _rec52a for k_ in ("lambda_E", "rA", "alpha", "U_lr", "A_lr", "q_formula", "arch", "updates", "gradient_routing"))
       and "seed" not in _rec52a and G.QRC24_R2_SEED_MIN == 41000, f"seed_guard {_seed_guard} cfg_guard {_cfg_guard} diff {_diff52}")
@@ -1446,7 +1441,7 @@ _q52 = G.qrc24_effective_queue("s4", ps="")
 check("K52 β-close·큐(§4.1·§4.2·§8.1): 새로 도는 B20A03 은 **기존 G23 의 짝만** 4 개(s1 1234/3407 · s2 777 · s3 2026; s3 4321 은 이미 있고 s4 는 G23 host bridge 로 끝) · 편성 이력 표기는 v3 이고 수식 변경이 아니다 · 활성 실행 순서 꼬리에 R2 가 붙는다 · lock 전에는 seed run 이 큐에 없다",
       [len(_bc52[s_]) for s_ in ("s1", "s2", "s3", "s4", "s5")] == [2, 1, 1, 0, 0] and all(r_.endswith("_FRESH50_v3") and "_B20A03_" in r_ for v_ in _bc52.values() for r_ in v_)
       and _bc52["s1"][0].endswith("_S1234_FRESH50_v3") and _bc52["s3"][0].endswith("_S2026_FRESH50_v3")
-      and _q52[-1] == G.qrc24_run_name("s4", "B20A03", 1234, "v2") and not any("_S41" in r_ for r_ in _q52) == (not _prof52)
+      and any("_S41" in r_ for r_ in _q52) and G.qrc24_r2_items("s1")[0].endswith("_S41001_FRESH50_v1")
       and all(os.path.exists(os.path.join(ROOT, "config", r_ + ".yaml")) for v_ in _bc52.values() for r_ in v_))
 _ycfg52 = yaml.safe_load(open(os.path.join(ROOT, "config", G.qrc24_beta_close_items("s1")[0] + ".yaml")))["kdv"]
 _g23ref = yaml.safe_load(open(os.path.join(ROOT, "config", G.qrc24_run_name("s1", "G23", 1234) + ".yaml")))["kdv"]
@@ -1476,6 +1471,15 @@ finally:
         os.remove(_lkp52)
 check("K52 seed 단계 config(§6.1·§6.3; 검토 지적 수정): lock 이 있으면 41xxx seed 의 config 가 **생성된다** — seed 별 G22 가 없다고 SystemExit 로 죽지 않는다 · 대조는 가상 id 가 아니라 recipe_lock 과 같은 profile 의 reference_block · baseline_run 은 비운다(같은 C* 의 seed 반복이라 seed 별 기준이 없다) · lock 파일은 검사 뒤 원상복구",
       _seed_ok52 and (os.path.exists(_lkp52) == _had52), f"made {_made52[:1]}")
+_sc52 = _ilu52.module_from_spec(_ilu52.spec_from_file_location("_sc52", os.path.join(ROOT, "gspread", "sheet_categories.py"))); _ilu52.spec_from_file_location("_sc52", os.path.join(ROOT, "gspread", "sheet_categories.py")).loader.exec_module(_sc52)
+_long52 = "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S41001_FRESH50_v1"; _short52 = _sc52.short_run_name(_long52)
+_gu52 = open(os.path.join(ROOT, "gspread", "gspread_upload.py")).read()
+check("K52 시트 표시명 단축(2026-09-18 사용자 결정): 고정 method 는 접두어 'QRC24' 하나로 포괄하고 뒤에 profile·seed(·v2 이상이면 version) 만 — 서버·골격·프로토콜은 탭과 고정 method 가 말한다 · 짧은 표기 ↔ 원래 실행명이 왕복 복원된다 · **긴 표기와 짧은 표기가 같은 canonical key** 라 이미 올라간 행을 중복 생성하지 않는다 · 긴 실행명은 Notes(run=…) 에 남는다 · QRC24 가 아닌 run 은 그대로",
+      _short52 == "QRC24 G23 S41001" and _sc52.short_run_name("PAKD50_QRC24_S4_B20A03_W104_D121_WV3_T0_S1234_FRESH50_v2") == "QRC24 B20A03 S1234 v2"
+      and _sc52.long_run_name(_short52, "s1") == _long52 and _sc52.canonical_run_key(f"{_short52} (50K) · x", "s1") == _sc52.canonical_run_key(f"{_long52} (50K) · y", "s1") == _long52
+      and _sc52.short_run_name("PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v2") == "PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v2"
+      and "sheet_categories.short_run_name(row[\"tag\"])" in _gu52 and 'f"run={row[\'tag\']}"' in _gu52 and "canonical_run_key(t, server)" in _gu52
+      and all("canonical_run_key(cell, srv)" in open(os.path.join(ROOT, "gspread", f_)).read() for f_ in ("noa_upload.py", "target_upload.py")))
 check("K52 문서·revision: R2 계획 참조 상수 · 도구 존재 · CLAUDE.md 에 Narrow R2 · selector/lock id 가 한 값으로 일치",
       G.QRC24_R2_REVISION == "QRC24_NARROW_R2_20260917" and G.QRC24_LOCK_ID == "QRC24_LOCK_V1_20260917" and G.QRC24_R2_SELECTOR == _QS.SELECTOR_V2
       and all(os.path.exists(os.path.join(ROOT, f_)) for f_ in ("tools/qrc24_lock.py", "gspread/target_upload.py"))

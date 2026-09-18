@@ -107,7 +107,8 @@ def upload(records, dry=False, limit=None):
     if not dry:
         _lk = open(LOCK, "w"); fcntl.flock(_lk, fcntl.LOCK_EX)
     gu = _gu(); srv = _server()
-    run_tag = _load_local("sheet_categories").run_tag                 # 같은 폴더의 gspread/sheet_categories.py (패키지 gspread 와 이름이 겹친다)
+    _sc = _load_local("sheet_categories")                             # 같은 폴더의 gspread/sheet_categories.py (패키지 gspread 와 이름이 겹친다)
+    run_tag = lambda cell: _sc.canonical_run_key(cell, srv)           # 긴 표기·짧은 표기(2026-09-18 단축) 를 같은 run 으로 묶는다
     import gspread as gs
     gc = gs.service_account(filename=gu.CRED); sh = gc.open(gu.SHEET)
     name = gu.sheet_name("WV3", srv); ws = sh.worksheet(name)

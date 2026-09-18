@@ -192,6 +192,9 @@ def qrc24_held_runs(server):
 # **설정 하나(C*) 를 동결**하고 사전 지정 seed 20 개를 돈다. 목표 2 순위는 SCC 가 아니라 **ERGAS**(selector HQNR9585_ERGAS2040_v2).
 QRC24_R2_PLAN = "research_log/PAN_QRC24_Narrow_R2_SeedLock_ERGAS_2026-09-17.md"; QRC24_R2_REVISION = "QRC24_NARROW_R2_20260917"; QRC24_R2_SELECTOR = "HQNR9585_ERGAS2040_v2"
 QRC24_LOCK_ID = "QRC24_LOCK_V1_20260917"; QRC24_LOCK_FILE = "work_dir/_qrecon24/recipe_lock.json"; QRC24_LOCK_CANDIDATES = ("G23", "B20A03")
+# 2026-09-18 사용자 결정: **lock 게이팅을 없앤다.** 공동 목표 통과 seed 수를 확인하지 않고 각 서버가 지정 seed 를 바로 돈다.
+# C* 는 R2 §4.3 의 잠정 기준 그대로 G23 로 고정한다(lock 파일이 있으면 그 profile 이 우선). lock 도구는 보고용으로만 남는다.
+QRC24_SEED_PROFILE = "G23"
 QRC24_R2_BETA_CLOSE = {"s1": [("B20A03", 1234), ("B20A03", 3407)], "s2": [("B20A03", 777)], "s3": [("B20A03", 2026)], "s4": [], "s5": []}     # §4.1 최대 4 run — 기존 G23 의 짝만 채운다(s3 4321 은 이미 있다). s4 는 G23·1234 host bridge 로 끝
 QRC24_R2_BETA_VERSION = "v3"                                                                        # 편성 이력 표기일 뿐 수식 변경이 아니다 (§8.1)
 QRC24_R2_SEEDS = {"s1": (41001, 41006, 41011, 41016), "s2": (41002, 41007, 41012, 41017), "s3": (41003, 41008, 41013, 41018),
@@ -219,13 +222,14 @@ def qrc24_beta_close_items(server):
     return [qrc24_run_name(server, p_, sd, QRC24_R2_BETA_VERSION) for p_, sd in QRC24_R2_BETA_CLOSE.get(server, [])]
 
 
+def qrc24_seed_profile():
+    """seed 단계가 쓰는 설정. lock 파일이 있으면 그 profile, 없으면 기본값 G23 — **더 이상 lock 을 요구하지 않는다**(2026-09-18 사용자 결정)."""
+    return qrc24_locked_profile() or QRC24_SEED_PROFILE
+
+
 def qrc24_seed_items(server, profile=None):
-    """§6.2 lock 후 seed 단계 run 이름. lock(또는 profile 인자) 이 없으면 SystemExit — 실행 가능한 config 가 만들어지지 않는다."""
-    prof = profile or qrc24_locked_profile()
-    if not prof:
-        raise SystemExit(f"!! recipe lock({QRC24_LOCK_FILE}) 이 없다 — seed 단계(C*) config 를 만들지 않는다 (R2 §6.1). 먼저 python tools/qrc24_lock.py --decide")
-    if prof not in QRC24_LOCK_CANDIDATES:
-        raise SystemExit(f"!! lock profile {prof!r} 은 후보 {QRC24_LOCK_CANDIDATES} 가 아니다 (β=.15·rA=.02 같은 제3 후보 금지, R2 §4.3)")
+    """서버별 사전 지정 seed run (R2 §6.2 의 seed 배정). lock 없이 바로 편성된다."""
+    prof = profile or qrc24_seed_profile()
     return [qrc24_run_name(server, prof, sd, "v1") for sd in QRC24_R2_SEEDS[server]]
 
 
@@ -267,12 +271,9 @@ def qrc24_held_states(server, ps=None):
 
 
 def qrc24_r2_items(server):
-    """Narrow R2 (§4.1·§6.2) 로 이어지는 run: ① 마지막 β 비교의 B20A03 짝 ② lock 이 있으면 C* 의 사전 지정 seed 4 개.
-    lock 이 없으면 ②는 비어 있고(= MAIN_WAIT_RECIPE_LOCK), 서버가 임의로 설정을 고르지 않는다."""
-    out = list(qrc24_beta_close_items(server))
-    if qrc24_locked_profile():
-        out += qrc24_seed_items(server)
-    return out
+    """이어서 돌 run: ① **사전 지정 seed 4 개**(설정은 qrc24_seed_profile(), 전 서버 공통) ② 마지막 β 비교의 B20A03 짝(있으면; 더 이상 무엇도 막지 않는 참고 비교).
+    2026-09-18 결정으로 lock·공동목표 확인 게이트가 없다 — 각 서버가 pull 하면 바로 돈다."""
+    return qrc24_seed_items(server) + list(qrc24_beta_close_items(server))
 
 
 def qrc24_effective_queue(server, ps=None):
@@ -949,13 +950,10 @@ def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=Tr
         if qsrv != server:
             raise SystemExit(f"!! {case}: 서버 토큰 {qsrv} ≠ 생성 서버 {server} (이름의 서버 토큰은 파일 충돌 방지용 — 그 서버에서만 만든다)")
         Pq = qrc24_profile(prof)
-        if int(seed) >= QRC24_R2_SEED_MIN:                                    # R2 §6.1: lock 이 없으면 seed 단계 config 가 실행 가능해지지 않는다
+        if int(seed) >= QRC24_R2_SEED_MIN:                                    # seed 단계 — 2026-09-18 결정으로 lock 요구를 없앴다. 설정은 qrc24_seed_profile()(기본 G23) 하나로 전 서버 공통
             _lk = qrc24_recipe_lock()
-            if not _lk:
-                raise SystemExit(f"!! seed {seed} 은 R2 seed 단계다 — recipe lock({QRC24_LOCK_FILE}) 없이 config 를 만들지 않는다 (python tools/qrc24_lock.py --decide)")
-            if _lk.get("profile") != prof:
-                raise SystemExit(f"!! seed {seed} 의 profile {prof} 이 lock 의 C*({_lk.get('profile')}) 와 다르다 — 서버마다 다른 설정을 고르지 않는다 (R2 §6)")
-            k.setdefault("qrc24_lock", dict(lock_id=_lk.get("lock_id"), profile=_lk.get("profile"), recipe_sha256=_lk.get("recipe_sha256"), selector=_lk.get("selector"), decided_at=_lk.get("decided_at")))
+            k.setdefault("qrc24_lock", dict(lock_id=(_lk.get("lock_id") if _lk else None), profile=qrc24_seed_profile(), gated=False,
+                                            note="lock 게이팅 없음(2026-09-18) — 공동 목표 통과 seed 수를 확인하지 않고 지정 seed 를 돈다. 설정은 전 서버 동일"))
         k["rec"] = dict(case="R3", alpha=float(Pq["alpha"]), kd_weight=float(Pq["beta"]), eps=1.0e-6, tau=(float(cal["tau_R"]) if (pin and cal.get("tau_R")) else "calibrate"), eps_scale=1.0e-6)
         k["stat"] = dict(enabled=True, kind="EDGE", mode="H", window=5, alpha=1.0, kd_weight=0.1, tau="calibrate", outer_weight=float(Pq["lam"]), lambda_note="absolute (QRECON24 §2.4; not a multiple of lambda_E0)", ramp_updates=0)
         if not Pq["frozen"]:

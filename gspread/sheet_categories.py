@@ -148,6 +148,38 @@ DESC = {
 def separator_cell(key):
     return f"{SEP}{NAME[key]}"
 
+# 2026-09-18 사용자 결정: 시트 B열 실행명이 너무 길다. **고정 method 는 접두어 하나로 포괄**하고 뒤에 달라지는 것(profile·seed·version)만 남긴다.
+#   기존: PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S41001_FRESH50_v1 (50K) · <긴 설명>
+#   앞으로: QRC24 G23 S41001 (50K) · <설명>        (서버·골격·프로토콜은 탭과 고정 method 가 이미 말해 준다)
+# 이미 올라간 긴 이름 행은 그대로 둔다(덮어쓰지 않는다). 매칭은 아래 canonical_run_key 가 두 표기를 같은 run 으로 묶는다.
+QRC24_RE = re.compile(r"^PAKD50_QRC24_(?P<srv>S\d)_(?P<prof>.+?)_(?P<arch>W\d+_D\d+)_WV3_T0_S(?P<seed>\d+)_(?P<proto>[A-Z0-9]+)_(?P<ver>v\d+)$")
+QRC24_SHORT_RE = re.compile(r"^QRC24\s+(?P<prof>[A-Za-z0-9_]+)\s+S(?P<seed>\d+)(?:\s+(?P<ver>v\d+))?$")
+QRC24_FIXED = dict(arch="W104_D121", proto="FRESH50")          # 고정 method 가 포괄하는 것 — 접두어 QRC24 가 이 둘과 W104·D121 Student·T0 를 뜻한다
+
+
+def short_run_name(run):
+    """긴 실행명 → 짧은 표시명. QRC24 계열이 아니면 그대로 돌려준다."""
+    m = QRC24_RE.match(run or "")
+    if not m:
+        return run
+    ver = "" if m.group("ver") == "v1" else " " + m.group("ver")
+    return f"QRC24 {m.group('prof')} S{m.group('seed')}{ver}"
+
+
+def long_run_name(short, server):
+    """짧은 표시명 + 서버 → 원래 실행명 (고정 method 의 골격·프로토콜을 되돌린다). 형식이 아니면 None."""
+    m = QRC24_SHORT_RE.match((short or "").strip())
+    if not m or not server:
+        return None
+    return f"PAKD50_QRC24_{server.upper()}_{m.group('prof')}_{QRC24_FIXED['arch']}_WV3_T0_S{m.group('seed')}_{QRC24_FIXED['proto']}_{m.group('ver') or 'v1'}"
+
+
+def canonical_run_key(cell, server=None):
+    """B열 문자열 → **원래 실행명**. 긴 표기든 짧은 표기든 같은 key 가 나오게 해서 중복 행이 생기지 않게 한다."""
+    t = run_tag(cell)
+    return long_run_name(t, server) or t
+
+
 def run_tag(cell):
     """B열 문자열에서 실행명만 뽑는다.  'K0_R4_base (50K) · w96 ...' -> 'K0_R4_base'"""
     s = cell.strip()

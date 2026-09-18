@@ -156,3 +156,22 @@ s4 의 다음 case 를 설계하려고 90 개 QRECON24 행과 s1 로컬 13 run·
 2. **R2 seed 단계는 lock 이 서면 실제로 생성된다** — 검토에서 `qrc24_control_profile` 이 41xxx seed 를 canonical-G22 부재로 막는 버그를 찾아 고쳤다. seed 단계 run 의 `control_runs` 는 가상 id 가 아니라 `recipe_lock` + 같은 profile 의 `reference_block` 이고 `baseline_run` 은 비운다(같은 C* 의 seed 반복이라 seed 별 기준이 없다). K52 가 lock 을 임시로 세워 4 벌 생성을 확인하고 파일을 원상복구한다.
 
 새 도구: `tools/qrc24_fixed_step_rr.py` — 저장된 `results/reduced_last.mat`(exact 50K) 을 시트와 같은 경로로 다시 재 profile 간 ERGAS 폭을 낸다. GPU 추론 없음, run 당 약 5 초. gate **202 ALL OK**.
+
+
+## 12. 2026-09-18 사용자 결정 — lock 게이팅 제거 · 시트 실행명 단축
+
+**(1) seed 단계를 막던 조건을 전부 없앴다.** 공동 목표 통과 seed 수(n_joint)·HQNR 하한 통과 수를 확인해 seed 실행을 보류하던 게이트가 사라졌다.
+`qrc24_seed_items()` 는 lock 없이 목록을 만들고, `kdv_block` 의 seed ≥ 41000 차단도 없앴다. 설정은 `qrc24_seed_profile()` — lock 파일이 있으면 그 profile, 없으면 **G23**(R2 의 잠정 기준) 하나로 **전 서버 공통**이다.
+활성 큐는 **seed 4 개가 먼저**, 그 뒤 B20A03 β-close(참고 비교, 더 이상 무엇도 막지 않는다). config 20 벌 생성 완료. `tools/qrc24_lock.py` 는 비교표·기록용으로만 남는다.
+
+**(2) 시트 실행명을 줄였다.** 고정 method 를 접두어 하나로 포괄하고 뒤에 달라지는 것만 쓴다.
+
+| 전 | 후 |
+|---|---|
+| `PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S41001_FRESH50_v1 (50K) · <긴 설명>` | `QRC24 G23 S41001 (50K) · run=… · <설명>` |
+
+서버는 탭이, 골격 W104·D121 과 프로토콜 FRESH50 은 접두어 `QRC24` 가 말한다. version 은 v2 이상일 때만 붙인다.
+**이미 올라간 긴 이름 행은 덮어쓰지 않는다** — `sheet_categories.canonical_run_key(cell, server)` 가 긴 표기와 짧은 표기를 같은 run 으로 묶어 같은 행을 갱신하므로 중복 행이 생기지 않는다.
+긴 실행명은 Notes 의 `run=…` 으로 남겨 provenance 를 잃지 않는다. 학습 uploader·NOA uploader·target uploader 셋 다 같은 key 를 쓴다.
+
+검사 K52 에 두 항목을 넣었다(게이팅 없이 seed 생성 · 짧은 표기 왕복 복원과 canonical 일치). gate **203 ALL OK**.
