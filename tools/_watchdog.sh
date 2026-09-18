@@ -12,6 +12,22 @@ fi
 LOG="$REPO/work_dir/cases_chain.log"
 LOCK="$REPO/work_dir/.watchdog.lock"
 exec 9>"$LOCK"; flock -n 9 || exit 0
+# Explicitly activated FH12 owns future admissions, including after its window
+# closes. Pulling code/configs alone does not create this local pointer/window.
+FH12_SERVER=""
+if [ -r "$REPO/work_dir/_fh12/local_server.txt" ]; then
+  IFS= read -r FH12_SERVER < "$REPO/work_dir/_fh12/local_server.txt" || true
+fi
+case "$FH12_SERVER" in s1|s2|s3|s4|s5)
+  if [ -f "$REPO/work_dir/_fh12/$FH12_SERVER/window.json" ]; then
+    cd "$REPO"
+    PY="${PYTHON:-/home/knuvi/miniconda3/envs/pancrafter/bin/python}"
+    [ -x "$PY" ] || PY=python
+    setsid nohup "$PY" tools/fh12_runner.py run --server "$FH12_SERVER" >> "$REPO/work_dir/_fh12/$FH12_SERVER/runner.log" 2>&1 < /dev/null 9>&- &
+    exit 0
+  fi;;
+esac
+[ ! -e "$REPO/work_dir/_fh12/local_server.txt" ] || { echo "FH12 registration incomplete/invalid; preserving legacy admission hold" >> "$LOG"; exit 0; }
 if [ -f "$REPO/work_dir/_qrc24_mix20h/plan_manifest.json" ]; then
   cd "$REPO"
   PY="${PYTHON:-/home/knuvi/miniconda3/envs/pancrafter/bin/python}"

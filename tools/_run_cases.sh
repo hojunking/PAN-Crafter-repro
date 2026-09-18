@@ -23,6 +23,19 @@
 #   - 체인 자체가 죽는 경우는 tools/_watchdog.sh(cron) 가 재기동한다
 #   - work_dir/cases_queue_handover.txt 가 생기면 다음 case 경계에서 남은 큐를 그 파일의 큐로 바꾼다 (전환 스크립트용; 진행 중 run 은 끝까지)
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
+# FH12 is opt-in: immutable local registration wins over old automatic queues.
+FH12_SERVER=""
+if [ -r "$REPO/work_dir/_fh12/local_server.txt" ]; then
+    IFS= read -r FH12_SERVER < "$REPO/work_dir/_fh12/local_server.txt" || true
+fi
+case "$FH12_SERVER" in s1|s2|s3|s4|s5)
+    if [ -f "$REPO/work_dir/_fh12/$FH12_SERVER/window.json" ]; then
+        PY="${PYTHON:-/home/knuvi/miniconda3/envs/pancrafter/bin/python}"
+        [ -x "$PY" ] || PY=python
+        exec "$PY" tools/fh12_runner.py run --server "$FH12_SERVER"
+    fi;;
+esac
+[ ! -e "$REPO/work_dir/_fh12/local_server.txt" ] || { echo "FH12 registration incomplete/invalid; refusing legacy fallback"; exit 0; }
 # M20 has its own finite pair scheduler; do not fall through to historical extras.
 if [ -f "$REPO/work_dir/_qrc24_mix20h/plan_manifest.json" ]; then
     PY="${PYTHON:-/home/knuvi/miniconda3/envs/pancrafter/bin/python}"
