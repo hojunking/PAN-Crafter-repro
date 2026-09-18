@@ -816,13 +816,22 @@ def collect(tag, want_profile, server, peer=None):
         row["tag"] = row["tag"] + "·peerB"
         desc = (desc + " peerB").strip()
     lbl = _iter_label(n_iter)
-    _disp = sheet_categories.short_run_name(row["tag"])                    # 2026-09-18: 고정 method 는 접두어로 포괄하고 profile·seed·version 만 남긴다 (긴 이름은 Notes 에 남는다)
-    if _disp != row["tag"]:
-        desc = (f"run={row['tag']}" + (f" · {desc}" if desc else "")).strip()
-        row["tag"] = _disp
-    base = row["tag"] if lbl.lower() in row["tag"].lower() else f"{row['tag']} ({lbl})"
-    row["tag"] = f"{base} · {desc}" if desc else base
+    row["tag"], row["note"] = compose_cells(row["tag"], desc, row.get("note", ""), lbl)
     return row
+
+
+def compose_cells(tag, desc, note, lbl):
+    """(B 실행명, W Notes) 조립 — 2026-09-18 사용자 결정: **B 는 짧게.**
+
+    고정 method 는 접두어 하나가 포괄하고(QRC24 …), 긴 실행명과 method 설명은 Notes 의 run=… 로 간다.
+    gspread/sheet_cleanup.py 가 기존 행에 적용한 모양과 같아야 한다 — 다르면 다음 업로드가 B 를 도로 늘린다.
+    """
+    short = sheet_categories.short_run_name(tag)
+    if short != tag:
+        note = " · ".join(x for x in (f"run={tag}", (desc or "").strip(), (note or "").strip()) if x)
+        tag, desc = short, ""
+    base = tag if lbl.lower() in tag.lower() else f"{tag} ({lbl})"
+    return (f"{base} · {desc}" if desc else base), note
 
 
 # ----------------------------------------------------------------- 시트

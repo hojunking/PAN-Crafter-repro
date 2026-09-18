@@ -2,6 +2,8 @@
 # method qrecon_continuous_v1: w = qref/(qref+q_T)(분자 1) · λE 절대 6e-4/2e-3/6e-3(환산값; 다시 2 배 하지 않음) · uniform 대조 0.5 · U ← H+K+λE·w·E / A ← w·H 만. 신규 profile B20A03(λE .002·rA .03·α 1·β .2) · A03_UNIF/A03_SHUF(G23 에서 A 가중만 .5/셔플).
 # 보류(superseded_pending; 미시작일 때만 — 이미 시작/완료면 원 정의로 끝낸다): 없음. 시간 대용 R_s 2.42 h, 예약 1.20×R_s + 10/60(ledger 실측 우선). 24h 는 원 campaign 누적 최소 운영구간(다시 세지 않음).
 # 적용은 tools/qrecon24_switch.sh (chain 이 살아 있으면 case 경계 인계 파일; 진행 중 run 은 끝까지). v2 config 는 kdv.qrc24.queue_revision 을 갖고 시트 X열에 ADJ-R1 토큰이 붙는다.
+# 이어서 Narrow R2 (research_log/PAN_QRC24_Narrow_R2_SeedLock_ERGAS_2026-09-17.md; revision QRC24_NARROW_R2_20260917) 6 run — 설정 G23 고정 seed 4 벌 + 마지막 β 비교 B20A03 2 벌(참고 비교; 무엇도 막지 않는다).
+# 판정 selector 는 HQNR9585_ERGAS2040_v2(raw HQNR ≥ .9585 통과 집합 안에서 공식 RR ERGAS 최소 → SCC → PSNR → SAM → Q8 → SSIM). lock 게이팅은 2026-09-18 사용자 결정으로 없다.
 PAKD50_QRC24_S1_G22_W104_D121_WV3_T0_S1234_FRESH50_v1
 PAKD50_QRC24_S1_A_UNIF_W104_D121_WV3_T0_S1234_FRESH50_v1
 PAKD50_QRC24_S1_A_FREEZE_W104_D121_WV3_T0_S1234_FRESH50_v1
@@ -16,3 +18,9 @@ PAKD50_QRC24_S1_A_UNIF_W104_D121_WV3_T0_S3407_FRESH50_v1
 PAKD50_QRC24_S1_A_FREEZE_W104_D121_WV3_T0_S3407_FRESH50_v1
 PAKD50_QRC24_S1_A_SHUF_W104_D121_WV3_T0_S3407_FRESH50_v1
 PAKD50_QRC24_S1_G21_W104_D121_WV3_T0_S3407_FRESH50_v1
+PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S41001_FRESH50_v1
+PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S41006_FRESH50_v1
+PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S41011_FRESH50_v1
+PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S41016_FRESH50_v1
+PAKD50_QRC24_S1_B20A03_W104_D121_WV3_T0_S1234_FRESH50_v3
+PAKD50_QRC24_S1_B20A03_W104_D121_WV3_T0_S3407_FRESH50_v3

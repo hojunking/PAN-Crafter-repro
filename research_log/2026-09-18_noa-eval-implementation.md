@@ -175,3 +175,56 @@ s4 의 다음 case 를 설계하려고 90 개 QRECON24 행과 s1 로컬 13 run·
 긴 실행명은 Notes 의 `run=…` 으로 남겨 provenance 를 잃지 않는다. 학습 uploader·NOA uploader·target uploader 셋 다 같은 key 를 쓴다.
 
 검사 K52 에 두 항목을 넣었다(게이팅 없이 seed 생성 · 짧은 표기 왕복 복원과 canonical 일치). gate **203 ALL OK**.
+
+## 13. 2026-09-18 오전 — seed 단계가 어느 큐에도 없었다 (다섯 서버 유휴) · 시트 정리 적용
+
+### 13.1 무엇이 잘못됐나
+
+사용자 확인("여긴 왜 실험을 안하는거지?") 으로 드러났다. s1 은 **09-18 04:06:48 `[cases] DONE`** 이후 유휴였다.
+
+커밋 `a565caf` 는 Narrow R2 의 seed config **20 벌을 만들었지만 편성표에 넣지 않았다.** 운영 경로가 읽는 단일 출처는
+`PRIORITY_BY_SERVER` 인데(switch ⑤ 의 `q`, `mandatory_runs.txt`, 예약, 대기자 pending, watchdog 재기동 큐가 전부 여기서 나온다),
+그 값이 `qrc24_items(srv)` = ADJ-R1 편성 그대로였다. 그래서
+
+- `qrc24_effective_queue()` 는 seed 를 포함했지만 **아무도 그 함수를 운영에 쓰지 않았고**,
+- `config/queues/qrecon24_*.txt` 다섯 개는 `write_qrc24_queue_file()` 이 `qrc24_items` 만 쓰므로 그대로였다(a565caf 의 커밋 메시지
+  "큐 파일 갱신" 은 **사실이 아니다** — 그 커밋의 diff 에 큐 파일이 없다),
+- 결과적으로 switch 는 "미완 0" 을 보고, 전 서버가 pull 해도 돌 것이 없었다.
+
+### 13.2 고친 것
+
+| | |
+|---|---|
+| `PRIORITY_BY_SERVER` | `qrc24_items(srv) + qrc24_r2_items(srv)` — 편성의 단일 출처에 R2 를 넣는다. mandatory·예약·대기자·watchdog 가 자동으로 따라온다 |
+| `write_qrc24_queue_file` | 같은 목록을 쓰고, 머리 주석에 R2 revision·seed 수·selector 를 적는다. 다섯 서버 큐 파일 재생성 (s1 20 · s2 17 · s3 25 · s4 23 · s5 20) |
+| 검사 | K44/K48b 를 새 정의로(계획 §8 예약 합은 ADJ-R1 분, R2 는 같은 식·slack 1.2 로 따로) · `allowed_seeds` 에 41xxx 포함 · **K52 에 회귀 검사**: R2 run 은 config 만 있는 게 아니라 `priority_for` 와 서버 큐 파일에 실제로 들어 있어야 한다 |
+
+기존 v1/v2/v3 config 는 바이트 불변이다(K48b filecmp). 수식·Teacher·q·selector 는 건드리지 않았다 — **편성만** 바뀌었다.
+
+### 13.3 s1 기동
+
+`./tools/qrecon24_switch.sh` — 미완 6 run(seed 41001/41006/41011/41016 @G23 → B20A03 1234/3407 v3), 예약 합 **18.21 h**,
+chain pid 17130, 감시자 cron 재등록. 09:50:24 부터 seed 41001 학습 중. 디스크 57 G 여유에 run 당 5.8 G → 6 run 약 35 G.
+**`tools/prune_workdir.py --tier t2` 는 돌리지 않았다** — 지우는 `epoch-*` 가 selector 의 후보 checkpoint 라 R2 판정에 필요하다.
+
+다른 서버는 `git pull` 뒤 자기 `./tools/qrecon24_switch.sh`(NOA 평가 중이면 `--release` 뒤) 하나로 같은 상태가 된다.
+
+### 13.4 시트 정리 (사용자: "run 이 너무 길어서 정리가 필요하다 · NOA 와 본 결과 구분이 어렵다")
+
+`gspread/sheet_cleanup.py` — `--dry-run` / `--apply [--tab]`. B(Run) 열이 **평균 480 자·최대 1710 자**였다(실행명 뒤에 method 설명이
+통째로 붙고, 그 설명은 Notes 와 대부분 겹쳤다).
+
+1. **B** = 짧은 표시명만. QRC24 는 `QRC24 <PROFILE> S<seed>[ v<n>] (50K)`, 그 밖은 실행명 + `(50K)`
+2. **Notes** = `run=<원래 실행명>` + B 에서 뺀 설명 + 기존 Notes — **버리는 정보 없음**
+3. **행 2 그룹 라벨** — `RR` → `본 결과(A_ON) RR`, `FR·paper mat20` → `본 결과(A_ON) FR·paper mat20` (오른쪽 `NOA …` 블록과 대비)
+4. 적용 전 B·W 열 전체를 `gspread/_sheet_backup/<탭>.cleanup_<시각>.json` 으로 백업, 쓰기는 공용 flock 안에서
+
+**캠페인 구분행(`▍`/`■`/`□` 으로 시작)은 건드리지 않는다** — 첫 dry-run 이 이것을 실행명으로 오인해 고쳤고, 가드를 넣어 막았다.
+s1 적용 결과 72 행 · B 평균 **480 → 48 자**(남은 긴 셀은 구분행뿐). 지표·Date·통합실험·NOA 열은 읽지도 쓰지도 않는다.
+
+앞으로 올라갈 것도 같은 모양이어야 한다 — 업로더의 조립을 `gspread_upload.compose_cells(tag, desc, note, lbl)` 로 떼어 내고,
+K52 가 **업로더와 정리 도구가 같은 (B, Notes) 를 만드는지** 직접 비교한다. 다르면 다음 학습 업로드가 B 를 도로 늘린다.
+
+다른 서버는 자기 탭에서 `python gspread/sheet_cleanup.py --dry-run` → `--apply`. 남의 탭에는 `--apply` 가 거부된다.
+
+gate **203 ALL OK**.

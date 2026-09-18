@@ -296,14 +296,17 @@ def qrc24_block_2x2(server, seed):
 
 
 def write_qrc24_queue_file(server, path=None):
-    """config/queues/qrecon24_<srv>.txt = 활성 편성(QRC24_QUEUES; 등록 완료 + ADJ-R1 순서) — 머리 주석에 revision·보류·시간 대용."""
-    items = qrc24_items(server); held = qrc24_held_runs(server); adj = qrc24_adj_runs(server); reg = len(QRC24_REGISTERED[server]); rem = len(QRC24_ADJ_ORDER[server])
+    """config/queues/qrecon24_<srv>.txt = 활성 편성(QRC24_QUEUES; 등록 완료 + ADJ-R1 순서 + **Narrow R2** seed·β-close) — 머리 주석에 revision·보류·시간 대용."""
+    items = qrc24_items(server) + qrc24_r2_items(server); held = qrc24_held_runs(server); adj = qrc24_adj_runs(server); reg = len(QRC24_REGISTERED[server]); rem = len(QRC24_ADJ_ORDER[server])
+    r2 = qrc24_r2_items(server); sd_n = len(qrc24_seed_items(server))
     t_fast = {"s5": " (빠른 시나리오 1.46 h 는 §10 병기; 예약은 느린 2.58 h)"}.get(server, "")
     hdr = (f"# QRECON24 {server} — ADJ-R1 (2026-09-17; 계획 {QRC24_ADJ_PLAN} §5·§9·§11, 노트 {QRC24_ADJ_NOTE}; queue_revision {QRC24_ADJ_REVISION}). 원계획 {QRC24_PLAN} §5 의 등록 완료 {reg} run 은 앞에 그대로(runner 가 건너뜀), "
            f"남은 편성 {rem} run(유지 {rem - len(adj)} v1 · 추가 {len(adj)} v2). 전부 W104·D121·T0 고정, FRESH50.\n"
            f"# method qrecon_continuous_v1: w = qref/(qref+q_T)(분자 1) · λE 절대 6e-4/2e-3/6e-3(환산값; 다시 2 배 하지 않음) · uniform 대조 0.5 · U ← H+K+λE·w·E / A ← w·H 만. 신규 profile B20A03(λE .002·rA .03·α 1·β .2) · A03_UNIF/A03_SHUF(G23 에서 A 가중만 .5/셔플).\n"
            f"# 보류(superseded_pending; 미시작일 때만 — 이미 시작/완료면 원 정의로 끝낸다): {', '.join(held) if held else '없음'}. 시간 대용 R_s {QRC24_ADJ_REFERENCE_H[server]} h{t_fast}, 예약 1.20×R_s + 10/60(ledger 실측 우선). 24h 는 원 campaign 누적 최소 운영구간(다시 세지 않음).\n"
-           f"# 적용은 tools/qrecon24_switch.sh (chain 이 살아 있으면 case 경계 인계 파일; 진행 중 run 은 끝까지). v2 config 는 kdv.qrc24.queue_revision 을 갖고 시트 X열에 ADJ-R1 토큰이 붙는다.\n")
+           f"# 적용은 tools/qrecon24_switch.sh (chain 이 살아 있으면 case 경계 인계 파일; 진행 중 run 은 끝까지). v2 config 는 kdv.qrc24.queue_revision 을 갖고 시트 X열에 ADJ-R1 토큰이 붙는다.\n"
+           f"# 이어서 Narrow R2 ({QRC24_R2_PLAN}; revision {QRC24_R2_REVISION}) {len(r2)} run — 설정 {qrc24_seed_profile()} 고정 seed {sd_n} 벌 + 마지막 β 비교 B20A03 {len(r2) - sd_n} 벌(참고 비교; 무엇도 막지 않는다).\n"
+           f"# 판정 selector 는 {QRC24_R2_SELECTOR}(raw HQNR ≥ .9585 통과 집합 안에서 공식 RR ERGAS 최소 → SCC → PSNR → SAM → Q8 → SSIM). lock 게이팅은 2026-09-18 사용자 결정으로 없다.\n")
     path = path or os.path.join(ROOT, "config", "queues", f"qrecon24_{server}.txt"); open(path, "w").write(hdr + "\n".join(items) + "\n"); return items
 
 
@@ -421,7 +424,9 @@ QEGX_S3_ITEMS = [f"PAKD50_{c}_W104_D121_WV3_T0_S2026_FRESH50_v2" for c in ("J0",
 QEGX_S4_ITEMS = (["NA0@W104_D121", "J0@W104_D121", "JQ@W104_D121", "XJ@W104_D121", "F0@W104_D121"] + [f"PAKD50_{c}_W104_D121_WV3_T0_S1234_FRESH50_v1" for c in ("QE50", "LF0", "LFQ", "LFQE50", "LFX", "JE0", "QER50", "QERS")]
                  + [f"PAKD50_{c}_W104_D121_WV3_T0_S3407_FRESH50_v1" for c in ("J0", "JQ", "QE50", "JE0", "QER50", "QERS")])
 # QRECON24 (2026-09-16 저녁 §5): 다섯 서버 전부 새 명시 큐(68 run; 서버·profile·seed 사전 고정). 이전 QEDGE9/QEGX/EDGEBAL 의 진행 중 run 은 정상 종료(runner 가 끝낸다), 미완 항목은 superseded (필요하면 extra_priority 에 run 이름으로).
-PRIORITY_BY_SERVER = {srv: qrc24_items(srv) for srv in ("s1", "s2", "s3", "s4", "s5")}
+# 2026-09-18: **Narrow R2 를 운영 큐에 넣는다.** a565caf 는 seed config 20 벌만 만들고 이 표를 ADJ-R1 14/12/20/19/16 그대로 두어,
+# switch·대기자·mandatory·예약이 전부 "미완 0" 을 보고 어느 서버도 seed 를 돌지 않았다(s1 은 09-18 04:06 [cases] DONE 뒤 유휴). 편성의 단일 출처는 여기다.
+PRIORITY_BY_SERVER = {srv: qrc24_items(srv) + qrc24_r2_items(srv) for srv in ("s1", "s2", "s3", "s4", "s5")}
 MANDATORY_BY_SERVER = dict(PRIORITY_BY_SERVER)        # 기본 run 전부가 예산 예약 대상 (완료된 run 은 trainer 가 0 으로 센다)
 QEDGE9_ITEMS_BY_SERVER = {"s5": list(QEDGE9_S5_ITEMS), "s1": list(QEDGE9_S1_ITEMS)}     # 이 항목들만 QEDGE9 branch(campaign/budget); s4 는 기존 E0 allocation 그대로(QEDGE9 없음)
 EDGEBAL_ITEMS_BY_SERVER = {"s2": list(EDGEBAL_S2_ITEMS), "s5": list(EDGEBAL_S5_ITEMS)}

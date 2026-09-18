@@ -170,11 +170,15 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
 
 | 서버 | 지금 | 그 다음 |
 |---|---|---|
-| s1 | QRECON24 ADJ-R1 12/14 완료 · 마지막 학습(G21@3407) 진행 중 → 끝나면 큐 비움 | **① NOA 전수 평가**(`./tools/noa_eval_switch.sh --dry-run` → 학습 끝난 뒤 본 실행 → `--upload`) → **② s1 전용 aligner 분석**(`tools/s1_aligner_analysis.py --assets`) → ③ `--release` 로 본 실험 복귀 |
-| s2 | QRECON24 6 완료(S777) · ADJ-R1 6 run 편성 | **① 자기 서버 NOA 전수 평가**: pull → `./tools/noa_eval_switch.sh --dry-run` → `--hold`(진행 중 run 은 끝까지) → 본 실행 → `--upload` → **② `--release` 로 ADJ-R1 큐 복귀**. s1 분석·타 서버 완료를 기다리지 않는다 |
-| s3 | QRECON24 10 완료(2026 G 3×3 + G22@4321) · ADJ-R1 10 run 편성 | **① 자기 서버 NOA 전수 평가** 같은 순서 → **② `--release` 로 복귀**(독립) |
-| s4 | QRECON24 10 완료(1234 H 3×3 + H_ALPHA0) · ADJ-R1 9 run 편성 | **① 자기 서버 NOA 전수 평가** 같은 순서 → **② `--release` 로 복귀**(독립) |
-| s5 | QRECON24 7 완료(L 계열) · ADJ-R1 9 run 편성 | **① 자기 서버 NOA 전수 평가** 같은 순서 → **② `--release` 로 복귀**(독립) |
+| s1 | ADJ-R1 14 완료 · NOA 평가·업로드 완료 · **Narrow R2 seed 단계 학습 중**(41001→41006→41011→41016 @G23 → B20A03 1234/3407 v3; 6 run 18.2 h, 09-18 09:50 기동) | 끝나면 selector `--selector HQNR9585_ERGAS2040_v2` · 선택적으로 `tools/s1_aligner_analysis.py --assets` |
+| s2 | QRECON24 6 완료(S777) · NOA 평가·업로드 완료 | **`git pull` → `./tools/qrecon24_switch.sh`**(NOA hold 중이면 `./tools/noa_eval_switch.sh --release` 먼저). ADJ-R1 남은 편성 + **R2 seed 4 + β-close** 가 큐에 들어온다 |
+| s3 | QRECON24 10 완료(2026 G 3×3 + G22@4321) · **NOA 평가 아직**(시트에 NOA 열 없음) | ① `./tools/noa_eval_switch.sh --dry-run` → `--hold` → 본 실행 → `--upload` → ② **`git pull` → `./tools/qrecon24_switch.sh`**(R2 포함 25 run) |
+| s4 | QRECON24 10 완료(1234 H 3×3 + H_ALPHA0) · NOA 평가·업로드 완료 | **`git pull` → `./tools/qrecon24_switch.sh`**(R2 포함 23 run) |
+| s5 | QRECON24 7 완료(L 계열) · **NOA 평가 아직**(시트에 NOA 열 없음) | s3 와 같은 순서 → `./tools/qrecon24_switch.sh`(R2 포함 20 run) |
+
+**09-18 오전 정정: `a565caf` 가 R2 seed config 20 벌만 만들고 `PRIORITY_BY_SERVER` 에 넣지 않아 다섯 서버 전부 돌 것이 없었다**(s1 은 04:06 `[cases] DONE` 뒤 유휴).
+편성의 단일 출처를 `qrc24_items + qrc24_r2_items` 로 고치고 큐 파일 다섯 개를 재생성했다 — **각 서버는 pull 뒤 `./tools/qrecon24_switch.sh` 하나면 된다**(노트 §13).
+시트는 `gspread/sheet_cleanup.py --dry-run`/`--apply` 로 자기 탭의 Run 열을 짧게 정리한다(설명은 Notes 의 `run=…` 으로, 그룹 라벨은 `본 결과(A_ON)` ↔ `NOA` 로 대비; s1 적용 완료).
 
 **09-18: 전 서버가 자기 Student 전수 NOA 평가를 먼저 하고 각자 복귀한다 — 진입점은 `./tools/noa_eval_switch.sh` 하나, 서버용 지시서는 `research_log/2026-09-18_noa-eval-implementation.md` §8 이다(계획 원문 PAN_*.md 는 저장소에 두지 않으므로 서버에는 없다).**
 (완료 현황은 ADJ-R1 계획 부록 A(09-17 native Sheet 39 run) 기준; 각 서버의 실제 프로세스 상태는 switch 가 확인한다 — Sheet 만 보고 kill 하지 않는다. 진행 중 run 은 끝까지, 큐 교체는 case 경계 인계.)
