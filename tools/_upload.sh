@@ -14,6 +14,16 @@ if [ "${CONDA_DEFAULT_ENV:-}" != "pancrafter" ]; then
 source "$CONDA_BASE/etc/profile.d/conda.sh" 2>/dev/null && conda activate pancrafter
 fi
 [ $# -ge 1 ] || { echo "usage: $0 <실행명> [...]" >&2; exit 0; }
+# Explicit M20 adapter: no v1 selector, whole legacy backlog, or optional GPU diagnostics.
+LEGACY_UPLOAD=()
+for M20_TAG in "$@"; do
+  case "$M20_TAG" in PAKD50_QRC24_*_S52[0-9][0-9][0-9]_FRESH50_v4)
+    python tools/mix20h_postrun.py "$M20_TAG" --device cuda --upload || echo "[upload] M20 evaluation/upload pending: $M20_TAG";;
+    *) LEGACY_UPLOAD+=("$M20_TAG");;
+  esac
+done
+[ ${#LEGACY_UPLOAD[@]} -gt 0 ] || exit 0
+set -- "${LEGACY_UPLOAD[@]}"
 LOG="$REPO/work_dir/gspread_upload.log"
 {
   echo "--- $(date -Iseconds)  $* ---"

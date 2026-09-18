@@ -1,0 +1,87 @@
+{
+  "source_run": "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1",
+  "source_training_file": "work_dir/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1/kdv_config_resolved.json",
+  "source_training_sha256": "33b8def5374fd5fc9a387240c4b432ddbff451c5981d94f1fadcbeb4c6778c57",
+  "source_dataset_file": "work_dir/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1/dataset_hashes.json",
+  "source_dataset_sha256": "e2ad111f9bad873ce61a803adbb10d7732625d98750d72158e75e774eb800efa",
+  "training": {
+    "optimizer": "AdamW",
+    "lr": 0.0001,
+    "weight_decay": 0.01,
+    "scheduler": "cosine",
+    "warmup": 100,
+    "batch": 48,
+    "updates": 50000,
+    "amp": "no",
+    "seed": 1234,
+    "optimizer_class": "AdamW",
+    "param_groups": [
+      {
+        "name": "backbone",
+        "n_params": 74,
+        "n_elements": 1903624,
+        "initial_lr": 0.0001,
+        "lr_now": 0.0,
+        "weight_decay": 0.01,
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "eps": 1e-08,
+        "amsgrad": false,
+        "first_names": [
+          "backbone.input.weight",
+          "backbone.input.bias",
+          "backbone.encoder1.0.in_layers.0.norm.weight"
+        ]
+      },
+      {
+        "name": "aligner",
+        "n_params": 22,
+        "n_elements": 105330,
+        "initial_lr": 3e-06,
+        "lr_now": 0.0,
+        "weight_decay": 0.01,
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "eps": 1e-08,
+        "amsgrad": false,
+        "first_names": [
+          "aligner.pan_stem.1.weight",
+          "aligner.pan_stem.2.weight",
+          "aligner.pan_stem.2.bias"
+        ]
+      }
+    ],
+    "weight_decay_exclusions": "none (all parameters incl. norm/bias decay 0.01)",
+    "scheduler_detail": {
+      "kind": "cosine",
+      "source": "diffusers.optimization.get_scheduler",
+      "num_warmup_steps": 100,
+      "num_training_steps": 50000,
+      "min_lr": 0.0,
+      "per_group_multiplier": "same LambdaLR factor for every group (A/U ratio constant)"
+    },
+    "gradient_accumulation_steps": 1,
+    "grad_clip": null,
+    "mixed_precision": "no",
+    "scaler": false,
+    "tf32": {
+      "matmul": false,
+      "cudnn": true,
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": false
+    },
+    "torch": "2.4.0"
+  },
+  "dataset_hashes": {
+    "train_feeder_args": "f9e7ec381390ff36ddffd0714df7af07a3c5f456078b219a25f3e18372228f82",
+    "val_feeder_args": "ba883e57408d1f3c2263cc2818a9fbbf2dbe8e62554c531288f9e8bf9f59dc87",
+    "test_reduced_feeder_args": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "test_full_feeder_args": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6"
+  },
+  "cue_sha256": "b83cc5d1a25e8766d1813c9d19d956efc24e0f152553e53c4894fa18dcdf563e",
+  "cue_manifest_sha256": "33447ea9b615579b46ed5926fb6a72d3677cbdab8cce23b4afa0d0da06d6f101"
+}

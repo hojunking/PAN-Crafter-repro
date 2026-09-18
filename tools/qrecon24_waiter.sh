@@ -5,6 +5,7 @@
 #   setsid nohup ./tools/qrecon24_waiter.sh >> work_dir/_qrecon24/waiter.log 2>&1 < /dev/null &      (flock 으로 하나만)
 set -uo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
+[ ! -f work_dir/_qrc24_mix20h/plan_manifest.json ] || { echo '[qrecon24-waiter] superseded by M20; no old queue revival'; exit 0; }
 PY="${PYTHON:-/home/knuvi/miniconda3/envs/pancrafter/bin/python}"; export PANCRAFTER_DLPAN="${PANCRAFTER_DLPAN:-/home/knuvi/Desktop/song/DLPan-Toolbox}"
 SERVER="$("$PY" -c "import sys; sys.path.insert(0, '.'); from tools.gen_pakd50_configs import server_id; print(server_id(open('gspread/server.txt').read()))")"; CAMP=work_dir/_qrecon24; mkdir -p "$CAMP"
 queue_file() { if [ -f "$CAMP/queue_active.txt" ]; then echo "$CAMP/queue_active.txt"; else echo "config/queues/qrecon24_${SERVER}.txt"; fi; }     # §8.3 확장 뒤에는 활성 큐(기본 + 확장) 로 재기동 (감사 F03)
@@ -21,6 +22,7 @@ print(st)
 PYEOF
 }
 while true; do
+  [ ! -f work_dir/_qrc24_mix20h/plan_manifest.json ] || { echo '[qrecon24-waiter] M20 handover; exiting'; exit 0; }
   ST=$(status | tail -1)
   case "$ST" in
     DONE) echo "[qrecon24-waiter] $(date -Iseconds) QRECON24 필수 run 전부 종료 — 대기자 종료 (24h 확인·확장은 tools/qrecon24_switch.sh --extend)"; exit 0;;

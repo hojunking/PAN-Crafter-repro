@@ -14,6 +14,7 @@ import argparse
 import fcntl
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -52,6 +53,10 @@ def selection_state(run):
 
 
 def needs_official(run):
+    # M20 has a strict v2 + exact50K completion contract and its own finite runner.
+    # Never let an old --backlog visit silently create a v1 result for that cohort.
+    if re.fullmatch(r"PAKD50_QRC24_S[1-5]_(G23|B20A03)_W104_D121_WV3_T0_S52\d{3}_FRESH50_v4", run):
+        return False
     st, _ = selection_state(run); return st != "done"
 
 
@@ -78,6 +83,9 @@ def main():
     ap.add_argument("run", nargs="?"); ap.add_argument("--backlog", action="store_true"); ap.add_argument("--device", default="cuda"); ap.add_argument("--threshold", type=float, default=THRESHOLD)
     ap.add_argument("--force", action="store_true", help="학습이 돌고 있어도 GPU 재평가를 강행 (기본: 건너뜀)"); ap.add_argument("--dry-run", action="store_true", help="대상만 나열")
     a = ap.parse_args()
+    if a.run and re.fullmatch(r"PAKD50_QRC24_S[1-5]_(G23|B20A03)_W104_D121_WV3_T0_S52\d{3}_FRESH50_v4", a.run):
+        print("[qrecon24-postrun] M20 requires tools/mix20h_postrun.py (explicit v2 + exact50K); legacy v1 skipped")
+        return 2
     targets = []
     if a.run:
         if needs_official(a.run) or a.force:

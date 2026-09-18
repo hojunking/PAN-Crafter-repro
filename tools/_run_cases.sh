@@ -23,6 +23,12 @@
 #   - 체인 자체가 죽는 경우는 tools/_watchdog.sh(cron) 가 재기동한다
 #   - work_dir/cases_queue_handover.txt 가 생기면 다음 case 경계에서 남은 큐를 그 파일의 큐로 바꾼다 (전환 스크립트용; 진행 중 run 은 끝까지)
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
+# M20 has its own finite pair scheduler; do not fall through to historical extras.
+if [ -f "$REPO/work_dir/_qrc24_mix20h/plan_manifest.json" ]; then
+    PY="${PYTHON:-/home/knuvi/miniconda3/envs/pancrafter/bin/python}"
+    [ -x "$PY" ] || PY=python
+    exec "$PY" tools/mix20h_runner.py run --wait
+fi
 # 수동 재기동과 cron 감시자가 겹쳐도 체인은 하나만 뜬다
 exec 8>"$REPO/work_dir/.cases_chain.lock"; flock -n 8 || { echo "[cases] 이미 실행 중 — 종료"; exit 0; }
 # 주의: fd 8 이 자식(run.sh -> python)에 상속되면, 체인 셸이 죽어도 자식이 잠금을

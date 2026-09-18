@@ -1,0 +1,172 @@
+#!/usr/bin/env python
+"""Generate only the 46 explicit MIX20H v4 cases and separate static queues.
+
+No runtime queue, clock, reservation, training process, or historical YAML is
+changed. Runtime activation is a separate, explicit migration operation.
+"""
+import argparse
+import copy
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+import yaml
+from kdv import mix20h_plan as plan
+
+REFERENCE_RECIPE = "assets/mix20h/reference_recipe.json"
+
+
+def reference_recipe(root=ROOT):
+    path = Path(root) / REFERENCE_RECIPE
+    raw = path.read_bytes()
+    return json.loads(raw), hashlib.sha256(raw).hexdigest()
+
+
+def build_config(run_id, root=ROOT):
+    """Reuse the old recipe without old admission/profile resolution.
+
+Runtime defaults come from an observed historical training-start snapshot, not
+new guessed optimizer/Accelerator YAML options unsupported by the trainer.
+"""
+    from tools import gen_pakd50_configs as legacy
+    from kdv.registry import resolve
+    case = plan.case_for(run_id)
+    root = Path(root).resolve()
+    ref, ref_sha = reference_recipe(root)
+    k = legacy.kdv_block(f"QRC24_{case.server_id.upper()}_{case.profile}", case.seed,
+                         case.server_id, cal={"tau_R": plan.TAU_R}, version=case.version,
+                         arch="W104_D121", branch="QRECON24", mix20=True)
+    # Missing/different local assets must not silently weaken expected identity.
+    k["teacher"]["expected_sha256"] = plan.TEACHER_SHA256
+    k["donor"].update(expected_sha256=plan.TEACHER_SHA256, expected_step=24240)
+    k["mix20h"].update(expected_runtime=copy.deepcopy(ref["training"]),
+                       expected_dataset_hashes=copy.deepcopy(ref["dataset_hashes"]),
+                       expected_cue_sha256=ref["cue_sha256"],
+                       expected_cue_manifest_sha256=ref["cue_manifest_sha256"],
+                       runtime_reference_source=dict(path=REFERENCE_RECIPE, sha256=ref_sha,
+                                                     source_run=ref["source_run"],
+                                                     source_training_sha256=ref["source_training_sha256"]))
+    # This template is the same native single-task recipe used by old generator.
+    template = root / "config/PO10_N1_REC_W112_D123_WV3_S2025_R200_FRSTAT.yaml"
+    cfg = yaml.safe_load(template.read_text())
+    cfg.pop("po", None)
+    cfg.update(seed=case.seed, work_dir=str(root / "work_dir" / run_id), trainer="kdv", kdv=k,
+               num_iter=50000, eval_epoch=5, learning_rate=1e-4, expect_params_m=1.9036)
+    cfg["model_args"].update(hidden_size=104, depth=[1, 2, 1])
+    cfg["train_feeder_args"]["return_meta"] = True
+    # Portable local mapping; the original dataset hashes remain authoritative.
+    for key in ("train_feeder_args", "val_feeder_args", "test_reduced_feeder_args", "test_full_feeder_args"):
+        suffix = cfg[key]["dataroot"].split("/data/", 1)[1]
+        cfg[key]["dataroot"] = str(root / "data" / suffix)
+    resolve(k)
+    validate_config(cfg, run_id)
+    return cfg
+
+
+def validate_config(cfg, run_id=None):
+    k = cfg.get("kdv") or {}
+    case = plan.validate_metadata(k.get("mix20h") or {}, run_id)
+    if Path(cfg.get("work_dir", "")).name != case.run_id:
+        raise ValueError("MIX20H work_dir disagrees with explicit identity")
+    expected = {"seed": case.seed, "num_iter": 50000, "eval_epoch": 5,
+                "batch_size": 48, "test_batch_size": 1, "mars": "ms",
+                "trainer": "kdv", "optimizer": "AdamW", "learning_rate": 1e-4,
+                "weight_decay": .01, "num_warmup": 100, "lr_scheduler": "cosine"}
+    for key, value in expected.items():
+        if cfg.get(key) != value:
+            raise ValueError(f"MIX20H recipe mismatch: {key}")
+    if k.get("campaign_id") != plan.CAMPAIGN_ID or k.get("version") != "v4":
+        raise ValueError("MIX20H campaign/version mismatch")
+    if k.get("rec", {}).get("kd_weight") != case.beta or k.get("qrc24", {}).get("profile") != case.profile:
+        raise ValueError("MIX20H profile/beta mismatch")
+    if "qrc24_lock" in k or k.get("baseline_run") is not None:
+        raise ValueError("MIX20H may not inherit a recipe lock or virtual baseline")
+    if k.get("control_runs") != {"pairmate": case.pairmate_run_id}:
+        raise ValueError("MIX20H must point to its real same-server/seed pairmate")
+    if k.get("budget", {}).get("remaining_mandatory") or k.get("budget", {}).get("required"):
+        raise ValueError("MIX20H cannot reserve all candidates or bypass budget")
+    return case
+
+
+def render_config(run_id, root=ROOT):
+    cfg = build_config(run_id, root)
+    case = plan.case_for(run_id)
+    header = (f"# {case.run_id}; {plan.CAMPAIGN_ID}; {plan.QUEUE_REVISION}\n"
+              f"# Explicit {case.server_id}/{case.profile}/S{case.seed}/v4; pair {case.pair_id}; beta={case.beta}.\n"
+              f"# Source: {plan.SOURCE_PLAN}. Generated by tools/gen_mix20h_configs.py.\n"
+              "# Same native qrecon_continuous_v1 recipe; fresh50K; no lock, other-server wait, or automatic extras.\n"
+              f"# Official target: {plan.SELECTOR_ID}, A_ON raw-original HQNR>=.9585 then ERGAS.\n"
+              "# best_hqnr below is retained as the legacy/raw-max artifact, not the campaign target.\n"
+              "# A shared 20h UTC manifest and pair admission are REQUIRED before training; generation does not activate.\n")
+    return header + yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True)
+
+
+def queue_text(server):
+    cases = plan.cases_for(server)
+    return (f"# {plan.CAMPAIGN_ID} / {plan.QUEUE_REVISION} / {server}\n"
+            f"# {plan.BASE_COUNTS[server]} base + 2 reserve; finite candidate prefix, never mandatory-all.\n"
+            "# Fixed pair order; no recipe lock, no performance gate, no automatic legacy extension.\n"
+            + "\n".join(c.run_id for c in cases) + "\n")
+
+
+def _write_same_or_new(path, text):
+    """Never overwrite a changed config/queue under the same immutable revision."""
+    path = Path(path)
+    if path.exists():
+        if path.read_text() != text:
+            raise ValueError(f"MIX20H collision (do not silently overwrite): {path}")
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text)
+
+
+def generate(servers, out_dir=ROOT / "config", queue_dir=None, root=ROOT):
+    if isinstance(servers, str):
+        servers = (servers,)
+    out_dir = Path(out_dir)
+    queue_dir = Path(queue_dir) if queue_dir else out_dir / "queues"
+    outputs = []
+    pending = []
+    for server in servers:
+        for case in plan.cases_for(server):
+            pending.append((out_dir / (case.run_id + ".yaml"), render_config(case.run_id, root)))
+            outputs.append(case.run_id)
+        pending.append((queue_dir / f"qrc24_mix20h_{server}.txt", queue_text(server)))
+    # Check all collisions before writing the first file.
+    for path, text in pending:
+        if path.exists() and path.read_text() != text:
+            raise ValueError(f"MIX20H collision (no output changed): {path}")
+    for path, text in pending:
+        _write_same_or_new(path, text)
+    return outputs
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__)
+    which = ap.add_mutually_exclusive_group(required=True)
+    which.add_argument("--server", choices=plan.SERVERS)
+    which.add_argument("--all", action="store_true")
+    ap.add_argument("--out-dir", type=Path, default=ROOT / "config")
+    ap.add_argument("--queue-dir", type=Path)
+    ap.add_argument("--check", action="store_true", help="read-only exact generated-file verification")
+    args = ap.parse_args(argv)
+    servers = plan.SERVERS if args.all else (args.server,)
+    if args.check:
+        queue_dir = args.queue_dir or args.out_dir / "queues"
+        for server in servers:
+            for case in plan.cases_for(server):
+                p = args.out_dir / (case.run_id + ".yaml")
+                if p.read_text() != render_config(case.run_id):
+                    raise ValueError(f"generated config differs: {p}")
+            if (queue_dir / f"qrc24_mix20h_{server}.txt").read_text() != queue_text(server):
+                raise ValueError(f"queue differs: {server}")
+    else:
+        generate(servers, args.out_dir, args.queue_dir)
+    print(f"MIX20H {'verified' if args.check else 'generated'} {sum(len(plan.cases_for(s)) for s in servers)} configs; runtime NOT activated")
+
+
+if __name__ == "__main__":
+    main()

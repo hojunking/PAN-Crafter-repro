@@ -12,6 +12,14 @@ fi
 LOG="$REPO/work_dir/cases_chain.log"
 LOCK="$REPO/work_dir/.watchdog.lock"
 exec 9>"$LOCK"; flock -n 9 || exit 0
+if [ -f "$REPO/work_dir/_qrc24_mix20h/plan_manifest.json" ]; then
+  cd "$REPO"
+  PY="${PYTHON:-/home/knuvi/miniconda3/envs/pancrafter/bin/python}"
+  [ -x "$PY" ] || PY=python
+  # Manifest persists after deadline/DONE: never revive historical queues.
+  setsid nohup "$PY" tools/mix20h_runner.py run --wait >> "$REPO/work_dir/_qrc24_mix20h/runner.log" 2>&1 < /dev/null 9>&- &
+  exit 0
+fi
 pgrep -f "bash .*tools/_run_cases.sh" > /dev/null && exit 0          # 체인 살아있음
 [ -f work_dir/_eval_phase/hold.json ] && { echo "$(date -Iseconds) 평가 phase hold — 재기동하지 않는다 (tools/eval_phase.py)" >> "$LOG"; exit 0; }   # 계획 2026-09-18 §2
 grep -q "\[cases\] DONE" "$LOG" 2>/dev/null && exit 0                # 이미 끝남

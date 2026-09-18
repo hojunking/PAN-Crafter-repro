@@ -12,6 +12,7 @@
 # 원칙(§9.1·§10.1): Sheet 만 보고 프로세스를 kill 하지 않는다 · 완료 ID 덮어쓰기 없음 · 실행 중 코드에 pull 하지 않는다(현재 run 은 그 코드로 끝난다) · 실패/NaN 자동 반복 없음
 set -uo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
+[ ! -f work_dir/_qrc24_mix20h/plan_manifest.json ] || { echo 'M20 owns this queue/deadline. Historical switch/--extend is disabled; use tools/mix20h_runner.py status.' >&2; exit 4; }
 PY="${PYTHON:-}"; [ -n "$PY" ] || { [ -x /home/knuvi/miniconda3/envs/pancrafter/bin/python ] && PY=/home/knuvi/miniconda3/envs/pancrafter/bin/python || PY=python; }
 export PANCRAFTER_DLPAN="${PANCRAFTER_DLPAN:-/home/knuvi/Desktop/song/DLPan-Toolbox}"
 SERVER="$("$PY" -c "import sys; sys.path.insert(0, '.'); from tools.gen_pakd50_configs import server_id; print(server_id(open('gspread/server.txt').read()))")"; DRY=0; EXTEND=0

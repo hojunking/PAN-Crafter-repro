@@ -16,6 +16,7 @@
 # 사람이 정한다 (같은 case 를 재도전하려면 해당 줄을 지울 것).
 set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
+[ ! -f work_dir/_qrc24_mix20h/plan_manifest.json ] || { echo 'M20 manifest owns immutable deadline; campaign_start must not reset it. Use tools/mix20h_runner.py run.' >&2; exit 4; }
 
 QUEUE=""; HOURS=24; LABEL="$(date +%Y%m%d-%H%M)"
 while [ $# -gt 0 ]; do

@@ -190,6 +190,9 @@ def load_model(args):
 
 
 def train(args):
+    if (getattr(args, 'kdv', None) or {}).get('mix20h'):
+        from kdv.mix20h_runtime import validate_launch
+        validate_launch(args)  # Admission/immutable deadline before data/model allocation.
     global_step = 0
     train_log = Report(args.work_dir, type='train')
     test_log = Report(args.work_dir, type='test')
@@ -343,11 +346,18 @@ def train(args):
                            f'Best D_s: {best_ds:.6f}\tBest Epoch (Full): {best_epoch_full}')
 
 
-    evaluated_at = -1; last_epoch_run = total_epoch - 1
+        if hasattr(trainer, 'mix20h_evaluation_commit'):
+            trainer.mix20h_evaluation_commit(global_step)  # Commit only after ALL selector/best-state writes.
+
+    evaluated_at = (global_step if hasattr(trainer, 'mix20h_has_committed_evaluation')
+                    and trainer.mix20h_has_committed_evaluation(global_step) else -1)
+    last_epoch_run = total_epoch - 1
     for epoch in range(last_epoch, total_epoch):
         train_log.write(f'========= Epoch {epoch + 1} of {total_epoch} =========')
         global_step = trainer.train(train_log, global_step)
         last_epoch_run = epoch
+        if hasattr(trainer, 'mix20h_budget_boundary'):
+            trainer.mix20h_budget_boundary(global_step)
 
         # KNOWN_ISSUES.md C-2: save_epoch 이 0 이면 (epoch+1) % 0 으로 ZeroDivisionError 가 났다.
         if args.save_epoch > 0 and (epoch + 1) % args.save_epoch == 0:
@@ -355,11 +365,15 @@ def train(args):
 
         if (epoch + 1) % args.eval_epoch == 0:
             _evaluate(epoch, global_step); evaluated_at = global_step
+            if hasattr(trainer, 'mix20h_budget_boundary'):
+                trainer.mix20h_budget_boundary(global_step)
         if global_step >= args.num_iter:
             break                                  # num_iter 도달 뒤 epoch 를 더 돌지 않는다 (warm start 는 마지막 epoch 이전에 도달한다)
     # 마지막 epoch(=num_iter 도달, 예: 50K)이 eval 격자에 없으면 한 번 더 평가한다 —
     # 이전엔 ep245(49,490 step)가 마지막 평가라 정확한 50K 모델은 후보에 들지 못했다 (2026-09-05).
     if evaluated_at != global_step:
+        if hasattr(trainer, 'mix20h_budget_boundary'):
+            trainer.mix20h_budget_boundary(global_step)
         train_log.write(f'[eval] 최종 epoch {last_epoch_run + 1} (step {global_step}) 추가 평가')
         _evaluate(last_epoch_run, global_step)
 
@@ -371,6 +385,8 @@ def train(args):
     if hasattr(trainer, 'export_tags'):
         tags = trainer.export_tags()               # pa: best_hqnr(=best_raw) · best_aligned · last
     for tag in tags:
+        if hasattr(trainer, 'mix20h_evaluation_boundary'):
+            trainer.mix20h_evaluation_boundary(global_step)  # loaded best may NOT be the 50K resume state
         ckpt = os.path.join(args.work_dir, tag)
         if not os.path.isdir(ckpt):
             continue

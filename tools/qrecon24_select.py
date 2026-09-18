@@ -14,7 +14,7 @@ RR SCC 큰 순 → ERGAS 작은 순 → PSNR 큰 순 → SAM 작은 순 → Q8 �
 H 의 적격 판정은 CSV 의 raw_original.hqnr (학습 중 공식 evaluator 와 같은 mat20 protocol) 이며, legacy best 의 fr_mat20.json 값과의 일치를 h_consistency 로 기록한다.
 display_tie: 논문 표시 정밀도(SCC 3 · ERGAS 3 · PSNR 3 · SAM 3 · Q8 3 · SSIM 3 자리) 로 반올림해 같으면 tie (numeric_pass 와 구분, §7.1).
 """
-import argparse, csv, hashlib, importlib.util, json, os, sys, time
+import argparse, csv, datetime, hashlib, importlib.util, json, os, sys, time
 import numpy as np
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0, ROOT)
 SELECTOR = "HQNR9585_RR_v1"; THRESHOLD = 0.9585
@@ -49,15 +49,23 @@ def load_rows(wd):
     if not os.path.exists(p):
         sys.exit(f"!! {p} 없음")
     rows = []
-    for r in csv.DictReader(open(p)):
-        rows.append(dict(step=int(float(r["step"])), hqnr=fl(r.get("raw_original.hqnr")), fscc=fl(r.get("raw_original.fscc")), scc=fl(r.get("rr_scc")), ergas=fl(r.get("rr_ergas")), sam=fl(r.get("rr_sam")), psnr=float("nan"), q8=float("nan"), ssim=float("nan")))
+    with open(p) as stream:
+        for r in csv.DictReader(stream):
+            rows.append(dict(step=int(float(r["step"])), hqnr=fl(r.get("raw_original.hqnr")), fscc=fl(r.get("raw_original.fscc")), scc=fl(r.get("rr_scc")), ergas=fl(r.get("rr_ergas")), sam=fl(r.get("rr_sam")), psnr=float("nan"), q8=float("nan"), ssim=float("nan")))
     return rows
 
 
-def evaluator_identity():
+def evaluator_identity(strict=False):
     """공식 RR 경로의 identity: eval_rr / eval_dlpan / gspread _rr 코드 sha (+ eval_fr_paperset EVAL_VERSION)."""
     ids = {}
-    for k, rel in (("eval_rr", "tools/metrics/eval_rr.py"), ("eval_dlpan", "tools/eval_dlpan.py"), ("gspread_upload", "gspread/gspread_upload.py"), ("q2n", "tools/metrics/q2n.py")):
+    paths = [("eval_rr", "tools/metrics/eval_rr.py"), ("eval_dlpan", "tools/eval_dlpan.py"), ("gspread_upload", "gspread/gspread_upload.py"), ("q2n", "tools/metrics/q2n.py")]
+    if strict:
+        paths += [("inference", "tools/eval_fr_paperset.py"), ("model", "pa/model.py"), ("warp", "pa/warp.py"),
+                  ("skeleton", "kdv/teacher_assets.py"), ("backbone", "model/pancrafter_paper.py"),
+                  ("backbone_blocks", "model/pancrafter.py"),
+                  ("aligner", "pa/aligner.py"), ("selector", "tools/qrecon24_select.py"),
+                  ("mix20_adapter", "tools/mix20h_postrun.py")]
+    for k, rel in paths:
         p = os.path.join(ROOT, rel); ids[k] = sha256_file(p) if os.path.exists(p) else None
     try:
         spec2 = importlib.util.spec_from_file_location("_efp", os.path.join(ROOT, "tools", "eval_fr_paperset.py")); efp = importlib.util.module_from_spec(spec2); spec2.loader.exec_module(efp); ids["eval_fr_paperset_version"] = getattr(efp, "EVAL_VERSION", None)
@@ -80,12 +88,19 @@ def official_rr(tag, wd, step, device, evid):
         return None, "meta/config.yaml 없음"
     cfg = yaml.safe_load(open(cfgp))
     h5 = cfg["test_reduced_feeder_args"]["dataroot"]; droot = h5; dsn = next((s for s in ("wv3", "qb", "gf2", "wv2") if f"test_{s}_" in droot), "wv3")
-    ident = dict(checkpoint_sha256=sha256_file(ckf), config_sha256=sha256_file(cfgp), reduced_h5_sha256=(sha256_file(h5) if os.path.exists(h5) else None), evaluator=evid, step=int(step), device=None)
+    ident = dict(checkpoint_sha256=sha256_file(ckf), config_sha256=sha256_file(cfgp), reduced_h5_sha256=(sha256_file(h5) if os.path.exists(h5) else None), evaluator=evid, step=int(step), device=None,
+                 eval_mode="A_ON", precision="fp32")
     mat = os.path.join(wd, "results", f"reduced_candidate_step-{step}.mat"); side = mat[:-4] + ".json"
     cached = False
     if os.path.exists(mat) and os.path.exists(side):
         try:
-            sj = json.load(open(side)); cached = all(sj.get(k) == ident[k] for k in ("checkpoint_sha256", "config_sha256", "reduced_h5_sha256", "evaluator", "step"))
+            sj = json.load(open(side))
+            keys = ("checkpoint_sha256", "config_sha256", "reduced_h5_sha256", "evaluator", "step")
+            if "inference" in evid:  # M20 opt-in; do not invalidate every historical run's cache.
+                keys += ("eval_mode", "precision")
+            cached = all(sj.get(k) == ident[k] for k in keys)
+            if "inference" in evid:
+                cached = cached and sj.get("mat_sha256") == sha256_file(mat)
         except Exception:                                                              # noqa
             cached = False
     t0 = time.time()
@@ -98,6 +113,7 @@ def official_rr(tag, wd, step, device, evid):
                 y = fwd(pan.unsqueeze(0).to(dev), lpan.unsqueeze(0).to(dev), ms.unsqueeze(0).to(dev), lms.unsqueeze(0).to(dev))
                 srs.append(((y.clip(-1.0, 1.0).float().cpu().numpy() + 1.0) / 2.0 * mp)[0])
         os.makedirs(os.path.dirname(mat), exist_ok=True); savemat(mat, dict(sr=np.stack(srs))); ident["device"] = str(dev); ident["forward"] = how; ident["evaluated_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+        ident["mat_sha256"] = sha256_file(mat)
         json.dump(ident, open(side, "w"), indent=1)
     r = gu._rr(mat, dsn); sec = time.time() - t0
     return dict(scc=r.get("scc"), ergas=r.get("ergas"), psnr=r.get("psnr"), sam=r.get("sam"), q8=r.get("q2n", r.get("q8")), ssim=r.get("ssim"), mat=os.path.relpath(mat, ROOT), cached=cached, rr_eval_seconds=sec, identity=(json.load(open(side)) if os.path.exists(side) else ident)), "official"
@@ -132,6 +148,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--selector", default=SELECTOR, choices=tuple(SELECTORS), help="HQNR9585_RR_v1(기존 SCC 우선) | HQNR9585_ERGAS2040_v2(R2 §2: H 하한 통과 안에서 ERGAS 최소)")
     ap.add_argument("run"); ap.add_argument("--official", action="store_true"); ap.add_argument("--threshold", type=float, default=THRESHOLD); ap.add_argument("--device", default="cuda"); ap.add_argument("--out", default=None)
+    ap.add_argument("--deadline-utc", help="Do not start another candidate evaluation after this timezone-aware UTC instant")
+    ap.add_argument("--strict-identity", action="store_true", help="M20: bind inference source/mode/precision and cached prediction bytes")
     a = ap.parse_args(); wd = os.path.join(ROOT, "work_dir", a.run); rows = load_rows(wd)
     _ORD = SELECTORS.get(a.selector) or ORDER                                          # R2 §2.2: selector 는 순서만 바꾼다 — trainer/criterion 에 전달하지 않는다
     bm = os.path.join(wd, "best_hqnr_meta.json"); legacy = json.load(open(bm)) if os.path.exists(bm) else {}
@@ -140,10 +158,18 @@ def main():
     if leg_step in by_step and frj.get("hqnr") is not None:
         h_cons = dict(step=leg_step, csv_hqnr=by_step[leg_step]["hqnr"], fr_mat20_hqnr=frj["hqnr"], abs_diff=abs(by_step[leg_step]["hqnr"] - frj["hqnr"]))
     elig = [dict(r) for r in rows if np.isfinite(r["hqnr"]) and r["hqnr"] >= a.threshold]
-    notes = []; evid = evaluator_identity() if a.official else None; t_eval = 0.0
+    notes = []; evid = evaluator_identity(strict=a.strict_identity) if a.official else None; t_eval = 0.0
     if a.official:
         for c in elig:
-            m, how = official_rr(a.run, wd, c["step"], a.device, evid)
+            try:
+                if a.deadline_utc and datetime.datetime.now(datetime.timezone.utc) >= datetime.datetime.fromisoformat(a.deadline_utc.replace("Z", "+00:00")):
+                    m, how = None, "deadline: official RR pending"
+                else:
+                    m, how = official_rr(a.run, wd, c["step"], a.device, evid)
+            except Exception as exc:
+                m, how = None, f"{type(exc).__name__}: {exc}"
+            if m is not None and not all(np.isfinite(fl(m.get(k))) for k in RR_KEYS):
+                m, how = None, "official RR has missing/nonfinite metrics"
             if m is None:
                 c["official_rr"] = False; notes.append(f"step {c['step']}: {how}"); continue
             c.update({k: m[k] for k in RR_KEYS}); c.update(rr_mat=m["mat"], official_rr=True, rr_cached=m["cached"], rr_identity=m["identity"]); t_eval += float(m["rr_eval_seconds"])
@@ -173,7 +199,11 @@ def main():
                eligible_ranked=[{k: v for k, v in c.items()} for c in ranked], eligible_unevaluated=[dict(step=c["step"], hqnr=c["hqnr"]) for c in unevaluated],
                evaluator=evid, rr_eval_seconds_total=t_eval, notes=notes, rr_targets={k: f"{op} {thr}" for k, (op, thr) in RR_TARGETS.items()}, display_decimals=RR_DISPLAY_DECIMALS,
                note="같은 checkpoint 의 raw H(mat20 전체 frame) 하한 통과 뒤 RR 정렬; legacy/raw-max/exact50K/late6 는 보존·병기 (§7.2–§7.3). FR fSCC 와 RR SCC 는 다른 값이다. 공식 RR 는 candidate checkpoint 재추론(hash 로 캐시 검증).")
-    p = a.out or os.path.join(wd, "results", "qrecon24_target_selection.json" if a.selector == SELECTOR else f"qrecon24_target_selection_{a.selector}.json"); os.makedirs(os.path.dirname(p), exist_ok=True); json.dump(out, open(p, "w"), indent=1, ensure_ascii=False)
+    p = a.out or os.path.join(wd, "results", "qrecon24_target_selection.json" if a.selector == SELECTOR else f"qrecon24_target_selection_{a.selector}.json"); os.makedirs(os.path.dirname(p), exist_ok=True)
+    tmp = p + f".tmp.{os.getpid()}"
+    with open(tmp, "w") as stream:
+        json.dump(out, stream, indent=1, ensure_ascii=False)
+    os.replace(tmp, p)
     print(f"[qrecon24-select] {a.run}: 후보 {len(rows)} · 적격(H ≥ {a.threshold}) {len(elig)} · status {target_status} · target {'step %d (H %.6f, SCC %s, ERGAS %s)' % (target['step'], target['hqnr'], target.get('scc'), target.get('ergas')) if target else '없음'}"
           f" · legacy best step {leg_step} · raw-max step {raw_max['step'] if raw_max else '?'} · official {official}{' · 미평가 ' + str([c['step'] for c in unevaluated]) if (a.official and unevaluated) else ''} → {os.path.relpath(p, ROOT)}")
     return 0

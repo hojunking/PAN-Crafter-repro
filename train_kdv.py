@@ -41,6 +41,7 @@ from pa.losses import output_edge_loss, output_edge_loss_per_sample, direct_geom
 from kdv.edge_gate import EdgeGate, AffineEdgeWeight
 from kdv.qrecon import QWeight
 from kdv.resume import EpochState, begin_epoch, ExactResumeMismatch
+from kdv.mix20h_runtime import Mix20Runtime, validate_launch, tensor_state_sha
 _PROC_T0 = time.time()                                                     # 프로세스(모듈 import) 시각 — ledger 의 setup_hours 근사 (QRECON24 감사 F05)
 from pa.model import PAModel
 from pa.offset import offset_loss, predict_c, lambda_off, sample_offsets
@@ -66,6 +67,10 @@ class KDVTrainer(PATrainer):
     # ------------------------------------------------------------------ 구성
     def __init__(self, args, data_loader, model):
         self.args = args
+        # M20 is deliberately opt-in; direct main.py calls must carry the same
+        # persistent plan/admission as the finite queue runner (before CUDA/setup).
+        mix20_context = validate_launch(args)
+        self.mix20h = Mix20Runtime(args, mix20_context) if mix20_context else None
         self.train_data_loader = data_loader['train']; self.val_data_loader = data_loader['val']
         self.test_reduced_data_loader = data_loader['test_reduced']; self.test_full_data_loader = data_loader['test_full']
         assert getattr(args, "mars", "dual") == "ms" and args.res, "KDV 는 단일 HRMS task(mars: ms) · 잔차 base 고정"
@@ -107,7 +112,10 @@ class KDVTrainer(PATrainer):
         with torch.random.fork_rng(devices=[]):
             torch.manual_seed(int(args.seed) + 1000)
             scratch = PANGlobalAligner(nb)
+        mix20_fresh_unet_sha = tensor_state_sha(model) if self.mix20h is not None else None
         self.init_hashes = self._pair_init(model, scratch)
+        if self.mix20h is not None and tensor_state_sha(model) != mix20_fresh_unet_sha:
+            raise ValueError("MIX20H saved U initialization differs from this seed's fresh U state; do not reuse trained/foreign initialization")
         self._check_init_hash(self.init_hashes, sp.get("expect_init") or {})   # s5 보고 #3: 같은 seed 의 서버 간 U 초기값 동일성 (기대 hash 가 config 에 있을 때만)
         # --- aligner 정책 (§4.2)  [검토 지적 1: 정책 if/elif/else 를 먼저 닫고, 참조 aligner 는 그 뒤에 별도로]
         pol = sp["policy"]; self.donor_manifest = None
@@ -202,6 +210,29 @@ class KDVTrainer(PATrainer):
         self.budget = dict(k.get("budget") or {})
         if self.budget and self.accelerator.is_main_process:
             self._budget_gate()
+        if self.mix20h is not None:
+            self.mix20h.bind(self)
+
+    def mix20h_budget_boundary(self, global_step):
+        """Also called by main before evaluation/export; never change old runs."""
+        if self.mix20h is not None:
+            self.mix20h.stop_if_expired(self, global_step)
+
+    def mix20h_evaluation_boundary(self, global_step):
+        """After loading selected weights, never save them as a training resume."""
+        if self.mix20h is not None:
+            self.mix20h.stop_evaluation_if_expired(self, global_step)
+
+    def mix20h_evaluation_commit(self, global_step):
+        if self.mix20h is not None:
+            self.mix20h.commit_evaluation(self, global_step)
+
+    def mix20h_has_committed_evaluation(self, global_step):
+        return self.mix20h is not None and self.mix20h.has_committed_evaluation(global_step)
+
+    @staticmethod
+    def _mix20_evaluator_hash():
+        return evaluator_hash()
 
     @staticmethod
     def _check_donor_step(d, man):
@@ -1374,12 +1405,16 @@ class KDVTrainer(PATrainer):
     # ------------------------------------------------------------------ train
     def train(self, train_log, global_step):
         self.train_log_ref = train_log
+        self._global_step = int(global_step)
+        self.mix20h_budget_boundary(global_step)
         self.model.train(); self.M.backbone.requires_grad_(True)
         if self.M.aligner is not None:
             self.M.aligner.requires_grad_(self.aligner_active(global_step))
         if self.M.cov_head is not None:
             self.M.cov_head.requires_grad_(True)                          # 검토 지적: eval 의 requires_grad_(False) 뒤 재활성 (G5)
         if global_step >= self.args.num_iter:
+            if self.mix20h is not None:
+                self.mix20h.training_complete(global_step)
             return global_step
         report = Train_Report(); start = time.time()
         B = self.args.batch_size; dev, dt = self.accelerator.device, self.weight_dtype; M = self.M
@@ -1395,6 +1430,7 @@ class KDVTrainer(PATrainer):
                                                     restored="epoch 시작 전역 RNG → 같은 permutation·worker seed, 소비 batch skip; optimizer·scheduler·scaler·RNG(corruption/TRI)", note="연속 실행과 같은 batch 열 (kdv.exact_resume)"))
             print(f"[kdv] exact resume: epoch 시작 step {rinfo['epoch_start_step']} 부터 {rinfo['skipped']} batch 건너뜀 → step {global_step} 에서 이어간다")
         for idx, batch in enumerate(it, start=skip):
+            self.mix20h_budget_boundary(global_step)
             gt, lms, ms, lpan, pan = batch[:5]; meta = (batch[5] if len(batch) > 5 else None)     # feeder return_meta (QEDGE9): (index, rot, hflip, vflip) — 없으면 None
             if self._meta_log and meta is not None and self.accelerator.is_main_process:
                 self._jsonl("batch_meta.jsonl", dict(step=int(global_step), index=meta[:8, 0].tolist(), rot=meta[:8, 1].tolist()))
@@ -1463,6 +1499,12 @@ class KDVTrainer(PATrainer):
                             self._ema_update("geo_wsum", info["geo_info"]["weight_sum"])
             times["corrupt" if info["corrupt"] else "native"].append(time.time() - t0); times["forward"].append(info["t_forward"])
             global_step += 1; self._global_step = global_step
+            if self.mix20h is not None:
+                self.mix20h.observe_batch(global_step - 1, meta)
+                if global_step < self.args.num_iter:
+                    self.mix20h_budget_boundary(global_step)
+                # At exact50K first persist authoritative last below. main's
+                # next pre-evaluation boundary can then stop without losing it.
             if global_step % self.args.log_iter == 0 or idx == len(self.train_data_loader) - 1:
                 lr = self.optimizer.state_dict()['param_groups'][0]['lr']; e = self._ema
                 extra = (f"\t[{self.case}] rec {e.get('loss_rec', 0):.5f} (hard {e.get('rec_hard', 0):.5f} soft {e.get('rec_soft', 0):.5f}) d {e.get('rec_difficulty_mean', 0):.3f} a {e.get('rec_advantage_mean', 0):.3f} "
@@ -1494,6 +1536,8 @@ class KDVTrainer(PATrainer):
                 json.dump(dict(step=int(global_step), kind="last"), open(os.path.join(self.args.work_dir, "last_meta.json"), "w"))
                 if self.accelerator.is_main_process:
                     self._runs_csv("FINISHED_TRAIN"); self._finish_ledger("FINISHED_TRAIN"); self._write_cost("FINISHED_TRAIN")
+                    if self.mix20h is not None:
+                        self.mix20h.training_complete(global_step)
                 self.accelerator.end_training()
                 return global_step
         return global_step
@@ -1657,6 +1701,8 @@ class KDVTrainer(PATrainer):
     def _select(self, step, epoch, agg, all_ok, n_bad, bad_reasons, test_log):
         cand = os.path.join(self.cand_dir, f"step-{step}")
         self.accelerator.save_state(cand)
+        if self.mix20h is not None:
+            self.mix20h.candidate(self, cand, step, agg["raw_original"]["hqnr"])
         use_al = self.spec.get("aligned_selector", True)
         r_raw = self.sel_raw.update(step, epoch, agg["raw_original"]["hqnr"], agg["raw_original"]["fscc"], True, cand)
         r_al = (self.sel_aligned.update(step, epoch, agg["aligned_valid"]["hqnr"], agg["aligned_valid"]["fscc"], all_ok, cand, reason=("" if all_ok else f"{n_bad} scenes: {bad_reasons}"))

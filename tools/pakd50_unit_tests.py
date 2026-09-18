@@ -1493,6 +1493,9 @@ check("K52 시트 표시명 단축(2026-09-18 사용자 결정): 고정 method �
 # config 를 만들어 놓고 편성에 넣지 않으면 아무 검사도 울지 않았다(게이트 203 ALL OK 와 '돌 것 없음' 이 동시에 성립했다).
 _K53_SRVS = ("s1", "s2", "s3", "s4", "s5")
 _k53_known = set().union(*[set(G.priority_for(s_)) | set(G.qrc24_held_runs(s_)) for s_ in _K53_SRVS])
+from kdv.mix20h_plan import CASES as _k53_mix20_cases, cases_for as _k53_mix20_for
+_k53_mix20_ids = {c.run_id for c in _k53_mix20_cases}
+_k53_known |= _k53_mix20_ids  # separately planned finite campaign, NOT active historical priority
 _k53_disk = {os.path.basename(p_)[:-5] for p_ in glob.glob(os.path.join(ROOT, "config", "PAKD50_QRC24_*.yaml"))}
 _k53_orphan = sorted(_k53_disk - _k53_known)
 _k53_src = open(os.path.join(ROOT, "tools", "gen_pakd50_configs.py")).read()
@@ -1503,7 +1506,13 @@ check("K53 역방향·단일 출처(2026-09-18 사고 재발 방지): **어느 �
       and "return first + [r for r in priority_for(server) if r not in first]" in _k53_src
       and all(len(G.priority_for(s_)) > len(G.qrc24_items(s_)) for s_ in _K53_SRVS)
       and all(set(G.qrc24_r2_items(s_)) <= set(G.priority_for(s_)) for s_ in _K53_SRVS),
-      f"고아 config {_k53_orphan[:4]} (총 {len(_k53_orphan)}/{len(_k53_disk)})")
+      f"고아 config {_k53_orphan[:4]} (총 {len(_k53_orphan)}/{len(_k53_disk)}); MIX20H 별도 계획 46 (미활성)")
+check("K53 MIX20H 역방향: 별도 registry 46개가 YAML/정적 큐와 정확히 일치; legacy priority에는 자동 추가되지 않음",
+      _k53_mix20_ids <= _k53_disk
+      and not any(_k53_mix20_ids.intersection(G.priority_for(s_)) for s_ in _K53_SRVS)
+      and all([line.strip() for line in open(os.path.join(ROOT, 'config', 'queues', f'qrc24_mix20h_{s_}.txt'))
+               if line.strip() and not line.startswith('#')] == [c.run_id for c in _k53_mix20_for(s_)]
+              for s_ in _K53_SRVS))
 check("K52 문서·revision: R2 계획 참조 상수 · 도구 존재 · CLAUDE.md 에 Narrow R2 · selector/lock id 가 한 값으로 일치",
       G.QRC24_R2_REVISION == "QRC24_NARROW_R2_20260917" and G.QRC24_LOCK_ID == "QRC24_LOCK_V1_20260917" and G.QRC24_R2_SELECTOR == _QS.SELECTOR_V2
       and all(os.path.exists(os.path.join(ROOT, f_)) for f_ in ("tools/qrc24_lock.py", "gspread/target_upload.py"))

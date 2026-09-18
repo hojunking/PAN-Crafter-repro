@@ -236,6 +236,18 @@ def qrc24_seed_items(server, profile=None):
 def eval_hold():
     """평가 phase hold 상태 (계획 PAN_ALLSERVER_NOA_AUDIT_METHOD_v2_20260918 §2). {} 면 평상시.
     대기자·gate 가 매 pass 이 모듈을 새로 import 하므로, 이 함수 하나로 '새 학습 금지' 가 전 경로에 즉시 먹는다."""
+    # Once explicitly migrated, historical waiters must never revive old queues,
+    # even after MIX20H closes. Merely generating configs creates no such file.
+    from kdv.mix20h_plan import CAMPAIGN_ID as m20_id, PLAN_MANIFEST as m20_plan
+    m20_path = os.path.join(ROOT, m20_plan)
+    if os.path.exists(m20_path):
+        try:
+            with open(m20_path) as manifest_file:
+                m20 = json.load(manifest_file)
+            if m20.get("campaign_id") == m20_id:
+                return dict(phase="SUPERSEDED_BY_MIX20H", reason="finite MIX20H manifest owns admission; historical queues remain disabled")
+        except (OSError, ValueError, TypeError):
+            return dict(phase="MIX20H_MANIFEST_INVALID", reason="MIX20H manifest unreadable; do not revive historical queues")
     p_ = os.path.join(ROOT, "work_dir", "_eval_phase", "hold.json")
     if not os.path.exists(p_):
         return {}
@@ -902,9 +914,16 @@ def schedule(has_lambda_e, is_terminal, remaining_hours, est_hours, margin=MARGI
     return todo, dropped
 
 
-def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=True, arch=ARCH_DEFAULT, branch=None):
+def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=True, arch=ARCH_DEFAULT, branch=None, mix20=False):
     """계획 §4·§6 의 FRESH50 kdv 블록. pin: calibration_resolved.json 의 τR/λE 를 숫자로 고정(서버 간 동일 package); 없으면 calibrate(그 서버에서 T0/pilot 로 산출).
     arch: Student U 골격 (기본 W112_D123; s4 이식 W104_D121 — T0·donor·τR·λE0 는 그대로, expect_arch 와 init hash namespace 만 바뀐다)."""
+    if mix20:
+        from kdv import mix20h_plan as m20
+        m20_case = m20.case_for(run_name(case, seed, version, arch=arch))
+        if m20_case.server_id != server or not pin:
+            raise ValueError("MIX20H requires its explicit server and pinned calibration")
+    elif version == "v4" and 52000 <= int(seed) < 53000:
+        raise ValueError("MIX20H v4 must use tools/gen_mix20h_configs.py (or --mix20)")
     pol_id, be_id = CASES[case]; P, B = POLICY[pol_id], BACKEND[be_id]; cal = cal if cal is not None else calibration(); A = ARCHS[arch]
     branch = branch or ("QRECON24" if case.startswith("QRC24_") else ("EDGEBAL" if case in EDGEBAL_CASES else ("QEGX" if case in QEGX_CASES else ("QEDGE9" if B.get("edge_gate") else None))))     # gate/route/EB/QRC case 는 branch 가 있어야 한다 (W104 전용; 아래 검사)
     if (branch == "QRECON24") != case.startswith("QRC24_"):
@@ -957,7 +976,7 @@ def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=Tr
         if qsrv != server:
             raise SystemExit(f"!! {case}: 서버 토큰 {qsrv} ≠ 생성 서버 {server} (이름의 서버 토큰은 파일 충돌 방지용 — 그 서버에서만 만든다)")
         Pq = qrc24_profile(prof)
-        if int(seed) >= QRC24_R2_SEED_MIN:                                    # seed 단계 — 2026-09-18 결정으로 lock 요구를 없앴다. 설정은 qrc24_seed_profile()(기본 G23) 하나로 전 서버 공통
+        if not mix20 and int(seed) >= QRC24_R2_SEED_MIN:                       # legacy only: MIX20H never resolves a local recipe lock
             _lk = qrc24_recipe_lock()
             k.setdefault("qrc24_lock", dict(lock_id=(_lk.get("lock_id") if _lk else None), profile=qrc24_seed_profile(), gated=False,
                                             note="lock 게이팅 없음(2026-09-18) — 공동 목표 통과 seed 수를 확인하지 않고 지정 seed 를 돈다. 설정은 전 서버 동일"))
@@ -972,7 +991,10 @@ def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=Tr
                        a_weight=Pq["a"], e_weight=Pq["e"], A_frozen=bool(Pq["frozen"]), q_ref=QRC24_QREF, method="qrecon_continuous_v1", A_loss="weighted_H_only", A_soft=0, A_edge=0, student_offset=0,
                        q_weight_formula="qref/(qref+q_T)", lambda_E_plan=float(Pq["lam"]) / 2.0, uniform_weight=QRC24_UNIFORM_W, change_note="2026-09-16 저녁: 분자 2 제거 → λE 2 배 환산, uniform 0.5; rA/α/β/qref 유지")
         _adj = (version == QRC24_ADJ_VERSION)
-        if int(seed) >= QRC24_R2_SEED_MIN:                                    # R2 seed 단계: seed 별 G22 대조가 없다(같은 C* 를 seed 만 바꿔 20 번 돈다) — 가상 id 를 만들지 않고 lock 과 비교 block 을 가리킨다
+        if mix20:
+            _ctl = None
+            _ctrl = {"pairmate": m20_case.pairmate_run_id}
+        elif int(seed) >= QRC24_R2_SEED_MIN:                                  # historical R2 controls remain unchanged
             _lk2 = qrc24_recipe_lock()
             _ctl = None
             _ctrl = {"recipe_lock": _lk2.get("lock_id"), "locked_profile": _lk2.get("profile"), "canonical": None, "control_profile": None,
@@ -1028,6 +1050,13 @@ def kdv_block(case, seed, server, cal=None, projected=None, version="v1", pin=Tr
         k["aux"] = dict(offset_weight=0.0, geometry_weight=0.0)
         if "radius" in P:                                                    # RC: 계획의 semantic fragment 그대로 corruption.radius_hr 0.0 (registry: I-NATIVE-TRANSFER 에 radius > 0 은 거부)
             k["corruption"] = dict(radius_hr=float(P["radius"]))
+    if mix20:
+        k.update(campaign_id=m20.CAMPAIGN_ID, parent_campaign_id=QRC24_CAMPAIGN_ID,
+                 mix20h=m20.metadata_for(m20_case.run_id), baseline_run=None,
+                 control_runs={"pairmate": m20_case.pairmate_run_id})
+        k.pop("budget", None)  # dedicated pair/wall-clock runner owns admission; never inherit cumulative legacy gate
+        k["qrc24"].update(lambda_E_plan=0.002, numerator_factor=1.0,
+                          change_note="MIX20H: lambda_E is absolute .002; beta is the only profile difference")
     return k
 
 
@@ -1132,6 +1161,9 @@ def plan_table(server):
 
 
 def main():
+    if "--mix20" in sys.argv[1:]:
+        from tools.gen_mix20h_configs import main as mix20_main
+        return mix20_main([arg for arg in sys.argv[1:] if arg != "--mix20"])
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--server", default=None, choices=list(SERVER_SEED)); ap.add_argument("--all", action="store_true"); ap.add_argument("--stage", type=int, default=1, choices=(1, 2))
     ap.add_argument("--cases", default=None, help="쉼표 목록 (기본: stage 별 목록)"); ap.add_argument("--updates", type=int, default=50000); ap.add_argument("--eval-epoch", type=int, default=5)
