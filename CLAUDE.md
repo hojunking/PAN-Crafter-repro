@@ -172,11 +172,13 @@ p 값이 작아도 시드를 바꾸면 뒤집힐 수 있다.
 |---|---|---|
 | s1 | ADJ-R1 14 완료 · NOA 평가·업로드 완료 · **Narrow R2 seed 단계 학습 중**(41001→41006→41011→41016 @G23 → B20A03 1234/3407 v3; 6 run 18.2 h, 09-18 09:50 기동) | 끝나면 selector `--selector HQNR9585_ERGAS2040_v2` · 선택적으로 `tools/s1_aligner_analysis.py --assets` |
 | s2 | QRECON24 6 완료(S777) · NOA 평가·업로드 완료 | **`git pull` → `./tools/qrecon24_switch.sh`**(NOA hold 중이면 `./tools/noa_eval_switch.sh --release` 먼저). ADJ-R1 남은 편성 + **R2 seed 4 + β-close** 가 큐에 들어온다 |
-| s3 | QRECON24 10 완료(2026 G 3×3 + G22@4321) · **NOA 평가 아직**(시트에 NOA 열 없음) | ① `./tools/noa_eval_switch.sh --dry-run` → `--hold` → 본 실행 → `--upload` → ② **`git pull` → `./tools/qrecon24_switch.sh`**(R2 포함 25 run) |
+| s3 | QRECON24 20 완료 · NOA 평가·업로드 완료(탭 이름은 `WV3-s3(5090)`) | **`git pull` → `./tools/qrecon24_switch.sh`**(R2 포함 25 run) |
 | s4 | QRECON24 10 완료(1234 H 3×3 + H_ALPHA0) · NOA 평가·업로드 완료 | **`git pull` → `./tools/qrecon24_switch.sh`**(R2 포함 23 run) |
-| s5 | QRECON24 7 완료(L 계열) · **NOA 평가 아직**(시트에 NOA 열 없음) | s3 와 같은 순서 → `./tools/qrecon24_switch.sh`(R2 포함 20 run) |
+| s5 | QRECON24 19 행 업로드 · **NOA 평가만 아직**(다섯 탭 중 NOA 열이 없는 유일한 탭) · ADJ-R1 6 run(9091·1103) 미업로드 | ① 진행 중 run 은 끝까지 → `./tools/noa_eval_switch.sh --dry-run` → `--hold` → 본 실행 → `--upload` → ② **`git pull` → `./tools/qrecon24_switch.sh`**(R2 포함 20 run) |
 
-**09-18 오전 정정: `a565caf` 가 R2 seed config 20 벌만 만들고 `PRIORITY_BY_SERVER` 에 넣지 않아 다섯 서버 전부 돌 것이 없었다**(s1 은 04:06 `[cases] DONE` 뒤 유휴).
+**09-18 오전 정정(원인 재확인): Narrow R2 24 run(seed 20 + β-close 4) 이 어느 서버 편성에도 없었다 — 원인 커밋은 `d362e57`(03:07) 이고 `a565caf`(09:27) 가 고치지 않고 지나쳤다.**
+R2 를 `qrc24_effective_queue()` 꼬리에만 붙였는데 그 함수는 **셸 호출자가 0 인 테스트 전용**이고, 실제 실행은 `PRIORITY_BY_SERVER` → `priority_for()` 만 읽는다(출처가 둘이었다).
+확인된 유휴는 **s1 하나, 04:06:48 → 09:50:24 = 5 h 43 m 36 s**다 — s5 는 ADJ-R1 6 run(9091·1103 의 G23/H23/B20A03 v2) 이 남아 있었고, s2·s3·s4 는 QRC24 큐가 비어 있었지만 NOA 평가가 지시돼 있었다.
 편성의 단일 출처를 `qrc24_items + qrc24_r2_items` 로 고치고 큐 파일 다섯 개를 재생성했다 — **각 서버는 pull 뒤 `./tools/qrecon24_switch.sh` 하나면 된다**(노트 §13).
 시트는 `gspread/sheet_cleanup.py --dry-run`/`--apply` 로 자기 탭의 Run 열을 짧게 정리한다(설명은 Notes 의 `run=…` 으로, 그룹 라벨은 `본 결과(A_ON)` ↔ `NOA` 로 대비; s1 적용 완료).
 

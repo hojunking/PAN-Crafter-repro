@@ -1439,7 +1439,7 @@ check("K52 seed 단계(2026-09-18 사용자 결정으로 **lock 게이팅 제거
 _bc52 = {s_: G.qrc24_beta_close_items(s_) for s_ in ("s1", "s2", "s3", "s4", "s5")}
 _q52 = G.qrc24_effective_queue("s4", ps="")
 _qf52 = {s_: [l.strip() for l in open(os.path.join(ROOT, "config", "queues", f"qrecon24_{s_}.txt")) if l.strip() and not l.startswith("#")] for s_ in ("s1", "s2", "s3", "s4", "s5")}
-check("K52 β-close·큐(§4.1·§4.2·§8.1): 새로 도는 B20A03 은 **기존 G23 의 짝만** 4 개(s1 1234/3407 · s2 777 · s3 2026; s3 4321 은 이미 있고 s4 는 G23 host bridge 로 끝) · 편성 이력 표기는 v3 이고 수식 변경이 아니다 · 활성 실행 순서 꼬리에 R2 가 붙는다 · **R2 run 은 config 만 있는 게 아니라 운영 편성(priority_for)·서버 큐 파일에 실제로 들어 있다**(2026-09-18: a565caf 가 config 20 벌만 만들고 편성에 넣지 않아 다섯 서버가 다 유휴였다 — 그 회귀를 여기서 막는다)",
+check("K52 β-close·큐(§4.1·§4.2·§8.1): 새로 도는 B20A03 은 **기존 G23 의 짝만** 4 개(s1 1234/3407 · s2 777 · s3 2026; s3 4321 은 이미 있고 s4 는 G23 host bridge 로 끝) · 편성 이력 표기는 v3 이고 수식 변경이 아니다 · 활성 실행 순서 꼬리에 R2 가 붙는다 · **R2 run 은 config 만 있는 게 아니라 운영 편성(priority_for)·서버 큐 파일에 실제로 들어 있다**(2026-09-18: **d362e57** 이 R2 24 run(seed 20 + β-close 4) 을 qrc24_effective_queue 에만 붙이고 PRIORITY_BY_SERVER·큐 파일에 넣지 않았고 a565caf 가 그대로 지나쳤다 — s1 이 5 h 43 m 유휴. 그 회귀를 여기서 막는다)",
       [len(_bc52[s_]) for s_ in ("s1", "s2", "s3", "s4", "s5")] == [2, 1, 1, 0, 0] and all(r_.endswith("_FRESH50_v3") and "_B20A03_" in r_ for v_ in _bc52.values() for r_ in v_)
       and _bc52["s1"][0].endswith("_S1234_FRESH50_v3") and _bc52["s3"][0].endswith("_S2026_FRESH50_v3")
       and any("_S41" in r_ for r_ in _q52) and G.qrc24_r2_items("s1")[0].endswith("_S41001_FRESH50_v1")
@@ -1489,6 +1489,21 @@ check("K52 시트 표시명 단축(2026-09-18 사용자 결정): 고정 method �
       and _gu52m.compose_cells("s1_A1", "nocrop", "메모", "50K") == ("s1_A1 (50K) · nocrop", "메모")
       and _clean52.new_cells(f"{_long52} (50K) · method=…", "seed=41001", "s1", _sc52) == _gu52m.compose_cells(_long52, "method=…", "seed=41001", "50K")
       and _clean52.new_cells("▍㉕ 통합 캠페인 PAKD50 …", "", "s1", _sc52) == (None, None))
+# K53 — 2026-09-18 사고의 구조적 재발 방지. 앞선 검사들은 전부 "편성 → 그 편성의 config" 단방향이라,
+# config 를 만들어 놓고 편성에 넣지 않으면 아무 검사도 울지 않았다(게이트 203 ALL OK 와 '돌 것 없음' 이 동시에 성립했다).
+_K53_SRVS = ("s1", "s2", "s3", "s4", "s5")
+_k53_known = set().union(*[set(G.priority_for(s_)) | set(G.qrc24_held_runs(s_)) for s_ in _K53_SRVS])
+_k53_disk = {os.path.basename(p_)[:-5] for p_ in glob.glob(os.path.join(ROOT, "config", "PAKD50_QRC24_*.yaml"))}
+_k53_orphan = sorted(_k53_disk - _k53_known)
+_k53_src = open(os.path.join(ROOT, "tools", "gen_pakd50_configs.py")).read()
+check("K53 역방향·단일 출처(2026-09-18 사고 재발 방지): **어느 서버 편성에도 보류에도 없는 QRC24 config 가 0 개**여야 한다(config 만 만들고 편성에 넣지 않는 실수를 잡는다 — 이것이 R2 24 run 이 돌지 않은 형태다) · "
+      "편성의 단일 출처는 priority_for 하나이고 qrc24_effective_queue 는 거기서 파생된다(목록을 따로 만들지 않는다) · 실행 가능한 편성이 서버마다 비어 있지 않다",
+      not _k53_orphan and len(_k53_disk) >= 100
+      and all(G.qrc24_effective_queue(s_, ps="") == G.priority_for(s_) for s_ in _K53_SRVS)
+      and "return first + [r for r in priority_for(server) if r not in first]" in _k53_src
+      and all(len(G.priority_for(s_)) > len(G.qrc24_items(s_)) for s_ in _K53_SRVS)
+      and all(set(G.qrc24_r2_items(s_)) <= set(G.priority_for(s_)) for s_ in _K53_SRVS),
+      f"고아 config {_k53_orphan[:4]} (총 {len(_k53_orphan)}/{len(_k53_disk)})")
 check("K52 문서·revision: R2 계획 참조 상수 · 도구 존재 · CLAUDE.md 에 Narrow R2 · selector/lock id 가 한 값으로 일치",
       G.QRC24_R2_REVISION == "QRC24_NARROW_R2_20260917" and G.QRC24_LOCK_ID == "QRC24_LOCK_V1_20260917" and G.QRC24_R2_SELECTOR == _QS.SELECTOR_V2
       and all(os.path.exists(os.path.join(ROOT, f_)) for f_ in ("tools/qrc24_lock.py", "gspread/target_upload.py"))

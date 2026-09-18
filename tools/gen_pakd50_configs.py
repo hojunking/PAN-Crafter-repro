@@ -277,11 +277,13 @@ def qrc24_r2_items(server):
 
 
 def qrc24_effective_queue(server, ps=None):
-    """이 서버에서 실제로 돌릴 순서: **시작됐는데 안 끝난 보류 run**(원 정의로 끝낸다 — ADJ-R1 §9) 을 맨 앞에, 그다음 활성 편성(qrc24_items), 그다음 **Narrow R2** (β-close → lock 후 seed).
-    완료 run 은 runner 가 건너뛴다."""
+    """이 서버에서 실제로 돌릴 순서: **시작됐는데 안 끝난 보류 run**(원 정의로 끝낸다 — ADJ-R1 §9) 을 맨 앞에, 그다음 편성 전체. 완료 run 은 runner 가 건너뛴다.
+
+    **여기서 목록을 따로 만들지 않는다 — 편성의 단일 출처는 `priority_for()` 다**(2026-09-18 사고: 이 함수만 R2 를 알고 있었고
+    실제 실행 경로(qrecon24_switch ⑤ → mandatory/queue_effective/cases_queue · 대기자 · watchdog)는 `priority_for` 만 읽어서
+    24 run 이 어디에서도 돌지 않았다. 출처가 둘이면 검사가 통과해도 시스템은 멈춘다)."""
     st = qrc24_held_states(server, ps); first = [r for r, (s_, _) in st.items() if s_ in ("running_original_definition", "started_interrupted")]
-    seq = first + [r for r in qrc24_items(server) if r not in first]
-    return seq + [r for r in qrc24_r2_items(server) if r not in seq]
+    return first + [r for r in priority_for(server) if r not in first]
 
 
 def qrc24_adj_runs(server):
