@@ -1,0 +1,79 @@
+{
+  "schema": "QG40_SENSOR_SOURCES_v1",
+  "evidence_document": "qg40/SENSOR_SOURCE_EVIDENCE.md",
+  "sensors": {
+    "QB": {
+      "band_order": ["B", "G", "R", "NIR"],
+      "splits": {
+        "train": {
+          "path": "data/PanCollection/QB/train_qb_msfix.h5",
+          "sha256": "c7fb3ef0744f3fd21330925003f6bd6eb110f8a181c23ea6d9ce086c81710ba9",
+          "source_identity": "PanCollection.CANConv.QB.train.msfix.genMTF_QB.phase22.interp23tap.built20260908"
+        },
+        "val": {
+          "path": "data/PanCollection/QB/valid_qb_msfix.h5",
+          "sha256": "79f5bb48905876e8b278868a4ca9b266ef52582bd26b9c31b60462b708a411fa",
+          "source_identity": "PanCollection.CANConv.QB.valid.msfix.genMTF_QB.phase22.interp23tap.built20260908"
+        },
+        "rr": {
+          "path": "data/PanCollection/QB/reduced_examples_h5/test_qb_multiExm1.h5",
+          "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+          "source_identity": "PanCollection.CANConv.QB.test_multiExm1.RR20.original-row-order"
+        },
+        "fr": {
+          "path": "data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+          "sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+          "source_identity": "PanCollection.FullDataMAT.QB.fr1-20.numeric-order.HWC-to-CHW-only"
+        }
+      },
+      "source_provenance": {
+        "evidence_document": "qg40/SENSOR_SOURCE_EVIDENCE.md",
+        "band_order_evidence": "Installed CANConv PanCollection audit 2026-08-10 lines64-70 (SHA256 f18b588f71f893bb0d7b48444dfbac90358d05f31ad02fb8a0a0ae4a851a3afc), author canconv/util/log.py C4 RGB[2,1,0] (SHA256 ca4943ade70376228d986aa5d2d9b2ba7617f59c2dfdb3704e1e7bd8982f3d53), DLPan genMTF.m line31 QB Band Order B,G,R,NIR. Source-repository convention, not embedded H5 band metadata or independently measured spectral identity.",
+        "mtf_evidence": "DLPan genMTF.m SHA256 5c96781d777ec6f08fee696ff80dc46972875b764c6f289388bb21614dd14c2d: QB gains[0.34,0.32,0.30,0.22] in B,G,R,NIR order; tools/metrics/eval_fr.py GNYQ_TABLE preserves this evaluation protocol. Algorithmic LP sigma1.98 is separate.",
+        "units": "DN",
+        "no_data_policy": "No no-data sentinel/mask attribute found in inspected H5 metadata; do not infer that zero is missing. Preserve all finite stored values including zeros; report counts; no sample deletion or input masking. P0 source scan rejects nonfinite values. Absence of metadata is not proof of absence of missing observations.",
+        "saturation_policy": "Preserve nominal-maxDN(2047) values and count them; no input/GT clipping or replacement. P0 requires PAN/GT within[0,2047]; finite MS/LMS ringing outside nominal DN range is preserved/reported. Official prediction clipping is unchanged and separate.",
+        "split_correspondence_evidence": "QB train17139/val1905 msfix H5 record raw filename and genMTF(QB),replicate,[2::4,2::4],interp23tap recipe; required local preflight verifies every raw/fixed GT/PAN and reconstructed MS/LMS pair. RR20 remains original joint GT/MS/LMS/PAN H5 row order. FR20 original MAT SHA and each MS/LMS/PAN array verified exactly against H5 on2026-09-20 in fr1..20 numeric order; provenance.json SHA256 47d592ef4a120d5aa2956817adf2916d93c8576412e9aa18bf3632b24dbe8c65. No claim of train/test geographic disjointness or RR-to-FR scene correspondence.",
+        "raw_train_path": "data/PanCollection/QB/train_qb.h5",
+        "raw_train_sha256": "7d45e191cd03f3df12eb76b5f27624eaba1b464970788eb61723c3574dd14371",
+        "raw_val_path": "data/PanCollection/QB/valid_qb.h5",
+        "raw_val_sha256": "b307bcbb0d69056278a8a0b4970f1cd1b58dfff19bbe949be224e106f1a18470",
+        "msfix_recipe": "tools/repair_qb_ms.py SHA256 0ed95018fd88afde7194eac8fdd5ae79de7b9056574766e339726dbc0a7c8884: MS=genMTF(QB) replicate-filter(GT)[2::4,2::4]; LMS=interp23tap(MS); GT/PAN unchanged must be verified by local preflight. One HR phase index is HR1px/LR0.25 spacing, not a native PAN shift measurement."
+      }
+    },
+    "GF2": {
+      "band_order": ["B", "G", "R", "NIR"],
+      "splits": {
+        "train": {
+          "path": "data/PanCollection/GF2/train_gf2.h5",
+          "sha256": "243a0bc8a4cc0a2740ed24409f9e87afe531d87e9d57524c6bcbec2b5f937621",
+          "source_identity": "PanCollection.CANConv.GF2.train.original-H5-row-order"
+        },
+        "val": {
+          "path": "data/PanCollection/GF2/valid_gf2.h5",
+          "sha256": "ae15b19ccc6ece799ebfeb3fb374b1a333238226397441e3d523b0195dff4f43",
+          "source_identity": "PanCollection.CANConv.GF2.valid.original-H5-row-order"
+        },
+        "rr": {
+          "path": "data/PanCollection/GF2/reduced_examples_h5/test_gf2_multiExm1.h5",
+          "sha256": "709a9a53b2e0f29d3dcd5c6ca4410c2913b62cc03c104fed6c049911dbe1c8ea",
+          "source_identity": "PanCollection.CANConv.GF2.test_multiExm1.RR20.original-row-order"
+        },
+        "fr": {
+          "path": "data/PanCollection/GF2/full_examples_mat20/test_gf2_OrigScale_mat20.h5",
+          "sha256": "e52d151f262a74f96e59f03124f86a27d80841073ce60376856ae679020d00dc",
+          "source_identity": "PanCollection.FullDataMAT.GF2.fr1-20.numeric-order.HWC-to-CHW-only"
+        }
+      },
+      "source_provenance": {
+        "evidence_document": "qg40/SENSOR_SOURCE_EVIDENCE.md",
+        "band_order_evidence": "Installed CANConv PanCollection audit 2026-08-10 lines64-70 explicitly declares QB/GF2 B,G,R,NIR (SHA256 f18b588f71f893bb0d7b48444dfbac90358d05f31ad02fb8a0a0ae4a851a3afc); author canconv/util/log.py C4 RGB[2,1,0] (SHA256 ca4943ade70376228d986aa5d2d9b2ba7617f59c2dfdb3704e1e7bd8982f3d53). Source-repository convention, not embedded H5 band metadata or independently measured spectral identity.",
+        "mtf_evidence": "DLPan genMTF.m SHA256 5c96781d777ec6f08fee696ff80dc46972875b764c6f289388bb21614dd14c2d has no GF2-specific branch: otherwise GNyq=0.3 for each band; tools/metrics/eval_fr.py SENSOR_NAME gf2=None preserves that protocol. This default evaluation filter is not a physical GF2 MTF certification; algorithmic LP sigma1.98 is separate.",
+        "units": "DN",
+        "no_data_policy": "No no-data sentinel/mask attribute found in inspected H5 metadata; do not infer that zero is missing. Preserve all finite stored values including zeros; report counts; no sample deletion or input masking. P0 source scan rejects nonfinite values. Absence of metadata is not proof of absence of missing observations.",
+        "saturation_policy": "Preserve nominal-maxDN(1023) values and count them; no input/GT clipping or replacement. P0 requires PAN/GT within[0,1023]; finite MS/LMS ringing outside nominal DN range is preserved/reported. Official prediction clipping is unchanged and separate.",
+        "split_correspondence_evidence": "GF2 train19809/val2201 and RR20 are the existing CANConv-installed joint GT/MS/LMS/PAN H5 sources with original row order and no source regeneration. Author canconv/dataset/h5pan.py SHA256 56d86d661afd99bffbde2c968ffa82234c5cbb064453f9e3edf514a191e5e05a scales this corpus by1023. FR20 original MAT SHA and each MS/LMS/PAN array verified exactly against H5 on2026-09-20 in fr1..20 numeric order; provenance.json SHA256 0aaacb2ed0fe99b9bc24409b5e78ca7af3c1ed82c5e3c6c497eb1bfdd1fd7900. No claim of train/test geographic disjointness or RR-to-FR scene correspondence."
+      }
+    }
+  }
+}

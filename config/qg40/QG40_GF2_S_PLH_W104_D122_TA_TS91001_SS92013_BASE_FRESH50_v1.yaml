@@ -1,0 +1,199 @@
+seed: 92013
+work_dir: work_dir/QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92013_BASE_FRESH50_v1
+trainer: qg40
+phase: train
+num_iter: 50000
+num_warmup: 100
+batch_size: 48
+test_batch_size: 1
+num_worker: 4
+num_bands: 4
+max_pixel: 1023.0
+mixed_precision: 'no'
+learning_rate: 0.0001
+optimizer: AdamW
+weight_decay: 0.01
+betas:
+- 0.9
+- 0.999
+eps: 1.0e-08
+lr_scheduler: cosine
+log_iter: 100
+train_feeder_args:
+  dataroot: null
+  crop: false
+  hflip: true
+  vflip: true
+  rot: true
+  ms_size: 16
+  return_meta: true
+val_feeder_args:
+  dataroot: null
+test_reduced_feeder_args:
+  dataroot: null
+test_full_feeder_args:
+  dataroot: null
+model_args:
+  hidden_size: 104
+  depth:
+  - 1
+  - 2
+  - 2
+  out_channels: 4
+  attn_locations: []
+  mode_modulation: false
+  norm: ln
+  dropout: 0.0
+qg40:
+  run_id: QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92013_BASE_FRESH50_v1
+  server_id: s5
+  sensor: GF2
+  role: S
+  reference_id: GF2_TA
+  teacher_seed: 91001
+  student_seed: 92013
+  input_layout: PLH
+  width: 104
+  depth:
+  - 1
+  - 2
+  - 2
+  profile: BASE
+  tier: P1_CONFIRM_BASE
+  block_id: s5_CONFIRM_92013
+  queue_rank: 71
+  within_block_order: 2
+  branch_condition: ALWAYS
+  dependencies:
+  - LOCAL_READY_s5
+  - QG40_GF2_TA_IMPORT_s5_v1
+  teacher_run_id: QGBASE_GF2_TA_P0_W112_D123_TS91001_FRESH50_v1
+  updates: 50000
+  baseline_id_preserved: false
+  case_id: QG40-C085
+  sheet_tab: GF2-s5
+  seed: 92013
+  teacher_input_layout: P0
+  kind: TRAIN
+  campaign_id: PANDA_QG40_20260920_v1
+  config_path: config/qg40/QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92013_BASE_FRESH50_v1.yaml
+  method_revision: QG40_SYNC_FREQ_C4_v1
+  registry_revision: QG40_REGISTRY_20260920_v2_PREPARATION
+  source_plan: research_log/0920/PAN_QG40_QB_GF2_40H_ExperimentPlan_2026-09-20.md
+  sensor_spec:
+    sensor: GF2
+    num_bands: 4
+    max_dn: 1023
+    inverse_scale: 511.5
+    mtf_sensor: GF2
+    hqnr_threshold: 0.964
+    ergas_goal: 0.552
+    ergas_strong_goal: 0.522
+    band_order: null
+    splits: {}
+    source_provenance: {}
+  sensor_spec_path: null
+  num_bands: 4
+  max_pixel: 1023
+  batch_size: 48
+  window_path: work_dir/_qg40/campaign_window.json
+  dataset_manifest: null
+  reference_manifest: null
+  teacher_checkpoint: null
+  teacher_sha256: null
+  tau_R: null
+  q_ref: null
+  q_cache: null
+  q_cache_sha256: null
+  teacher_from_scratch: true
+  backbone_from_scratch: true
+  aligner_init: TEACHER_CLONE
+  init_policy: FH12_named_tensor_fresh9_zero_extra_v1
+  init_generalization: Cplus1_native_channels_zero_extra_LH
+  candidate_grid:
+  - 1010
+  - 2020
+  - 3030
+  - 4040
+  - 5050
+  - 6060
+  - 7070
+  - 8080
+  - 9090
+  - 10100
+  - 11110
+  - 12120
+  - 13130
+  - 14140
+  - 15150
+  - 16160
+  - 17170
+  - 18180
+  - 19190
+  - 20200
+  - 21210
+  - 22220
+  - 23230
+  - 24240
+  - 25250
+  - 26260
+  - 27270
+  - 28280
+  - 29290
+  - 30300
+  - 31310
+  - 32320
+  - 33330
+  - 34340
+  - 35350
+  - 36360
+  - 37370
+  - 38380
+  - 39390
+  - 40400
+  - 41410
+  - 42420
+  - 43430
+  - 44440
+  - 45450
+  - 46460
+  - 47470
+  - 48480
+  - 49490
+  - 50000
+  fullstate_steps:
+  - 10000
+  - 24240
+  - 50000
+  teacher_ref_step: 50000
+  no_global_lock: true
+  alpha: 1.0
+  beta: 0.1
+  lambda_E: 0.002
+  lambda_edge: 0.002
+  aligner_lr: 3.0e-06
+  consistency_weight: 0.0
+  offset_weight: 0.0
+  offset_every: 2
+  offset_radius: 0.0
+  view_margin_hr: 4
+  corruption_seed: 192013
+  calibration:
+    n_patches: 3072
+    seed: 1234
+    probe: AXIS16
+    views: FIXED_HV_ROT4
+    subset_scope: SENSOR_SHARED_TRAIN_IDS
+  hqnr_threshold: 0.964
+  ergas_goal: 0.552
+  ergas_strong_goal: 0.522
+  lr_schedule_id: COSINE_W100_BASE_v1
+  a_lr_switch_completed_updates: null
+  a_lr_after_multiplier: 1.0
+  lp:
+    sigma: 1.98
+    kernel_size: 41
+    padding: replicate
+    decimation: 2::4,2::4
+    generation_dtype: float64
+    cache_dtype: float32
