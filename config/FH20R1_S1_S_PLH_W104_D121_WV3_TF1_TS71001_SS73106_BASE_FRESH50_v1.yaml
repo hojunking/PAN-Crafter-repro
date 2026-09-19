@@ -1,0 +1,159 @@
+# FH20R1 generated definition, not an active queue.
+seed: 73106
+work_dir: work_dir/FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1
+trainer: fh20r1
+phase: train
+num_iter: 50000
+num_warmup: 100
+batch_size: 48
+test_batch_size: 1
+num_worker: 4
+num_bands: 8
+max_pixel: 2047.0
+mixed_precision: 'no'
+learning_rate: 0.0001
+optimizer: AdamW
+weight_decay: 0.01
+betas:
+- 0.9
+- 0.999
+eps: 1.0e-08
+lr_scheduler: cosine
+log_iter: 100
+train_feeder_args:
+  dataroot: data/PanCollection/WV3/train_wv3.h5
+  crop: false
+  hflip: true
+  vflip: true
+  rot: true
+  ms_size: 16
+  return_meta: true
+val_feeder_args:
+  dataroot: data/PanCollection/WV3/valid_wv3.h5
+test_reduced_feeder_args:
+  dataroot: data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5
+test_full_feeder_args:
+  dataroot: data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5
+model_args:
+  hidden_size: 104
+  depth:
+  - 1
+  - 2
+  - 1
+  out_channels: 8
+  attn_locations: []
+  mode_modulation: false
+  norm: ln
+  dropout: 0.0
+fh20r1:
+  server_id: s1
+  role: S
+  tier: CORE
+  block_id: FH20R1_S1_B06
+  input_layout: PLH
+  width: 104
+  depth:
+  - 1
+  - 2
+  - 1
+  teacher_alias: F1
+  teacher_seed: 71001
+  student_seed: 73106
+  profile: BASE
+  run_id: FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1
+  seed: 73106
+  teacher_run_id: FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1
+  teacher_input_layout: P0
+  config_path: config/FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1.yaml
+  kind: TRAIN
+  eligible_when: S1_NO_A_SUPPORT_OR_INCONCLUSIVE
+  campaign_id: WV3_FH20R1_20260919_v1
+  registry_revision: FH20R1_REGISTRY_20260919_v1
+  method_revision: FH12_SYNC_FREQ_NATIVE_TEACHER_v1
+  source_plan: research_log/PAN_FH20R1_AllServers_20Hplus_ExperimentPlan_2026-09-19.md
+  budget_path: work_dir/_fh20r1/s1/campaign_budget.json
+  dataset_manifest: work_dir/_fh12/s1/dataset_manifest.json
+  reference_alias: F1
+  reference_bridge: work_dir/_fh20r1/s1/imported_refs/F1/bridge_manifest.json
+  teacher_checkpoint: work_dir/FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1/candidates/50000/model.safetensors
+  teacher_from_scratch: false
+  backbone_from_scratch: true
+  aligner_init: TEACHER_CLONE
+  init_policy: FH12_named_tensor_fresh9_zero_extra_v1
+  candidate_grid:
+  - 1010
+  - 2020
+  - 3030
+  - 4040
+  - 5050
+  - 6060
+  - 7070
+  - 8080
+  - 9090
+  - 10100
+  - 11110
+  - 12120
+  - 13130
+  - 14140
+  - 15150
+  - 16160
+  - 17170
+  - 18180
+  - 19190
+  - 20200
+  - 21210
+  - 22220
+  - 23230
+  - 24240
+  - 25250
+  - 26260
+  - 27270
+  - 28280
+  - 29290
+  - 30300
+  - 31310
+  - 32320
+  - 33330
+  - 34340
+  - 35350
+  - 36360
+  - 37370
+  - 38380
+  - 39390
+  - 40400
+  - 41410
+  - 42420
+  - 43430
+  - 44440
+  - 45450
+  - 46460
+  - 47470
+  - 48480
+  - 49490
+  - 50000
+  fullstate_steps:
+  - 10000
+  - 24240
+  - 50000
+  alpha: 1.0
+  beta: 0.1
+  lambda_E: 0.002
+  aligner_lr: 3.0e-06
+  offset_weight: 0.0
+  offset_every: 2
+  offset_radius: 0.0
+  view_margin_hr: 4
+  corruption_seed: 173106
+  calibration:
+    n_patches: 3072
+    seed: 1234
+    probe: AXIS16
+    reuse_actual_indices_from: F2
+  hqnr_threshold: 0.9585
+  ergas_goal: 2.04
+  teacher_ref_step: 50000
+  lr_schedule_id: COSINE_W100_BASE_v1
+  a_lr_switch_completed_updates: null
+  a_lr_after_multiplier: 1.0
+  gradient_diagnostic_every: 5000
+  min_effective_hours: 20.0

@@ -1,0 +1,170 @@
+{
+  "server_id": "s1",
+  "blocks": [
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B01",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73101_BASE_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73101_A10_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73101_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73101_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B02",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73102_A10_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73102_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73102_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73102_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B03",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73103_BASE_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73103_A10_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73103_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73103_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B04",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73104_A10_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73104_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73104_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73104_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B05",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73105_BASE_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73105_A10_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73105_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73105_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B06",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73106_A10_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B07",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73107_BASE_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73107_A10_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73107_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73107_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B08",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73108_A10_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73108_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73108_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73108_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B09",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73109_BASE_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73109_A10_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73109_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73109_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B10",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73110_A10_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73110_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73110_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73110_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B11",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73111_BASE_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73111_A10_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73111_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73111_BASE_FRESH50_v1"
+        ]
+      }
+    }
+  ]
+}

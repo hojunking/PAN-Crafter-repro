@@ -12,6 +12,21 @@ fi
 LOG="$REPO/work_dir/cases_chain.log"
 LOCK="$REPO/work_dir/.watchdog.lock"
 exec 9>"$LOCK"; flock -n 9 || exit 0
+# Explicit FH20R1 registration only; a closed campaign never revives older queues.
+FH20R1_SERVER=""
+if [ -r "$REPO/work_dir/_fh20r1/local_server.txt" ]; then
+  IFS= read -r FH20R1_SERVER < "$REPO/work_dir/_fh20r1/local_server.txt" || true
+fi
+case "$FH20R1_SERVER" in s1|s2|s3|s4|s5)
+  if [ -f "$REPO/work_dir/_fh20r1/$FH20R1_SERVER/campaign_budget.json" ]; then
+    cd "$REPO"
+    PY="${PYTHON:-/home/knuvi/miniconda3/envs/pancrafter/bin/python}"
+    [ -x "$PY" ] || PY=python
+    setsid nohup "$PY" tools/fh20r1_runner.py run --server "$FH20R1_SERVER" >> "$REPO/work_dir/_fh20r1/$FH20R1_SERVER/runner.log" 2>&1 < /dev/null 9>&- &
+    exit 0
+  fi;;
+esac
+[ ! -e "$REPO/work_dir/_fh20r1/local_server.txt" ] || { echo "FH20R1 registration incomplete; no legacy fallback" >> "$LOG"; exit 0; }
 # Explicitly activated FH12 owns future admissions, including after its window
 # closes. Pulling code/configs alone does not create this local pointer/window.
 FH12_SERVER=""

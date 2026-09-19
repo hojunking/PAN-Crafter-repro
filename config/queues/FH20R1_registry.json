@@ -1,0 +1,4255 @@
+{
+  "campaign_id": "WV3_FH20R1_20260919_v1",
+  "registry_revision": "FH20R1_REGISTRY_20260919_v1",
+  "source": "supplied Cases CSV (definitions/full SHAs) and MD Appendix A (block order); companion Registry JSON not supplied",
+  "reference_assets": {
+    "F1": {
+      "alias": "F1",
+      "server_id": "s1",
+      "server": "s1",
+      "input_layout": "P0",
+      "teacher_layout": "P0",
+      "teacher_seed": 71001,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "expected_sha_prefix": "04ef8e756ae8b229",
+      "exact50k_sha_prefix": "04ef8e756ae8b229",
+      "expected_sha256": "04ef8e756ae8b229c67ef14daf1912f0658f2e5c8bfe30afa9e0b476486fc519",
+      "origin_manifest": "work_dir/_fh12/s1/references/FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1/reference_manifest.json",
+      "checkpoint": "work_dir/FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1/candidates/50000",
+      "expected_sha_source": "supplied_Cases_CSV_whole_checkpoint_SHA256"
+    },
+    "F2": {
+      "alias": "F2",
+      "server_id": "s2",
+      "server": "s2",
+      "input_layout": "PL",
+      "teacher_layout": "PL",
+      "teacher_seed": 71001,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "expected_sha_prefix": "d2832f5a2d40536a",
+      "exact50k_sha_prefix": "d2832f5a2d40536a",
+      "expected_sha256": "d2832f5a2d40536a859369c011063fe65794c0b7159c93ab23e9976bcb98a1b2",
+      "origin_manifest": "work_dir/_fh12/s2/references/FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1/reference_manifest.json",
+      "checkpoint": "work_dir/FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1/candidates/50000",
+      "expected_sha_source": "supplied_Cases_CSV_whole_checkpoint_SHA256"
+    },
+    "F3": {
+      "alias": "F3",
+      "server_id": "s3",
+      "server": "s3",
+      "input_layout": "PH",
+      "teacher_layout": "PH",
+      "teacher_seed": 71001,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "expected_sha_prefix": "8a971c857a1f386f",
+      "exact50k_sha_prefix": "8a971c857a1f386f",
+      "expected_sha256": "8a971c857a1f386f9a2cf130f8aaf674760d7fa0604d411c92ae7a35fffdb352",
+      "origin_manifest": "work_dir/_fh12/s3/references/FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1/reference_manifest.json",
+      "checkpoint": "work_dir/FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1/candidates/50000",
+      "expected_sha_source": "supplied_Cases_CSV_whole_checkpoint_SHA256"
+    },
+    "F4": {
+      "alias": "F4",
+      "server_id": "s4",
+      "server": "s4",
+      "input_layout": "PLH",
+      "teacher_layout": "PLH",
+      "teacher_seed": 71001,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "expected_sha_prefix": "9b6fd8ccc0e3e567",
+      "exact50k_sha_prefix": "9b6fd8ccc0e3e567",
+      "expected_sha256": "9b6fd8ccc0e3e567f62bacd53d56bb6b2017f23b4c3aac75bdcca0d1ae36d260",
+      "origin_manifest": "work_dir/_fh12/s4/references/FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1/reference_manifest.json",
+      "checkpoint": "work_dir/FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1/candidates/50000",
+      "expected_sha_source": "supplied_Cases_CSV_whole_checkpoint_SHA256"
+    },
+    "F5": {
+      "alias": "F5",
+      "server_id": "s5",
+      "server": "s5",
+      "input_layout": "PLH",
+      "teacher_layout": "PLH",
+      "teacher_seed": 71002,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "expected_sha_prefix": "dff2b0c1b4e00422",
+      "exact50k_sha_prefix": "dff2b0c1b4e00422",
+      "expected_sha256": "dff2b0c1b4e00422ce184d9e7590ba78e88d750bb42674997423542ad20916c2",
+      "origin_manifest": "work_dir/_fh12/s5/references/FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1/reference_manifest.json",
+      "checkpoint": "work_dir/FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1/candidates/50000",
+      "expected_sha_source": "supplied_Cases_CSV_whole_checkpoint_SHA256"
+    }
+  },
+  "stages": [
+    {
+      "stage_id": "FH20R1_S1_IMPORT",
+      "server_id": "s1",
+      "kind": "IMPORT"
+    },
+    {
+      "stage_id": "FH20R1_S1_DIAG",
+      "server_id": "s1",
+      "kind": "DIAG"
+    },
+    {
+      "stage_id": "FH20R1_S2_IMPORT",
+      "server_id": "s2",
+      "kind": "IMPORT"
+    },
+    {
+      "stage_id": "FH20R1_S2_DIAG",
+      "server_id": "s2",
+      "kind": "DIAG"
+    },
+    {
+      "stage_id": "FH20R1_S3_IMPORT",
+      "server_id": "s3",
+      "kind": "IMPORT"
+    },
+    {
+      "stage_id": "FH20R1_S3_DIAG",
+      "server_id": "s3",
+      "kind": "DIAG"
+    },
+    {
+      "stage_id": "FH20R1_S4_IMPORT",
+      "server_id": "s4",
+      "kind": "IMPORT"
+    },
+    {
+      "stage_id": "FH20R1_S4_DIAG",
+      "server_id": "s4",
+      "kind": "DIAG"
+    },
+    {
+      "stage_id": "FH20R1_S5_IMPORT",
+      "server_id": "s5",
+      "kind": "IMPORT"
+    },
+    {
+      "stage_id": "FH20R1_S5_DIAG",
+      "server_id": "s5",
+      "kind": "DIAG"
+    },
+    {
+      "stage_id": "FH20R1_S2_CAL_N2PL",
+      "server_id": "s2",
+      "kind": "CALIBRATION"
+    }
+  ],
+  "blocks": [
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B01",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73101_BASE_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73101_A10_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73101_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73101_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B02",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73102_A10_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73102_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73102_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73102_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B03",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73103_BASE_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73103_A10_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73103_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73103_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B04",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73104_A10_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73104_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73104_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73104_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B05",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73105_BASE_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73105_A10_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73105_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73105_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B06",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73106_A10_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B07",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73107_BASE_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73107_A10_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73107_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73107_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B08",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73108_A10_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73108_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73108_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73108_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B09",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73109_BASE_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73109_A10_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73109_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73109_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B10",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73110_A10_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73110_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73110_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73110_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s1",
+      "block_id": "FH20R1_S1_B11",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73111_BASE_FRESH50_v1",
+        "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73111_A10_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S1_NO_A_SUPPORT_OR_INCONCLUSIVE": [
+          "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73111_BASE_FRESH50_v1",
+          "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73111_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s2",
+      "block_id": "FH20R1_S2_B01",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS72001_BASE_FRESH50_v1",
+        "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS72001_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S2_DONOR_OR_REFERENCE_UNAVAILABLE": [
+          "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS72001_BASE_FRESH50_v1",
+          "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS72001_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s2",
+      "block_id": "FH20R1_S2_B02",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73201_BASE_FRESH50_v1",
+        "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73201_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S2_DONOR_OR_REFERENCE_UNAVAILABLE": [
+          "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73201_BASE_FRESH50_v1",
+          "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73201_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s2",
+      "block_id": "FH20R1_S2_B03",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73202_BASE_FRESH50_v1",
+        "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73202_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S2_DONOR_OR_REFERENCE_UNAVAILABLE": [
+          "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73202_BASE_FRESH50_v1",
+          "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73202_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s2",
+      "block_id": "FH20R1_S2_B04",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73203_BASE_FRESH50_v1",
+        "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73203_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S2_DONOR_OR_REFERENCE_UNAVAILABLE": [
+          "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73203_BASE_FRESH50_v1",
+          "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73203_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s2",
+      "block_id": "FH20R1_S2_B05",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73204_BASE_FRESH50_v1",
+        "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73204_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S2_DONOR_OR_REFERENCE_UNAVAILABLE": [
+          "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73204_BASE_FRESH50_v1",
+          "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73204_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s2",
+      "block_id": "FH20R1_S2_B06",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73205_BASE_FRESH50_v1",
+        "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73205_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S2_DONOR_OR_REFERENCE_UNAVAILABLE": [
+          "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73205_BASE_FRESH50_v1",
+          "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73205_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s2",
+      "block_id": "FH20R1_S2_B07",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73206_BASE_FRESH50_v1",
+        "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73206_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S2_DONOR_OR_REFERENCE_UNAVAILABLE": [
+          "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73206_BASE_FRESH50_v1",
+          "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73206_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s2",
+      "block_id": "FH20R1_S2_B08",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73207_BASE_FRESH50_v1",
+        "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73207_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S2_DONOR_OR_REFERENCE_UNAVAILABLE": [
+          "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73207_BASE_FRESH50_v1",
+          "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73207_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s2",
+      "block_id": "FH20R1_S2_B09",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73208_BASE_FRESH50_v1",
+        "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73208_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {
+        "S2_DONOR_OR_REFERENCE_UNAVAILABLE": [
+          "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73208_BASE_FRESH50_v1",
+          "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73208_BASE_FRESH50_v1"
+        ]
+      }
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B01",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS72002_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS72002_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B02",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73301_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73301_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B03",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73302_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73302_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B04",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73303_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73303_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B05",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73304_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73304_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B06",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73305_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73305_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B07",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73306_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73306_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B08",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73307_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73307_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B09",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73308_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73308_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B10",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73309_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73309_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B11",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73310_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73310_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B12",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73311_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73311_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B13",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73312_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73312_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B14",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73313_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73313_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s4",
+      "block_id": "FH20R1_S4_B01",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS72001_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s4",
+      "block_id": "FH20R1_S4_B02",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73401_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73401_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73401_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73401_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s4",
+      "block_id": "FH20R1_S4_B03",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73402_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73402_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73402_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73402_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s4",
+      "block_id": "FH20R1_S4_B04",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s4",
+      "block_id": "FH20R1_S4_B05",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73404_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73404_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73404_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73404_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s4",
+      "block_id": "FH20R1_S4_B06",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S4_S_PLH_W112_D122_WV3_TF4_TS71001_SS72001_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s4",
+      "block_id": "FH20R1_S4_B07",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S4_S_PLH_W112_D121_WV3_TF4_TS71001_SS73405_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PLH_W112_D122_WV3_TF4_TS71001_SS73405_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s4",
+      "block_id": "FH20R1_S4_B08",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73406_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73406_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73406_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73406_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s4",
+      "block_id": "FH20R1_S4_B09",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73407_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73407_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73407_BASE_FRESH50_v1",
+        "FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73407_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s5",
+      "block_id": "FH20R1_S5_B01",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS72002_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS72002_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s5",
+      "block_id": "FH20R1_S5_B02",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73501_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73501_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73501_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73501_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s5",
+      "block_id": "FH20R1_S5_B03",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73502_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73502_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73502_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73502_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s5",
+      "block_id": "FH20R1_S5_B04",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73503_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73503_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73503_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73503_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s5",
+      "block_id": "FH20R1_S5_B05",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73504_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73504_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73504_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73504_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s5",
+      "block_id": "FH20R1_S5_B06",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S5_S_PLH_W112_D121_WV3_TF5_TS71002_SS72002_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PLH_W112_D122_WV3_TF5_TS71002_SS72002_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s5",
+      "block_id": "FH20R1_S5_B07",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73505_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73505_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73505_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73505_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s5",
+      "block_id": "FH20R1_S5_B08",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73506_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73506_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73506_BASE_FRESH50_v1",
+        "FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73506_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    }
+  ],
+  "cases": [
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B01",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73101,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73101_BASE_FRESH50_v1",
+      "seed": 73101,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73101_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B01",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73101,
+      "profile": "A10",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73101_A10_FRESH50_v1",
+      "seed": 73101,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73101_A10_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_A_SUPPORT"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B01",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73101,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73101_BASE_FRESH50_v1",
+      "seed": 73101,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73101_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_NO_A_SUPPORT_OR_INCONCLUSIVE"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B02",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73102,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73102_BASE_FRESH50_v1",
+      "seed": 73102,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73102_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B02",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73102,
+      "profile": "A10",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73102_A10_FRESH50_v1",
+      "seed": 73102,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73102_A10_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_A_SUPPORT"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B02",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73102,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73102_BASE_FRESH50_v1",
+      "seed": 73102,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73102_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_NO_A_SUPPORT_OR_INCONCLUSIVE"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B03",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73103,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73103_BASE_FRESH50_v1",
+      "seed": 73103,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73103_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B03",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73103,
+      "profile": "A10",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73103_A10_FRESH50_v1",
+      "seed": 73103,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73103_A10_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_A_SUPPORT"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B03",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73103,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73103_BASE_FRESH50_v1",
+      "seed": 73103,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73103_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_NO_A_SUPPORT_OR_INCONCLUSIVE"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B04",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73104,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73104_BASE_FRESH50_v1",
+      "seed": 73104,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73104_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B04",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73104,
+      "profile": "A10",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73104_A10_FRESH50_v1",
+      "seed": 73104,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73104_A10_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_A_SUPPORT"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B04",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73104,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73104_BASE_FRESH50_v1",
+      "seed": 73104,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73104_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_NO_A_SUPPORT_OR_INCONCLUSIVE"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B05",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73105,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73105_BASE_FRESH50_v1",
+      "seed": 73105,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73105_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B05",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73105,
+      "profile": "A10",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73105_A10_FRESH50_v1",
+      "seed": 73105,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73105_A10_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_A_SUPPORT"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B05",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73105,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73105_BASE_FRESH50_v1",
+      "seed": 73105,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73105_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_NO_A_SUPPORT_OR_INCONCLUSIVE"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B06",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73106,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1",
+      "seed": 73106,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B06",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73106,
+      "profile": "A10",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73106_A10_FRESH50_v1",
+      "seed": 73106,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73106_A10_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_A_SUPPORT"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B06",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73106,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1",
+      "seed": 73106,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_NO_A_SUPPORT_OR_INCONCLUSIVE"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B07",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73107,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73107_BASE_FRESH50_v1",
+      "seed": 73107,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73107_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B07",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73107,
+      "profile": "A10",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73107_A10_FRESH50_v1",
+      "seed": 73107,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73107_A10_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_A_SUPPORT"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S1_B07",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73107,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73107_BASE_FRESH50_v1",
+      "seed": 73107,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73107_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_NO_A_SUPPORT_OR_INCONCLUSIVE"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S1_B08",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73108,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73108_BASE_FRESH50_v1",
+      "seed": 73108,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73108_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S1_B08",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73108,
+      "profile": "A10",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73108_A10_FRESH50_v1",
+      "seed": 73108,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73108_A10_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_A_SUPPORT"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S1_B08",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73108,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73108_BASE_FRESH50_v1",
+      "seed": 73108,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73108_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_NO_A_SUPPORT_OR_INCONCLUSIVE"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S1_B09",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73109,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73109_BASE_FRESH50_v1",
+      "seed": 73109,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73109_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S1_B09",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73109,
+      "profile": "A10",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73109_A10_FRESH50_v1",
+      "seed": 73109,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73109_A10_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_A_SUPPORT"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S1_B09",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73109,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73109_BASE_FRESH50_v1",
+      "seed": 73109,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73109_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_NO_A_SUPPORT_OR_INCONCLUSIVE"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S1_B10",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73110,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73110_BASE_FRESH50_v1",
+      "seed": 73110,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73110_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S1_B10",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73110,
+      "profile": "A10",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73110_A10_FRESH50_v1",
+      "seed": 73110,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73110_A10_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_A_SUPPORT"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S1_B10",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73110,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73110_BASE_FRESH50_v1",
+      "seed": 73110,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73110_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_NO_A_SUPPORT_OR_INCONCLUSIVE"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S1_B11",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73111,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73111_BASE_FRESH50_v1",
+      "seed": 73111,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73111_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S1_B11",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73111,
+      "profile": "A10",
+      "run_id": "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73111_A10_FRESH50_v1",
+      "seed": 73111,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73111_A10_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_A_SUPPORT"
+    },
+    {
+      "server_id": "s1",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S1_B11",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F1",
+      "teacher_seed": 71001,
+      "student_seed": 73111,
+      "profile": "BASE",
+      "run_id": "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73111_BASE_FRESH50_v1",
+      "seed": 73111,
+      "teacher_run_id": "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "P0",
+      "config_path": "config/FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73111_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S1_NO_A_SUPPORT_OR_INCONCLUSIVE"
+    },
+    {
+      "server_id": "s2",
+      "role": "T",
+      "tier": "CORE",
+      "block_id": "FH20R1_S2_TEACHER_PREP",
+      "input_layout": "PL",
+      "width": 112,
+      "depth": [
+        1,
+        2,
+        3
+      ],
+      "teacher_alias": "N2PL",
+      "teacher_seed": 71001,
+      "student_seed": null,
+      "profile": "N2INIT",
+      "run_id": "FH20R1_S2_T_PL_W112_D123_WV3_TS71001_N2INIT50_v1",
+      "seed": 71001,
+      "teacher_run_id": "FH20R1_S2_T_PL_W112_D123_WV3_TS71001_N2INIT50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_T_PL_W112_D123_WV3_TS71001_N2INIT50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_DONOR_VERIFIED"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S2_B01",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 72001,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS72001_BASE_FRESH50_v1",
+      "seed": 72001,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS72001_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S2_B01",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "N2PL",
+      "teacher_seed": 71001,
+      "student_seed": 72001,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS72001_BASE_FRESH50_v1",
+      "seed": 72001,
+      "teacher_run_id": "FH20R1_S2_T_PL_W112_D123_WV3_TS71001_N2INIT50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS72001_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_N2PL_REFERENCE_READY"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S2_B01",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 72001,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS72001_BASE_FRESH50_v1",
+      "seed": 72001,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS72001_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_DONOR_OR_REFERENCE_UNAVAILABLE"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S2_B02",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 73201,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73201_BASE_FRESH50_v1",
+      "seed": 73201,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73201_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S2_B02",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "N2PL",
+      "teacher_seed": 71001,
+      "student_seed": 73201,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73201_BASE_FRESH50_v1",
+      "seed": 73201,
+      "teacher_run_id": "FH20R1_S2_T_PL_W112_D123_WV3_TS71001_N2INIT50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73201_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_N2PL_REFERENCE_READY"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S2_B02",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 73201,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73201_BASE_FRESH50_v1",
+      "seed": 73201,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73201_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_DONOR_OR_REFERENCE_UNAVAILABLE"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S2_B03",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 73202,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73202_BASE_FRESH50_v1",
+      "seed": 73202,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73202_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S2_B03",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "N2PL",
+      "teacher_seed": 71001,
+      "student_seed": 73202,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73202_BASE_FRESH50_v1",
+      "seed": 73202,
+      "teacher_run_id": "FH20R1_S2_T_PL_W112_D123_WV3_TS71001_N2INIT50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73202_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_N2PL_REFERENCE_READY"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S2_B03",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 73202,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73202_BASE_FRESH50_v1",
+      "seed": 73202,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73202_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_DONOR_OR_REFERENCE_UNAVAILABLE"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S2_B04",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 73203,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73203_BASE_FRESH50_v1",
+      "seed": 73203,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73203_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S2_B04",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "N2PL",
+      "teacher_seed": 71001,
+      "student_seed": 73203,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73203_BASE_FRESH50_v1",
+      "seed": 73203,
+      "teacher_run_id": "FH20R1_S2_T_PL_W112_D123_WV3_TS71001_N2INIT50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73203_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_N2PL_REFERENCE_READY"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S2_B04",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 73203,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73203_BASE_FRESH50_v1",
+      "seed": 73203,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73203_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_DONOR_OR_REFERENCE_UNAVAILABLE"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S2_B05",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 73204,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73204_BASE_FRESH50_v1",
+      "seed": 73204,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73204_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S2_B05",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "N2PL",
+      "teacher_seed": 71001,
+      "student_seed": 73204,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73204_BASE_FRESH50_v1",
+      "seed": 73204,
+      "teacher_run_id": "FH20R1_S2_T_PL_W112_D123_WV3_TS71001_N2INIT50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73204_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_N2PL_REFERENCE_READY"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S2_B05",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 73204,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73204_BASE_FRESH50_v1",
+      "seed": 73204,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73204_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_DONOR_OR_REFERENCE_UNAVAILABLE"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S2_B06",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 73205,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73205_BASE_FRESH50_v1",
+      "seed": 73205,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73205_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S2_B06",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "N2PL",
+      "teacher_seed": 71001,
+      "student_seed": 73205,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73205_BASE_FRESH50_v1",
+      "seed": 73205,
+      "teacher_run_id": "FH20R1_S2_T_PL_W112_D123_WV3_TS71001_N2INIT50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73205_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_N2PL_REFERENCE_READY"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S2_B06",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 73205,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73205_BASE_FRESH50_v1",
+      "seed": 73205,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73205_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_DONOR_OR_REFERENCE_UNAVAILABLE"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S2_B07",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 73206,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73206_BASE_FRESH50_v1",
+      "seed": 73206,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73206_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S2_B07",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "N2PL",
+      "teacher_seed": 71001,
+      "student_seed": 73206,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73206_BASE_FRESH50_v1",
+      "seed": 73206,
+      "teacher_run_id": "FH20R1_S2_T_PL_W112_D123_WV3_TS71001_N2INIT50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73206_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_N2PL_REFERENCE_READY"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S2_B07",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 73206,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73206_BASE_FRESH50_v1",
+      "seed": 73206,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73206_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_DONOR_OR_REFERENCE_UNAVAILABLE"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S2_B08",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 73207,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73207_BASE_FRESH50_v1",
+      "seed": 73207,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73207_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S2_B08",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "N2PL",
+      "teacher_seed": 71001,
+      "student_seed": 73207,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73207_BASE_FRESH50_v1",
+      "seed": 73207,
+      "teacher_run_id": "FH20R1_S2_T_PL_W112_D123_WV3_TS71001_N2INIT50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73207_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_N2PL_REFERENCE_READY"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S2_B08",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 73207,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73207_BASE_FRESH50_v1",
+      "seed": 73207,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73207_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_DONOR_OR_REFERENCE_UNAVAILABLE"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S2_B09",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 73208,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73208_BASE_FRESH50_v1",
+      "seed": 73208,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73208_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S2_B09",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "N2PL",
+      "teacher_seed": 71001,
+      "student_seed": 73208,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73208_BASE_FRESH50_v1",
+      "seed": 73208,
+      "teacher_run_id": "FH20R1_S2_T_PL_W112_D123_WV3_TS71001_N2INIT50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PL_W104_D122_WV3_TN2PL_TS71001_SS73208_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_N2PL_REFERENCE_READY"
+    },
+    {
+      "server_id": "s2",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S2_B09",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F2",
+      "teacher_seed": 71001,
+      "student_seed": 73208,
+      "profile": "BASE",
+      "run_id": "FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73208_BASE_FRESH50_v1",
+      "seed": 73208,
+      "teacher_run_id": "FH12_S2_T_PL_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PL",
+      "config_path": "config/FH20R1_S2_S_PLH_W104_D122_WV3_TF2_TS71001_SS73208_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "S2_DONOR_OR_REFERENCE_UNAVAILABLE"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B01",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 72002,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS72002_BASE_FRESH50_v1",
+      "seed": 72002,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS72002_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B01",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 72002,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS72002_BASE_FRESH50_v1",
+      "seed": 72002,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS72002_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B02",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73301,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73301_BASE_FRESH50_v1",
+      "seed": 73301,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73301_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B02",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73301,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73301_BASE_FRESH50_v1",
+      "seed": 73301,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73301_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B03",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73302,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73302_BASE_FRESH50_v1",
+      "seed": 73302,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73302_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B03",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73302,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73302_BASE_FRESH50_v1",
+      "seed": 73302,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73302_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B04",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73303,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73303_BASE_FRESH50_v1",
+      "seed": 73303,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73303_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B04",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73303,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73303_BASE_FRESH50_v1",
+      "seed": 73303,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73303_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B05",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73304,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73304_BASE_FRESH50_v1",
+      "seed": 73304,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73304_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B05",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73304,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73304_BASE_FRESH50_v1",
+      "seed": 73304,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73304_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B06",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73305,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73305_BASE_FRESH50_v1",
+      "seed": 73305,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73305_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B06",
+      "input_layout": "PH",
+      "width": 112,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73305,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73305_BASE_FRESH50_v1",
+      "seed": 73305,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73305_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B07",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73306,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73306_BASE_FRESH50_v1",
+      "seed": 73306,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73306_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B07",
+      "input_layout": "PH",
+      "width": 112,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73306,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73306_BASE_FRESH50_v1",
+      "seed": 73306,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73306_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B08",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73307,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73307_BASE_FRESH50_v1",
+      "seed": 73307,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73307_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B08",
+      "input_layout": "PH",
+      "width": 112,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73307,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73307_BASE_FRESH50_v1",
+      "seed": 73307,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73307_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B09",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73308,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73308_BASE_FRESH50_v1",
+      "seed": 73308,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73308_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B09",
+      "input_layout": "PH",
+      "width": 112,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73308,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73308_BASE_FRESH50_v1",
+      "seed": 73308,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73308_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B10",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73309,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73309_BASE_FRESH50_v1",
+      "seed": 73309,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73309_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S3_B10",
+      "input_layout": "PH",
+      "width": 112,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73309,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73309_BASE_FRESH50_v1",
+      "seed": 73309,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73309_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S3_B11",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73310,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73310_BASE_FRESH50_v1",
+      "seed": 73310,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73310_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S3_B11",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73310,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73310_BASE_FRESH50_v1",
+      "seed": 73310,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73310_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S3_B12",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73311,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73311_BASE_FRESH50_v1",
+      "seed": 73311,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73311_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S3_B12",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73311,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73311_BASE_FRESH50_v1",
+      "seed": 73311,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73311_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S3_B13",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73312,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73312_BASE_FRESH50_v1",
+      "seed": 73312,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73312_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S3_B13",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73312,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73312_BASE_FRESH50_v1",
+      "seed": 73312,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73312_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S3_B14",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73313,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73313_BASE_FRESH50_v1",
+      "seed": 73313,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73313_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s3",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S3_B14",
+      "input_layout": "PH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F3",
+      "teacher_seed": 71001,
+      "student_seed": 73313,
+      "profile": "BASE",
+      "run_id": "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73313_BASE_FRESH50_v1",
+      "seed": 73313,
+      "teacher_run_id": "FH12_S3_T_PH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PH",
+      "config_path": "config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73313_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B01",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 72001,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS72001_BASE_FRESH50_v1",
+      "seed": 72001,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS72001_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B02",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73401,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73401_BASE_FRESH50_v1",
+      "seed": 73401,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73401_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B02",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73401,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73401_BASE_FRESH50_v1",
+      "seed": 73401,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73401_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B02",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73401,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73401_BASE_FRESH50_v1",
+      "seed": 73401,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73401_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B02",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73401,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73401_BASE_FRESH50_v1",
+      "seed": 73401,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73401_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B03",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73402,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73402_BASE_FRESH50_v1",
+      "seed": 73402,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73402_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B03",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73402,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73402_BASE_FRESH50_v1",
+      "seed": 73402,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73402_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B03",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73402,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73402_BASE_FRESH50_v1",
+      "seed": 73402,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73402_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B03",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73402,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73402_BASE_FRESH50_v1",
+      "seed": 73402,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73402_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B04",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73403,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1",
+      "seed": 73403,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B04",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73403,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1",
+      "seed": 73403,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B04",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73403,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1",
+      "seed": 73403,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B04",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73403,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1",
+      "seed": 73403,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B05",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73404,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73404_BASE_FRESH50_v1",
+      "seed": 73404,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73404_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B05",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73404,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73404_BASE_FRESH50_v1",
+      "seed": 73404,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73404_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B05",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73404,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73404_BASE_FRESH50_v1",
+      "seed": 73404,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73404_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B05",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73404,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73404_BASE_FRESH50_v1",
+      "seed": 73404,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73404_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B06",
+      "input_layout": "PLH",
+      "width": 112,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 72001,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PLH_W112_D122_WV3_TF4_TS71001_SS72001_BASE_FRESH50_v1",
+      "seed": 72001,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PLH_W112_D122_WV3_TF4_TS71001_SS72001_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B07",
+      "input_layout": "PLH",
+      "width": 112,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73405,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PLH_W112_D121_WV3_TF4_TS71001_SS73405_BASE_FRESH50_v1",
+      "seed": 73405,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PLH_W112_D121_WV3_TF4_TS71001_SS73405_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S4_B07",
+      "input_layout": "PLH",
+      "width": 112,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73405,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PLH_W112_D122_WV3_TF4_TS71001_SS73405_BASE_FRESH50_v1",
+      "seed": 73405,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PLH_W112_D122_WV3_TF4_TS71001_SS73405_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S4_B08",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73406,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73406_BASE_FRESH50_v1",
+      "seed": 73406,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73406_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S4_B08",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73406,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73406_BASE_FRESH50_v1",
+      "seed": 73406,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73406_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S4_B08",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73406,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73406_BASE_FRESH50_v1",
+      "seed": 73406,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73406_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S4_B08",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73406,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73406_BASE_FRESH50_v1",
+      "seed": 73406,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73406_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S4_B09",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73407,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73407_BASE_FRESH50_v1",
+      "seed": 73407,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PL_W104_D121_WV3_TF4_TS71001_SS73407_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S4_B09",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73407,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73407_BASE_FRESH50_v1",
+      "seed": 73407,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PL_W104_D122_WV3_TF4_TS71001_SS73407_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S4_B09",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73407,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73407_BASE_FRESH50_v1",
+      "seed": 73407,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73407_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s4",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S4_B09",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F4",
+      "teacher_seed": 71001,
+      "student_seed": 73407,
+      "profile": "BASE",
+      "run_id": "FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73407_BASE_FRESH50_v1",
+      "seed": 73407,
+      "teacher_run_id": "FH12_S4_T_PLH_W112_D123_WV3_S71001_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S4_S_PLH_W104_D121_WV3_TF4_TS71001_SS73407_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B01",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 72002,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS72002_BASE_FRESH50_v1",
+      "seed": 72002,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS72002_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B01",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 72002,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS72002_BASE_FRESH50_v1",
+      "seed": 72002,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS72002_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B02",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73501,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73501_BASE_FRESH50_v1",
+      "seed": 73501,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73501_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B02",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73501,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73501_BASE_FRESH50_v1",
+      "seed": 73501,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73501_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B02",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73501,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73501_BASE_FRESH50_v1",
+      "seed": 73501,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73501_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B02",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73501,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73501_BASE_FRESH50_v1",
+      "seed": 73501,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73501_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B03",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73502,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73502_BASE_FRESH50_v1",
+      "seed": 73502,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73502_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B03",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73502,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73502_BASE_FRESH50_v1",
+      "seed": 73502,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73502_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B03",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73502,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73502_BASE_FRESH50_v1",
+      "seed": 73502,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73502_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B03",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73502,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73502_BASE_FRESH50_v1",
+      "seed": 73502,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73502_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B04",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73503,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73503_BASE_FRESH50_v1",
+      "seed": 73503,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73503_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B04",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73503,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73503_BASE_FRESH50_v1",
+      "seed": 73503,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73503_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B04",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73503,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73503_BASE_FRESH50_v1",
+      "seed": 73503,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73503_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B04",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73503,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73503_BASE_FRESH50_v1",
+      "seed": 73503,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73503_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B05",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73504,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73504_BASE_FRESH50_v1",
+      "seed": 73504,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73504_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B05",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73504,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73504_BASE_FRESH50_v1",
+      "seed": 73504,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73504_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B05",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73504,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73504_BASE_FRESH50_v1",
+      "seed": 73504,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73504_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B05",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73504,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73504_BASE_FRESH50_v1",
+      "seed": 73504,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73504_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B06",
+      "input_layout": "PLH",
+      "width": 112,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 72002,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PLH_W112_D121_WV3_TF5_TS71002_SS72002_BASE_FRESH50_v1",
+      "seed": 72002,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PLH_W112_D121_WV3_TF5_TS71002_SS72002_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "CORE",
+      "block_id": "FH20R1_S5_B06",
+      "input_layout": "PLH",
+      "width": 112,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 72002,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PLH_W112_D122_WV3_TF5_TS71002_SS72002_BASE_FRESH50_v1",
+      "seed": 72002,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PLH_W112_D122_WV3_TF5_TS71002_SS72002_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S5_B07",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73505,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73505_BASE_FRESH50_v1",
+      "seed": 73505,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73505_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S5_B07",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73505,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73505_BASE_FRESH50_v1",
+      "seed": 73505,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73505_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S5_B07",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73505,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73505_BASE_FRESH50_v1",
+      "seed": 73505,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73505_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S5_B07",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73505,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73505_BASE_FRESH50_v1",
+      "seed": 73505,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73505_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S5_B08",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73506,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73506_BASE_FRESH50_v1",
+      "seed": 73506,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PL_W104_D121_WV3_TF5_TS71002_SS73506_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S5_B08",
+      "input_layout": "PL",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73506,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73506_BASE_FRESH50_v1",
+      "seed": 73506,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PL_W104_D122_WV3_TF5_TS71002_SS73506_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S5_B08",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        2
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73506,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73506_BASE_FRESH50_v1",
+      "seed": 73506,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PLH_W104_D122_WV3_TF5_TS71002_SS73506_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    },
+    {
+      "server_id": "s5",
+      "role": "S",
+      "tier": "RESERVE",
+      "block_id": "FH20R1_S5_B08",
+      "input_layout": "PLH",
+      "width": 104,
+      "depth": [
+        1,
+        2,
+        1
+      ],
+      "teacher_alias": "F5",
+      "teacher_seed": 71002,
+      "student_seed": 73506,
+      "profile": "BASE",
+      "run_id": "FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73506_BASE_FRESH50_v1",
+      "seed": 73506,
+      "teacher_run_id": "FH12_S5_T_PLH_W112_D123_WV3_S71002_FRESH50_v1",
+      "teacher_input_layout": "PLH",
+      "config_path": "config/FH20R1_S5_S_PLH_W104_D121_WV3_TF5_TS71002_SS73506_BASE_FRESH50_v1.yaml",
+      "kind": "TRAIN",
+      "eligible_when": "ALWAYS"
+    }
+  ]
+}

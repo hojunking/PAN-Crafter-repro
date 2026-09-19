@@ -1,0 +1,145 @@
+{
+  "server_id": "s3",
+  "blocks": [
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B01",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS72002_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS72002_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B02",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73301_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73301_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B03",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73302_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73302_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B04",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73303_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73303_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B05",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73304_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73304_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B06",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73305_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73305_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B07",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73306_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73306_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B08",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73307_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73307_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B09",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73308_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73308_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B10",
+      "tier": "CORE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W112_D122_WV3_TF3_TS71001_SS73309_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73309_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B11",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73310_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73310_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B12",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73311_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73311_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B13",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73312_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73312_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    },
+    {
+      "server_id": "s3",
+      "block_id": "FH20R1_S3_B14",
+      "tier": "RESERVE",
+      "primary_order": [
+        "FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73313_BASE_FRESH50_v1",
+        "FH20R1_S3_S_PH_W104_D121_WV3_TF3_TS71001_SS73313_BASE_FRESH50_v1"
+      ],
+      "alternative_orders": {}
+    }
+  ]
+}
