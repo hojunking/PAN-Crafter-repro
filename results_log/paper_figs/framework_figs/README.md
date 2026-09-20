@@ -20,6 +20,28 @@ Stage 1 (Teacher / PAN Aligner Training) 도식의 회색 박스에 넣을 실�
 | `ET_teacher_err.png` | **e_T** (Stage 2 의 cue) | `\|Y_T − Y\|` 의 **밴드 평균**. `kdv/losses_rec.py` 의 `e_t` 와 같은 식. 변형 `_magma` `_gray` |
 | `G_gt_edge.png` | **∇Y** (ℒ_edge 타깃) | GT 의 signed Scharr `(gx,gy)` 크기, 밴드 평균. `pa/losses.py` 의 `scharr` — `output_edge_loss` 가 쓰는 그 커널. 변형 `_inv`(흰 배경) `_cividis` |
 
+### 도식 박스에 넣을 이동 표현 (2026-09-20, `tools/framework_figs_shift_schematic.py`)
+
+edge 오버레이는 **도식 크기(1 인치 남짓)로 줄이면 뭉개진다** — 선이 너무 많아서다.
+박스에 넣을 것은 이쪽이다: **PAN 에서 실제로 추출한 윤곽선을 몇 개만 굵게** 그리고 원본/이동본을
+두 색으로 겹친다.
+
+| 파일 | 크롭 | 선 | 도식 크기에서 |
+|---|---|---|---|
+| **`SHIFT_schem_zoom_eps_x1.png`** | 32² 확대 | 3 개 + 화살표 | **또렷하다. 권장** |
+| `SHIFT_schem_wide_eps_x1.png` | 128² 전체 | 14 개 | 읽히지만 가늘다 |
+| `*_x3`, `*_x6` | 위와 같음 | | **과장판** — 캡션에 배율 필수 |
+
+**`SHIFT_schem_zoom_eps_x1.png` 을 쓰면 과장 없이 해결된다.** ε = 2.0 px 그대로인데도
+작은 박스에서 cyan/red 가 또렷이 갈라진다 — 비결은 이동을 부풀리는 게 아니라 **좁게 확대하고
+선을 줄여 굵게** 그린 것이다. 그림 안에 `shift 2.00 px` 라벨이 이미 박혀 있다.
+
+- cyan = 원본 PAN 윤곽 · red = 이동한 PAN 윤곽 · 흰 화살표 = 이동 방향
+- 윤곽선은 `skimage.measure.find_contours` 로 **실제 PAN 에서 추출**한 것이다(그려 넣은 것이 아니다)
+- 배경은 원 PAN 을 alpha 0.35 로 깔아 위성영상임이 보이게 했다
+- `--vec c0` 로 aligner 실측 보정(0.11–0.21 px)판도 만들 수 있다 — 그건 ×1 로는 거의 겹쳐 보인다
+- `*_x3`/`*_x6` 는 **이동량을 그림에서만 부풀린 것**이다. 쓸 거면 캡션에 배율을 적는다
+
 ### PAN 이동을 보이게 하는 edge 오버레이 (2026-09-20, `tools/framework_figs_edge_shift.py`)
 
 `P` 와 `P′`(또는 `P_ε`)를 나란히 놓아도 **눈으로는 구분되지 않는다**(아래 "쓸 때 주의" 참조).
