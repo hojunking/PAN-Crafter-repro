@@ -16,6 +16,16 @@ Stage 1 (Teacher / PAN Aligner Training) 도식의 회색 박스에 넣을 실�
 | `Y_gt.png` | **HRMS GT  Y** | 정답 HRMS, RGB |
 | `P_shifted.png` | **shifted  P_ε** (Step 1-b) | `W(P, ε)`, ε = (+1.6, −1.2) HR px (\|ε\| = 2.0) |
 | `S_ms_native.png` | (도식에 없음) | 원 해상도 MS `S`. MS↑ 앞에 박스를 하나 더 두고 싶을 때 쓴다 |
+| `ET_teacher_err.png` | **e_T** (Stage 2 의 cue) | `\|Y_T − Y\|` 의 **밴드 평균**. `kdv/losses_rec.py` 의 `e_t` 와 같은 식. 변형 `_magma` `_gray` |
+| `G_gt_edge.png` | **∇Y** (ℒ_edge 타깃) | GT 의 signed Scharr `(gx,gy)` 크기, 밴드 평균. `pa/losses.py` 의 `scharr` — `output_edge_loss` 가 쓰는 그 커널. 변형 `_inv`(흰 배경) `_cividis` |
+
+> **2026-09-20 추가** (`tools/framework_figs_maps.py`). 위 두 장은 같은 `t0_rr.npz`·같은 장면·크롭·
+> ×4 nearest 규약이라 기존 일곱 장과 픽셀 단위로 겹친다. 기존 PNG 는 건드리지 않았다.
+> Scharr 는 **256² 전체에서 계산한 뒤 크롭**한다 — 크롭 경계의 reflect pad 인공물을 피하려는 것.
+> 표시 스케일은 0 = 검정(오차 0), 상한은 크롭의 **99 퍼센타일**(소수 화소가 스케일을 먹지 않게).
+> 실측값은 `index_maps.csv` — 3_city 기준 e_T 중앙 **18.5 DN** · p99 **74.3 DN**(모델 단위 0.0725),
+> edge 중앙 96.5 DN · p99 358.7 DN. **`e_T` 는 DN 으로 저장했고 학습 코드는 [−1,1] 이라 값이 R/2 = 1023.5 배
+> 차이난다 — 지도 자체는 같다.**
 
 세 묶음: `1_buildings` (관공서형 건물·주차) · `2_cars` (도로와 차량 행렬) · `3_city` (조밀한 도심 격자).
 
