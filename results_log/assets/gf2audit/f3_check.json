@@ -1,0 +1,152 @@
+[
+ {
+  "tag": "GF2 train (GNyq 0.3 default)",
+  "file": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/train_gf2.h5",
+  "n_total": 19809,
+  "n_sampled": 400,
+  "gnyq": [
+   0.3,
+   0.3,
+   0.3,
+   0.3
+  ],
+  "mad_phase22_mean": 2.7106795974507493e-13,
+  "mad_phase22_max": 4.3116898940098736e-13,
+  "mad_bestphase_mean": 2.7106795974507493e-13,
+  "mad_bestphase_max": 4.3116898940098736e-13,
+  "phase_hist": {
+   "2,2": 400
+  },
+  "frac_not_22": 0.0
+ },
+ {
+  "tag": "GF2 valid (GNyq 0.3 default)",
+  "file": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/valid_gf2.h5",
+  "n_total": 2201,
+  "n_sampled": 400,
+  "gnyq": [
+   0.3,
+   0.3,
+   0.3,
+   0.3
+  ],
+  "mad_phase22_mean": 2.692729199338384e-13,
+  "mad_phase22_max": 4.007627563140659e-13,
+  "mad_bestphase_mean": 2.692729199338384e-13,
+  "mad_bestphase_max": 4.007627563140659e-13,
+  "phase_hist": {
+   "2,2": 400
+  },
+  "frac_not_22": 0.0
+ },
+ {
+  "tag": "GF2 test RR (GNyq 0.3 default)",
+  "file": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/reduced_examples_h5/test_gf2_multiExm1.h5",
+  "n_total": 20,
+  "n_sampled": 20,
+  "gnyq": [
+   0.3,
+   0.3,
+   0.3,
+   0.3
+  ],
+  "mad_phase22_mean": 2.655215890906559e-13,
+  "mad_phase22_max": 2.9937250595191145e-13,
+  "mad_bestphase_mean": 2.655215890906559e-13,
+  "mad_bestphase_max": 2.9937250595191145e-13,
+  "phase_hist": {
+   "2,2": 20
+  },
+  "frac_not_22": 0.0
+ },
+ {
+  "tag": "WV3 train control",
+  "file": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5",
+  "n_total": 9714,
+  "n_sampled": 400,
+  "gnyq": [
+   0.325,
+   0.355,
+   0.36,
+   0.35,
+   0.365,
+   0.36,
+   0.335,
+   0.315
+  ],
+  "mad_phase22_mean": 3.017516011366572e-13,
+  "mad_phase22_max": 6.03822547518007e-13,
+  "mad_bestphase_mean": 3.017516011366572e-13,
+  "mad_bestphase_max": 6.03822547518007e-13,
+  "phase_hist": {
+   "2,2": 400
+  },
+  "frac_not_22": 0.0
+ },
+ {
+  "tag": "WV3 valid control",
+  "file": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5",
+  "n_total": 1080,
+  "n_sampled": 400,
+  "gnyq": [
+   0.325,
+   0.355,
+   0.36,
+   0.35,
+   0.365,
+   0.36,
+   0.335,
+   0.315
+  ],
+  "mad_phase22_mean": 3.075812087666163e-13,
+  "mad_phase22_max": 6.341593916658894e-13,
+  "mad_bestphase_mean": 3.075812087666163e-13,
+  "mad_bestphase_max": 6.341593916658894e-13,
+  "phase_hist": {
+   "2,2": 400
+  },
+  "frac_not_22": 0.0
+ },
+ {
+  "tag": "QB train ORIGINAL (F-3 positive control)",
+  "file": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb.h5",
+  "n_total": 17139,
+  "n_sampled": 200,
+  "gnyq": [
+   0.34,
+   0.32,
+   0.3,
+   0.22
+  ],
+  "mad_phase22_mean": 3.5420975833694923,
+  "mad_phase22_max": 21.153575499830936,
+  "mad_bestphase_mean": 1.4595004527554415e-13,
+  "mad_bestphase_max": 3.4632019474400977e-13,
+  "phase_hist": {
+   "1,2": 63,
+   "2,1": 63,
+   "2,2": 74
+  },
+  "frac_not_22": 0.63
+ },
+ {
+  "tag": "QB train msfix (repaired control)",
+  "file": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb_msfix.h5",
+  "n_total": 17139,
+  "n_sampled": 200,
+  "gnyq": [
+   0.34,
+   0.32,
+   0.3,
+   0.22
+  ],
+  "mad_phase22_mean": 0.0,
+  "mad_phase22_max": 0.0,
+  "mad_bestphase_mean": 0.0,
+  "mad_bestphase_max": 0.0,
+  "phase_hist": {
+   "2,2": 200
+  },
+  "frac_not_22": 0.0
+ }
+]

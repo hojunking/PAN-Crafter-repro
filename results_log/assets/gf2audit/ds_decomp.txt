@@ -1,0 +1,34 @@
+== B01_GF2_P0_W112_D123_S2025_BOOTSCRATCH [gf2] HQNR 0.9314 Dl 0.0264 Ds 0.0433
+   q_high(fused_b,PAN) per band : [0.5516, 0.7462, 0.7589, 0.7525]
+   q_low (lms_b,PAN_lp) per band: [0.5252, 0.7024, 0.7124, 0.6961]
+   signed (q_high-q_low) per band: [0.0264, 0.0438, 0.0466, 0.0563]   frac(q_high>q_low)=1.00
+== ARCH_W168_D123_DUAL_GF2_S2025 [gf2] HQNR 0.9576 Dl 0.0194 Ds 0.0234
+   q_high(fused_b,PAN) per band : [0.5307, 0.7235, 0.7233, 0.7466]
+   q_low (lms_b,PAN_lp) per band: [0.5252, 0.7024, 0.7124, 0.6961]
+   signed (q_high-q_low) per band: [0.0056, 0.021, 0.0109, 0.0505]   frac(q_high>q_low)=0.91
+== B02_GF2_DONN2_W112_D123_R200_S2025_BOOTSCRATCH [gf2] HQNR 0.9670 Dl 0.0214 Ds 0.0119
+   q_high(fused_b,PAN) per band : [0.5229, 0.6943, 0.7039, 0.7101]
+   q_low (lms_b,PAN_lp) per band: [0.5252, 0.7024, 0.7124, 0.6961]
+   signed (q_high-q_low) per band: [-0.0022, -0.0082, -0.0085, 0.0139]   frac(q_high>q_low)=0.50
+== B03_GF2_L1E4_W112_D123_S2025_DONB02 [gf2] HQNR 0.9526 Dl 0.0254 Ds 0.0225
+   q_high(fused_b,PAN) per band : [0.54, 0.7194, 0.7337, 0.7274]
+   q_low (lms_b,PAN_lp) per band: [0.5252, 0.7024, 0.7124, 0.6961]
+   signed (q_high-q_low) per band: [0.0149, 0.0169, 0.0214, 0.0313]   frac(q_high>q_low)=0.89
+== B01_QB_P0_W112_D123_S2025_BOOTSCRATCH [qb] HQNR 0.9149 Dl 0.0611 Ds 0.0257
+   q_high(fused_b,PAN) per band : [0.5657, 0.6612, 0.6491, 0.6132]
+   q_low (lms_b,PAN_lp) per band: [0.5492, 0.6523, 0.6546, 0.6647]
+   signed (q_high-q_low) per band: [0.0165, 0.0089, -0.0055, -0.0516]   frac(q_high>q_low)=0.42
+== ARCH_W168_D123_DUAL_QB_S2025 [qb] HQNR 0.9356 Dl 0.0421 Ds 0.0235
+   q_high(fused_b,PAN) per band : [0.5742, 0.6734, 0.6623, 0.6314]
+   q_low (lms_b,PAN_lp) per band: [0.5492, 0.6523, 0.6546, 0.6647]
+   signed (q_high-q_low) per band: [0.025, 0.0211, 0.0077, -0.0333]   frac(q_high>q_low)=0.64
+== PALS24_CTRLP0_W112_D123_WV3_S2025_N2LAST_R200_v1 [wv3] HQNR 0.9507 Dl 0.0238 Ds 0.0261
+   q_high(fused_b,PAN) per band : [0.4512, 0.6352, 0.8581, 0.9153, 0.8555, 0.923, 0.7521, 0.7547]
+   q_low (lms_b,PAN_lp) per band: [0.4024, 0.5962, 0.8428, 0.9055, 0.8661, 0.9214, 0.7809, 0.7082]
+   signed (q_high-q_low) per band: [0.0488, 0.039, 0.0153, 0.0098, -0.0107, 0.0015, -0.0288, 0.0465]   frac(q_high>q_low)=0.67
+== S1_T05_W168_D123_DUAL [wv3] HQNR 0.9612 Dl 0.0181 Ds 0.0211
+   q_high(fused_b,PAN) per band : [0.4313, 0.6173, 0.8438, 0.9059, 0.845, 0.9188, 0.7541, 0.7459]
+   q_low (lms_b,PAN_lp) per band: [0.4024, 0.5962, 0.8428, 0.9055, 0.8661, 0.9214, 0.7809, 0.7082]
+   signed (q_high-q_low) per band: [0.029, 0.0211, 0.001, 0.0003, -0.0211, -0.0026, -0.0268, 0.0377]   frac(q_high>q_low)=0.54
+GF2 per-scene Ds(P0)-Ds(DUAL): mean 0.0198 min 0.0113 max 0.0274 n_pos 20/20
+GF2 per-scene Dl(P0)-Dl(DUAL): mean 0.0070 min 0.0044 max 0.0108 n_pos 20/20
