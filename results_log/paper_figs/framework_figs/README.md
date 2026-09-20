@@ -20,6 +20,27 @@ Stage 1 (Teacher / PAN Aligner Training) 도식의 회색 박스에 넣을 실�
 | `ET_teacher_err.png` | **e_T** (Stage 2 의 cue) | `\|Y_T − Y\|` 의 **밴드 평균**. `kdv/losses_rec.py` 의 `e_t` 와 같은 식. 변형 `_magma` `_gray` |
 | `G_gt_edge.png` | **∇Y** (ℒ_edge 타깃) | GT 의 signed Scharr `(gx,gy)` 크기, 밴드 평균. `pa/losses.py` 의 `scharr` — `output_edge_loss` 가 쓰는 그 커널. 변형 `_inv`(흰 배경) `_cividis` |
 
+### PAN 이동을 보이게 하는 edge 오버레이 (2026-09-20, `tools/framework_figs_edge_shift.py`)
+
+`P` 와 `P′`(또는 `P_ε`)를 나란히 놓아도 **눈으로는 구분되지 않는다**(아래 "쓸 때 주의" 참조).
+그래서 PAN 의 **edge 만 뽑아 두 색으로 겹친 판**을 따로 둔다 — 겹치면 흰색, 어긋나면 색이 갈라진다.
+
+| 파일 | 내용 | 이동량 |
+|---|---|---|
+| `EDGE_pan.png` | PAN edge 만 (흑백) | — |
+| **`EDGE_shift_eps.png`** | `P`(cyan) vs `W(P, ε)`(red) | **ε = (+1.6, −1.2), \|ε\| = 2.0 px — 실제값** |
+| `EDGE_shift_c0.png` | `P`(cyan) vs `W(P, c₀)`(red) | c₀ = aligner 실측(0.11–0.21 px) — **실제값** |
+| `EDGE_shift_c0_x8.png` | `P` vs `W(P, 8·c₀)` | **과장 ×8** — 개념 설명용 |
+| `*_zoom.png` | 위 셋의 32² 부분 확대 | 콜아웃용 |
+
+**도식에 쓸 것은 `EDGE_shift_eps.png` 다.** ε = 2.0 px 는 학습에 실제로 주입하는 변위이고,
+edge 오버레이에서 cyan/red 가 뚜렷이 갈라져 **과장 없이** 보인다.
+`EDGE_shift_c0.png` 는 거의 흰색이다 — 그게 사실이다(aligner 가 내는 보정이 0.2 px 수준).
+`_x8` 판을 쓸 거면 **캡션에 배율을 반드시 적는다**(과장을 숨기지 않는다는 뜻).
+
+edge 는 128² 네이티브에서 Scharr 로 계산한 뒤 ×4 nearest 로 키웠다 — **한 블록이 PAN 1 픽셀**이라
+확대판에서 이동량을 눈으로 셀 수 있다. 약한 텍스처는 gradient 0.18 이하로 잘라 선만 남겼다.
+
 > **2026-09-20 추가** (`tools/framework_figs_maps.py`). 위 두 장은 같은 `t0_rr.npz`·같은 장면·크롭·
 > ×4 nearest 규약이라 기존 일곱 장과 픽셀 단위로 겹친다. 기존 PNG 는 건드리지 않았다.
 > Scharr 는 **256² 전체에서 계산한 뒤 크롭**한다 — 크롭 경계의 reflect pad 인공물을 피하려는 것.
