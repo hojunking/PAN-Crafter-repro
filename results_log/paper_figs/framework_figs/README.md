@@ -15,7 +15,8 @@ Stage 1 (Teacher / PAN Aligner Training) 도식의 회색 박스에 넣을 실�
 | `YT_teacher.png` | **Teacher  Y_T** | U-Net 출력 `M + F_θ([P′, M])`, RGB |
 | `Y_gt.png` | **HRMS GT  Y** | 정답 HRMS, RGB |
 | `P_shifted.png` | **shifted  P_ε** (Step 1-b) | `W(P, ε)`, ε = (+1.6, −1.2) HR px (\|ε\| = 2.0) |
-| `S_ms_native.png` | (도식에 없음) | 원 해상도 MS `S`. MS↑ 앞에 박스를 하나 더 두고 싶을 때 쓴다 |
+| `S_ms_native.png` | (도식에 없음) | 원 해상도 MS `S`. MS↑ 앞에 박스를 하나 더 두고 싶을 때 쓴다. **표시 128×128** = 32² 네이티브 ×4 — `M` 의 1/4 로 두어 배율 관계가 보이게 한 판 |
+| `S_ms_native_512.png` | 같은 위 | **같은 내용의 512×512 판**(32² ×16 nearest). 도식의 다른 박스와 크기를 맞출 때. 128 판을 ×4 한 것과 픽셀 단위로 동일하고 32² 격자도 그대로다 |
 | `ET_teacher_err.png` | **e_T** (Stage 2 의 cue) | `\|Y_T − Y\|` 의 **밴드 평균**. `kdv/losses_rec.py` 의 `e_t` 와 같은 식. 변형 `_magma` `_gray` |
 | `G_gt_edge.png` | **∇Y** (ℒ_edge 타깃) | GT 의 signed Scharr `(gx,gy)` 크기, 밴드 평균. `pa/losses.py` 의 `scharr` — `output_edge_loss` 가 쓰는 그 커널. 변형 `_inv`(흰 배경) `_cividis` |
 

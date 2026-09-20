@@ -32,13 +32,20 @@ from pa.losses import scharr                                # noqa: E402
 OUT = os.path.join(ROOT, "results_log", "paper_figs", "framework_figs")
 SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "t0_rr.npz")
 R, N, UP = 2047.0, 128, 4                                   # export 와 동일
+RGB = (4, 2, 1)
+UP_S = 16                                                   # 네이티브 MS(32²) 를 512 로 (×16 nearest)
 SAMPLES = [("1_buildings", 4, 64, 112), ("2_cars", 19, 112, 96), ("3_city", 17, 24, 32)]
 
 
-def save(path, img, cmap="gray"):
-    """[H,W] in [0,1] -> x4 nearest PNG (원 픽셀 그대로, 보간 없음). export.save 와 같은 규약."""
-    a = np.repeat(np.repeat(img, UP, 0), UP, 1)
-    plt.imsave(path, a, cmap=cmap, vmin=0, vmax=1)
+def save(path, img, cmap="gray", up=UP):
+    """[H,W] 또는 [H,W,3] in [0,1] -> x{up} nearest PNG (원 픽셀 그대로). export.save 와 같은 규약."""
+    a = np.repeat(np.repeat(img, up, 0), up, 1)
+    plt.imsave(path, a, cmap=(None if a.ndim == 3 else cmap),
+               vmin=(None if a.ndim == 3 else 0), vmax=(None if a.ndim == 3 else 1))
+
+
+def st(a, lo, hi):
+    return np.clip((a - lo) / (hi - lo + 1e-9), 0, 1)
 
 
 def main():
@@ -74,6 +81,13 @@ def main():
         save(os.path.join(d, "G_gt_edge.png"), gn, cmap="gray")
         save(os.path.join(d, "G_gt_edge_inv.png"), 1 - gn, cmap="gray")
         save(os.path.join(d, "G_gt_edge_cividis.png"), gn, cmap="cividis")
+
+        # 업샘플 전 네이티브 MS 를 **다른 박스와 같은 512 크기**로 (×16 nearest, 보간 없음).
+        # 기존 S_ms_native.png(128 = 32×4) 는 M 의 1/4 로 두는 판이라 그대로 남긴다.
+        g_rgb = gt[sl][..., RGB]                                    # export 와 같은 GT 기준 밴드별 1-99%
+        clo = np.percentile(g_rgb, 1, axis=(0, 1)); chi = np.percentile(g_rgb, 99, axis=(0, 1))
+        ms_lr = z["ms"][s].transpose(1, 2, 0)[y0 // 4:y0 // 4 + N // 4, x0 // 4:x0 // 4 + N // 4]
+        save(os.path.join(d, "S_ms_native_512.png"), st(ms_lr[..., RGB], clo, chi), up=UP_S)
 
         rows.append(dict(sample=name, scene=s, crop_row=y0, crop_col=x0, crop_px=N, upscale=UP,
                          eT_mean_dn=round(float(e.mean()), 3), eT_med_dn=round(float(np.median(e)), 3),
