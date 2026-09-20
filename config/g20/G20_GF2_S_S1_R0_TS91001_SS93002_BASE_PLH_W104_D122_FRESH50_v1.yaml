@@ -1,0 +1,224 @@
+seed: 93002
+work_dir: work_dir/G20_GF2_S_S1_R0_TS91001_SS93002_BASE_PLH_W104_D122_FRESH50_v1
+trainer: g20
+phase: train
+num_iter: 50000
+num_warmup: 100
+batch_size: 48
+test_batch_size: 1
+num_worker: 4
+num_bands: 4
+max_pixel: 1023.0
+mixed_precision: 'no'
+learning_rate: 0.0001
+optimizer: AdamW
+weight_decay: 0.01
+betas:
+- 0.9
+- 0.999
+eps: 1.0e-08
+lr_scheduler: cosine
+log_iter: 100
+train_feeder_args:
+  dataroot: null
+  crop: false
+  hflip: true
+  vflip: true
+  rot: true
+  ms_size: 16
+  return_meta: true
+val_feeder_args:
+  dataroot: null
+test_reduced_feeder_args:
+  dataroot: null
+test_full_feeder_args:
+  dataroot: null
+model_args:
+  hidden_size: 104
+  depth:
+  - 1
+  - 2
+  - 2
+  out_channels: 4
+  attn_locations: []
+  mode_modulation: false
+  norm: ln
+  dropout: 0.0
+g20:
+  case_id: G20-S04
+  run_id: G20_GF2_S_S1_R0_TS91001_SS93002_BASE_PLH_W104_D122_FRESH50_v1
+  server_id: s1
+  role: S
+  reference_id: R0
+  teacher_seed: 91001
+  student_seed: 93002
+  profile: BASE
+  tier: CORE
+  status: PLANNED
+  lambda_con: 0.0001
+  alpha: 1.0
+  beta: 0.1
+  lambda_edge: 0.002
+  student_a_peak_lr: 3.0e-06
+  block_id: S1_REFERENCE_PAIR
+  queue_rank: 0
+  within_block_order: 4
+  updates: 50000
+  sensor: GF2
+  resolution_sha256: null
+  reference_sha256: null
+  seed: 93002
+  width: 104
+  depth:
+  - 1
+  - 2
+  - 2
+  input_layout: PLH
+  teacher_input_layout: P0
+  teacher_alias: GF2_TA
+  teacher_run_id: null
+  sheet_tab: GF2-s1
+  kind: TRAIN
+  campaign_id: PANDA_GF2_G20_ALL5_20260920_v1
+  config_path: config/g20/G20_GF2_S_S1_R0_TS91001_SS93002_BASE_PLH_W104_D122_FRESH50_v1.yaml
+  is_resolved: true
+  case_contract:
+    case_id: G20-S04
+    run_id: G20_GF2_S_S1_R0_TS91001_SS93002_BASE_PLH_W104_D122_FRESH50_v1
+    server_id: s1
+    role: S
+    reference_id: R0
+    teacher_seed: 91001
+    student_seed: 93002
+    profile: BASE
+    tier: CORE
+    status: PLANNED
+    lambda_con: 0.0001
+    alpha: 1.0
+    beta: 0.1
+    lambda_edge: 0.002
+    student_a_peak_lr: 3.0e-06
+    block_id: S1_REFERENCE_PAIR
+    queue_rank: 0
+    within_block_order: 4
+    updates: 50000
+    sensor: GF2
+    resolution_sha256: null
+    reference_sha256: null
+  method_revision: QG40_SYNC_FREQ_C4_v1
+  registry_revision: G20_REGISTRY_20260920_v1
+  source_plan: research_log/PANDA_GF2_G20_ALL5_FixedArchitecture_ExperimentPlan_2026-09-20.md
+  sensor_spec:
+    sensor: GF2
+    num_bands: 4
+    max_dn: 1023
+    inverse_scale: 511.5
+    mtf_sensor: GF2
+    hqnr_threshold: 0.964
+    ergas_goal: 0.552
+    ergas_strong_goal: 0.522
+    band_order: null
+    splits: {}
+    source_provenance: {}
+  sensor_spec_path: null
+  num_bands: 4
+  max_pixel: 1023
+  batch_size: 48
+  window_path: work_dir/_g20/campaign_window.json
+  dataset_manifest: null
+  reference_manifest: null
+  teacher_checkpoint: null
+  teacher_sha256: null
+  tau_R: null
+  q_ref: null
+  q_cache: null
+  q_cache_sha256: null
+  teacher_from_scratch: true
+  backbone_from_scratch: true
+  aligner_init: TEACHER_CLONE
+  init_policy: FH12_named_tensor_fresh9_zero_extra_v1
+  init_generalization: Cplus1_native_channels_zero_extra_LH
+  candidate_grid:
+  - 1010
+  - 2020
+  - 3030
+  - 4040
+  - 5050
+  - 6060
+  - 7070
+  - 8080
+  - 9090
+  - 10100
+  - 11110
+  - 12120
+  - 13130
+  - 14140
+  - 15150
+  - 16160
+  - 17170
+  - 18180
+  - 19190
+  - 20200
+  - 21210
+  - 22220
+  - 23230
+  - 24240
+  - 25250
+  - 26260
+  - 27270
+  - 28280
+  - 29290
+  - 30300
+  - 31310
+  - 32320
+  - 33330
+  - 34340
+  - 35350
+  - 36360
+  - 37370
+  - 38380
+  - 39390
+  - 40400
+  - 41410
+  - 42420
+  - 43430
+  - 44440
+  - 45450
+  - 46460
+  - 47470
+  - 48480
+  - 49490
+  - 50000
+  fullstate_steps:
+  - 10000
+  - 24240
+  - 50000
+  teacher_ref_step: 50000
+  no_global_lock: true
+  lambda_E: 0.002
+  aligner_lr: 3.0e-06
+  consistency_weight: 0.0
+  offset_weight: 0.0
+  offset_every: 2
+  offset_radius: 0.0
+  view_margin_hr: 4
+  corruption_seed: 193002
+  calibration:
+    n_patches: 3072
+    seed: 1234
+    probe: AXIS16
+    views: FIXED_HV_ROT4
+    subset_scope: SENSOR_SHARED_TRAIN_IDS
+  hqnr_threshold: 0.964
+  ergas_goal: 0.552
+  ergas_strong_goal: 0.522
+  lr_schedule_id: COSINE_W100_BASE_v1
+  a_lr_switch_completed_updates: null
+  a_lr_after_multiplier: 1.0
+  lp:
+    sigma: 1.98
+    kernel_size: 41
+    padding: replicate
+    decimation: 2::4,2::4
+    generation_dtype: float64
+    cache_dtype: float32
