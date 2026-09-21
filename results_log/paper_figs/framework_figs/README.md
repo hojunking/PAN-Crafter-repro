@@ -34,7 +34,9 @@ edge 오버레이는 **도식 크기(1 인치 남짓)로 줄이면 뭉개진다*
 
 **`SHIFT_schem_zoom_eps_x1.png` 을 쓰면 과장 없이 해결된다.** ε = 2.0 px 그대로인데도
 작은 박스에서 cyan/red 가 또렷이 갈라진다 — 비결은 이동을 부풀리는 게 아니라 **좁게 확대하고
-선을 줄여 굵게** 그린 것이다. 그림 안에 `shift 2.00 px` 라벨이 이미 박혀 있다.
+선을 줄여 굵게** 그린 것이다. 기본 출력은 `shift 2.00 px` 라벨을 포함한다.
+`3_city/SHIFT_schem_zoom_eps_x1.png`는 원본 데이터에서 라벨만 생략해 다시 출력했다
+(`--only 3_city --exaggerate 1 --view zoom --no-label`). 이동량은 동일한 2.0 px다.
 
 - cyan = 원본 PAN 윤곽 · red = 이동한 PAN 윤곽 · 흰 화살표 = 이동 방향
 - 윤곽선은 `skimage.measure.find_contours` 로 **실제 PAN 에서 추출**한 것이다(그려 넣은 것이 아니다)

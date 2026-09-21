@@ -1,0 +1,17 @@
+order,group,name,axes,slot,sample_id,source_group_id,e_native_roi,q_A,pan_scharr_energy,grad_scale_max,pan,grad,combo
+1,EdCd,Consistent - low recon error,q low  /  e low,1,7910,blk247,0.007687,0.308169,0.008523,0.38671,01_EdCd_1_id7910_pan.png,01_EdCd_1_id7910_grad.png,01_EdCd_1_id7910_combo.png
+2,EdCd,Consistent - low recon error,q low  /  e low,2,5613,blk175,0.007775,0.307392,0.000751,0.38671,02_EdCd_2_id5613_pan.png,02_EdCd_2_id5613_grad.png,02_EdCd_2_id5613_combo.png
+3,EdCd,Consistent - low recon error,q low  /  e low,3,6566,blk205,0.007574,0.308442,0.001303,0.38671,03_EdCd_3_id6566_pan.png,03_EdCd_3_id6566_grad.png,03_EdCd_3_id6566_combo.png
+4,EdCd,Consistent - low recon error,q low  /  e low,4,8780,blk274,0.007582,0.307033,0.00397,0.38671,04_EdCd_4_id8780_pan.png,04_EdCd_4_id8780_grad.png,04_EdCd_4_id8780_combo.png
+5,EuCd,Consistent - high recon error,q low  /  e high,1,8751,blk273,0.030087,0.307817,0.015559,0.38671,05_EuCd_1_id8751_pan.png,05_EuCd_1_id8751_grad.png,05_EuCd_1_id8751_combo.png
+6,EuCd,Consistent - high recon error,q low  /  e high,2,1781,blk055,0.029918,0.307742,0.012348,0.38671,06_EuCd_2_id1781_pan.png,06_EuCd_2_id1781_grad.png,06_EuCd_2_id1781_combo.png
+7,EuCd,Consistent - high recon error,q low  /  e high,3,5679,blk177,0.029429,0.307656,0.009215,0.38671,07_EuCd_3_id5679_pan.png,07_EuCd_3_id5679_grad.png,07_EuCd_3_id5679_combo.png
+8,EuCd,Consistent - high recon error,q low  /  e high,4,3863,blk120,0.029305,0.307889,0.022922,0.38671,08_EuCd_4_id3863_pan.png,08_EuCd_4_id3863_grad.png,08_EuCd_4_id3863_combo.png
+9,EdCu,Inconsistent - low recon error,q high  /  e low,1,430,blk013,0.006114,0.356488,1.8e-05,0.38671,09_EdCu_1_id430_pan.png,09_EdCu_1_id430_grad.png,09_EdCu_1_id430_combo.png
+10,EdCu,Inconsistent - low recon error,q high  /  e low,2,1586,blk049,0.00581,0.354158,0.000633,0.38671,10_EdCu_2_id1586_pan.png,10_EdCu_2_id1586_grad.png,10_EdCu_2_id1586_combo.png
+11,EdCu,Inconsistent - low recon error,q high  /  e low,3,324,blk010,0.006279,0.352283,0.000269,0.38671,11_EdCu_3_id324_pan.png,11_EdCu_3_id324_grad.png,11_EdCu_3_id324_combo.png
+12,EdCu,Inconsistent - low recon error,q high  /  e low,4,4891,blk152,0.006108,0.349596,0.00014,0.38671,12_EdCu_4_id4891_pan.png,12_EdCu_4_id4891_grad.png,12_EdCu_4_id4891_combo.png
+13,EuCu,Inconsistent - high recon error,q high  /  e high,1,213,blk006,0.031706,0.354621,0.003611,0.38671,13_EuCu_1_id213_pan.png,13_EuCu_1_id213_grad.png,13_EuCu_1_id213_combo.png
+14,EuCu,Inconsistent - high recon error,q high  /  e high,2,3544,blk110,0.032106,0.354638,0.003326,0.38671,14_EuCu_2_id3544_pan.png,14_EuCu_2_id3544_grad.png,14_EuCu_2_id3544_combo.png
+15,EuCu,Inconsistent - high recon error,q high  /  e high,3,5708,blk178,0.032125,0.354754,0.003127,0.38671,15_EuCu_3_id5708_pan.png,15_EuCu_3_id5708_grad.png,15_EuCu_3_id5708_combo.png
+16,EuCu,Inconsistent - high recon error,q high  /  e high,4,1573,blk049,0.03112,0.354903,0.003094,0.38671,16_EuCu_4_id1573_pan.png,16_EuCu_4_id1573_grad.png,16_EuCu_4_id1573_combo.png

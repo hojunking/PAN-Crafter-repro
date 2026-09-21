@@ -76,3 +76,26 @@ e 가 올라가면 texture 도 올라가고 q 가 올라가면 texture 는 내�
   q 는 정의상 offset consistency 잔차이고, texture 는 그것과 함께 움직이는 별개 양이다.
 - **예측자 틀**(`true/false confident`, `Reliable / Deceptive …`): "q 가 난이도를 예측한다" 를 전제하는데
   EQREC4 H1 native 는 그 방향을 **3 seed 전부 기각**했다. 이름이 기각된 가설을 되살린다.
+
+## fig4_singles/ — 낱개 그림 전부 (2026-09-21, `tools/paper_figs_singles.py`)
+
+`fig4_plane_corners_grad.png` 를 구성하는 모든 조각을 따로 저장한 것. 본 그림과 **같은 모듈에서
+선택·크롭·스트레치·gradient 스케일을 import** 하므로 픽셀 단위로 같은 자료다.
+
+| 파일 | 개수 | 내용 |
+|---|---:|---|
+| `NN_<code>_<slot>_id<sid>_pan.png` | 16 | PAN patch 만 (회색, 640×480) |
+| `NN_<code>_<slot>_id<sid>_grad.png` | 16 | Scharr gradient 크기만 (magma, **16 장 공통 스케일 0–0.3867**) |
+| `NN_<code>_<slot>_id<sid>_combo.png` | 16 | 본 그림 그대로 (PAN + 우하단 inset) |
+| `group<N>_<code>.png` | 4 | 한 묶음 2×2 (본 그림의 한 칸, 1280×960) |
+| `colorbar_grad.png` / `_horizontal.png` | 2 | gradient colorbar 단독 (세로/가로) |
+| `index.csv` | 1 | 파일별 sample_id · e · q · texture · gradient 스케일 |
+
+- **gradient 는 patch 별로 정규화하지 않는다.** 16 장 공통 스케일(crop 영역 p99.5 = 0.3867)이라
+  집단 간 texture 차이가 그림에 남는다 — 낱개로 떼어 놓아도 서로 비교할 수 있다.
+- 묶음 순서는 본 그림과 같다: `group1_EdCd`(q low/e low) · `group2_EuCd`(q low/e high) ·
+  `group3_EdCu`(q high/e low) · `group4_EuCu`(q high/e high).
+- **colorbar 숫자를 키웠다** (2026-09-21): 눈금 9.5 → **15.0**, 라벨 11.5 → **14.5**
+  (`tools/paper_figs.py` 의 `CB_TICK` / `CB_LABEL`). 본 그림 `fig4_plane_corners_grad.png` 도 같이
+  다시 냈고 colorbar 폭을 0.20 → 0.24 로, 전체 폭을 17.70 → 18.45 로 넓혀 글자가 잘리지 않게 했다.
+  `--tick` 으로 낱개 colorbar 만 따로 조절할 수 있다.
