@@ -1,10 +1,15 @@
 import re
 import unittest
+from contextlib import nullcontext
+from types import SimpleNamespace
+from unittest.mock import patch
 from unittest.mock import Mock
 
 from g20.upload import (apply_upsert, metric_formats, plan_upsert, selection_values,
                         upload_run, validate_target_metadata, open_campaign_worksheet)
 from qg40.sheet_helpers import controlled_reason, fetch_controls
+from g20.common import object_sha
+from reporting_extra.sensor_layout import COMMON_HEADERS
 
 
 def parse_cell(cell):
@@ -54,6 +59,74 @@ def values():
 
 
 class UploadTests(unittest.TestCase):
+    def test_upload_receipt_keeps_effective_merged_payload_hash(self):
+        case = SimpleNamespace(server_id='s1', sensor='GF2')
+        verified = {'payload_sha256': 'effective-merged-payload-sha', 'readback_verified': True}
+        with patch('g20.upload.row_values', return_value=values()), \
+                patch('g20.upload.case_from_config', return_value=case), \
+                patch('g20.upload.Path.read_text', return_value='{}'), \
+                patch('g20.upload.locked', return_value=nullcontext()), \
+                patch('g20.upload.apply_upsert', return_value=verified), \
+                patch('g20.upload.atomic_json') as save:
+            receipt = upload_run('fixture', root='/unused-readonly', activated=True, worksheet=Worksheet())
+        self.assertEqual(receipt['payload_sha256'], 'effective-merged-payload-sha')
+        self.assertEqual(save.call_args.args[1]['payload_sha256'], 'effective-merged-payload-sha')
+
+    def test_existing_manual_notes_are_preserved_idempotently_and_hashed(self):
+        ws = Worksheet()
+        incoming = dict(values(), Notes='Official note; strict FAILED; authorized exception.')
+        original = dict(incoming)
+        apply_upsert(ws, incoming)
+        notes_index = ws.table[2].index('Notes')
+        ws.table[4][notes_index] += '\nHuman note: do not discard.'
+        expected_notes = ws.table[4][notes_index]
+        plan = plan_upsert(ws.table, ws.table[2], incoming)
+        self.assertEqual(plan['values']['Notes'], expected_notes)
+        receipt = apply_upsert(ws, incoming)
+        self.assertEqual(ws.table[4][notes_index], expected_notes)
+        self.assertEqual(receipt['payload_sha256'], object_sha(plan['values']))
+        self.assertNotEqual(receipt['payload_sha256'], object_sha(incoming))
+        self.assertEqual(apply_upsert(ws, incoming)['payload_sha256'], receipt['payload_sha256'])
+        self.assertEqual(ws.table[4][notes_index], expected_notes)
+        self.assertEqual(incoming, original)
+
+    def test_distinct_manual_notes_merge_before_readback(self):
+        ws = Worksheet()
+        incoming = dict(values(), Notes='New automatic note.')
+        apply_upsert(ws, incoming)
+        notes_index = ws.table[2].index('Notes')
+        ws.table[4][notes_index] = 'Independent human note.'
+        apply_upsert(ws, incoming)
+        self.assertEqual(ws.table[4][notes_index],
+                         'New automatic note.\n[Previous Sheet note] Independent human note.')
+
+    def test_unowned_protected_cells_are_neither_written_nor_formatted(self):
+        ws = Worksheet()
+        ws.table[2].extend(['Date', 'RAW_MAX HQNR↑', 'Human field'])
+        ws.fetch_sheet_metadata = lambda **kw: {'sheets': [{
+            'properties': {'sheetId': ws.id},
+            'protectedRanges': [{'range': {'sheetId': ws.id, 'startRowIndex': 4,
+                'endRowIndex': 5, 'startColumnIndex': 6, 'endColumnIndex': 9}}]}]}
+        apply_upsert(ws, values())
+        unowned = {'G5', 'H5', 'I5'}
+        self.assertFalse(unowned.intersection(edit['range'] for edit in ws.writes))
+        self.assertFalse(unowned.intersection(fmt['range'] for fmt in ws.formats))
+        self.assertTrue(all(':' not in fmt['range'] for fmt in ws.formats))
+
+    def test_owned_notes_control_rejects_before_any_mutation(self):
+        ws = Worksheet()
+        ws.table[2].append('Notes')
+        ws.fetch_sheet_metadata = lambda **kw: {'sheets': [{
+            'properties': {'sheetId': ws.id},
+            'protectedRanges': [{'range': {'sheetId': ws.id, 'startRowIndex': 4,
+                'endRowIndex': 5, 'startColumnIndex': 6, 'endColumnIndex': 7}}]}]}
+        before = ws.get_all_values()
+        with self.assertRaisesRegex(ValueError, 'protected range'):
+            apply_upsert(ws, dict(values(), Notes='New note'))
+        self.assertEqual(ws.writes, [])
+        self.assertEqual(ws.formats, [])
+        self.assertEqual(ws.table, before)
+
     def test_only_explicit_gf2_s4_creation_and_no_other_sensor_rename(self):
         import gspread
         book = Mock()
@@ -68,8 +141,11 @@ class UploadTests(unittest.TestCase):
             open_campaign_worksheet(book, 's1', activated=True)
         book.add_worksheet.assert_not_called()
         self.assertIs(open_campaign_worksheet(book, 's4', activated=True), fresh)
-        book.add_worksheet.assert_called_once_with(title='GF2-s4', rows=1000, cols=26)
-        self.assertEqual(fresh.row_values(3), ['Run'])
+        book.add_worksheet.assert_called_once_with(title='GF2-s4', rows=1000, cols=len(COMMON_HEADERS))
+        self.assertEqual(fresh.row_values(3), list(COMMON_HEADERS))
+        self.assertIn('Date', fresh.row_values(3))
+        self.assertLess(fresh.row_values(3).index('ERGAS↓'), fresh.row_values(3).index('Date'))
+        book.batch_update.assert_called_once()
 
     def test_no_live_activation_by_default(self):
         with self.assertRaises(PermissionError):
@@ -85,8 +161,10 @@ class UploadTests(unittest.TestCase):
         self.assertEqual(ws.table[4][4], 'READBACK_VERIFIED')
         self.assertEqual(apply_upsert(ws, values())['row'], 5)
         self.assertEqual(len(ws.table), 5)
-        self.assertTrue(all(f['format']['numberFormat']['pattern'] == '0.0000' for f in ws.formats))
-        self.assertNotIn('G5', [f['range'] for f in ws.formats])  # selected step stays integer
+        numeric = {f['range']: f['format']['numberFormat']['pattern']
+                   for f in ws.formats if 'numberFormat' in f['format']}
+        self.assertEqual(numeric['F5'], '0.0000')
+        self.assertEqual(numeric['G5'], '0')  # selected step is displayed as an integer
 
     def test_readback_failure_does_not_publish_verified(self):
         ws = Worksheet()
@@ -149,7 +227,16 @@ class UploadTests(unittest.TestCase):
         self.assertEqual(row['Target checkpoint SHA256'], '')
         self.assertFalse(any('Q8' in key for key in row))
         formats = metric_formats({'Q4↑': 1, 'Target RMSE↓': 2, 'G20 q_ref': 3, 'Target step': 4}, 7)
-        self.assertEqual([f['range'] for f in formats], ['A7', 'B7'])
+        self.assertEqual([f['range'] for f in formats], ['A7', 'B7', 'D7'])
+        self.assertEqual(formats[-1]['format']['numberFormat']['pattern'], '0')
+
+    def test_cost_date_and_metric_formats_do_not_round_values(self):
+        labels = {'Params(M)': 1, 'FLOPs(G)': 2, 'Infer(ms)': 3, 'Mem(MB)': 4,
+                  'Train(h)': 5, 'Date': 6, 'HQNR↑': 7}
+        formats = {f['range']: f['format']['numberFormat'] for f in metric_formats(labels, 8)}
+        self.assertEqual([formats[f'{c}8']['pattern'] for c in 'ABCDEG'],
+                         ['0.0000', '0.0', '0.00', '0.0', '0.00', '0.0000'])
+        self.assertEqual(formats['F8']['type'], 'TEXT')
 
     def test_missing_or_wv3_threshold_is_rejected(self):
         selected = dict(n_eligible=0, joint_pass=False, strong_joint_pass=False, target_status='no_eligible')

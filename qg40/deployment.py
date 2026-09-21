@@ -68,6 +68,8 @@ def bundle(root=ROOT):
     root = Path(root).resolve()
     paths = sorted((root / 'qg40').glob('*.py')) + sorted((root / 'tools').glob('qg40_*.py'))
     paths += sorted((root / 'tools').glob('qg40_*.sh'))
+    paths += [root / 'reporting_extra' / name for name in
+              ('__init__.py', 'sensor_sheet.py', 'sensor_layout.py')]
     paths += [root / name for name in SOURCE_SHAS]
     paths += [root / 'qg40/README.md']
     review = root / 'qg40/IMPLEMENTATION.md'

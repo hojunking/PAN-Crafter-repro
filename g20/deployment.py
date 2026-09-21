@@ -76,6 +76,8 @@ def bundle(root=ROOT):
     paths += [root / name for name in QG_SOURCE_SHAS]
     paths += [root / 'g20/README.md']
     paths += [root / 'g20/REFERENCES.md']
+    paths += [root / 'reporting_extra' / name for name in
+              ('__init__.py', 'sensor_sheet.py', 'sensor_layout.py')]
     review = root / 'g20/IMPLEMENTATION.md'
     if review.exists() or review.is_symlink():
         paths.append(review)

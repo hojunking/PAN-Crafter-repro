@@ -43,6 +43,8 @@ class DeploymentTests(unittest.TestCase):
             "config/qg40/QG40_Registry.json": '{"campaign": "isolated fixture"}\n',
         }
         included.update({f"config/qg40/{case.run_id}.yaml": "trainer: qg40\n" for case in CASES})
+        included.update({f"reporting_extra/{name}": "# reporting-only fixture\n" for name in
+                         ('__init__.py', 'sensor_sheet.py', 'sensor_layout.py')})
         included.update({path: "source fixture: " + path + "\n" for path in SOURCE_SHAS})
         for name, contents in included.items():
             self.fixture(name, contents)

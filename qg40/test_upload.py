@@ -1,9 +1,13 @@
 import re
 import unittest
+from contextlib import nullcontext
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from qg40.upload import (apply_upsert, metric_formats, plan_upsert, selection_values,
                         upload_run, validate_target_metadata)
 from qg40.sheet_helpers import controlled_reason, fetch_controls
+from qg40.common import object_sha
 
 
 def parse_cell(cell):
@@ -53,6 +57,74 @@ def values():
 
 
 class UploadTests(unittest.TestCase):
+    def test_upload_receipt_keeps_effective_merged_payload_hash(self):
+        case = SimpleNamespace(server_id='s1', sensor='QB')
+        verified = {'payload_sha256': 'effective-merged-payload-sha', 'readback_verified': True}
+        with patch('qg40.upload.row_values', return_value=values()), \
+                patch('qg40.upload.case_for', return_value=case), \
+                patch('qg40.upload.Path.read_text', return_value='{}'), \
+                patch('qg40.upload.locked', return_value=nullcontext()), \
+                patch('qg40.upload.apply_upsert', return_value=verified), \
+                patch('qg40.upload.atomic_json') as save:
+            receipt = upload_run('fixture', root='/unused-readonly', activated=True, worksheet=Worksheet())
+        self.assertEqual(receipt['payload_sha256'], 'effective-merged-payload-sha')
+        self.assertEqual(save.call_args.args[1]['payload_sha256'], 'effective-merged-payload-sha')
+
+    def test_existing_manual_notes_are_preserved_idempotently_and_hashed(self):
+        ws = Worksheet()
+        incoming = dict(values(), Notes='Official note; strict FAILED; authorized exception.')
+        original = dict(incoming)
+        apply_upsert(ws, incoming)
+        notes_index = ws.table[2].index('Notes')
+        ws.table[4][notes_index] += '\nHuman note: do not discard.'
+        expected_notes = ws.table[4][notes_index]
+        plan = plan_upsert(ws.table, ws.table[2], incoming)
+        self.assertEqual(plan['values']['Notes'], expected_notes)
+        receipt = apply_upsert(ws, incoming)
+        self.assertEqual(ws.table[4][notes_index], expected_notes)
+        self.assertEqual(receipt['payload_sha256'], object_sha(plan['values']))
+        self.assertNotEqual(receipt['payload_sha256'], object_sha(incoming))
+        self.assertEqual(apply_upsert(ws, incoming)['payload_sha256'], receipt['payload_sha256'])
+        self.assertEqual(ws.table[4][notes_index], expected_notes)
+        self.assertEqual(incoming, original)
+
+    def test_distinct_manual_notes_merge_before_readback(self):
+        ws = Worksheet()
+        incoming = dict(values(), Notes='New automatic note.')
+        apply_upsert(ws, incoming)
+        notes_index = ws.table[2].index('Notes')
+        ws.table[4][notes_index] = 'Independent human note.'
+        apply_upsert(ws, incoming)
+        self.assertEqual(ws.table[4][notes_index],
+                         'New automatic note.\n[Previous Sheet note] Independent human note.')
+
+    def test_unowned_protected_cells_are_neither_written_nor_formatted(self):
+        ws = Worksheet()
+        ws.table[2].extend(['Date', 'RAW_MAX HQNR↑', 'Human field'])
+        ws.fetch_sheet_metadata = lambda **kw: {'sheets': [{
+            'properties': {'sheetId': ws.id},
+            'protectedRanges': [{'range': {'sheetId': ws.id, 'startRowIndex': 4,
+                'endRowIndex': 5, 'startColumnIndex': 6, 'endColumnIndex': 9}}]}]}
+        apply_upsert(ws, values())
+        unowned = {'G5', 'H5', 'I5'}
+        self.assertFalse(unowned.intersection(edit['range'] for edit in ws.writes))
+        self.assertFalse(unowned.intersection(fmt['range'] for fmt in ws.formats))
+        self.assertTrue(all(':' not in fmt['range'] for fmt in ws.formats))
+
+    def test_owned_notes_control_rejects_before_any_mutation(self):
+        ws = Worksheet()
+        ws.table[2].append('Notes')
+        ws.fetch_sheet_metadata = lambda **kw: {'sheets': [{
+            'properties': {'sheetId': ws.id},
+            'protectedRanges': [{'range': {'sheetId': ws.id, 'startRowIndex': 4,
+                'endRowIndex': 5, 'startColumnIndex': 6, 'endColumnIndex': 7}}]}]}
+        before = ws.get_all_values()
+        with self.assertRaisesRegex(ValueError, 'protected range'):
+            apply_upsert(ws, dict(values(), Notes='New note'))
+        self.assertEqual(ws.writes, [])
+        self.assertEqual(ws.formats, [])
+        self.assertEqual(ws.table, before)
+
     def test_no_live_activation_by_default(self):
         with self.assertRaises(PermissionError):
             upload_run('anything')
@@ -67,8 +139,10 @@ class UploadTests(unittest.TestCase):
         self.assertEqual(ws.table[4][4], 'READBACK_VERIFIED')
         self.assertEqual(apply_upsert(ws, values())['row'], 5)
         self.assertEqual(len(ws.table), 5)
-        self.assertTrue(all(f['format']['numberFormat']['pattern'] == '0.0000' for f in ws.formats))
-        self.assertNotIn('G5', [f['range'] for f in ws.formats])  # selected step stays integer
+        numeric = {f['range']: f['format']['numberFormat']['pattern']
+                   for f in ws.formats if 'numberFormat' in f['format']}
+        self.assertEqual(numeric['F5'], '0.0000')
+        self.assertEqual(numeric['G5'], '0')
 
     def test_readback_failure_does_not_publish_verified(self):
         ws = Worksheet()
@@ -131,7 +205,8 @@ class UploadTests(unittest.TestCase):
         self.assertEqual(row['Target checkpoint SHA256'], '')
         self.assertFalse(any('Q8' in key for key in row))
         formats = metric_formats({'Q4↑': 1, 'Target RMSE↓': 2, 'QG40 q_ref': 3, 'Target step': 4}, 7)
-        self.assertEqual([f['range'] for f in formats], ['A7', 'B7'])
+        self.assertEqual([f['range'] for f in formats], ['A7', 'B7', 'D7'])
+        self.assertEqual(formats[-1]['format']['numberFormat']['pattern'], '0')
 
     def test_missing_or_wv3_threshold_is_rejected(self):
         selected = dict(n_eligible=0, joint_pass=False, strong_joint_pass=False, target_status='no_eligible')

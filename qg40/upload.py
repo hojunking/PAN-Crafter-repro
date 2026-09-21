@@ -13,6 +13,8 @@ from qg40.sheet_helpers import fetch_controls, controlled_reason
 from qg40.common import ROOT, atomic_json, object_sha, read_json, sha256, utcnow, locked, camp
 from qg40.plan import CAMPAIGN_ID, SHEET_TABS, case_for, sensor_spec
 from qg40.postrun import SELECTIONS, report_selection, select_records, validate_grid
+from reporting_extra.sensor_sheet import metadata_values, augment_notes, display_formats, merge_notes
+from reporting_extra.sensor_layout import row_formats
 
 RR_LABELS = {'ERGAS↓': 'ergas', 'SAM↓': 'sam', 'PSNR↑': 'psnr', 'SSIM↑': 'ssim',
              'SCC↑': 'scc', 'Q4↑': 'q4', 'RMSE↓': 'rmse', 'CC↑': 'cc'}
@@ -36,10 +38,7 @@ def selection_values(prefix, report):
 
 def metric_formats(labels, row):
     metric_names = set(RR_LABELS) | set(FR_LABELS) | {'HQNR↑', 'RR_VAL_SELECTED val ERGAS'}
-    def is_metric(label):
-        return label in metric_names or any(label.startswith(p + ' ') and label[len(p) + 1:] in metric_names for p in PREFIXES)
-    return [dict(range=a1(row, col), format={'numberFormat': {'type': 'NUMBER', 'pattern': '0.0000'}})
-            for label, col in labels.items() if is_metric(label)]
+    return display_formats(labels, row, metric_names, PREFIXES)
 
 
 def validate_target_metadata(target, selected, sensor):
@@ -158,6 +157,9 @@ def row_values(run, root=ROOT):
               'RR_VAL_SELECTED val ERGAS': reports['rr_val_selected']['val_ergas'],
               'E_MIN_DIAG50 independent test': False,
               'Notes': 'Main=RAW_MAX; raw-original mean-per-scene HQNR, same-step A/U. TARGET and E_MIN are test-aware. JQM is SRF-substitute; unmeasured values remain empty.'}
+    metadata = metadata_values(wd, cfg, case, training, status, 'RAW_MAX')
+    values.update(metadata)
+    values['Notes'] = augment_notes(metadata, values['Notes'])
     for label, key in RR_LABELS.items():
         values[label] = raw['rr'][key]
     for label, key in FR_LABELS.items():
@@ -172,6 +174,7 @@ def row_values(run, root=ROOT):
 
 def plan_upsert(table, headers, values, *, header_row=3, alias_crosswalk=None):
     """Pure, reviewable cell plan. No historic/benchmark row is used as a blank."""
+    values = dict(values)
     labels = label_map(headers)
     if 'Run' not in labels:
         raise ValueError('Existing tab has no semantic Run header')
@@ -194,6 +197,9 @@ def plan_upsert(table, headers, values, *, header_row=3, alias_crosswalk=None):
         if len(legacy) != 1 or (alias_crosswalk or {}).get(values['Run']) != dict(row=legacy[0], sensor=key[0], campaign=key[1], run_id=key[2]):
             raise ValueError('Existing QGBASE/run alias requires explicit validated crosswalk; refusing duplicate row')
     rownum = (matches or legacy or [max(len(table) + 1, header_row + 1)])[0]
+    if 'Notes' in values:
+        existing = cell(table[rownum - 1], 'Notes') if rownum <= len(table) else ''
+        values['Notes'] = merge_notes(values['Notes'], existing)
     missing = [label for label in values if label not in labels]
     # Respect occupied group-header extent too, even where the label row is blank.
     first = max(len(headers), max((len(r) for r in table[:header_row]), default=0)) + 1
@@ -201,22 +207,34 @@ def plan_upsert(table, headers, values, *, header_row=3, alias_crosswalk=None):
         labels[label] = col
     edits = [dict(range=a1(header_row, labels[label]), values=[[label]]) for label in missing]
     edits += [dict(range=a1(rownum, labels[label]), values=[[value]]) for label, value in values.items()]
-    return dict(row=rownum, labels=labels, missing_headers=missing, edits=edits, formats=metric_formats(labels, rownum))
+    owned_labels = {label: labels[label] for label in values}
+    formats = metric_formats(owned_labels, rownum)
+    # Whole-row alignment would also format unrelated/protected user cells.
+    formats += [entry for entry in row_formats(owned_labels, rownum)
+                if ':' not in entry['range']]
+    return dict(row=rownum, labels=labels, missing_headers=missing, values=values,
+                edits=edits, formats=formats)
 
 
 def apply_upsert(ws, values, *, header_row=3, alias_crosswalk=None):
     table = ws.get_all_values()
     headers = ws.row_values(header_row)
     plan = plan_upsert(table, headers, values, header_row=header_row, alias_crosswalk=alias_crosswalk)
+    if 'QG40 upload status' not in plan['values']:
+        raise ValueError('Upload requires its owned upload-status payload cell')
     needed_cols = max(plan['labels'].values())
     # Structural reads precede mutation, including existing formula/dropdown cells.
     controls = fetch_controls(ws, [header_row, plan['row']])
-    for edit in plan['edits']:
-        row = header_row if edit['range'] in {a1(header_row, plan['labels'][k]) for k in plan['missing_headers']} else plan['row']
-        label = next(k for k, col in plan['labels'].items() if a1(row, col) == edit['range'])
-        reason = controlled_reason(controls, row, plan['labels'][label])
+    touched = {a1(header_row, plan['labels'][label]): (header_row, plan['labels'][label])
+               for label in plan['missing_headers']}
+    touched.update({a1(plan['row'], plan['labels'][label]): (plan['row'], plan['labels'][label])
+                    for label in plan['values']})
+    if any(entry['range'] not in touched for entry in (*plan['edits'], *plan['formats'])):
+        raise ValueError('Sheet edit/format extends outside the owned payload cells')
+    for cell_range, (row, col) in touched.items():
+        reason = controlled_reason(controls, row, col)
         if reason:
-            raise ValueError(f'Refusing to overwrite controlled Sheet cell {edit["range"]}: {reason}')
+            raise ValueError(f'Refusing to overwrite controlled Sheet cell {cell_range}: {reason}')
     if needed_cols > ws.col_count:
         ws.add_cols(needed_cols - ws.col_count)
     if plan['row'] > ws.row_count:
@@ -225,7 +243,7 @@ def apply_upsert(ws, values, *, header_row=3, alias_crosswalk=None):
     if plan['formats']:
         ws.batch_format(plan['formats'])
     observed = ws.row_values(plan['row'], value_render_option='UNFORMATTED_VALUE')
-    for label, want in values.items():
+    for label, want in plan['values'].items():
         col = plan['labels'][label]
         if not same_cell(observed[col - 1] if col <= len(observed) else '', want):
             raise ValueError(f'Sheet readback mismatch: {label}')
@@ -233,7 +251,8 @@ def apply_upsert(ws, values, *, header_row=3, alias_crosswalk=None):
     ws.batch_update([dict(range=a1(plan['row'], status_col), values=[['READBACK_VERIFIED']])], value_input_option='RAW')
     if ws.row_values(plan['row'], value_render_option='UNFORMATTED_VALUE')[status_col - 1] != 'READBACK_VERIFIED':
         raise ValueError('Sheet upload-status readback mismatch')
-    return dict(row=plan['row'], gid=int(ws.id), worksheet=ws.title, readback_verified=True)
+    return dict(row=plan['row'], gid=int(ws.id), worksheet=ws.title, readback_verified=True,
+                payload_sha256=object_sha(plan['values']))
 
 
 def upload_run(run, root=ROOT, *, activated=False, worksheet=None, header_row=None, alias_crosswalk=None):
@@ -255,6 +274,6 @@ def upload_run(run, root=ROOT, *, activated=False, worksheet=None, header_row=No
         receipt = apply_upsert(worksheet, values, header_row=3 if header_row is None else header_row,
                                alias_crosswalk=alias_crosswalk)
         receipt.update(campaign_id=CAMPAIGN_ID, run_id=run, sensor=case.sensor, server=case.server_id,
-                       payload_sha256=object_sha(values), uploaded_at_utc=utcnow())
+                       uploaded_at_utc=utcnow())
         atomic_json(root / 'work_dir' / run / 'official/upload_receipt.json', receipt)
     return receipt

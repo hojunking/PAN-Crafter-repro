@@ -17,6 +17,7 @@ class DeploymentTests(unittest.TestCase):
         names = ['g20/__init__.py', 'g20/README.md', 'g20/REFERENCES.md',
             'qg40/model.py', 'qg40/sensor_sources.json', 'qg40/SENSOR_SOURCE_EVIDENCE.md',
             'tools/g20_runner.py', 'tools/g20_start.sh', 'tools/qg40_runner.py',
+            'reporting_extra/__init__.py', 'reporting_extra/sensor_sheet.py', 'reporting_extra/sensor_layout.py',
             'config/g20/G20_Registry.json', *SOURCE_SHAS, *QG_SOURCE_SHAS]
         names += ['config/g20/' + case.run_id + '.yaml' for case in CORE_CASES]
         for name in names:
