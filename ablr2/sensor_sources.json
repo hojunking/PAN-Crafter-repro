@@ -1,0 +1,91 @@
+{
+  "schema": "ABLR2_SENSOR_SOURCES_v1",
+  "sensors": {
+    "WV3": {
+      "band_order": [
+        "Coastal",
+        "B",
+        "G",
+        "Y",
+        "R",
+        "RE",
+        "NIR1",
+        "NIR2"
+      ],
+      "splits": {
+        "train": {
+          "path": "data/PanCollection/WV3/train_wv3.h5",
+          "sha256": "f9e7ec381390ff36ddffd0714df7af07a3c5f456078b219a25f3e18372228f82",
+          "source_identity": "PanCollection.CANConv.WV3.train.original-row-order.H5"
+        },
+        "val": {
+          "path": "data/PanCollection/WV3/valid_wv3.h5",
+          "sha256": "ba883e57408d1f3c2263cc2818a9fbbf2dbe8e62554c531288f9e8bf9f59dc87",
+          "source_identity": "PanCollection.CANConv.WV3.val.original-row-order.H5"
+        },
+        "rr": {
+          "path": "data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5",
+          "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+          "source_identity": "PanCollection.CANConv.WV3.rr.original-row-order.H5"
+        },
+        "fr": {
+          "path": "data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+          "sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+          "source_identity": "PanCollection.CANConv.WV3.fr.original-row-order.MAT20-fr1-to-fr20"
+        }
+      },
+      "source_provenance": {
+        "band_order_evidence": "Existing WV3 repository/DLPan evaluation channel convention Coastal,B,G,Y,R,RE,NIR1,NIR2; no H5 spectral labels, not independently measured sensor identity.",
+        "mtf_evidence": "tools/metrics/eval_fr.py WV3 mapping and DLPan wald_utilities.py WV3 GNyq; source hashes bound at runtime.",
+        "units": "DN",
+        "no_data_policy": "Preserve every finite stored value, including zero. No sentinel inferred; count zeros and reject nonfinite.",
+        "saturation_policy": "PAN/GT must lie within DN0..2047. Preserve and count saturation; preserve MS/LMS filter ringing.",
+        "split_correspondence_evidence": "Existing local joint H5 source bytes pinned on2026-09-21. RR20 original H5 row order; FR MAT20-generated H5 SHA pinned, not obsolete mixed H5. No claim of train/test geographic disjointness."
+      }
+    },
+    "QB": {
+      "band_order": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "splits": {
+        "train": {
+          "path": "data/PanCollection/QB/train_qb_msfix.h5",
+          "sha256": "c7fb3ef0744f3fd21330925003f6bd6eb110f8a181c23ea6d9ce086c81710ba9",
+          "source_identity": "PanCollection.CANConv.QB.train.msfix.genMTF_QB.phase22.interp23tap.built20260908"
+        },
+        "val": {
+          "path": "data/PanCollection/QB/valid_qb_msfix.h5",
+          "sha256": "79f5bb48905876e8b278868a4ca9b266ef52582bd26b9c31b60462b708a411fa",
+          "source_identity": "PanCollection.CANConv.QB.valid.msfix.genMTF_QB.phase22.interp23tap.built20260908"
+        },
+        "rr": {
+          "path": "data/PanCollection/QB/reduced_examples_h5/test_qb_multiExm1.h5",
+          "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+          "source_identity": "PanCollection.CANConv.QB.test_multiExm1.RR20.original-row-order"
+        },
+        "fr": {
+          "path": "data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+          "sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+          "source_identity": "PanCollection.FullDataMAT.QB.fr1-20.numeric-order.HWC-to-CHW-only"
+        }
+      },
+      "source_provenance": {
+        "evidence_document": "qg40/SENSOR_SOURCE_EVIDENCE.md",
+        "band_order_evidence": "Installed CANConv PanCollection audit 2026-08-10 lines64-70 (SHA256 f18b588f71f893bb0d7b48444dfbac90358d05f31ad02fb8a0a0ae4a851a3afc), author canconv/util/log.py C4 RGB[2,1,0] (SHA256 ca4943ade70376228d986aa5d2d9b2ba7617f59c2dfdb3704e1e7bd8982f3d53), DLPan genMTF.m line31 QB Band Order B,G,R,NIR. Source-repository convention, not embedded H5 band metadata or independently measured spectral identity.",
+        "mtf_evidence": "DLPan genMTF.m SHA256 5c96781d777ec6f08fee696ff80dc46972875b764c6f289388bb21614dd14c2d: QB gains[0.34,0.32,0.30,0.22] in B,G,R,NIR order; tools/metrics/eval_fr.py GNYQ_TABLE preserves this evaluation protocol. Algorithmic LP sigma1.98 is separate.",
+        "units": "DN",
+        "no_data_policy": "No no-data sentinel/mask attribute found in inspected H5 metadata; do not infer that zero is missing. Preserve all finite stored values including zeros; report counts; no sample deletion or input masking. P0 source scan rejects nonfinite values. Absence of metadata is not proof of absence of missing observations.",
+        "saturation_policy": "Preserve nominal-maxDN(2047) values and count them; no input/GT clipping or replacement. P0 requires PAN/GT within[0,2047]; finite MS/LMS ringing outside nominal DN range is preserved/reported. Official prediction clipping is unchanged and separate.",
+        "split_correspondence_evidence": "QB train17139/val1905 msfix H5 record raw filename and genMTF(QB),replicate,[2::4,2::4],interp23tap recipe; required local preflight verifies every raw/fixed GT/PAN and reconstructed MS/LMS pair. RR20 remains original joint GT/MS/LMS/PAN H5 row order. FR20 original MAT SHA and each MS/LMS/PAN array verified exactly against H5 on2026-09-20 in fr1..20 numeric order; provenance.json SHA256 47d592ef4a120d5aa2956817adf2916d93c8576412e9aa18bf3632b24dbe8c65. No claim of train/test geographic disjointness or RR-to-FR scene correspondence.",
+        "raw_train_path": "data/PanCollection/QB/train_qb.h5",
+        "raw_train_sha256": "7d45e191cd03f3df12eb76b5f27624eaba1b464970788eb61723c3574dd14371",
+        "raw_val_path": "data/PanCollection/QB/valid_qb.h5",
+        "raw_val_sha256": "b307bcbb0d69056278a8a0b4970f1cd1b58dfff19bbe949be224e106f1a18470",
+        "msfix_recipe": "tools/repair_qb_ms.py SHA256 0ed95018fd88afde7194eac8fdd5ae79de7b9056574766e339726dbc0a7c8884: MS=genMTF(QB) replicate-filter(GT)[2::4,2::4]; LMS=interp23tap(MS); GT/PAN unchanged must be verified by local preflight. One HR phase index is HR1px/LR0.25 spacing, not a native PAN shift measurement."
+      }
+    }
+  }
+}

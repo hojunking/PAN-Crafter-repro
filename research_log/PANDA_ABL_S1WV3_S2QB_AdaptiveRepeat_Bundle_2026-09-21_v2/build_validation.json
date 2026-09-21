@@ -1,0 +1,20 @@
+{
+  "status": "PASS_DESIGN_STATIC_CHECKS",
+  "runs": 190,
+  "teachers": 20,
+  "students": 170,
+  "calibration_bundles": 20,
+  "unique_run_ids": true,
+  "local_reference_only": true,
+  "teacher_first": true,
+  "teacher_free_no_dependencies": true,
+  "full_matrix_each_pilot": true,
+  "not_executed_on_gpu": true,
+  "markdown_fences_balanced": true,
+  "equations_balanced": true,
+  "sections_0_to_17": true,
+  "sensor_specific_channels": true,
+  "reference_pool_matches_current_recipe": true,
+  "all_full_panels_complete_by_design": true,
+  "important_limitation": "Static design checks only; no GPU, training, real metrics or remote execution validation."
+}
