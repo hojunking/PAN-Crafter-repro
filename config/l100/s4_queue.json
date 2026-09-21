@@ -1,0 +1,38 @@
+{
+  "campaign_id": "PANDA_GF2_L100_S345_LOCALT_20H_20260921_v2",
+  "server_id": "s4",
+  "blocks": [
+    {
+      "server_id": "s4",
+      "block_id": "L100I1_S4_LOCAL_H010_95001",
+      "queue_rank": 2,
+      "run_ids": [
+        "L100I1_GF2_T_S4_TS94002_C100_P0_W112_D123_FRESH100K_v2",
+        "L100I1_GF2_S_S4_R100_TS94002_SS95001_BASE_PLH_W104_D122_FRESH100K_v2",
+        "L100I1_GF2_S_S4_R100_TS94002_SS95001_H010_PLH_W104_D122_FRESH100K_v2"
+      ],
+      "case_ids": [
+        "L100I1-T03",
+        "L100I1-S07",
+        "L100I1-S08"
+      ],
+      "calibration_ids": [
+        "L100I1-CAL-S4-100"
+      ]
+    },
+    {
+      "server_id": "s4",
+      "block_id": "L100I1_S4_H010_95002",
+      "queue_rank": 3,
+      "run_ids": [
+        "L100I1_GF2_S_S4_R100_TS94002_SS95002_H010_PLH_W104_D122_FRESH100K_v2",
+        "L100I1_GF2_S_S4_R100_TS94002_SS95002_BASE_PLH_W104_D122_FRESH100K_v2"
+      ],
+      "case_ids": [
+        "L100I1-S09",
+        "L100I1-S10"
+      ],
+      "calibration_ids": []
+    }
+  ]
+}

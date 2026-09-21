@@ -1,0 +1,238 @@
+seed: 95002
+work_dir: work_dir/L100I1_GF2_S_S3_R50_TS94001_SS95002_BASE_PLH_W104_D122_FRESH100K_v2
+trainer: l100
+phase: train
+num_iter: 100000
+num_warmup: 100
+batch_size: 48
+test_batch_size: 1
+num_worker: 4
+num_bands: 4
+max_pixel: 1023.0
+mixed_precision: 'no'
+learning_rate: 0.0001
+optimizer: AdamW
+weight_decay: 0.01
+betas:
+- 0.9
+- 0.999
+eps: 1.0e-08
+lr_scheduler: cosine
+log_iter: 100
+train_feeder_args:
+  dataroot: null
+  crop: false
+  hflip: true
+  vflip: true
+  rot: true
+  ms_size: 16
+  return_meta: true
+val_feeder_args:
+  dataroot: null
+test_reduced_feeder_args:
+  dataroot: null
+test_full_feeder_args:
+  dataroot: null
+model_args:
+  hidden_size: 104
+  depth:
+  - 1
+  - 2
+  - 2
+  out_channels: 4
+  attn_locations: []
+  mode_modulation: false
+  norm: ln
+  dropout: 0.0
+l100:
+  case_id: L100I1-S05
+  run_id: L100I1_GF2_S_S3_R50_TS94001_SS95002_BASE_PLH_W104_D122_FRESH100K_v2
+  server_id: s3
+  role: S
+  reference_id: L100I1_R50_S3_TS94001
+  teacher_seed: 94001
+  student_seed: 95002
+  profile: BASE
+  updates: 100000
+  block_id: L100I1_S3_LENGTH_95002
+  queue_rank: 1
+  within_block_order: 1
+  status: PLANNED
+  tier: CORE
+  sensor: GF2
+  reference_sha256: null
+  seed: 95002
+  width: 104
+  depth:
+  - 1
+  - 2
+  - 2
+  input_layout: PLH
+  teacher_input_layout: P0
+  teacher_alias: L100I1_T50_S3_TS94001
+  teacher_owner: s3
+  teacher_updates: 50000
+  teacher_run_id: L100I1_GF2_T_S3_TS94001_C100_P0_W112_D123_FRESH50K_v2
+  sheet_tab: GF2-s3(5090)
+  kind: TRAIN
+  alpha: 1.0
+  beta: 0.1
+  lambda_edge: 0.002
+  student_a_peak_lr: 3.0e-06
+  lambda_con: 0.0
+  pair_baseline_run_id: L100I1_GF2_S_S3_R50_TS94001_SS95002_BASE_PLH_W104_D122_FRESH50K_v2
+  campaign_id: PANDA_GF2_L100_S345_LOCALT_20H_20260921_v2
+  config_path: config/l100/L100I1_GF2_S_S3_R50_TS94001_SS95002_BASE_PLH_W104_D122_FRESH100K_v2.yaml
+  is_resolved: true
+  case_contract:
+    case_id: L100I1-S05
+    run_id: L100I1_GF2_S_S3_R50_TS94001_SS95002_BASE_PLH_W104_D122_FRESH100K_v2
+    server_id: s3
+    role: S
+    reference_id: L100I1_R50_S3_TS94001
+    teacher_seed: 94001
+    student_seed: 95002
+    profile: BASE
+    updates: 100000
+    block_id: L100I1_S3_LENGTH_95002
+    queue_rank: 1
+    within_block_order: 1
+    status: PLANNED
+    tier: CORE
+    sensor: GF2
+    reference_sha256: null
+  method_revision: QG40_SYNC_FREQ_C4_v1
+  registry_revision: L100I1_MD_DERIVED_REGISTRY_v2
+  source_status: MD_DERIVED_MISSING_DESIGN_ASSETS
+  source_plan: research_log/PANDA_GF2_L100_S345_LOCALT_20H_ExperimentPlan_2026-09-21_v2.md
+  sensor_spec:
+    sensor: GF2
+    num_bands: 4
+    max_dn: 1023
+    inverse_scale: 511.5
+    mtf_sensor: GF2
+    hqnr_threshold: 0.964
+    ergas_goal: 0.552
+    ergas_strong_goal: 0.522
+    band_order: null
+    splits: {}
+    source_provenance: {}
+  sensor_spec_path: null
+  num_bands: 4
+  max_pixel: 1023
+  batch_size: 48
+  window_path: work_dir/_l100/campaign_window.json
+  dataset_manifest: null
+  reference_manifest: null
+  teacher_checkpoint: null
+  teacher_sha256: null
+  tau_R: null
+  q_ref: null
+  q_cache: null
+  q_cache_sha256: null
+  runtime_policy_path: l100/runtime_policy.json
+  runtime_policy_sha256: null
+  teacher_from_scratch: true
+  backbone_from_scratch: true
+  aligner_init: TEACHER_CLONE
+  init_policy: FH12_named_tensor_fresh9_zero_extra_v1
+  init_generalization: Cplus1_native_channels_zero_extra_LH
+  candidate_grid:
+  - 2020
+  - 4040
+  - 6060
+  - 8080
+  - 10100
+  - 12120
+  - 14140
+  - 16160
+  - 18180
+  - 20200
+  - 22220
+  - 24240
+  - 26260
+  - 28280
+  - 30300
+  - 32320
+  - 34340
+  - 36360
+  - 38380
+  - 40400
+  - 42420
+  - 44440
+  - 46460
+  - 48480
+  - 50000
+  - 52520
+  - 54540
+  - 56560
+  - 58580
+  - 60600
+  - 62620
+  - 64640
+  - 66660
+  - 68680
+  - 70700
+  - 72720
+  - 74740
+  - 76760
+  - 78780
+  - 80800
+  - 82820
+  - 84840
+  - 86860
+  - 88880
+  - 90900
+  - 92920
+  - 94940
+  - 96960
+  - 98980
+  - 100000
+  diagnostic_steps:
+  - 0
+  - 1000
+  - 5000
+  - 10000
+  - 25000
+  - 50000
+  - 75000
+  - 100000
+  fullstate_steps:
+  - 0
+  - 1000
+  - 5000
+  - 10000
+  - 25000
+  - 50000
+  - 75000
+  - 100000
+  teacher_ref_step: 50000
+  no_global_lock: true
+  lambda_E: 0.002
+  aligner_lr: 3.0e-06
+  consistency_weight: 0.0
+  offset_weight: 0.0
+  offset_every: 2
+  offset_radius: 0.0
+  view_margin_hr: 4
+  corruption_seed: 195002
+  calibration:
+    n_patches: 3072
+    seed: 1234
+    probe: AXIS16
+    views: FIXED_HV_ROT4
+    batch_size: 16
+    subset_scope: SENSOR_SHARED_TRAIN_IDS
+  hqnr_threshold: 0.964
+  ergas_goal: 0.552
+  ergas_strong_goal: 0.522
+  lr_schedule_id: COSINE_N100000_W100_BASE_v2
+  a_lr_switch_completed_updates: null
+  a_lr_after_multiplier: 1.0
+  lp:
+    sigma: 1.98
+    kernel_size: 41
+    padding: replicate
+    decimation: 2::4,2::4
+    generation_dtype: float64
+    cache_dtype: float32
