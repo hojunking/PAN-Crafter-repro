@@ -105,7 +105,7 @@ def tier2(runs, apply_):
     return n, freed
 
 
-def tier1(runs, apply_, manifest):
+def tier1(runs, apply_, manifest, cutoff=None):
     """results/*.mat 에서 DROP 키를 빼고 재저장."""
     import numpy as np
     from scipy.io import loadmat, savemat
@@ -130,6 +130,8 @@ def tier1(runs, apply_, manifest):
         for p in sorted(glob.glob(os.path.join(WD, r, "results", "*.mat"))):
             if p in EXCLUDE:
                 continue
+            if cutoff is not None and os.path.getmtime(p) >= cutoff:
+                continue                                   # --before 이후에 만들어진 것은 건드리지 않는다
             tmp = p + ".prunetmp"
             try:
                 if not apply_:
@@ -187,10 +189,18 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--tier", choices=["t1", "t2", "all"], default="all")
     ap.add_argument("--apply", action="store_true", help="실제로 지운다 (기본은 계획만 출력)")
+    ap.add_argument("--before", default=None, metavar="YYYY-MM-DD",
+                    help="T1: 이 날짜 00:00 **이전**에 만들어진 .mat 만 대상 (이후 파일은 제외)")
     a = ap.parse_args()
 
     if not os.path.isdir(WD):
         sys.exit("work_dir 없음: %s" % WD)
+
+    cutoff = None
+    if a.before:
+        import datetime
+        cutoff = datetime.datetime.strptime(a.before, "%Y-%m-%d").timestamp()
+        print(f"T1 대상 제한: {a.before} 00:00 이전 생성분만 (mtime < {cutoff:.0f})\n")
 
     skip = live_runs()
     runs = runs_to_touch(skip)
@@ -209,9 +219,10 @@ def main():
         print("T2  epoch-*/checkpoint-*  %4d 디렉토리  %7.1fG" % (n, f / G))
 
     manifest = {"created": time.strftime("%F %T"), "tier": a.tier, "applied": a.apply,
-                "dropped_keys": sorted(DROP), "skipped_runs": skip, "runs": {}, "files": []}
+                "before": a.before, "dropped_keys": sorted(DROP), "skipped_runs": skip,
+                "runs": {}, "files": []}
     if a.tier in ("t1", "all"):
-        n, f, err = tier1(runs, a.apply, manifest)
+        n, f, err = tier1(runs, a.apply, manifest, cutoff=cutoff)
         total += f
         print("T1  .mat 입력 키 제거     %4d 파일      %7.1fG%s"
               % (n, f / G, ("  (오류 %d)" % len(err)) if err else ""))
