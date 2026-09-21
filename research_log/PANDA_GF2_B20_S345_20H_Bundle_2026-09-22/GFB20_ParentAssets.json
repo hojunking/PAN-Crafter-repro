@@ -1,0 +1,247 @@
+{
+  "status": "TO_BIND_LOCAL_BYTES",
+  "references": {
+    "R3_100": {
+      "server": "s3",
+      "teacher_seed": 94001,
+      "teacher_updates": 100000,
+      "teacher_run_id": "L100I1_GF2_T_S3_TS94001_C100_P0_W112_D123_FRESH100K_v2",
+      "published_teacher_sha256": null,
+      "status": "REPORTED_IDENTITY_RUNTIME_BYTES_NOT_VERIFIED",
+      "runtime_reference_manifest": null,
+      "runtime_teacher_checkpoint": null,
+      "runtime_calibration_manifest": null,
+      "runtime_q_cache": null,
+      "runtime_tau_R": null,
+      "runtime_q_ref": null,
+      "teacher_layout": "P0",
+      "teacher_width": 112,
+      "teacher_depth": [
+        1,
+        2,
+        3
+      ],
+      "num_bands": 4,
+      "reference_rule": "Resolve the original parent-bound complete reference. No substitution or recalibration in native arms."
+    },
+    "R3_TA50": {
+      "server": "s3",
+      "teacher_seed": 91001,
+      "teacher_updates": 50000,
+      "teacher_run_id": null,
+      "teacher_alias": "GF2_TA",
+      "published_teacher_sha256": "0fb973376f9f00947d295620d96062b621145607aee311e28c889caefb656dab",
+      "status": "REPORTED_IDENTITY_RUNTIME_BYTES_NOT_VERIFIED",
+      "runtime_reference_manifest": null,
+      "runtime_teacher_checkpoint": null,
+      "runtime_calibration_manifest": null,
+      "runtime_q_cache": null,
+      "runtime_tau_R": null,
+      "runtime_q_ref": null,
+      "teacher_layout": "P0",
+      "teacher_width": 112,
+      "teacher_depth": [
+        1,
+        2,
+        3
+      ],
+      "num_bands": 4,
+      "reference_rule": "Resolve the original parent-bound complete reference. No substitution or recalibration in native arms."
+    },
+    "R4_100": {
+      "server": "s4",
+      "teacher_seed": 94002,
+      "teacher_updates": 100000,
+      "teacher_run_id": "L100I1_GF2_T_S4_TS94002_C100_P0_W112_D123_FRESH100K_v2",
+      "published_teacher_sha256": "25ae6b1f0c6a4ea2efd69b5ff83fd7adddc423d8e5bcfb4c2768a9778ff8b232",
+      "status": "REPORTED_IDENTITY_RUNTIME_BYTES_NOT_VERIFIED",
+      "runtime_reference_manifest": null,
+      "runtime_teacher_checkpoint": null,
+      "runtime_calibration_manifest": null,
+      "runtime_q_cache": null,
+      "runtime_tau_R": null,
+      "runtime_q_ref": null,
+      "teacher_layout": "P0",
+      "teacher_width": 112,
+      "teacher_depth": [
+        1,
+        2,
+        3
+      ],
+      "num_bands": 4,
+      "reference_rule": "Resolve the original parent-bound complete reference. No substitution or recalibration in native arms."
+    },
+    "R5_100": {
+      "server": "s5",
+      "teacher_seed": 94003,
+      "teacher_updates": 100000,
+      "teacher_run_id": "L100I1_GF2_T_S5_TS94003_C100_P0_W112_D123_FRESH100K_v2",
+      "published_teacher_sha256": "3fcaa1dc67bd54f677e22dd09041d267c893b9b1791a6d2a7063ff0b2e800f8e",
+      "status": "REPORTED_IDENTITY_RUNTIME_BYTES_NOT_VERIFIED",
+      "runtime_reference_manifest": null,
+      "runtime_teacher_checkpoint": null,
+      "runtime_calibration_manifest": null,
+      "runtime_q_cache": null,
+      "runtime_tau_R": null,
+      "runtime_q_ref": null,
+      "teacher_layout": "P0",
+      "teacher_width": 112,
+      "teacher_depth": [
+        1,
+        2,
+        3
+      ],
+      "num_bands": 4,
+      "reference_rule": "Resolve the original parent-bound complete reference. No substitution or recalibration in native arms."
+    }
+  },
+  "parents": {
+    "P3HI": {
+      "parent_id": "P3HI",
+      "owner_server": "s3",
+      "source_case": "L100I1-S04",
+      "source_run_id": "L100I1_GF2_S_S3_R100_TS94001_SS95002_BASE_PLH_W104_D122_FRESH100K_v2",
+      "parent_step": 100000,
+      "parent_seed": 95002,
+      "reference_key": "R3_100",
+      "published_model_sha256": "df488d2c4a1282906b775287197e9cd97bd91d4765c42308b7ece2436b86e3ce",
+      "source_cell": "GF2-s3(5090)!37",
+      "reported_metrics": {
+        "HQNR": 0.9559600487382884,
+        "ERGAS": 0.5515018403380574,
+        "D_lambda": 0.020635866981307677,
+        "D_s": 0.02387292365074322
+      },
+      "purpose": "Relatively high-H native100K endpoint",
+      "runtime_model_path": null,
+      "runtime_fullstate_path": null,
+      "status": "EXACT_ENDPOINT_REPORTED_BYTES_TO_VERIFY"
+    },
+    "P3LO": {
+      "parent_id": "P3LO",
+      "owner_server": "s3",
+      "source_case": "L100I1-S03",
+      "source_run_id": "L100I1_GF2_S_S3_R100_TS94001_SS95001_BASE_PLH_W104_D122_FRESH100K_v2",
+      "parent_step": 100000,
+      "parent_seed": 95001,
+      "reference_key": "R3_100",
+      "published_model_sha256": "be4db0943e4a021ff011d4b3b7e566b7eb6bf1a99e2a12d73408eccda799be9f",
+      "source_cell": "GF2-s3(5090)!36",
+      "reported_metrics": {
+        "HQNR": 0.9466630353645792,
+        "ERGAS": 0.5513285355639482,
+        "D_lambda": 0.020472549261364204,
+        "D_s": 0.03353336388398405
+      },
+      "purpose": "Lower-H sibling endpoint; negative-control anchor",
+      "runtime_model_path": null,
+      "runtime_fullstate_path": null,
+      "status": "EXACT_ENDPOINT_REPORTED_BYTES_TO_VERIFY"
+    },
+    "P4A": {
+      "parent_id": "P4A",
+      "owner_server": "s4",
+      "source_case": "L100I1-S07",
+      "source_run_id": "L100I1_GF2_S_S4_R100_TS94002_SS95001_BASE_PLH_W104_D122_FRESH100K_v2",
+      "parent_step": 100000,
+      "parent_seed": 95001,
+      "reference_key": "R4_100",
+      "published_model_sha256": "6f2458ccad0100ec977521d9ae545e134bce23f1964f57dd61a7fce657bc3fd8",
+      "source_cell": "GF2-s4!14",
+      "reported_metrics": {
+        "HQNR": 0.9534832726456195,
+        "ERGAS": 0.5527044244202092,
+        "D_lambda": 0.020264526944771877,
+        "D_s": 0.026773142987863846
+      },
+      "purpose": "First BASE100K seed, not H010",
+      "runtime_model_path": null,
+      "runtime_fullstate_path": null,
+      "status": "EXACT_ENDPOINT_REPORTED_BYTES_TO_VERIFY"
+    },
+    "P4B": {
+      "parent_id": "P4B",
+      "owner_server": "s4",
+      "source_case": "L100I1-S10",
+      "source_run_id": "L100I1_GF2_S_S4_R100_TS94002_SS95002_BASE_PLH_W104_D122_FRESH100K_v2",
+      "parent_step": 100000,
+      "parent_seed": 95002,
+      "reference_key": "R4_100",
+      "published_model_sha256": "7b3a739cb537799dd30fecf96a7a59215cc3c0b516f1a726d3cc7eff1869ba73",
+      "source_cell": "GF2-s4!17",
+      "reported_metrics": {
+        "HQNR": 0.9542735299826475,
+        "ERGAS": 0.5482437942655717,
+        "D_lambda": 0.020167904397021836,
+        "D_s": 0.02606222791758909
+      },
+      "purpose": "Second BASE100K seed, not H010",
+      "runtime_model_path": null,
+      "runtime_fullstate_path": null,
+      "status": "EXACT_ENDPOINT_REPORTED_BYTES_TO_VERIFY"
+    },
+    "P5A": {
+      "parent_id": "P5A",
+      "owner_server": "s5",
+      "source_case": "L100I1-S11",
+      "source_run_id": "L100I1_GF2_S_S5_R100_TS94003_SS95001_BASE_PLH_W104_D122_FRESH100K_v2",
+      "parent_step": 100000,
+      "parent_seed": 95001,
+      "reference_key": "R5_100",
+      "published_model_sha256": "40753274f8b586d4caeff839b3396cb89db832fd68fff528548c6fa4e2b29b31",
+      "source_cell": "GF2-s5!21",
+      "reported_metrics": {
+        "HQNR": 0.9477158655192861,
+        "ERGAS": 0.5506210932237942,
+        "D_lambda": 0.020819100190009182,
+        "D_s": 0.03210141414050607
+      },
+      "purpose": "First BASE100K seed, not E1",
+      "runtime_model_path": null,
+      "runtime_fullstate_path": null,
+      "status": "EXACT_ENDPOINT_REPORTED_BYTES_TO_VERIFY"
+    },
+    "P5B": {
+      "parent_id": "P5B",
+      "owner_server": "s5",
+      "source_case": "L100I1-S14",
+      "source_run_id": "L100I1_GF2_S_S5_R100_TS94003_SS95002_BASE_PLH_W104_D122_FRESH100K_v2",
+      "parent_step": 100000,
+      "parent_seed": 95002,
+      "reference_key": "R5_100",
+      "published_model_sha256": "06594ae84071e75ed37785715c2d81395c1add5fbdf5feceed1315747a87c557",
+      "source_cell": "GF2-s5!24",
+      "reported_metrics": {
+        "HQNR": 0.9513086066967112,
+        "ERGAS": 0.5477601616788584,
+        "D_lambda": 0.020804338024962492,
+        "D_s": 0.028464605670362225
+      },
+      "purpose": "Second BASE100K seed, not E1",
+      "runtime_model_path": null,
+      "runtime_fullstate_path": null,
+      "status": "EXACT_ENDPOINT_REPORTED_BYTES_TO_VERIFY"
+    },
+    "P3OLD": {
+      "parent_id": "P3OLD",
+      "owner_server": "s3",
+      "source_case": "QGBASE_S92001",
+      "source_run_id": "QGBASE_GF2_S_PLH_W104_D122_TA_TS91001_SS92001_BASE_FRESH50_v1",
+      "parent_step": 50000,
+      "parent_seed": 92001,
+      "reference_key": "R3_TA50",
+      "published_model_sha256": null,
+      "source_cell": "GF2-s3(5090)!10",
+      "reported_metrics": {
+        "HQNR": 0.9576734619644258,
+        "ERGAS": 0.5564942836244443,
+        "D_lambda": 0.019257199518842714,
+        "D_s": 0.023502848055251335
+      },
+      "purpose": "Historical high-spatial endpoint; test-aware development anchor; exact50K, not RAW45450",
+      "runtime_model_path": null,
+      "runtime_fullstate_path": null,
+      "status": "EXACT_ENDPOINT_REPORTED_SHA_AND_BYTES_TO_VERIFY"
+    }
+  }
+}

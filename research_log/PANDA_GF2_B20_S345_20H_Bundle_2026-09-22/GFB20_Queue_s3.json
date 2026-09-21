@@ -1,0 +1,79 @@
+{
+  "schema": "DESIGN_QUEUE_NOT_RUNNER_CONFIG",
+  "campaign_id": "PANDA_GF2_B20_S345_20260922_v1",
+  "server": "s3",
+  "status": "DEFINED_NOT_LAUNCHED",
+  "core": [
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "A06"
+  ],
+  "conditional": [
+    "A07",
+    "A08",
+    "A09",
+    "A10",
+    "A11",
+    "A12",
+    "A13",
+    "A14",
+    "A15",
+    "A16"
+  ],
+  "blocks": [
+    {
+      "block_id": "A_HI",
+      "case_ids": [
+        "A01",
+        "A02"
+      ]
+    },
+    {
+      "block_id": "A_OLD",
+      "case_ids": [
+        "A03",
+        "A04"
+      ]
+    },
+    {
+      "block_id": "A_LO",
+      "case_ids": [
+        "A05",
+        "A06"
+      ]
+    },
+    {
+      "block_id": "A_HI_REPEAT",
+      "case_ids": [
+        "A07",
+        "A08"
+      ]
+    },
+    {
+      "block_id": "A_LO_REPEAT",
+      "case_ids": [
+        "A09",
+        "A10"
+      ]
+    },
+    {
+      "block_id": "A_REPLAY1",
+      "case_ids": [
+        "A11",
+        "A12",
+        "A13"
+      ]
+    },
+    {
+      "block_id": "A_REPLAY2",
+      "case_ids": [
+        "A14",
+        "A15",
+        "A16"
+      ]
+    }
+  ]
+}

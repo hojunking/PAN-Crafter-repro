@@ -1,0 +1,13 @@
+{
+  "schema": "GFB20_RUNTIME_v1",
+  "precision": "float32",
+  "mixed_precision": "no",
+  "tf32_matmul": false,
+  "tf32_cudnn": true,
+  "cudnn_benchmark": false,
+  "cudnn_deterministic": false,
+  "deterministic_algorithms": false,
+  "num_workers": 4,
+  "expected_gpu_name_contains": "5090",
+  "cross_server_bitwise_claim": false
+}

@@ -1,0 +1,52 @@
+{
+  "schema": "DESIGN_QUEUE_NOT_RUNNER_CONFIG",
+  "campaign_id": "PANDA_GF2_B20_S345_20260922_v1",
+  "server": "s5",
+  "status": "DEFINED_NOT_LAUNCHED",
+  "core": [
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06"
+  ],
+  "conditional": [
+    "C07",
+    "C08",
+    "C09",
+    "C10"
+  ],
+  "blocks": [
+    {
+      "block_id": "C_PANEL1",
+      "case_ids": [
+        "C01",
+        "C02",
+        "C03"
+      ]
+    },
+    {
+      "block_id": "C_PANEL2",
+      "case_ids": [
+        "C04",
+        "C05",
+        "C06"
+      ]
+    },
+    {
+      "block_id": "C_FRESH1",
+      "case_ids": [
+        "C07",
+        "C08"
+      ]
+    },
+    {
+      "block_id": "C_FRESH2",
+      "case_ids": [
+        "C09",
+        "C10"
+      ]
+    }
+  ]
+}
