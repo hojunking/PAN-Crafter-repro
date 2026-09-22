@@ -12,6 +12,7 @@ import hashlib
 import json
 from pathlib import Path
 from types import MappingProxyType
+from fh12.source_documents import pinned_document
 
 from qg40.plan import SensorSpec, SplitBinding, sensor_spec as _sensor_spec
 
@@ -47,7 +48,7 @@ def valid_sha(value):
 
 def verify_sources(root=ROOT):
     for name, expected in SOURCE_SHAS.items():
-        if hashlib.sha256((Path(root) / name).read_bytes()).hexdigest() != expected:
+        if hashlib.sha256(pinned_document(root, name, expected).read_bytes()).hexdigest() != expected:
             raise ValueError('LOCAL-T source changed; use a new registry revision: ' + name)
     return dict(SOURCE_SHAS)
 

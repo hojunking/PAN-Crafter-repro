@@ -7,6 +7,7 @@ import hashlib
 import json
 from pathlib import Path
 from types import MappingProxyType
+from fh12.source_documents import pinned_document
 
 from qg40.plan import SensorSpec, SplitBinding, sensor_spec as _sensor_spec
 
@@ -59,7 +60,7 @@ def valid_sha(value):
 
 def verify_sources():
     for path, expected in SOURCE_SHAS.items():
-        if _sha(ROOT / path) != expected:
+        if _sha(pinned_document(ROOT, path, expected)) != expected:
             raise ValueError(f"G20 source changed: {path}; use a new registry revision")
     return dict(SOURCE_SHAS)
 
@@ -216,7 +217,7 @@ _BLOCK_BY_CASE = {"G20-" + case_id: (block, rank, order)
 
 
 def _read_cases():
-    with (ROOT / SOURCE_CASES).open(encoding="utf-8-sig", newline="") as stream:
+    with pinned_document(ROOT, SOURCE_CASES, SOURCE_SHAS[SOURCE_CASES]).open(encoding="utf-8-sig", newline="") as stream:
         rows = list(csv.DictReader(stream))
     cases = []
     for row in rows:

@@ -12,6 +12,7 @@ import json
 from pathlib import Path
 from types import MappingProxyType
 from typing import Mapping
+from fh12.source_documents import pinned_document
 
 CAMPAIGN_ID = "PANDA_QG40_20260920_v1"
 REGISTRY_REVISION = "QG40_REGISTRY_20260920_v2_PREPARATION"
@@ -223,7 +224,7 @@ class Case:
 
 
 def _read_cases(path):
-    with (ROOT / path).open(encoding="utf-8-sig", newline="") as stream:
+    with pinned_document(ROOT, path, SOURCE_SHAS[path]).open(encoding="utf-8-sig", newline="") as stream:
         rows = list(csv.DictReader(stream))
     result = []
     for row in rows:
@@ -245,7 +246,7 @@ def _read_cases(path):
 
 def verify_sources():
     for name, expected in SOURCE_SHAS.items():
-        if _sha(ROOT / name) != expected:
+        if _sha(pinned_document(ROOT, name, expected)) != expected:
             raise ValueError(f"QG40 source definition changed; new registry revision required: {name}")
     return dict(SOURCE_SHAS)
 
