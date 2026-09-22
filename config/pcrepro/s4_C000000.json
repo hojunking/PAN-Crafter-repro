@@ -1,0 +1,72 @@
+{
+  "campaign_id": "PANCRAFTER_REPRO_S345_UNLIMITED_20260922_v1",
+  "recipe_sha256": "f4e795b66e4e1e28f73afaeb01f72df92d5ee09e2676b48d304d9bea87f83102",
+  "cases": [
+    {
+      "server": "s4",
+      "cycle": 0,
+      "dataset": "QB",
+      "campaign_id": "PANCRAFTER_REPRO_S345_UNLIMITED_20260922_v1",
+      "recipe_id": "PC_PAPER_EQ11_C128_D224_LN_MARS_v1",
+      "seed": 2025,
+      "stage": "TRAIN",
+      "train_dataset": "QB",
+      "num_bands": 4,
+      "max_dn": 2047,
+      "updates": 50000,
+      "run_id": "PCREPRO_QB_s4_C000000_S2025_F50K_v1",
+      "source_run_id": null,
+      "repeat_kind": "SAME_SEED_SERVER_REPEAT"
+    },
+    {
+      "server": "s4",
+      "cycle": 0,
+      "dataset": "GF2",
+      "campaign_id": "PANCRAFTER_REPRO_S345_UNLIMITED_20260922_v1",
+      "recipe_id": "PC_PAPER_EQ11_C128_D224_LN_MARS_v1",
+      "seed": 2025,
+      "stage": "TRAIN",
+      "train_dataset": "GF2",
+      "num_bands": 4,
+      "max_dn": 1023,
+      "updates": 50000,
+      "run_id": "PCREPRO_GF2_s4_C000000_S2025_F50K_v1",
+      "source_run_id": null,
+      "repeat_kind": "SAME_SEED_SERVER_REPEAT"
+    },
+    {
+      "server": "s4",
+      "cycle": 0,
+      "dataset": "WV3",
+      "campaign_id": "PANCRAFTER_REPRO_S345_UNLIMITED_20260922_v1",
+      "recipe_id": "PC_PAPER_EQ11_C128_D224_LN_MARS_v1",
+      "seed": 2025,
+      "stage": "TRAIN",
+      "train_dataset": "WV3",
+      "num_bands": 8,
+      "max_dn": 2047,
+      "updates": 50000,
+      "run_id": "PCREPRO_WV3_s4_C000000_S2025_F50K_v1",
+      "source_run_id": null,
+      "repeat_kind": "SAME_SEED_SERVER_REPEAT"
+    },
+    {
+      "server": "s4",
+      "cycle": 0,
+      "dataset": "WV2",
+      "campaign_id": "PANCRAFTER_REPRO_S345_UNLIMITED_20260922_v1",
+      "recipe_id": "PC_PAPER_EQ11_C128_D224_LN_MARS_v1",
+      "seed": 2025,
+      "stage": "ZERO_SHOT",
+      "train_dataset": "WV3",
+      "num_bands": 8,
+      "max_dn": 2047,
+      "updates": 0,
+      "run_id": "PCREPRO_WV3toWV2_s4_C000000_S2025_EVAL_v1",
+      "source_run_id": "PCREPRO_WV3_s4_C000000_S2025_F50K_v1",
+      "repeat_kind": "SAME_SEED_SERVER_REPEAT"
+    }
+  ],
+  "finite_export_only": true,
+  "campaign_max_cycles": null
+}

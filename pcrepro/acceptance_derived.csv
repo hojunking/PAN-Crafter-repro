@@ -1,0 +1,21 @@
+id,requirement,implementation_evidence,offline_verification,production_verification
+01,Eq11 raw PAN joint KV and mode query,pcrepro/model.py,test_model.py,PER_SERVER_SMOKE_PENDING
+02,Native 9ch or5ch input and C128D224LN,pcrepro/model.py,test_model.py,PER_SERVER_SMOKE_PENDING
+03,Fixed3x3 gather without parameters,pcrepro/model.py,test_model.py,CPU_FULL_MODEL_PASSED
+04,Same augmented raw PAN residual only,pcrepro/model.py,test_model.py,PER_SERVER_SMOKE_PENDING
+05,MARs48pairs duplicated after augmentation and sum losses,pcrepro/training.py,test_training.py,FULL_BATCH48_GPU_PENDING
+06,Paired random geometry without resize,pcrepro/data.py,test_data.py,ORIGINAL_BINDINGS_PENDING
+07,Run seed and exact next batch resume,pcrepro/data.py;training.py,test_data.py;test_training.py,PER_SERVER_STOP_RESUME_PENDING
+08,Fresh50K and pinned AdamW warmup cosine FP32,pcrepro/training.py,test_training.py;test_postrun.py,FULL50K_PENDING
+09,Original sensor DN bands and QB no msfix,pcrepro/data.py,test_data.py,ORIGINAL_BINDINGS_PENDING
+10,All declared RR and paper FR tensor identity,pcrepro/data.py;evaluation.py,test_data.py;test_evaluation.py,ORIGINAL_BINDINGS_PENDING
+11,WV2 same server cycle WV3 checkpoint only and zero update,pcrepro/postrun.py,test_postrun.py;test_upload.py,FULL_CYCLE_PENDING
+12,Primary exact50K and earliest valERGAS minimum,pcrepro/checkpoint.py;postrun.py,test_checkpoint.py;test_postrun.py,FULL50K_PENDING
+13,Native unmasked per-scene HQNR and all reported metrics,pcrepro/evaluation.py,test_evaluation.py;test_postrun.py,REAL_DATA_EVALUATION_PENDING
+14,Independent unlimited deterministic cycles,pcrepro/controller.py;plan.py,test_controller.py,FULL_CYCLE_PENDING
+15,Exact PID safe handoff and s1s2 protection,pcrepro/handoff.py,test_handoff.py,REAL_HANDOFF_NOT_EXECUTED
+16,Atomic fullstate and last2 retention,pcrepro/checkpoint.py,test_checkpoint.py,PER_SERVER_STOP_RESUME_PENDING
+17,Safe controls evaluation cursor and isolated failures,pcrepro/controller.py;evaluation.py,test_controller.py;test_evaluation.py,PER_SERVER_STOP_RESUME_PENDING
+18,Unique Sheet row and raw precision4digit display,pcrepro/upload.py,test_upload.py,LIVE_SHEET_NOT_WRITTEN
+19,Durable spool bounded retry and readback,pcrepro/upload.py,test_upload.py,LIVE_READBACK_PENDING
+20,Disk guard actual profiling and separate costs,pcrepro/preflight.py;profile.py;reporting.py,test_runtime.py;test_upload.py,GPU_PROFILE_AND_COSTS_PENDING

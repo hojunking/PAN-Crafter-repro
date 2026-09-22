@@ -1,0 +1,59 @@
+{
+  "schema": "PCREPRO_LOCAL_BINDINGS_v1",
+  "datasets": {
+    "WV3": null,
+    "WV2": null,
+    "QB": null,
+    "GF2": null
+  },
+  "usage": "Replace each null with a local manifest path or a fully populated manifest object. Null datasets remain individually blocked. This template contains no authenticated data paths, scene identities or hashes.",
+  "sensor_contracts": {
+    "WV3": {"bands": 8, "max_dn": 2047, "band_order": ["C", "B", "G", "Y", "R", "RE", "NIR1", "NIR2"]},
+    "WV2": {"bands": 8, "max_dn": 2047, "band_order": ["C", "B", "G", "Y", "R", "RE", "NIR1", "NIR2"]},
+    "QB": {"bands": 4, "max_dn": 2047, "band_order": ["B", "G", "R", "NIR"]},
+    "GF2": {"bands": 4, "max_dn": 1023, "band_order": ["B", "G", "R", "NIR"]}
+  },
+  "manifest_template": {
+    "schema": "PCREPRO_DATA_v1",
+    "dataset": "WV3",
+    "bands": 8,
+    "max_dn": 2047,
+    "units": "DN",
+    "band_order": ["C", "B", "G", "Y", "R", "RE", "NIR1", "NIR2"],
+    "splits": {
+      "train": {
+        "split": "train", "format": "h5", "path": null, "sha256": null,
+        "count": null, "scene_ids": [], "layout": "NCHW",
+        "origin": "ORIGINAL_PANCOLLECTION",
+        "keys": {"pan": "pan", "ms": "ms", "gt": "gt", "lms": "lms"},
+        "shapes": {"pan": [1, 64, 64], "ms": [8, 16, 16], "gt": [8, 64, 64], "lms": [8, 64, 64]}
+      },
+      "val": {
+        "split": "val", "format": "h5", "path": null, "sha256": null,
+        "count": null, "scene_ids": [], "layout": "NCHW",
+        "origin": "ORIGINAL_PANCOLLECTION",
+        "keys": {"pan": "pan", "ms": "ms", "gt": "gt", "lms": "lms"},
+        "shapes": {"pan": [1, 64, 64], "ms": [8, 16, 16], "gt": [8, 64, 64], "lms": [8, 64, 64]}
+      },
+      "rr": {
+        "split": "rr", "format": "h5", "path": null, "sha256": null,
+        "count": 20, "scene_ids": [], "layout": "NCHW",
+        "keys": {"pan": "pan", "ms": "ms", "gt": "gt", "lms": "lms"},
+        "shapes": {"pan": [1, 256, 256], "ms": [8, 64, 64], "gt": [8, 256, 256], "lms": [8, 256, 256]},
+        "paper_identity": {"mat_references": []}
+      },
+      "fr": {
+        "split": "fr", "format": "mat_list", "count": 20,
+        "scene_ids": [], "scenes": [], "layout": "HWC",
+        "keys": {"pan": "pan", "ms": "ms", "lms": "lms"},
+        "shapes": {"pan": [1, 512, 512], "ms": [8, 128, 128], "lms": [8, 512, 512]},
+        "paper_identity": {"origin": "PANCOLLECTION_PAPER_MAT"}
+      }
+    }
+  },
+  "mat_scene_entry_template": {"scene_id": null, "path": null, "sha256": null},
+  "h5_to_mat_reference_entry_template": {
+    "source_index": null, "scene_id": null, "path": null, "sha256": null,
+    "layout": "HWC", "keys": {"pan": "pan", "ms": "ms", "gt": "gt", "lms": "lms"}
+  }
+}

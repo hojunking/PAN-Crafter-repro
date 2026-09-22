@@ -1,0 +1,15 @@
+{
+  "recipe_id": "PC_PAPER_EQ11_C128_D224_LN_MARS_v1",
+  "source_status": "DERIVED_FROM_USER_MD_COMPANION_BUNDLE_NOT_SUPPLIED",
+  "model_symbol": "pcrepro.model.CorrectedPANCrafter",
+  "architecture": {"width":128,"depth":[2,2,4],"decoder_depth":[2,2],"scales":3,"normalization":"channel_layer_norm","heads":8,"attention_kernel":3,"projection_kernel":3,"ffn_expansion":4,"dropout":0,"attention_locations":["enc_h2","bottleneck_h4","dec_h2"],"mode_modulation":"direct_gamma_beta_alpha","input":"raw_PAN_and_bicubic_MS_only","pan_query":"raw_PAN_repeated_to_MS_bands","pan_kv":"joint_projection_raw_PAN_repeated_and_feature","gather":"fixed_exact_3x3_zero_padded_no_trainable_bias"},
+  "interpolation": {"mode":"bicubic","align_corners":false,"antialias":false},
+  "pan_residual": {"source":"same_augmented_raw_PAN_DN","usage":"PAN_mode_residual_only","sigma":1.98,"kernel":41,"padding":"replicate","phase":[2,2],"ratio":4,"filter_dtype":"float64","cache_dtype":"float32","external_sidecar_allowed":false,"sensor_mtf_claim":false},
+  "training": {"updates":50000,"optimizer":"AdamW","learning_rate":0.0001,"weight_decay":0.01,"betas":[0.9,0.999],"eps":1e-8,"warmup_updates":100,"scheduler":"warmup100_cosine50000","batch_pairs":48,"mars_batch":96,"lambda_pan":1.0,"loss":"mean_L1_MS_plus_mean_L1_PAN","pan_patch":64,"ms_patch":16,"workers":4,"drop_last":true,"validation_every":1000},
+  "augmentation": {"hflip_probability":0.5,"vflip_probability":0.5,"rotation_degrees":[0,90,180,270],"crop":"paired_fixed_64_16_no_resize","rng":"run_owned_resumable","mars_duplication":"after_geometry"},
+  "runtime": {"precision":"float32","amp":false,"tf32_matmul":false,"tf32_cudnn":false,"cudnn_benchmark":false,"cudnn_deterministic":true,"deterministic_algorithms":false},
+  "selection": {"primary":"EXACT_50000","secondary":"RR_VAL_ERGAS_MIN","tie":"earliest_update","test_during_training":false,"test_selects_checkpoint":false},
+  "execution": {"servers":["s3","s4","s5"],"max_cycles":null,"wall_clock_deadline":null,"performance_stop":false,"cross_server_barrier":false,"fresh_each_run":true,"wv2":"same_server_same_cycle_WV3_zero_shot","io_retries":2,"min_free_gib":20},
+  "retention": {"resume_states":2,"best_validation_model":true,"exact50000_full_state":true,"delete_completed_runs":false},
+  "implementation_choices_not_explicit_in_paper": ["depth allocation","channel LN axis","heads8","FFN4","Gaussian residual filter and phase","bicubic flags","FP32 TF32-off runtime","AdamW betas eps","worker count","fixed-patch crop no-op","checkpoint selection policy"]
+}
