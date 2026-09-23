@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PYTHON chooses the HOST interpreter used to verify/freeze the committed release.
+# Host interpreter verifies/freezes the release; --until-operator-stop is explicit.
 set -euo pipefail
 ABLR2_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ABLR2_PY="${PYTHON:-python}"

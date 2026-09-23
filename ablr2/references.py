@@ -29,7 +29,7 @@ def reference_path(reference_id, server, root=None):
 
 
 def teacher_endpoint(teacher_run, root, server):
-    from ablr2.common import read_json, read_config, resolved_path, sha256, object_sha, source_identity
+    from ablr2.common import read_json, read_config, resolved_path, sha256, object_sha, source_identity,assert_compatible_source
     from ablr2.plan import validate_config
     run = resolved_path(teacher_run, root)
     cfg_path = run/'meta/config.resolved.yaml'
@@ -42,11 +42,12 @@ def teacher_endpoint(teacher_run, root, server):
         raise ValueError('Teacher work_dir identity differs')
     folder = run/'candidates/50000'
     identity = read_json(folder/'identity.json')
+    assert_compatible_source(identity.get('source_identity'),source_identity(root),root,server)
     data_path = resolved_path(field['dataset_manifest'],root)
     data = read_json(data_path)
     expected = dict(update=50000,full_state=True,role='T',sensor=case.sensor,
         num_bands=cfg['num_bands'],input_layout='P0',config_sha256=object_sha(cfg),
-        data_sha256=object_sha(data),source_identity=source_identity(root),reference_sha256=None)
+        data_sha256=object_sha(data),source_identity=identity['source_identity'],reference_sha256=None)
     if any(identity.get(k) != v for k,v in expected.items()):
         raise ValueError('Teacher endpoint/source/data identity differs')
     if (identity.get('model_sha256') != sha256(folder/'model.safetensors')
@@ -81,14 +82,15 @@ def teacher_endpoint(teacher_run, root, server):
 
 
 def validate_reference(reference_id,server,root=None,*,manifest_path=None,dataset_manifest=None):
-    from ablr2.common import ROOT, CAMPAIGN_ID, object_sha,read_json,resolved_path,sha256,source_identity
+    from ablr2.common import ROOT,campaign_id,object_sha,read_json,resolved_path,sha256,source_identity,assert_compatible_source
     root=Path(root or ROOT).resolve()
     path=resolved_path(manifest_path,root) if manifest_path else reference_path(reference_id,server,root)
     manifest=read_json(path)
-    expected=dict(schema='ABLR2_REFERENCE_v1',campaign_id=CAMPAIGN_ID,reference_id=reference_id,
+    assert_compatible_source(manifest.get('source_identity'),source_identity(root),root,server)
+    expected=dict(schema='ABLR2_REFERENCE_v1',campaign_id=campaign_id(server),reference_id=reference_id,
         owner_server=server,producer_server=server,teacher_update=50000,teacher_layout='P0',
         calibration_n=3072,calibration_batch_size=16,LP_recipe=RECIPE,augmentation=AUGMENTATION,
-        source_identity=source_identity(root))
+        source_identity=manifest['source_identity'])
     if any(manifest.get(k) != v for k,v in expected.items()):
         raise ValueError('Local reference owner/source/endpoint mismatch')
     names={'teacher_checkpoint':'teacher_checkpoint_sha256','teacher_training_state':'teacher_training_state_sha256',
@@ -106,6 +108,7 @@ def validate_reference(reference_id,server,root=None,*,manifest_path=None,datase
             or manifest['teacher_kind'] != cfg['ablr2']['teacher_kind']
             or manifest['consistency_weight'] != cfg['ablr2']['consistency_weight']
             or manifest['teacher_config_sha256'] != object_sha(cfg)
+            or manifest['source_identity'] != identity['source_identity']
             or paths['teacher_checkpoint'].resolve() != (checked['candidate']/'model.safetensors').resolve()
             or paths['teacher_training_state'].resolve() != (checked['candidate']/'training_state.pt').resolve()
             or paths['teacher_checkpoint_identity'].resolve() != (checked['candidate']/'identity.json').resolve()
@@ -124,6 +127,11 @@ def validate_reference(reference_id,server,root=None,*,manifest_path=None,datase
     cal=read_json(paths['calibration_path'])
     if cal.get('schema') != 'ABLR2_CALIBRATION_v1' or cal.get('synthetic_test') is not False or cal.get('batch_size') != 16:
         raise ValueError('Production calibration required')
+    execution=manifest.get('calibration_execution_source_identity')
+    if execution is not None:
+        if cal.get('calibration_execution_source_identity')!=execution:
+            raise ValueError('Calibration execution provenance differs')
+        assert_compatible_source(execution,source_identity(root),root,server)
     for key in ('tau_R','q_ref','q_shape','s_bar','s_bar_population','calibration_indices_sha256',
                 'teacher_run_id','teacher_checkpoint_sha256','source_identity'):
         if cal.get(key) != manifest.get(key):
@@ -166,7 +174,12 @@ def load_reference(reference_id,server,root=None,device='cuda',*,manifest_path=N
 
 
 def load_endpoint_only(teacher_run,server,root,device='cpu'):
-    """C03/C04 endpoint-only path: never opens calibration, tau, q or q cache."""
+    """C03/C04/C17 endpoint path; never opens calibration, tau, q or q cache.
+
+    C03/C17 transfer only this frozen model's Aligner tensors. The trainer
+    discards the reference after checking the independent clone; it never
+    forwards the Teacher U or transplants Teacher U into the Student.
+    """
     case,cfg,data,identity,model,paths=teacher_endpoint(teacher_run,root,server)
     model.to(device).eval().requires_grad_(False)
     return model,dict(schema='ABLR2_ENDPOINT_REFERENCE_v1',reference_id=case.reference_id,
@@ -174,3 +187,44 @@ def load_endpoint_only(teacher_run,server,root,device='cpu'):
         teacher_kind=cfg['ablr2']['teacher_kind'],sensor=case.sensor,owner_server=server,
         teacher_checkpoint_sha256=identity['model_sha256'],source_identity=identity['source_identity'],
         data_sha256=identity['data_sha256'])
+
+
+def validate_teacher_pair(positive_run_id,zero_run_id,root=None):
+    """Authenticate matched +/-consistency endpoints, not their final A equality."""
+    from ablr2.common import ROOT,run_dir,read_json,object_sha
+    from ablr2.plan import case_for
+    root=Path(root or ROOT)
+    positive,zero=[case_for(value,root=root) for value in (positive_run_id,zero_run_id)]
+    if (positive.role!='T' or zero.role!='T' or positive.teacher_kind not in ('TPLUS','TC3')
+            or zero.teacher_kind!='TZERO' or positive.server_id!=zero.server_id
+            or positive.sensor!=zero.sensor or positive.seed!=zero.seed
+            or positive.lambda_con not in (1e-4,3e-4) or zero.lambda_con!=0):
+        raise ValueError('Expected same-lane/sensor/seed positive and TZERO Teacher pair')
+    checked=[]
+    for case in (positive,zero):
+        wd=run_dir(case.run_id,root=root)
+        actual,cfg,data,identity,model,_=teacher_endpoint(wd,root,case.server_id)
+        del model
+        if actual!=case:raise ValueError('Teacher pair endpoint definition differs')
+        init=read_json(wd/'init_manifest.json');start=read_json(wd/'meta/training_start_manifest.json')
+        expected=dict(config_sha256=object_sha(cfg),data_sha256=object_sha(data),
+            source_identity=identity['source_identity'],reference_sha256=None)
+        if (start.get('run_id')!=case.run_id
+                or any(init.get(k)!=v or start.get(k)!=v for k,v in expected.items())
+                or init.get('seed')!=case.seed or init.get('role')!='T'
+                or not all(isinstance(init.get('hashes',{}).get(k),str) and len(init['hashes'][k])==64 for k in ('U','A'))
+                or not isinstance(start.get('sampler_hash'),str) or len(start['sampler_hash'])!=64):
+            raise ValueError('Teacher pair initial/native provenance is incomplete')
+        roles=start.get('rng_roles',{})
+        native_rng={k:roles.get(k) for k in ('data_order','augmentation','workers')}
+        if any(type(v) is not int for v in native_rng.values()):raise ValueError('Teacher native RNG roles missing')
+        checked.append(dict(run_id=case.run_id,teacher_seed=case.seed,sensor=case.sensor,
+            server_id=case.server_id,teacher_kind=case.teacher_kind,update=identity['update'],
+            checkpoint_sha256=identity['model_sha256'],initial_U=init['hashes']['U'],
+            initial_A=init['hashes']['A'],native_sampler_hash=start['sampler_hash'],native_rng=native_rng,
+            data_sha256=identity['data_sha256']))
+    keys=('initial_U','initial_A','native_sampler_hash','native_rng','data_sha256')
+    if any(checked[0][k]!=checked[1][k] for k in keys):
+        raise ValueError('Teacher pair initial tensors/data/native stream differ')
+    return dict(schema='ABLR2X_MATCHED_TEACHER_PAIR_v1',passed=True,positive=checked[0],zero=checked[1],
+        final_weight_equality_required=False,scope='same-initialization/native-stream +/-consistency, not registration ground truth')

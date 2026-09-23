@@ -8,10 +8,17 @@ from __future__ import annotations
 import math
 from statistics import median
 
-from .plan import COMPARISON_GRAPH, GRAPH, MAIN_CASES, RECIPES, sensor_spec
+from .plan import (COMPARISON_GRAPH, GRAPH, MAIN_CASES, LEGACY_MAIN_CASES,
+                   LEGACY_COMPARISON_GRAPH, RECIPES, sensor_spec)
 
 IMPROVEMENTS = ('JOINT_GAIN', 'H_GAIN_SAFE', 'RR_GAIN_SAFE')
 THRESHOLD_REVISION = 'thresholds_v1'
+
+
+def queue_enabled(relation):
+    value=relation.get('queue_enabled',True)
+    if value not in (True,False,'True','False'):raise ValueError('Invalid comparison queue flag')
+    return value is True or value=='True'
 
 
 def _finite(value):
@@ -43,14 +50,17 @@ def _mad(values):
 
 
 def calibrate_thresholds(sensor, panels):
-    """Exactly five complete 17-case BOOT5 panels, per sensor, frozen once."""
+    """Use only legacy seventeen edges, including for extended C00..C17 panels.
+
+    Identical legacy measurements produce the same immutable threshold document.
+    """
     sensor_spec(sensor)
-    if len(panels) != 5 or any(set(panel) != set(MAIN_CASES) for panel in panels):
+    if len(panels) != 5 or any(set(panel) not in (set(LEGACY_MAIN_CASES),set(MAIN_CASES)) for panel in panels):
         raise ValueError('PILOT_INCOMPLETE: thresholds require all 17 cases in all five BOOT5 panels')
     for panel in panels:
-        for value in panel.values(): _metrics(value)
+        for case in LEGACY_MAIN_CASES: _metrics(panel[case])
     rows = []
-    for relation in COMPARISON_GRAPH:
+    for relation in LEGACY_COMPARISON_GRAPH:
         pairs = [dict(parent=panel[relation['parent']], child=panel[relation['child']]) for panel in panels]
         deltas = paired_deltas(pairs)
         rows.append(dict(relation_id=relation['relation_id'], MAD_H=_mad([r['delta_H'] for r in deltas]),
@@ -130,6 +140,7 @@ def choose_relation(classifications, rechecked_relation_ids=(), last_measurement
     ranked = []
     for relation_id, report in classifications.items():
         if relation_id not in GRAPH: raise ValueError('Unknown comparison graph relation')
+        if not queue_enabled(GRAPH[relation_id]): continue
         if relation_id in done: continue
         status = report['classification']
         if status in ('INVALID', 'INCOMPLETE'): continue  # separate technical repair, never seed replacement
@@ -203,8 +214,10 @@ def recheck_outcome(original, recheck):
 
 
 def flow_dashboard(classifications):
-    if set(classifications) != set(GRAPH): raise ValueError('All 17 graph relations are required')
-    valid = all(r['classification'] not in ('INVALID', 'INCOMPLETE') for r in classifications.values())
+    legacy={r['relation_id'] for r in LEGACY_COMPARISON_GRAPH}
+    if set(classifications) not in (legacy,set(GRAPH)): raise ValueError('All legacy17 or extended19 graph relations are required')
+    # The prior-only diagnostic does not redefine the established flow alert.
+    valid = all(classifications[key]['classification'] not in ('INVALID', 'INCOMPLETE') for key in legacy)
     def counts(kind):
         records = [classifications[r['relation_id']] for r in COMPARISON_GRAPH if r['kind'] == kind]
         return dict(improvement=sum(r['classification'] in IMPROVEMENTS for r in records),

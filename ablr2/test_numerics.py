@@ -11,16 +11,8 @@ from qg40.losses import student_losses as original_losses
 
 
 def component(key):
-    path = Path(__file__).parents[1] / 'research_log/PANDA_ABL_S1WV3_S2QB_AdaptiveRepeat_Bundle_2026-09-21_v2/ABLR2_ComponentCatalog_2026-09-21.csv'
-    with path.open(encoding='utf-8-sig') as stream:
-        row = next(x for x in csv.DictReader(stream) if x['case_id'] == key)
-    for k in ('alpha', 'beta', 'lambda_edge'):
-        row[k] = float(row[k])
-    for k in ('mask_L', 'mask_H'):
-        row[k] = int(row[k])
-    for k in ('teacher_predictions_used', 'teacher_q_used', 'teacher_A_clone_used', 'soft_trust', 'soft_advantage'):
-        row[k] = row[k] == 'True'
-    return row
+    from ablr2.plan import component_config
+    return component_config(key)
 
 
 class NumericalTests(unittest.TestCase):
@@ -57,10 +49,10 @@ class NumericalTests(unittest.TestCase):
             for key in ('L_U', 'L_A', 'hard_i', 'soft_i', 'edge_i', 'difficulty', 'advantage'):
                 self.assertTrue(torch.equal(new_loss[key], old_loss[key]), key)
 
-    def test_student_u_common_all17(self):
+    def test_student_u_common_all18(self):
         teacher, _ = build_model(bands=4, seed=9, role='T', width=8, depth=(1, 1, 1))
         digests = []
-        for i in range(17):
+        for i in range(18):
             c = component(f'C{i:02}')
             model, init = build_model(bands=4, seed=19, role='S', component=c,
                 teacher_aligner_state=teacher.aligner.state_dict() if c['teacher_A_clone_used'] else None,
@@ -103,7 +95,7 @@ class NumericalTests(unittest.TestCase):
 
     def test_teacher_free_losses_refuse_hidden_teacher_or_calibration(self):
         y = torch.randn(2,4,8,8,requires_grad=True)
-        for key in ('C00','C01','C02','C03','C10'):
+        for key in ('C00','C01','C02','C03','C10','C17'):
             c = component(key)
             got = student_losses({'y':y}, None, torch.zeros_like(y), c, bands=4)
             self.assertEqual(float(got['soft']), 0.)

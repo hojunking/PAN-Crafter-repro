@@ -1,4 +1,8 @@
-# ABLR2 — s1/WV3 · s2/QB 실행 안내
+# ABLR2 — 기존 2026-09-21 실행 안내 (보존본)
+
+**2026-09-23 ABLR2X 확장 실행은 [ABLR2X 실행 안내](ABLR2X_README.md)를 사용한다.**
+아래 2개 lane·17-component·72h 설명은 원 실행을 복구할 때 참고하는 이전 계약이다.
+현재 확장은 s1/WV3·s2/QB 유지 + s3/GF2·C17 추가이며, 별도 명시 승인으로 `UNTIL_OPERATOR_STOP`을 사용한다.
 
 2026-09-21 v2 번들의 별도 component-ablation 캠페인이다. s1은 WV3, s2는 QB만 허용하며 s3–s5 GF2, 기존 생산 checkpoint·결과·queue는 변경하지 않는다. 학습은 운영자가 아래 시작 명령을 실행할 때만 기동한다.
 

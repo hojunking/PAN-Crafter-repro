@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ABLR2 s1/WV3 and s2/QB: explicit renewable leases, no implicit training."""
+"""ABLR2X s1/WV3,s2/QB,s3/GF2: explicit until-stop or finite authorization."""
 import argparse
 import datetime as dt
 import errno
@@ -15,10 +15,16 @@ sys.path.insert(0,str(ROOT))
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action',choices=['build','lease','start','run','status','stop','verify',
-                                        'preflight','train','calibrate','postrun','upload','retry-uploads'])
-    parser.add_argument('--server',choices=['s1','s2'])
+                                        'preflight','train','calibrate','postrun','upload','retry-uploads',
+                                        'authorize-until-stop','migrate','handoff','parity','install-bridge','await-handover'])
+    parser.add_argument('--server',choices=['s1','s2','s3'])
     parser.add_argument('--hours',type=float,default=72.)
     parser.add_argument('--lease-hours',type=float,help='Explicitly grant/renew lease with start, maximum72h')
+    parser.add_argument('--until-operator-stop',action='store_true',help='Explicit continuous authorization for new extension jobs')
+    parser.add_argument('--apply',action='store_true',help='Explicit cooperative handover or parity receipt installation')
+    parser.add_argument('--boundary',choices=('RUN','SAFE'),default='RUN',help='s3 predecessor boundary; SAFE must be explicitly selected')
+    parser.add_argument('--parity-receipt')
+    parser.add_argument('--origin-runtime')
     parser.add_argument('--foreground',action='store_true')
     parser.add_argument('--in-place',action='store_true',help=argparse.SUPPRESS)
     parser.add_argument('--command',choices=['STOP_AFTER_RUN','STOP_AFTER_SWEEP','PAUSE_AFTER_BLOCK','STOP_NOW_SAFE','CONTINUE'])
@@ -30,19 +36,45 @@ def main(argv=None):
     parser.add_argument('--deadline')
     parser.add_argument('--dataset-manifest')
     args=parser.parse_args(argv)
+    if args.until_operator_stop and args.lease_hours is not None:parser.error('Choose until-stop or a finite lease, not both')
     from ablr2 import controller as C
     from ablr2.common import apply_runtime_policy
     if args.action in ('verify','retry-uploads','upload') and not args.in_place:
         from ablr2.common import camp,read
-        release=read(camp(ROOT,args.server) / 'runtime_release.json') if args.server else {}
+        release=(read(camp(ROOT,args.server) / 'runtime_release_ablr2x.json') or
+                 read(camp(ROOT,args.server) / 'runtime_release.json')) if args.server else {}
         if release and Path(release['path']).resolve()!=ROOT.resolve():
             forwarded=list(argv if argv is not None else sys.argv[1:])+['--in-place']
             return subprocess.call([sys.executable,str(Path(release['path'])/'tools/ablr2_runner.py'),*forwarded],cwd=release['path'])
     result={};code=0
     if args.action=='build': result=C.build(ROOT,args.server)
     else:
-        if args.server is None: parser.error('--server s1|s2 is required')
+        if args.server is None: parser.error('--server s1|s2|s3 is required')
         if args.action=='status': result=C.status(ROOT,args.server)
+        elif args.action=='authorize-until-stop':
+            from ablr2.common import grant_until_stop
+            apply_runtime_policy(ROOT)
+            result=grant_until_stop(ROOT,args.server,operator_authorized=True)
+        elif args.action=='migrate':
+            from ablr2.migration import plan_migration,request_migration
+            result=request_migration(ROOT,args.server,operator_authorized=True) if args.apply else plan_migration(ROOT,args.server)
+        elif args.action=='handoff':
+            from ablr2.handoff import inspect,request
+            result=request(ROOT,args.server,operator_authorized=True,boundary=args.boundary) if args.apply else inspect(ROOT,args.server)
+        elif args.action=='parity':
+            if not args.origin_runtime or not args.parity_receipt:parser.error('parity requires --origin-runtime and --parity-receipt')
+            from ablr2.runtime_parity import compare_runtime_releases
+            result=compare_runtime_releases(args.origin_runtime,ROOT,args.server,output_path=args.parity_receipt)
+        elif args.action=='install-bridge':
+            if not args.apply or not args.parity_receipt:parser.error('install-bridge requires --apply --parity-receipt')
+            from ablr2.migration import install_source_bridge
+            apply_runtime_policy(ROOT)
+            result=install_source_bridge(ROOT,args.server,args.parity_receipt,operator_authorized=True)
+        elif args.action=='await-handover':
+            from ablr2.migration import await_handover
+            apply_runtime_policy(ROOT)
+            code=await_handover(ROOT,args.server,upload=not args.no_upload)
+            result=dict(exit_code=code)
         elif args.action=='lease': result=C.grant_lease(ROOT,args.server,args.hours)
         elif args.action=='stop':
             if not args.command: parser.error('stop requires --command')
@@ -51,13 +83,24 @@ def main(argv=None):
         elif args.action=='start':
             if not args.in_place:
                 from ablr2.deployment import frozen_checkout
-                frozen=frozen_checkout(ROOT,args.server)
+                frozen=frozen_checkout(ROOT,args.server,extension=True)
                 forward=['start','--server',args.server,'--in-place']
                 if args.foreground: forward+=['--foreground']
                 if args.no_upload: forward+=['--no-upload']
                 if args.lease_hours is not None: forward+=['--lease-hours',str(args.lease_hours)]
+                if args.until_operator_stop:forward+=['--until-operator-stop']
+                forward+=['--boundary',args.boundary]
                 return subprocess.call([sys.executable,str(frozen/'tools/ablr2_runner.py'),*forward],cwd=frozen)
+            apply_runtime_policy(ROOT)
+            if args.until_operator_stop:
+                from ablr2.common import grant_until_stop
+                grant_until_stop(ROOT,args.server,operator_authorized=True)
             if args.lease_hours is not None: C.grant_lease(ROOT,args.server,args.lease_hours)
+            from ablr2.migration import request_migration
+            request_migration(ROOT,args.server,operator_authorized=True)
+            if args.server=='s3':
+                from ablr2.handoff import request
+                request(ROOT,args.server,operator_authorized=True,boundary=args.boundary)
             result=C.start(ROOT,args.server,args.foreground,not args.no_upload)
             code=result.get('exit_code',0)
         else:
@@ -73,7 +116,7 @@ def main(argv=None):
                 if args.deadline:
                     provided=dt.datetime.fromisoformat(args.deadline.replace('Z','+00:00'))
                     if provided.tzinfo is None: parser.error('--deadline requires an explicit timezone')
-                    deadline=min(provided,dt.datetime.fromisoformat(deadline)).isoformat()
+                    deadline=min(provided,dt.datetime.fromisoformat(deadline)).isoformat() if deadline else provided.isoformat()
                 if args.action=='preflight':
                     from ablr2.preflight import run
                     result=run(ROOT,args.server,deadline_utc=deadline,manifest_path=args.dataset_manifest)

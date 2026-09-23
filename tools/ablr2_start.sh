@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# --lease-hours 72 is explicit initial/renewed operator authorization, not auto-renewal.
+# --until-operator-stop explicitly authorizes ABLR2X; --lease-hours 72 remains finite.
 set -euo pipefail
 ABLR2_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ABLR2_PY="${PYTHON:-python}"

@@ -32,12 +32,29 @@ def rebuild(root,server):
     state=read_json(folder/'state.json')
     ledger=folder/'all_attempts.jsonl'
     attempts=[json.loads(line) for line in ledger.read_text().splitlines()] if ledger.is_file() else []
-    balanced,rechecks,verification,exploratory=[],[],[],[]
+    balanced,rechecks,verification,exploratory,coverage=[],[],[],[],[]
     for stage in state['stages']:
         if not stage.get('report_path'): continue
-        report=read_json(stage['report_path'])
+        original_path=stage['report_path']
+        report_path=(stage.get('extended_report_path') or original_path
+                     if stage['kind'] in ('BOOT5','REFRESH5','VERIFY5') else original_path)
+        report=read_json(report_path)
         if stage['kind'] in ('BOOT5','REFRESH5','VERIFY5'):
-            rows=report.get('panelrows',[])
+            rows=[dict(row,panel_coverage=report.get('coverage','LEGACY_CORE17'),
+                       source_panel_report=report_path,original_panel_report=original_path,
+                       supplemental_extension=report_path!=original_path)
+                  for row in report.get('panelrows',[])]
+            grouped={}
+            for row in rows:
+                if row.get('case_id','').startswith('C'):
+                    grouped.setdefault(row.get('sweep','UNKNOWN'),set()).add(row['case_id'])
+            from ablr2.plan import LEGACY_MAIN_CASES,MAIN_CASES
+            for sweep,seen in sorted(grouped.items()):
+                coverage.append(dict(stage_id=stage['stage_id'],sweep=sweep,
+                    legacy_core17_complete=set(LEGACY_MAIN_CASES)<=seen,
+                    extended18_complete=set(MAIN_CASES)<=seen,c17_status='COMPLETE' if 'C17' in seen else 'PENDING',
+                    actual_component_count=len(seen),threshold_calibration_graph='LEGACY_17_RELATIONS_ONLY',
+                    source_panel_report=report_path,original_panel_report=original_path))
             if stage['kind']=='VERIFY5':
                 verification.extend(dict(row,verification_status=stage.get('verification_status'),
                                          stage_id=stage['stage_id']) for row in rows)
@@ -52,7 +69,7 @@ def rebuild(root,server):
         key=(row['recipe_revision'],row['case_id'])
         if key not in best or row['RAW_MAX']['HQNR']>best[key]['RAW_MAX']['HQNR']: best[key]=row
     tables={'all_attempts':attempts,'complete_panel_metrics':balanced,'targeted_rechecks':rechecks,
-            'exploratory_best':list(best.values()),'verification_results':verification}
+            'exploratory_best':list(best.values()),'verification_results':verification,'component_coverage':coverage}
     for name,rows in tables.items(): _csv(folder/'reports'/f'{name}.csv',rows)
     receipt=dict(rebuilt_at_utc=utcnow(),counts={key:len(rows) for key,rows in tables.items()},
                  full_precision=True,negative_observations_retained=True,source='IMMUTABLE_REPORTS_AND_APPEND_ONLY_ATTEMPTS')

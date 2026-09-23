@@ -20,8 +20,8 @@ def compute_calibration(model,dataset,indices,device='cuda',batch_size=16,deadli
 
 
 def calibrate(teacher_run,root=None,server=None,device='cuda',deadline_utc=None,batch_size=16,*,deadline=None):
-    from ablr2.common import (ROOT,CAMPAIGN_ID,apply_runtime_policy,check_deadline,immutable_json,
-        object_sha,resolved_path,sha256,source_identity,run_dir,read_json,check_runtime)
+    from ablr2.common import (ROOT,campaign_id,apply_runtime_policy,check_deadline,immutable_json,
+        object_sha,resolved_path,sha256,source_identity,run_dir,read_json,check_runtime,assert_compatible_source)
     from ablr2.references import teacher_endpoint,reference_path,validate_reference,data_signature
     from ablr2.reference_parity import verify_q_cache,identity_for
     from ablr2.data import build_dataset
@@ -58,8 +58,8 @@ def calibrate(teacher_run,root=None,server=None,device='cuda',deadline_utc=None,
     calibration,arrays=compute_calibration(model,checked_dataset,indices,device=device,batch_size=batch_size,deadline_utc=deadline_utc)
     check_deadline(deadline_utc)
     candidate,cfg_path,data_path=paths['candidate'],paths['config'],paths['data']
-    if (source_identity(root) != identity['source_identity']
-            or sha256(candidate/'model.safetensors') != identity['model_sha256']
+    assert_compatible_source(identity['source_identity'],source_identity(root),root,server)
+    if (sha256(candidate/'model.safetensors') != identity['model_sha256']
             or sha256(candidate/'training_state.pt') != identity['training_state_sha256']):
         raise ValueError('Teacher/source changed during calibration')
     for item in data['splits'].values():
@@ -77,6 +77,10 @@ def calibrate(teacher_run,root=None,server=None,device='cuda',deadline_utc=None,
         teacher_checkpoint_identity_sha256=sha256(candidate/'identity.json'),source_identity=identity['source_identity'],
         teacher_layout='P0',owner_server=server,producer_server=server,server=server,
         consistency_weight=case.lambda_con)
+    if identity['source_identity'] != source_identity(root):
+        # Keep the immutable Teacher provenance intact while naming the actual
+        # bridge-authorized runtime that executed this newly measured cache.
+        teacher_identity['calibration_execution_source_identity']=source_identity(root)
     calibration.update(teacher_identity)
     calibration['calibration_seconds']=time.monotonic()-started
     calibration['s_bar_population']=dict(base_count=len(dataset),views=[0,1,2,3],n_values=4*len(dataset),q_cache_sha256=sha256(q_path))
@@ -88,7 +92,7 @@ def calibrate(teacher_run,root=None,server=None,device='cuda',deadline_utc=None,
         calibration=old
     else:
         immutable_json(cal_path,calibration)
-    manifest=dict(schema='ABLR2_REFERENCE_v1',campaign_id=CAMPAIGN_ID,reference_id=case.reference_id,
+    manifest=dict(schema='ABLR2_REFERENCE_v1',campaign_id=campaign_id(server),reference_id=case.reference_id,
         **teacher_identity,sensor=case.sensor,num_bands=case.num_bands,max_pixel=cfg['max_pixel'],
         tau_R=calibration['tau_R'],q_ref=calibration['q_ref'],s_bar=calibration['s_bar'],
         s_bar_population=calibration['s_bar_population'],s_bar_sha256=object_sha(dict(

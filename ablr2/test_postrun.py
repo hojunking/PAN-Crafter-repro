@@ -28,6 +28,17 @@ class PostrunTests(unittest.TestCase):
         row['rr']['q8'] = row['rr'].pop('q4')
         with self.assertRaises(ValueError): validate_record(row, 'QB')
 
+    def test_gf2_q4_dn1023_no_qb_scale_fallback_and_config_discovery(self):
+        row=record('GF2');row['rr']['max_dn']=1023;row['fr']['max_dn']=1023
+        validate_record(row,'GF2')
+        row['fr']['max_dn']=2047
+        with self.assertRaises(ValueError):validate_record(row,'GF2')
+        case=next(c for c in CASES if c.sensor=='GF2' and c.case_id=='C17')
+        cfg=build_config(case)
+        with TemporaryDirectory() as root:
+            immutable_json(Path(root)/cfg['work_dir']/'meta/config.resolved.yaml',cfg)
+            self.assertEqual(find_config(case.run_id,root),cfg)
+
     def test_val_tie_lower_step_not_hqnr(self):
         rows = [record('QB', n) for n in GRID_STEPS]
         rows[2]['val_ergas'] = .5

@@ -1,0 +1,10 @@
+{
+  "purpose": "Design sources; no runtime/deployment attestation",
+  "repository_commit_observed": "6dde5ea81d4d841b406835ac8d2903e5eeec8535",
+  "legacy_files": {
+    "ABLR2_BOOT5_190_TrainingCases_2026-09-21.csv": "96d3b407e294f021e13b686c2da882af8989d5344c7d7eccec8a00ddc7f4453a",
+    "ABLR2_ComparisonGraph_2026-09-21.csv": "47a2405c1291c1390e0f6d792bec2ed14c4e2c7778c3c5b6987927ce2ad6960d",
+    "ABLR2_ComponentCatalog_2026-09-21.csv": "cd4189de7bd650aecd3f6b859d2521935e2ddb8b493b66d2089b28a9240e551b",
+    "ABLR2_DesignRegistry_2026-09-21.json": "38b9e084654f4e6ababbe594fbb476a965d6e1c3cb899b396f2462e51b6fdda9"
+  }
+}

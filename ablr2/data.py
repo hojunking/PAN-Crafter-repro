@@ -1,11 +1,11 @@
-"""Verified WV3/QB native data; all new assets are restricted to one ABLR2 lane."""
+"""Verified WV3/QB/GF2 native data, restricted to the bound ABLR2 lane."""
 from pathlib import Path
 import h5py
 import numpy as np
 
 from fh12.data import (RECIPE, AUGMENTATION, canonical_sha, _create_lp_cache, FH12Dataset)
 from qg40.data import verify_lp_cache, verify_qb_msfix, PROVENANCE_FIELDS
-from ablr2.common import CAMPAIGN_ID, camp, read, read_json, sha256, immutable_json, atomic_json, check_deadline
+from ablr2.common import campaign_id, camp, read, read_json, sha256, immutable_json, atomic_json, check_deadline
 from ablr2.plan import SensorSpec, verify_lane
 
 SPLITS = ('train', 'val', 'rr', 'fr')
@@ -51,7 +51,7 @@ def scan_source(path, split, spec, deadline=None):
                 zeros += int(np.count_nonzero(x == 0))
                 saturated += int(np.count_nonzero(x == spec.max_dn))
             if key in ('pan','gt') and (lo < 0 or hi > spec.max_dn):
-                raise ValueError('Native PAN/GT range differs from declared DN2047')
+                raise ValueError(f'Native PAN/GT range differs from declared DN{spec.max_dn}')
             stats[key] = dict(minimum=lo, maximum=hi, zero_count=zeros, saturation_count=saturated)
         return dict(count=n, shapes={k:list(source[k].shape) for k in keys}, statistics=stats)
 
@@ -62,7 +62,7 @@ def validate_manifest(manifest, server=None):
     spec = SensorSpec(sensor, tuple(manifest.get('band_order', [])))
     from ablr2.evaluation import canonical_band_indices
     if (manifest.get('schema') != 'ABLR2_DATA_v1' or manifest.get('server') != server
-            or manifest.get('num_bands') != spec.num_bands or manifest.get('max_pixel') != 2047
+            or manifest.get('num_bands') != spec.num_bands or manifest.get('max_pixel') != spec.max_dn
             or manifest.get('mtf_sensor') != sensor or set(manifest.get('splits', {})) != set(SPLITS)
             or canonical_band_indices(spec) != tuple(range(spec.num_bands))):
         raise ValueError('ABLR2 sensor/source manifest mismatch')
@@ -99,7 +99,7 @@ def prepare_data(root, server, deadline=None, manifest_path=None):
         verifier_sha256={name:sha256(root/name) for name in ('ablr2/data.py','qg40/data.py',
             'fh12/data.py','tools/repair_lpan.py','tools/repair_qb_ms.py')})
     def receipt_for(data):
-        return dict(schema='ABLR2_DATA_VERIFICATION_v1',campaign_id=CAMPAIGN_ID,server=server,
+        return dict(schema='ABLR2_DATA_VERIFICATION_v1',campaign_id=campaign_id(server),server=server,
             dataset_manifest_sha256=canonical_sha(data),complete=True,full_lp_verified=True,
             raw_qb_msfix_verified=spec.sensor=='QB',previous_campaign_written=False,**verifier)
     if target.is_file() or manifest_path:
@@ -116,7 +116,7 @@ def prepare_data(root, server, deadline=None, manifest_path=None):
             raise ValueError('Source proof changed')
         # External/self-described manifests are not audit receipts. Only this
         # lane's previously issued matching proof may skip the full scans.
-        own_receipt=read(folder/'data_verification.json')
+        own_receipt=read(folder/'data_verification_ablr2x.json')
         if not target.is_file() or own_receipt != receipt_for(data):
             for split,path in sources.items():
                 scanned=scan_source(path,split,spec,deadline)
@@ -127,7 +127,7 @@ def prepare_data(root, server, deadline=None, manifest_path=None):
                         band_order=spec.band_order,deadline=deadline)
                 if any(data['splits'][split].get(k)!=v for k,v in dict(scanned,**identity).items()):
                     raise ValueError('Imported manifest does not match the full native/LP audit: '+split)
-            atomic_json(folder/'data_verification.json',receipt_for(data))
+            atomic_json(folder/'data_verification_ablr2x.json',receipt_for(data))
         immutable_json(target, data)
         return target
     scans = {s: scan_source(p, s, spec, deadline) for s,p in sources.items()}
@@ -152,13 +152,20 @@ def prepare_data(root, server, deadline=None, manifest_path=None):
         augmentation_sha256=canonical_sha(AUGMENTATION), opencv_version=cv2.__version__, splits=result)
     validate_manifest(data, server)
     immutable_json(target, data)
-    atomic_json(folder / 'data_verification.json',receipt_for(data))
+    atomic_json(folder / 'data_verification_ablr2x.json',receipt_for(data))
     return target
 
 
 class ABLR2Dataset(FH12Dataset):
     def __init__(self, source, lp, *, spec, split, augment=False):
-        super().__init__(source, lp, max_pixel=spec.max_dn, augment=False)
+        if spec.sensor == 'GF2':
+            # The WV3 FH12 constructor intentionally rejects DN1023. Reuse
+            # the verified C4 loader, while retaining this class's identical
+            # fixed-view numerical path. Never temporarily lie about maxDN.
+            from qg40.data import QG40Dataset
+            QG40Dataset.__init__(self,source,lp,spec=spec,split=split,augment=False)
+        else:
+            super().__init__(source, lp, max_pixel=spec.max_dn, augment=False)
         self.spec, self.split, self.augment = spec, split, bool(augment)
         self.bands, self.base_count = spec.num_bands, len(self.arrays['pan'])
         n, _, h, w = self.arrays['pan'].shape

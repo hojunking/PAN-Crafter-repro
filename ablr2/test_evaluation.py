@@ -27,7 +27,8 @@ def record(sensor='QB', update=1010):
 class EvaluationTests(unittest.TestCase):
     def test_sensor_band_and_dn_guard(self):
         from types import SimpleNamespace
-        for spec in (SimpleNamespace(sensor='GF2', num_bands=4, max_dn=1023),
+        self.assertEqual(ev._spec(SimpleNamespace(sensor='GF2',num_bands=4,max_dn=1023)).max_dn,1023)
+        for spec in (SimpleNamespace(sensor='GF2', num_bands=4, max_dn=2047),
                      SimpleNamespace(sensor='WV3', num_bands=4, max_dn=2047)):
             with self.assertRaises(ValueError): ev._spec(spec)
 
@@ -37,7 +38,7 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(ev.canonical_band_indices(spec), (6, 5, 4, 3, 2, 1, 7, 0))
 
     def test_rr_actual_support_and_real_band_dimension(self):
-        for sensor, bands in (('WV3', 8), ('QB', 4)):
+        for sensor, bands in (('WV3', 8), ('QB', 4), ('GF2',4)):
             base = np.arange(256 * 256, dtype=np.float64).reshape(1, 1, 256, 256) / 100 + 1
             gt = np.broadcast_to(base, (20, bands, 256, 256))
             pred = gt + 1
@@ -52,7 +53,7 @@ class EvaluationTests(unittest.TestCase):
             self.assertNotIn('q4' if bands == 8 else 'q8', result)
             self.assertAlmostEqual(result['rmse'], 1.)
             self.assertEqual(result['n_scenes'], 20)
-            self.assertEqual(result['max_dn'], 2047)
+            self.assertEqual(result['max_dn'], sensor_spec(sensor).max_dn)
 
     def test_rr19_and_nan_excluded_border_are_rejected(self):
         a = np.zeros((19, 4, 256, 256), dtype=np.float32)

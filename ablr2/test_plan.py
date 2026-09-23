@@ -18,15 +18,25 @@ def panels(server):
 class PlanTests(unittest.TestCase):
     def test_source_and_boot_cardinality(self):
         self.assertEqual(len(plan.verify_sources()), 5)
-        self.assertEqual(len(plan.CASES), 190)
-        self.assertEqual(len({c.run_id for c in plan.CASES}), 190)
-        self.assertEqual(sum(c.role == 'T' for c in plan.CASES), 20)
-        self.assertEqual(sum(c.role == 'S' for c in plan.CASES), 170)
-        self.assertEqual(len(plan.COMPONENTS), 26)
-        self.assertEqual(len(plan.GRAPH), 17)
+        self.assertEqual(len(plan.CASES), 300)
+        self.assertEqual(len({c.run_id for c in plan.CASES}), 300)
+        self.assertEqual(len(plan.LEGACY_BOOT_CASES),190)
+        self.assertEqual(len(plan.EXTENSION_BOOT_CASES),110)
+        self.assertEqual(sum(c.role == 'T' for c in plan.CASES), 30)
+        self.assertEqual(sum(c.role == 'S' for c in plan.CASES), 270)
+        self.assertEqual(len(plan.COMPONENTS), 27)
+        self.assertEqual(len(plan.GRAPH), 19)
+        self.assertEqual(len(plan.LEGACY_COMPARISON_GRAPH),17)
+        self.assertTrue(plan.verify_extension_sources())
+
+    def test_all_190_legacy_configs_match_measured_original_commit_digest(self):
+        # Independently computed from 6dde5ea81d4d841b406835ac8d2903e5eeec8535
+        # build_config on the SHA-pinned original bundle. No git at test/runtime.
+        configs={c.run_id:plan.build_config(c) for c in plan.LEGACY_BOOT_CASES}
+        self.assertEqual(plan.object_sha(configs),'724ca4dda88fb73a197d35d86f6afcd2f2d08af5d5b29f4c4c76c1161f75937c')
 
     def test_every_author_csv_numeric_and_dependency_field_matches_config(self):
-        with (plan.ROOT / plan.SOURCE_CASES).open(encoding='utf-8-sig', newline='') as stream:
+        with plan.source_path(plan.SOURCE_CASES).open(encoding='utf-8-sig', newline='') as stream:
             rows = list(csv.DictReader(stream))
         for row in rows:
             case = plan.case_for(row['run_id'])
@@ -53,33 +63,39 @@ class PlanTests(unittest.TestCase):
             with self.assertRaises(FileNotFoundError): plan.verify_sources(tmp)
 
     def test_lanes_are_disjoint_and_protected(self):
-        for server in ('s3', 's4', 's5', 's0'):
+        for server in ('s4', 's5', 's0'):
             with self.assertRaises(ValueError): plan.cases_for(server)
         with self.assertRaises(ValueError): plan.verify_lane('s1', 'QB')
-        with self.assertRaises(ValueError): plan.sensor_spec('GF2')
+        self.assertEqual(plan.verify_lane('s3','GF2'),'GF2')
+        with self.assertRaises(ValueError):plan.verify_lane('s3','QB')
 
     def test_sensor_specs(self):
-        for name, bands, train, val in (('WV3', 8, 9714, 1080), ('QB', 4, 17139, None)):
+        for name, bands, train, val in (('WV3', 8, 9714, 1080), ('QB', 4, 17139, None),('GF2',4,19809,2201)):
             spec = plan.sensor_spec(name)
             self.assertEqual(spec.num_bands, bands)
-            self.assertEqual(spec.max_dn, 2047)
+            self.assertEqual(spec.max_dn, 1023 if name=='GF2' else 2047)
             self.assertEqual(spec.nominal_train_n, train)
             self.assertEqual(spec.nominal_val_n, val)
             self.assertEqual(plan.sensor_spec(spec.to_dict()), spec)
-            changed = spec.to_dict(); changed['max_dn'] = 1023
+            changed = spec.to_dict(); changed['max_dn'] = 2047 if name=='GF2' else 1023
             with self.assertRaises(ValueError): plan.sensor_spec(changed)
 
     def test_each_sweep_is_balanced_and_order_is_prespecified(self):
-        for server, tbase, sbase in (('s1', 781000, 791000), ('s2', 881000, 891000)):
+        for server, tbase, sbase in (('s1', 781000, 791000), ('s2', 881000, 891000),('s3',981000,991000)):
             for k in range(1, 6):
                 cases = [c for c in plan.cases_for(server) if c.sweep_id == f'P{k:02}']
-                self.assertEqual(len(cases), 19)
+                self.assertEqual(len(cases), 20)
                 self.assertEqual([c.case_id for c in cases[:2]], ['TPLUS', 'TZERO'] if k % 2 else ['TZERO', 'TPLUS'])
                 self.assertEqual(tuple(c.case_id for c in cases[2:]), plan.student_order(k))
                 self.assertEqual({c.seed for c in cases[:2]}, {tbase+k})
                 self.assertEqual({c.seed for c in cases[2:]}, {sbase+k})
                 self.assertEqual(len({c.paired_init_group for c in cases[2:]}), 1)
                 self.assertEqual({c.input_layout for c in cases[:2]}, {'P0'})
+                order=[c.case_id for c in cases[2:]]
+                self.assertEqual(order[order.index('C03')+1],'C17')
+                if server!='s3':
+                    old=[c.case_id for c in plan.LEGACY_BOOT_CASES if c.server_id==server and c.sweep_id==f'P{k:02}' and c.role=='S']
+                    self.assertEqual([x for x in order if x!='C17'],old)
 
     def test_teacher_free_has_zero_hidden_references(self):
         for case in plan.CASES:
@@ -92,7 +108,7 @@ class PlanTests(unittest.TestCase):
 
     def test_clone_only_and_uniform_kd_do_not_use_calibration(self):
         for case in plan.CASES:
-            if case.case_id not in ('C03', 'C04'): continue
+            if case.case_id not in ('C03', 'C04','C17'): continue
             self.assertTrue(case.requires_teacher)
             self.assertFalse(case.requires_calibration)
             self.assertEqual(case.component['teacher_predictions_used'], case.case_id == 'C04')
@@ -108,6 +124,10 @@ class PlanTests(unittest.TestCase):
         self.assertEqual(plan.component_config('C16', 'R05')['a_peak_lr'], 0)
         self.assertEqual(plan.component_config('C06')['q_edge'], 'CONST_HALF')
         self.assertEqual(plan.component_config('C15')['q_edge'], 'TRAIN_MEAN')
+        for recipe in plan.RECIPES:
+            component=plan.component_config('C17',recipe)
+            self.assertEqual(tuple(component[k] for k in ('alpha','beta','lambda_edge')),(0,0,0))
+            self.assertEqual(component['teacher'],'TZERO');self.assertEqual(component['aligner'],'CLONE_TRAINABLE')
 
     def test_optional_cases_cannot_be_automatically_built(self):
         for name in ('F01', 'F02') + tuple(f'X{k:02}' for k in range(7)):
@@ -179,9 +199,9 @@ class PlanTests(unittest.TestCase):
     def test_refresh_is_whole_wave_before_outcomes(self):
         ledger = []
         wave = plan.full_wave('s1', 'REFRESH5', 'R04', 'r004', 'W001', 1234, ledger)
-        self.assertEqual(len(wave), 95)
+        self.assertEqual(len(wave), 100)
         self.assertEqual(len(ledger), 10)
-        self.assertEqual(len({c.run_id for c in wave}), 95)
+        self.assertEqual(len({c.run_id for c in wave}), 100)
         self.assertEqual({c.teacher_kind for c in wave if c.case_id == 'TPLUS'}, {'TC3'})
         self.assertEqual({c.lambda_con for c in wave if c.case_id == 'TPLUS'}, {3e-4})
         self.assertEqual({c.lambda_con for c in wave if c.case_id == 'TZERO'}, {0})
@@ -189,7 +209,7 @@ class PlanTests(unittest.TestCase):
         self.assertEqual(plan.full_wave('s1', 'REFRESH5', 'R04', 'r004', 'W001', 1234, ledger), wave)
 
     def test_recheck_has_five_pairs_and_anchor_without_new_teachers(self):
-        for relation, size in (('L04', 15), ('D11', 10)):
+        for relation, size in (('L04', 15), ('D11', 10),('A17',15)):
             cases = plan.recheck_cases('s1', relation, 'R00', 'r000', relation+'W01', panels('s1'), 1234, [])
             self.assertEqual(len(cases), size)
             self.assertTrue(all(c.role == 'S' for c in cases))
@@ -198,6 +218,10 @@ class PlanTests(unittest.TestCase):
                 self.assertIn('C07', [c.case_id for c in block])
                 self.assertEqual(len({c.seed for c in block}), 1)
                 self.assertEqual({c.teacher_seed for c in block if c.requires_teacher}, {781000+number})
+                if relation=='A17':
+                    self.assertEqual({c.case_id for c in block},{'C17','C03','C07'})
+                    self.assertEqual(next(c.teacher_kind for c in block if c.case_id=='C17'),'TZERO')
+        with self.assertRaises(ValueError):plan.recheck_cases('s1','A17_SCRATCH','R00','r000','W1',panels('s1'),1234,[])
 
     def test_recheck_pool_cannot_cross_sensor_or_tc3_recipe(self):
         with self.assertRaises(ValueError): plan.recheck_cases('s1', 'L04', 'R00', 'r000', 'W01', panels('s2'), 1, [])
@@ -246,7 +270,11 @@ class PlanTests(unittest.TestCase):
         self.assertEqual(doc['source_status'], 'AUTHOR_BUNDLE_VERIFIED')
         self.assertIsNone(doc['thresholds'])
         self.assertIsNone(doc['max_campaign_cycles'])
-        self.assertTrue(doc['require_initial_operator_lease'])
+        self.assertFalse(doc['require_initial_operator_lease'])
+        self.assertTrue(doc['require_explicit_until_stop_authorization'])
+        self.assertTrue(doc['legacy_lease_mode_preserved'])
+        self.assertEqual(doc['service_mode'],'UNTIL_OPERATOR_STOP')
+        self.assertIsNone(doc['lease_hours'])
         self.assertFalse(doc['optional_auto_release'])
 
 

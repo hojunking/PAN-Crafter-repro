@@ -21,9 +21,11 @@ from ablr2.common import (ROOT, CAMPAIGN_ID, append_event, apply_runtime_policy,
     runtime_context, RuntimePaused, sha256, source_identity, utcnow)
 from ablr2.plan import (SERVERS, LANES, RECIPES, GRAPH, MAIN_CASES, cases_for, case_for,
     full_wave, recheck_cases, screen_cases, build_config, validate_config, verify_sources,
-    registry_document, registry_sha256, SensorSpec, verify_lane, validate_case)
+    registry_document, registry_sha256, SensorSpec, verify_lane, validate_case,
+    verify_extension_sources,campaign_id,BOOT_SEED_BASES)
 
-POLICY = dict(schema='ABLR2_SERVICE_POLICY_v1', default_lease_hours=72,
+POLICY = dict(schema='ABLR2X_SERVICE_POLICY_v1', default_lease_hours=None,
+    service_horizon='UNTIL_OPERATOR_STOP',explicit_continuous_authorization=True,
     automatic_lease_renewal=False, max_campaign_cycles=None, max_technical_retries=2,
     runtime_safety_factor=1.15, retain_all_artifacts=True, bootstrap_run_hours={'T':8.,'S':8.},
     bootstrap_calibration_hours=3., bootstrap_estimates='CONSERVATIVE_UNMEASURED_NOT_A_SPEED_CLAIM',
@@ -40,7 +42,7 @@ def _save(root, server, state):
 def _state(root, server):
     value = read(camp(root,server) / 'state.json')
     if not value: raise ValueError('Run build before opening the lane')
-    if (value.get('campaign_id'),value.get('server')) != (CAMPAIGN_ID,server):
+    if (value.get('campaign_id'),value.get('server')) != (campaign_id(server),server):
         raise ValueError('Wrong campaign state')
     return value
 
@@ -56,11 +58,11 @@ def _register_stage(root, server, state, cases, stage_id, kind, **meta):
         if case.phase!=kind: raise ValueError('Stage cannot mix campaign phases')
     if kind in ('BOOT5','REFRESH5','VERIFY5'):
         sweeps={c.sweep for c in cases}
-        if len(cases)!=95 or len(sweeps)!=5: raise ValueError('Full wave requires all95 registered tasks')
+        if len(cases)!=100 or len(sweeps)!=5: raise ValueError('Full wave requires all100 registered tasks')
         for sweep in sweeps:
             members=[c for c in cases if c.sweep==sweep]
-            if {c.case_id for c in members}!=set(MAIN_CASES)|{'TPLUS','TZERO'} or len(members)!=19:
-                raise ValueError('Full wave requires both Teachers and all17 components per sweep')
+            if {c.case_id for c in members}!=set(MAIN_CASES)|{'TPLUS','TZERO'} or len(members)!=20:
+                raise ValueError('Full wave requires both Teachers and all18 components per sweep')
     elif kind=='RECHECK5':
         relation=GRAPH[meta['relation_id']]
         components={relation['parent'],relation['child'],'C07'}
@@ -93,31 +95,44 @@ def _register_stage(root, server, state, cases, stage_id, kind, **meta):
 def build(root=ROOT, server=None):
     """Design publication only: no runtime lease, data cache, GPU or training."""
     verify_sources(root)
+    verify_extension_sources(root)
     servers = SERVERS if server is None else (server,)
     for lane in servers:
         verify_lane(lane)
         folder = camp(root,lane)
         with locked(folder / 'registration.lock'):
-            immutable_json(folder / 'design.json',registry_document())
-            immutable_json(folder / 'policy.json',POLICY)
+            immutable_json(folder / 'design_ablr2x.json',registry_document())
+            immutable_json(folder / 'policy_ablr2x.json',POLICY)
+            if (folder / 'state.json').is_file():
+                # No cursor, old stage list, seed ledger, cost or lease rewrite.
+                from ablr2.extension import sync
+                state=_state(root,lane)
+                _sync_seed_log(folder,read_json(folder/'seed_ledger.json'))
+                sync(root,lane,state)
+                continue
             seeds=read(folder / 'seed_ledger.json',[])
-            for case in cases_for(lane):
+            jobs=cases_for(lane)
+            seed_resolution=None
+            if lane=='s3':
+                from ablr2.seeds import resolve_gf2_boot
+                jobs,seed_resolution=resolve_gf2_boot(root)
+            for case in jobs:
                 key=f'BOOT5|{lane}|{case.sweep}|{case.role}'
                 existing=[r for r in seeds if r['key']==key]
                 if len(existing)>1 or (existing and existing[0]['seed']!=case.seed): raise ValueError('BOOT seed ledger changed')
                 if not existing:
+                    allocation=next((r for r in seed_resolution['mapping'] if r['sweep']==case.sweep and r['role']==case.role),None) if seed_resolution else None
+                    collided=bool(allocation and allocation['resolved_seed']!=allocation['authored_seed'])
                     seeds.append(dict(key=key,seed=case.seed,phase='BOOT5',sensor=case.sensor,
-                                      selection='AUTHOR_SUPPLIED_CSV'))
+                        selection='PERFORMANCE_INDEPENDENT_SHA256_COLLISION_ONLY' if collided else 'AUTHOR_SUPPLIED_CSV',
+                        **(dict(boot_seed_resolution_sha256=object_sha(seed_resolution)) if collided else {})))
             atomic_json(folder / 'seed_ledger.json',seeds)
             _sync_seed_log(folder,seeds)
-            if (folder / 'state.json').is_file():
-                _state(root,lane)
-                continue
-            state = dict(campaign_id=CAMPAIGN_ID,server=lane,sensor=LANES[lane],status='DEFINED_NOT_LAUNCHED',
+            state = dict(campaign_id=campaign_id(lane),server=lane,sensor=LANES[lane],status='DEFINED_NOT_LAUNCHED',
                 incumbent='R00',recipe_revision='r000',cycle=0,stages=[],runs={},observations=[],
                 rechecked={},tried_recipes=[],verification_recipes=[],low_information_cycles=0)
-            _register_stage(root,lane,state,cases_for(lane),'BOOT5','BOOT5',recipe_id='R00',recipe_revision='r000')
-    return dict(campaign_id=CAMPAIGN_ID,servers=list(servers),training_cases=95*len(servers),
+            _register_stage(root,lane,state,jobs,'BOOT5','BOOT5',recipe_id='R00',recipe_revision='r000')
+    return dict(campaign_ids={s:campaign_id(s) for s in servers},servers=list(servers),training_cases=100*len(servers),
                 activated=False,lease_created=False)
 
 
@@ -148,7 +163,7 @@ def grant_lease(root, server, hours=72., *, now=None):
         expires = current + dt.timedelta(hours=hours)
         if previous and expires < dt.datetime.fromisoformat(previous['expires_utc']):
             raise ValueError('Renewal cannot shorten an active lease; use a stop command')
-        value=dict(campaign_id=CAMPAIGN_ID,server=server,sensor=LANES[server],
+        value=dict(campaign_id=campaign_id(server),server=server,sensor=LANES[server],
             granted_at_utc=current.isoformat(),expires_utc=expires.isoformat(),
             first_granted_at_utc=previous.get('first_granted_at_utc',current.isoformat()),
             sequence=previous.get('sequence',0)+1,operator_action=True,automatic_renewal=False)
@@ -160,7 +175,8 @@ def grant_lease(root, server, hours=72., *, now=None):
 
 def control(root, server, command):
     if command not in STOP_COMMANDS: raise ValueError('Unknown stop command')
-    _state(root,server)
+    verify_lane(server)
+    if (camp(root,server)/'state.json').is_file():_state(root,server)
     value=dict(command=command,at_utc=utcnow(),operator_action=True)
     atomic_json(camp(root,server) / 'control.json',value)
     append_event(camp(root,server) / 'control_ledger.jsonl','OPERATOR_CONTROL',**value)
@@ -168,27 +184,27 @@ def control(root, server, command):
 
 
 def _lease(root,server):
-    lease=read(camp(root,server) / 'lease.json')
-    if (lease.get('campaign_id') != CAMPAIGN_ID or lease.get('server') != server
-            or lease.get('sensor') != LANES[server] or not lease.get('expires_utc')
-            or not before_deadline(lease['expires_utc'])):
-        raise RuntimePaused('WAIT_LEASE')
-    return lease
+    from ablr2.common import authorization_context
+    authorization,_=authorization_context(root,server)
+    return authorization
 
 
 def register_runtime(root,server):
+    from ablr2.plan import campaign_id,verify_extension_sources
     apply_runtime_policy(root)
     verify_sources(root)
-    value=dict(campaign_id=CAMPAIGN_ID,server=server,source_identity=source_identity(root),
+    verify_extension_sources(root)
+    value=dict(campaign_id=campaign_id(server),server=server,source_identity=source_identity(root),
                registry_sha256=registry_sha256(),policy_sha256=object_sha(POLICY))
-    immutable_json(camp(root,server) / 'registration.json',value)
+    immutable_json(camp(root,server) / 'registration_ablr2x.json',value)
     return value
 
 
 def verify_registration(root,server):
+    from ablr2.plan import campaign_id
     apply_runtime_policy(root)
-    previous=read_json(camp(root,server) / 'registration.json')
-    expected=dict(campaign_id=CAMPAIGN_ID,server=server,source_identity=source_identity(root),
+    previous=read_json(camp(root,server) / 'registration_ablr2x.json')
+    expected=dict(campaign_id=campaign_id(server),server=server,source_identity=source_identity(root),
                   registry_sha256=registry_sha256(),policy_sha256=object_sha(POLICY))
     if previous != expected: raise ValueError('Registered source/runtime/policy changed')
     return previous
@@ -199,6 +215,14 @@ def resolve_config(root,case):
     folder=camp(root,case.server_id)
     data_path=folder / 'dataset_manifest.json'
     data=read_json(data_path)
+    path=run_dir(case.run_id,root) / 'meta/config.resolved.yaml'
+    if path.is_file():
+        existing=read_config(path)
+        if validate_config(existing,require_bound=True)!=case:
+            raise ValueError('Existing config differs from registered case')
+        if object_sha(read_json(existing['ablr2']['dataset_manifest']))!=object_sha(data):
+            raise ValueError('Existing config uses different native data')
+        return path
     cfg=build_config(case)
     field=cfg['ablr2']
     field.update(dataset_manifest=str(data_path),
@@ -219,7 +243,6 @@ def resolve_config(root,case):
             if teacher.reference_id != case.reference_id: raise ValueError('Clone/output-only Teacher mismatch')
             field.update(teacher_checkpoint=str(paths['candidate'] / 'model.safetensors'),teacher_sha256=identity['model_sha256'])
     validate_config(cfg,require_bound=True)
-    path=run_dir(case.run_id,root) / 'meta/config.resolved.yaml'
     # JSON is valid YAML; immutable publication avoids partial configuration files.
     immutable_json(path,cfg)
     return path
@@ -231,11 +254,13 @@ def authorize_train(root,server,config_path):
     case=validate_config(cfg,require_bound=True)
     if case.server_id != server or case_for(case.run_id,root) != case:
         raise ValueError('Trainer must use the exact preregistered local case')
+    from ablr2.seeds import validate_boot_admission
+    validate_boot_admission(root,case)
     runtime_context(cfg,root)
     state=_state(root,server)
     if state.get('status') != 'TRAINING' or state.get('active_run') != case.run_id:
         raise ValueError('Controller has not admitted this trainer')
-    ready=read_json(camp(root,server) / 'preflight.json')
+    ready=read_json(camp(root,server) / 'preflight_ablr2x.json')
     if (not ready.get('complete') or ready['source_identity'] != source_identity(root)
             or ready['dataset_manifest_sha256'] != object_sha(read_json(cfg['ablr2']['dataset_manifest']))):
         raise ValueError('Missing or changed local P0 proof')
@@ -244,7 +269,8 @@ def authorize_train(root,server,config_path):
 
 def _command(root,server,args,log,deadline):
     log=Path(log); log.parent.mkdir(parents=True,exist_ok=True)
-    command=[sys.executable,'-u','tools/ablr2_runner.py',*args,'--server',server,'--deadline',deadline]
+    command=[sys.executable,'-u','tools/ablr2_runner.py',*args,'--server',server]
+    if deadline:command+=['--deadline',deadline]
     started=time.monotonic()
     with log.open('a') as stream:
         child=subprocess.Popen(command,cwd=root,stdout=stream,stderr=subprocess.STDOUT,
@@ -266,14 +292,24 @@ def estimate_hours(case,state):
 
 
 def _record_action(root,server,state,case,action,args):
+    from ablr2.migration import execution_root
+    execution=execution_root(root,case)
+    deadline=_lease(root,server)['expires_utc']
+    if execution.resolve()!=Path(root).resolve():
+        original_lease=read(camp(root,server)/'lease.json')
+        if (original_lease.get('server')!=server or original_lease.get('sensor')!=case.sensor
+                or not original_lease.get('expires_utc') or not before_deadline(original_lease['expires_utc'])):
+            raise RuntimePaused('WAIT_ORIGINAL_FINITE_LEASE: until-stop approval does not extend original admitted jobs')
+        deadline=original_lease['expires_utc']
     folder=camp(root,server)
     row=state['runs'].setdefault(case.run_id,{})
     count=row.get(action+'_attempts',0)+1
     row[action+'_attempts']=count
     _save(root,server,state)
     append_event(folder / 'all_attempts.jsonl','ACTION_STARTED',run_id=case.run_id,action=action,attempt=count,
-                 teacher_seed=case.teacher_seed,student_seed=case.student_seed,case=asdict(case))
-    code,hours=_command(root,server,args,folder / 'logs' / f'{case.run_id}.{action}.log',_lease(root,server)['expires_utc'])
+                 teacher_seed=case.teacher_seed,student_seed=case.student_seed,case=asdict(case),
+                 execution_root=str(execution),execution_deadline=deadline)
+    code,hours=_command(execution,server,args,folder / 'logs' / f'{case.run_id}.{action}.log',deadline)
     row[action+'_hours']=row.get(action+'_hours',0.)+hours
     append_event(folder / 'all_attempts.jsonl','ACTION_ENDED',run_id=case.run_id,action=action,attempt=count,
                  exit_code=code,hours=hours)
@@ -331,6 +367,11 @@ def _run_case(root,server,state,case,upload):
     from ablr2.references import reference_path,validate_reference
     folder,wd=camp(root,server),run_dir(case.run_id,root)
     row=state['runs'].setdefault(case.run_id,{})
+    if case.case_id=='C17':
+        from ablr2.extension import prepare_anchor
+        anchor=prepare_anchor(case,root)
+        if not state['runs'].get(anchor.run_id,{}).get('complete'):
+            raise ValueError('PAIR_REPAIR anchor requires its own admission before C17')
     cfg_path=resolve_config(root,case)
     cfg=read_config(cfg_path)
     if _maybe_reuse(root,server,state,case,cfg): return
@@ -400,12 +441,14 @@ def _schedule_fit(root,server,state,relation):
         return _seed_wave(root,server,state,'REFRESH5',f'REFRESH{state["cycle"]:04}')
     boot=state['stages'][0]
     pool=_teacher_panels(_cases(boot,root))[:2]
-    blocks=[dict(teacher_seed=p['TPLUS'].seed,student_seed=(791001 if server=='s1' else 891001)+i,
-                 teachers=p) for i,p in enumerate(pool)]
+    boot_cases=_cases(boot,root)
+    blocks=[dict(teacher_seed=p['TPLUS'].seed,
+                 student_seed=next(c.seed for c in boot_cases if c.case_id=='C07' and c.sweep==p['TPLUS'].sweep),
+                 teachers=p) for p in pool]
     ids=tuple(dict.fromkeys((state['incumbent'],)+recipes))
     revisions={r:'r'+r[1:].zfill(3) for r in ids}
     stage_id=f'FIT{state["cycle"]:04}'
-    cases=screen_cases(server,ids,revisions,stage_id,blocks,relation)
+    cases=screen_cases(server,ids,revisions,stage_id,blocks,relation,root=root)
     aliases={}
     for case in cases:
         if case.role!='T': continue
@@ -436,7 +479,9 @@ def _analyze_and_advance(root,server,state,stage):
     from ablr2.analysis import analyze_wave,case_report
     from ablr2.policy import (choose_relation,classify_relation,recheck_outcome,
                              screen_candidate,choose_recipe)
-    folder=camp(root,server); cases=_cases(stage,root)
+    from ablr2.extension import stage_cases
+    folder=camp(root,server)
+    cases=stage_cases(root,server,stage,completed_only=True,state=state) if stage['kind'] in ('BOOT5','REFRESH5','VERIFY5') else _cases(stage,root)
     threshold_path=folder / 'thresholds_v1.json'
     thresholds=read(threshold_path) or None
     if stage['kind'] in ('BOOT5','REFRESH5','VERIFY5'):
@@ -461,7 +506,7 @@ def _analyze_and_advance(root,server,state,stage):
         previous_full=state.get('latest_full_metrics')
         full=[r['VAL'] for r in report['panelrows'] if r['case_id']=='C07']
         current_full=dict(HQNR=median(r['HQNR'] for r in full),E_val=median(r['E_val'] for r in full)) if full else None
-        stable=bool(previous_relations) and all(previous_relations[k]['classification']==v['classification']
+        stable=bool(previous_relations) and all(previous_relations.get(k,{}).get('classification')==v['classification']
                                                 for k,v in report['relations'].items())
         improvement=bool(previous_full and current_full) and (current_full['E_val'] < previous_full['E_val']*.997
                         or current_full['HQNR'] > previous_full['HQNR']+thresholds['delta_H'])
@@ -475,8 +520,21 @@ def _analyze_and_advance(root,server,state,stage):
         reports=[read_json(s['report_path']) for s in state['stages']
                  if s.get('report_path') and s['kind'] in ('BOOT5','REFRESH5')
                  and s.get('recipe_revision')==stage.get('recipe_revision')]
-        cumulative=cumulative_balanced_reports(reports)
-        atomic_json(folder / 'reports' / (state['recipe_revision']+'_cumulative.json'),cumulative)
+        # Original17 and extended18 are different balanced matrices. Likewise,
+        # old receipts are not relabelled as the new numerical source.
+        groups={}
+        for item in reports:
+            identity=object_sha(dict(sensor=item.get('sensor'),server=item.get('server'),
+                recipe=item.get('recipe_id'),source=item.get('source_identity'),data=item.get('data_sha256'),
+                components=item.get('component_cases',[f'C{i:02}' for i in range(17)])))
+            groups.setdefault(identity,[]).append(item)
+        paths=[]
+        for identity,group in groups.items():
+            cumulative=cumulative_balanced_reports(group)
+            path=folder/'reports/cumulative_ablr2x'/f'{state["recipe_revision"]}_{identity}.json'
+            atomic_json(path,cumulative);paths.append(str(path))
+        atomic_json(folder/'reports'/f'{state["recipe_revision"]}_cumulative_ablr2x_index.json',
+            dict(groups=paths,original_cumulative_preserved=True,mixed_coverage_or_source=False))
         state['cycle']+=1
         relation=choose_relation(report['relations'],state['rechecked'].get(state['recipe_revision'],[]))
         if relation is not None:
@@ -566,39 +624,97 @@ def _activate_pending_verify(root,server,state):
 def status(root=ROOT,server='s1'):
     folder=camp(root,server)
     state=read(folder / 'state.json',{'status':'NOT_BUILT'})
+    debts=read(folder/'extension/debts.json',{'debts':{}})['debts']
     return dict(state=state,lease=read(folder / 'lease.json'),control=read(folder / 'control.json'),
+                authorization=read(folder/'authorization.json'),
+                handover=read(folder/'migration/waiter_status.json'),
+                extension_debts={name:sum(r.get('status')==name for r in debts.values()) for name in
+                    ('PENDING','WAIT_C03','READY','REFERENCE_UNAVAILABLE','COMPLETE')},
                 training_started=any(r.get('train_attempts',0)>0 for r in state.get('runs',{}).values()))
 
 
 def retry_uploads(root=ROOT,server='s1'):
     """Retry evaluated rows only; failed networking never restarts training."""
-    from ablr2.postrun import process
+    from ablr2.upload import spool_run,retry_pending
     folder=camp(root,server)
     outcomes={}
     with locked(folder / 'upload_retry.lock'):
         # Do not rewrite controller state from this independent operator command.
         # The official receipts are authoritative and the runner reconciles them.
         state=_state(root,server)
+        spooled=0
         for run,row in state['runs'].items():
             if not row.get('complete') or row.get('reused'): continue
             report=read(run_dir(run,root) / 'official/postrun_status.json')
             if not report.get('official_complete') or report.get('sheet_uploaded'): continue
+            if (folder/'upload_outbox/pending'/f'{run}.json').exists():continue
+            if spooled>=8:break
+            spooled+=1
             try:
-                code=process(run,root=root,upload=True,upload_only=True)
-                outcomes[run]=dict(exit_code=code)
+                spool_run(run,root=root)
             except Exception as exc:
                 outcomes[run]=dict(error=f'{type(exc).__name__}: {exc}')
-            append_event(folder / 'upload_ledger.jsonl','UPLOAD_ONLY_RETRY',run_id=run,**outcomes[run])
+        outcomes.update(retry_pending(root,server,limit=8,activated=True))
     return outcomes
 
 
 def run(root=ROOT,server='s1',upload=True):
     root=Path(root).resolve();folder=camp(root,server)
-    from ablr2.resources import idle_evidence,assess_case
+    from ablr2.resources import idle_evidence,assess_case,assess_block
+    from ablr2.extension import sync,ready_debts,stage_cases
     with locked(folder / 'runner.lock'):
         state=_state(root,server)
         try:
             verify_registration(root,server);_lease(root,server)
+            sync(root,server,state)
+
+            def admit(case,previous=None):
+                if case.case_id=='C17':
+                    from ablr2.extension import prepare_anchor
+                    original=case_for(case.run_id.replace('_C17_','_C03_'),root)
+                    if not state['runs'].get(original.run_id,{}).get('complete'):admit(original,previous)
+                    anchor=prepare_anchor(case,root)
+                    if not state['runs'].get(anchor.run_id,{}).get('complete'):admit(anchor,previous)
+                lease=_lease(root,server)
+                command=read(folder/'control.json').get('command')
+                if command=='STOP_NOW_SAFE' or (command=='STOP_AFTER_RUN' and state.get('last_completed_run')):
+                    raise RuntimePaused(command)
+                if command=='STOP_AFTER_SWEEP' and (previous is None or previous.sweep!=case.sweep):
+                    raise RuntimePaused(command)
+                expiry=lease.get('expires_utc')
+                remaining=(dt.datetime.fromisoformat(expiry)-dt.datetime.now(dt.timezone.utc)).total_seconds()/3600 if expiry else None
+                estimate=estimate_hours(case,state)
+                if remaining is not None and remaining<estimate:raise RuntimePaused('LEASE_ADMISSION_RESERVE_INSUFFICIENT')
+                if not idle_evidence()['idle']:raise RuntimePaused('WAIT_LOCAL_RESOURCE')
+                resources=assess_case(root,case)
+                atomic_json(folder/'resources'/f'{case.run_id}.json',resources)
+                if not resources['allowed']:raise RuntimePaused('WAIT_LOCAL_RESOURCE: '+str(resources['reasons']))
+                append_event(folder/'admission_ledger.jsonl','ADMITTED',run_id=case.run_id,
+                    lease_sequence=lease['sequence'],remaining_hours=remaining,reserved_hours=estimate,
+                    service_mode=lease.get('service_mode','FINITE_LEASE'))
+                _run_case(root,server,state,case,upload)
+                if case.case_id!='C17':state['extension_debt_streak']=0
+                state['last_completed_run']=case.run_id;_save(root,server,state)
+
+            def drain_debts(previous=None):
+                allowance=max(0,2-state.get('extension_debt_streak',0))
+                if not allowance:return
+                ready=ready_debts(root,server,state)
+                if read(folder/'control.json').get('command')=='STOP_AFTER_SWEEP':
+                    ready=[pair for pair in ready if previous is not None and pair[0].sweep==previous.sweep]
+                selected=ready[:allowance]
+                jobs=[job for debt,anchor in selected for job in (anchor,debt)
+                      if not state['runs'].get(job.run_id,{}).get('complete')]
+                if jobs:
+                    resources=assess_block(root,jobs)
+                    atomic_json(folder/'resources/next_c17_debt_block.json',resources)
+                    if not resources['allowed']:raise RuntimePaused('WAIT_LOCAL_RESOURCE: '+str(resources['reasons']))
+                for debt,anchor in selected:
+                    streak=state.get('extension_debt_streak',0)
+                    for job in (anchor,debt):
+                        if not state['runs'].get(job.run_id,{}).get('complete'):admit(job,previous)
+                    state['extension_debt_streak']=streak+1;_save(root,server,state)
+
             while True:
                 command=read(folder / 'control.json').get('command')
                 if command=='STOP_NOW_SAFE': raise RuntimePaused(command)
@@ -616,29 +732,35 @@ def run(root=ROOT,server='s1',upload=True):
                 lease=_lease(root,server)
                 _activate_pending_verify(root,server,state)
                 stage=next(s for s in state['stages'] if s['stage_id']==state['active_stage'])
-                cases=_cases(stage,root)
+                sync(root,server,state)
+                cases=stage_cases(root,server,stage)
+                remaining_cases=[c for c in cases if not state['runs'].get(c.run_id,{}).get('complete')]
+                if remaining_cases:
+                    resources=assess_block(root,remaining_cases)
+                    atomic_json(folder/'resources'/(stage['stage_id']+'.block.json'),resources)
+                    if not resources['allowed']:raise RuntimePaused('WAIT_LOCAL_RESOURCE: '+str(resources['reasons']))
                 for index,case in enumerate(cases):
                     if state['runs'].get(case.run_id,{}).get('complete'): continue
-                    lease=_lease(root,server)
-                    command=read(folder / 'control.json').get('command')
                     previous=cases[index-1] if index else None
-                    if command=='STOP_NOW_SAFE' or (command=='STOP_AFTER_RUN' and state.get('last_completed_run')):
-                        raise RuntimePaused(command)
-                    if command=='STOP_AFTER_SWEEP' and (previous is None or previous.sweep!=case.sweep):
-                        raise RuntimePaused(command)
-                    remaining=(dt.datetime.fromisoformat(lease['expires_utc'])-dt.datetime.now(dt.timezone.utc)).total_seconds()/3600
-                    estimate=estimate_hours(case,state)
-                    if remaining<estimate: raise RuntimePaused('LEASE_ADMISSION_RESERVE_INSUFFICIENT')
-                    idle=idle_evidence()
-                    if not idle['idle']: raise RuntimePaused('WAIT_LOCAL_RESOURCE')
-                    resources=assess_case(root,case)
-                    atomic_json(folder / 'resources' / f'{case.run_id}.json',resources)
-                    if not resources['allowed']: raise RuntimePaused('WAIT_LOCAL_RESOURCE: '+str(resources['reasons']))
-                    append_event(folder / 'admission_ledger.jsonl','ADMITTED',run_id=case.run_id,
-                        lease_sequence=lease['sequence'],remaining_hours=remaining,reserved_hours=estimate)
-                    _run_case(root,server,state,case,upload)
-                    state['last_completed_run']=case.run_id
-                    _save(root,server,state)
+                    # At most two old C17 debts at each original-job boundary.
+                    # Missing references remain visible debts, never starve core work.
+                    drain_debts(previous)
+                    if state['runs'].get(case.run_id,{}).get('complete'):continue
+                    if case.case_id=='C17' and stage['kind'] in ('BOOT5','REFRESH5','VERIFY5'):
+                        # Full-panel C17 is handled only by the bounded debt
+                        # dispatcher; unavailable refs/fairness cannot admit a third.
+                        continue
+                    admit(case,previous)
+                drain_debts(cases[-1])
+                from ablr2.analysis import refresh_extended_reports
+                for old_id,outcome in refresh_extended_reports(root,server,state).items():
+                    old_stage=next(s for s in state['stages'] if s['stage_id']==old_id)
+                    old_stage['legacy_core17_complete']=outcome.get('legacy_core17_complete',old_stage.get('legacy_core17_complete',old_stage.get('complete',False)))
+                    old_stage['extended18_complete']=outcome['extended18_complete']
+                    if outcome.get('report_path'):old_stage['extended_report_path']=outcome['report_path']
+                if stage['kind'] in ('BOOT5','REFRESH5','VERIFY5'):
+                    stage['legacy_core17_complete']=all(state['runs'].get(c.run_id,{}).get('complete') for c in cases if c.case_id!='C17')
+                    stage['extended18_complete']=all(state['runs'].get(c.run_id,{}).get('complete') for c in cases)
                 stage['complete']=True
                 state['status']='ANALYZE';_save(root,server,state)
                 if upload: retry_uploads(root,server)
@@ -664,20 +786,46 @@ def run(root=ROOT,server='s1',upload=True):
 
 
 def start(root=ROOT,server='s1',foreground=False,upload=True):
-    build(root,server);_lease(root,server);register_runtime(root,server)
     folder=camp(root,server)
-    if foreground: return dict(exit_code=run(root,server,upload))
+    waiting=False
     with locked(folder / 'startup.lock'):
         from ablr2.resources import process_start as _process_start
+        from ablr2.migration import assert_ready,start_waiter
         old=read(folder / 'runner.pid.json')
         if old.get('process_start_ticks') and _process_start(old.get('pid'))==old['process_start_ticks']:
-            return dict(status='ALREADY_SUBMITTED',pid=old['pid'])
-        try:
-            with locked(folder / 'runner.lock'): pass
-        except BlockingIOError: return dict(status='ALREADY_RUNNING')
-        args=[sys.executable,'-u','tools/ablr2_runner.py','run','--server',server]+([] if upload else ['--no-upload'])
-        with (folder / 'runner.log').open('a') as stream:
-            process=subprocess.Popen(args,cwd=root,stdout=stream,stderr=subprocess.STDOUT,start_new_session=True,
-                                     env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1'))
-        atomic_json(folder / 'runner.pid.json',dict(pid=process.pid,process_start_ticks=_process_start(process.pid)))
-    return dict(status='SUBMITTED',pid=process.pid,log=str(folder / 'runner.log'))
+            if (folder/'runtime_release.json').exists() and not (folder/'migration/transition.json').exists():
+                waiting=True
+            else:return dict(status='ALREADY_SUBMITTED',pid=old['pid'])
+        if not waiting:
+            try:
+                with locked(folder / 'runner.lock'): pass
+            except BlockingIOError:return dict(status='ALREADY_RUNNING')
+            try:
+                assert_ready(root,server)
+                if server=='s3':
+                    from ablr2.handoff import verify_ready
+                    verify_ready(root,server)
+            except RuntimePaused:waiting=True
+        if waiting:
+            if not foreground:return start_waiter(root,server,foreground=False,upload=upload)
+        else:
+            command=read(folder/'control.json').get('command')
+            if command in STOP_COMMANDS and command!='CONTINUE':
+                return dict(status='OPERATOR_STOPPED',command=command,exit_code=75,automatic_restart=False)
+            from ablr2.migration import ensure_source_bridge
+            ensure_source_bridge(root,server)
+            if read(folder/'control.json').get('command') not in (None,'CONTINUE'):
+                return dict(status='OPERATOR_STOPPED',exit_code=75,automatic_restart=False)
+            build(root,server);_lease(root,server);register_runtime(root,server)
+            if foreground:
+                atomic_json(folder/'runner.pid.json',dict(pid=os.getpid(),process_start_ticks=_process_start(os.getpid())))
+            else:
+                args=[sys.executable,'-u','tools/ablr2_runner.py','run','--server',server]+([] if upload else ['--no-upload'])
+                with (folder / 'runner.log').open('a') as stream:
+                    process=subprocess.Popen(args,cwd=root,stdout=stream,stderr=subprocess.STDOUT,start_new_session=True,
+                                             env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1'))
+                atomic_json(folder / 'runner.pid.json',dict(pid=process.pid,process_start_ticks=_process_start(process.pid)))
+                return dict(status='SUBMITTED',pid=process.pid,log=str(folder / 'runner.log'))
+    # Never hold startup.lock throughout a long foreground waiter/controller.
+    if waiting:return start_waiter(root,server,foreground=True,upload=upload)
+    return dict(exit_code=run(root,server,upload))

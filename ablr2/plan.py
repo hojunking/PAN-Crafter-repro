@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import copy
 import csv
-from dataclasses import asdict, dataclass, fields
+from dataclasses import asdict, dataclass, fields, replace
 import hashlib
 import json
 from pathlib import Path
@@ -16,6 +16,12 @@ from types import MappingProxyType
 
 ROOT = Path(__file__).resolve().parents[1]
 CAMPAIGN_ID = 'PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2'
+GF2_CAMPAIGN_ID = 'PANDA_ABL_GF2_S3_ADAPTIVE_LOOP_20260923_v1'
+EXTENSION_ID = 'ABLR2X_S123_C17_20260923_v1'
+EXTENSION_REVISION = 'ABLR2X_EXECUTABLE_v1'
+EXTENSION_BUNDLE = 'research_log/PANDA_ABLR2X_S123_Continuous_C17_GF2_Bundle_2026-09-23'
+EXTENSION_PLAN = EXTENSION_BUNDLE+'/PANDA_ABLR2X_S1_WV3_S2_QB_S3_GF2_Continuous_ExperimentPlan_2026-09-23.md'
+EXTENSION_MANIFEST_SHA = 'bd5f316d7a5c56b43f43778eccf1b0f68190219f3db80fb0f46a283ae2702043'
 REGISTRY_REVISION = 'ABLR2_EXECUTABLE_v2'
 METHOD_REVISION = 'ABLR2_MASKED_CPLUS3_COMPONENT_ROUTING_v1'
 BUNDLE = 'research_log/PANDA_ABL_S1WV3_S2QB_AdaptiveRepeat_Bundle_2026-09-21_v2'
@@ -30,11 +36,13 @@ SOURCE_SHAS = MappingProxyType({
     SOURCE_CATALOG: 'cd4189de7bd650aecd3f6b859d2521935e2ddb8b493b66d2089b28a9240e551b',
     SOURCE_GRAPH: '47a2405c1291c1390e0f6d792bec2ed14c4e2c7778c3c5b6987927ce2ad6960d',
     SOURCE_REGISTRY: '38b9e084654f4e6ababbe594fbb476a965d6e1c3cb899b396f2462e51b6fdda9'})
-SERVERS = ('s1', 's2')
+SERVERS = ('s1', 's2', 's3')
 _SAFE_TOKEN = re.compile(r'^[A-Za-z0-9][A-Za-z0-9_-]*$')
-LANES = MappingProxyType({'s1': 'WV3', 's2': 'QB'})
-SHEET_TABS = MappingProxyType({'s1': 'WV3-s1', 's2': 'QB-s2'})
-MAIN_CASES = tuple(f'C{i:02}' for i in range(17))
+LANES = MappingProxyType({'s1': 'WV3', 's2': 'QB', 's3':'GF2'})
+SHEET_TABS = MappingProxyType({'s1': 'WV3-s1', 's2': 'QB-s2', 's3':'GF2-s3(5090)'})
+LEGACY_MAIN_CASES = tuple(f'C{i:02}' for i in range(17))
+MAIN_CASES = LEGACY_MAIN_CASES+('C17',)
+BOOT_SEED_BASES = MappingProxyType({'s1':(781000,791000),'s2':(881000,891000),'s3':(981000,991000)})
 GRID_STEPS = tuple(range(1010, 50000, 1010)) + (50000,)
 BINDING_FIELDS = ('dataset_manifest', 'sensor_spec', 'sensor_spec_path', 'reference_manifest',
     'teacher_checkpoint', 'teacher_sha256', 'tau_R', 'q_ref', 'q_cache', 'q_cache_sha256',
@@ -49,15 +57,48 @@ def valid_sha(value):
     return isinstance(value, str) and len(value) == 64 and all(c in '0123456789abcdef' for c in value)
 
 
+def source_path(logical,root=ROOT):
+    """Use canonical byte-identical snapshots on both checkout and frozen release.
+
+    The user's archived original directory may still exist in HEAD. Preferring
+    one canonical location prevents unrelated document moves from changing the
+    frozen runtime's source-file set; original logical SHA contracts stay fixed.
+    """
+    path=Path(root)/logical
+    if logical in SOURCE_SHAS:
+        snapshot=(Path(root)/'ablr2/legacy'/Path(logical).name if logical==SOURCE_PLAN else
+                  Path(root)/EXTENSION_BUNDLE/'legacy'/Path(logical).name)
+        if snapshot.is_file():return snapshot
+    return path
+
+def campaign_id(value):
+    sensor=LANES.get(value,value)
+    if sensor not in LANES.values():raise ValueError('Unknown ABLR2X lane')
+    return GF2_CAMPAIGN_ID if sensor=='GF2' else CAMPAIGN_ID
+
 def verify_sources(root=ROOT):
     for path, expected in SOURCE_SHAS.items():
-        if hashlib.sha256((Path(root) / path).read_bytes()).hexdigest() != expected:
+        if hashlib.sha256(source_path(path,root).read_bytes()).hexdigest() != expected:
             raise ValueError('Changed ABLR2 source requires an explicit revision: ' + path)
     return dict(SOURCE_SHAS)
 
+def verify_extension_sources(root=ROOT):
+    folder=Path(root)/EXTENSION_BUNDLE
+    manifest=folder/'SHA256SUMS.txt'
+    if hashlib.sha256(manifest.read_bytes()).hexdigest()!=EXTENSION_MANIFEST_SHA:
+        raise ValueError('ABLR2X author SHA manifest changed')
+    result={}
+    for line in manifest.read_text().splitlines():
+        digest,name=line.split(maxsplit=1);name=name.strip()
+        if Path(name).is_absolute() or '..' in Path(name).parts:raise ValueError('Unsafe design manifest path')
+        if hashlib.sha256((folder/name).read_bytes()).hexdigest()!=digest:
+            raise ValueError('ABLR2X design source changed: '+name)
+        result[EXTENSION_BUNDLE+'/'+name]=digest
+    return result
+
 
 def _rows(path):
-    with (ROOT / path).open(encoding='utf-8-sig', newline='') as stream:
+    with source_path(path).open(encoding='utf-8-sig', newline='') as stream:
         return list(csv.DictReader(stream))
 
 
@@ -68,7 +109,7 @@ class SensorSpec:
 
     def __post_init__(self):
         if self.sensor not in LANES.values():
-            raise ValueError('ABLR2 supports WV3/s1 and QB/s2 only')
+            raise ValueError('ABLR2X supports WV3/s1, QB/s2 and GF2/s3 only')
         if self.band_order is not None:
             object.__setattr__(self, 'band_order', tuple(self.band_order))
             if len(self.band_order) != self.num_bands or len(set(self.band_order)) != self.num_bands:
@@ -79,7 +120,7 @@ class SensorSpec:
     @property
     def bands(self): return self.num_bands
     @property
-    def max_dn(self): return 2047
+    def max_dn(self): return 1023 if self.sensor=='GF2' else 2047
     @property
     def max_pixel(self): return self.max_dn
     @property
@@ -89,9 +130,9 @@ class SensorSpec:
     @property
     def rr_q(self): return 'Q8' if self.sensor == 'WV3' else 'Q4'
     @property
-    def nominal_train_n(self): return 9714 if self.sensor == 'WV3' else 17139
+    def nominal_train_n(self): return {'WV3':9714,'QB':17139,'GF2':19809}[self.sensor]
     @property
-    def nominal_val_n(self): return 1080 if self.sensor == 'WV3' else None
+    def nominal_val_n(self): return {'WV3':1080,'QB':None,'GF2':2201}[self.sensor]
     @property
     def hqnr_threshold(self): return None
     @property
@@ -122,7 +163,7 @@ def sensor_spec(value):
 
 def verify_lane(server, sensor=None):
     if server not in LANES or (sensor is not None and LANES[server] != sensor):
-        raise ValueError('Only s1/WV3 and s2/QB may enter ABLR2; s3-s5 are protected')
+        raise ValueError('Only s1/WV3, s2/QB and s3/GF2 may enter ABLR2X; s4/s5 are protected')
     return LANES[server]
 
 
@@ -154,15 +195,24 @@ def _catalog_row(row):
 
 
 verify_sources()
-COMPONENTS = MappingProxyType({r['case_id']: MappingProxyType(_catalog_row(r)) for r in _rows(SOURCE_CATALOG)})
-COMPARISON_GRAPH = tuple(_rows(SOURCE_GRAPH))
+EXTENSION_SHAS = MappingProxyType(verify_extension_sources())
+LEGACY_COMPONENTS = MappingProxyType({r['case_id']: MappingProxyType(_catalog_row(r)) for r in _rows(SOURCE_CATALOG)})
+_extra_components={r['case_id']:MappingProxyType(_catalog_row(r)) for r in _rows(EXTENSION_BUNDLE+'/registries/ABLR2X_ComponentCatalog_18.csv')}
+if any(dict(_extra_components[k])!=dict(LEGACY_COMPONENTS[k]) for k in LEGACY_MAIN_CASES):
+    raise ValueError('Extension changed an original numerical component definition')
+COMPONENTS = MappingProxyType({**LEGACY_COMPONENTS,'C17':_extra_components['C17']})
+LEGACY_COMPARISON_GRAPH = tuple(_rows(SOURCE_GRAPH))
+COMPARISON_GRAPH = tuple(dict(row,queue_enabled=row['queue_enabled'].lower()=='true')
+    for row in _rows(EXTENSION_BUNDLE+'/registries/ABLR2X_ComparisonGraph_19.csv'))
+if any({k:row[k] for k in legacy}!=legacy for row,legacy in zip(COMPARISON_GRAPH,LEGACY_COMPARISON_GRAPH)):
+    raise ValueError('Extension changed a legacy relation')
 GRAPH = MappingProxyType({r['relation_id']: MappingProxyType(r) for r in COMPARISON_GRAPH})
 
 
 def component_config(case_id, recipe_id='R00'):
     """Apply a registered common recipe before all case deletion overrides."""
     if recipe_id not in RECIPES or case_id not in MAIN_CASES:
-        raise ValueError('Only the registered R00-R05 bank and C00-C16 are executable')
+        raise ValueError('Only the registered R00-R05 bank and C00-C17 are executable')
     result = dict(COMPONENTS[case_id])
     recipe = RECIPES[recipe_id]
     for field in ('alpha', 'beta', 'lambda_edge'):
@@ -216,7 +266,9 @@ class Case:
     @property
     def bands(self): return self.num_bands
     @property
-    def max_dn(self): return 2047
+    def max_dn(self): return sensor_spec(self.sensor).max_dn
+    @property
+    def campaign_id(self): return campaign_id(self.server_id)
     @property
     def component(self): return component_config(self.case_id, self.recipe_id) if self.role == 'S' else None
     @property
@@ -253,7 +305,7 @@ class Case:
             requires_teacher=self.requires_teacher, requires_calibration=self.requires_calibration,
             component=self.component, alpha=self.alpha, beta=self.beta, lambda_edge=self.lambda_edge,
             lambda_con=self.lambda_con, aligner_lr=self.aligner_lr, teacher_owner=self.teacher_owner,
-            teacher_updates=self.teacher_updates, sheet_tab=self.sheet_tab, campaign_id=CAMPAIGN_ID)
+            teacher_updates=self.teacher_updates, sheet_tab=self.sheet_tab, campaign_id=self.campaign_id)
 
 
 def _boot_cases():
@@ -270,13 +322,36 @@ def _boot_cases():
     return tuple(out)
 
 
-CASES = BOOT_CASES = _boot_cases()
+LEGACY_BOOT_CASES = _boot_cases()
+
+def _extension_boot_cases():
+    rows=_rows(EXTENSION_BUNDLE+'/registries/ABLR2X_NewDefinitions_110.csv')
+    old={c.run_id:c for c in LEGACY_BOOT_CASES};out=[]
+    for row in rows:
+        # The author .5 rank is insertion metadata, not a numerical integer rank.
+        # Keep old ranks intact; scheduling uses explicit anchor dependencies.
+        rank=int(float(row['queue_rank']))
+        if row['server'] in ('s1','s2'):
+            a=old[row['insert_after_run_id']]
+            out.append(replace(a,case_id='C17',run_id=row['run_id'],teacher_kind='TZERO',
+                reference_id=row['reference_id'],teacher_run_id=row['teacher_run_id'],queue_rank=rank))
+        else:
+            out.append(Case(row['case_id'],row['run_id'],row['server'],row['sensor'],row['role'],
+                row['phase'],'R00',row['recipe_id'],'BOOT5',row['sweep_id'],row['panel_id'],
+                int(row['teacher_seed']) if row['teacher_seed'] else None,
+                int(row['student_seed']) if row['student_seed'] else None,row['teacher_kind'],
+                row['reference_id'] or None,row['teacher_run_id'] or None,rank,row['seed_group']))
+    return tuple(out)
+
+EXTENSION_BOOT_CASES=_extension_boot_cases()
+CASES = BOOT_CASES = LEGACY_BOOT_CASES+EXTENSION_BOOT_CASES
 _BY_RUN = MappingProxyType({c.run_id: c for c in CASES})
 
 
 def case_for(run_id, root=ROOT):
     if isinstance(run_id, Case): return validate_case(run_id)
-    if run_id in _BY_RUN: return _BY_RUN[run_id]
+    gf2_overlay=run_id.startswith('ABLR2_GF2_s3_') and (Path(root)/'work_dir/ablr2/GF2/s3/boot_seed_resolution.json').is_file()
+    if run_id in _BY_RUN and not gf2_overlay: return _BY_RUN[run_id]
     for server, sensor in LANES.items():
         path = Path(root) / f'work_dir/ablr2/{sensor}/{server}/cases.json'
         if not path.is_file(): continue
@@ -288,6 +363,9 @@ def case_for(run_id, root=ROOT):
             contract = value.get('case_contract', value)
             case = Case(**{field.name: contract[field.name] for field in fields(Case)})
             if case.server_id != server: raise ValueError('Run persisted in the wrong lane registry')
+            if case.server_id=='s3' and case.phase=='BOOT5':
+                from ablr2.seeds import validate_resolved_boot_case
+                validate_resolved_boot_case(case,root)
             return validate_case(case)
     raise ValueError('Run ID is not registered in BOOT5 or the local append-only task registry')
 
@@ -297,7 +375,7 @@ def validate_case(case):
     verify_lane(case.server_id, case.sensor)
     if case.recipe_id not in RECIPES or case.role not in ('T', 'S'):
         raise ValueError('Unregistered recipe or role')
-    if case.phase not in ('BOOT5', 'REFRESH5', 'RECHECK5', 'FIT_ROUND', 'VERIFY5'):
+    if case.phase not in ('BOOT5', 'REFRESH5', 'RECHECK5', 'FIT_ROUND', 'VERIFY5','PAIR_REPAIR'):
         raise ValueError('Unregistered campaign phase')
     for value in (case.run_id, case.recipe_revision, case.wave, case.sweep_id, case.panel_id,
                   case.paired_init_group, case.reference_id, case.teacher_run_id):
@@ -332,7 +410,9 @@ def validate_case(case):
     if not case.run_id.startswith(f'ABLR2_{case.sensor}_{case.server_id}_') or not case.run_id.endswith('_FRESH50'):
         raise ValueError('Run ID lies outside the isolated ABLR2 lane')
     if case.phase == 'BOOT5' and _BY_RUN.get(case.run_id) != case:
-        raise ValueError('BOOT5 is exactly the immutable author-supplied CSV')
+        if case.server_id!='s3':raise ValueError('BOOT5 is exactly the immutable author-supplied CSV')
+        from ablr2.seeds import validate_resolved_boot_case
+        validate_resolved_boot_case(case)
     if case.phase != 'BOOT5':
         seed_label = 'TS' if case.role == 'T' else 'SS'
         expected_run = (f'ABLR2_{case.sensor}_{case.server_id}_{case.recipe_revision}_{case.phase}_'
@@ -347,14 +427,21 @@ def validate_case(case):
 
 def cases_for(server):
     verify_lane(server)
-    return tuple(c for c in CASES if c.server_id == server)
+    rows=[c for c in CASES if c.server_id == server]
+    return tuple(sorted(rows,key=lambda c:(c.sweep_id,c.queue_rank,c.case_id=='C17')))
+
+def legacy_cases_for(server):
+    verify_lane(server)
+    return tuple(c for c in LEGACY_BOOT_CASES if c.server_id==server)
 
 
 def student_order(sweep_number):
     if not isinstance(sweep_number, int) or sweep_number < 1: raise ValueError('Positive sweep ordinal required')
     offset = 4 * (sweep_number - 1) % 17
-    order = MAIN_CASES[offset:] + MAIN_CASES[:offset]
-    return order[::-1] if sweep_number % 2 == 0 else order
+    order = LEGACY_MAIN_CASES[offset:] + LEGACY_MAIN_CASES[:offset]
+    order = order[::-1] if sweep_number % 2 == 0 else order
+    index=order.index('C03')+1
+    return order[:index]+('C17',)+order[index:]
 
 
 def grid_steps(updates=50000):
@@ -371,8 +458,9 @@ def diagnostic_steps(role, updates=50000):
 def build_config(case):
     case = validate_case(case_for(case) if isinstance(case, str) else case)
     lane = f'work_dir/ablr2/{case.sensor}/{case.server_id}'
-    meta = dict(case.to_dict(), case_contract=asdict(case), source_plan=SOURCE_PLAN,
-        registry_revision=REGISTRY_REVISION, method_revision=METHOD_REVISION,
+    extended=case.case_id=='C17' or case.sensor=='GF2' or case.phase=='PAIR_REPAIR'
+    meta = dict(case.to_dict(), case_contract=asdict(case), source_plan=EXTENSION_PLAN if extended else SOURCE_PLAN,
+        registry_revision=EXTENSION_REVISION if extended else REGISTRY_REVISION, method_revision=METHOD_REVISION,
         sensor_spec=sensor_spec(case.sensor).to_dict(), sensor_spec_path=None,
         dataset_manifest=None, reference_manifest=None, teacher_checkpoint=None, teacher_sha256=None,
         tau_R=None, q_ref=None, q_cache=None, q_cache_sha256=None, s_bar=None, s_bar_sha256=None,
@@ -396,7 +484,7 @@ def build_config(case):
             generation_dtype='float64', cache_dtype='float32'))
     return dict(seed=case.seed, work_dir=lane + '/runs/' + case.run_id, trainer='ablr2', phase='train',
         num_iter=50000, num_warmup=100, batch_size=48, test_batch_size=1, num_worker=4,
-        num_bands=case.num_bands, max_pixel=2047., mixed_precision='no', learning_rate=1e-4,
+        num_bands=case.num_bands, max_pixel=float(case.max_dn), mixed_precision='no', learning_rate=1e-4,
         optimizer='AdamW', weight_decay=.01, betas=[.9, .999], eps=1e-8, lr_scheduler='cosine', log_iter=100,
         train_feeder_args=dict(dataroot=None, crop=False, hflip=True, vflip=True, rot=True, ms_size=16, return_meta=True),
         val_feeder_args=dict(dataroot=None), test_reduced_feeder_args=dict(dataroot=None), test_full_feeder_args=dict(dataroot=None),
@@ -512,7 +600,7 @@ def _dynamic_teacher(server, phase, recipe, revision, wave, sweep, seed, kind, r
     sensor = verify_lane(server)
     effective_kind = 'TC3' if kind == 'TPLUS' and recipe == 'R04' else kind
     run = f'ABLR2_{sensor}_{server}_{revision}_{phase}_{wave}_{sweep}_{kind}_TS{seed}_FRESH50'
-    ref = f'{CAMPAIGN_ID}_{sensor}_{server}_{revision}_TS{seed}_{effective_kind}_END50000'
+    ref = f'{campaign_id(server)}_{sensor}_{server}_{revision}_TS{seed}_{effective_kind}_END50000'
     return Case(kind, run, server, sensor, 'T', phase, recipe, revision, wave, sweep,
         f'{sensor}_{server}_{revision}_{phase}_{wave}_{sweep}', seed, None, effective_kind, ref, run, rank, init_group)
 
@@ -533,7 +621,7 @@ def _dynamic_student(server, phase, recipe, revision, wave, sweep, seed, compone
 
 
 def full_wave(server, phase, recipe_id, recipe_revision, wave, master_seed, seed_ledger):
-    """Register all five full sweeps (95 tasks) before observing their results."""
+    """Register all five full sweeps (100 tasks) before observing their results."""
     sensor = verify_lane(server)
     if phase == 'BOOT5':
         if (recipe_id, recipe_revision, wave) != ('R00', 'r000', 'BOOT5'):
@@ -560,6 +648,8 @@ def recheck_cases(server, relation_id, recipe_id, recipe_revision, wave, teacher
     """Five complete parent/child pairs plus FULL, with the ordered latest panel."""
     sensor = verify_lane(server)
     if relation_id not in GRAPH or len(teacher_panels) != 5: raise ValueError('Five local Teacher panels and a graph relation are required')
+    if str(GRAPH[relation_id].get('queue_enabled','True')).lower()!='true':
+        raise ValueError('Diagnostic-only relation cannot open an automatic recheck')
     graph = GRAPH[relation_id]
     components = tuple(dict.fromkeys((graph['parent'], graph['child'], 'C07')))
     result = []
@@ -573,7 +663,7 @@ def recheck_cases(server, relation_id, recipe_id, recipe_revision, wave, teacher
     return tuple(validate_case(c) for c in result)
 
 
-def screen_cases(server, recipe_ids, recipe_revisions, wave, blocks, relation_id=None):
+def screen_cases(server, recipe_ids, recipe_revisions, wave, blocks, relation_id=None,*,root=ROOT):
     """Two paired fixed-P01/P02 screens; candidates differ only by registered recipe.
 
     ``blocks`` are two dicts containing teacher_seed, student_seed and ``teachers``
@@ -592,8 +682,11 @@ def screen_cases(server, recipe_ids, recipe_revisions, wave, blocks, relation_id
     result = []
     for number, block in enumerate(blocks, 1):
         sweep = f'P{number:02}'
-        expected_ts = (781000 if server == 's1' else 881000) + number
-        expected_ss = (791000 if server == 's1' else 891000) + number
+        expected_ts = BOOT_SEED_BASES[server][0] + number
+        expected_ss = BOOT_SEED_BASES[server][1] + number
+        if server=='s3' and (Path(root)/'work_dir/ablr2/GF2/s3/boot_seed_resolution.json').is_file():
+            from ablr2.seeds import resolved_boot_seeds
+            expected_ts,expected_ss=resolved_boot_seeds(root,sweep)
         if (block['teacher_seed'], block['student_seed']) != (expected_ts, expected_ss):
             raise ValueError('Fitting uses the fixed author BOOT5 P01/P02 seed blocks')
         for recipe in recipe_ids:
@@ -614,10 +707,12 @@ def screen_cases(server, recipe_ids, recipe_revisions, wave, blocks, relation_id
 def registry_document():
     return dict(campaign_id=CAMPAIGN_ID, registry_revision=REGISTRY_REVISION, method_revision=METHOD_REVISION,
         source_sha256=dict(SOURCE_SHAS), source_status='AUTHOR_BUNDLE_VERIFIED', lanes=dict(LANES),
+        extension_id=EXTENSION_ID,extension_sources=dict(EXTENSION_SHAS),
         cases=[c.to_dict() for c in CASES], components={k: dict(v) for k, v in COMPONENTS.items()},
         comparison_graph=list(COMPARISON_GRAPH), recipes={k: asdict(v) for k, v in RECIPES.items()},
-        candidate_grid=list(GRID_STEPS), max_campaign_cycles=None, lease_hours=72,
-        require_initial_operator_lease=True, optional_auto_release=False,
+        candidate_grid=list(GRID_STEPS), max_campaign_cycles=None, lease_hours=None,
+        service_mode='UNTIL_OPERATOR_STOP',require_explicit_until_stop_authorization=True,
+        legacy_lease_mode_preserved=True,require_initial_operator_lease=False, optional_auto_release=False,
         thresholds=None, test_aware=True, primary_checkpoint='RR_VALIDATION_ARGMIN_ERGAS_THEN_LOWER_STEP',
         recipe_revision_mapping={'r000': 'R00'}, statistical_significance_claim=False)
 
@@ -625,6 +720,6 @@ def registry_document():
 def registry_sha256(): return object_sha(registry_document())
 
 
-if len(CASES) != 190 or len(_BY_RUN) != 190 or len(GRAPH) != 17:
-    raise ValueError('Author bundle must contain exactly 190 unique BOOT5 jobs and 17 relations')
+if len(LEGACY_BOOT_CASES)!=190 or len(EXTENSION_BOOT_CASES)!=110 or len(_BY_RUN)!=300 or len(GRAPH)!=19:
+    raise ValueError('ABLR2X must preserve190 old jobs and add exactly110 jobs / two relations')
 for _case in CASES: validate_case(_case)

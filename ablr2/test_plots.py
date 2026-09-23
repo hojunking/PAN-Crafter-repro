@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 import unittest
 
 from ablr2.plots import plot_data, render_wave
-from ablr2.plan import MAIN_CASES
+from ablr2.plan import LEGACY_MAIN_CASES as MAIN_CASES
 
 
 def complete_report():
@@ -21,6 +21,17 @@ def complete_report():
 
 
 class PlotTests(unittest.TestCase):
+    def test_extended18_has_separate_prior_only_plot_and_all_90_points(self):
+        report=complete_report();report.update(schema='ABLR2_BALANCED_PANEL_v2',student_runs=90,extended18_complete=True)
+        for k in range(1,6):
+            row=copy.deepcopy(next(r for r in report['panelrows'] if r['case_id']=='C03' and r['sweep']==f'P{k:02}'))
+            row.update(case_id='C17',run_id=f'C17_P{k:02}')
+            report['panelrows'].append(row)
+        data=plot_data(report)
+        self.assertEqual(len(data['panels']),6)
+        self.assertEqual([r['case_id'] for r in data['panels']['alignment_prior_hqnr']['series']],['C02','C17','C03'])
+        self.assertEqual(len(report['panelrows']),90)
+
     def test_fixed_orders_all_five_points_and_negative_effects(self):
         report = complete_report()
         data = plot_data(report)

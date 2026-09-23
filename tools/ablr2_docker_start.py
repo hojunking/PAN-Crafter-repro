@@ -26,9 +26,9 @@ def checked_output(argv, **kwargs):
 
 
 def lane_sensor(server):
-    if server not in ('s1', 's2'):
-        raise ValueError('Docker ABLR2 supports only s1/WV3 and s2/QB')
-    return {'s1': 'WV3', 's2': 'QB'}[server]
+    if server not in ('s1', 's2','s3'):
+        raise ValueError('Docker ABLR2X supports s1/WV3,s2/QB,s3/GF2; s4/s5 protected')
+    return {'s1': 'WV3', 's2': 'QB','s3':'GF2'}[server]
 
 
 def build_mounts(root, frozen, server, dlpan):
@@ -40,6 +40,11 @@ def build_mounts(root, frozen, server, dlpan):
     if not work.is_dir():
         raise ValueError('Missing work_dir; create the frozen runtime before launching')
     mounts = {root: 'ro', frozen: 'ro', work: 'rw', dlpan: 'ro'}
+    original=root/'work_dir/ablr2'/sensor/server/'runtime_release.json'
+    if original.is_file():
+        old=Path(json.loads(original.read_text())['path']).resolve(strict=True)
+        if (old/'work_dir').resolve()!=work:raise ValueError('Original runtime does not share the owned work_dir')
+        mounts[old]='ro'
     source_paths = [row['path'] for row in catalog['splits'].values()]
     provenance = catalog['source_provenance']
     source_paths += [provenance[k] for k in ('raw_train_path', 'raw_val_path') if k in provenance]
@@ -62,12 +67,14 @@ def build_mounts(root, frozen, server, dlpan):
 
 
 def build_command(*, root, frozen, server, image_id, commit, name, mounts,
-                  dlpan, lease_hours, gpu='0', no_upload=False, uid=None, gid=None):
+                  dlpan, lease_hours=None,until_operator_stop=False,boundary='RUN',gpu='0', no_upload=False, uid=None, gid=None):
     lane_sensor(server)
     if not re.fullmatch(r'(?:[0-9]+|GPU-[A-Za-z0-9-]+)', str(gpu)):
         raise ValueError('--gpu must select exactly one GPU index or UUID')
-    if not 0 < float(lease_hours) <= 72:
-        raise ValueError('Explicit lease must be greater than0 and at most72 hours')
+    if until_operator_stop and lease_hours is not None:raise ValueError('Choose continuous authorization or finite lease')
+    if not until_operator_stop and (lease_hours is None or not 0<float(lease_hours)<=72):
+        raise ValueError('Explicit finite lease in (0,72] or --until-operator-stop is required')
+    if boundary not in ('RUN','SAFE'):raise ValueError('Unsupported handover boundary')
     if not re.fullmatch(r'sha256:[a-f0-9]{64}', image_id):
         raise ValueError('Docker image must be pinned to the inspected content ID')
     argv = ['docker', 'run', '--detach', '--name', name, '--gpus', 'device=' + str(gpu),
@@ -87,13 +94,14 @@ def build_command(*, root, frozen, server, image_id, commit, name, mounts,
         argv += ['--mount', 'type=bind,src=' + path + ',dst=' + path + (',readonly' if access == 'ro' else '')]
     argv += ['--entrypoint', 'python', image_id,
              str(Path(frozen) / 'tools/ablr2_runner.py'), 'start', '--in-place', '--foreground',
-             '--server', server, '--lease-hours', str(float(lease_hours))]
+             '--server', server,'--boundary',boundary]
+    argv+=(['--until-operator-stop'] if until_operator_stop else ['--lease-hours',str(float(lease_hours))])
     if no_upload:
         argv += ['--no-upload']
     return argv
 
 
-def matching_running(containers, *, server, commit, frozen, image_id):
+def matching_running(containers, *, server, commit, frozen, image_id,draining_release=None):
     matches = []
     for item in containers:
         if not item.get('State', {}).get('Running'):
@@ -103,6 +111,9 @@ def matching_running(containers, *, server, commit, frozen, image_id):
             continue
         if (labels.get(LABEL + '.commit') != commit or labels.get(LABEL + '.runtime') != str(frozen)
                 or item.get('Image') != image_id):
+            if (draining_release and labels.get(LABEL+'.commit')==draining_release.get('git_commit')
+                    and labels.get(LABEL+'.runtime')==draining_release.get('path') and item.get('Image')==image_id):
+                continue # This known original run remains the GPU owner; new entrypoint only waits.
             raise ValueError('Another ABLR2 container already runs this lane with a different release/image')
         matches.append(item)
     if len(matches) > 1:
@@ -112,28 +123,33 @@ def matching_running(containers, *, server, commit, frozen, image_id):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--server', choices=('s1', 's2'), required=True)
-    parser.add_argument('--lease-hours', type=float, default=72.)
+    parser.add_argument('--server', choices=('s1', 's2','s3'), required=True)
+    authorization=parser.add_mutually_exclusive_group(required=True)
+    authorization.add_argument('--lease-hours', type=float)
+    authorization.add_argument('--until-operator-stop',action='store_true')
+    parser.add_argument('--boundary',choices=('RUN','SAFE'),default='RUN')
     parser.add_argument('--image', default=DEFAULT_IMAGE, help='Already installed local image; never pulled implicitly')
     parser.add_argument('--gpu', default='0')
     parser.add_argument('--no-upload', action='store_true')
     parser.add_argument('--dry-run', action='store_true', help='Read-only preview; no runtime, lease or container is created')
     args = parser.parse_args(argv)
     lane_sensor(args.server)
-    if not 0 < args.lease_hours <= 72:
+    if args.lease_hours is not None and not 0 < args.lease_hours <= 72:
         parser.error('--lease-hours must be in (0,72]')
     dlpan = Path(os.environ.get('PANCRAFTER_DLPAN', str(ROOT.parent / 'DLPan-Toolbox'))).resolve(strict=True)
     image_id = checked_output(['docker', 'image', 'inspect', '--format', '{{.Id}}', args.image])
     commit = checked_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT)
-    release_path = ROOT / 'work_dir/ablr2' / lane_sensor(args.server) / args.server / 'runtime_release.json'
+    release_path = ROOT / 'work_dir/ablr2' / lane_sensor(args.server) / args.server / 'runtime_release_ablr2x.json'
+    original_path=release_path.with_name('runtime_release.json')
+    original=json.loads(original_path.read_text()) if original_path.is_file() else None
     if args.dry_run:
         frozen = (Path(json.loads(release_path.read_text())['path']) if release_path.is_file()
-                  else ROOT.parent / f'{ROOT.name}-runtime-ablr2-{args.server}-{commit[:12]}')
+                  else ROOT.parent / f'{ROOT.name}-runtime-ablr2x-{args.server}-{commit[:12]}')
         if frozen.exists():
             commit = checked_output(['git', 'rev-parse', 'HEAD'], cwd=frozen)
     else:
         from ablr2.deployment import frozen_checkout
-        frozen = frozen_checkout(ROOT, args.server)
+        frozen = frozen_checkout(ROOT, args.server,extension=True)
         commit = checked_output(['git', 'rev-parse', 'HEAD'], cwd=frozen)
     with contextlib.ExitStack() as stack:
         if not args.dry_run:
@@ -142,7 +158,8 @@ def main(argv=None):
         mounts = build_mounts(ROOT, frozen, args.server, dlpan)
         ids = checked_output(['docker', 'ps', '-aq', '--filter', 'label=' + LABEL + '.server=' + args.server]).split()
         containers = json.loads(checked_output(['docker', 'inspect', *ids])) if ids else []
-        active = matching_running(containers, server=args.server, commit=commit, frozen=frozen, image_id=image_id)
+        active = matching_running(containers, server=args.server, commit=commit, frozen=frozen, image_id=image_id,
+                                  draining_release=original)
         if active:
             print(json.dumps(dict(status='ALREADY_RUNNING', container_id=active['Id'],
                 runtime=str(frozen), image_id=image_id, lease_renewed=False), indent=2))
@@ -152,7 +169,7 @@ def main(argv=None):
         name = f'pancrafter-ablr2-{args.server}-{commit[:12]}-{suffix}'
         command = build_command(root=ROOT, frozen=frozen, server=args.server, image_id=image_id,
             commit=commit, name=name, mounts=mounts, dlpan=dlpan, lease_hours=args.lease_hours,
-            gpu=args.gpu, no_upload=args.no_upload)
+            until_operator_stop=args.until_operator_stop,boundary=args.boundary,gpu=args.gpu, no_upload=args.no_upload)
         if args.dry_run:
             print(shlex.join(command))
             return 0
@@ -162,6 +179,7 @@ def main(argv=None):
             raise RuntimeError('Docker image identity differs after launch; inspect container ' + container_id)
         print(json.dumps(dict(status='CONTAINER_STARTED', container_id=container_id, name=name,
             image_id=image_id, runtime=str(frozen), lease_hours=args.lease_hours,
+            service_mode='UNTIL_OPERATOR_STOP' if args.until_operator_stop else 'FINITE_LEASE',
             automatic_restart=False, automatic_lease_renewal=False,
             log_command='docker logs --tail 80 ' + name,
             note='GPU/data preflight and actual training admission run inside the container.'), indent=2))

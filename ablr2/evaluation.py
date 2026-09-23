@@ -1,7 +1,7 @@
 """ABLR2 sensor-bound official metrics; no masked/shifted evaluation references.
 
 The established MATLAB-port metric primitives are reused without modification.
-WV3 is genuinely eight-band Q8; QB is genuinely four-band Q4. JQM remains an
+WV3 uses eight-band Q8; QB/GF2 use genuine four-band Q4 and their own DN scale. JQM remains an
 explicitly labelled SRF substitute, not a claim of SIPSA equivalence.
 """
 from pathlib import Path
@@ -27,16 +27,16 @@ def _spec(value):
     if isinstance(value, str):
         from ablr2.plan import sensor_spec
         value = sensor_spec(value)
-    if (value.sensor, value.num_bands, value.max_dn) not in (('WV3', 8, 2047), ('QB', 4, 2047)):
-        raise ValueError('ABLR2 permits only WV3/C8/DN2047 or QB/C4/DN2047')
+    if (value.sensor, value.num_bands, value.max_dn) not in (('WV3', 8, 2047), ('QB', 4, 2047), ('GF2', 4, 1023)):
+        raise ValueError('ABLR2 permits only WV3/C8/DN2047, QB/C4/DN2047 or GF2/C4/DN1023')
     return value
 
 
 def canonical_band_indices(spec):
     spec = _spec(spec)
-    if spec.sensor == 'QB':
-        from qg40.data import canonical_band_indices as qb_order
-        return qb_order(spec.band_order)
+    if spec.sensor in ('QB', 'GF2'):
+        from qg40.data import canonical_band_indices as c4_order
+        return c4_order(spec.band_order)
     aliases = dict(c='coastal', cb='coastal', coastal='coastal', coastalblue='coastal',
                    b='blue', blue='blue', g='green', green='green', y='yellow', yellow='yellow',
                    r='red', red='red', re='rededge', rededge='rededge',
@@ -161,6 +161,9 @@ class FRMetrics:
                       reference='native_PAN', support='full512', masking=False,
                       aggregation='mean_per_scene_HQNR', hqnr_variant='raw-original', official_complete=True,
                       signed_ds=signed_ds_details(operands, self.reference, [r['d_s'] for r in rows]))
+        if self.spec.sensor == 'GF2':
+            result.update(mtf_gnyq_canonical=[.3]*4,
+                mtf_note='GF2 explicit existing DLPan otherwise GNyq=0.3 preset; not QB band-specific gains')
         return result
 
 
@@ -181,9 +184,12 @@ def fr_jqm(sr, ms, pan, spec, deadline=None):
                      spec.sensor, ratio=4, R=spec.max_dn, lpf='mtf', window=None, v1=.5)
         rows.append(dict(jqm=float(result['JQM']), qlr=float(result['QLR']), qhr=float(result['QHR']),
                          w=np.asarray(result['w'])[np.argsort(order)].tolist(), w_source=result['w_source']))
-    return dict(_summary(rows, ('jqm', 'qlr', 'qhr')), variant=JQM_VARIANT, sensor=spec.sensor,
-                max_dn=spec.max_dn, band_order=list(spec.band_order), pan_gnyq=GNYQ_PAN[spec.sensor],
+    result = dict(_summary(rows, ('jqm', 'qlr', 'qhr')), variant=JQM_VARIANT, sensor=spec.sensor,
+                max_dn=spec.max_dn, band_order=list(spec.band_order), pan_gnyq=.15 if spec.sensor=='GF2' else GNYQ_PAN[spec.sensor],
                 reference='native_PAN_and_native_LRMS', support='full512', masking=False)
+    if spec.sensor == 'GF2':
+        result['gf2_pan_note']='Existing JQM default 0.15; surrogate, not measured GF2 spectral response'
+    return result
 
 
 @torch.no_grad()

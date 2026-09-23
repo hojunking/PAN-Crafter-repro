@@ -56,7 +56,7 @@ class DeploymentTests(unittest.TestCase):
 
     def test_other_server_lanes_are_rejected_before_git(self):
         with patch('ablr2.deployment.subprocess.check_output') as git:
-            with self.assertRaises(ValueError): frozen_checkout(self.root,'s3')
+            with self.assertRaises(ValueError): frozen_checkout(self.root,'s4')
             git.assert_not_called()
 
 

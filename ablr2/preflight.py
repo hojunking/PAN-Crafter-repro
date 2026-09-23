@@ -28,7 +28,7 @@ def run(root=ROOT, server='s1', device='cuda', deadline_utc=None, manifest_path=
     if device != 'cuda' or not torch.cuda.is_available():
         raise ValueError('Production ABLR2 requires local CUDA; CPU is testing only')
     release = source_identity(root)
-    previous = read(camp(root,server) / 'preflight.json')
+    previous = read(camp(root,server) / 'preflight_ablr2x.json')
     if previous and previous['source_identity'] != release:
         raise ValueError('Numerical source/runtime changed; explicit new revision required')
     if len(release['files'].get('external/DLPan/wald_utilities.py','')) != 64:
@@ -42,7 +42,7 @@ def run(root=ROOT, server='s1', device='cuda', deadline_utc=None, manifest_path=
             raise ValueError('Incomplete or wrong-lane preflight receipt')
         return previous
     checks = method_checks()
-    atomic_json(camp(root,server) / 'method_regression.json', checks)
+    atomic_json(camp(root,server) / 'method_regression_ablr2x.json', checks)
     if not checks['complete']: raise ValueError('ABLR2 CPU regression failed')
     fr = build_dataset(data,'fr',root=root,server=server)
     FRMetrics(fr)
@@ -62,5 +62,5 @@ def run(root=ROOT, server='s1', device='cuda', deadline_utc=None, manifest_path=
         source_identity=release,runtime=runtime,gpu=torch.cuda.get_device_name(0),
         dataset_manifest_sha256=object_sha(data),method_tests=checks['tests_run'],
         performance_gate=False,cross_server_barrier=False,real_native_forward=True)
-    atomic_json(camp(root,server) / 'preflight.json',receipt)
+    atomic_json(camp(root,server) / 'preflight_ablr2x.json',receipt)
     return receipt

@@ -1,7 +1,7 @@
 import copy
 import unittest
 
-from ablr2.plan import GRAPH, MAIN_CASES
+from ablr2.plan import GRAPH, MAIN_CASES, LEGACY_MAIN_CASES
 from ablr2.policy import (IMPROVEMENTS, calibrate_thresholds, choose_recipe, choose_recipes,
     choose_relation, classify_relation, flow_dashboard, paired_deltas, recheck_outcome, screen_candidate)
 
@@ -19,6 +19,15 @@ def thresholds():
 
 
 class PolicyTests(unittest.TestCase):
+    def test_c17_cannot_change_frozen_legacy_thresholds_or_open_diagnostic_queue(self):
+        legacy=[{case:metric(.80+.001*k*i,2+.05*k*i) for i,case in enumerate(LEGACY_MAIN_CASES)} for k in range(5)]
+        extended=[dict(panel,C17=metric(.999 if k%2 else .1,100 if k%2 else .01)) for k,panel in enumerate(legacy)]
+        self.assertEqual(calibrate_thresholds('GF2',legacy),calibrate_thresholds('GF2',extended))
+        self.assertEqual(calibrate_thresholds('GF2',extended)['relation_count'],17)
+        reports={'A17_SCRATCH':dict(classification='REVERSAL'),'A17':dict(classification='NEAR_ZERO')}
+        self.assertEqual(choose_relation(reports),'A17')
+        self.assertIsNone(choose_relation(reports,('A17',)))
+
     def test_pilot_requires_exact_complete_five_by_seventeen(self):
         panels = [{case: metric() for case in MAIN_CASES} for _ in range(5)]
         actual = calibrate_thresholds('WV3', panels)

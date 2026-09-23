@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from ablr2 import controller as ctl
 from ablr2.common import camp, read_json, run_dir, RuntimePaused
-from ablr2.plan import CASES, GRAPH, cases_for, case_for, full_wave, object_sha
+from ablr2.plan import CASES, GRAPH, LEGACY_BOOT_CASES, cases_for, case_for, full_wave, object_sha, CAMPAIGN_ID
 
 
 def thresholds(sensor='WV3'):
@@ -47,16 +47,20 @@ class ControllerTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.source_patch = patch.object(ctl, 'verify_sources', return_value={})
         self.source_patch.start(); self.addCleanup(self.source_patch.stop)
+        self.extension_source_patch=patch.object(ctl,'verify_extension_sources',return_value={})
+        self.extension_source_patch.start();self.addCleanup(self.extension_source_patch.stop)
         self.no_command = patch.object(ctl, '_command', side_effect=AssertionError('No real worker in orchestration tests'))
         self.command = self.no_command.start(); self.addCleanup(self.no_command.stop)
         self.cumulative_patch = patch('ablr2.analysis.cumulative_balanced_reports', return_value={'mock': True})
         self.cumulative_patch.start(); self.addCleanup(self.cumulative_patch.stop)
+        self.block_resources_patch=patch('ablr2.resources.assess_block',return_value={'allowed':True})
+        self.block_resources_patch.start();self.addCleanup(self.block_resources_patch.stop)
 
     def build(self, server='s1'):
         ctl.build(self.root, server)
         return ctl._state(self.root, server)
 
-    def test_build_only_registers_exact_ninety_five_without_lease_or_launch(self):
+    def test_build_only_registers_exact_hundred_without_lease_or_launch(self):
         report = ctl.build(self.root, 's1')
         self.assertFalse(report['activated'])
         self.assertFalse(report['lease_created'])
@@ -66,8 +70,8 @@ class ControllerTests(unittest.TestCase):
         self.assertFalse((folder/'registration.json').exists())
         state = ctl._state(self.root, 's1')
         self.assertEqual(state['active_stage'], 'BOOT5')
-        self.assertEqual(len(state['stages'][0]['run_ids']), 95)
-        self.assertEqual(len(read_json(folder/'cases.json')['cases']), 95)
+        self.assertEqual(len(state['stages'][0]['run_ids']), 100)
+        self.assertEqual(len(read_json(folder/'cases.json')['cases']), 100)
         self.assertEqual(len(read_json(folder/'seed_ledger.json')), 10)
         self.command.assert_not_called()
 
@@ -82,6 +86,36 @@ class ControllerTests(unittest.TestCase):
         self.assertEqual((camp(self.root,'s1')/'state.json').read_bytes(),original)
         self.assertEqual((camp(self.root,'s1')/'task_ledger.jsonl').read_bytes(),ledger)
 
+    def test_build_preserves_actual_old95_stage_and_adds_only_five_c17_debts(self):
+        folder=camp(self.root,'s1');old=tuple(c for c in LEGACY_BOOT_CASES if c.server_id=='s1')
+        stage=dict(stage_id='BOOT5',kind='BOOT5',run_ids=[c.run_id for c in old],complete=False,recipe_id='R00',recipe_revision='r000')
+        original_state=dict(campaign_id=CAMPAIGN_ID,server='s1',sensor='WV3',status='PAUSED_SAFE',
+            incumbent='R00',recipe_revision='r000',cycle=7,active_stage='BOOT5',stages=[stage],
+            runs={old[0].run_id:{'complete':True,'train_hours':2.4}},observations=[{'hours':12.5}],
+            rechecked={},tried_recipes=[],verification_recipes=[],low_information_cycles=1)
+        ctl.atomic_json(folder/'state.json',original_state)
+        ctl.atomic_json(folder/'cases.json',dict(cases={c.run_id:asdict(c) for c in old}))
+        ctl.atomic_json(folder/'stages/BOOT5.json',dict(stage_id='BOOT5',kind='BOOT5',cases=[asdict(c) for c in old]))
+        seeds=[]
+        for case in old:
+            key=f'BOOT5|s1|{case.sweep}|{case.role}'
+            if not any(r['key']==key for r in seeds):seeds.append(dict(key=key,seed=case.seed,phase='BOOT5',sensor='WV3',selection='AUTHOR_SUPPLIED_CSV'))
+        ctl.atomic_json(folder/'seed_ledger.json',seeds);ctl._sync_seed_log(folder,seeds)
+        ctl.atomic_json(folder/'thresholds_v1.json',thresholds())
+        preserved={name:(folder/name).read_bytes() for name in ('state.json','stages/BOOT5.json','seed_ledger.json','seed_ledger.jsonl','thresholds_v1.json')}
+        ctl.build(self.root,'s1')
+        for name,before in preserved.items():self.assertEqual((folder/name).read_bytes(),before,name)
+        registry=read_json(folder/'cases.json')['cases']
+        self.assertEqual(len(registry),100)
+        for case in old:self.assertEqual(registry[case.run_id],asdict(case))
+        debts=read_json(folder/'extension/debts.json')['debts']
+        self.assertEqual(len(debts),5);self.assertTrue(all('_C17_' in run for run in debts))
+        self.assertEqual(len(ctl._state(self.root,'s1')['stages'][0]['run_ids']),95)
+        before=(folder/'extension/task_ledger.jsonl').read_bytes()
+        ctl.build(self.root,'s1')
+        self.assertEqual((folder/'extension/task_ledger.jsonl').read_bytes(),before)
+        self.command.assert_not_called()
+
     def test_build_crash_before_state_publication_recovers_same_seed_panel(self):
         with patch.object(ctl,'_sync_seed_log',side_effect=OSError('simulated storage interruption')):
             with self.assertRaises(OSError): ctl.build(self.root,'s1')
@@ -90,7 +124,7 @@ class ControllerTests(unittest.TestCase):
         self.assertFalse((folder/'state.json').exists())
         ctl.build(self.root,'s1')
         self.assertEqual((folder/'seed_ledger.json').read_bytes(),seed_bytes)
-        self.assertEqual(len(read_json(folder/'cases.json')['cases']),95)
+        self.assertEqual(len(read_json(folder/'cases.json')['cases']),100)
         self.assertEqual(len((folder/'seed_ledger.jsonl').read_text().splitlines()),10)
 
     def test_partial_seed_jsonl_is_repaired_without_reallocation(self):
@@ -128,7 +162,11 @@ class ControllerTests(unittest.TestCase):
     def test_lane_build_does_not_touch_other_lanes(self):
         self.build('s1')
         self.assertFalse(camp(self.root,'s2').exists())
-        with self.assertRaises(ValueError): ctl.build(self.root,'s3')
+        self.assertFalse(camp(self.root,'s3').exists())
+        self.build('s3')
+        self.assertEqual(ctl._state(self.root,'s3')['sensor'],'GF2')
+        for server in ('s4','s5'):
+            with self.assertRaises(ValueError): ctl.build(self.root,server)
 
     def test_lease_requires_operator_and_renewal_preserves_origin_and_compute(self):
         state = self.build()
@@ -169,7 +207,7 @@ class ControllerTests(unittest.TestCase):
         events = (camp(self.root,'s1')/'task_ledger.jsonl').read_bytes()
         ctl._register_stage(self.root,'s1',state,cases,'W001','REFRESH5',recipe_id='R00')
         self.assertEqual(len(state['stages']),2)
-        self.assertEqual(len(read_json(camp(self.root,'s1')/'cases.json')['cases']),190)
+        self.assertEqual(len(read_json(camp(self.root,'s1')/'cases.json')['cases']),200)
         self.assertEqual((camp(self.root,'s1')/'task_ledger.jsonl').read_bytes(),events)
         self.assertEqual(case_for(cases[-1].run_id,self.root),cases[-1])
 
@@ -215,7 +253,7 @@ class ControllerTests(unittest.TestCase):
         self.assertEqual(state['tried_recipes'],['R01','R02'])
         refresh = state['stages'][-1]
         self.assertEqual(refresh['kind'],'REFRESH5')
-        self.assertEqual(len(refresh['run_ids']),95)
+        self.assertEqual(len(refresh['run_ids']),100)
         self.assertEqual({case_for(r,self.root).recipe_id for r in refresh['run_ids']},{'R01'})
         self.command.assert_not_called()
 
@@ -225,7 +263,7 @@ class ControllerTests(unittest.TestCase):
         ctl._schedule_fit(self.root,'s1',state,'D15')
         self.assertEqual(state['alert'],'PLATEAU_UNRESOLVED')
         self.assertEqual(state['stages'][-1]['kind'],'REFRESH5')
-        self.assertEqual(len(state['stages'][-1]['run_ids']),95)
+        self.assertEqual(len(state['stages'][-1]['run_ids']),100)
         self.assertEqual(state['incumbent'],'R00')
 
     def test_same_recipe_relation_cannot_be_rechecked_again(self):
@@ -262,7 +300,7 @@ class ControllerTests(unittest.TestCase):
         self.assertEqual(restarted['cycle'],1)
         self.assertEqual(len(restarted['stages']),2)
         self.assertEqual(read_json(folder/'seed_ledger.json'),seeds)
-        self.assertEqual(len(read_json(folder/'cases.json')['cases']),110)
+        self.assertEqual(len(read_json(folder/'cases.json')['cases']),115)
         self.assertEqual(len({r['key'] for r in seeds}),len(seeds))
 
     def test_technical_train_retry_must_resume_existing_fullstate(self):
@@ -318,19 +356,28 @@ class ControllerTests(unittest.TestCase):
             called.append(case)
             state['runs'][case.run_id]=dict(complete=True,status='COMPLETE')
             if len(called)==1:
-                # Mid-sweep operator request must preserve every remaining C00-C16.
+                # Mid-sweep operator request preserves C00-C17, including the overlay.
                 ctl.control(root,server,'STOP_AFTER_SWEEP')
+        def ready(root,server,state):
+            result=[]
+            for c17 in (c for c in cases_for(server) if c.case_id=='C17'):
+                anchor=case_for(c17.run_id.replace('_C17_','_C03_'),root)
+                if state['runs'].get(anchor.run_id,{}).get('complete') and not state['runs'].get(c17.run_id,{}).get('complete'):
+                    result.append((c17,anchor))
+            return result
         with patch.object(ctl,'verify_registration',return_value={}), \
              patch.object(ctl,'_lease',return_value=lease), \
              patch.object(ctl,'_command',return_value=(0,0.)), \
              patch.object(ctl,'_run_case',side_effect=fake_run), \
+             patch('ablr2.extension.ready_debts',side_effect=ready), \
+             patch('ablr2.extension.prepare_anchor',side_effect=lambda c,root:case_for(c.run_id.replace('_C17_','_C03_'),root)), \
              patch('ablr2.resources.idle_evidence',return_value={'idle':True}), \
              patch('ablr2.resources.assess_case',return_value={'allowed':True}):
             code=ctl.run(self.root,'s1',upload=False)
         self.assertEqual(code,75)
-        self.assertEqual(len(called),19)
+        self.assertEqual(len(called),20)
         self.assertEqual({case.sweep for case in called},{'P01'})
-        self.assertEqual({case.case_id for case in called},set(('TPLUS','TZERO'))|{f'C{k:02}' for k in range(17)})
+        self.assertEqual({case.case_id for case in called},set(('TPLUS','TZERO'))|{f'C{k:02}' for k in range(18)})
         state=ctl._state(self.root,'s1')
         self.assertEqual(state['status'],'PAUSED_SAFE')
         self.assertFalse(state['stages'][0]['complete'])
@@ -350,6 +397,24 @@ class ControllerTests(unittest.TestCase):
         state=ctl._state(self.root,'s1')
         self.assertEqual(state['stages'][0]['run_ids'],expected)
         self.assertIn('LEASE_ADMISSION_RESERVE',state['reason'])
+
+    def test_until_stop_authorization_has_no_time_reservation_but_obeys_operator_stop(self):
+        self.build('s3');called=[]
+        authorization=dict(sequence=1,expires_utc=None,service_mode='UNTIL_OPERATOR_STOP')
+        def work(root,server,state,case,upload):
+            called.append(case);state['runs'][case.run_id]=dict(complete=True)
+            ctl.control(root,server,'STOP_AFTER_RUN')
+        with patch.object(ctl,'verify_registration',return_value={}), \
+             patch.object(ctl,'_lease',return_value=authorization), \
+             patch.object(ctl,'_command',return_value=(0,0.)), \
+             patch.object(ctl,'_run_case',side_effect=work), \
+             patch('ablr2.resources.idle_evidence',return_value={'idle':True}), \
+             patch('ablr2.resources.assess_case',return_value={'allowed':True}):
+            self.assertEqual(ctl.run(self.root,'s3',upload=False),75)
+        self.assertEqual(len(called),1);self.assertEqual(called[0].sensor,'GF2')
+        state=ctl._state(self.root,'s3')
+        self.assertEqual(state['reason'],'STOP_AFTER_RUN')
+        self.assertFalse(camp(self.root,'s1').exists());self.assertFalse(camp(self.root,'s2').exists())
 
     def test_verify_returns_to_saved_dev_stage_without_replacing_incumbent_panel(self):
         state=self.build()
@@ -394,7 +459,7 @@ class ControllerTests(unittest.TestCase):
         self.assertEqual(state['recipe_revision'],'r001')
         self.assertEqual(state['verification_recipes'],['r000'])
         verify=state['stages'][-1]
-        self.assertEqual(len(verify['run_ids']),95)
+        self.assertEqual(len(verify['run_ids']),100)
         self.assertEqual({case_for(run,self.root).recipe_id for run in verify['run_ids']},{'R00'})
         self.assertEqual(read_json(folder/'seed_ledger.json'),seeds)
         self.assertEqual(len(state['stages']),3)

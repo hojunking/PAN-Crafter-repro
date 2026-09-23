@@ -35,8 +35,8 @@ def camp(root, server):
 
 
 def run_dir(run, root=ROOT):
-    match = re.fullmatch(r'ABLR2_(WV3|QB)_(s1|s2)_[A-Za-z0-9_]+', run)
-    if not match or (match[1], match[2]) not in (('WV3', 's1'), ('QB', 's2')):
+    match = re.fullmatch(r'ABLR2_(WV3|QB|GF2)_(s1|s2|s3)_[A-Za-z0-9_]+', run)
+    if not match or (match[1], match[2]) not in (('WV3', 's1'), ('QB', 's2'), ('GF2','s3')):
         raise ValueError('Unsafe or cross-lane ABLR2 run identifier')
     return camp(root, match[2]) / 'runs' / run
 
@@ -59,9 +59,10 @@ def immutable_json(path, value):
 
 
 def append_event(path, event, **details):
-    row = {**details, 'campaign_id':CAMPAIGN_ID, 'event':event,
+    path=Path(path)
+    lane=next((p.name for p in path.parents if p.name in ('s1','s2','s3') and p.parent.name in ('WV3','QB','GF2')),None)
+    row = {**details, 'campaign_id':campaign_id(lane) if lane else CAMPAIGN_ID, 'event':event,
            'at_utc':details.get('at_utc',utcnow())}
-    path = Path(path)
     with locked(path.with_suffix('.lock')):
         with path.open('a') as stream:
             stream.write(json.dumps(row, sort_keys=True, allow_nan=False) + '\n')
@@ -90,12 +91,17 @@ def source_identity(root=ROOT):
     import torch
     root = Path(root)
     result = base(root)
-    from ablr2.plan import SOURCE_SHAS
+    from ablr2.plan import SOURCE_SHAS,source_path,EXTENSION_SHAS,EXTENSION_BUNDLE
     paths = sorted((root / 'ablr2').glob('*.py')) + sorted((root / 'tools').glob('ablr2_*'))
-    paths += [root / name for name in SOURCE_SHAS]
+    # Original SHA-pinned documents may have moved to the approved archive.
+    # Preserve physical path provenance; never skip a missing required source.
+    paths += [source_path(name,root) for name in SOURCE_SHAS]
+    paths += [root/name for name in EXTENSION_SHAS]
+    paths += [root/EXTENSION_BUNDLE/'SHA256SUMS.txt']
     paths += [root / 'ablr2/runtime_policy.json', root / 'ablr2/sensor_sources.json']
     paths += [root / 'reporting_extra/sensor_sheet.py', root / 'reporting_extra/sensor_layout.py',
-              root / 'reporting_extra/sensor_backfill.py', root / 'gspread/gspread_upload.py']
+              root / 'reporting_extra/sensor_backfill.py', root / 'gspread/gspread_upload.py',
+              root / 'gspread/sheet_categories.py', root / 'model/se.py']
     for path in paths:
         if path.is_file() and not path.name.startswith('test_'):
             result['files'][str(path.relative_to(root))] = sha256(path)
@@ -106,6 +112,79 @@ def source_identity(root=ROOT):
         cudnn_deterministic=bool(torch.backends.cudnn.deterministic),
         deterministic_algorithms=torch.are_deterministic_algorithms_enabled())
     return result
+
+
+def campaign_id(server):
+    from ablr2.plan import campaign_id as resolve
+    return resolve(server)
+
+
+def grant_until_stop(root,server,*,operator_authorized=False,now=None):
+    """Explicit new authorization; neither extend nor replace an original lease."""
+    from ablr2.plan import verify_lane,EXTENSION_ID
+    sensor=verify_lane(server)
+    if operator_authorized is not True:raise PermissionError('Explicit UNTIL_OPERATOR_STOP authorization required')
+    current=dt.datetime.fromisoformat(now or utcnow())
+    if current.tzinfo is None:raise ValueError('Authorization timestamp requires timezone')
+    folder=camp(root,server)
+    source=source_identity(root)
+    with locked(folder/'authorization.lock'):
+        previous=read(folder/'authorization.json')
+        if previous and (previous.get('server')!=server or previous.get('campaign_id')!=campaign_id(server)):
+            raise ValueError('Existing authorization belongs to another lane')
+        if (previous.get('service_mode')=='UNTIL_OPERATOR_STOP' and previous.get('source_identity')==source
+                and previous.get('revoked') is False):return previous
+        old_lease=read(folder/'lease.json')
+        value=dict(schema='ABLR2X_OPERATOR_AUTHORIZATION_v1',extension_id=EXTENSION_ID,
+            campaign_id=campaign_id(server),server=server,sensor=sensor,service_mode='UNTIL_OPERATOR_STOP',
+            granted_at_utc=current.isoformat(),first_granted_at_utc=previous.get('first_granted_at_utc',current.isoformat()),
+            sequence=previous.get('sequence',0)+1,expires_utc=None,max_campaign_cycles=None,
+            operator_action=True,automatic_renewal=False,revoked=False,source_identity=source,
+            scope='New ABLR2X jobs only; original admitted runs retain original source/lease',
+            previous_authorization_sha256=object_sha(previous) if previous else None,
+            original_lease=old_lease or None,original_lease_sha256=object_sha(old_lease) if old_lease else None)
+        immutable_json(folder/'authorizations'/f'{value["sequence"]:06}.json',value)
+        atomic_json(folder/'authorization.json',value)
+        append_event(folder/'authorization_ledger.jsonl','OPERATOR_UNTIL_STOP',authorization=value)
+        return value
+
+
+def authorization_context(root,server):
+    """No automatic grant, renewal, control reset, or finite→continuous conversion."""
+    from ablr2.plan import verify_lane,EXTENSION_ID
+    sensor=verify_lane(server);folder=camp(root,server)
+    authorization=read(folder/'authorization.json')
+    if authorization:
+        if (authorization.get('schema')!='ABLR2X_OPERATOR_AUTHORIZATION_v1'
+                or authorization.get('extension_id')!=EXTENSION_ID
+                or authorization.get('campaign_id')!=campaign_id(server)
+                or authorization.get('server')!=server or authorization.get('sensor')!=sensor
+                or authorization.get('service_mode')!='UNTIL_OPERATOR_STOP'
+                or authorization.get('operator_action') is not True
+                or authorization.get('automatic_renewal') is not False
+                or authorization.get('expires_utc') is not None
+                or authorization.get('max_campaign_cycles') is not None
+                or authorization.get('revoked') is not False):
+            raise RuntimePaused('WAIT_AUTHORIZATION: invalid or revoked until-stop receipt')
+        history=read(folder/'authorizations'/f'{authorization["sequence"]:06}.json')
+        if history!=authorization:raise RuntimePaused('WAIT_AUTHORIZATION: immutable receipt differs')
+        registered=read(folder/'registration_ablr2x.json')
+        if registered and registered.get('source_identity')!=authorization.get('source_identity'):
+            raise RuntimePaused('WAIT_AUTHORIZATION: execution source requires explicit new authorization')
+        return authorization,None
+    lease=read(folder/'lease.json')
+    if (lease.get('campaign_id')!=campaign_id(server) or lease.get('server')!=server
+            or lease.get('sensor')!=sensor or not lease.get('expires_utc')
+            or not before_deadline(lease['expires_utc'])):
+        raise RuntimePaused('WAIT_LEASE: explicit finite lease or until-stop authorization required')
+    return lease,lease['expires_utc']
+
+
+def assert_compatible_source(origin,consumer,root,server):
+    """A release change requires measured, source-bound parity, not hash exclusions."""
+    if origin==consumer:return None
+    from ablr2.migration import validate_source_bridge
+    return validate_source_bridge(root,server,origin,consumer)
 
 
 def numerical_compatibility(origin, consumer):
@@ -147,16 +226,11 @@ class RuntimePaused(RuntimeError):
 def runtime_context(cfg, root=ROOT, deadline_arg=None, resume=False):
     from ablr2.plan import validate_config
     case = validate_config(cfg)
-    lease = read(camp(root, case.server_id) / 'lease.json')
-    if (lease.get('campaign_id') != CAMPAIGN_ID or lease.get('server') != case.server_id
-            or lease.get('sensor') != case.sensor or not lease.get('expires_utc')
-            or not before_deadline(lease['expires_utc'])):
-        raise RuntimePaused('WAIT_LEASE: operator must grant/renew the local lease')
-    deadline = lease['expires_utc']
+    lease,deadline = authorization_context(root,case.server_id)
     if deadline_arg:
         a = dt.datetime.fromisoformat(str(deadline_arg).replace('Z', '+00:00'))
-        b = dt.datetime.fromisoformat(deadline.replace('Z', '+00:00'))
-        deadline = min(a, b).isoformat()
+        if a.tzinfo is None:raise ValueError('Deadline needs explicit timezone')
+        deadline=min(a,dt.datetime.fromisoformat(deadline.replace('Z','+00:00'))).isoformat() if deadline else a.isoformat()
     return lease, deadline
 
 

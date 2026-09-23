@@ -1,0 +1,17 @@
+{
+  "status": "PASS_DESIGN_VALIDATION_ONLY",
+  "first_five_reference_rows": 300,
+  "preserved_legacy_rows": 190,
+  "s1_s2_append_rows": 10,
+  "s3_new_rows": 100,
+  "unique_run_ids": 300,
+  "student_configurations": 18,
+  "comparison_relations": 19,
+  "auto_recheck_relations": 18,
+  "server_count": 3,
+  "train_launched": false,
+  "remote_queue_written": false,
+  "gpu_tested": false,
+  "unit_tests_passed": 18,
+  "test_scope": "Design manifest only; no GPU, no remote launcher or numerical parity test"
+}

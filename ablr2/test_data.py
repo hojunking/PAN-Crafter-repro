@@ -15,7 +15,7 @@ from fh12.data import RECIPE,AUGMENTATION,canonical_sha
 
 class DatasetTests(unittest.TestCase):
     def test_parent_constructor_and_native_fixed_views_c4_c8(self):
-        for sensor,bands,order in (('QB',4,('B','G','R','NIR')),
+        for sensor,bands,order in (('QB',4,('B','G','R','NIR')),('GF2',4,('B','G','R','NIR')),
                                   ('WV3',8,('Coastal','B','G','Y','R','RE','NIR1','NIR2'))):
             with tempfile.TemporaryDirectory() as directory:
                 source,lp=Path(directory)/'source.h5',Path(directory)/'lp.h5'
@@ -24,12 +24,14 @@ class DatasetTests(unittest.TestCase):
                     out['pan']=pan;out['ms']=np.ones((2,bands,4,4),np.float32)*100
                     out['lms']=np.ones((2,bands,16,16),np.float32)*200
                     out['gt']=np.ones((2,bands,16,16),np.float32)*300
-                with h5py.File(lp,'w') as out:out['lpan']=pan[:,:,2::4,2::4]
+                with h5py.File(lp,'w') as out:
+                    out['lpan']=pan[:,:,2::4,2::4]
+                    out.attrs['source_sha256']=sha256(source);out.attrs['recipe_sha256']=canonical_sha(RECIPE)
                 dataset=ABLR2Dataset(source,lp,spec=SensorSpec(sensor,order),split='train')
                 self.assertEqual(len(dataset),2)
                 self.assertEqual(dataset.bands,bands)
                 base=dataset.base(1)
-                self.assertTrue(torch.equal(base[4],torch.from_numpy(pan[1])* (2/2047)-1))
+                self.assertTrue(torch.equal(base[4],torch.from_numpy(pan[1])* (2/dataset.spec.max_dn)-1))
                 self.assertEqual(base[-1].tolist(),[1,0,0,0])
                 actual=dataset[(1,2)]
                 self.assertEqual(actual[-1].tolist(),[1,2,1,1])
@@ -74,14 +76,14 @@ class PreparationTests(unittest.TestCase):
                 target=prepare_data(root,'s2',manifest_path=external)
                 self.assertEqual(scan.call_count,4);self.assertEqual(lp.call_count,4);self.assertEqual(qb.call_count,2)
                 self.assertEqual(read_json(target),data)
-                proof=read_json(camp(root,'s2')/'data_verification.json')
+                proof=read_json(camp(root,'s2')/'data_verification_ablr2x.json')
                 self.assertEqual(proof['dataset_manifest_sha256'],canonical_sha(data))
                 self.assertTrue(proof['raw_qb_msfix_verified'])
                 # Only the exact locally published receipt enables reuse.
                 prepare_data(root,'s2')
                 self.assertEqual(lp.call_count,4);self.assertEqual(qb.call_count,2)
                 proof['dataset_manifest_sha256']='f'*64
-                atomic_json(camp(root,'s2')/'data_verification.json',proof)
+                atomic_json(camp(root,'s2')/'data_verification_ablr2x.json',proof)
                 prepare_data(root,'s2')
                 self.assertEqual(lp.call_count,8);self.assertEqual(qb.call_count,4)
 

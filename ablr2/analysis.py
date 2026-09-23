@@ -13,10 +13,18 @@ from statistics import mean, median, stdev
 
 from fh12.common import ROOT, read_json, object_sha, sha256
 from ablr2.common import immutable_json
-from ablr2.plan import MAIN_CASES, COMPARISON_GRAPH, CAMPAIGN_ID, GRAPH
+from ablr2.plan import (MAIN_CASES, LEGACY_MAIN_CASES, COMPARISON_GRAPH,
+                       LEGACY_COMPARISON_GRAPH, CAMPAIGN_ID, GRAPH, campaign_id)
 from ablr2.postrun import (find_config, _case, _workdir, validate_grid, verify_fullstate,
                            select_records, selection_report, SELECTIONS)
 from ablr2 import policy
+
+
+def _observed_source(row):
+    value=row.get('analysis_source_identity',row['source_identity'])
+    if value!=row['source_identity'] and not row.get('source_bridge_sha256'):
+        raise ValueError('PAIRING_NOT_VERIFIED: changed numerical source has no verified bridge')
+    return value
 
 
 def _metrics(report):
@@ -103,11 +111,17 @@ def case_report(case, root=ROOT, _seen=None):
             for k in ('config_sha256', 'data_sha256', 'source_identity', 'reference_sha256'))
             or not started.get('sampler_hash') or not initial.get('hashes', {}).get('U')):
         raise ValueError('Initial weights / common sample stream proof missing or changed')
+    from ablr2.common import assert_compatible_source, source_identity
+    consumer=source_identity(root)
+    bridge=assert_compatible_source(grid['source_identity'],consumer,root,case.server_id)
     return dict(run_id=case.run_id, case_id=case.case_id, sensor=case.sensor, server=case.server_id,
                 phase=case.phase, wave=case.wave, sweep=case.sweep, recipe_id=case.recipe_id,
                 recipe_revision=case.recipe_revision, teacher_seed=case.teacher_seed, student_seed=case.student_seed,
                 reference_id=case.reference_id, reference_sha256=grid['reference_sha256'],
                 source_identity=grid['source_identity'], data_sha256=grid['data_sha256'],
+                analysis_source_identity=consumer,source_bridge_sha256=bridge.get('receipt_sha256') if bridge else None,
+                teacher_run_id=reference.get('teacher_run_id') if reference else None,
+                teacher_kind=case.teacher_kind,
                 config_sha256=object_sha(cfg), VAL=_metrics(reports['RR_VAL_SELECTED']),
                 init_U_sha256=initial['hashes']['U'], init_A_sha256=initial['hashes']['A'],
                 sampler_sha256=started['sampler_hash'], rng_roles=started['rng_roles'],
@@ -119,11 +133,17 @@ def case_report(case, root=ROOT, _seen=None):
                 independent_observation_run_id=case.run_id, reused=False, new_independent_observation=True)
 
 
-def assemble_wave(cases, observations, thresholds=None):
+def assemble_wave(cases, observations, thresholds=None, a17_anchors=None):
     """Pure panel assembly; observations must come from case_report at runtime."""
     cases = tuple(cases)
-    if len(cases) != 95 or len({c.run_id for c in cases}) != 95:
-        raise ValueError('PILOT_INCOMPLETE: full wave is 5 x (2 Teachers + 17 Students)')
+    case_ids={c.case_id for c in cases if c.role=='S'}
+    if case_ids not in (set(LEGACY_MAIN_CASES),set(MAIN_CASES)):
+        raise ValueError('PILOT_INCOMPLETE: expected complete legacy17 or extended18 coverage')
+    component_cases=MAIN_CASES if case_ids==set(MAIN_CASES) else LEGACY_MAIN_CASES
+    extended=len(component_cases)==18
+    expected=5*(2+len(component_cases))
+    if len(cases) != expected or len({c.run_id for c in cases}) != expected:
+        raise ValueError('PILOT_INCOMPLETE: full wave requires five matched complete sweeps')
     contexts = {(c.sensor, c.server_id, c.phase, c.wave, c.recipe_id, c.recipe_revision) for c in cases}
     if len(contexts) != 1:
         raise ValueError('Full panels cannot mix sensor/server/phase/wave/recipe revisions')
@@ -132,29 +152,41 @@ def assemble_wave(cases, observations, thresholds=None):
         raise ValueError('Targeted rechecks/fitting cannot enter balanced complete-panel means')
     if set(observations) != {c.run_id for c in cases}:
         raise ValueError('PILOT_INCOMPLETE: every preregistered observation is required')
-    if len({object_sha(r['source_identity']) for r in observations.values()}) != 1 or len({r['data_sha256'] for r in observations.values()}) != 1:
+    if len({object_sha(_observed_source(r)) for r in observations.values()}) != 1 or len({r['data_sha256'] for r in observations.values()}) != 1:
         raise ValueError('Balanced panel cannot mix numerical/source/data identities')
     sweeps = sorted({c.sweep for c in cases})
     if len(sweeps) != 5:
         raise ValueError('PILOT_INCOMPLETE: five complete sweeps are required')
+    if a17_anchors is not None and (not extended or set(a17_anchors)!=set(sweeps)):
+        raise ValueError('A17 requires one verified anchor per extended sweep')
     panels, exact_panels, rows = [], [], []
     for sweep in sweeps:
         group = [c for c in cases if c.sweep == sweep]
         students = [c for c in group if c.role == 'S']
         teachers = [c for c in group if c.role == 'T']
-        if (len(students) != 17 or {c.case_id for c in students} != set(MAIN_CASES)
+        if (len(students) != len(component_cases) or {c.case_id for c in students} != set(component_cases)
                 or len(teachers) != 2 or {c.case_id for c in teachers} != {'TPLUS', 'TZERO'}
                 or len({c.student_seed for c in students}) != 1 or len({c.teacher_seed for c in teachers}) != 1
                 or len({c.paired_init_group for c in students}) != 1):
             raise ValueError('Sweep is missing a component or matched seed/initialization')
         by_ref = {c.reference_id: c for c in teachers}
-        for members in (students, teachers):
+        core_students=[c for c in students if c.case_id!='C17'] if a17_anchors else students
+        for members in (core_students, teachers):
             proofs = [observations[c.run_id] for c in members]
             for key in ('init_U_sha256', 'sampler_sha256', 'rng_roles'):
                 if len({object_sha(r[key]) for r in proofs}) != 1:
                     raise ValueError('Matched initialization/sample-view stream proof differs: ' + key)
         if len({observations[c.run_id]['init_A_sha256'] for c in teachers}) != 1:
             raise ValueError('TPLUS/TZERO did not begin from matched A weights')
+        if a17_anchors:
+            anchor=a17_anchors[sweep]
+            c17=observations[next(c.run_id for c in students if c.case_id=='C17')]
+            if (anchor.get('case_id')!='C03' or anchor.get('sensor')!=sensor
+                    or anchor.get('data_sha256')!=c17['data_sha256']
+                    or _observed_source(anchor)!=_observed_source(c17)):
+                raise ValueError('PAIRING_NOT_VERIFIED: A17 anchor identity differs')
+            if any(anchor[key]!=c17[key] for key in ('init_U_sha256','sampler_sha256','rng_roles')):
+                raise ValueError('PAIRING_NOT_VERIFIED: C17 and anchor initial U/native stream differ')
         panel, exact = {}, {}
         for case in students:
             if case.requires_teacher and (case.reference_id not in by_ref or case.teacher_seed != by_ref[case.reference_id].teacher_seed):
@@ -174,22 +206,40 @@ def assemble_wave(cases, observations, thresholds=None):
     if thresholds.get('sensor') != sensor:
         raise ValueError('Another sensor threshold revision cannot be borrowed')
     relations = {}
-    for relation in COMPARISON_GRAPH:
+    for relation in (COMPARISON_GRAPH if extended else LEGACY_COMPARISON_GRAPH):
         parent, child = relation['parent'], relation['child']
         pairs = [dict(parent=p[parent], child=p[child]) for p in panels]
         exact_pairs = [dict(parent=p[parent], child=p[child]) for p in exact_panels]
+        if relation['relation_id']=='A17' and a17_anchors:
+            pairs=[dict(parent=p['C17'],child=a17_anchors[sweep]['VAL']) for p,sweep in zip(panels,sweeps)]
+            exact_pairs=[dict(parent=p['C17'],child=a17_anchors[sweep]['EXACT50K']) for p,sweep in zip(exact_panels,sweeps)]
         relations[relation['relation_id']] = policy.classify_relation(pairs, thresholds, exact_pairs)
+        if relation['relation_id']=='A17_SCRATCH' and a17_anchors:
+            for sweep in sweeps:
+                points={r['case_id']:r for r in rows if r.get('sweep',sweep)==sweep and r['case_id'] in ('C02','C17')}
+                # Runtime rows always carry sweep; synthetic callers should too
+                # when requesting explicit A17 repair anchors.
+                if set(points)!= {'C02','C17'} or any(points['C02'][k]!=points['C17'][k] for k in ('init_U_sha256','sampler_sha256','rng_roles')):
+                    relations[relation['relation_id']]=dict(classification='INCOMPLETE',reason='PAIRING_NOT_VERIFIED',valid=False,n=0,flags=[])
+                    break
+        if not policy.queue_enabled(relation):
+            relations[relation['relation_id']].update(diagnostic_only=True,queue_enabled=False)
     stats = {}
-    for case_id in MAIN_CASES:
+    for case_id in component_cases:
         values = [panel[case_id] for panel in panels]
         common_keys = set.intersection(*(set(v) for v in values))
         stats[case_id] = {k: dict(mean=mean(v[k] for v in values), sample_sd=stdev(v[k] for v in values),
                                   median=median(v[k] for v in values), per_sweep=[v[k] for v in values]) for k in sorted(common_keys)}
-    return dict(schema='ABLR2_BALANCED_PANEL_v1', campaign_id=CAMPAIGN_ID, sensor=sensor, server=server,
+    return dict(schema='ABLR2_BALANCED_PANEL_v2' if extended else 'ABLR2_BALANCED_PANEL_v1', campaign_id=campaign_id(sensor), sensor=sensor, server=server,
                 phase=phase, wave=wave, recipe_id=recipe, recipe_revision=revision,
-                complete=True, sweep_count=5, teacher_runs=10, student_runs=85, panelrows=rows,
+                complete=True, sweep_count=5, teacher_runs=10, student_runs=5*len(component_cases), panelrows=rows,
+                coverage='EXTENDED18' if extended else 'LEGACY_CORE17',legacy_core17_complete=True,
+                extended18_complete=extended,component_cases=list(component_cases),
+                c17_status='COMPLETE' if extended else 'PENDING_NOT_IN_LEGACY_PANEL',
+                a17_status='FIVE_VERIFIED_PAIRS' if extended else 'WAITING_FIVE_VERIFIED_PAIRS',
+                a17_anchor_rows=list(a17_anchors.values()) if a17_anchors else [],repair_anchors_counted_as_components=False,
                 thresholds=thresholds, relations=relations, case_statistics=stats,
-                flow=policy.flow_dashboard(relations), source_identity=next(iter(observations.values()))['source_identity'],
+                flow=policy.flow_dashboard(relations), source_identity=_observed_source(next(iter(observations.values()))),
                 data_sha256=next(iter(observations.values()))['data_sha256'],
                 repeats_definition='Teacher5 x Student1; scenes are not independent training seeds',
                 development_mode='TEST_AWARE_DEV', independent_test=False,
@@ -200,17 +250,89 @@ def analyze_wave(cases, thresholds=None, root=ROOT):
     from ablr2.common import camp
     cases = tuple(cases)
     observations = {case.run_id: case_report(case, root) for case in cases}
-    report = assemble_wave(cases, observations, thresholds)
+    anchors={}
+    for c17 in (c for c in cases if c.case_id=='C17'):
+        from ablr2.extension import paired_anchor_for
+        from ablr2.references import validate_teacher_pair
+        anchor_case=paired_anchor_for(c17,root)
+        anchor=observations.get(anchor_case.run_id) or case_report(anchor_case,root)
+        zero=observations[c17.run_id]
+        proof=validate_teacher_pair(anchor['teacher_run_id'],zero['teacher_run_id'],root=root)
+        if not proof.get('passed'):raise ValueError('PAIRING_NOT_VERIFIED: Teacher pair validation failed')
+        anchors[c17.sweep]=dict(anchor,teacher_pair_proof=proof)
+    report = assemble_wave(cases, observations, thresholds, a17_anchors=anchors or None)
     destination = camp(root, report['server']) / 'reports' / report['recipe_revision'] / report['phase'] / report['wave']
+    if report['extended18_complete']:destination=destination/'extended18'
     if thresholds is None:
         immutable_json(camp(root, report['server']) / 'thresholds_v1.json', report['thresholds'])
     path = destination / 'complete_panel_metrics.json'
+    if not report['extended18_complete'] and path.is_file() and read_json(path)!=report:
+        # Preserve original pre-extension reports byte-for-byte. A new explicit
+        # parity bridge gives a new verification-derived view, not permission
+        # to replace a historical legacy95 observation/report.
+        source=report['source_identity'].get('content_sha256','')
+        if len(source)!=64 or any(c not in '0123456789abcdef' for c in source):source=object_sha(report['source_identity'])
+        destination=destination/'verified_extension'/source
+        path=destination/'complete_panel_metrics.json'
     immutable_json(path, report)
     write_panel_csv(destination / 'complete_panel_metrics.csv', report)
     from ablr2.plots import render_wave
     render_wave(report, destination / 'figs')
     result = dict(report, report_path=str(path))
     return result
+
+
+def refresh_extended_reports(root,server,state):
+    """Supplement already finished legacy95 panels after their C17 debts clear.
+
+    No controller cursor, decision, old report, threshold, or run status changes.
+    The caller decides whether an A17 result belongs to its current recipe.
+    """
+    from ablr2.common import camp,read,atomic_json,source_identity
+    from ablr2.extension import stage_cases
+    from ablr2.plan import verify_lane
+    verify_lane(server)
+    if state.get('server')!=server:raise ValueError('Cross-lane supplemental analysis state')
+    folder=camp(root,server);thresholds=read(folder/'thresholds_v1.json');results={}
+    for stage in state.get('stages',[]):
+        if stage.get('kind') not in ('BOOT5','REFRESH5','VERIFY5') or not stage.get('complete'):continue
+        name=stage['stage_id']
+        if Path(name).name!=name or name in ('.','..'):raise ValueError('Unsafe supplemental stage identity')
+        status_path=folder/'reports/extended18_status'/(name+'.json')
+        try:
+            cases=tuple(stage_cases(root,server,stage,state=state))
+            done=state.get('runs',{})
+            core=all(done.get(c.run_id,{}).get('complete') for c in cases if c.case_id!='C17')
+            c17=[c for c in cases if c.case_id=='C17']
+            complete=len(cases)==100 and len(c17)==5 and all(done.get(c.run_id,{}).get('complete') for c in cases)
+            status=dict(stage_id=name,legacy_core17_complete=core,extended18_complete=False,
+                status='WAIT_C17_COVERAGE',completed_c17=sum(bool(done.get(c.run_id,{}).get('complete')) for c in c17),
+                controller_state_mutated=False,legacy_report_replaced=False)
+            if complete and thresholds:
+                identity=dict(cases_sha256=object_sha([asdict(c) for c in cases]),
+                    thresholds_sha256=object_sha(thresholds),source_identity=source_identity(root))
+                previous=read(status_path)
+                if previous.get('status')=='COMPLETE' and previous.get('identity')==identity:
+                    path=Path(previous['report_path'])
+                    if not path.is_file() or sha256(path)!=previous['report_sha256']:
+                        raise ValueError('Supplemental report changed after publication')
+                    report=read_json(path)
+                else:
+                    report=analyze_wave(cases,thresholds=thresholds,root=root)
+                    path=Path(report['report_path'])
+                if report.get('extended18_complete') is not True or report.get('student_runs')!=90:
+                    raise ValueError('Supplemental analysis is not actual complete18 coverage')
+                status.update(status='COMPLETE',extended18_complete=True,report_path=str(path),
+                    report_sha256=sha256(path),identity=identity)
+                atomic_json(status_path,status);results[name]=dict(status,report=report)
+                continue
+            if complete and not thresholds:status['status']='WAIT_FROZEN_SENSOR_THRESHOLDS'
+            atomic_json(status_path,status);results[name]=status
+        except (ValueError,OSError,KeyError,TypeError) as exc:
+            status=dict(stage_id=name,status='PAIRING_NOT_VERIFIED',extended18_complete=False,
+                reason=f'{type(exc).__name__}: {exc}',controller_state_mutated=False,legacy_report_replaced=False)
+            atomic_json(status_path,status);results[name]=status
+    return results
 
 
 def write_panel_csv(path, report):
@@ -263,7 +385,8 @@ def cumulative_balanced_reports(reports):
     reports = tuple(reports)
     if not reports or any(not r.get('complete') or r.get('phase') not in ('BOOT5', 'REFRESH5') for r in reports):
         raise ValueError('Only completed balanced DEV panels may enter cumulative results')
-    identity = {(r['sensor'], r['server'], r['recipe_id'], object_sha(r['source_identity']), r['data_sha256']) for r in reports}
+    identity = {(r['sensor'], r['server'], r['recipe_id'], object_sha(r['source_identity']), r['data_sha256'],
+                 tuple(r.get('component_cases',LEGACY_MAIN_CASES))) for r in reports}
     if len(identity) != 1:
         raise ValueError('Cumulative results require one exact recipe/source/data/sensor identity')
     observations = [row for report in reports for row in report['panelrows']]
@@ -271,7 +394,8 @@ def cumulative_balanced_reports(reports):
         raise ValueError('A resumed/reused run is not another independent observation')
     expected_n = 5 * len(reports)
     stats = {}
-    for case_id in MAIN_CASES:
+    component_cases=reports[0].get('component_cases',LEGACY_MAIN_CASES)
+    for case_id in component_cases:
         rows = [row for row in observations if row['case_id'] == case_id]
         if len(rows) != expected_n:
             raise ValueError('Cumulative panel is unbalanced across components')
@@ -289,7 +413,7 @@ def cumulative_balanced_reports(reports):
 def pair_panels(cases, relation_id, root=ROOT):
     """Five targeted pairs with mandatory FULL anchor; never a full-panel mean."""
     cases = tuple(cases)
-    if relation_id not in GRAPH or any(c.phase != 'RECHECK5' or c.role != 'S' for c in cases):
+    if relation_id not in GRAPH or not policy.queue_enabled(GRAPH[relation_id]) or any(c.phase != 'RECHECK5' or c.role != 'S' for c in cases):
         raise ValueError('Registered RECHECK5 Student cases and a graph relation required')
     contexts = {(c.sensor, c.server_id, c.wave, c.recipe_id, c.recipe_revision) for c in cases}
     sweeps = sorted({c.sweep for c in cases})
@@ -303,17 +427,32 @@ def pair_panels(cases, relation_id, root=ROOT):
         if len(group) != len(required) or {c.case_id for c in group} != required or len({c.student_seed for c in group}) != 1:
             raise ValueError('Missing matched recheck side/anchor; no selective cancellation')
         rows = {c.case_id: case_report(c, root) for c in group}
-        if len({r['data_sha256'] for r in rows.values()}) != 1 or len({object_sha(r['source_identity']) for r in rows.values()}) != 1:
+        if relation_id=='A17':
+            from ablr2.extension import paired_anchor_for
+            c17=next(c for c in group if c.case_id=='C17')
+            anchor=paired_anchor_for(c17,root)
+            if anchor.run_id!=next(c.run_id for c in group if c.case_id=='C03'):
+                rows['C03']=case_report(anchor,root)
+        if len({r['data_sha256'] for r in rows.values()}) != 1 or len({object_sha(_observed_source(r)) for r in rows.values()}) != 1:
             raise ValueError('Recheck sides have different numerical/data provenance')
         for key in ('init_U_sha256', 'sampler_sha256', 'rng_roles'):
             if len({object_sha(row[key]) for row in rows.values()}) != 1:
                 raise ValueError('Recheck sides do not share actual initialization/sample-view streams: ' + key)
+        if relation_id in ('A17','D11'):
+            from ablr2.references import validate_teacher_pair
+            zero=rows['C17' if relation_id=='A17' else 'C11']
+            positive=rows['C03' if relation_id=='A17' else 'C07']
+            if not positive.get('teacher_run_id') or not zero.get('teacher_run_id'):
+                raise ValueError('PAIRING_NOT_VERIFIED: missing matched Teacher endpoint identity')
+            proof=validate_teacher_pair(positive['teacher_run_id'],zero['teacher_run_id'],root=root)
+            if not proof.get('passed'):raise ValueError('PAIRING_NOT_VERIFIED: Teacher pair proof failed')
+            for row in rows.values():row['teacher_pair_proof']=proof
         pairs.append(dict(parent=rows[relation['parent']]['VAL'], child=rows[relation['child']]['VAL']))
         exact_pairs.append(dict(parent=rows[relation['parent']]['EXACT50K'], child=rows[relation['child']]['EXACT50K']))
         anchors.append(rows['C07'])
         provenance.extend(rows.values())
     if (len({row['data_sha256'] for row in provenance}) != 1
-            or len({object_sha(row['source_identity']) for row in provenance}) != 1):
+            or len({object_sha(_observed_source(row)) for row in provenance}) != 1):
         raise ValueError('A targeted recheck batch cannot mix source/data revisions across sweeps')
     return dict(pairs=pairs, exact_pairs=exact_pairs, anchors=anchors, relation_id=relation_id,
                 scope='TARGETED_RECHECK_NOT_FULL_PANEL', independent_teacher_retraining=False)

@@ -1,0 +1,23 @@
+test_01_inventory (test_registry.RegistryTests.test_01_inventory) ... ok
+test_02_legacy_preservation (test_registry.RegistryTests.test_02_legacy_preservation) ... ok
+test_03_append_scope (test_registry.RegistryTests.test_03_append_scope) ... ok
+test_04_gf2_full_five (test_registry.RegistryTests.test_04_gf2_full_five) ... ok
+test_05_shared_architecture (test_registry.RegistryTests.test_05_shared_architecture) ... ok
+test_06_c17_no_teacher_inference (test_registry.RegistryTests.test_06_c17_no_teacher_inference) ... ok
+test_07_c17_anchor_equivalence (test_registry.RegistryTests.test_07_c17_anchor_equivalence) ... ok
+test_08_local_reference_bindings (test_registry.RegistryTests.test_08_local_reference_bindings) ... ok
+test_09_no_hidden_reference (test_registry.RegistryTests.test_09_no_hidden_reference) ... ok
+test_10_order_unchanged (test_registry.RegistryTests.test_10_order_unchanged) ... ok
+test_11_single_line_labels (test_registry.RegistryTests.test_11_single_line_labels) ... ok
+test_12_graph_scope (test_registry.RegistryTests.test_12_graph_scope) ... ok
+test_13_until_stop_and_protected_lanes (test_registry.RegistryTests.test_13_until_stop_and_protected_lanes) ... ok
+test_14_method_and_training_budget (test_registry.RegistryTests.test_14_method_and_training_budget) ... ok
+test_15_deterministic_rebuild (test_registry.RegistryTests.test_15_deterministic_rebuild) ... ok
+test_16_reject_corrupted_gf2_scale (test_registry.RegistryTests.test_16_reject_corrupted_gf2_scale) ... ok
+test_17_reject_c17_u_seed_change (test_registry.RegistryTests.test_17_reject_c17_u_seed_change) ... ok
+test_18_reject_legacy_mutation (test_registry.RegistryTests.test_18_reject_legacy_mutation) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.057s
+
+OK

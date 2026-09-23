@@ -7,30 +7,34 @@ import tempfile
 
 from fh12.common import object_sha, read_json, sha256
 from ablr2.common import immutable_json
-from ablr2.plan import MAIN_CASES
+from ablr2.plan import MAIN_CASES, LEGACY_MAIN_CASES
 
 
 def plot_data(report):
     """Pure plotting data; never select seeds/cases or change the table order."""
-    if (report.get('schema') != 'ABLR2_BALANCED_PANEL_v1' or report.get('complete') is not True
-            or report.get('sweep_count') != 5 or report.get('student_runs') != 85
+    extended=report.get('extended18_complete') is True
+    components=MAIN_CASES if extended else LEGACY_MAIN_CASES
+    n=5*len(components)
+    if (report.get('schema') not in ('ABLR2_BALANCED_PANEL_v1','ABLR2_BALANCED_PANEL_v2') or report.get('complete') is not True
+            or report.get('sweep_count') != 5 or report.get('student_runs') != n
             or report.get('phase') not in ('BOOT5', 'REFRESH5', 'VERIFY5')):
         raise ValueError('Plots require a complete registered five-sweep balanced panel')
     rows = report['panelrows']
     lookup = {(row['case_id'], row['sweep']): row for row in rows}
     sweeps = sorted({row['sweep'] for row in rows})
-    if (len(rows) != 85 or len(lookup) != 85 or len(sweeps) != 5
-            or set(lookup) != {(case, sweep) for case in MAIN_CASES for sweep in sweeps}):
+    if (len(rows) != n or len(lookup) != n or len(sweeps) != 5
+            or set(lookup) != {(case, sweep) for case in components for sweep in sweeps}):
         raise ValueError('Incomplete/duplicate case or seed; plotting may not drop an unfavorable point')
     seeds = {}
     for sweep in sweeps:
-        seeds_in_sweep = {lookup[case, sweep]['student_seed'] for case in MAIN_CASES}
+        seeds_in_sweep = {lookup[case, sweep]['student_seed'] for case in components}
         if len(seeds_in_sweep) != 1 or None in seeds_in_sweep:
             raise ValueError('Every plotted component must share the same sweep Student seed')
         seeds[sweep] = next(iter(seeds_in_sweep))
     for row in rows:
+        from ablr2.analysis import _observed_source
         if (row.get('sensor') != report['sensor'] or row.get('data_sha256') != report['data_sha256']
-                or row.get('source_identity') != report['source_identity']):
+                or _observed_source(row) != report['source_identity']):
             raise ValueError('Plot observation and panel source/sensor/data identity differ')
         for metric in ('HQNR', 'ERGAS'):
             value = row['VAL'][metric]
@@ -38,8 +42,8 @@ def plot_data(report):
                 raise ValueError('Nonfinite or missing plot metric')
     panels = {}
     for metric in ('HQNR', 'ERGAS'):
-        for kind in ('ladder', 'removal'):
-            cases = tuple(f'C{i:02}' for i in (range(8) if kind == 'ladder' else range(8, 17)))
+        for kind in (('ladder','removal','alignment_prior') if extended else ('ladder','removal')):
+            cases = ('C02','C17','C03') if kind=='alignment_prior' else tuple(f'C{i:02}' for i in (range(8) if kind == 'ladder' else range(8, 17)))
             series = []
             for case in cases:
                 values = [lookup[case, sweep]['VAL'][metric] for sweep in sweeps]
@@ -48,12 +52,13 @@ def plot_data(report):
                 series.append(dict(case_id=case, values=values, mean=mean(values), sample_sd=stdev(values),
                                    run_ids=[lookup[case, sweep]['run_id'] for sweep in sweeps]))
             panels[kind + '_' + metric.lower()] = dict(kind=kind, metric=metric, series=series,
-                definition='native VAL-selected value' if kind == 'ladder' else 'C07 FULL minus ablation, paired within each sweep',
+                definition='C07 FULL minus ablation, paired within each sweep' if kind == 'removal' else 'native VAL-selected value; fixed declared component order',
                 improvement_direction='higher' if metric == 'HQNR' else 'lower')
     return dict(schema='ABLR2_PLOT_DATA_v1', source_report_sha256=object_sha(report), sensor=report['sensor'],
                 recipe_id=report['recipe_id'], recipe_revision=report['recipe_revision'], phase=report['phase'], wave=report['wave'],
                 source_identity=report['source_identity'], data_sha256=report['data_sha256'],
                 selection='RR_VAL_SELECTED', sweeps=sweeps, student_seeds=seeds, panels=panels,
+                coverage='EXTENDED18' if extended else 'LEGACY_CORE17',
                 statistic='mean +/- sample SD (ddof=1), all five raw matched pipeline repeats',
                 independent_test=False, test_aware=True, filtered_observations=0, reordered_cases=False)
 
@@ -99,9 +104,9 @@ def render_wave(report, output_dir):
                 axis.set_ylabel(panel['metric'])
             axis.set_xticks(xs)
             axis.set_xticklabels([row['case_id'] for row in series])
-            axis.set_xlabel('Fixed component order' if panel['kind'] == 'ladder' else 'Fixed FULL-removal order')
+            axis.set_xlabel('Fixed FULL-removal order' if panel['kind'] == 'removal' else 'Fixed component order')
             axis.set_title(f'{data["sensor"]} / {data["recipe_id"]} / {data["phase"]} {data["wave"]}\n'
-                           f'{panel["metric"]}: {"cumulative components" if panel["kind"] == "ladder" else "paired removal effects"}')
+                           f'{panel["metric"]}: '+{'ladder':'cumulative components','removal':'paired removal effects','alignment_prior':'scratch / TZERO / TPLUS initialization'}[panel['kind']])
             axis.yaxis.set_major_locator(MaxNLocator(nbins=6))
             axis.ticklabel_format(axis='y', style='plain', useOffset=False)
             axis.grid(axis='y', alpha=.2, zorder=0)

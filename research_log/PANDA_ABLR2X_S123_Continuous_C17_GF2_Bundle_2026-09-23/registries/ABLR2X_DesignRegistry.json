@@ -1,0 +1,183 @@
+{
+  "schema": "ABLR2X_DESIGN_ONLY_v1",
+  "not_a_launcher": true,
+  "extension_id": "ABLR2X_S123_C17_20260923_v1",
+  "baseline_commit_observed": "6dde5ea81d4d841b406835ac8d2903e5eeec8535",
+  "prior_design_id": "PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2",
+  "gf2_design_id": "PANDA_ABL_GF2_S3_ADAPTIVE_LOOP_20260923_v1",
+  "lanes": {
+    "s1": {
+      "sensor": "WV3",
+      "bands": 8,
+      "max_dn": 2047,
+      "t_base": 781000,
+      "s_base": 791000,
+      "train_n": 9714,
+      "val_n": 1080,
+      "sheet": "WV3-s1"
+    },
+    "s2": {
+      "sensor": "QB",
+      "bands": 4,
+      "max_dn": 2047,
+      "t_base": 881000,
+      "s_base": 891000,
+      "train_n": 17139,
+      "val_n": null,
+      "sheet": "QB-s2"
+    },
+    "s3": {
+      "sensor": "GF2",
+      "bands": 4,
+      "max_dn": 1023,
+      "t_base": 981000,
+      "s_base": 991000,
+      "train_n": 19809,
+      "val_n": 2201,
+      "sheet": "GF2-s3(5090)"
+    }
+  },
+  "protected_servers": [
+    "s4",
+    "s5"
+  ],
+  "main_cases": [
+    "C00",
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06",
+    "C07",
+    "C08",
+    "C09",
+    "C10",
+    "C11",
+    "C12",
+    "C13",
+    "C14",
+    "C15",
+    "C16",
+    "C17"
+  ],
+  "teacher_cases": [
+    "TPLUS",
+    "TZERO"
+  ],
+  "first_five_reference_universe": 300,
+  "legacy_unchanged_rows": 190,
+  "new_definition_rows": 110,
+  "s1_s2_new_c17_rows": 10,
+  "s3_new_rows": 100,
+  "jobs_per_expanded_sweep": 20,
+  "updates_per_job": 50000,
+  "primary_selection": "RR_VALIDATION_ARGMIN_ERGAS_THEN_LOWER_STEP",
+  "secondary_selection": "EXACT50K",
+  "native_pan_only": true,
+  "panmix_enabled": false,
+  "loop": {
+    "service_mode": "UNTIL_OPERATOR_STOP",
+    "max_campaign_cycles": null,
+    "lease_hours": null,
+    "require_initial_operator_lease": false,
+    "checkpoint_only_not_autolaunch": true,
+    "score_based_early_stop": false,
+    "recheck": {
+      "batch_pairs": 5,
+      "max_batches_per_relation_recipe": 1,
+      "always_run_both_sides": true,
+      "anchor": "C07",
+      "teacher_pool": "CURRENT_RECIPE_LATEST_BALANCED5",
+      "reuse_teacher_pool_round_robin": true
+    },
+    "fitting": {
+      "max_candidates_per_cycle": 2,
+      "screen_blocks": 2,
+      "screen_sweeps": [
+        "P01",
+        "P02"
+      ],
+      "allowed_recipes": [
+        {
+          "id": "R00",
+          "change": "BASE",
+          "value": null
+        },
+        {
+          "id": "R01",
+          "change": "beta",
+          "value": 0.2
+        },
+        {
+          "id": "R02",
+          "change": "lambda_edge",
+          "value": 0.001
+        },
+        {
+          "id": "R03",
+          "change": "alpha",
+          "value": 0.1
+        },
+        {
+          "id": "R04",
+          "change": "lambda_con",
+          "value": 0.0003
+        },
+        {
+          "id": "R05",
+          "change": "student_a_schedule",
+          "value": "BASE_TIMES_1over3_AFTER_24240"
+        }
+      ],
+      "selection": "ABSOLUTE_FULL_RR_VALIDATION_GAIN_WITH_H_GUARD_NOT_ABLATION_GAP"
+    },
+    "refresh": {
+      "full_matrix_sweeps": 5,
+      "new_teacher_per_sweep": true,
+      "after_each_cycle": true,
+      "early_exit_on_nice_shape": false,
+      "student_cases_per_sweep": 18
+    },
+    "verify": {
+      "sweeps": 5,
+      "max_waves_per_exact_recipe": 1,
+      "new_teacher_per_sweep": true,
+      "replace_bad_seed": false
+    },
+    "plateau": "CONTINUE_BALANCED_REFRESH5_AND_REPORT_UNRESOLVED",
+    "require_explicit_until_stop_authorization": true,
+    "shared_lock": false,
+    "cross_server_barrier": false,
+    "retain_local_duplicate_guard": true,
+    "stop_for_resource_safety": true
+  },
+  "thresholds": {
+    "source": "FIRST_COMPLETE_BOOT5_PER_SENSOR",
+    "scope": "SENSOR_GLOBAL_NOT_EDGE_SPECIFIC",
+    "frozen_after_pilot": true,
+    "eps_h": "clip(0.25*median_edge(MAD_k(delta_h)),1e-5,1e-3)",
+    "eps_re": "clip(0.25*median_edge(MAD_k(relative_ergas_delta)),1e-4,5e-3)",
+    "effect_h": "max(0.001,2*eps_h)",
+    "effect_re": "max(0.003,2*eps_re)",
+    "repeated_support_fraction": 0.8,
+    "statistical_significance": false,
+    "calibration_graph": "LEGACY_17_RELATIONS_ONLY_TO_PRESERVE_EXISTING_THRESHOLDS"
+  },
+  "runtime_bindings": {
+    "actual_state": null,
+    "dataset_manifests": null,
+    "teacher_checkpoint_shas": null,
+    "pinned_runtime_release": null,
+    "until_stop_authorization_receipt": null
+  },
+  "implementation_required": [
+    "C17 overlay and validators",
+    "s3/GF2 lane and DN1023 sensor parameters",
+    "GF2 canonical RR/FR evaluation adapter",
+    "state-preserving pinned-runtime migration",
+    "continuous until-stop authorization mode replacing finite lease admission for new jobs"
+  ],
+  "first_five_s3_seed_policy": "TS981001..981005 / SS991001..991005",
+  "future_seed_policy": "INHERIT_PERFORMANCE_INDEPENDENT_SHA256_LEDGER_WITH_GF2_SALT"
+}

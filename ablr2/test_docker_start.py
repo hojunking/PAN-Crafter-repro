@@ -31,7 +31,7 @@ class DockerStartTests(unittest.TestCase):
         self.assertIn('type=bind,src=/repo/work_dir,dst=/repo/work_dir', cmd)
 
     def test_invalid_gpu_lane_image_lease_rejected(self):
-        for override in ({'server':'s3'}, {'gpu':'all'}, {'gpu':'0,1'},
+        for override in ({'server':'s4'}, {'gpu':'all'}, {'gpu':'0,1'},
                          {'image_id':'mutable:tag'}, {'lease_hours':73}, {'lease_hours':0}):
             with self.assertRaises(ValueError):
                 self.command(**override)
@@ -40,6 +40,21 @@ class DockerStartTests(unittest.TestCase):
         cmd = self.command(gpu='GPU-1234-abcd', no_upload=True)
         self.assertIn('device=GPU-1234-abcd', cmd)
         self.assertEqual(cmd[-1], '--no-upload')
+
+    def test_gf2_until_stop_is_not_an_infinite_or_auto_renewed_lease(self):
+        cmd=self.command(server='s3',lease_hours=None,until_operator_stop=True)
+        self.assertIn('--until-operator-stop',cmd)
+        self.assertNotIn('--lease-hours',cmd)
+        with self.assertRaises(ValueError):self.command(until_operator_stop=True)
+        with self.assertRaises(ValueError):self.command(lease_hours=None)
+
+    def test_only_authenticated_original_container_may_drain(self):
+        original=dict(path='/original',git_commit='d'*40)
+        row=self.container(Config=dict(Labels={LABEL+'.server':'s1',LABEL+'.commit':'d'*40,LABEL+'.runtime':'/original'}))
+        self.assertIsNone(matching_running([row],server='s1',commit='b'*40,frozen='/frozen',
+            image_id='sha256:'+'a'*64,draining_release=original))
+        with self.assertRaises(ValueError):matching_running([row],server='s1',commit='b'*40,frozen='/frozen',
+            image_id='sha256:'+'c'*64,draining_release=original)
 
     def test_mounts_external_native_sources_and_raw_qb(self):
         with tempfile.TemporaryDirectory() as folder:

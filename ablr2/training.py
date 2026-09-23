@@ -118,7 +118,7 @@ def _clone_check(model,teacher,dataset,device):
 
 
 def train_run(config_path,device='cuda',resume=False,deadline_arg=None,root=None):
-    from ablr2.common import (ROOT,CAMPAIGN_ID,apply_runtime_policy,source_identity,object_sha,
+    from ablr2.common import (ROOT,campaign_id,apply_runtime_policy,source_identity,object_sha,
         read,read_json,read_config,resolved_path,atomic_json,immutable_json,sha256,utcnow,check_deadline)
     from ablr2.data import build_dataset
     from ablr2.common import check_runtime,RuntimePaused
@@ -143,7 +143,7 @@ def train_run(config_path,device='cuda',resume=False,deadline_arg=None,root=None
     if dev.type == 'cuda': torch.cuda.manual_seed_all(case.seed)
     wd=resolved_path(cfg['work_dir'],root)
     data=read_json(resolved_path(field['dataset_manifest'],root))
-    if data['sensor'] != case.sensor or data['num_bands'] != case.num_bands or data['max_pixel'] != 2047:
+    if data['sensor'] != case.sensor or data['num_bands'] != case.num_bands or data['max_pixel'] != case.max_dn:
         raise ValueError('Cross-sensor or incorrect DN data')
     datasets={name:build_dataset(data,name,root=root) for name in ('train','val','rr','fr')}
     if len(datasets['train']) != datasets['train'].base_count:
@@ -206,7 +206,7 @@ def train_run(config_path,device='cuda',resume=False,deadline_arg=None,root=None
         else:
             immutable_json(config_target,cfg)  # JSON is valid YAML; never rewrite a pinned config.
         immutable_json(wd/'init_manifest.json',dict(init,**context))
-        immutable_json(wd/'meta/training_start_manifest.json',dict(campaign_id=CAMPAIGN_ID,
+        immutable_json(wd/'meta/training_start_manifest.json',dict(campaign_id=campaign_id(case.server_id),
             run_id=case.run_id,horizon_updates=50000,**context,started_at_utc=utcnow(),precision='fp32',
             runtime_policy=policy,initial_lease=lease,device=str(dev),
             sampler_hash=state_hash({'order':stream.order,'rotations':stream.rotations}),

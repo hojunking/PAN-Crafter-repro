@@ -31,8 +31,9 @@ def _workdir(cfg, root):
 
 def find_config(run, root=ROOT):
     from ablr2.common import read_config
+    from ablr2.plan import LANES
     paths = [Path(root) / 'work_dir/ablr2' / sensor / server / 'runs' / run / 'meta/config.resolved.yaml'
-             for sensor, server in (('WV3', 's1'), ('QB', 's2'))]
+             for server, sensor in LANES.items()]
     paths = [p for p in paths if p.is_file()]
     if len(paths) != 1 or Path(run).name != run:
         raise ValueError('Expected one local ABLR2 resolved run, without path aliases')
@@ -57,7 +58,7 @@ def validate_record(record, spec):
             or fr.get('support') != 'full512' or fr.get('masking') is not False
             or fr.get('aggregation') != 'mean_per_scene_HQNR' or fr.get('hqnr_variant') != 'raw-original'):
         raise ValueError('Official support/reference or aggregation changed')
-    if any(x.get('sensor') != spec.sensor or x.get('num_bands') != spec.num_bands or x.get('max_dn') != 2047 for x in (rr, fr)):
+    if any(x.get('sensor') != spec.sensor or x.get('num_bands') != spec.num_bands or x.get('max_dn') != spec.max_dn for x in (rr, fr)):
         raise ValueError('Metrics sensor/bands/DN identity differs')
     if type(record['update']) is not int or record['checkpoint_identity']['update'] != record['update']:
         raise ValueError('Metrics and checkpoint completed update differ')
@@ -91,15 +92,14 @@ def empty_grid(cfg, start):
 
 
 def validate_grid(run, cfg, grid, root=ROOT):
-    from ablr2.plan import CAMPAIGN_ID
     case, wd = _case(cfg), _workdir(cfg, root)
-    if (case.run_id != run or grid.get('run_id') != run or grid.get('campaign_id') != CAMPAIGN_ID
+    if (case.run_id != run or grid.get('run_id') != run or grid.get('campaign_id') != case.campaign_id
             or grid.get('sensor') != case.sensor or grid.get('config_sha256') != object_sha(cfg)
             or grid.get('expected_steps') != list(GRID_STEPS)):
         raise ValueError('Grid config/campaign/candidate identity differs')
     data = read_json(Path(root) / cfg['ablr2']['dataset_manifest'])
     if (object_sha(data) != grid.get('data_sha256') or data.get('sensor') != case.sensor
-            or data.get('num_bands') != case.num_bands or data.get('max_pixel') != 2047):
+            or data.get('num_bands') != case.num_bands or data.get('max_pixel') != case.max_dn):
         raise ValueError('Grid sensor-bound data manifest changed')
     records = grid['records']
     steps = [r['update'] for r in records]
@@ -252,7 +252,7 @@ def selection_report(cfg, grid, key, record):
 
 
 def process(run, device='cuda', deadline=None, upload=False, upload_only=False, root=ROOT):
-    from ablr2.common import source_identity, load_checkpoint_model, immutable_json, apply_runtime_policy
+    from ablr2.common import source_identity, load_checkpoint_model, immutable_json, apply_runtime_policy, assert_compatible_source
     from ablr2.data import build_dataset
     apply_runtime_policy(root)
     cfg = find_config(run, root)
@@ -263,7 +263,8 @@ def process(run, device='cuda', deadline=None, upload=False, upload_only=False, 
         if training.get('actual_updates') != 50000 or training.get('training_complete') is not True:
             raise ValueError('Official postrun requires completed fresh50K')
         start = read_json(wd / 'meta/training_start_manifest.json')
-        if start.get('source_identity') != source_identity(root) or start.get('config_sha256') != object_sha(cfg):
+        assert_compatible_source(start.get('source_identity'),source_identity(root),root,case.server_id)
+        if start.get('config_sha256') != object_sha(cfg):
             raise ValueError('Postrun source/runtime/config differs from training')
         path = wd / 'official/raw_grid.json'
         grid = read_json(path) if path.exists() else empty_grid(cfg, start)
