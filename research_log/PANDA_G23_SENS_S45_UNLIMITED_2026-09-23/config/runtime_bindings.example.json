@@ -1,0 +1,89 @@
+{
+  "campaign_id": "PANDA_G23_SENS_WV3_S45_20260923_v1",
+  "server": null,
+  "gpu_index": null,
+  "repo_path": null,
+  "runtime_commit": null,
+  "runtime_content_sha256": null,
+  "runtime_config_generator_version": null,
+  "working_tree_diff_sha256": null,
+  "reference_commit": "52184d5578a2a10721e435f8fbf4a759497768e5",
+  "runtime_lock_path": null,
+  "work_root": null,
+  "old_runner_handoff_verified": false,
+  "gpu_smoke_verified": false,
+  "base_config_path": null,
+  "base_config_git_blob_sha1": "070d5c934117d8577d699ae1be11d5e8d080b688",
+  "teacher": {
+    "path": null,
+    "checkpoint_sha256_expected": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+    "aligner_component_sha256": null,
+    "step": 24240,
+    "view_margin_hr": 4
+  },
+  "calibration": {
+    "source_manifest_path": null,
+    "source_manifest_sha256": null,
+    "q_ref_expected": 0.3276133416220546,
+    "tau_R_expected": 0.012463942170143127
+  },
+  "cue": {
+    "json_path": null,
+    "json_sha256": null,
+    "npz_path": null,
+    "npz_sha256": null,
+    "raw_q_sha256": null,
+    "teacher_identity_verified": false
+  },
+  "data": {
+    "train": {
+      "path": null,
+      "file_sha256": null,
+      "array_content_sha256": null
+    },
+    "train_lp": {
+      "path": null,
+      "file_sha256": null,
+      "array_content_sha256": null
+    },
+    "val": {
+      "path": null,
+      "file_sha256": null,
+      "array_content_sha256": null
+    },
+    "val_lp": {
+      "path": null,
+      "file_sha256": null,
+      "array_content_sha256": null
+    },
+    "rr": {
+      "path": null,
+      "file_sha256": null,
+      "array_content_sha256": null
+    },
+    "rr_lp": {
+      "path": null,
+      "file_sha256": null,
+      "array_content_sha256": null
+    },
+    "fr": {
+      "path": null,
+      "file_sha256": null,
+      "array_content_sha256": null
+    },
+    "fr_lp": {
+      "path": null,
+      "file_sha256": null,
+      "array_content_sha256": null
+    }
+  },
+  "evaluation": {
+    "rr_manifest_path": null,
+    "fr_manifest_path": null,
+    "evaluator_source_sha256": null,
+    "paper_identity_status": "UNVERIFIED",
+    "rr_n_scenes": null,
+    "fr_n_scenes": null
+  },
+  "runtime_guard": "All null paths/hashes must be resolved locally; no guessed fallback assets. Keep a read-only frozen lock before admission."
+}

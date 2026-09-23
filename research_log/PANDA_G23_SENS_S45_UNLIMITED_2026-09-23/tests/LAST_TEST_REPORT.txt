@@ -1,0 +1,41 @@
+test_all_fresh50 (test_casegen.CaseTests.test_all_fresh50) ... ok
+test_all_share_teacher (test_casegen.CaseTests.test_all_share_teacher) ... ok
+test_baseline_first (test_casegen.CaseTests.test_baseline_first) ... ok
+test_deepcopy_no_leak (test_casegen.CaseTests.test_deepcopy_no_leak) ... ok
+test_fourteen_templates (test_casegen.CaseTests.test_fourteen_templates) ... ok
+test_idempotent_file_write (test_casegen.CaseTests.test_idempotent_file_write) ... ok
+test_invalid_requests (test_casegen.CaseTests.test_invalid_requests) ... ok
+test_local_baseline (test_casegen.CaseTests.test_local_baseline) ... ok
+test_new_seeds (test_casegen.CaseTests.test_new_seeds) ... ok
+test_no_qrenormalization (test_casegen.CaseTests.test_no_qrenormalization) ... ok
+test_no_seed_wrap (test_casegen.CaseTests.test_no_seed_wrap) ... ok
+test_no_server_dependency (test_casegen.CaseTests.test_no_server_dependency) ... ok
+test_one_factor_only (test_casegen.CaseTests.test_one_factor_only) ... ok
+test_paired_server_seeds (test_casegen.CaseTests.test_paired_server_seeds) ... ok
+test_q_low_high (test_casegen.CaseTests.test_q_low_high) ... ok
+test_q_registry_keys (test_casegen.CaseTests.test_q_registry_keys) ... ok
+test_rA_actual_lr (test_casegen.CaseTests.test_rA_actual_lr) ... ok
+test_resume_cursor (test_casegen.CaseTests.test_resume_cursor) ... ok
+test_s4_axes (test_casegen.CaseTests.test_s4_axes) ... ok
+test_s5_axes (test_casegen.CaseTests.test_s5_axes) ... ok
+test_seed_anchor (test_casegen.CaseTests.test_seed_anchor) ... ok
+test_selection_fixed (test_casegen.CaseTests.test_selection_fixed) ... ok
+test_six_cycle_order_balance (test_casegen.CaseTests.test_six_cycle_order_balance) ... ok
+test_spec_determinism (test_casegen.CaseTests.test_spec_determinism) ... ok
+test_tampered_case_rejected (test_casegen.CaseTests.test_tampered_case_rejected) ... ok
+test_tau_scaled_once (test_casegen.CaseTests.test_tau_scaled_once) ... ok
+test_thirteen_unique_conditions (test_casegen.CaseTests.test_thirteen_unique_conditions) ... ok
+test_unique_run_ids (test_casegen.CaseTests.test_unique_run_ids) ... ok
+test_weights_at_old_median (test_casegen.CaseTests.test_weights_at_old_median) ... ok
+test_different_run_rejected (test_casegen.ReceiptTests.test_different_run_rejected) ... ok
+test_early_finish_rejected (test_casegen.ReceiptTests.test_early_finish_rejected) ... ok
+test_mixed_checkpoints_rejected (test_casegen.ReceiptTests.test_mixed_checkpoints_rejected) ... ok
+test_nan_metric_rejected (test_casegen.ReceiptTests.test_nan_metric_rejected) ... ok
+test_receipt_structure (test_casegen.ReceiptTests.test_receipt_structure) ... ok
+test_unverified_protocol_rejected (test_casegen.ReceiptTests.test_unverified_protocol_rejected) ... ok
+test_wrong_selection_rejected (test_casegen.ReceiptTests.test_wrong_selection_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 36 tests in 0.060s
+
+OK

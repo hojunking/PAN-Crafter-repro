@@ -1,0 +1,44 @@
+{
+  "reference_commit": "52184d5578a2a10721e435f8fbf4a759497768e5",
+  "source_read_date": "2026-09-23",
+  "sources": [
+    {
+      "id": "S1",
+      "path": "config/PAKD50_QRC24_S4_G23_W104_D121_WV3_T0_S1234_FRESH50_v2.yaml",
+      "git_blob_sha1": "070d5c934117d8577d699ae1be11d5e8d080b688",
+      "supports": "G23 architecture, T0 identity, q0, tau0, loss values, optimizer and feeder configuration",
+      "url": "https://github.com/hojunking/PAN-Crafter-repro/blob/52184d5578a2a10721e435f8fbf4a759497768e5/config/PAKD50_QRC24_S4_G23_W104_D121_WV3_T0_S1234_FRESH50_v2.yaml"
+    },
+    {
+      "id": "S2",
+      "path": "kdv/qrecon.py",
+      "git_blob_sha1": "7323bbd1c8b9863a000f33b913779386466d2e03",
+      "supports": "raw-q weighting, parameter-specific routing specification, asset/hash contract",
+      "url": "https://github.com/hojunking/PAN-Crafter-repro/blob/52184d5578a2a10721e435f8fbf4a759497768e5/kdv/qrecon.py"
+    },
+    {
+      "id": "S3",
+      "path": "kdv/losses_rec.py",
+      "git_blob_sha1": "8dfb86629c7ed98f39230c98f998a290fba9899d",
+      "supports": "R3 hard/soft gates and reduction",
+      "url": "https://github.com/hojunking/PAN-Crafter-repro/blob/52184d5578a2a10721e435f8fbf4a759497768e5/kdv/losses_rec.py"
+    },
+    {
+      "id": "S4",
+      "path": "kdv/registry.py",
+      "git_blob_sha1": "7c9566c9e31dcf6488218e888a9c0aed254576f8",
+      "supports": "positive q_ref, tau_scale, forbidden routing combination guards",
+      "url": "https://github.com/hojunking/PAN-Crafter-repro/blob/52184d5578a2a10721e435f8fbf4a759497768e5/kdv/registry.py"
+    },
+    {
+      "id": "S5",
+      "path": "train_kdv.py",
+      "git_blob_sha1": null,
+      "supports": "tau_used = tau * rec_tau_scale; source snippet checked, full file not mirrored",
+      "url": "https://github.com/hojunking/PAN-Crafter-repro/blob/52184d5578a2a10721e435f8fbf4a759497768e5/train_kdv.py"
+    }
+  ],
+  "live_server_processes_checked": false,
+  "raw_training_assets_accessed": false,
+  "production_integration_validated": false
+}

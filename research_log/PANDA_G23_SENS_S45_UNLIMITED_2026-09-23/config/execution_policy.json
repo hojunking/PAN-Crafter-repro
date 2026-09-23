@@ -1,0 +1,38 @@
+{
+  "campaign_id": "PANDA_G23_SENS_WV3_S45_20260923_v1",
+  "time_limit_hours": null,
+  "cycle_limit": null,
+  "run_limit": null,
+  "independent_servers": true,
+  "servers": [
+    "s4",
+    "s5"
+  ],
+  "dataset": "WV3",
+  "runs_per_server_per_cycle": 7,
+  "baseline_per_cycle": true,
+  "fresh_student_per_case": true,
+  "reuse_other_seed_baseline": false,
+  "seed_rule": {
+    "cycle0": 1234,
+    "later": "2000000+cycle-1",
+    "same_cycle_same_seed_across_servers": true,
+    "wait_for_other_server": false
+  },
+  "order": "BASE first; three axis-pair groups rotate by cycle%3; reverse within pair in odd cycles",
+  "stop_request": "STOP_AFTER_RUN",
+  "technical_retry_max": 2,
+  "baseline_failure": "PAUSE_BLOCK",
+  "variant_numeric_divergence": "RECORD_FAILURE_WITHOUT_SEED_REDRAW_THEN_CONTINUE",
+  "evaluation_failure": "RESUME_EVALUATION_NOT_TRAINING",
+  "sheet_failure": "LOCAL_OUTBOX_RETRY_NOT_TRAINING",
+  "disk_pressure": "PAUSE_WITHOUT_DELETING_OTHER_CAMPAIGNS",
+  "auto_change_coefficients": false,
+  "model_routing_mutation": false,
+  "teacher_retraining": false,
+  "threshold_admission_or_stop": false,
+  "primary_selection": "EXACT_50000",
+  "secondary_selection": "RR_VAL_ERGAS_MIN_THEN_LOWER_STEP",
+  "legacy_global_deadline_inheritance": false,
+  "implementation_status": "CASE_GENERATOR_ONLY; production runner integration required"
+}

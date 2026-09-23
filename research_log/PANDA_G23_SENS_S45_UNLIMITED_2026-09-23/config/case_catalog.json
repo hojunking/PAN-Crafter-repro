@@ -1,0 +1,189 @@
+{
+  "campaign_id": "PANDA_G23_SENS_WV3_S45_20260923_v1",
+  "s4": [
+    {
+      "case_id": "BASE",
+      "axis": "baseline",
+      "value": null,
+      "parameters": {
+        "alpha": 1.0,
+        "beta": 0.1,
+        "lambda_E": 0.002,
+        "q_ref_scale": 1.0,
+        "tau_R_scale": 1.0,
+        "r_A": 0.03
+      }
+    },
+    {
+      "case_id": "AL05",
+      "axis": "alpha",
+      "value": 0.5,
+      "parameters": {
+        "alpha": 0.5,
+        "beta": 0.1,
+        "lambda_E": 0.002,
+        "q_ref_scale": 1.0,
+        "tau_R_scale": 1.0,
+        "r_A": 0.03
+      }
+    },
+    {
+      "case_id": "AL15",
+      "axis": "alpha",
+      "value": 1.5,
+      "parameters": {
+        "alpha": 1.5,
+        "beta": 0.1,
+        "lambda_E": 0.002,
+        "q_ref_scale": 1.0,
+        "tau_R_scale": 1.0,
+        "r_A": 0.03
+      }
+    },
+    {
+      "case_id": "BE005",
+      "axis": "beta",
+      "value": 0.05,
+      "parameters": {
+        "alpha": 1.0,
+        "beta": 0.05,
+        "lambda_E": 0.002,
+        "q_ref_scale": 1.0,
+        "tau_R_scale": 1.0,
+        "r_A": 0.03
+      }
+    },
+    {
+      "case_id": "BE020",
+      "axis": "beta",
+      "value": 0.2,
+      "parameters": {
+        "alpha": 1.0,
+        "beta": 0.2,
+        "lambda_E": 0.002,
+        "q_ref_scale": 1.0,
+        "tau_R_scale": 1.0,
+        "r_A": 0.03
+      }
+    },
+    {
+      "case_id": "ED0006",
+      "axis": "lambda_E",
+      "value": 0.0006,
+      "parameters": {
+        "alpha": 1.0,
+        "beta": 0.1,
+        "lambda_E": 0.0006,
+        "q_ref_scale": 1.0,
+        "tau_R_scale": 1.0,
+        "r_A": 0.03
+      }
+    },
+    {
+      "case_id": "ED006",
+      "axis": "lambda_E",
+      "value": 0.006,
+      "parameters": {
+        "alpha": 1.0,
+        "beta": 0.1,
+        "lambda_E": 0.006,
+        "q_ref_scale": 1.0,
+        "tau_R_scale": 1.0,
+        "r_A": 0.03
+      }
+    }
+  ],
+  "s5": [
+    {
+      "case_id": "BASE",
+      "axis": "baseline",
+      "value": null,
+      "parameters": {
+        "alpha": 1.0,
+        "beta": 0.1,
+        "lambda_E": 0.002,
+        "q_ref_scale": 1.0,
+        "tau_R_scale": 1.0,
+        "r_A": 0.03
+      }
+    },
+    {
+      "case_id": "QR05",
+      "axis": "q_ref_scale",
+      "value": 0.5,
+      "parameters": {
+        "alpha": 1.0,
+        "beta": 0.1,
+        "lambda_E": 0.002,
+        "q_ref_scale": 0.5,
+        "tau_R_scale": 1.0,
+        "r_A": 0.03
+      }
+    },
+    {
+      "case_id": "QR20",
+      "axis": "q_ref_scale",
+      "value": 2.0,
+      "parameters": {
+        "alpha": 1.0,
+        "beta": 0.1,
+        "lambda_E": 0.002,
+        "q_ref_scale": 2.0,
+        "tau_R_scale": 1.0,
+        "r_A": 0.03
+      }
+    },
+    {
+      "case_id": "TR05",
+      "axis": "tau_R_scale",
+      "value": 0.5,
+      "parameters": {
+        "alpha": 1.0,
+        "beta": 0.1,
+        "lambda_E": 0.002,
+        "q_ref_scale": 1.0,
+        "tau_R_scale": 0.5,
+        "r_A": 0.03
+      }
+    },
+    {
+      "case_id": "TR20",
+      "axis": "tau_R_scale",
+      "value": 2.0,
+      "parameters": {
+        "alpha": 1.0,
+        "beta": 0.1,
+        "lambda_E": 0.002,
+        "q_ref_scale": 1.0,
+        "tau_R_scale": 2.0,
+        "r_A": 0.03
+      }
+    },
+    {
+      "case_id": "RA01",
+      "axis": "r_A",
+      "value": 0.01,
+      "parameters": {
+        "alpha": 1.0,
+        "beta": 0.1,
+        "lambda_E": 0.002,
+        "q_ref_scale": 1.0,
+        "tau_R_scale": 1.0,
+        "r_A": 0.01
+      }
+    },
+    {
+      "case_id": "RA06",
+      "axis": "r_A",
+      "value": 0.06,
+      "parameters": {
+        "alpha": 1.0,
+        "beta": 0.1,
+        "lambda_E": 0.002,
+        "q_ref_scale": 1.0,
+        "tau_R_scale": 1.0,
+        "r_A": 0.06
+      }
+    }
+  ]
+}

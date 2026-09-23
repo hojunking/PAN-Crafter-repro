@@ -1,0 +1,63 @@
+﻿column,type,definition
+run_id,string,unique actual run id
+Run,string,model/parameter settings only
+server,string,s4 or s5
+cycle,integer,server-local cycle
+seed,integer,paired student seed
+case_id,string,BASE or assigned variant
+axis,string,one semantic variable
+value,number,axis value
+baseline_run_id,string,same-server same-cycle baseline
+selection,string,EXACT_50000 or RR_VAL_ERGAS_MIN
+selection_alias_of,string,same-checkpoint alias if applicable
+actual_updates,integer,optimizer updates
+selected_step,integer,step of selected checkpoint
+alpha,number,active rec.alpha
+beta,number,active rec.kd_weight
+lambda_E,number,absolute edge coefficient
+q_ref_base,number,frozen q0
+q_ref_scale,number,0.5/1/2
+q_ref_used,number,q0*scale
+tau_R_base,number,frozen tau0
+tau_R_scale,number,0.5/1/2
+tau_R_used,number,tau0*scale applied once
+r_A,number,A/U peak LR ratio
+U_peak_lr,number,1e-4
+A_peak_lr,number,1e-4*r_A
+hqnr,number,native FR same checkpoint
+d_lambda,number,native FR same checkpoint
+d_s,number,native FR same checkpoint
+ergas,number,native RR same checkpoint
+sam,number,native RR
+psnr,number,native RR
+ssim,number,native RR
+scc,number,native RR
+q8,number,WV3 8 bands
+rmse,number,native RR
+cc,number,native RR
+jqm,number,auxiliary; variant explicitly recorded
+jqm_variant,string,not silently SIPSA-equivalent
+delta_hqnr,number,"variant minus local BASE, same selection"
+delta_d_lambda,number,variant minus local BASE
+delta_d_s,number,variant minus local BASE
+delta_ergas,number,variant minus local BASE
+status,string,training/eval state; preserve failures
+attempt,integer,technical attempts are not extra seeds
+training_seconds,number,optimizer-training seconds
+Train(h),number,training_seconds/3600
+rr_n_scenes,integer,manifest actual count
+fr_n_scenes,integer,manifest actual count
+paper_identity_status,string,preserve evidence level
+case_spec_sha256,string,immutable generated spec
+runtime_config_sha256,string,actual resolved config
+runtime_commit,string,actual implementation not just reference
+runtime_content_sha256,string,actual code/diff
+teacher_checkpoint_sha256,string,frozen full T0
+initial_U_sha256,string,same within local block
+initial_A_sha256,string,same within local block
+stream_sha256,string,sample+actual augmentation sequence
+q_raw_sha256,string,same raw q asset
+q_weight_sha256,string,changes when qref changes
+checkpoint_sha256,string,selected A/U checkpoint
+evaluation_manifest_sha256,string,actual eval identity
+readback_status,string,actual Sheet readback outcome

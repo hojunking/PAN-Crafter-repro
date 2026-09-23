@@ -1,0 +1,18 @@
+{
+  "status": "PASS_CASE_SPEC_TESTS_ONLY",
+  "tests_run": 36,
+  "tests_passed": 36,
+  "tests_failed": 0,
+  "template_count": 14,
+  "unique_parameter_conditions_per_cycle": 13,
+  "initial_preview_cycles": 3,
+  "initial_preview_run_count": 42,
+  "all_preview_cases_validated_again": true,
+  "sha256_manifest_included": true,
+  "real_training_run_count": 0,
+  "gpu_tests_executed": false,
+  "production_trainer_integrated": false,
+  "remote_server_jobs_stopped_or_started": false,
+  "google_sheet_modified": false,
+  "scope": "deterministic case generation, OAT, derived values, seed/order, cursor and structural receipt guards"
+}

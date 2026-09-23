@@ -1,0 +1,71 @@
+{
+  "schema": "G23SENS_READ_ONLY_LOCAL_ASSET_AUDIT_v1",
+  "observed_date": "2026-09-23",
+  "campaign_id": "PANDA_G23_SENS_WV3_S45_20260923_v1",
+  "verification": "resolve_bindings(ROOT, 's4'): read-only full native H5 array scans and file SHA verification; no runtime binding published",
+  "reference_config_git_blob_sha1": "070d5c934117d8577d699ae1be11d5e8d080b688",
+  "native_files": {
+    "train": {"count": 9714, "sha256": "f9e7ec381390ff36ddffd0714df7af07a3c5f456078b219a25f3e18372228f82"},
+    "train_lp": {"count": 9714, "sha256": "3ce697e7d57b04a02175b2f393fb762c897ed47c1a1e11e7f1a27018be5a5628"},
+    "val": {"count": 1080, "sha256": "ba883e57408d1f3c2263cc2818a9fbbf2dbe8e62554c531288f9e8bf9f59dc87"},
+    "val_lp": {"count": 1080, "sha256": "a639d60f2f7b80c8c37aa565b5a0b8f29e0274cf16094d6a6aab5e9e70434a6d"},
+    "rr": {"count": 20, "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a"},
+    "rr_lp": {"count": 20, "sha256": "b71b4e383ef6f074b74be9152df1093120da9ba1f36a4ce7549e0906d7792550"},
+    "fr": {"count": 20, "sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6"},
+    "fr_lp": {"count": 20, "sha256": "c7e7cd94244d311246290a0b4ed88e3592561a61fc67a902e202d4572f981f60"}
+  },
+  "teacher": {
+    "step": 24240,
+    "checkpoint_sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+    "aligner_component_sha256": "493aca181f93ae68f689940655e49cc9eaeed5ae32c82dbd203ab94be03e2614",
+    "legacy_aligner_hash_16": "493aca181f93ae68",
+    "view_margin_hr": 4,
+    "package_file_hashes_verified": true
+  },
+  "cue": {
+    "json_sha256": "33447ea9b615579b46ed5926fb6a72d3677cbdab8cce23b4afa0d0da06d6f101",
+    "npz_sha256": "b83cc5d1a25e8766d1813c9d19d956efc24e0f152553e53c4894fa18dcdf563e",
+    "raw_q_sha256": "697f3b34bc7ffb8ef3933958ff0242e7d9b5989d9c3455b3366065a831fb9947",
+    "n_views": 38856,
+    "full_sample_times_four_actual_rotations": true,
+    "teacher_aligner_train_and_lp_identity_verified": true
+  },
+  "calibration": {
+    "canonical_source": "assets/pakd50/calibration_resolved.json; legacy work_dir path only if package absent and identical fixed SHA",
+    "source_manifest_sha256": "dc76a3b02e16fa3d1b9fc8d91b24bb0b420db118d56af5d416e540f82f195ea8",
+    "seed": 1234,
+    "n_patches": 3072,
+    "q_ref": 0.3276133416220546,
+    "tau_R": 0.012463942170143127
+  },
+  "legacy_feeder": {
+    "crop": false,
+    "horizontal_flip_probability": 1.0,
+    "vertical_flip_probability": 1.0,
+    "rotation": "Python random.randint(0,3), metadata reports actual rotation",
+    "transform_implementation": "unchanged PanFeeder.__getitem__/augment/np2tensor; lazy H5 access only",
+    "cpu_test": "14 asset/data tests passed: asset failures; bit-exact legacy views; actual four-worker sampler/rotation parity across three epochs; full50K schedule determinism; cursor replay; canonical identical calibration relocation",
+    "four_worker_test_transport": "NumPy metadata through worker queue; torch shared-tensor AF_UNIX transport is prohibited by the test sandbox",
+    "historical_whole_run_stream_parity_claim": false,
+    "new_stream_policy": "legacy per-epoch sampler/worker algorithm from post-U-constructor Torch RNG; validation and diagnostics isolated; full50K metadata hash pinned"
+  },
+  "production_shape_stream_cpu_measurement": {
+    "seed": 1234,
+    "initialization": "actual legacy G23 Student constructor",
+    "metadata_shape": [50000, 48, 4],
+    "sample_views": 2400000,
+    "epochs_touched": 248,
+    "metadata_bytes": 38400000,
+    "metadata_sha256": "38f2aea8927270edba0e6dbca001aa9b5a467a7963818d7ed8c2fe2f4e13bfbe",
+    "post_constructor_torch_rng_sha256": "c7b64e495819ae3fd4381d3353ae1b8b26d8583555afe0529c783386c4514c12",
+    "campaign_artifact_published": false
+  },
+  "paper_set_identity_status": "PAPERSET_IDENTITY_UNVERIFIED",
+  "limitations": [
+    "Native config populations and bytes verified; independent paper-scene correspondence was not re-established in this audit.",
+    "No GPU smoke, remote s4/s5 asset verification, live campaign admission, handoff, or Sheet upload was performed.",
+    "Each server must verify these same fixed file hashes before admission. Missing assets are not generated or substituted."
+  ],
+  "campaign_state_written": false,
+  "training_started": false
+}
