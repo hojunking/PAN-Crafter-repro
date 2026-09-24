@@ -1,0 +1,138 @@
+{
+  "campaign_id": "PANDA_MAINA_WV3_S45_HQNR_20260925_v1",
+  "source_plan": "research_log/PANDA_WV3_TableA_S45_HQNR_Continuous_ExperimentPlan_2026-09-25.md",
+  "provenance": "IMPLEMENTATION_DERIVED_FROM_MD; companion CSV/JSON not supplied",
+  "servers": [
+    "s4",
+    "s5"
+  ],
+  "cases": {
+    "BASE": {
+      "alpha": 1,
+      "beta": 0.1,
+      "lambda_E": 0.002,
+      "axis": "baseline",
+      "value": null
+    },
+    "AL05": {
+      "alpha": 0.5,
+      "beta": 0.1,
+      "lambda_E": 0.002,
+      "axis": "alpha",
+      "value": 0.5
+    },
+    "AL15": {
+      "alpha": 1.5,
+      "beta": 0.1,
+      "lambda_E": 0.002,
+      "axis": "alpha",
+      "value": 1.5
+    },
+    "BE005": {
+      "alpha": 1,
+      "beta": 0.05,
+      "lambda_E": 0.002,
+      "axis": "beta",
+      "value": 0.05
+    },
+    "BE020": {
+      "alpha": 1,
+      "beta": 0.2,
+      "lambda_E": 0.002,
+      "axis": "beta",
+      "value": 0.2
+    },
+    "ED0006": {
+      "alpha": 1,
+      "beta": 0.1,
+      "lambda_E": 0.0006,
+      "axis": "lambda_E",
+      "value": 0.0006
+    },
+    "ED006": {
+      "alpha": 1,
+      "beta": 0.1,
+      "lambda_E": 0.006,
+      "axis": "lambda_E",
+      "value": 0.006
+    }
+  },
+  "grid": [
+    1010,
+    2020,
+    3030,
+    4040,
+    5050,
+    6060,
+    7070,
+    8080,
+    9090,
+    10100,
+    11110,
+    12120,
+    13130,
+    14140,
+    15150,
+    16160,
+    17170,
+    18180,
+    19190,
+    20200,
+    21210,
+    22220,
+    23230,
+    24240,
+    25250,
+    26260,
+    27270,
+    28280,
+    29290,
+    30300,
+    31310,
+    32320,
+    33330,
+    34340,
+    35350,
+    36360,
+    37370,
+    38380,
+    39390,
+    40400,
+    41410,
+    42420,
+    43430,
+    44440,
+    45450,
+    46460,
+    47470,
+    48480,
+    49490,
+    50000
+  ],
+  "selection": {
+    "primary_selection": "HQNR_MAX50",
+    "secondary_selection": "EXACT_50000",
+    "selection_rule": "MAX_RAW_ORIGINAL_FR20_MEAN_HQNR_THEN_LOWER_STEP_V1",
+    "selection_split": "FR20",
+    "test_aware": true,
+    "independent_test": false,
+    "expected_candidate_count": 50,
+    "hqnr_reference": "RAW_ORIGINAL_PAN",
+    "checkpoint_tie_breaker": "LOWER_COMPLETED_UPDATES",
+    "ergas_used_for_selection": false
+  },
+  "reference": {
+    "teacher_sha": "04ef8e756ae8b229c67ef14daf1912f0658f2e5c8bfe30afa9e0b476486fc519",
+    "bridge_sha": "b902e12b376c2cfdbd69d89c21b732224fec2a52183eca4d5983147e7598c92d",
+    "calibration_sha": "45cae955010ab044790442885206b1ffd4d8cecaf5bdf47121747c2fbcc51658",
+    "q_cache_sha": "96774f7a7ddc73e151d03009066601d61c40b0b4f9d8bbc88cfc2e41a5ac1c66",
+    "data_sha": "d2d49536a1e692343bb8c9f2dd64cfebe9e331d15df455b9941ece1c0128a4c2",
+    "evaluator_sha": "79a7e4a154547b355e94e4198a5d85a5a4ecf220ebc039da1b3a3404a91bbc89",
+    "q_ref": 0.4532603621482849,
+    "tau_R": 0.012118559330701828
+  },
+  "repeat": "INDEPENDENT_UNBOUNDED_LOCAL_CYCLES",
+  "cross_server_lock": false,
+  "automatic_asset_regeneration": false,
+  "preview_is_not_a_run_limit": true
+}

@@ -1,0 +1,33 @@
+{
+  "provenance": "IMPLEMENTATION_DERIVED_FROM_MD; not the absent user companion files",
+  "status": "STATIC_SPEC_VALIDATED",
+  "case_count": 7,
+  "preview_count": 42,
+  "anchor_runs": 7,
+  "fresh_seed_blocks": 5,
+  "total_preview_optimizer_updates": 2100000,
+  "preview_is_not_a_run_limit": true,
+  "grid_count": 50,
+  "gpu_acceptance": "NOT_PERFORMED",
+  "training_launch": "NOT_PERFORMED",
+  "checks": [
+    "Seven permitted codes",
+    "One factor at a time",
+    "Fixed F1 teacher full SHA",
+    "Fixed q/tau",
+    "PLH 11-channel architecture",
+    "W104 D122",
+    "Native original FR20 selection",
+    "HQNR-only selector",
+    "Lower-update exact tie",
+    "Exact50K secondary",
+    "Fifty unique candidate steps",
+    "Non-overlapping seed blocks",
+    "Anchor excluded from fresh seeds",
+    "Correct s4/s5 first-cycle order",
+    "Rotating pair order",
+    "Canonical run-ID roundtrip",
+    "Same-cycle BASE links",
+    "42-preview not stop condition"
+  ]
+}
