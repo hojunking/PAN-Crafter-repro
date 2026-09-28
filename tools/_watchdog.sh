@@ -9,6 +9,12 @@ if [ "${1:-}" = "--install" ]; then     # cron 등록 (s2 등 새 서버용, 멱
   ) | crontab -
   echo "cron 등록 완료"; exit 0
 fi
+# PANDA_RB_LOCAL_OWNER: explicit B01 owns admissions, even after STOP_FOR_REVIEW.
+# Code deployment alone never creates this pointer; never revive historical jobs.
+if [ -e "$REPO/work_dir/_panda_rb/local_owner.json" ] || [ -L "$REPO/work_dir/_panda_rb/local_owner.json" ]; then
+  echo "PANDA B01 owns this server; no historical watchdog fallback"
+  exit 0
+fi
 LOG="$REPO/work_dir/cases_chain.log"
 LOCK="$REPO/work_dir/.watchdog.lock"
 exec 9>"$LOCK"; flock -n 9 || exit 0

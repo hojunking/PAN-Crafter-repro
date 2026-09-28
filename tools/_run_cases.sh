@@ -23,6 +23,10 @@
 #   - 체인 자체가 죽는 경우는 tools/_watchdog.sh(cron) 가 재기동한다
 #   - work_dir/cases_queue_handover.txt 가 생기면 다음 case 경계에서 남은 큐를 그 파일의 큐로 바꾼다 (전환 스크립트용; 진행 중 run 은 끝까지)
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$REPO"
+# PANDA_RB_LOCAL_OWNER: opt-in B01 also blocks manual historical queue admissions.
+if [ -e "$REPO/work_dir/_panda_rb/local_owner.json" ] || [ -L "$REPO/work_dir/_panda_rb/local_owner.json" ]; then
+    echo "PANDA B01 owns this server; no historical queue fallback"; exit 0
+fi
 # Explicit FH20R1 registration only; no activation by code/config deployment.
 FH20R1_SERVER=""
 if [ -r "$REPO/work_dir/_fh20r1/local_server.txt" ]; then

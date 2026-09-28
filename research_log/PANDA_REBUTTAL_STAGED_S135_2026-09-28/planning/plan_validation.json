@@ -1,0 +1,163 @@
+{
+  "scope": "Registry and file integrity only; no training/inference/GPU/runtime tests.",
+  "checks": [
+    {
+      "check": "three_servers_exactly",
+      "status": "PASS"
+    },
+    {
+      "check": "24_unique_train_run_ids",
+      "status": "PASS"
+    },
+    {
+      "check": "6_distinct_student_seeds",
+      "status": "PASS"
+    },
+    {
+      "check": "s1_8_training_runs",
+      "status": "PASS"
+    },
+    {
+      "check": "s1_QFULL_two_repeats",
+      "status": "PASS"
+    },
+    {
+      "check": "s1_QMEAN_two_repeats",
+      "status": "PASS"
+    },
+    {
+      "check": "s1_QSHUF_two_repeats",
+      "status": "PASS"
+    },
+    {
+      "check": "s1_QESUR_two_repeats",
+      "status": "PASS"
+    },
+    {
+      "check": "s3_8_training_runs",
+      "status": "PASS"
+    },
+    {
+      "check": "s3_QFULL_two_repeats",
+      "status": "PASS"
+    },
+    {
+      "check": "s3_QMEAN_two_repeats",
+      "status": "PASS"
+    },
+    {
+      "check": "s3_QSHUF_two_repeats",
+      "status": "PASS"
+    },
+    {
+      "check": "s3_QESUR_two_repeats",
+      "status": "PASS"
+    },
+    {
+      "check": "s5_8_training_runs",
+      "status": "PASS"
+    },
+    {
+      "check": "s5_QFULL_two_repeats",
+      "status": "PASS"
+    },
+    {
+      "check": "s5_QMEAN_two_repeats",
+      "status": "PASS"
+    },
+    {
+      "check": "s5_QSHUF_two_repeats",
+      "status": "PASS"
+    },
+    {
+      "check": "s5_QESUR_two_repeats",
+      "status": "PASS"
+    },
+    {
+      "check": "QFULL_six_unique_seeds",
+      "status": "PASS"
+    },
+    {
+      "check": "QMEAN_six_unique_seeds",
+      "status": "PASS"
+    },
+    {
+      "check": "QSHUF_six_unique_seeds",
+      "status": "PASS"
+    },
+    {
+      "check": "QESUR_six_unique_seeds",
+      "status": "PASS"
+    },
+    {
+      "check": "s1_R1_matched_seed",
+      "status": "PASS"
+    },
+    {
+      "check": "s1_R2_matched_seed",
+      "status": "PASS"
+    },
+    {
+      "check": "s3_R1_matched_seed",
+      "status": "PASS"
+    },
+    {
+      "check": "s3_R2_matched_seed",
+      "status": "PASS"
+    },
+    {
+      "check": "s5_R1_matched_seed",
+      "status": "PASS"
+    },
+    {
+      "check": "s5_R2_matched_seed",
+      "status": "PASS"
+    },
+    {
+      "check": "48_stress_curve_records",
+      "status": "PASS"
+    },
+    {
+      "check": "49_distinct_shift_vectors",
+      "status": "PASS"
+    },
+    {
+      "check": "zero_shift_once",
+      "status": "PASS"
+    },
+    {
+      "check": "all_stress_sources_registered",
+      "status": "PASS"
+    },
+    {
+      "check": "only_exact50K_stress",
+      "status": "PASS"
+    },
+    {
+      "check": "two_modes_per_source",
+      "status": "PASS"
+    },
+    {
+      "check": "6_results_per_case_mode",
+      "status": "PASS"
+    },
+    {
+      "check": "archive_byte_identity",
+      "status": "PASS"
+    },
+    {
+      "check": "each_server_stops_for_review",
+      "status": "PASS"
+    },
+    {
+      "check": "no_GF2_QB_silent_allocation",
+      "status": "PASS"
+    },
+    {
+      "check": "teacher_not_false_verified",
+      "status": "PASS"
+    }
+  ],
+  "count": 39,
+  "status": "PASS"
+}

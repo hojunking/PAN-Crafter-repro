@@ -1,0 +1,50 @@
+{
+  "archived_files": [
+    {
+      "original": "/mnt/data/PANDA_REBUTTAL_AUDIT_2026-09-28/PANDA_REBUTTAL_CLAIM_GAP_PRIORITY_KR.md",
+      "archive": "archive/PANDA_REBUTTAL_CLAIM_GAP_PRIORITY_KR.md",
+      "sha256": "896fc25ca51b887832f7f5407e2cbf78729d83c936a649628cbdd424fd02c7c9",
+      "bytes": 25362
+    },
+    {
+      "original": "/mnt/data/PANDA_REBUTTAL_AUDIT_2026-09-28/component_primary_records.csv",
+      "archive": "archive/component_primary_records.csv",
+      "sha256": "ca5432d02451829d32b27b32e3c2ca265e65a7c068571ea1c525eb4f1346c43c",
+      "bytes": 115562
+    },
+    {
+      "original": "/mnt/data/PANDA_REBUTTAL_AUDIT_2026-09-28/maina_12block_summary.csv",
+      "archive": "archive/maina_12block_summary.csv",
+      "sha256": "cb47e467e63f639baa0352ecb2500d74069bca7b7ce0f41d316bce18b7dbf788",
+      "bytes": 3763
+    },
+    {
+      "original": "/mnt/data/PANDA_REBUTTAL_AUDIT_2026-09-28/paired_component_deltas.csv",
+      "archive": "archive/paired_component_deltas.csv",
+      "sha256": "36c087b6bb35e013a1a8555a43a161849af94beb78f7b7676cc70db56f926b85",
+      "bytes": 54691
+    },
+    {
+      "original": "/mnt/data/PANDA_REBUTTAL_AUDIT_2026-09-28.zip",
+      "archive": "archive/PANDA_REBUTTAL_AUDIT_2026-09-28_original.zip",
+      "sha256": "d07f826aa91deaa5eceeea19944ce469980c451a9535ce3ffae64dde9a76ce06"
+    }
+  ],
+  "source_inputs": [
+    {
+      "name": "59391_PANDA_PAN_Alignment_Awar.pdf",
+      "path": "/mnt/data/59391_PANDA_PAN_Alignment_Awar.pdf",
+      "sha256": "4a6aad4d7e12c974c6b8d864fbb9b00849a02069605325434ca38866383afeb9",
+      "bytes": 8024242,
+      "included_in_bundle": false
+    },
+    {
+      "name": "pan-cvpr27.xlsx",
+      "path": "/mnt/data/pan-cvpr27.xlsx",
+      "sha256": "d120bc815728ea5842eecf282e4d492235ceac9908c56cbb20065115b8d370b2",
+      "bytes": 9075331,
+      "included_in_bundle": false
+    }
+  ],
+  "scope_override": "Use the new master plan for current work; prior audit is unmodified historical evidence."
+}
