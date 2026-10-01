@@ -76,6 +76,17 @@ class TransferTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             transfer.import_package(path, sha256(path), self.root, True)
 
+    def test_counts_tensor_copied_without_deserialization(self):
+        relative = str((self.base / 'diagnostics/consumed_sample_view_counts.pt').relative_to(self.root))
+        path = self.bundle(relative, b'opaque counted-view tensor bytes')
+        self.assertEqual(transfer.import_package(path, sha256(path), self.root, True)['added_files'], 1)
+
+    def test_resume_state_still_forbidden(self):
+        relative = str((self.base / 'diagnostics/training_state.pt').relative_to(self.root))
+        path = self.bundle(relative)
+        with self.assertRaises(ValueError):
+            transfer.import_package(path, sha256(path), self.root, True)
+
 
 if __name__ == '__main__':
     unittest.main()

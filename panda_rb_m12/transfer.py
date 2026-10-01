@@ -45,11 +45,14 @@ def import_package(path, expected_sha256, root=ROOT, activate=False):
                 raise ValueError('Package member escapes registered remote run or traverses a symlink')
             sub = target.relative_to(owners[0])
             extra = owners[0] in extra_roots
+            # This is the small consumed sample/view COUNT tensor, not model
+            # weights or a resume state. Intake copies bytes and never unpickles.
+            count_tensor = sub == Path('diagnostics/consumed_sample_view_counts.pt')
             if extra and sub.suffix not in ('.json', '.jsonl', '.csv', '.md', '.txt', '.npy', '.npz'):
                 raise ValueError('Unsupported diagnostic artifact')
             if not extra and (sub.parts[0] not in ('meta', 'native', 'stress', 'diagnostics', 'checkpoints',
                                      'init_manifest.json', 'stream_manifest.json', 'bindings.json', 'case.json')
-                    or sub.suffix not in ('.json', '.jsonl', '.csv', '.yaml', '.npy')
+                    or (sub.suffix not in ('.json', '.jsonl', '.csv', '.yaml', '.npy') and not count_tensor)
                     or (sub.parts[0] == 'checkpoints' and sub.name not in ('selection_manifest.json', 'identity.json'))):
                 raise ValueError('Result intake excludes executable files, training data, weights and credentials')
             h = hashlib.sha256()
