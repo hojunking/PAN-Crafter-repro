@@ -1,0 +1,59 @@
+{
+  "schema": "PANDEP_MODEL_REFERENCE_v1",
+  "repository": "https://github.com/hojunking/PAN-Crafter-repro",
+  "source_commit": "ea71b68be637a1d1f4d61bf89cb4e023cbf00385",
+  "runtime_imports_legacy_project": false,
+  "license_notice": "MIT text with IMPORTANT NOTICE restricting to NON-COMMERCIAL RESEARCH AND EDUCATIONAL USE ONLY. Commercial licensing contact mkimee@kaist.ac.kr. This implementation does not authorize commercial deployment.",
+  "files": {
+    "model/pancrafter_paper.py": {
+      "source_sha256": "a766a01a5e21d86924bd87e41b064b58dcd0407d5b4cf3200e2d8aea22603de8",
+      "vendored_sha256": "a766a01a5e21d86924bd87e41b064b58dcd0407d5b4cf3200e2d8aea22603de8",
+      "transformation": "none",
+      "symbols": ["ChannelLayerNorm", "ResBlock(mode_mod=False,se=False,norm=ln,dropout=0)", "PANCrafterPaper(n_attn=0,attn_locations=[],mode_modulation=False,swin_depth=0,swin_mid=0)"]
+    },
+    "model/pancrafter.py": {
+      "source_sha256": "7bd4a28ff874e74602aefb319da1f93d620e78ca931bd24129f38b980492dd5a",
+      "vendored_sha256": "4d3ea927740ebccfe40470d5773662ae1cbd3c66080a13e324f389ce4dbe9a87",
+      "transformation": "append one final newline; original has no EOF newline",
+      "symbols": ["DownConv", "UpConv", "zero_module"]
+    },
+    "ablr2/sensor_sources.json": {
+      "source_sha256": "3231245a12069a7a2b61e75f621008d5ad09883b6e559fc2326a355987c6d0c6",
+      "vendored_sha256": "3231245a12069a7a2b61e75f621008d5ad09883b6e559fc2326a355987c6d0c6",
+      "transformation": "none"
+    },
+    "tools/repair_lpan.py": {
+      "source_sha256": "c7bab1542611c33fb50369160be3930043de449d13e963c7f125d83d9e018131",
+      "vendored_sha256": "c7bab1542611c33fb50369160be3930043de449d13e963c7f125d83d9e018131",
+      "transformation": "none",
+      "symbols": ["make_lpan"]
+    },
+    "qg40/data.py": {
+      "source_sha256": "f6e7cff272dff0ccb5da4cdf213e629fc7b60556254859e8a019448c9cdd8619",
+      "vendored_sha256": "f6e7cff272dff0ccb5da4cdf213e629fc7b60556254859e8a019448c9cdd8619",
+      "transformation": "none",
+      "symbols": ["verify_qb_msfix", "verify_lp_cache"]
+    },
+    "fh12/data.py": {
+      "source_sha256": "d38e3bb36b925e1b31f5fd1e99995eb1ca0be04d3d4517b9ee43aa04daddb3ae",
+      "vendored_sha256": "d38e3bb36b925e1b31f5fd1e99995eb1ca0be04d3d4517b9ee43aa04daddb3ae",
+      "transformation": "none",
+      "symbols": ["RECIPE", "AUGMENTATION", "FH12Dataset.get_view"]
+    },
+    "LICENSE": {
+      "source_sha256": "210b4ff8e17b6d80a352eb0ce59c6607bc77e43077bb2a2c17e0e2114bd15343",
+      "vendored_sha256": "5104201d996cceed799c43defadbe7d2d9e13e2e752a21b543420621d3191403",
+      "transformation": "append one final newline; original has no EOF newline"
+    }
+  },
+  "parameter_mapping": {
+    "input.*": "stems.<SENSOR>.*",
+    "output.0.*": "trunk.output_norm.*",
+    "output.2.*": "heads.<SENSOR>.*",
+    "encoder1/down1/encoder2/down2/middle/up2/decoder2/up1/decoder1": "trunk.<original key>"
+  },
+  "parity_scope": "Frozen synthetic nonzero state, not a trained checkpoint. Original forward extracted from AST in separate test subprocess; unused attention imports are not runtime dependencies.",
+  "parity_tolerance": {"max_abs": 0.00001, "mean_abs": 0.000001},
+  "normalization": "torch float32 mul_(2/maxDN).sub_(1), preserved without clipping",
+  "msfix_recipe": "genmtf_matlab(QB,ratio4,N41), cv2 float64 replicate, phase2, interp23tap float64 before target dtype cast; atol1e-8 rtol0"
+}

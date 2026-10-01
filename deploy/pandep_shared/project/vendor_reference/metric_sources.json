@@ -1,0 +1,91 @@
+{
+  "schema": "PANDEP_METRIC_SOURCES_v1",
+  "legacy_commit": "ea71b68be637a1d1f4d61bf89cb4e023cbf00385",
+  "commercial_release_authorized": false,
+  "sources": [
+    {
+      "source": "tools/metrics/eval_rr.py",
+      "commit": "ea71b68be637a1d1f4d61bf89cb4e023cbf00385",
+      "sha256": "a64a95ffde9b7d0278fa883bda1acaf895cca74d2b07b79f56285c60e8ba0c4a",
+      "symbols": [
+        "sam",
+        "ergas"
+      ],
+      "target": "src/pan_shared/metrics/eval_rr.py",
+      "target_sha256": "246a6c349d6d5e0325af34de04d0df0cde90467d15ca1868cdbd407de2d3b150"
+    },
+    {
+      "source": "tools/eval_dlpan.py",
+      "commit": "ea71b68be637a1d1f4d61bf89cb4e023cbf00385",
+      "sha256": "5671d44da1026653ac028ff97f81375420fa195a55fd3721ee8140904239fdab",
+      "symbols": [
+        "_SOBEL",
+        "scc_dlpan",
+        "psnr_global",
+        "ssim_skimage"
+      ],
+      "target": "src/pan_shared/metrics/extras.py",
+      "target_sha256": "fbc636fee84be917250054fbf8ccf9c56f7c7cc7f44e420a910a00db00c9683e"
+    },
+    {
+      "source": "tools/metrics/eval_fr.py",
+      "commit": "ea71b68be637a1d1f4d61bf89cb4e023cbf00385",
+      "sha256": "b511d42b4db46d863c737b50606e9488c8ca5d9c7b07678ddc5bb7c1d9df01d4",
+      "symbols": [
+        "SENSOR_NAME",
+        "GNYQ_OVERRIDE",
+        "GNYQ_TABLE",
+        "_cubic",
+        "_contributions",
+        "imresize_matlab",
+        "_fspecial_gaussian",
+        "_fwind1_huang",
+        "genmtf_matlab",
+        "mtf_filter",
+        "_uqi",
+        "_blockproc_uqi"
+      ],
+      "target": "src/pan_shared/metrics/eval_fr.py",
+      "target_sha256": "faf17211d3dc6b02b5d417ee3824aa9be62103ae1a870645e5176ee40a9e919d"
+    },
+    {
+      "source": "tools/metrics/q2n.py",
+      "commit": "ea71b68be637a1d1f4d61bf89cb4e023cbf00385",
+      "sha256": "89d1bf28a211e18a6fa8a2b6f8f7162f4b6716d15b2097888e773f1f73be10d1",
+      "symbols": "entire file unchanged",
+      "target": "src/pan_shared/metrics/q2n.py",
+      "target_sha256": "89d1bf28a211e18a6fa8a2b6f8f7162f4b6716d15b2097888e773f1f73be10d1"
+    },
+    {
+      "source": "tools/metrics/jqm.py",
+      "commit": "ea71b68be637a1d1f4d61bf89cb4e023cbf00385",
+      "sha256": "6962af58f8ac251fb087fbcf6dbde40bc502ec34083bd60a543b2daf0f8ce94b",
+      "symbols": "entire file unchanged",
+      "target": "src/pan_shared/metrics/jqm.py",
+      "target_sha256": "6962af58f8ac251fb087fbcf6dbde40bc502ec34083bd60a543b2daf0f8ce94b"
+    },
+    {
+      "source": "DLPan-Toolbox/01-DL-toolbox(Pytorch)/UDL/pansharpening/models/APNN/wald_utilities.py",
+      "sha256": "c7d076395eec052dd4ed391e6f51e5fa79661a3fc283816a63ccdb100ff5bdbf",
+      "symbols": [
+        "interp23tap"
+      ],
+      "target": "src/pan_shared/metrics/interp23.py",
+      "target_sha256": "0155a7e1c339291908c687dcba37dfe3e1121b9c6195c0e97532ade6effc133f",
+      "license": "GPL-3.0; evaluation/data-audit only"
+    },
+    {
+      "source": "ablr2/evaluation.py",
+      "commit": "ea71b68be637a1d1f4d61bf89cb4e023cbf00385",
+      "sha256": "cb6f2644c3ae694d6f660603a2331f06722f7cd6bbfcb9d304e37e50067ccdd1",
+      "symbols": [
+        "rr_metrics",
+        "FRMetrics",
+        "fr_jqm",
+        "infer"
+      ],
+      "target": "src/pan_shared/evaluate.py",
+      "adaptation": "sensor canon fixed; pure copies imports only; validation selector replaced as plan specifies; native RR20/FR20 DN metrics preserved"
+    }
+  ]
+}

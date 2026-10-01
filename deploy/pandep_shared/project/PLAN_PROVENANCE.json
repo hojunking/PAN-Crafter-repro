@@ -1,0 +1,11 @@
+{
+  "campaign_id": "PANDEP_S2_SHARED_PLH_20261001_v4",
+  "plan_filename": "PANDEP_S2_Shared_PLH_UNet_Experiment_Cases_2026-10-01_v4.md",
+  "plan_sha256": "eccb999c0a1c2f5ba72a238b7f44904a1bc9fea87985773484382a6c1bdd72ee",
+  "reference_source_commit": "ea71b68be637a1d1f4d61bf89cb4e023cbf00385",
+  "deployment_server": "s2",
+  "legacy_runtime_imports_allowed": false,
+  "legacy_repository_mutations_authorized": false,
+  "actual_s2_execution_in_this_implementation_session": false,
+  "local_test_evidence": "verification/local_cpu_tests.json"
+}
