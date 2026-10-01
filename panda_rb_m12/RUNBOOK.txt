@@ -1,0 +1,82 @@
+PANDA B02 / M12 — s1, s3, s5
+================================
+
+Scope
+  New campaign PANDA_REBUTTAL_B02_M12_WV3_S135_20261001_v1 only.
+  Per server: 40 fresh 50K Students, 80 native selection observations,
+  96 four-mode stress curves; STEP1 then STEP2, then STOP_FOR_REVIEW.
+  Existing B01, PANDEP, legacy uploaders and protected Sheets are not edited.
+  Primary selector EXACT_50000; secondary RR_VAL_ERGAS_MIN, earliest tie.
+  This campaign does not select by HQNR or reuse an old Student initialization.
+
+After git pull (one local launch command, substitute this server)
+  python3 tools/rb_m12_start.py --server s1 --activate
+  python3 tools/rb_m12_start.py --server s3 --activate
+  python3 tools/rb_m12_start.py --server s5 --activate
+
+  Run only the command for the physical local server. No remote launch is made.
+  git pull does not itself launch anything. Do not run all three on one machine.
+  No cron installation, process killing, image pulling or automatic pruning.
+  --dry-run verifies the registry without starting containers or writing state.
+
+Required local assets
+  Existing verified B01 common/bindings.json and common/weights/train_e_bar.*
+  under work_dir/_panda_rb/20260928/B01; native train/val/RR20/FR20 H5s and
+  original LP/F1 assets referenced by that binding; frozen DLPan evaluator;
+  the already available pinned Docker image (see deployment.DEFAULT_IMAGE).
+  s3/s5 reuse their previously imported original s1 F1 package, never F3/F5.
+  Missing assets fail before admission. No fabricated defaults or e-cache rebuild.
+  Automatic preflight verifies bytes, sample/view identities, frozen evaluators,
+  actual CUDA batch48 QFULL parity, full-state resume, warp sign and response.
+  Weak response is a measured result, not a score-based veto.
+  About 128.4 GiB free is conservatively required for 40 runs including reserve;
+  extra technical attempts may need more. Original evidence is never deleted.
+
+Logs / status
+  docker logs -f panda-rb-m12-s1
+  python3 tools/rb_m12_runner.py status --server s1
+  work_dir/_panda_rb/20261001/B02_M12/control/<server>/status.json
+  Each train/<server>/R<1..4>/<case>/ contains its own init, stream, checkpoints,
+  diagnostics, native metrics and stress evidence. No old work_dir is reused.
+  The owner file retains the existing watchdog hold after finite completion.
+
+Recovery
+  SIGTERM saves the completed-update full state and reports PAUSED_SIGNAL.
+  Start the same command again to resume the same seed/model/optimizer/RNG/stream.
+  A technical training failure requires inspection then --retry-technical.
+  Numerical failure remains a failed registered seed; never substitute a seed.
+  Diagnostic IO/runtime failures are recorded in diagnostic_debt.json and do
+  not prevent subsequent fresh Students. Identity/manifest corruption stops.
+  retry-diagnostics --activate performs inference only, never training.
+  Use the frozen release and pinned container environment for recovery, not
+  an edited working tree. A changed release cannot silently resume the cohort.
+
+Reporting / exchange (in the pinned Python environment)
+  python tools/rb_m12_runner.py report --server s3
+  python tools/rb_m12_runner.py package --server s3 --output /tmp/m12-s3.zip
+  report/package only read existing evidence; they never train, evaluate or upload.
+  Copy the ZIP plus its .sha256.json receipt to s1 using the approved transport.
+  python tools/rb_m12_runner.py import-package --server s1 --input /path/m12-s3.zip --sha256 <sender-receipt-sha> --activate
+  Intake verifies every listed byte, rejects path traversal/symlinks/executables,
+  preserves existing evidence and is idempotent. No credentials/weights included.
+
+Sheets: separate explicit s1 writer, never called by training
+  python tools/rb_m12_runner.py sheet-setup --server s1 --activate
+  python tools/rb_m12_runner.py sheet-sync --server s1 --activate
+  Without --activate these only plan operations. Run inside an environment with
+  existing s1 service-account credentials and network permission, not the offline
+  training container. Credentials must never be committed or sent in packages.
+  Native rows use new hidden _rb_m12_s1/s3/s5 tabs (80 each), Bucket=Ablations,
+  visible WV3-ablations. Current _records parser/AA routing is minimally extended.
+  The writer validates the actual live formula and protected-sheet metadata;
+  unknown formula layouts stop instead of overwriting the current parser.
+  Native readback: source RAW -> _records -> WV3-ablations; absent WV3-main.
+  Old _rb01*, paper, ablations, 유의미한결과 and 배포용 모델 are not written.
+  M12 stress points use a separate hidden schema. Public RB02-curves extension
+  remains explicitly pending, preserving the existing B01 curve meanings.
+
+Verification
+  python -m unittest discover -s tools -p 'test_rb_m12_*.py' -v
+  Use the pinned image, not the host base Python (which may lack YAML/Torch).
+  Production gates always run again against the actual frozen source release.
+  Small implementation smoke receipts are not completed registered experiments.

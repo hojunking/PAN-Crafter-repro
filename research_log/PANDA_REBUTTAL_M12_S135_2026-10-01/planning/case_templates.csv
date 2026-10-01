@@ -1,0 +1,11 @@
+﻿case_id,phase,edge_weight,aligner_weight,hard_mode,advantage_mode,alpha,beta,lambda_edge,per_server_repeats,total_student_seeds,description
+QFULL,STEP1_QROUTE,QFULL,QFULL,ADAPTIVE,ADAPTIVE,1.0,0.1,0.002,4,12,Registered full method
+QMEAN,STEP1_QROUTE,TRAIN_MEAN,TRAIN_MEAN,ADAPTIVE,ADAPTIVE,1.0,0.1,0.002,4,12,Replace both geometry weights by train-view mean
+QSHUF,STEP1_QROUTE,QSHUF,QSHUF,ADAPTIVE,ADAPTIVE,1.0,0.1,0.002,4,12,Permute weights within train view and e stratum
+QESUR,STEP1_QROUTE,QESUR,QESUR,ADAPTIVE,ADAPTIVE,1.0,0.1,0.002,4,12,e-ranked geometry weights with matched marginal distribution
+QEDGE,STEP1_QROUTE,QFULL,TRAIN_MEAN,ADAPTIVE,ADAPTIVE,1.0,0.1,0.002,4,12,Adaptive geometry only on U edge supervision
+QALIGN,STEP1_QROUTE,TRAIN_MEAN,QFULL,ADAPTIVE,ADAPTIVE,1.0,0.1,0.002,4,12,Adaptive geometry only on A hard supervision
+H0,STEP2_FITTING,QFULL,QFULL,PLAIN,ADAPTIVE,0.0,0.1,0.002,4,12,Remove only hard difficulty emphasis
+HSPMEAN,STEP2_FITTING,QFULL,QFULL,SPATIAL_MEAN,ADAPTIVE,1.0,0.1,0.002,4,12,Preserve hard-weight mass per sample; remove pixel allocation
+NOADV,STEP2_FITTING,QFULL,QFULL,ADAPTIVE,ONE,1.0,0.1,0.002,4,12,Remove only advantage gate; keep trust and beta
+ADVMEAN,STEP2_FITTING,QFULL,QFULL,ADAPTIVE,TRUST_WEIGHTED_SPATIAL_MEAN,1.0,0.1,0.002,4,12,Preserve trust-weighted advantage mass per sample

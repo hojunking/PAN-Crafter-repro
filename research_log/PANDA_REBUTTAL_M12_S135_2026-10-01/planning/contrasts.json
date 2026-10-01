@@ -1,0 +1,121 @@
+{
+  "primary_endpoint_family": [
+    "hqnr",
+    "ergas"
+  ],
+  "primary_contrasts": [
+    {
+      "id": "Q_ASSOCIATION",
+      "weights": {
+        "QFULL": 1,
+        "QSHUF": -1
+      }
+    },
+    {
+      "id": "Q_VS_E",
+      "weights": {
+        "QFULL": 1,
+        "QESUR": -1
+      }
+    },
+    {
+      "id": "HARD_ALLOCATION",
+      "weights": {
+        "QFULL": 1,
+        "HSPMEAN": -1
+      }
+    },
+    {
+      "id": "ADVANTAGE_ALLOCATION",
+      "weights": {
+        "QFULL": 1,
+        "ADVMEAN": -1
+      }
+    }
+  ],
+  "secondary_contrasts": [
+    {
+      "id": "Q_VS_MEAN",
+      "weights": {
+        "QFULL": 1,
+        "QMEAN": -1
+      }
+    },
+    {
+      "id": "EDGE_MAIN_EFFECT",
+      "weights": {
+        "QEDGE": 0.5,
+        "QMEAN": -0.5,
+        "QFULL": 0.5,
+        "QALIGN": -0.5
+      }
+    },
+    {
+      "id": "ALIGNER_MAIN_EFFECT",
+      "weights": {
+        "QALIGN": 0.5,
+        "QMEAN": -0.5,
+        "QFULL": 0.5,
+        "QEDGE": -0.5
+      }
+    },
+    {
+      "id": "GEOMETRY_INTERACTION",
+      "weights": {
+        "QFULL": 1,
+        "QEDGE": -1,
+        "QALIGN": -1,
+        "QMEAN": 1
+      }
+    },
+    {
+      "id": "HARD_PRESENCE",
+      "weights": {
+        "QFULL": 1,
+        "H0": -1
+      }
+    },
+    {
+      "id": "HARD_MASS",
+      "weights": {
+        "HSPMEAN": 1,
+        "H0": -1
+      }
+    },
+    {
+      "id": "ADVANTAGE_PRESENCE",
+      "weights": {
+        "QFULL": 1,
+        "NOADV": -1
+      }
+    },
+    {
+      "id": "ADVANTAGE_MASS",
+      "weights": {
+        "ADVMEAN": 1,
+        "NOADV": -1
+      }
+    }
+  ],
+  "pairing_keys": [
+    "server",
+    "repeat",
+    "seed"
+  ],
+  "selector": "EXACT_50000",
+  "student_n_target": 12,
+  "cohort_policy": "New M12 only; fixed F1; common runtime/evaluator/data",
+  "confidence_interval": "paired Student t, df=n-1; assumptions reported",
+  "bootstrap_sensitivity": {
+    "stratify_by": "server",
+    "draw_unit": "paired Student block",
+    "resamples": 10000,
+    "seed": 20261001
+  },
+  "p_value_reporting": "If used: report Holm for eight primary endpoint/contrast tests",
+  "direction": {
+    "hqnr": "higher",
+    "ergas": "lower"
+  },
+  "data_analysis_performed": false
+}

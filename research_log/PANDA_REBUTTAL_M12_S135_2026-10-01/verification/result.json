@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "checks_run": 24,
+  "scope": "Offline registry/counterbalance and scalar loss algebra only",
+  "model_training_tested": false,
+  "cuda_parity_tested": false,
+  "server_started": false,
+  "sheets_modified": false,
+  "expected": {
+    "training_runs": 120,
+    "training_runs_per_server": 40,
+    "native_observations": 240,
+    "stress_curves": 288,
+    "stress_predictions": 282240,
+    "stress_primary_points": 14112,
+    "per_case_students": 12,
+    "independent_teacher_models": 1
+  },
+  "per_server_seeds": {
+    "s1": [
+      261001101,
+      261001102,
+      261001103,
+      261001104
+    ],
+    "s3": [
+      261001301,
+      261001302,
+      261001303,
+      261001304
+    ],
+    "s5": [
+      261001501,
+      261001502,
+      261001503,
+      261001504
+    ]
+  }
+}

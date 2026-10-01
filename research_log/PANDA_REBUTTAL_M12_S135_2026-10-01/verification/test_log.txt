@@ -1,0 +1,29 @@
+test_01_case_count (__main__.PlanTests.test_01_case_count) ... ok
+test_02_run_count_and_unique_ids (__main__.PlanTests.test_02_run_count_and_unique_ids) ... ok
+test_03_four_repeats_per_server (__main__.PlanTests.test_03_four_repeats_per_server) ... ok
+test_04_distinct_seed_cohort (__main__.PlanTests.test_04_distinct_seed_cohort) ... ok
+test_05_all_cases_in_each_block (__main__.PlanTests.test_05_all_cases_in_each_block) ... ok
+test_06_every_case_has_twelve (__main__.PlanTests.test_06_every_case_has_twelve) ... ok
+test_07_two_phases (__main__.PlanTests.test_07_two_phases) ... ok
+test_08_validation_grid (__main__.PlanTests.test_08_validation_grid) ... ok
+test_09_native_tasks (__main__.PlanTests.test_09_native_tasks) ... ok
+test_10_stress_tasks (__main__.PlanTests.test_10_stress_tasks) ... ok
+test_11_step1_balance (__main__.PlanTests.test_11_step1_balance) ... ok
+test_12_step2_balance (__main__.PlanTests.test_12_step2_balance) ... ok
+test_13_finite_schedule (__main__.PlanTests.test_13_finite_schedule) ... ok
+test_14_b01_not_reused (__main__.PlanTests.test_14_b01_not_reused) ... ok
+test_15_single_frozen_teacher (__main__.PlanTests.test_15_single_frozen_teacher) ... ok
+test_16_geometry_2x2 (__main__.PlanTests.test_16_geometry_2x2) ... ok
+test_17_hard_spatial_mass_preserved (__main__.PlanTests.test_17_hard_spatial_mass_preserved) ... ok
+test_18_hard_constant_parity (__main__.PlanTests.test_18_hard_constant_parity) ... ok
+test_19_advantage_weighted_mass_preserved (__main__.PlanTests.test_19_advantage_weighted_mass_preserved) ... ok
+test_20_advantage_constant_parity (__main__.PlanTests.test_20_advantage_constant_parity) ... ok
+test_21_zero_gate_and_zero_trust (__main__.PlanTests.test_21_zero_gate_and_zero_trust) ... ok
+test_22_routing_algebra (__main__.PlanTests.test_22_routing_algebra) ... ok
+test_23_h0_noadv_contract (__main__.PlanTests.test_23_h0_noadv_contract) ... ok
+test_24_grid_and_roi (__main__.PlanTests.test_24_grid_and_roi) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 0.002s
+
+OK

@@ -1,0 +1,34 @@
+[
+  {
+    "source_path": "/mnt/data/PANDA_REBUTTAL_STAGED_S135_2026-09-28/MASTER_PLAN_KR.md",
+    "copied_to": "archive/MASTER_PLAN_KR.md",
+    "sha256": "b3a2746c6945d3a29363a1465d1b530f741a565c6d039e0b43f6ab1b4ba15ec5"
+  },
+  {
+    "source_path": "/mnt/data/PANDA_REBUTTAL_STAGED_S135_2026-09-28/B01_RB01_RB02_DETAILED_KR.md",
+    "copied_to": "archive/B01_RB01_RB02_DETAILED_KR.md",
+    "sha256": "b4b9e76acb3fbebb06290a794318fd66222fd3c4234b704703bc1d568d945282"
+  },
+  {
+    "source_path": "/mnt/data/PAN_DATASET_ABLATIONS_MIGRATION_2026-10-01/DATASET_ABLATIONS_GSPREAD_HANDOFF_KR.md",
+    "copied_to": "archive/DATASET_ABLATIONS_GSPREAD_HANDOFF_KR.md",
+    "sha256": "4ca2388ba7f7935beb0c65cbac016742cc6d961aa7c671e7b5fcf56c57f0123a"
+  },
+  {
+    "source_path": "/mnt/data/PANDA_B01_ANALYSIS_2026-10-01/ABLATION_ANALYSIS_AND_PAPER_TABLES_KR.md",
+    "copied_to": "archive/ABLATION_ANALYSIS_AND_PAPER_TABLES_KR.md",
+    "sha256": "80190542de40193725e500bc8a9f186a1a8fc068a47f9598c9d09c82d90d8b9d"
+  },
+  {
+    "source_path": "/mnt/data/59391_PANDA_PAN_Alignment_Awar.pdf",
+    "copied_to": null,
+    "sha256": "4a6aad4d7e12c974c6b8d864fbb9b00849a02069605325434ca38866383afeb9",
+    "policy": "Original already attached; hash only, not duplicated"
+  },
+  {
+    "source_path": "/mnt/data/SELECTED_ABLATIONS_REVIEW_2026-10-01.zip",
+    "copied_to": null,
+    "sha256": "f05b604d4ffae3ce5d49954f9c958b7eb1b1b1fb197d33292381bed485344db8",
+    "policy": "Original already attached; hash only, not duplicated"
+  }
+]
