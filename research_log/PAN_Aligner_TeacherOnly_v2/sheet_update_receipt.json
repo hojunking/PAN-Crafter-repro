@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-06",
+  "spreadsheet_id": "1_-3KY2DbSk_AOAuExf_ENbe5jAbhFRxzXoyfaDZRoK0",
+  "sheet": "analysis",
+  "sheet_id": 261006100,
+  "schema": "AAX_ANALYSIS152_v2",
+  "columns": 152,
+  "new_plan_range": "A55:I106",
+  "new_plan_count": 52,
+  "new_lane_range": "A108:I110",
+  "lanes": {
+    "s1": "WV3",
+    "s3": "QB",
+    "s5": "GF2"
+  },
+  "old_plan_rows": "8:40",
+  "old_plan_status": "SUPERSEDED_PLAN",
+  "old_lane_rows": "47:51",
+  "old_lane_status": "SUPERSEDED_ASSIGNMENT",
+  "reference_rows_preserved": "41:46",
+  "remote_training_started": false,
+  "new_measurements": 0,
+  "readback_checks": [
+    "52 case IDs match registry",
+    "A4 counter shows 52 planned and 0 verified v2 summaries",
+    "schema extension DI7:EV7 matches 40 added columns",
+    "M00-M07 settings and their reference/struct target/lambda read back",
+    "row IDs and new three NOT_STARTED lanes read back",
+    "paper Ours HQNR/Ds/Dlambda/ERGAS unchanged for WV3 QB GF2"
+  ],
+  "scope": "TARGETED_SHEET_READBACK_NOT_FULL_WORKBOOK_AUDIT"
+}

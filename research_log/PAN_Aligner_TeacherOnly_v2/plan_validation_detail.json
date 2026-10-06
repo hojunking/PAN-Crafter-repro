@@ -1,0 +1,26 @@
+{
+  "scope": "REGISTRY_STATIC_ONLY; NO CUDA/LOSS/REMOTE TRAINING VERIFICATION",
+  "passed": true,
+  "checks": {
+    "52_unique_conditions": true,
+    "468_unique_training_ids": true,
+    "only_authorized_lanes": true,
+    "three_repeats_each_dataset_case": true,
+    "common_seed_set_within_dataset": true,
+    "teacher_only_fresh_no_student_kd_q_panmix": true,
+    "control_ids_exist": true,
+    "updates_432x50k_36x100k": true,
+    "25_2M_updates": true,
+    "numeric_resolved_epsilon": true,
+    "historical_qb_lambda_kept": true,
+    "exactly_50_candidates_each_budget": true,
+    "50k_not_added_to_100k_selection_grid": true,
+    "eight_factorial_cells": true,
+    "nine_grid_points_one_shared_center": true,
+    "152_unique_columns": true,
+    "no_wallclock_or_success_repetition": true,
+    "s1_156_sequential": true,
+    "s3_156_sequential": true,
+    "s5_156_sequential": true
+  }
+}

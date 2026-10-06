@@ -1,0 +1,475 @@
+{
+  "schema": "TA2_PREALLOCATED_DETAIL_BOOKS_v1",
+  "campaign": "PANDA_ALIGNER_TEACHER_LMS_GT_S135_20261006_v2",
+  "preallocated_only": true,
+  "entries": {
+    "TA2_s1_B01_P01": {
+      "spreadsheet_id": "1kKuy19V37Hg7Y-54MCIOV1_GCevsiCiJ2KId6JsreKk",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B01 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B01_P02": {
+      "spreadsheet_id": "1V-iLln6c_ETkawtGy6lPM9S4d83Tj1hDYJ9Ra73N9iY",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B01 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B02_P01": {
+      "spreadsheet_id": "13IlsjY-yHY24O8hh8fP0zJz6xtvmDtqLGbfOzyE6g4s",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B02 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B02_P02": {
+      "spreadsheet_id": "1mv9JqCv2jR44pOCw1rVxF5icjax8In3O4uoVE17DySs",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B02 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B03_P01": {
+      "spreadsheet_id": "1GJmZ4dWQQAQ9Eolxvn1JmEGNbvIhazI9AuzWAcTsnnc",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B03 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B03_P02": {
+      "spreadsheet_id": "1nK9NTD5lAqhzmcFcCXsqfEjqkf9-1h5XL3Do9aCftsk",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B03 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B04_P01": {
+      "spreadsheet_id": "1-vbdtrHw9iPTvL_DKnyOEuTN0RPbhGH5IYBeqCuRLy8",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B04 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B04_P02": {
+      "spreadsheet_id": "1VtAgoUUZbUqddYzHZqGQgHvo3cztAiyanA9YpCIbqU8",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B04 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B05_P01": {
+      "spreadsheet_id": "1DEf7tpOwnDSfNAyBLzOk9h9vFS3wMCRV0-cVVqLpJbY",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B05 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B05_P02": {
+      "spreadsheet_id": "1IPLi2dUld9Johi56Dy4NdNYtoKusFpsjQSJxbQOwZek",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B05 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B06_P01": {
+      "spreadsheet_id": "1M7MTV7qRvMVYmbknPtPjoS21_NhMS9UxrmCy-du6KPo",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B06 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B06_P02": {
+      "spreadsheet_id": "10mkQcCWi_0B7RvVYCHnZkUsY_jdI85co9E_dS-UxuPs",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B06 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B07_P01": {
+      "spreadsheet_id": "18Bce_lwCyf6FHM8teho-3Cq63CB0iNcA4pQUjkx6-44",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B07 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B07_P02": {
+      "spreadsheet_id": "1X6eem82Ya2GCvELj1D1sLqssukm3uwpTk2KJuQDKV34",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B07 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B08_P01": {
+      "spreadsheet_id": "1yt3gWN_qSu7pgROZOkxqHdDLiSRf5NKm2IOo2rlb6WY",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B08 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B08_P02": {
+      "spreadsheet_id": "1Ks65XEas9XabUHrJK6G70t__B0mzYhMI5keU454laK4",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B08 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B09_P01": {
+      "spreadsheet_id": "16FHVuu-S4MqVQFS75kEEqYhAIwfdQfilJiLYXRmEZXc",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B09 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B09_P02": {
+      "spreadsheet_id": "1ECItK5f90yw89mGuDPK5H45FxvM4QzpXlU0VyJAd0hM",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B09 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B10_P01": {
+      "spreadsheet_id": "1qWGtXiDNXpM5gHnIXEPdwlMh34gTiMxSj_c1BYpXepA",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B10 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B10_P02": {
+      "spreadsheet_id": "15OECxdUzAvsDRIvSEVHI1tMSQcytaHmUJ4XFDLVUaq0",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B10 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B11_P01": {
+      "spreadsheet_id": "1iODcBLycyIxFaUV359SghufkC4nLKH7vXCTys7rDCk4",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B11 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B11_P02": {
+      "spreadsheet_id": "1dPGlujn55sWGHFAZpCFiOcqYzvuP9jUfdwkMb7hy2bs",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B11 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B12_P01": {
+      "spreadsheet_id": "17Mhx7P2wzDC3tc5o8gGAgqLSiQ9LAw-gzaR660fnvzA",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B12 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B12_P02": {
+      "spreadsheet_id": "1E647s_eeZ1Ze6TlovWvvDF2baJXIOsBIMj-fk676UH4",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B12 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B13_P01": {
+      "spreadsheet_id": "14IFGWt3OuMyv7SfNHi6bMlT4xQlioyEzmFW_PXqe134",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B13 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s1_B13_P02": {
+      "spreadsheet_id": "1FW4136HYcXQSFijEXpxagV_5b_5-NjeL9m9x2BbQ3x4",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S1 B13 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B01_P01": {
+      "spreadsheet_id": "1Q5Lcs5gA5tLWgSXwUUMW7EnUygMje6_9m7uM3f5n9q8",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B01 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B01_P02": {
+      "spreadsheet_id": "1nxOIqbGioIWO9KZkm4Fmj0pjd7gIWEmghuAzGBAJWtk",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B01 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B02_P01": {
+      "spreadsheet_id": "14eDk1qiad7ogkhAnf47NrCjJYS92itdjRSWjgmgHJZg",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B02 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B02_P02": {
+      "spreadsheet_id": "1Ctx-g4fffGcGY2Voui8p0e_f_0gPwa19VpnJNm9BpKU",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B02 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B03_P01": {
+      "spreadsheet_id": "1bU8wSK6U66Ni1Rj_52ibf-mJknwydiD3sUpt3gqjRn8",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B03 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B03_P02": {
+      "spreadsheet_id": "1dnT4o0Osy8Ss_SWbursD2qGaHaEy9ck5vYO0sPU1AcU",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B03 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B04_P01": {
+      "spreadsheet_id": "1rGx-otTemFDhcAQR2fQAY_WgRS1QmRXln8cET_8UvM4",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B04 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B04_P02": {
+      "spreadsheet_id": "1Fvw5cpxVqQpTS8t0zGBnGvvp6xbOePVsZeHKLL49Y5o",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B04 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B05_P01": {
+      "spreadsheet_id": "1i3VDI8cauSmsaor43BeoLT9147o-VoYb_NiIH4Th_FU",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B05 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B05_P02": {
+      "spreadsheet_id": "1L85rblZwDUcvuX2SlvMmcGyFf7E_uhei0nJmAXpROiE",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B05 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B06_P01": {
+      "spreadsheet_id": "1vtFTiKj7enz_ds1aD8T22ufP3wEEk1pjMSqn3cyKMPM",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B06 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B06_P02": {
+      "spreadsheet_id": "1vdZZJHaSXYWldBwIjrFsRr81o1T10_7n0yOzD2DSG38",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B06 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B07_P01": {
+      "spreadsheet_id": "148Pd3sjevgAyeSCFhM3XhWIsrqp4wddJzpB9wH2Jc3c",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B07 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B07_P02": {
+      "spreadsheet_id": "1pJdMN_XYwbuKKBhbopkk0HqguHmqSEL9dhk7Zjw1NEg",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B07 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B08_P01": {
+      "spreadsheet_id": "1RPL5xNnjtTUomcKx99GToVADYUW5fb2Ud35QQtGXxJ4",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B08 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B08_P02": {
+      "spreadsheet_id": "1-9cfFfk904jVMLhNVuvZu2Cg0bPS5XWOzkBDaoa_srg",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B08 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B09_P01": {
+      "spreadsheet_id": "1p3dCSLC_GUxfV14GhSVeLvwKakT6KWJyj2l7jtCRl1k",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B09 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B09_P02": {
+      "spreadsheet_id": "1R8ASgvNFvgOxcfvwNfS0olwGax_nlTKIvhAmPrXIdOE",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B09 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B10_P01": {
+      "spreadsheet_id": "1eIP8wWPmVfqa65S0_i07UUd5nkXmVRlWLXdWpLCxUEs",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B10 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B10_P02": {
+      "spreadsheet_id": "1jJcGu3eAvl2Rjmm0AgJ3wI-iWFmGAkShBMPNzQRKzNw",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B10 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B11_P01": {
+      "spreadsheet_id": "1LJjhz1TUOeiXyvm-R7bu0K5RE8BekU17Qpcbjm9NWAo",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B11 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B11_P02": {
+      "spreadsheet_id": "169k1XV1tKqnIcgTytTeLz1H6wWzo869SCQn7-8mYeOc",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B11 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B12_P01": {
+      "spreadsheet_id": "11fhHey0GRZ0VGbSHj4AsD_qwFpb61dBkQcSH5Y9UogE",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B12 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B12_P02": {
+      "spreadsheet_id": "1uu1ZbMVL6daXFoJ-iO1_N7btGtr9c68UdZMRT8rMevE",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B12 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B13_P01": {
+      "spreadsheet_id": "15wr4mwpYSOqkkfaNoBDTLKWO2IdvZN08jfWBFgEme0A",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B13 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s3_B13_P02": {
+      "spreadsheet_id": "1Ibi_alhDGHmLqJoGqPI1rH4TIjPCtV-H-mN6GoLKjOU",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S3 B13 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B01_P01": {
+      "spreadsheet_id": "1xyYt7RDI68R1W-Gs2VWpwf4DAGTwLvoUG23hRzSEjUw",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B01 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B01_P02": {
+      "spreadsheet_id": "1aCQHOzw9F37L3HgWbX5-FHfzwcsQanu9YyCoKxZyDqY",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B01 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B02_P01": {
+      "spreadsheet_id": "19C7SjmDGmlfnjvAdVoe2p15xu_uuDyLHZaGt1AwD-zw",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B02 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B02_P02": {
+      "spreadsheet_id": "1M1jApmkm32644ewm6-TfnRyCaVCmC97KICB_TEsi7fk",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B02 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B03_P01": {
+      "spreadsheet_id": "14VRDLhWPYJ9P7eOu2e_amPqLHDPUQtHZ95OZCmGVHg4",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B03 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B03_P02": {
+      "spreadsheet_id": "1kL1KYHSLxUZZOaGC0qGHP2lHkV1bviZD0cQVQQ4G5so",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B03 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B04_P01": {
+      "spreadsheet_id": "1Tx1hff6kzJX0H7dr_qSObnjm5WXvLhjn3JoyGUZcloI",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B04 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B04_P02": {
+      "spreadsheet_id": "1_5AlB4Gt-w87CpeuO2gHjP6BKmqXnuM2VPj1hEXFF94",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B04 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B05_P01": {
+      "spreadsheet_id": "14MQqX8ljrLDeovjrcEEedg-TNW8VOIuhLros1sXIkJA",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B05 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B05_P02": {
+      "spreadsheet_id": "1RWyYipxkGIlfvJvTGr4l_m7jc_0fWIKlqQNhoAy5CbI",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B05 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B06_P01": {
+      "spreadsheet_id": "1LHmXX8l-up_h8WqqX5CfDefOUxA5luxeZV9eXoAuH4w",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B06 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B06_P02": {
+      "spreadsheet_id": "1__NHHgjpnsS0Gznl2mrJEhHZaQYRehoJSmgc9veJG9Q",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B06 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B07_P01": {
+      "spreadsheet_id": "1Lz7usydBwBNF1rHLnCOAYlnedrsykVlhkNx3i9U5KuU",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B07 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B07_P02": {
+      "spreadsheet_id": "1unUWZg0zsgxdZfvWwqrFu5pfnS-s8Gi9w3-a-ATzNSk",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B07 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B08_P01": {
+      "spreadsheet_id": "1w7_svIiRHoWdvKFp2BlNwrpKuYe0cXvSRJ6SapcWfEM",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B08 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B08_P02": {
+      "spreadsheet_id": "1ALWWulVwbgrASTTs6A2Yu-KCSikjTr54W82QZ2bJox8",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B08 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B09_P01": {
+      "spreadsheet_id": "1onweEJfkPsrvkgpBaOVXi4ybxprzYQHcx4gerQRbYiQ",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B09 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B09_P02": {
+      "spreadsheet_id": "10Soiyalpdcf7Adi6oN8Kz7kBxFLK-BG5XMr3MTcBlAw",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B09 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B10_P01": {
+      "spreadsheet_id": "1gQgq1cQW0ZHot8VgrrtqEdCPyGoT8J5Ouwn_GRZivxk",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B10 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B10_P02": {
+      "spreadsheet_id": "1JrI8n4cIOz8vAZwx7QwlJ5FxkuZDQXwIV8XiHxlymXQ",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B10 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B11_P01": {
+      "spreadsheet_id": "1-i8mFof2kWnkHiHPQ7H9J6J168MRgXSmWlOVlbSEIAw",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B11 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B11_P02": {
+      "spreadsheet_id": "1UW-fHg_yIktoUEHpH_UYwySpboFHiXnChOPDBwLuLAY",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B11 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B12_P01": {
+      "spreadsheet_id": "1uo-tdKiQ20U-uTVhU29ckSl-4n1k8FiGZ1aKTCSoAEc",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B12 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B12_P02": {
+      "spreadsheet_id": "110wO7Qxkn7SIs50x4SwW9wkUrx8YRxZgSytIerEmxEQ",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B12 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B13_P01": {
+      "spreadsheet_id": "1ICAN3DlESUudKBTCYRflYfQpBqolnlH4kDx69XdmUTw",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B13 P01 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    },
+    "TA2_s5_B13_P02": {
+      "spreadsheet_id": "1-7xm1kWNfeTC72lUglP7GgJHceJFicWRwyaax0dSCxE",
+      "parent_id": "1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e",
+      "title": "PAN TA2 DETAIL S5 B13 P02 2026-10-06",
+      "public_parent_inheritance_user_approved": true
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "cases": 52,
+  "training_runs": 468,
+  "per_server": 156,
+  "replicates_each": 3,
+  "registered_50k_runs": 432,
+  "registered_100k_runs": 36,
+  "updates": 25200000,
+  "checks": {
+    "unique_cases": true,
+    "unique_runs": true,
+    "three_repeats_per_case_dataset": true,
+    "only_s1_s3_s5": true,
+    "teacher_only": true,
+    "no_student_kd": true
+  },
+  "scope": "REGISTRY_STATIC_ONLY_NOT_TRAINING_OR_GPU_TEST"
+}

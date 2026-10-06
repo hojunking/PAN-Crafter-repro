@@ -1,0 +1,118 @@
+TA2 TeacherOnly NativeLMS/GTStructure v2 — implementation operations
+
+Scope
+  s1: WV3, s3: QB-msfix, s5: GF2. No s2/s4 assignment.
+  The supplied bundle is authoritative: 52 cases, 3 seeds per dataset,
+  156 runs per server, 468 total. Queue order and seeds are not regenerated.
+  Pulling this code does not start or stop any experiment.
+
+One-command launch on each corresponding server
+  bash ta2/start.sh s1 run --publish
+  bash ta2/start.sh s3 run --publish
+  bash ta2/start.sh s5 run --publish
+
+  Without --publish, all numeric sheet records remain in the local outbox.
+  Use TA2_IMAGE for an explicitly selected, already installed Docker image.
+  The launcher tests actual CUDA compatibility, including newer server GPUs;
+  it does not install packages, pull images, stop other jobs or take a busy GPU.
+  Launcher snapshots runtime code, verifies it, and mounts the snapshot read-only.
+  Preflight and disposable 3-update smoke run automatically before fresh training.
+  Each server is independent; no cross-server wait, deadline, donor or student.
+
+Inspection / recovery
+  bash ta2/start.sh s1 inspect
+  bash ta2/start.sh s1 status
+  bash ta2/start.sh s1 smoke
+  bash ta2/start.sh s1 upload
+
+  Repeating the run command reuses an active lane or resumes its exact saved
+  attempt. Missing evaluation is recovered from preserved checkpoint weights,
+  not by rerunning completed training or substituting a seed.
+  A source/data/config/runtime identity change is rejected, not silently merged.
+  Full training is CUDA-only; CPU is allowed for tests/preflight/smoke.
+  --micro-batch defaults to12; effective native batch is always48.
+  --run-id accepts only a registered run belonging to the requested server.
+  SIGINT/SIGTERM is handled at the next completed optimizer boundary.
+
+Paths
+  work_dir/aligner_teacher_lms_v2/<server>/
+    source/       immutable source snapshots and manifests
+    data/         verified dataset lineage, fixed-shift caches and CAL weights
+    smoke/        disposable validation; not formal training results
+    runs/<run_id>/ latest optimizer/RNG/sampler state, all candidate weights,
+                   official evaluation receipts, raw exports, diagnostics
+    analysis/     versioned three-seed, paired and factorial calculations
+    outbox/       immutable numeric JSON/CSV plus append/readback receipts
+
+Scientific conventions fixed before training
+  A sees full P/reference fields (margin0); structural support uses margin16.
+  Stored native LMS is read before the same fixed HV+uniformrot4 augmentation.
+  B is generated from the augmented LRMS with bicubic align_corners=False.
+  Shift units are current PAN pixels (dy,dx), never multiplied by input size.
+  CAL uses first512 canonical train IDs, independently of model quality.
+  Progress probes use first4 canonical samples of each split at1010/25250/50000
+  (doubled at100K); full diagnostic train/val probes use first32, RR/FR all20.
+  U/A initialization, native sample/augmentation, epsilon, geometry and probe
+  RNGs are isolated. Fresh weights are never taken from smoke or previous cases.
+  NativeStream carries the remaining epoch samples into the next fullbatch48.
+  CUDA grid_sample backward is not promised bitwise deterministic; this is
+  explicitly recorded. AMP and TF32 are off, including evaluation.
+  Legacy warmup starts with multiplier0 at completed_update0; this is why
+  smoke requires at least3 updates to inspect post-head-update gradients.
+
+Checkpoint and official evaluation
+  HQNR_MAX50 only; exact full-precision ties choose the earlier step.
+  No ERGAS filtering or secondary tie-break. All50 complete FR20 candidates
+  are required. 100K step50000 is preserved but excluded from its50-point grid.
+  FR20: original PAN/native LMS references, full frame, no alignment mask.
+  RR20: existing crop20:-21 and all20 scenes, same selected model/policy as FR.
+  HQNR, SCC and ERGAS are printed at each official checkpoint evaluation.
+  EXACT_FINAL and HQNR-selected results/diagnostics remain separate.
+  FR20 selection is test-aware, not independent validation.
+  JQM remains the repository's explicitly labelled SRF-substitute variant;
+  it is not represented as SIPSA-equivalent. No physical displacement GT claim.
+
+Publishing
+  Explicit --publish enables a background publisher; network delays do not
+  stop optimizer updates. Native experiments and upload completion differ.
+  Existing analysis152 is preserved. The user approved central core summaries
+  plus server-specific detailed workbooks, rolling before a safe cell budget.
+  Detailed record routing and receipt identity are durable across retry.
+  The approved destination is the user's exact existing Drive folder:
+    https://drive.google.com/drive/folders/1lH61W1Enb0BGJYCzurnNIolOHaJFsx9e
+  Its existing public-parent inheritance is preserved under the user's explicit
+  approval; the publisher does not create or broaden public/domain permissions.
+  Provisioning uses78 native spreadsheets owned by the user:26 per server,
+  with13 fixed12-run buckets and2 preallocated parts per bucket. Destination
+  IDs, titles and parent IDs are registered in ta2/detail_books.json, included
+  in the runtime source hash and frozen snapshot. No service-account-owned
+  My Drive file creation is needed for this registered publication route.
+  If an additional part beyond the approved registry is needed, detailed rows
+  stay pending locally until explicitly provisioned. Central-eligible records
+  remain independently publishable; missing permissions never become fake
+  successful receipts. The78-book total does not guarantee capacity in every
+  bucket: aggregate and paired-history records can fill an earlier bucket
+  before others. Beyond its P02 part, records remain durably PENDING for future
+  user-approved provisioning; they are never dropped or marked complete.
+  Native-file identity, effective edit permission, the
+  existing parent inheritance and exact152-column headers are checked live;
+  only successful append/readback produces a verified upload receipt.
+  Provisioning/permission/header evidence is separate from fake-client tests,
+  actual experiment execution and measured-result upload completion.
+  Google request pacing uses a4-second minimum spacing per request type and
+  persistent SQLite state in <server>/google_quota. Background and manual upload
+  containers share this mounted lane state; container-private /tmp is not used.
+  The budget assumes only the three registered hosts. Additional simultaneous
+  lanes, hosts or unrelated clients require a shared/revised request budget.
+
+Capacity
+  No checkpoints, datasets, user files or old results are automatically deleted.
+  s1 full-lane base estimate is at least148GiB (before large diagnostic/log data).
+  Every100updates and before candidate saves, a5GiB free-space floor is checked.
+  Use a sufficiently sized dedicated work location before the full156-run queue.
+  Existing work_dir files and their archive links are never migrated implicitly.
+
+Validation
+  python -m unittest discover -s ta2 -t . -p 'test_*.py' -q
+  Actual CUDA/source smoke evidence and fake Sheets tests are separate.
+  A short smoke validates execution, not the outcome of 50K/100K experiments.
