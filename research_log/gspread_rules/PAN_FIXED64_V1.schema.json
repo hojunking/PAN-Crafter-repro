@@ -1,0 +1,497 @@
+{
+  "schema_version": "PAN_FIXED64_V1",
+  "reset_epoch": "2026-10-13",
+  "spreadsheet_id": "1_ANKPQjQzMZrw9fUc1OI3B9xF4K3sxNa_fybg1kjBXE",
+  "spreadsheet_title": "pan-cvpr27-new",
+  "forbidden_legacy_spreadsheet_id": "1_-3KY2DbSk_AOAuExf_ENbe5jAbhFRxzXoyfaDZRoK0",
+  "header_row": 5,
+  "first_data_row": 6,
+  "column_count": 64,
+  "column_range": "A:BL",
+  "default_visible_range": "A:V",
+  "metadata_range": "W:BL",
+  "header_sha256": "bfc7f73fd406f447edb9721823e2c1df85540f7068e15647947cd0d2e83a11b1",
+  "hash_serialization": "UTF-8 JSON array, ensure_ascii=False, separators=(',',':')",
+  "sheets": {
+    "paper": 1923997092,
+    "ablations": 1697831403,
+    "유의미한결과": 410652761,
+    "WV3-main": 260928010,
+    "WV3-ablations": 261001010,
+    "QB-main": 260928011,
+    "QB-ablations": 261001011,
+    "GF2-main": 260928012,
+    "GF2-ablations": 261001012,
+    "WV2-main": 261013013,
+    "WV2-ablations": 261001013
+  },
+  "server_write_allowlist": [
+    "WV3-main",
+    "WV3-ablations",
+    "QB-main",
+    "QB-ablations",
+    "GF2-main",
+    "GF2-ablations",
+    "WV2-main",
+    "WV2-ablations"
+  ],
+  "server_write_denylist": [
+    "paper",
+    "ablations",
+    "유의미한결과"
+  ],
+  "auto_create_sheets": false,
+  "auto_create_columns": false,
+  "legacy_backfill": false,
+  "extra_parameters_column": "BI",
+  "columns": [
+    {
+      "index_1based": 1,
+      "column": "A",
+      "header": "Experiment",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 2,
+      "column": "B",
+      "header": "Server",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 3,
+      "column": "C",
+      "header": "Selection@Step",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 4,
+      "column": "D",
+      "header": "HQNR↑",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 5,
+      "column": "E",
+      "header": "D_s↓",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 6,
+      "column": "F",
+      "header": "D_lambda↓",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 7,
+      "column": "G",
+      "header": "JQM↑",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 8,
+      "column": "H",
+      "header": "ERGAS↓",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 9,
+      "column": "I",
+      "header": "SCC↑",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 10,
+      "column": "J",
+      "header": "SAM↓",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 11,
+      "column": "K",
+      "header": "PSNR↑",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 12,
+      "column": "L",
+      "header": "SSIM↑",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 13,
+      "column": "M",
+      "header": "Q4/Q8↑",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 14,
+      "column": "N",
+      "header": "RMSE↓",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 15,
+      "column": "O",
+      "header": "CC↑",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 16,
+      "column": "P",
+      "header": "Infer(ms)",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 17,
+      "column": "Q",
+      "header": "Mem(MB)",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 18,
+      "column": "R",
+      "header": "Params(M)",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 19,
+      "column": "S",
+      "header": "FLOPs(G)",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 20,
+      "column": "T",
+      "header": "Train(h)",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 21,
+      "column": "U",
+      "header": "Eval(h)",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 22,
+      "column": "V",
+      "header": "Wall(h)",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 23,
+      "column": "W",
+      "header": "HQNR(V64)↑",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 24,
+      "column": "X",
+      "header": "Signed D_s",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 25,
+      "column": "Y",
+      "header": "Positive D_s fraction",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 26,
+      "column": "Z",
+      "header": "Dataset",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 27,
+      "column": "AA",
+      "header": "Bucket",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 28,
+      "column": "AB",
+      "header": "Approach",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 29,
+      "column": "AC",
+      "header": "Campaign_ID",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 30,
+      "column": "AD",
+      "header": "Run_ID",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 31,
+      "column": "AE",
+      "header": "Case_ID",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 32,
+      "column": "AF",
+      "header": "Repeat",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 33,
+      "column": "AG",
+      "header": "Seed",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 34,
+      "column": "AH",
+      "header": "Attempt",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 35,
+      "column": "AI",
+      "header": "Role",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 36,
+      "column": "AJ",
+      "header": "Model / inputs",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 37,
+      "column": "AK",
+      "header": "Teacher / reference",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 38,
+      "column": "AL",
+      "header": "Parent_run",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 39,
+      "column": "AM",
+      "header": "Updates",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 40,
+      "column": "AN",
+      "header": "Lifetime_updates",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 41,
+      "column": "AO",
+      "header": "Selected_step",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 42,
+      "column": "AP",
+      "header": "Checkpoint_SHA",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 43,
+      "column": "AQ",
+      "header": "Selector",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 44,
+      "column": "AR",
+      "header": "q_ref",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 45,
+      "column": "AS",
+      "header": "tau_R",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 46,
+      "column": "AT",
+      "header": "alpha",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 47,
+      "column": "AU",
+      "header": "beta",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 48,
+      "column": "AV",
+      "header": "lambda_E",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 49,
+      "column": "AW",
+      "header": "U_peak_lr",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 50,
+      "column": "AX",
+      "header": "A_peak_lr",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 51,
+      "column": "AY",
+      "header": "Status",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 52,
+      "column": "AZ",
+      "header": "Readback",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 53,
+      "column": "BA",
+      "header": "Eval_scope",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 54,
+      "column": "BB",
+      "header": "Test_aware",
+      "type": "boolean",
+      "nullable": true
+    },
+    {
+      "index_1based": 55,
+      "column": "BC",
+      "header": "JQM_variant",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 56,
+      "column": "BD",
+      "header": "Cost_scope",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 57,
+      "column": "BE",
+      "header": "Source_sheet",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 58,
+      "column": "BF",
+      "header": "Source_row",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 59,
+      "column": "BG",
+      "header": "Source_URL",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 60,
+      "column": "BH",
+      "header": "Result_ID",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 61,
+      "column": "BI",
+      "header": "Original description / notes",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 62,
+      "column": "BJ",
+      "header": "Review",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "index_1based": 63,
+      "column": "BK",
+      "header": "Sort_case",
+      "type": "number",
+      "nullable": true
+    },
+    {
+      "index_1based": 64,
+      "column": "BL",
+      "header": "Date",
+      "type": "string",
+      "nullable": true
+    }
+  ]
+}

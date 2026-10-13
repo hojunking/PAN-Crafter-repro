@@ -1,0 +1,17 @@
+{
+  "schema": "PANDA_BGLOBAL_LMS_OVERRIDE_V1",
+  "sensor": "QB",
+  "decision": "User 2026-10-13: use original-distribution QB LMS. Do not silently revert the separately repaired reconstruction LRMS.",
+  "splits": {
+    "train": {
+      "path": "data/PanCollection/QB/train_qb.h5",
+      "sha256": "7d45e191cd03f3df12eb76b5f27624eaba1b464970788eb61723c3574dd14371",
+      "reason": "User-selected original stored LMS for matching and Aligner; PAN/GT row identity verified against registered msfix source on access. MS remains msfix."
+    },
+    "val": {
+      "path": "data/PanCollection/QB/valid_qb.h5",
+      "sha256": "b307bcbb0d69056278a8a0b4970f1cd1b58dfff19bbe949be224e106f1a18470",
+      "reason": "Same original-LMS policy for RR validation; validation is excluded from prior estimation. MS remains msfix."
+    }
+  }
+}
