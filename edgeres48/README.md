@@ -26,6 +26,11 @@ conda activate pancrafter
 bash scripts/run_edgeres48.sh s1
 ```
 
+런처는 `MKL_THREADING_LAYER=GNU`를 지정한다. PyTorch 부모 프로세스에서
+별도 gspread publisher를 시작할 때 Intel MKL/libgomp 충돌로 업로더만 종료되는 문제를 방지한다.
+학습 종료 뒤에도 outbox를 비울 publisher가 끝날 때까지 컨테이너를 유지한다.
+48h 이후 이 과정은 업로드 재시도일 뿐 학습·평가 시간을 늘리지 않는다.
+
 서버 간 대기/Teacher 전달/lock은 없다. 같은 서버·캠페인의 중복 실행만 즉시 거부한다.
 원래 48h 시계는 재실행해도 유지한다. 죽은 미달 모델은 저장하지 않았으므로 새 attempt로 처음부터 시작한다.
 

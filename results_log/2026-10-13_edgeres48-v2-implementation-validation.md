@@ -68,6 +68,9 @@ production 업로드 완료는 실제 receipt의 `READBACK_VERIFIED`로만 판�
 4. 통과/미달 seed에서 다른 selector를 섞던 통계는 모두 BEST_OBSERVED_HQNR_THEN_ERGAS로 통일했다.
 5. preflight 진단 PARTIAL_BUDGET을 PASS로 취급하지 않는다. 정식 실행의 부분 진단은 누락 사유를 기록한다.
 6. 통과 weight 저장 후 정성 출력에 실패하면 QUAL_PENDING으로 남기고, 해당 저장 모델만 load해 재시도한다.
+7. 실운영 시작 후 별도 publisher의 MKL/libgomp 충돌을 발견했다. 런처에 GNU threading을 고정하고,
+   s1 학습은 유지한 채 업로더만 복구했다. 최초 실제 시트 32개 행의 write+readback이 확인됐다.
+   학습 종료 즉시 컨테이너가 publisher를 종료하지 않도록 런처에 outbox drain 단계를 추가했다.
 
 ## 운영
 

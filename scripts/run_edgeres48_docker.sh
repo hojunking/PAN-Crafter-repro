@@ -26,6 +26,7 @@ exec docker run --detach --init --gpus all --shm-size=8g \
   --name "$edgeres_name" --user "$(id -u):$(id -g)" \
   --env PYTHONUNBUFFERED=1 --env PYTHONDONTWRITEBYTECODE=1 \
   --env OMP_NUM_THREADS=4 --env MKL_NUM_THREADS=4 \
+  --env MKL_THREADING_LAYER=GNU \
   --mount "type=bind,src=$edgeres_root,dst=/workspace,readonly" \
   --mount "type=bind,src=$edgeres_root/work_dir,dst=/workspace/work_dir" \
   "${edgeres_mounts[@]}" \
