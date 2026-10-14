@@ -1,0 +1,129 @@
+PANDA DirectShift + Scharr + Epsilon-R3: S1 WV3 / S3 GF2, 48 hours each
+Campaign: PANDA_S1_DIRECTSHIFT_SCHARR_R3_S13_48H_20261014_v1
+Method: research_log/PANDA_Stage1_DirectShift_Scharr_EpsilonR3_MethodSpec_2026-10-14.md
+
+Purpose and interpretation
+  Freshly train the prior-free direct global PAN translation regressor jointly
+  with the unchanged W112 d123 P0 Teacher. Do not reuse EdgeMatch/residual
+  checkpoints. This is a registered hyperparameter search, not a performance
+  result, and not a controlled claim that removing EdgeMatch alone caused a
+  measured change: epsilon radius, support handling and fresh seeds also change.
+  S1 uses WV3 (8 MS bands); S3 uses GF2 (4 MS bands). These are independent lanes
+  with different data/targets, not server-reproducibility replicas. S2 is omitted.
+
+Fixed method, data and evaluation contract
+  Three strictly positive losses: L_rec + lambda_abs L_abs + lambda_epsilon L_eps.
+  Direct u=(dy,dx); zero-initialized FC2; no matching, prior, prewarp, tanh, clamp,
+  integer rounding, confidence gate, FR training, Stage 2 or KD.
+  RR epsilon radius3, area-uniform disk r=3sqrt(U), dedicated RNG, PAN only,
+  augmentation then epsilon, every update, native anchor detached only in L_eps.
+  RGB mean then fixed Scharr absolute x/y channels; no edge normalization.
+  Native LMS is separate from bicubic reconstruction base. Stored source registry
+  and bands remain pinned. Both native/epsilon Aligner branches share one fixed
+  support policy, defined and numerically tested by the DirectShift implementation
+  and recorded in baseline/support manifests. No arbitrary data-dependent crop.
+  Teacher W112 d123, PAN+BICUBIC_MS P0, effective RR batch48=12x4, AdamW betas
+  (0.9,0.999), epsilon1e-8, weight_decay.01, teacher LR1e-4, aligner LR1e-5,
+  100-update warmup then cosine to0, FP32, AMP/TF32 off. Existing paired spatial
+  augmentation is retained identically for PAN/MS/LMS/GT: Hflip probability1.0,
+  Vflip probability1.0, then uniform rot90. This means both flips always occur
+  and only four rotational orientations are sampled; it is NOT a full D4 random
+  augmentation policy. The unchanged choice is explicit, not an optimality claim.
+  No checkpoint donor.
+  Train/val64, official RR256 and FR512. Official evaluation is all20 RR and all20
+  FR scenes from exactly one model state; original PAN, unmasked full images,
+  unchanged metric implementation. HQNR/SCC/ERGAS are printed at every evaluation.
+  H50 evaluation steps:1000, every2000 through50000, and25000 (27 total).
+  Independent RNG streams for Aligner/Teacher initialization, RR sampling,
+  augmentation and epsilon; diagnostic RNG does not consume training streams.
+
+Loss search menu (all fresh H50 R1, never promised to all fit)
+  Order  Case  lambda_epsilon  lambda_abs  Question
+    1    DF00      0.001          1       New-method initial reference
+    2    DF01      0.0003         1       Weaker relative-shift supervision
+    3    DF02      0.003          1       Stronger relative-shift supervision
+    4    DF04      0.001          0.3     Less absolute spectral-edge pressure
+    5    DF05      0.001          3       More absolute spatial supervision
+    6    DF03      0.01           1       Strong relative-response upper bracket
+    7    DF06      0.003          0.3     Strong-epsilon / weak-absolute interaction
+    8    DF07      0.003          3       Strong-epsilon / strong-absolute interaction
+  Both sensors use this identical menu/order; no sensor-specific quality-tuned
+  ordering or loss deletion. DF00 is never quality-pruned before50K.
+  Optional optimizer followups on the single selected recipe: DA01 aligner LRx3,
+  DA02 aligner LRx0.3. Teacher LR/weight decay/horizon unchanged. These require
+  admission and remain explicitly NOT_STARTED_BUDGET if the clock does not fit.
+
+Replicas and selection
+  S1 seeds:R1=261014101, R2=261014102, R3=261014103.
+  S3 seeds:R1=261014301, R2=261014302, R3=261014303.
+  Reuse the same R1 stream seeds across recipes; each run starts fresh and has its
+  own independent RNG objects. Reserve R2+R3 of the selected exact recipe within
+  this same48h clock, not48h plus confirmations. Report all attempted recipes,
+  failed/early-stopped runs and unstarted slots. Do not cherry-pick seeds.
+  Select by full-precision same-state HQNR descending, then ERGAS ascending,
+  step ascending, run ID. SCC remains measured, not a hidden selection override.
+  Recipe selection considers all scientifically valid official snapshots of
+  eligible R1 trajectories that reached at least25K, not only artifact-qualified
+  states. FAILED/ABORTED trajectories remain in the numeric audit ledger but
+  cannot become optimizer or confirmation anchors. A numeric-only best-HQNR
+  eligible recipe can still be freshly repeated without retaining failed weights.
+  Target-gap ranking does not override the HQNR-first choice.
+  Per-sensor best and3-seed summary must distinguish search and confirmation runs.
+  Reusing official benchmark metrics for search is development-set selection,
+  not an untouched final-test generalization claim. No displacement GT claim.
+
+48-hour admission (independent measured wall clock per server)
+  Wall clock starts before disposable preflight; one shared48h deadline.
+  Preflight uses disposable state to verify gradient routing, initialization,
+  warp signs/precision, fixed support, epsilon area distribution, data identities,
+  all20+20 official evaluation and readback. Preflight weights are discarded.
+  Measure update p90, full RR+FR evaluation and diagnostic times before admitting
+  a run. An artifact cannot be exported before a real qualified state exists:
+  until then, reserve300s per potentially qualifying evaluation as an explicitly
+  unmeasured conservative estimate, not a claimed measurement. After qualified
+  exports, keep max(300s, all observed artifact costs); likewise increase full
+  evaluation and diagnostic reserves to observed maxima. Old EdgeMatch timings
+  are NOT valid measured DirectShift ETAs.
+  Raw ETA = remaining_updates*p90 + remaining_eval_count*eval_time + measured
+  diagnostic cost + artifact reserve. Apply1.2 safety exactly once.
+  Admission: elapsed +1.2*candidate_full_ETA +1.2*selected_recipe_ETA*
+  remaining_confirmations +7200 closeout <=48h. Also require25K judgment point
+  to fit. Reserve two confirmations during search; one forR2 admission, zeroR3.
+  Search starts only before22h, optimizer followups before36h, no new run after46h.
+  These are start gates, not permission to kill a live recipe at a phase boundary.
+  Fixed2h closeout covers final evaluation, artifacts, queued uploads and summary.
+  No H100/H150 extension in this campaign: preserve comparable H50 comparisons
+  and confirmation capacity. Lack of capacity is recorded, not silently shortened.
+  Conservative optional pruning only after25K with two preceding distinct
+  same-seed/schedule recipes dominating at three common official evaluation steps
+  and no recent target-gap progress. DF00 and every confirmation are protected.
+
+Artifacts and Sheets are different policies
+  STRICT_TARGET_ONLY unchanged: retain full model/output artifacts only when
+  same-state full-method official metrics satisfy BOTH original experiment targets:
+  WV3 HQNR>=.958 AND ERGAS<=2.040; GF2 HQNR>=.965 AND ERGAS<=.522.
+  No failed/latest/temp/resume model snapshots. Process interruption before an
+  artifact-qualifying state requires a fresh attempt; it cannot resume lost weights.
+  Local numeric evaluations, run/config identities, per-scene metrics, diagnostics
+  and source evidence remain append-only even when artifact gates never pass.
+  Latest display policy PAN_PASSED_STEPS_OR_BEST_HQNR_V1 is separate:
+  WV3 HQNR>=.960 AND ERGAS<=2.045; GF2 HQNR>=.965 AND ERGAS<=.522.
+  Publish all passing distinct steps, otherwise one best-HQNR fallback per run.
+  Never let sheet qualification authorize artifact storage or alter optimization.
+  Use only WV3-ablations/GF2-ablations fixed64 projection; preserve prior campaigns
+  and source ledgers. Never start an old raw-event publisher for this campaign.
+
+Required diagnostic evidence
+  Log unweighted/weighted losses and isolated Aligner/Teacher gradient norms,
+  zero-init-to-early-layer gradient propagation, native shift distributions,
+  support violations, epsilon bins<=1 /1..2 /2..3, and known response magnitudes
+  .25/.5/1/2/3px using fixed train/val/RR/FR diagnostic IDs. Diagnostics never
+  backpropagate FR training updates or alter selection/evaluation masks.
+  Good RR synthetic response alone is not proof of FR geometric registration.
+
+Operations and scope
+  New directshift48 package/configs are isolated from running edgeres48 source
+  pins. Do not mutate or stop an old training process merely by preparing code.
+  Only explicitly launched new commands start this campaign; pull is not start.
+  No automatic cross-server SSH action, no dependency/barrier betweenS1 andS3.
+  Smoke and admission must pass on each server's own hardware and dataset assets.

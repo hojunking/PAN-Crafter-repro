@@ -1,0 +1,109 @@
+DirectShift48 R3: isolated S1/WV3 and S3/GF2 campaign
+===================================================
+
+This package never modifies, stops, resumes, or reinterprets an EdgeRes run.
+The DirectShift model starts fresh, with a new DS3 run/checkpoint namespace.
+The existing teacher and official RR20/FR20 metric formulas remain unchanged.
+Each server receives its own 48-hour admission-controlled clock; neither waits
+for the other server. See EXPERIMENT_PLAN.txt for the registered search order.
+
+1. Prepare and check without starting training
+
+   git pull
+   python -m directshift48 catalog --server s1
+   python -m unittest discover -s directshift48 -t . -p 'test_*.py'
+
+   Replace s1 with s3 on the GF2 server. Only these two lanes are registered.
+   Use the existing pancrafter Python environment. CPU/synthetic tests require
+   no Google credentials and do not consume production data for optimization.
+   Do not edit any pinned source after a campaign starts: its controller rejects
+   mixed-code continuation. A failed, non-qualified state has no resume weights.
+
+2. Training launch (operator-controlled replacement of the previous experiment)
+
+   First inspect the previous experiment and explicitly finish/stop that exact
+   training process/container if replacement is intended. No launcher here
+   performs this destructive decision automatically. The default CUDA launch
+   refuses any visible GPU compute process rather than sharing its GPU. It
+   never calls kill, pkill, docker stop, docker rm, or an image pull.
+
+   bash scripts/run_directshift48_docker.sh s1
+   bash scripts/run_directshift48_docker.sh s3
+
+   Run ONLY the corresponding line on each physical server. The default image
+   is hojunqueen/pancrafter-env:torch2.4.0-cu118 and must already exist locally.
+   PAN_DIRECTSHIFT_IMAGE can select another locally installed compatible image;
+   the actual environment remains part of the run provenance.
+
+   The Docker wrapper mounts the repository read-only and work_dir read-write.
+   Registered H5 absolute symlink targets and the audited DLPan evaluation
+   toolbox are mounted read-only. PANCRAFTER_DLPAN may identify that existing
+   toolbox on the host; its default is ../DLPan-Toolbox relative to this repo.
+   Nothing is downloaded or substituted when the toolbox/data are absent.
+   Custom --output must stay under work_dir; custom source catalogs are not
+   supported by this wrapper because its dataset-mount set is pinned.
+
+   Host environment alternative:
+   PAN_PYTHON=/path/to/pancrafter/python bash scripts/run_directshift48.sh s1
+
+   This wrapper starts training ONLY; Sheets availability never blocks learning.
+   The admit/run command performs internal dataset, evaluator, configuration,
+   support and timing admission automatically. There is no required manual
+   approval file. Successful container exit does not create a raw-row uploader.
+
+3. Sheets: one qualified-view publisher for the whole destination tab
+
+   Training preserves all events in records.jsonl and immutable outbox/DS3-*.json.
+   Trace/scene/diagnostic rows are never sent directly to Sheets. Display rule:
+   keep ALL passing steps, otherwise one best-HQNR step per run; exact tie breaks
+   follow the handoff rule. Publication thresholds are independent from model
+   artifact retention thresholds. In particular WV3 publishing uses
+   HQNR >= .960 AND ERGAS <= 2.045; artifact retention remains .958 / 2.040.
+
+   Python executable below should be the HOST environment with the existing
+   Sheets credentials. Do not launch the publisher inside an isolated Docker
+   PID namespace while a previous host publisher remains unobservable there.
+
+   python -m directshift48 publish --server s1
+   python -m directshift48 publish --server s3
+
+   These commands are LOCAL DRY-RUN by default. They authenticate old EdgeRes
+   history at work_dir/edgeres48/PANDA_S1_EDGERES_TEACHER48H_S123_20261013_v2/
+   <server>/<dataset> when present, then combine that history and DirectShift
+   into a SINGLE server-tab projection. To specify a relocated history, append
+   --history-root /actual/old/lane/root (repeatable). The root must contain raw
+   records/outbox plus run configs and complete evaluation JSONs, not just a
+   copied sheet export. Unknown remote rows block replacement before writing;
+   missing old sources never authorize dropping existing historical rows.
+
+   Before enabling writes, identify and stop ONLY the old edgeres48 publish or
+   sheet_publish_v2 --apply process for this server. Inspect its current argv,
+   cwd and start identity. Never use a stale publisher_process.json PID: the
+   former container marker can refer to a different host PID. Keep training
+   untouched. This package checks visible live commands but does not send any
+   signals. New publishers also share one tab lock under
+   work_dir/sheet_publication_locks/<sheet_id>.lock.
+
+   python -m directshift48 publish --server s1 --apply --watch
+   python -m directshift48 publish --server s3 --apply --watch
+
+   Again use ONLY the local server's command. Credentials default to
+   gspread/account.json; use --credentials PATH if needed. Cloud snapshots are
+   backed up locally before a change; typed numeric readback and unchanged
+   schema/other-tab checks are mandatory. Headers, formatting, other datasets,
+   old local events and receipts are preserved. No direct raw upload entrypoint
+   exists. An unchanged selected view avoids writes and receives periodic live
+   readback audits. Errors remain in the local publication state directory;
+   five consecutive failures exit the publisher without stopping training.
+
+4. Outputs and actual completion
+
+   work_dir/directshift48/
+     PANDA_S1_DIRECTSHIFT_SCHARR_R3_S13_48H_20261014_v1/<server>/<dataset>/
+
+   campaign_state.json and train.jsonl identify actual progress. Each
+   evaluation_<step>.json contains the same-state RR20 and FR20 proof. Missing
+   checkpoint files are expected for target-miss states under STRICT_TARGET_ONLY;
+   do not report that as missing numeric evaluations. Diagnostics and unqualified
+   metrics stay local. No implementation/test/dry-run is a completed experiment,
+   and S1 results must not be substituted for the independent S3 dataset run.

@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-14",
+  "scope": "Implementation verification, not completed scientific experiments",
+  "command": "MKL_THREADING_LAYER=GNU OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/knuvi/miniconda3/envs/pancrafter/bin/python -m directshift48 smoke",
+  "test_result": {
+    "status": "PASS",
+    "tests": 142,
+    "seconds": 54.964,
+    "device": "CPU",
+    "production_architecture": "W112 d123, both WV3 and GF2",
+    "production_shapes": ["64x64 objective backward", "256x256 RR forward", "512x512 FR forward"],
+    "training_data_in_tests": "synthetic fixtures; no production optimizer updates",
+    "evaluation_gate_tests": "same-state full20+20 numeric fixtures; production metric functions unchanged",
+    "publication_tests": "offline/fake transport and real local producer-consumer integration",
+    "launch_tests": "fake process/Docker executables; no real launch"
+  },
+  "shell_syntax": "PASS",
+  "python_compile": "PASS",
+  "old_live_campaign_source_audit": {"pinned_files": 48, "changed": 0},
+  "new_training_started": false,
+  "google_sheets_modified": false,
+  "remote_s3_executed": false,
+  "remaining_at_launch": [
+    "Per-server source/evaluator/environment admission",
+    "300-update disposable GPU timing and full native20+20 evaluation",
+    "Measured budget admission for selected cases; menu completion is not guaranteed",
+    "Operator-controlled old-run and old-publisher cutover"
+  ]
+}

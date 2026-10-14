@@ -1,0 +1,170 @@
+{
+  "campaign_id": "PANDA_S1_DIRECTSHIFT_SCHARR_R3_S13_48H_20261014_v1",
+  "method_revision": "S1-DirectShift-Scharr-EpsilonR3-v1.0",
+  "method_sha256": "4cec02617bda760155439e1dc51e7389d366a9944b1cd42577e04ef4f5de051f",
+  "experiment_plan_sha256": "cabd6942be56646491ddde9c8465956aabb10bb2fd6796cb7936aba5d0cfa3b9",
+  "server": "s3",
+  "dataset": "GF2",
+  "hqnr_min": 0.965,
+  "ergas_max": 0.522,
+  "seeds": [
+    261014301,
+    261014302,
+    261014303
+  ],
+  "loss_cases": [
+    {
+      "case": "DF00",
+      "lambda_epsilon": 0.001,
+      "lambda_abs": 1,
+      "schedule": "H50",
+      "replica": "R1",
+      "fresh": true,
+      "priority": 1
+    },
+    {
+      "case": "DF01",
+      "lambda_epsilon": 0.0003,
+      "lambda_abs": 1,
+      "schedule": "H50",
+      "replica": "R1",
+      "fresh": true,
+      "priority": 2
+    },
+    {
+      "case": "DF02",
+      "lambda_epsilon": 0.003,
+      "lambda_abs": 1,
+      "schedule": "H50",
+      "replica": "R1",
+      "fresh": true,
+      "priority": 3
+    },
+    {
+      "case": "DF04",
+      "lambda_epsilon": 0.001,
+      "lambda_abs": 0.3,
+      "schedule": "H50",
+      "replica": "R1",
+      "fresh": true,
+      "priority": 4
+    },
+    {
+      "case": "DF05",
+      "lambda_epsilon": 0.001,
+      "lambda_abs": 3,
+      "schedule": "H50",
+      "replica": "R1",
+      "fresh": true,
+      "priority": 5
+    },
+    {
+      "case": "DF03",
+      "lambda_epsilon": 0.01,
+      "lambda_abs": 1,
+      "schedule": "H50",
+      "replica": "R1",
+      "fresh": true,
+      "priority": 6
+    },
+    {
+      "case": "DF06",
+      "lambda_epsilon": 0.003,
+      "lambda_abs": 0.3,
+      "schedule": "H50",
+      "replica": "R1",
+      "fresh": true,
+      "priority": 7
+    },
+    {
+      "case": "DF07",
+      "lambda_epsilon": 0.003,
+      "lambda_abs": 3,
+      "schedule": "H50",
+      "replica": "R1",
+      "fresh": true,
+      "priority": 8
+    }
+  ],
+  "conditional_cases": [],
+  "optimizer_menu": [
+    {
+      "case": "DA01",
+      "lr_A_multiplier": 3,
+      "lr_U_multiplier": 1,
+      "weight_decay_multiplier": 1,
+      "condition": "SELECTED_RECIPE_AND_MEASURED_BUDGET"
+    },
+    {
+      "case": "DA02",
+      "lr_A_multiplier": 0.3,
+      "lr_U_multiplier": 1,
+      "weight_decay_multiplier": 1,
+      "condition": "SELECTED_RECIPE_AND_MEASURED_BUDGET"
+    }
+  ],
+  "optimizer_default_priority": [
+    "DA01",
+    "DA02"
+  ],
+  "schedules": {
+    "H50": {
+      "horizon": 50000,
+      "evaluation_steps": [
+        1000,
+        2000,
+        4000,
+        6000,
+        8000,
+        10000,
+        12000,
+        14000,
+        16000,
+        18000,
+        20000,
+        22000,
+        24000,
+        25000,
+        26000,
+        28000,
+        30000,
+        32000,
+        34000,
+        36000,
+        38000,
+        40000,
+        42000,
+        44000,
+        46000,
+        48000,
+        50000
+      ],
+      "fresh": true
+    }
+  },
+  "confirmation_priority": "chosen_recipe_R2_R3_reserved_on_every_admission",
+  "wall_hours": 48,
+  "closing_reserve_seconds": 7200,
+  "timing_safety_multiplier": 1.2,
+  "phase_start_cutoffs_hours": {
+    "loss_search": 22,
+    "optimizer_search": 36,
+    "new_run": 46
+  },
+  "menu_not_promised_complete": true,
+  "preflight_counts_against_deadline": true,
+  "requires_fr_train": false,
+  "requires_source_scene_map": false,
+  "stage2": false,
+  "spreadsheet_tab": "GF2-ablations",
+  "local_first": true,
+  "retention_policy": "STRICT_TARGET_ONLY",
+  "sheet_policy": "PAN_PASSED_STEPS_OR_BEST_HQNR_V1",
+  "sheet_targets": {
+    "hqnr_min": 0.965,
+    "ergas_max": 0.522
+  },
+  "selection": "HQNR_DESC_THEN_ERGAS_ASC_THEN_STEP_ASC_THEN_RUN_ID",
+  "selection_scope": "ALL_VALID_OFFICIAL_EVALUATIONS_NOT_ONLY_ARTIFACT_TARGET_PASSES",
+  "selection_override": "HQNR first then ERGAS; SCC measured, no gap-based selection override"
+}
