@@ -1,0 +1,109 @@
+PAN_PASSED_STEPS_OR_BEST_HQNR_V1 — standalone publisher
+=====================================================
+
+Training/evaluation/checkpoint qualification is NOT changed. In particular,
+WV3 training qualification 0.958 / 2.040 is not the publication threshold
+0.960 / 2.045. Never edit the watched edgeres48 package to deploy this package.
+Do not git pull unrelated watched-file changes into an active training checkout.
+
+Only the configured server's fixed64 ablations tab is writable. No new tab,
+column, workbook, sharing setting, main/paper table, or training file is changed.
+The A:BL headers at row 5 are pinned by SHA256. Results start at row 6.
+
+Local inspection (default, no authentication/network/write to Sheets):
+
+  python -m sheet_publish_v2 --server s1 --root /ABSOLUTE/CAMPAIGN_OUTPUT
+
+Use a Python environment with google-auth and requests for live reads/writes.
+This host already has them in /home/knuvi/miniconda3/envs/pancrafter/bin/python;
+the system Python can do local selection but lacks Google authentication.
+
+Inspect the report at CAMPAIGN_OUTPUT/sheet_publish_v2/projection.json:
+all raw source IDs (acknowledged records included), source digest, excluded
+scopes/errors, per-run candidate/pass/kept counts, selected same-state FR/RR
+metrics and model SHA. This does not claim a run is currently running merely
+because its last stored status says RUNNING.
+
+Live read-only validation (no mutation):
+
+  python -m sheet_publish_v2 --server s1 --root /ABSOLUTE/CAMPAIGN_OUTPUT \
+    --google-read-only --credentials gspread/account.json
+
+Cutover must be done by the operator/main agent using observed process evidence:
+  1. Read publisher_process.json AND actual /proc/PID/cmdline. Match the full
+     command, server and process start identity. Stale/reused PIDs are not targets.
+  2. Stop ONLY that verified old publisher PID. Do not stop the training process,
+     Docker container, process group or a broad pkill match. Check supervisors.
+  3. Preserve source outbox/JSONL/acks and count/hash them. Do not remove or modify
+     immutable originals. Keep the old source files as the selector input.
+  4. Dry-run and inspect all conflicts. An unknown/foreign sheet row fails closed;
+     missing source IDs must be recovered, not ignored or inferred.
+  5. Apply once; then compare training step progress and code_pin before/after.
+
+Optional operator-only helper for that exact verified HOST publisher PID:
+
+  python -m sheet_publish_v2.cutover --server s1 \
+    --root /ABSOLUTE/CAMPAIGN_OUTPUT --audit-dir /ABSOLUTE/CUTOVER_AUDIT \
+    --publisher-pid VERIFIED_HOST_PID --backup --stop-pid
+
+Without --stop-pid the helper sends no signal. --stop-pid requires --backup;
+the helper verifies exact argv/server/repository and process start identity,
+archives raw outbox/receipts/evaluations and bounded ledger snapshots, then uses
+pidfd to send SIGTERM to ONLY the same publisher process. It refuses PID reuse,
+training commands, ambiguous/generic Docker process identities, and force kill.
+The default publisher never imports this helper and never stops any process.
+
+Explicit one-shot update:
+
+  python -m sheet_publish_v2 --server s1 --root /ABSOLUTE/CAMPAIGN_OUTPUT \
+    --apply --credentials gspread/account.json
+
+Polling (run under the desired publisher-only supervisor):
+
+  python -m sheet_publish_v2 --server s1 --root /ABSOLUTE/CAMPAIGN_OUTPUT \
+    --apply --watch --poll-seconds 120 --credentials gspread/account.json
+
+Use s2 or s3 and that server's exact output path on the other servers. This
+documentation does not assert that a remote deployment or process stop occurred.
+For two-poll verification add --max-polls 2. No source events are appended: the
+same selector reconstructs the complete target view every time.
+
+Google writes require absence of a visible matching legacy publisher. The normal
+publisher sends no signals. Protect against supervisors outside this PID
+namespace manually. A per-server flock prevents overlapping publishers in the
+same state directory. Use the default state directory for every invocation.
+
+Every mutation has a durable, hashed values/notes/native-control cloud snapshot in
+sheet_publish_v2/backups plus the exact projection/source provenance. Snapshot
+readback is repeated immediately before replacement; a competing writer blocks
+the mutation. Selected rows are written using typed stringValue/numberValue
+(RAW semantics); old owned raw/view tail is cleared in the same atomic batch.
+RowCount is NEVER shrunk during publishing, and only rows can be expanded.
+Existing formatting, filter, header protection and all other tabs are retained.
+Formulas, chips, validation, merged/protected data cells, unknown VIEW selectors,
+or foreign/missing raw identities block replacement rather than being erased.
+
+Numeric metrics and full 64-cell provenance are read back, including native
+values and A-cell notes. last_verified.json is saved only after verification.
+An identical view skips all cloud writes. After a verified poll, an unchanged
+local view hash also skips cloud reads until the periodic audit (600 seconds by
+default, --audit-seconds). First poll after process start always reads Google.
+UNCHANGED_LOCAL_HASH is not presented as fresh cloud readback verification.
+Uncertain writes are recovered through fresh read/compare, never blind append.
+Reads have bounded HTTP retry; five consecutive poll failures stop the projector
+with a local last_error.json. Training and its source outbox continue unaffected.
+Error/mismatch reports are retained as historical evidence after recovery; compare
+their timestamps with last_verified.json and the current watch.log/process before
+concluding that the publisher is presently stopped or failing.
+
+Missing numerical results remain in local reports, not fake/zero metric rows.
+Legacy publisher progress/acks are not proof of completed scientific evaluation.
+Never use this generated view, display_rows.json, or another cleaned sheet as
+the candidate source; source selection always comes from the full immutable
+local store plus linked evaluator/config evidence.
+
+The old outbox pending counter will continue growing for deliberately unpublished
+trace/scene/diagnostic events. This is expected after cutover: this projector does
+not forge old raw-row upload receipts. Check this publisher's last_verified.json
+and projection.json instead. The trainer's final pending_uploads count is a raw
+queue count, not a count of missing scientific evaluations or missing view rows.
