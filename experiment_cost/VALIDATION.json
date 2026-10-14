@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-14",
+  "scope": "s1 DirectShift48 plus previous local EdgeRes48; s3 code portable, remote s3 results not inspected",
+  "tests": {"experiment_cost_cpu": 63, "directshift48_regression_cpu": 144, "status": "PASS"},
+  "audit_snapshot": {
+    "formal_evaluations": 126,
+    "legacy_evaluations": 118,
+    "direct_evaluations": 8,
+    "complete_scene_records": 5040,
+    "missing_authenticated_results": 0,
+    "selected_sheet_rows": 6,
+    "nonselected_valid_steps": 120,
+    "note": "Live campaign continued adding evaluations after this point-in-time audit; nonselected steps are intentional policy exclusions."
+  },
+  "sheet_readback": {
+    "tab": "WV3-ablations",
+    "range": "A6:BL11",
+    "all_64_values_and_notes_verified": true,
+    "original_headers_and_formats_preserved": true,
+    "automatic_publisher_receipt": "REPLACED_VERIFIED",
+    "receipt_time_utc": "2026-10-14T05:37:56.845448+00:00",
+    "raw_summary_count_at_receipt": 127
+  },
+  "measurement_protocol": {
+    "gpu": "NVIDIA GeForce RTX 4090",
+    "torch": "2.4.0",
+    "cuda_build": "11.8",
+    "precision": "FP32",
+    "batch": 1,
+    "warmups": 3,
+    "repeats": 10,
+    "weight_basis": "fresh same architecture, not a selected checkpoint",
+    "flops_convention": "PARTIAL MAC-scale Conv/MatMul plus resampling estimate, not complete arithmetic FLOPs",
+    "memory_scope": "profiling-process peak allocated MiB including model and resident inputs, excluding trainer allocations",
+    "sheet_domain": "RR256",
+    "secondary_domain_in_notes": "FR512"
+  },
+  "directshift48": {
+    "profile_sha256": "e6a845f1766fd8bff29b836ffd2c453913a3e17c49fc793f7a71e1d747cf3700",
+    "params_M": 2.764346,
+    "rr": {"MAC_estimate_G": 63.482009664, "infer_median_ms": 12.886053998954594, "peak_allocated_MiB": 291.4189453125},
+    "fr": {"MAC_estimate_G": 254.07419808, "infer_median_ms": 77.40527499845484, "peak_allocated_MiB": 1087.0439453125}
+  },
+  "edgeres48": {
+    "profile_sha256": "acfcbe9556acd608ba7e74110e885b7f5913a6281b06ac66a080ed9546e717a0",
+    "params_M": 2.764346,
+    "rr": {"MAC_estimate_G": 63.559698496, "infer_median_ms": 18.05005899950629, "peak_allocated_MiB": 291.73095703125},
+    "fr": {"MAC_estimate_G": 254.238787648, "infer_median_ms": 83.07812900602585, "peak_allocated_MiB": 1088.28466796875}
+  },
+  "training": {"restarted": false, "same_pid_resumed_after_guarded_measurement": true, "changed_live_source_pins": []},
+  "future_publication": "New same-architecture cases automatically inherit the verified local-server profile; unknown architecture/source identity fails closed until locally measured."
+}

@@ -1,0 +1,73 @@
+Cost measurement and qualified-results publication — 2026-10-14
+
+After pulling on s3, with DirectShift48 already running:
+    bash scripts/start_experiment_cost.sh s3
+Use the host Python environment that has the existing Google service-account
+dependencies. Optional: PAN_PYTHON=/path/to/env/bin/python. The existing
+gspread/account.json is reused; no credentials or measured s1 profiles are
+committed. Container name defaults to panda-directshift48-s3; override via
+--container NAME. s1 uses the identical command with s1.
+
+This one command validates the actual local trainer/container/GPU ownership,
+measures missing architecture profiles, validates the complete local projection,
+then replaces only the old same-server publisher. The trainer is neither killed
+nor restarted. GPU profiling temporarily SIGSTOPs the exact verified trainer;
+finally and an independent deadline watchdog SIGCONT it even on failure. If
+another GPU compute job exists, measurement refuses interference. The in-memory
+optimizer/model/RNG survive. No saved training checkpoint is required.
+
+Existing qualified-steps-or-best-HQNR selection is unchanged. All authenticated
+local source records are reprojected every 120 seconds, so previously unposted
+eligible results are recovered on publication. Preflight, individual scene rows,
+diagnostics, and nonselected valid evaluation steps are not missing results.
+There is exactly one writer per server tab; never run the old directshift48 or
+sheet_publish_v2 publisher concurrently with experiment_cost.
+
+The eight loss cases, LR variants and seeds share an inference architecture.
+Profiles bind sensor, server, method, architecture, source registry and source
+code SHA256; loss/LR/seed changes reuse measured architecture costs. A genuinely
+changed architecture/code fails closed until measured again with this command.
+s3 must measure on its own GPU; no s1 latency/memory is transferred to GF2.
+
+Sheet P:S = Infer(ms), Mem(MB), Params(M), FLOPs(G), using RR256 batch1 FP32.
+Train(h)/Eval(h) are exact measured cumulative durations THROUGH THE DISPLAYED
+SELECTED STEP (not full-run ETA): contiguous synchronized train update durations
+including IO, and completed official evaluation durations respectively. A
+separate incremental scalar cache avoids rereading multi-GB traces each poll.
+These are observed elapsed durations, not GPU-active compute time: an operator
+pause inside an update is included in that update's logged elapsed duration.
+Missing/invalid duration evidence stays blank with a reason. Wall(h) is not
+invented from Train+Eval, which omit initialization, logging, probes and export.
+FR512 is measured independently and retained in the result notes/sidecar.
+The entire native aligner + warp + Teacher path is timed (legacy EdgeRes also
+includes uncached matching/prewarp), but not disk read or H2D transfer. Median
+of 10 synchronized forwards after 3 warmups. Peak allocated MiB includes the
+profiling process's model, resident inputs, output and workspaces, not live
+training allocations, reserved CUDA cache or nvidia-smi total VRAM.
+
+FLOPs(G) keeps the legacy sheet MAC=1 convention: dispatched convolution and
+matrix multiplies plus a stated interpolation estimate. It is explicitly a
+PARTIAL MAC-scale estimate: normalization, activation, scalar arithmetic and
+EdgeMatch candidate-search arithmetic are inventoried but not summed. Do not
+claim complete arithmetic FLOPs or compare with MAC=2 papers without conversion
+and scope harmonization. Independent nn.Module counters check coverage.
+
+Strict weight-retention policy means most selected runs have no checkpoint.
+These are fresh same-architecture measurements, NOT selected-checkpoint timing.
+Both the cell Cost_scope and machine-readable notes make that distinction.
+
+Read-only completeness audit (no Google calls/writes):
+    python -m experiment_cost audit --server s3
+Local-only projection dry-run:
+    python -m experiment_cost publish --server s3
+Read-only cloud ownership/schema check:
+    python -m experiment_cost publish --server s3 --google-read-only
+
+Artifacts: work_dir/experiment_cost/<server>/profiles and archive (cost proofs),
+plus campaign lane/sheet_publish_cost (projection, cloud backup, readback receipt,
+publisher.log). No scientific source records are edited. Existing tabs, headers,
+formats, sharing and other server sheets are preserved. Audit status INCOMPLETE
+requires source repair; never manufacture absent metrics or checkpoints.
+
+Tests (CPU, no Google mutation or process signals):
+    python -m unittest discover -s experiment_cost -t . -p 'test_*.py' -v
