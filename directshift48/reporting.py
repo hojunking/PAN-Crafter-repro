@@ -160,9 +160,13 @@ def build_record(*, server: str, dataset: str, run_id: str, case_id: str,
                 raise ReportingError('Direct alignment protocol SHA required; no matcher identity alias')
     data = dict(fields or {})
     unknown = set(provenance) - {"config_sha256", "code_commit", "dataset_manifest_sha256",
-                                "evaluator_revision", "artifact_manifest_url"}
+                                "evaluator_revision", "artifact_manifest_url", "environment_sha256"}
     if unknown:
         raise ReportingError("Unknown provenance fields: " + str(sorted(unknown)))
+    environment_sha = provenance.get("environment_sha256")
+    if environment_sha is not None and (not isinstance(environment_sha, str)
+            or not re.fullmatch(r"[0-9a-f]{64}", environment_sha)):
+        raise ReportingError("environment_sha256 must be the admitted environment SHA256")
     for key in OBSOLETE_PARAMETERS:
         if data.get(key) not in (None, ""):
             raise ReportingError(key + " belongs to the old method; use extra_parameters")

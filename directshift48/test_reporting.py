@@ -38,6 +38,7 @@ def arguments(server="s1", step=1000, h=.95, e=2.1, **changes):
                 "Status": "OBSERVED", "U_peak_lr": cfg["lr_U"], "A_peak_lr": cfg["lr_A"]},
         extra=extra, provenance={"config_sha256": plan.canonical_sha256(cfg["baseline_resolved"]),
                 "code_commit": "c" * 40, "dataset_manifest_sha256": "f" * 64,
+                "environment_sha256": "e" * 64,
                 "evaluator_revision": "d" * 64}, timestamp="2026-10-14T01:00:00+00:00")
     result.update(changes)
     return result
@@ -48,6 +49,24 @@ def record(**changes):
 
 
 class ReportingTests(unittest.TestCase):
+    def test_admitted_environment_provenance_survives_status_and_evaluation(self):
+        for status_only in (False, True):
+            args = arguments()
+            if status_only:
+                args.update(metrics={}, model_state_sha=None, eval_scope="STATUS",
+                    selector="PREFLIGHT_STARTED", extra={"configuration":config(), "disposable_weights":True})
+            value = R.build_record(**args)
+            R.validate_record(value)
+            note = json.loads(value["row"][R.INDEX["Original description / notes"]])
+            self.assertEqual(note["environment_sha256"], "e"*64)
+            self.assertEqual(value["source"]["provenance"]["environment_sha256"], "e"*64)
+
+    def test_invalid_environment_provenance_rejected(self):
+        args = arguments()
+        args["provenance"]["environment_sha256"] = "not-a-hash"
+        with self.assertRaisesRegex(R.ReportingError, 'environment_sha256'):
+            R.build_record(**args)
+
     def test_fixed64_direct_namespace_full_precision(self):
         item = record(h=.959123456789123)
         R.validate_record(item)
