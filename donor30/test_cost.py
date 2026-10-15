@@ -48,6 +48,23 @@ class CostTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 cost._gpu_pids()
 
+    def test_idle_blas_workspace_released_before_zero_allocation_check(self):
+        order = []
+        with patch("torch.cuda.synchronize", side_effect=lambda device: order.append("sync")), \
+             patch.object(torch._C, "_cuda_clearCublasWorkspaces", create=True,
+                          side_effect=lambda: order.append("clear_blas")), \
+             patch("torch.cuda.empty_cache", side_effect=lambda: order.append("empty_cache")), \
+             patch("torch.cuda.memory_allocated", side_effect=lambda device: order.append("check") or 0):
+            cost._require_empty_cuda("cuda")
+        self.assertEqual(order, ["sync", "clear_blas", "empty_cache", "check"])
+
+    def test_live_allocation_still_rejected_after_workspace_cleanup(self):
+        with patch("torch.cuda.synchronize"), \
+             patch.object(torch._C, "_cuda_clearCublasWorkspaces", create=True), \
+             patch("torch.cuda.empty_cache"), patch("torch.cuda.memory_allocated", return_value=4096):
+            with self.assertRaisesRegex(RuntimeError, "Nonzero CUDA allocation.*4096"):
+                cost._require_empty_cuda("cuda")
+
     def test_fresh_stage2_surrogate_uses_student_only(self):
         cfg = config(phase="stage2")
         cfg["stream_seeds"]["S_init"] = 123

@@ -1,6 +1,19 @@
 DONOR30 implementation verification — 2026-10-15
 
 Scope: additive donor30 package, config/donor30 lanes, run_donor30 launchers.
+
+2026-10-15 s1 launch correction (before any official donor run)
+  The real CUDA preflight exposed 17,039,360 bytes of retained cuBLAS workspace
+  after the disposable donor was moved to CPU. No live CUDA tensors remained;
+  gc.collect + empty_cache alone did not release that library workspace.
+  Cost entry now synchronizes and releases cuBLAS workspaces, then retains the
+  strict zero-allocation assertion. A real 4,096-byte live CUDA allocation still
+  fails that assertion. No input layout, model, loss or selection rule changed.
+  Verified in torch2.4.0-cu118 Docker on s1: 17,039,360 -> 0 bytes; live-tensor
+  rejection PASS; donor30 CPU suite 110 tests PASS. Publisher bootstrap uses an
+  independent session so it does not depend on the launch shell remaining alive.
+  Failed preflight evidence is preserved under work_dir/donor30/startup_attempts;
+  retry retains the original campaign start/deadline, not a fresh 30h allowance.
 Existing directshift48, panda_method, edgeres48/stream, experiment_cost and
 sheet_publish_v2 tracked source files were not modified for this campaign.
 

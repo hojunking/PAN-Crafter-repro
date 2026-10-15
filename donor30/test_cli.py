@@ -61,6 +61,11 @@ class EntryPointTests(unittest.TestCase):
             for command in ('docker stop', 'docker kill', 'docker rm', 'pkill', 'kill -9', 'rm -rf'):
                 self.assertNotIn(command, content)
 
+    def test_publisher_bootstrap_has_its_own_session(self):
+        content = (plan.ROOT / 'scripts/run_donor30_docker.sh').read_text()
+        self.assertIn('command -v setsid', content)
+        self.assertIn('nohup setsid "$donor_python" -u -m donor30 publish-auto', content)
+
 
 if __name__ == '__main__':
     unittest.main()

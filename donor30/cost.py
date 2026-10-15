@@ -48,6 +48,28 @@ def _assert_retained_cpu(trainer):
     inspect(trainer.optimizer.state)
 
 
+def _require_empty_cuda(device):
+    """Release idle library workspaces, never discount live tensor allocation.
+
+    After GEMM/backward PyTorch 2.4 retains cuBLAS workspaces (17,039,360
+    bytes on the pinned s1 image) even with no CUDA tensors alive. empty_cache
+    alone cannot release them. This boundary runs only with the real trainer
+    and its optimizer verified CPU-resident and no outstanding CUDA work.
+    The strict zero-allocation check is deliberately kept after cleanup.
+    """
+    import torch
+    gc.collect()
+    torch.cuda.synchronize(device)
+    clear = getattr(torch._C, "_cuda_clearCublasWorkspaces", None)
+    if callable(clear):
+        clear()
+    torch.cuda.empty_cache()
+    allocated = torch.cuda.memory_allocated(device)
+    if allocated != 0:
+        raise RuntimeError(f"Nonzero CUDA allocation before fresh cost graph ({allocated} bytes); "
+                           "actual trainer must remain CPU-resident")
+
+
 def build_deployment(cfg, sources):
     """Fresh native graph only; no checkpoint and no Stage 2 training Teacher."""
     from directshift48.training import build_direct_stage1
@@ -93,9 +115,7 @@ def ensure_cost(cfg, sources, *, retained_trainer, device, deadline_unix,
     if target.type != "cuda" or not torch.cuda.is_available():
         raise ValueError("Production cost measurement needs CUDA; CPU profiles cannot fill sheet cost columns")
     _assert_retained_cpu(retained_trainer)
-    gc.collect(); torch.cuda.empty_cache()
-    if torch.cuda.memory_allocated(target) != 0:
-        raise RuntimeError("Nonzero CUDA allocation before fresh cost graph; actual trainer must remain CPU-resident")
+    _require_empty_cuda(target)
     pid = os.getpid() if own_gpu_pid is None else own_gpu_pid
     if type(pid) is not int or pid < 1:
         raise ValueError("Verified positive NVIDIA host PID required")

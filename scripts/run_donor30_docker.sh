@@ -13,6 +13,7 @@ donor_name="panda-donor30-${donor_server}"
 donor_python="${PAN_HOST_PYTHON:-python}"
 cd "$donor_root"
 export PYTHONDONTWRITEBYTECODE=1
+command -v setsid >/dev/null
 "$donor_python" -c 'from directshift48.__main__ import require_idle_gpu; require_idle_gpu("cuda")'
 docker image inspect "$donor_image" >/dev/null
 if docker container inspect "$donor_name" >/dev/null 2>&1; then
@@ -57,6 +58,6 @@ docker run --detach --init --gpus all --pid=host --shm-size=8g \
   bash scripts/run_donor30.sh "$donor_server"
 # Only the same-server legacy SHEET writer may be handed over after preflight;
 # all training is untouched. Failed upload stays in local durable outbox.
-nohup "$donor_python" -u -m donor30 publish-auto --server "$donor_server" --apply \
+nohup setsid "$donor_python" -u -m donor30 publish-auto --server "$donor_server" --apply \
   >> "$donor_root/work_dir/donor30/publisher-bootstrap-${donor_server}.log" 2>&1 < /dev/null &
 echo "Started $donor_name; publisher bootstrap PID=$!. Monitor: docker logs -f $donor_name"
