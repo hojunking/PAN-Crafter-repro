@@ -1,0 +1,53 @@
+DONOR30 implementation verification — 2026-10-15
+
+Scope: additive donor30 package, config/donor30 lanes, run_donor30 launchers.
+Existing directshift48, panda_method, edgeres48/stream, experiment_cost and
+sheet_publish_v2 tracked source files were not modified for this campaign.
+
+Executed locally with CUDA_VISIBLE_DEVICES='', OMP_NUM_THREADS=1,
+MKL_NUM_THREADS=1, PYTHONDONTWRITEBYTECODE=1, existing pancrafter Python:
+
+  python -m donor30 smoke
+  Result: 107 tests PASS (11.255 seconds).
+
+  python -m unittest discover -s directshift48 -t .
+  Result: 144 existing tests PASS (64.323 seconds).
+
+  bash -n scripts/run_donor30.sh scripts/run_donor30_docker.sh
+  Result: PASS. CLI help and read-only catalog/dry-run dispatch tested.
+
+New coverage:
+  - Sensor-specific two-donor seeds/recipes and fixed50K scheduler.
+  - Inclusive HQNR gate, ERGAS-first qualified choice, explicitly unqualified
+    best-HQNR exploratory fallback, local-server/sensor provenance.
+  - Exact population-pixel e/q calibration from unaugmented RR train only;
+    donor/source/pipeline bindings, Scharr/ROI8 and finite/memory checks.
+  - Frozen shared A/T, Student-only optimizer/gradients, paired streams;
+    GT/E/EQ/UNIFORM losses and no Teacher/GT requirement at deployment.
+  - RR20/FR20 original unmasked references, same A/T/S state identity,
+    evaluation preserving model/optimizer/RNG/gradients/modes.
+  - Immutable checkpoint files, real independent CPU reload and state parity,
+    dual best selectors, safe-stop state, failed-save/nonfinite rejection.
+  - Actual runtime donor build/update -> save/reload -> full40 synthetic
+    prediction hashes -> selected-donor preparation -> calibration -> all four
+    Student modes -> reload/bit-identical next optimizer update.
+  - Production W112/d123 Teacher and W104/d122 Student CPU forward/backward.
+  - Persistent30h deadline, incomplete donor refusal, explicit failure/skip,
+    old attempt preservation, no busy-GPU launch and no automatic training kill.
+  - Fixed64 display rule separate from donor gate, historical results preserved,
+    single publisher ownership checks, transient-error retry, durable recovery.
+  - A+Student deployment cost excludes frozen trainingTeacher; equivalent
+    cached graph timings keep their signed numerical profile unchanged while
+    role labels/provenance are adapted explicitly.
+  - Recovery rejects TEST metric injection, maskedFR, RR19, wrong aggregate,
+    mixed model identity, corrupted checkpoint and conflicting/torn ledger.
+
+Important limits:
+  No production GPU training/profiling, live Google Sheet access/change, remote
+  server execution, experiment stop/start, commit or push was performed here.
+  CPU tests use synthetic metric callbacks when testing end-to-end orchestration;
+  the production publisher rejects those fixtures. This is not an achieved
+  quality result or proof of a30h throughput estimate. Each real launch runs
+  same-server disposable timing/full native evaluation and measured admission.
+  Real data/environment/credentials/GPU capacity remain runtime dependencies.
+  HQNR-based choice is test-aware; no claim of independent held-out selection.

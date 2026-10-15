@@ -1,0 +1,73 @@
+DONOR30 local-server operation
+
+Implementation is additive. No currently running experiment is stopped by
+installation, CPU smoke tests, catalog display, or these launchers.
+
+One launch command on the appropriate idle server:
+  S1/WV3: bash scripts/run_donor30_docker.sh s1
+  S3/GF2: bash scripts/run_donor30_docker.sh s3
+
+The command starts a detached local container and a host publisher bootstrap.
+It automatically performs local data/code/evaluator checks, isolated deployment
+cost profiling, disposable training/evaluation timing, donor x2, saved-state
+selection/re-evaluation, full-training-set calibration, then Stage2 cases.
+No manual donor-path, calibration, gate approval or separate upload step is needed.
+An existing GPU training process is NEVER killed automatically; busy GPUs cause
+an immediate, explicit refusal. No remote server is launched from this server.
+
+Dependencies are the SAME local registered H5 data, audited DLPan, Docker image
+and Google service account used by the existing campaign. No data/credentials
+are downloaded. PAN_HOST_PYTHON optionally selects the existing host environment;
+PANCRAFTER_DLPAN optionally selects the existing toolbox path. Repository/data
+are read-only Docker mounts; only work_dir is writable. Docker --pid=host is
+used solely for truthful nvidia-smi PID ownership checks by cost measurement.
+
+Track execution:
+  docker logs -f panda-donor30-s1
+  docker logs -f panda-donor30-s3
+
+Output:
+  work_dir/donor30/PANDA_DONOR_STAGE2_S13_30H_20261015_v1/<server>/<dataset>/
+  campaign_state.json           start/deadline, attempts, measured timings
+  preflight.json                explicitly disposable performance check
+  decisions.jsonl              full-run admission/skip evidence
+  selected_donor.json           gate pass vs EXPLORATORY, hash, original step
+  calibration_<hash>.json       frozen donor-bound exact training medians
+  selected_student.json         research gate-first model selection
+  runs/<run>/attempt_NN/
+    config.json, run_state.json, train.jsonl, evaluation_*.json
+    models/selection.json        atomic best-HQNR and gate/min-ERGAS pointers
+    models/step_*.pt             immutable improvements, never pruned
+    models/latest_resume.json   safe-stop full state (not donor eligible)
+  sheet_publish_donor30/         projection, publisher log, readback/error evidence
+
+Checkpoints include A/T (+S for Stage2), optimizer, independent RNG/data stream,
+50K scheduler position, resolved configuration and exact evaluation identity.
+Each selected improvement is actually reloaded into an independent CPU trainer.
+Before Stage2, the chosen donor is also re-evaluated on all20 RR/all20 FR and
+raw prediction hashes must match. No mixing A and T from different steps.
+
+Sheet writer:
+  Existing qualified-steps-or-best-HQNR DISPLAY rules remain unchanged.
+  The research donor gate (WV3 .959, GF2 .965) does not relabel joint target pass.
+  A single combined writer preserves existing DirectShift48/EdgeRes48 evidence.
+  At explicit launch, after preflight, only verified same-repo/same-server sheet
+  publishers may be handed over. No training process is signalled. Unknown
+  writer/ownership conflicts fail closed; durable local results remain queued.
+  Network errors retry. An upload is not declared complete until readback.
+  Cost is local-server fresh deployment A+Teacher or A+Student; training-only
+  frozen Teacher is excluded from Stage2 deployment parameters/latency/memory.
+
+Restart:
+  Inspect an existing same-named container instead of deleting it blindly.
+  Restarting the same controller does NOT renew the30h deadline. Finished cases
+  skip. Interrupted cases use a NEW fresh attempt; old observations/checkpoints
+  remain intact. Resume payloads are retained but not automatically replayed.
+
+Offline verification (no training launch, no cloud reads/writes):
+  PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 \
+    python -m donor30 smoke --verbose
+  python -m donor30 catalog --server s1
+
+Implementation validation does not claim measured GPU throughput or achieved
+quality. Those checks execute on each server during its actual preflight.

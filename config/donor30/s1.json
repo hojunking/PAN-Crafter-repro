@@ -1,0 +1,37 @@
+{
+  "campaign_id": "PANDA_DONOR_STAGE2_S13_30H_20261015_v1",
+  "method_revision": "DirectShift-Scharr-Donor-Stage2-v1",
+  "server": "s1",
+  "dataset": "WV3",
+  "baseline_path": "config/directshift48/s1.baseline.json",
+  "donor": {
+    "loss_case": "DF07",
+    "seeds": [261015101, 261015102],
+    "hqnr_min": 0.959,
+    "allow_exploratory_fallback": true
+  },
+  "stage2": {
+    "student_architecture": {"bands": 8, "width": 104, "depth": [1, 2, 2]},
+    "input_layout": "P0",
+    "base_reference": "BICUBIC_MS",
+    "seeds": [261015111, 261015112],
+    "core_order": ["gt", "e", "eq"],
+    "second_seed_order": ["gt", "eq"],
+    "optional_order": ["uniform"],
+    "lambda_edge": 1.0,
+    "calibration_split": "train",
+    "calibration_aggregation": "GLOBAL_PIXEL_MEDIAN",
+    "shared_frozen_donor": true
+  },
+  "budget": {
+    "total_seconds": 108000,
+    "closeout_seconds": 3600,
+    "safety_factor": 1.2,
+    "smoke_estimate_seconds": 600,
+    "calibration_estimate_seconds": 1800,
+    "donor_initial_estimate_seconds": 10800,
+    "stage2_initial_estimate_seconds": 9000
+  },
+  "retention_policy": "BEST_HQNR_AND_HQNR_GATE_MIN_ERGAS_PLUS_RESUME",
+  "pruning": "DISABLED_COMPLETE_ADMITTED_H50"
+}
