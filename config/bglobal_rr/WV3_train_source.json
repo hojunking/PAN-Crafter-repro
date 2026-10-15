@@ -1,0 +1,16 @@
+{
+  "schema": "PANDA_B_GLOBAL_RR_TRAIN_SOURCE_V1",
+  "sensor": "WV3",
+  "path": "data/PanCollection/WV3/train_wv3.h5",
+  "sha256": "f9e7ec381390ff36ddffd0714df7af07a3c5f456078b219a25f3e18372228f82",
+  "split": "train",
+  "rows": 9714,
+  "pan_key": "pan",
+  "lms_key": "lms",
+  "band_order": ["Coastal", "B", "G", "Y", "R", "RE", "NIR1", "NIR2"],
+  "band_order_evidence": "ablr2/sensor_sources.json WV3 source-repository channel convention; H5 has no embedded spectral labels.",
+  "lms_provenance": "Original distributed WV3 train H5 stored LMS. No interpolation or GT read in prior preparation.",
+  "radiometry": "stored_raw_dn",
+  "normalization": "none",
+  "split_evidence": "Existing registered PanCollection train_wv3.h5; original 9714-row order. No scene mapping or geographic-disjointness claim. Hash is rechecked before use."
+}

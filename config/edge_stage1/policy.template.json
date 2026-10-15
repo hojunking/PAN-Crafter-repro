@@ -1,0 +1,18 @@
+{
+  "schema": "PANDA_EDGE_STAGE1_POLICY_DRAFT_V1",
+  "status": "UNRESOLVED_NOT_A_RUNNABLE_EXPERIMENT",
+  "matcher": {
+    "sensor": null,
+    "radius_rr": null,
+    "radius_fr": null,
+    "tie_policy": null,
+    "low_texture_threshold": null,
+    "low_texture_policy": null,
+    "boundary_policy": null
+  },
+  "aligner_view_margin": null,
+  "loss_roi_margin": null,
+  "loss_boundary_policy": null,
+  "gradient_log_interval": null,
+  "note": "Nulls are deliberately invalid. Select explicit train/input-geometry-based settings, not synthetic test defaults or settings optimized against FR metrics. Architecture/seeds/optimizer/campaign are later case inputs."
+}

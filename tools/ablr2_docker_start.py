@@ -33,6 +33,7 @@ def lane_sensor(server):
 
 def build_mounts(root, frozen, server, dlpan):
     """Resolve symlink targets on the host; preserve their absolute container paths."""
+    frozen_alias = Path(frozen).absolute()
     root, frozen, dlpan = Path(root).resolve(), Path(frozen).resolve(), Path(dlpan).resolve(strict=True)
     sensor = lane_sensor(server)
     catalog = json.loads((root / 'ablr2/sensor_sources.json').read_text())['sensors'][sensor]
@@ -40,11 +41,17 @@ def build_mounts(root, frozen, server, dlpan):
     if not work.is_dir():
         raise ValueError('Missing work_dir; create the frozen runtime before launching')
     mounts = {root: 'ro', frozen: 'ro', work: 'rw', dlpan: 'ro'}
+    # Keep recorded runtime paths reachable when their contents live on another disk.
+    if frozen_alias != frozen:
+        mounts[frozen_alias] = 'ro'
     original=root/'work_dir/ablr2'/sensor/server/'runtime_release.json'
     if original.is_file():
-        old=Path(json.loads(original.read_text())['path']).resolve(strict=True)
+        old_alias=Path(json.loads(original.read_text())['path']).absolute()
+        old=old_alias.resolve(strict=True)
         if (old/'work_dir').resolve()!=work:raise ValueError('Original runtime does not share the owned work_dir')
         mounts[old]='ro'
+        if old_alias != old:
+            mounts[old_alias]='ro'
     source_paths = [row['path'] for row in catalog['splits'].values()]
     provenance = catalog['source_provenance']
     source_paths += [provenance[k] for k in ('raw_train_path', 'raw_val_path') if k in provenance]

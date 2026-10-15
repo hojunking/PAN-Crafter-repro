@@ -110,7 +110,10 @@ class RuntimeIntegrationTests(unittest.TestCase):
             restored = build_trainer(payload["config"], sources)
             restored.load_state_dict(payload["trainer"])
             same_predictions(evaluation, evaluate(restored, sources))
-            controller = Campaign(campaign, output=root / "controller", device="cpu")
+            # This synthetic integration test must also work in a fresh clone
+            # without the external production DLPan installation.
+            with patch("donor30.runtime.evaluator_identity", return_value={}):
+                controller = Campaign(campaign, output=root / "controller", device="cpu")
             controller.sources = sources
             controller.state["observations"] = [{**saved["record"],
                 "evaluation_path": str(run / "evaluation_0000001.json")}]

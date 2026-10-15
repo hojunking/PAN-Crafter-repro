@@ -1,0 +1,90 @@
+{
+  "method_revision": "MethodPlan-v1.3",
+  "method_sha256": "122472a5c89b2b1e827bbb5c46d19d02821efdae264fb3b311ec2bd5f07f64c0",
+  "head_conditioning": "raw_signed_current_pan_grid_dy_dx",
+  "draft_status": "RECOVERED_LEGACY_VALUES_WITH_UNRESOLVED_NEW_METHOD_FIELDS_NOT_RUNNABLE",
+  "evidence": "research_log/past/PAN_Aligner_TeacherOnly_NativeLMS_GTStructure_S135_3Seeds_2026-10-06_v2.md:435; ta2/plan.py:133; results_log/2026-10-13_teacher48_existing_assets.json",
+  "teacher_architecture": {
+    "bands": 4,
+    "width": 112,
+    "depth": [
+      1,
+      2,
+      3
+    ]
+  },
+  "aligner_architecture": {
+    "name": "SceneAwarePANAligner",
+    "view_margin": 0
+  },
+  "teacher_input_layout": "P0",
+  "teacher_base": "BICUBIC_MS",
+  "optimizer": "AdamW",
+  "optimizer_betas": [
+    0.9,
+    0.999
+  ],
+  "optimizer_eps": 1e-8,
+  "lr_U0": 0.0001,
+  "lr_A0": 0.00001,
+  "weight_decay0": 0.01,
+  "warmup_updates0": 100,
+  "min_lr": 0,
+  "scheduler_family": "warmup_cosine",
+  "scheduler_indexing": null,
+  "effective_batch_RR": 48,
+  "microbatch_RR": 12,
+  "accumulation_RR": 4,
+  "effective_batch_FR": null,
+  "microbatch_FR": null,
+  "accumulation_FR": null,
+  "RR_train_HW": [
+    64,
+    64
+  ],
+  "FR_train_HW": null,
+  "precision": "fp32",
+  "augmentation": {
+    "hflip_probability": 1,
+    "vflip_probability": 1,
+    "rot90": true
+  },
+  "evaluator_revision": null,
+  "gradient_kernel_roi_normalization": {
+    "sensor": "GF2",
+    "rgb_indices": [
+      2,
+      1,
+      0
+    ],
+    "operator": "forward_difference",
+    "padding": "reflect",
+    "roi_margin": null,
+    "radiometry": "normalized_minus1_plus1"
+  },
+  "boundary_policy": null,
+  "qual_export": {
+    "rgb_indices": [
+      2,
+      1,
+      0
+    ],
+    "display_range_DN": [
+      0,
+      1023
+    ],
+    "roi": "FULL_SCENE",
+    "edge_gain": null,
+    "error_gain": null
+  },
+  "probes": {
+    "rr_eval_ids": null,
+    "fr_eval_ids": null,
+    "rr_train_sample_id": null,
+    "fr_train_sample_id": null,
+    "max_samples": null
+  },
+  "artifact_reserve_seconds": null,
+  "probe_reserve_seconds": null,
+  "new_method_values_note": "New LN aligner and forward-difference absolute descriptor follow panda_method; null fields require pinning from real source/preflight. Historical NCC ROI16 is not silently assigned to the new loss. Existing FR20 is benchmark only."
+}

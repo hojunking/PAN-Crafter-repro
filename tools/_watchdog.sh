@@ -15,6 +15,25 @@ if [ -e "$REPO/work_dir/_panda_rb/local_owner.json" ] || [ -L "$REPO/work_dir/_p
   echo "PANDA B01 owns this server; no historical watchdog fallback"
   exit 0
 fi
+# BEGIN PANCRAFTER FH20R1 R2 ROUTE
+# An explicit R2 registration owns recovery; never fall back to the old queue.
+R2_POINTER="$REPO/work_dir/_fh20r1/r2_local_server.txt"
+if [ -e "$R2_POINTER" ] || [ -L "$R2_POINTER" ]; then
+  [ -f "$R2_POINTER" ] && [ -r "$R2_POINTER" ] || {
+    echo "FH20R1 R2 registration unreadable; no legacy fallback" >&2; exit 2;
+  }
+  R2_SERVER="$(cat "$R2_POINTER")" || exit 2
+  case "$R2_SERVER" in s1|s2|s3|s4|s5) ;; *)
+    echo "FH20R1 R2 registration invalid; no legacy fallback" >&2; exit 2;;
+  esac
+  [ -f "$REPO/tools/r2_runner.py" ] && [ -r "$REPO/tools/r2_runner.py" ] || {
+    echo "FH20R1 R2 controller missing; no legacy fallback" >&2; exit 2;
+  }
+  R2_PY="${PYTHON:-/home/knuvi/miniconda3/envs/pancrafter/bin/python}"
+  [ -x "$R2_PY" ] || R2_PY=python
+  exec "$R2_PY" "$REPO/tools/r2_runner.py" ensure --server "$R2_SERVER"
+fi
+# END PANCRAFTER FH20R1 R2 ROUTE
 LOG="$REPO/work_dir/cases_chain.log"
 LOCK="$REPO/work_dir/.watchdog.lock"
 exec 9>"$LOCK"; flock -n 9 || exit 0
@@ -26,6 +45,7 @@ fi
 case "$FH20R1_SERVER" in s1|s2|s3|s4|s5)
   if [ -f "$REPO/work_dir/_fh20r1/$FH20R1_SERVER/campaign_budget.json" ]; then
     cd "$REPO"
+    flock -n "$REPO/work_dir/_fh20r1/$FH20R1_SERVER/.runner.lock" true || exit 0
     PY="${PYTHON:-/home/knuvi/miniconda3/envs/pancrafter/bin/python}"
     [ -x "$PY" ] || PY=python
     setsid nohup "$PY" tools/fh20r1_runner.py run --server "$FH20R1_SERVER" >> "$REPO/work_dir/_fh20r1/$FH20R1_SERVER/runner.log" 2>&1 < /dev/null 9>&- &

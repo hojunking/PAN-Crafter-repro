@@ -1,0 +1,16 @@
+{
+  "schema": "PANDA_B_GLOBAL_RR_TRAIN_SOURCE_V1",
+  "sensor": "GF2",
+  "path": "data/PanCollection/GF2/train_gf2.h5",
+  "sha256": "243a0bc8a4cc0a2740ed24409f9e87afe531d87e9d57524c6bcbec2b5f937621",
+  "split": "train",
+  "rows": 19809,
+  "pan_key": "pan",
+  "lms_key": "lms",
+  "band_order": ["B", "G", "R", "NIR"],
+  "band_order_evidence": "ablr2/sensor_sources.json GF2 source-repository B,G,R,NIR convention; H5 has no embedded spectral labels.",
+  "lms_provenance": "Original distributed GF2 train H5 stored LMS. No interpolation or GT read in prior preparation.",
+  "radiometry": "stored_raw_dn",
+  "normalization": "none",
+  "split_evidence": "Existing registered PanCollection train_gf2.h5; original19809-row order. No scene mapping or geographic-disjointness claim. Hash rechecked before use."
+}

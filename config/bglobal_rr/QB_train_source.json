@@ -1,0 +1,16 @@
+{
+  "schema": "PANDA_B_GLOBAL_RR_TRAIN_SOURCE_V1",
+  "sensor": "QB",
+  "path": "data/PanCollection/QB/train_qb.h5",
+  "sha256": "7d45e191cd03f3df12eb76b5f27624eaba1b464970788eb61723c3574dd14371",
+  "split": "train",
+  "rows": 17139,
+  "pan_key": "pan",
+  "lms_key": "lms",
+  "band_order": ["B", "G", "R", "NIR"],
+  "band_order_evidence": "ablr2/sensor_sources.json QB source-repository B,G,R,NIR convention; H5 has no embedded spectral labels.",
+  "lms_provenance": "User 2026-10-13 chose original distributed QB LMS, not msfix regenerated LMS. This prior path reads original PAN/LMS only; reconstruction LRMS remains separately registered msfix.",
+  "radiometry": "stored_raw_dn",
+  "normalization": "none",
+  "split_evidence": "ablr2/sensor_sources.json QB source_provenance raw_train_path/raw_train_sha256; original17139 train rows. Validation/test excluded. Hash rechecked before use."
+}
