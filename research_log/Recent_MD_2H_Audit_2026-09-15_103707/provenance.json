@@ -1,0 +1,283 @@
+{
+  "at": "2026-09-15T10:41:59+0900",
+  "head": "4ea38e3521a98bf0edcb6188d5de5475e0451f5b",
+  "files": [
+    {
+      "path": "research_log/PAN_Consistency_Reconstruction_Quadrant_Validation_12H_2026-09-14.md",
+      "sha256": "18d89cb926d518b87d03bd2729d14b6fad15b8c0b00b322a4bb141f5281f54e8",
+      "mtime": 1789431465.0600336
+    },
+    {
+      "path": "research_log/2026-09-15_dcr12-implementation.md",
+      "sha256": "e8b81104e387754aca1310ad010e5f41261f50ca9352b52f68d25eb115a3d9e8",
+      "mtime": 1789433035.7153995
+    },
+    {
+      "path": "research_log/2026-09-15_pakd50-s3-additions-implementation.md",
+      "sha256": "dbea231841b8b9bc2303b17362e1a7a9c39d45be6b767d09718a4d5bbba4fd8a",
+      "mtime": 1789435447.76497
+    },
+    {
+      "path": "research_log/PAN_PAKD50_S4_W104D121_Architecture_Allocation_2026-09-15.md",
+      "sha256": "819d99e6198f8c42452d8be5d05b4cf92f4c3e076be256d803124e05df9f6947",
+      "mtime": 1789436099.733024
+    },
+    {
+      "path": "research_log/PAN_PAKD50_Latest_Sheet_Analysis_and_S3_Experiments_2026-09-15.md",
+      "sha256": "9bce4964259e8c3b53b55f23e8dc4913d7588ac21a6585cf624f2783f5f14d7a",
+      "mtime": 1789435147.5353978
+    },
+    {
+      "path": "tools/dcr12/d03.py",
+      "sha256": "e6de5c5ce79ec152eabd3dd27634449b728ee95dc9aa473aa8969ffe31792074",
+      "mtime": 1789432782.084917
+    },
+    {
+      "path": "tools/dcr12/d04.py",
+      "sha256": "4af8d8de6c0ec3ee68722fce79b5ee1ef92beebae0593de2fdcb22fa0f2ee62c",
+      "mtime": 1789432961.441226
+    },
+    {
+      "path": "tools/dcr12/results.py",
+      "sha256": "aa9faa181946ee01c9a38a1c2ee8f34a91b6dd4cbad36a01ad2e3d388ff4eb4c",
+      "mtime": 1789432725.4200206
+    },
+    {
+      "path": "tools/dcr12/common.py",
+      "sha256": "7230685d4dcafa3be8c54c0a225b4f14e707654a018f07dc24311eebdcf45831",
+      "mtime": 1789432782.084917
+    },
+    {
+      "path": "tools/dcr12/report.py",
+      "sha256": "ef75c79aad8f7f7b0364fc580842223627312d06c69ccf6702b5abc61c21164f",
+      "mtime": 1789432859.0181344
+    },
+    {
+      "path": "tools/dcr12/d00.py",
+      "sha256": "fe7390b41fde6d1e57b1898dbd7e642bf2319b4cd8fffcd9810983080fecf9a2",
+      "mtime": 1789432343.2379713
+    },
+    {
+      "path": "tools/dcr12/d01.py",
+      "sha256": "9b621b8cf253e049e24755f86fb1ebc83abeea7c8e0d40bf74aea048ab940d38",
+      "mtime": 1789432529.752924
+    },
+    {
+      "path": "tools/dcr12/d02.py",
+      "sha256": "61a5ff078aad8b25d33c8f7eec00e2393520c91b3c022e9e7af32bf476da97b4",
+      "mtime": 1789432582.685762
+    },
+    {
+      "path": "tools/dcr12/__init__.py",
+      "sha256": "a618a396dd0da646eaa65acb5962f8918b730ee55b095614a636dc1476e3b83c",
+      "mtime": 1789432121.442458
+    },
+    {
+      "path": "tools/dcr12.py",
+      "sha256": "ccb83ee1897869bacef7562811e14c94daf80cda0b0962b89f750a68d73ac546",
+      "mtime": 1789432240.112338
+    },
+    {
+      "path": "tools/dcr12_run.sh",
+      "sha256": "c2b117214b33b280bb17b9ecea753c97419a47af0b9ec16ccaa97faf92c8e4d2",
+      "mtime": 1789432748.6043875
+    },
+    {
+      "path": "tools/dcr12_unit_tests.py",
+      "sha256": "a83ccfa85f86d7b8662a5af49c684f3afe2975542a06006acc421d12999b97c7",
+      "mtime": 1789432936.924482
+    },
+    {
+      "path": "tools/gen_pakd50_configs.py",
+      "sha256": "a7dfa0d0a36585462b854566f6cb1a66804f30838397ec39e3cce5c3f274d809",
+      "mtime": 1789436485.2401385
+    },
+    {
+      "path": "tools/pakd50_unit_tests.py",
+      "sha256": "12c0b7c054716773ba34c07abee2395e68d9bbc1f67c918161bab9c80ede0f5a",
+      "mtime": 1789435464.6852837
+    },
+    {
+      "path": "tools/pakd50_reallocate.sh",
+      "sha256": "f673d59f2d8b7457f9bcf2188db2c2e58662198666d33265d914b125ad1d685b",
+      "mtime": 1789435296.9021728
+    },
+    {
+      "path": "tools/pakd50_requeue.sh",
+      "sha256": "7c647dae205ed2a4aca25e285cf24f120c1fa75185e4674aaea94d4c5ef2c116",
+      "mtime": 1789402435.6808023
+    },
+    {
+      "path": "tools/_run_cases.sh",
+      "sha256": "868d8ec365565d87820d39e00d75025fb261d64113d8390657b016ceef19b92a",
+      "mtime": 1788535987.5579376
+    },
+    {
+      "path": "tools/_upload.sh",
+      "sha256": "e63e034e73e78baeba9ecddc0976cfd22d1cb0406a0bd3add725f30ef0a908c1",
+      "mtime": 1789363327.0591252
+    },
+    {
+      "path": "tools/campaign_gate.py",
+      "sha256": "2eeb960e8e65286eceb3fc59a89eb94c8bd0c0101f1ac0f8673a662bac66b824",
+      "mtime": 1789402358.220493
+    },
+    {
+      "path": "tools/eqrec4/common.py",
+      "sha256": "589e1ce553a0e5a81f2536580f014261ab23fe8b2308b11d98beaaffad17ee3d",
+      "mtime": 1789400745.1038086
+    },
+    {
+      "path": "train_kdv.py",
+      "sha256": "4f0c56ca7ff9495d41f300081b551581e9565ced5d34a70ed0bccec901b3390c",
+      "mtime": 1789402331.616415
+    },
+    {
+      "path": "main.py",
+      "sha256": "16675e5446a038f5372ea3e68cd37d92a8f907b3beca797cf618781c2ec5cbe3",
+      "mtime": 1789019788.247346
+    },
+    {
+      "path": "kdv/teacher_assets.py",
+      "sha256": "616ee40abd022ada9a072ce0c063fe8e23537aa53e5698c4e5b71801fb144533",
+      "mtime": 1789057373.8792746
+    },
+    {
+      "path": "kdv/registry.py",
+      "sha256": "c459f690928e660f311580511cfa502ed9363b762004b079dd2c1eded4d8470b",
+      "mtime": 1789373513.2707462
+    },
+    {
+      "path": "gspread/gspread_upload.py",
+      "sha256": "9a6fd2ec328e4b0e5a19b30ebe4bc033d84c290ec24277c42730df43e416724d",
+      "mtime": 1789436461.6197028
+    },
+    {
+      "path": "assets/pakd50/init_hashes.json",
+      "sha256": "77ca5985416da516f78d9b738a688512fde8a2c4ee1440cb8080e3687074aaeb",
+      "mtime": 1789436461.6197028
+    },
+    {
+      "path": "config/queues/dcr12_s1.txt",
+      "sha256": "5aa970000fbbe886768ef6db265fae170bcdbb1263943f46c3a6095c23c7b5d0",
+      "mtime": 1789432252.3165314
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/manifest.json",
+      "sha256": "54ecab0ac878f95b16a6e518d64dbd380334b7cd2847bef3fca34db744f50393",
+      "mtime": 1789432346.0980165
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/panel_ids.json",
+      "sha256": "64f1294de309f9b748d08c3132f06b8e4e2cf79198491b726af71b91e32daf73",
+      "mtime": 1789432679.2232895
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/source_identity.json",
+      "sha256": "6da018564f0b94b03aceeeac6639f0209266fd1bbcb625c1f283dfbe60976ac8",
+      "mtime": 1789432346.242019
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/d00_smoke.json",
+      "sha256": "7c4ef4ff960d0faebe17ac1141a9abc473fc50c3313ab6bb0f2dcdadd443de41",
+      "mtime": 1789432347.070032
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/d01_stats.json",
+      "sha256": "73a65d1ab2daf7102100bb86dabfba173392b1b21a8d00d0650a7355eb34ae57",
+      "mtime": 1789432865.122231
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/d02_stats.json",
+      "sha256": "dc25267b5fde59ea2f4d7b32edd280594df4ea116206be5c87eee26c9b7b4408",
+      "mtime": 1789433329.5430648
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/d03_summary.json",
+      "sha256": "6f777545c1abf26bbc7c000e72582164caa19082fd5d10f0cf87c2cf605ce622",
+      "mtime": 1789433349.1875362
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/d03_routing_checks.json",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "mtime": 1789433349.1875362
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/gradient_conflicts.csv",
+      "sha256": "1bea401c13ffd240f58f10147a7529afd2924dba6ef5c613d3af9064a4f2ce45",
+      "mtime": 1789433349.179536
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/quadrant_thresholds.json",
+      "sha256": "9b980f5adaf52665596213391356c598c88ad3524ff76331aa8cb366d7182db4",
+      "mtime": 1789432785.6409733
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/sample_metrics.csv",
+      "sha256": "1b2af1a1876084bfe8245fe7d3ecfb83abe1942bf73cbb25b3ca39c2f61fefe3",
+      "mtime": 1789432785.7569752
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/scene_metrics.csv",
+      "sha256": "43056d4c02f53fed0b27fe2eaf07907dae6ffc0deb16052b3934b322377d06f6",
+      "mtime": 1789432865.1062307
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/quadrant_summary.csv",
+      "sha256": "0ab7527be795379e129034dc5a5bdc387011763cb2b2cde640893295845736b2",
+      "mtime": 1789432785.9689786
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/correction_interventions.csv",
+      "sha256": "adc46ebcafbaff6ddac3b00b2169ef686bcb211276960a6e545515a35dca31dc",
+      "mtime": 1789433329.1950567
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/closure_invariance.csv",
+      "sha256": "1de3ca87d9d9408d4ce755ddff56cf606a36e3e080a5d422c5dce1ac36a40173",
+      "mtime": 1789433329.1990566
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/synthetic_composition.csv",
+      "sha256": "0a8cd0d62623914dd04c40ceb1d6643c03fc4cb83aa82b29432e55cfacff46a8",
+      "mtime": 1789433329.2230573
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/time_ledger.jsonl",
+      "sha256": "341c9daf008bc178bbb4b35f9539c031c326c282bcd209002711ff7be8872532",
+      "mtime": 1789433349.3155394
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/run.log",
+      "sha256": "988c765ff9c2d336a40c1e06ab56b0a643c7a745574ebc654592ad8bb13e3a8a",
+      "mtime": 1789433350.0795577
+    },
+    {
+      "path": "work_dir/campaign_gates_enabled.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mtime": 1789432252.3205314
+    },
+    {
+      "path": "work_dir/cases_queue.txt",
+      "sha256": "5aa970000fbbe886768ef6db265fae170bcdbb1263943f46c3a6095c23c7b5d0",
+      "mtime": 1789432386.1466508
+    },
+    {
+      "path": "work_dir/cases_deadline.txt",
+      "sha256": "d11c6988e495c4df38ae59f1d6572445dc78c08135b35d492bbf55743418541c",
+      "mtime": 1789432386.1466508
+    },
+    {
+      "path": "work_dir/_pakd50/mandatory_runs.txt",
+      "sha256": "215c1e5a8e737c0bed53f2117d2f870813f7ac5ab1d69e478192cff8343bea02",
+      "mtime": 1789435469.4493718
+    },
+    {
+      "path": "work_dir/_pakd50_budget/ledger.json",
+      "sha256": "ee560992dedb14c78351686bca037ecaf67fd5e7044b782a3322ae1993f444d9",
+      "mtime": 1789432401.1828887
+    }
+  ],
+  "process_read": "10:41 KST: PID1268078 main.py PAKD50_JK0 S1234, started09:33:13; runner1267201, DCR12 runner1328592; GPU6680MiB",
+  "birth_time_note": "stat %W returns 0: creation time unavailable; filesystem mtime plus commit/reflog used"
+}

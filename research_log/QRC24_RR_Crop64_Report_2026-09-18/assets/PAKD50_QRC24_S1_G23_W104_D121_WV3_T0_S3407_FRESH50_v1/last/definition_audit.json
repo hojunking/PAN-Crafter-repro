@@ -1,0 +1,31 @@
+{
+  "run": "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S3407_FRESH50_v1",
+  "audit": "QRC24_VERSION_AUDIT_v1",
+  "checked": "2026-09-18T13:16:13",
+  "evidence": {
+    "release_sha": "7c5089121c0303ee5530403bacc01fce7f336656",
+    "started_at": "2026-09-17T11:04:43+09:00",
+    "command": [
+      "./tools/run.sh PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S3407_FRESH50_v1 ",
+      "python -u main.py --config /home/knuvi/Desktop/song/PAN-Crafter/config/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S3407_FRESH50_v1.yaml"
+    ],
+    "resumed_cli": false,
+    "formula": "w_i = qref/(qref + q_T(i)); q_T = frozen T0 aligner AXIS16 raw q (cue asset), sg",
+    "numerator_factor": 1.0,
+    "uniform_weight_manifest": 0.5,
+    "qref": 0.3276133416220546,
+    "lambda_E_spec": 0.002,
+    "uniform_weight_spec": 0.5,
+    "outer_weight_config": 0.002,
+    "uniform_weight_config": 0.5,
+    "queue_revision": null,
+    "profile": "G23",
+    "exact_resume": true,
+    "resumed_nonexact": false,
+    "ledger_status": "FINISHED_EXPORT",
+    "train_hours": 2.353578693204456,
+    "previous_attempts": []
+  },
+  "notes": [],
+  "verdict": "single_definition_factor1"
+}

@@ -1,0 +1,1 @@
+SUPERSEDED: generator/tests changed during execution 10:44-10:46. Mixed-version unit failures and W104 absence assertions are NOT final findings. Final fixed-commit rerun is in the parent directory.

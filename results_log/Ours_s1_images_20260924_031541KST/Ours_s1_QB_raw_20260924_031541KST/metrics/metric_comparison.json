@@ -1,0 +1,96 @@
+{
+  "status": "PARITY_REVIEW_REQUIRED",
+  "reason": "CPU export vs original CUDA; no predeclared reproducibility tolerance. Differences reported without claiming bit parity.",
+  "metrics": {
+    "rr.ergas": {
+      "original": 3.5612873217098007,
+      "exported": 3.560985665075832,
+      "difference": -0.0003016566339688609
+    },
+    "rr.scc": {
+      "original": 0.9834211183043315,
+      "exported": 0.983422657422978,
+      "difference": 1.5391186464208673e-06
+    },
+    "rr.psnr": {
+      "original": 38.32335566176771,
+      "exported": 38.32401902824796,
+      "difference": 0.0006633664802535577
+    },
+    "rr.sam": {
+      "original": 4.382716698791735,
+      "exported": 4.382445241380521,
+      "difference": -0.00027145741121437084
+    },
+    "rr.q4": {
+      "original": 0.937071392649955,
+      "exported": 0.9370573536822165,
+      "difference": -1.4038967738438934e-05
+    },
+    "rr.ssim": {
+      "original": 0.9627539129448743,
+      "exported": 0.9627583842800027,
+      "difference": 4.471335128375387e-06
+    },
+    "rr.rmse": {
+      "original": 25.48672261305061,
+      "exported": 25.484943822672772,
+      "difference": -0.0017787903778376801
+    },
+    "rr.cc": {
+      "original": 0.9816389963837631,
+      "exported": 0.9816421313717276,
+      "difference": 3.1349879645592438e-06
+    },
+    "rr.n_scenes": {
+      "original": 20,
+      "exported": 20.0,
+      "difference": 0.0
+    },
+    "rr.num_bands": {
+      "original": 4,
+      "exported": 4.0,
+      "difference": 0.0
+    },
+    "rr.max_dn": {
+      "original": 2047,
+      "exported": 2047.0,
+      "difference": 0.0
+    },
+    "rr.q_block": {
+      "original": 32,
+      "exported": 32.0,
+      "difference": 0.0
+    },
+    "fr.hqnr": {
+      "original": 0.9251135521548385,
+      "exported": 0.9251015523193488,
+      "difference": -1.1999835489717725e-05
+    },
+    "fr.d_lambda": {
+      "original": 0.04423648652689379,
+      "exported": 0.0442980406082078,
+      "difference": 6.155408131400947e-05
+    },
+    "fr.d_s": {
+      "original": 0.03217561500686554,
+      "exported": 0.03212590488842215,
+      "difference": -4.971011844338846e-05
+    },
+    "fr.n_scenes": {
+      "original": 20,
+      "exported": 20.0,
+      "difference": 0.0
+    },
+    "fr.num_bands": {
+      "original": 4,
+      "exported": 4.0,
+      "difference": 0.0
+    },
+    "fr.max_dn": {
+      "original": 2047,
+      "exported": 2047.0,
+      "difference": 0.0
+    }
+  }
+}

@@ -1,0 +1,2 @@
+﻿Experiment,Server,Selection@Step,HQNR↑,D_s↓,D_lambda↓,JQM↑,ERGAS↓,SCC↑,SAM↓,PSNR↑,SSIM↑,Q4/Q8↑,RMSE↓,CC↑,Infer(ms),Mem(MB),Params(M),FLOPs(G),Train(h),Eval(h),Wall(h)
+S1_T05_W168_D123_DUAL_zs_wv2,s1,,0.9297206113545112,0.030275162285927054,0.04129406590167888,0.971023718380926,,,,,,,,,,,,,,,

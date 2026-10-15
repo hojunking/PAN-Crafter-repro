@@ -1,0 +1,18 @@
+{
+ "server": "s1",
+ "asset": "assets/qedge9/cue_T0_AXIS16_v1.json",
+ "npz_sha256": "b83cc5d1a25e8766d1813c9d19d956efc24e0f152553e53c4894fa18dcdf563e",
+ "theta_q": 0.3276133416220546,
+ "checked_at": "2026-09-15T16:38:37",
+ "gpu": "cpu",
+ "teacher_aligner_hash_ok": true,
+ "dataset_sha_ok": true,
+ "feeder_contract_ok": true,
+ "n_views": 384,
+ "max_abs_dq": 1.4561694115400314e-05,
+ "mean_abs_dq": 2.2448748495662585e-06,
+ "max_abs_de": 2.1532177925109863e-05,
+ "label_flips": 0,
+ "near_threshold": 21,
+ "pass_": true
+}

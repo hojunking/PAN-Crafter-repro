@@ -1,0 +1,3302 @@
+[
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 0,
+    "h5_index": 0,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg0.npy",
+      "bytes": 2097280,
+      "sha256": "680b38b6d6adfd581c41be50020d493e9fa162bc8d498fd0a677e45871170fa4",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg0.npy",
+        "bytes": 4194432,
+        "sha256": "2a1159c5504de4bddf9d7a68215220cc681deda8c7710014ac109cb892469d39",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg0.npy",
+        "bytes": 4194432,
+        "sha256": "6911b2ec214cf04f70db03d2383f74469ef0b6b410a6706dd7764873e02b92d0",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg0.npy",
+        "bytes": 262272,
+        "sha256": "569ab9b2ba5f7f1a3c8704e9712b3a4690be297dc1a137847eca541d5c191550",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg0.npy",
+        "bytes": 524416,
+        "sha256": "801d30e64ea9b7c83ad5f57caeb74cf3440d67da163a22fe7b7311f9915ac333",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg0.npy",
+        "bytes": 16512,
+        "sha256": "fa5034cde2d3f83c7b0b84fc4418b8d3ae8ce067fe7b23cf42f23a1f15771b62",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        -0.004182159900665283,
+        0.025200320407748222
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 1,
+    "h5_index": 1,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg1.npy",
+      "bytes": 2097280,
+      "sha256": "b5798d9a6ee5ce794a73ea1c4dcf3b7984ea5ac3343972f8ae3f2569f2038fbd",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg1.npy",
+        "bytes": 4194432,
+        "sha256": "02654a897750a834ea10a2fcdb13f8472b151b5f7ef5100aa1b11cddd333cadf",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg1.npy",
+        "bytes": 4194432,
+        "sha256": "6668b5a18a9ce73cd975c21b097ed7f26a691dc068b9e980fff385dacddd45fd",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg1.npy",
+        "bytes": 262272,
+        "sha256": "539da23c612500b1b563ce2b5bc933a4352f2d9c0684a63b0a61d89a9edccc7b",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg1.npy",
+        "bytes": 524416,
+        "sha256": "efb1748e7f71a4562ae51b55c458664faac1e6eeedd148ee20400469a456b771",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg1.npy",
+        "bytes": 16512,
+        "sha256": "cdbdb2241f786d753100d71f48983123f4d954c7cbbd2420afcf4e8d8381e537",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.0026472650934010744,
+        0.02105703391134739
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 2,
+    "h5_index": 2,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg2.npy",
+      "bytes": 2097280,
+      "sha256": "7e586ad4cf19f1df8530e7c113283887591344de6fe34b2b9ff02b1f913c3d8b",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg2.npy",
+        "bytes": 4194432,
+        "sha256": "79305009c585c99bdfb0c8a3bb3fed2f5a79d0e2d34a62a871c1a88dd1c4d35d",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg2.npy",
+        "bytes": 4194432,
+        "sha256": "6b071121dd88364025b0a1d8182e5f3de9edbd47dfb001ef01901a354c66fb07",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg2.npy",
+        "bytes": 262272,
+        "sha256": "3fea2c6cf3f12e5da8b61bfc79d5be187ca6d5f0118e5b37330e918118a82069",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg2.npy",
+        "bytes": 524416,
+        "sha256": "f24f76ee858686c665b706e2e99d3ab9cac2c594b205e8332ad8659815d098c4",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg2.npy",
+        "bytes": 16512,
+        "sha256": "f76b2a8ab3b4ee04caa3dbd55af14d4b4426f9fe5e4025d5583e27e7e739790c",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        -0.0044729323126375675,
+        0.03217283636331558
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 3,
+    "h5_index": 3,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg3.npy",
+      "bytes": 2097280,
+      "sha256": "93ab48e9753d67e038dbf7f39296a876f00d9f6809a9491366bec386eb082d79",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg3.npy",
+        "bytes": 4194432,
+        "sha256": "014309c52f4607458b98f92b72b96f5369323d419a696edfafd3e1ee6b895548",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg3.npy",
+        "bytes": 4194432,
+        "sha256": "a2c1752627a1070edfe6b0503ae1aa5c645659b91d43329f4d3edf3c3e9a4150",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg3.npy",
+        "bytes": 262272,
+        "sha256": "a2a9b75f79fb5d37f712c80e2f97e616adcb763075385fa431e7f45152a24de9",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg3.npy",
+        "bytes": 524416,
+        "sha256": "dd6289a0243513b174f86ea2fc89f895f85e1eb4c24423e96471ab3c2f0434fa",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg3.npy",
+        "bytes": 16512,
+        "sha256": "4fcddda4c9c8dd6c55e10f76d14d1e3fda34cd3b8626e2114c2804bd3eba35f1",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        -0.005464792251586914,
+        0.030649347230792046
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 4,
+    "h5_index": 4,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg4.npy",
+      "bytes": 2097280,
+      "sha256": "ad7964338b62e1dffe376bea4b19e601ad4e71a7cc409367875e86b6fdab120d",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg4.npy",
+        "bytes": 4194432,
+        "sha256": "dd3546f4385d2510a9d36d4c2d55c133bf9e0e1a28cf8899217bb534ec2a6a4c",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg4.npy",
+        "bytes": 4194432,
+        "sha256": "5e93166704a2c310477269934f6ad4e8795ba241606adc840b44ba14eae47d4b",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg4.npy",
+        "bytes": 262272,
+        "sha256": "5312d09f1631a2082657e290fc813b99fdc547f71d4db42da79917b921ae266a",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg4.npy",
+        "bytes": 524416,
+        "sha256": "142805253384c3ea87dbeb59c0eb6f84c25b33beb6e0a7314327b5ec83261dba",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg4.npy",
+        "bytes": 16512,
+        "sha256": "fea69baebeccbccafe69cedc2617b74d51b6ad05664e0b847830154e2a11e6a6",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        -0.000992208020761609,
+        0.030021416023373604
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 5,
+    "h5_index": 5,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg5.npy",
+      "bytes": 2097280,
+      "sha256": "428663569f770aeb275a6499a7089b2adeb4b53c7a6ef086b7fb0df54e3ac88d",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 1858.8690185546875
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg5.npy",
+        "bytes": 4194432,
+        "sha256": "6751a4fe7953bc03f916363d6c9337224286daaa6662d58c046710584d473d77",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg5.npy",
+        "bytes": 4194432,
+        "sha256": "61a2e6d17a8a8321338060fd27b16e61e18d9127017fbda9d985b8b8cd06bb97",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg5.npy",
+        "bytes": 262272,
+        "sha256": "db459ac2f43385e3818cef799ee985ce32ab720b6a35a86d9c919185dfd08726",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg5.npy",
+        "bytes": 524416,
+        "sha256": "2cdccc08154bc23d2131882425a57cc169d5980c15e51221dfaff3ba7902ff0b",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg5.npy",
+        "bytes": 16512,
+        "sha256": "7dfe591e434ed7bfe9f30fd8d422382ef898814c7f18f66db1ea452e60b24ece",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.0015661236830055714,
+        0.03299484774470329
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 6,
+    "h5_index": 6,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg6.npy",
+      "bytes": 2097280,
+      "sha256": "8a93eeca697391c6eddf86f88f367159a55cf81fd7031025d19e2b662c94f342",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg6.npy",
+        "bytes": 4194432,
+        "sha256": "be082ceac668a401c7aa4dd2498b35aa06b252eaab56bc35d59f38d1e93081c6",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg6.npy",
+        "bytes": 4194432,
+        "sha256": "f353e81d68b604135b67508b7f4766728da9600d05ff93296668d5fc8a73f8c5",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg6.npy",
+        "bytes": 262272,
+        "sha256": "23c4268466041d2a9e4e8cdedf97d6a5bc9d12590e0e5e5a198733c8655a8c85",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg6.npy",
+        "bytes": 524416,
+        "sha256": "6083695496bb317630d9507b9d5d295b548074511f4bdb509d096afb73754147",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg6.npy",
+        "bytes": 16512,
+        "sha256": "01d6b65a7a96760be37e72272e49b9d2566585809507a85f1612b1ba4c251008",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.0006165120285004377,
+        0.024064037948846817
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 7,
+    "h5_index": 7,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg7.npy",
+      "bytes": 2097280,
+      "sha256": "e84252e82acabc74b154a8bc15f6efd3b89cf95ce5e912bb58fa218c38a75058",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg7.npy",
+        "bytes": 4194432,
+        "sha256": "f19a36278f1fe31cfa914a62bef5cdebb829a49e740b258bb1043da6d17da321",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg7.npy",
+        "bytes": 4194432,
+        "sha256": "e6a16fab4b6201d7600ad6236b8951b314261beda0b21c1ad4ba8063c3673477",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg7.npy",
+        "bytes": 262272,
+        "sha256": "b2148275718429ce6fa6daa0de5be9b16af5b62340fc50c691a66437a06c077a",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg7.npy",
+        "bytes": 524416,
+        "sha256": "34bb947c0adaf12a344209b358f5f42b028488fd42ddbb176f4d7dccd4bbeb97",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg7.npy",
+        "bytes": 16512,
+        "sha256": "76a2d74a780c77374806a31332a30c74be4b07e848b0e760cd5f31726a9908c9",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.01025818195194006,
+        0.0065681724809110165
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 8,
+    "h5_index": 8,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg8.npy",
+      "bytes": 2097280,
+      "sha256": "69c8b906d2189b48a149e949a7e7e8d479299ca0ff4d86299ff038ec5004429b",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 1540.5208740234375
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg8.npy",
+        "bytes": 4194432,
+        "sha256": "c8acfb85824b1aeb68689a58de5923f1477887f1a8f7dee788ae49ed21a5843f",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg8.npy",
+        "bytes": 4194432,
+        "sha256": "f1ef212f28b58202aa7e98aaae0c7bb8136bb0e105ede170b3e60d4f46c74dcb",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg8.npy",
+        "bytes": 262272,
+        "sha256": "fea1f5af97352d50e87b70e077aab9c2f76484d1bf6aca13f603817b2188d75b",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg8.npy",
+        "bytes": 524416,
+        "sha256": "84d10f226b117951078d4f777af03f5fdd3c4ad849ed102abdad3af07add1514",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg8.npy",
+        "bytes": 16512,
+        "sha256": "899f78e2b6106ef67efa0ba9159346efe82ddb3a546f9187e364e087e08dcfe5",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.005936456378549337,
+        0.035267818719148636
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 9,
+    "h5_index": 9,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg9.npy",
+      "bytes": 2097280,
+      "sha256": "f4590f0c0784f7c0192ad9f20fc6a7a9d1b7ae8ada92f2230aded789d49dcbbf",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 1410.8199462890625
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg9.npy",
+        "bytes": 4194432,
+        "sha256": "2f46d3aba8ddf26488f1681292a8e3773202c102202e67582f83c06e1e390068",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg9.npy",
+        "bytes": 4194432,
+        "sha256": "4d44fb302fd38b81779c3724aced0f0b743b8fc928384a20385124f149215d7e",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg9.npy",
+        "bytes": 262272,
+        "sha256": "05b7620b7a3687037384f5a52cdc3dff609ea13b04e723f85897470894cd95d5",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg9.npy",
+        "bytes": 524416,
+        "sha256": "ad9c1040b336975e4f7b8078e44d1823001dc73fe0586564f2e3aedcd9b7becd",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg9.npy",
+        "bytes": 16512,
+        "sha256": "da385c0315e1c64e87b9793340b8c7feb5cfa3fbe33c1b173074f8cb2e79c2ff",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.009451757185161114,
+        0.02221112884581089
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 10,
+    "h5_index": 10,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg10.npy",
+      "bytes": 2097280,
+      "sha256": "47689dc2a06fc538c4fbd92e0f0f91236de2558c6686418eaa060b1fe60e7e3b",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg10.npy",
+        "bytes": 4194432,
+        "sha256": "429ad8cb0973c35d7062060e4df7d296daff90850e3b8f86a37d1919f017ab10",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg10.npy",
+        "bytes": 4194432,
+        "sha256": "d0e23a10ad05cab67a203e8e85189eb61575dd41484d02722779ce63358629cb",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg10.npy",
+        "bytes": 262272,
+        "sha256": "0a7883615a5a927bdf89ad7e589f12f59f125846c07f4ef296eae0d519b2bb52",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg10.npy",
+        "bytes": 524416,
+        "sha256": "e55b124853d595f71a1a28116bb67fc786803c9887521ca1485dfe4a709b1405",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg10.npy",
+        "bytes": 16512,
+        "sha256": "2b8af28392a8560a38848ccdf843a668b1e8e40a5384b68e6abd5489434d6562",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.00016895198496058583,
+        0.037412770092487335
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 11,
+    "h5_index": 11,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg11.npy",
+      "bytes": 2097280,
+      "sha256": "d30c07132b49a42f1393358659df40a602495731377f9915c4a2e5959d4a9703",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg11.npy",
+        "bytes": 4194432,
+        "sha256": "805460e7f50a158f742b6c2d3a137073be501f43747ae3c9856cd544016b9b67",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg11.npy",
+        "bytes": 4194432,
+        "sha256": "85782563789bd9babe3659ec4e1c65bf602d7ea8562065f652aa68cd30aa16f7",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg11.npy",
+        "bytes": 262272,
+        "sha256": "45953f13e2e0baf2d343e76fccca9bab2eb748a15e92d5d97637e5edd25f1e57",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg11.npy",
+        "bytes": 524416,
+        "sha256": "203e97196d6f4ee56e7a386649331913801dc52ddaa09fde187735ce6a39ccb2",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg11.npy",
+        "bytes": 16512,
+        "sha256": "69fa869a4738a7ca91870a82e51a16b959e8bd862fc8aec3a14e5c44c59a7bc3",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.0003106807707808912,
+        0.02854573167860508
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 12,
+    "h5_index": 12,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg12.npy",
+      "bytes": 2097280,
+      "sha256": "9d6765de2050516f1f4b88236dcaf134c302fd1cc65d2aae700a6c85d4a03e95",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg12.npy",
+        "bytes": 4194432,
+        "sha256": "0efe5de87ffe9a969bf26f870d43dabd7c023a7153cdd96c7e9463a42e7bf6cd",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg12.npy",
+        "bytes": 4194432,
+        "sha256": "36cdd95d7250b30081c34d42fed6fd3a4d475032d2a6c8110f7366948305d699",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg12.npy",
+        "bytes": 262272,
+        "sha256": "a210047b1857809dab7a2fde35aa805416b45907f615872d173e4022ddd2337e",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg12.npy",
+        "bytes": 524416,
+        "sha256": "029281880481811df72aa46fbeb72f226ecda97ccdc5326624f190e5bebeeffe",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg12.npy",
+        "bytes": 16512,
+        "sha256": "6ed2d38ab52fdc0aac4568453cb268e9cab4f4b70001b24d8fc3ed256b34d1db",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.008254829794168472,
+        0.021251121535897255
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 13,
+    "h5_index": 13,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg13.npy",
+      "bytes": 2097280,
+      "sha256": "c3ee158086df7741014e4edac9052a7857ae9e2057b79d1e583ba1daa4821577",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2044.3431396484375
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg13.npy",
+        "bytes": 4194432,
+        "sha256": "16ef09ca232d5ff204ca538533d423044f605542674da647c8cfe52dc7eaebc6",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg13.npy",
+        "bytes": 4194432,
+        "sha256": "ec81d409fb4e71976ebc59acd5578adb5b93e35c40208e3a0ab85ec80e77b03e",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg13.npy",
+        "bytes": 262272,
+        "sha256": "20c5686f5d8055b13814a141a22d9382f88c9b6a7196240d1e7eb7f329c2d2e4",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg13.npy",
+        "bytes": 524416,
+        "sha256": "cbdbfb10fdfb331291a712e0683628cbdb70a247189ddaee62389e05ebfb27e0",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg13.npy",
+        "bytes": 16512,
+        "sha256": "44e776bb7191bc89cea7b6a94d4348c5ba601930975f70e29602a0f81a44afac",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        -0.0017742402851581573,
+        0.01586962677538395
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 14,
+    "h5_index": 14,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg14.npy",
+      "bytes": 2097280,
+      "sha256": "bc209882ffec13685f00fa2aea9d5a6faa0ebf429613e73f206e6d2de1ac2e0a",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 47.051475524902344,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg14.npy",
+        "bytes": 4194432,
+        "sha256": "c451c02c9143c9a9de4356227a277c36ea86805dcc87e787bec65a3892a1f885",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg14.npy",
+        "bytes": 4194432,
+        "sha256": "83a8ab2f071b88d4e33ccb39dfb7091b7b24d7eebb955e2a7ac24f2e18d298b8",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg14.npy",
+        "bytes": 262272,
+        "sha256": "a297deac71a1486b5ae478303d10b0969090d576238d5f85a8a81a212d6fa5a3",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg14.npy",
+        "bytes": 524416,
+        "sha256": "51e86d128f333c6de5bc8df17b4ab53031b1e2a6d66ffa34ac914a152880beef",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg14.npy",
+        "bytes": 16512,
+        "sha256": "9200d7f8bac01e6aa9e9dd2a1bed8748dbec9cb222f443dac80cd351d0e6f465",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.06893512606620789,
+        -0.003894141409546137
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 15,
+    "h5_index": 15,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg15.npy",
+      "bytes": 2097280,
+      "sha256": "7e330837a598c96838e150aab99d662aa123f67605719a237bdfb94cd6745487",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 53.59625244140625,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg15.npy",
+        "bytes": 4194432,
+        "sha256": "c46739a9ab855cf0bba0fe62a4374e85fe77d08adf639a19f95ce61b2a4ea7d7",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg15.npy",
+        "bytes": 4194432,
+        "sha256": "058ef2d4494b5e9c9830daf33b1d6c2d6a4f059871586a259fc322ee3773ddff",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg15.npy",
+        "bytes": 262272,
+        "sha256": "7914d002c5c61347230968462304785bd11737c65e71c37e688ca82534814763",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg15.npy",
+        "bytes": 524416,
+        "sha256": "9e29eb974b832f6594006ef31f79d8025a98cdae4c52427dcb03fcdfd60e891a",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg15.npy",
+        "bytes": 16512,
+        "sha256": "b460f9fa750bbdafe50830625464563786a626f715473cc4fbba972a230703cb",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.066086545586586,
+        0.006772628985345364
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 16,
+    "h5_index": 16,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg16.npy",
+      "bytes": 2097280,
+      "sha256": "972f55646326c1536e33e3e877403fe5e02c559efbdabf9657575864265104e8",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 43.901100158691406,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg16.npy",
+        "bytes": 4194432,
+        "sha256": "094c7599a8c70c202f8581a600f146ff46119f5fe6635ca2cb70fda284048ad0",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg16.npy",
+        "bytes": 4194432,
+        "sha256": "9d4fe87f35c864e427e612a30f8d8c7de3cab9aebc1005ad6db1a947d591290b",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg16.npy",
+        "bytes": 262272,
+        "sha256": "142059114095a9e9b7002a469b44562d12a6d4d422976dc79fe3f0b07c263522",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg16.npy",
+        "bytes": 524416,
+        "sha256": "43f293eb9a9566d2463ed2f9665b2260bba12a0f32ef5fa93757502dadc96b0a",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg16.npy",
+        "bytes": 16512,
+        "sha256": "c31bfa7ca07cec77575ede56e2a2a78772d24b3f5e478e9ce9f65bf19b9b72cc",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.0679621547460556,
+        0.0027501978911459446
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 17,
+    "h5_index": 17,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg17.npy",
+      "bytes": 2097280,
+      "sha256": "63ec2a5064ed0a14bf1ffad9797a0c57fd64585bab4d7c80fbad62522742b219",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 51.4988899230957,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg17.npy",
+        "bytes": 4194432,
+        "sha256": "71e1b5efee98ccc00e7fae3959a67ed4b46026d00957dab5db570204da6f2b53",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg17.npy",
+        "bytes": 4194432,
+        "sha256": "e4af22d8a441af9d0a0c48650257112b87830dbe8faeff474671fab0a6c41127",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg17.npy",
+        "bytes": 262272,
+        "sha256": "2f7569df5e781b8108ee87fb1c9c9beb25fc3717d000763caf0b558db0990a80",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg17.npy",
+        "bytes": 524416,
+        "sha256": "d3e9a7c2c1faf0968368d9be8ad1bba21b6c18a937681ce0131d9bb340802a2a",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg17.npy",
+        "bytes": 16512,
+        "sha256": "327d3217e622561ee6502ae3ac3e042c90a0736e0482b5b3d001ecc47fdcfd14",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.07399589568376541,
+        -0.001313601853325963
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 18,
+    "h5_index": 18,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg18.npy",
+      "bytes": 2097280,
+      "sha256": "de3a4299098fce2dc890e0318365071a27f16caafe66e25442300b1a3e9b7b07",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 58.853389739990234,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg18.npy",
+        "bytes": 4194432,
+        "sha256": "38a3cb2af55f93a860f99061678930c25e4cb94401bc37965411ee8cfe8b9ed5",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg18.npy",
+        "bytes": 4194432,
+        "sha256": "18f7bce82e1a1b9673ee4fe51bab3c863af948d31fa5199b9badb2666dc4ebd5",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg18.npy",
+        "bytes": 262272,
+        "sha256": "8b80dedaf077c500b2c6203a5716d1a139036a318ae68b9dd4a04922281f8a17",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg18.npy",
+        "bytes": 524416,
+        "sha256": "12acc3581b3b80285ce81a24e81a49de786775bc8798846f8c01d11a39c0729d",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg18.npy",
+        "bytes": 16512,
+        "sha256": "6234066e3bdf0770330793767eb809358cee1ffb898ad9eb743c192e09851ab6",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.0615135096013546,
+        0.005296139046549797
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "reduced",
+    "scene_index_zero_based": 19,
+    "h5_index": 19,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+    "source_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "lpan_h5_sha256": "2b81b4c5bf27137a0030840304533d4bc40fb16da586414627123348fe098371",
+    "prediction": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg19.npy",
+      "bytes": 2097280,
+      "sha256": "f12760376db1d713a5910e807283f3cb96089bc63b0eacd4dd4d64de460f6811",
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 41.28219985961914,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/WV3/reduced/gt/testimg19.npy",
+        "bytes": 4194432,
+        "sha256": "3574576ad9f16866f104fd7f9cb90082af88e85307800df7faad19475fc0c2d2",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/WV3/reduced/lms/testimg19.npy",
+        "bytes": 4194432,
+        "sha256": "b11e444cd4c47c5bb059c6f9ca400986746bdcd3348283ae6db001db7dfc4620",
+        "dtype": "float64",
+        "shape": [
+          8,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/reduced/ms/testimg19.npy",
+        "bytes": 262272,
+        "sha256": "4b4e9bc668a9e1fe73c29aebc04aa80ab5e47a6365734cf30f78d06109d18684",
+        "dtype": "float64",
+        "shape": [
+          8,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/reduced/pan/testimg19.npy",
+        "bytes": 524416,
+        "sha256": "3a3cbc9c56f3e562d20ffc782e610e764d7812e54d33391acc5a62d7f3cd8514",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/reduced/lpan/testimg19.npy",
+        "bytes": 16512,
+        "sha256": "1b427cf4dfdebc3d0fe89dcd57e60bcdba4b0894e8f7448f415d5b28628b3863",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.06536675244569778,
+        -0.004586716648191214
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 0,
+    "h5_index": 0,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg0.npy",
+      "bytes": 8388736,
+      "sha256": "87b5c5bab1de7253df8637d66df1e5a9ae49d73625a9085f1ecf5595a35819d4",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg0.npy",
+        "bytes": 16777344,
+        "sha256": "e5bedf835f5030f69ba3938fa480db617f0e34ea7f23d01e0eac483d34f57ee9",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg0.npy",
+        "bytes": 1048704,
+        "sha256": "42cb63abb5e586a5f4a0b8552a90c73d446b2d4fbbcea11f16f7f4094ab79bda",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg0.npy",
+        "bytes": 2097280,
+        "sha256": "6c7eafba947139b7bd56ed70fee23f7d97c501d5ba99ad7f87bde06733b60a61",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg0.npy",
+        "bytes": 65664,
+        "sha256": "5d4357ae2e217863b0739a687abf797f5cb58399967dc4bcadb551b3bbe0277b",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.0618402361869812,
+        -0.04334839805960655
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 1,
+    "h5_index": 1,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg1.npy",
+      "bytes": 8388736,
+      "sha256": "22d07955cbe84b7e9391edb57eec2fc8cb555f6683e55e96e3185c4ba269fcd9",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg1.npy",
+        "bytes": 16777344,
+        "sha256": "0c123c2979b7d1edbc53c7bc86e39f98a7bdef56a3f151d41adec8417538b0bd",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg1.npy",
+        "bytes": 1048704,
+        "sha256": "434939faac97f88a42d3c957b0184afc6ca409545e1efb1e23cbb03ef2c1ca78",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg1.npy",
+        "bytes": 2097280,
+        "sha256": "b948972385525b2d2b8e4c9bd0a6ecb5378751b10d39f9c2197369a574712a28",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg1.npy",
+        "bytes": 65664,
+        "sha256": "844d449c9fa7fb1dd6826ef66240bb9ab71b51ab50a345e3b2742700f0a350db",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.0643734410405159,
+        -0.03455780819058418
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 2,
+    "h5_index": 2,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg2.npy",
+      "bytes": 8388736,
+      "sha256": "460d71510663bb50b436c6b48fab0dae3b4178ade32c23c8a349f71d0f3f4e3e",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 79.16976165771484,
+      "maximum": 1881.7359619140625
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg2.npy",
+        "bytes": 16777344,
+        "sha256": "4fbdf593320614279b9dc06399c66814af95edfd5efe5b96175bc07021baf794",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg2.npy",
+        "bytes": 1048704,
+        "sha256": "8e1149859ea00ed6e01030dfe79ae91fe3f56a946bc0214a50525227f2911025",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg2.npy",
+        "bytes": 2097280,
+        "sha256": "ce92bda6be7848e58131551783af993f16fe0588ad47c422fec907c1271766e5",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg2.npy",
+        "bytes": 65664,
+        "sha256": "435ab4089b50de238ca9f47b271e7c1bbfd8fb7f51135f1e39d26ccda105204c",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.06931696087121964,
+        -0.030367638915777206
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 3,
+    "h5_index": 3,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg3.npy",
+      "bytes": 8388736,
+      "sha256": "8ebe6a9f8339243016bcdc1c007b122341a2a1029ce647c7d2e9747043717c83",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg3.npy",
+        "bytes": 16777344,
+        "sha256": "506ea2b7e04a0ccb5b83989a9220a942c227d8544d5e806136e3eb96af817f6c",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg3.npy",
+        "bytes": 1048704,
+        "sha256": "1b96abd824c460f5729de0e21c7441e0205bbd44a2916d9c191430f6cb0fea3a",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg3.npy",
+        "bytes": 2097280,
+        "sha256": "13d22d90e7ba304f01632e1e5b795c6c16ce897de6654cf29a1a824c6c786acb",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg3.npy",
+        "bytes": 65664,
+        "sha256": "e8e76833a09c220e5c072ead92ee7e029713474438ddcba259698e0d749c69b4",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.057808466255664825,
+        -0.029520876705646515
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 4,
+    "h5_index": 4,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg4.npy",
+      "bytes": 8388736,
+      "sha256": "dbe2505ce418f70bcc56482e68d4f4afa1c49a1ceb1a318b253d1afd0c042af9",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg4.npy",
+        "bytes": 16777344,
+        "sha256": "ed5ee60d07bd380fc22be744c557df5a411665bc9055b0d0dd7c2b949c7e5531",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg4.npy",
+        "bytes": 1048704,
+        "sha256": "6d606523481c5657404ed792907c71229a6922f5bd4066ee2e8053a26ec43df4",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg4.npy",
+        "bytes": 2097280,
+        "sha256": "b15354531e568a423d31b0144ad550bdd55d400cb13f3352813a3f7a9b02311a",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg4.npy",
+        "bytes": 65664,
+        "sha256": "f383a2cfc5f508030c4097e7c8100d71d932eab4aa74e13f782c3c77ebc5900b",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.07252334803342819,
+        -0.029987767338752747
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 5,
+    "h5_index": 5,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg5.npy",
+      "bytes": 8388736,
+      "sha256": "8f55e0eb01546164f7e1ff2803a34bd58fcf5711335e3387ddb2a5d783d7aaae",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg5.npy",
+        "bytes": 16777344,
+        "sha256": "dfa53cdcdec01595717e29f3a13ed741a301a15ec81aa7ce5bf4846d53a80276",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg5.npy",
+        "bytes": 1048704,
+        "sha256": "9cd8db8bce1f7817e911bdbbc60e5ba49ff644cbafad49d60e6ad839ae090b2a",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg5.npy",
+        "bytes": 2097280,
+        "sha256": "57254d92bb879ce54281bbbd25935ad9f3ded18ec394beb5fb9450396b43e478",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg5.npy",
+        "bytes": 65664,
+        "sha256": "bbcd86e96e73a2edb88964f53bdb50ae86198496d207fefd9abdda3bba77a1e0",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.07022446393966675,
+        -0.03648334741592407
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 6,
+    "h5_index": 6,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg6.npy",
+      "bytes": 8388736,
+      "sha256": "19372e19597f85fb662a523abaeae7387c46f1f39ca850e48669673cc7260b2d",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg6.npy",
+        "bytes": 16777344,
+        "sha256": "5303a82c7ced803a3825736d3467fcfba9480c3f538b9f74e374078aaf6507dd",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg6.npy",
+        "bytes": 1048704,
+        "sha256": "2289c04e85047bfe1df67b8b796e2ececd1ae7ebdb4647fc441c03ee546c8b6b",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg6.npy",
+        "bytes": 2097280,
+        "sha256": "eecd7e75d5928dc3d9275e74db00028ffa002255824d190467e50c7aa6986a03",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg6.npy",
+        "bytes": 65664,
+        "sha256": "8e67a189a9ae2736bf42aea390dbf5429bc2b62349a94888abbb16bcb8a2d201",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.07931705564260483,
+        -0.03744272515177727
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 7,
+    "h5_index": 7,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg7.npy",
+      "bytes": 8388736,
+      "sha256": "0d799002895e840b61b57e97acda8356d52f7d5365c03d6dd660d485f6d8dc96",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg7.npy",
+        "bytes": 16777344,
+        "sha256": "c9b4b8e6f78dd2975a06a2bc31e7847a5566e8531ccae46b56fd413846953601",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg7.npy",
+        "bytes": 1048704,
+        "sha256": "b7d6b77bb5a36b1253245f12bc8f785e900115ac17a36f3eec1feaee658123e6",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg7.npy",
+        "bytes": 2097280,
+        "sha256": "5d78d0d1ffba5a495fd996f88c0bf4e310e83982634a3b81f45c0db22cb40533",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg7.npy",
+        "bytes": 65664,
+        "sha256": "cfa6c412e7bce91b6294dc07b15c7ed293d93461931fc5c16f634a56823e79dd",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.07029412686824799,
+        -0.03973434492945671
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 8,
+    "h5_index": 8,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg8.npy",
+      "bytes": 8388736,
+      "sha256": "4e883f2bac457dcadfd1c3c8d9e91d8936b0b42ada3022df1ee1e6b2ec459e28",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg8.npy",
+        "bytes": 16777344,
+        "sha256": "9d92a683ba615178bafe954021a066487b5b7f2f3fa4d15306a881d6160e73d8",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg8.npy",
+        "bytes": 1048704,
+        "sha256": "fb24371b30795ed1b054fa405472e690169d35b51d6a6ac53e6a50db17fbb1a4",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg8.npy",
+        "bytes": 2097280,
+        "sha256": "57941a66b0a5c2e3690c3723dde066de9628d246f3a6c5e14a6aacc87ba73fae",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg8.npy",
+        "bytes": 65664,
+        "sha256": "83274aed73c0a1d19e1375701f2e9579e26a242b41b27d3409632c9a06c6e36a",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.07915101945400238,
+        -0.041493382304906845
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 9,
+    "h5_index": 9,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg9.npy",
+      "bytes": 8388736,
+      "sha256": "04711a1835ebdca6c1a9d6be5ab00352c05cfe90c13374556b206f63497d37c0",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg9.npy",
+        "bytes": 16777344,
+        "sha256": "fceb207c9b8e5ce48d818fc8123dc87453cbe0065cd7c9093b8d823b0dbe4bad",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg9.npy",
+        "bytes": 1048704,
+        "sha256": "35024c429b1d92babce3e7358070c60be7a895e4433b0229570a7b90bc70a2b0",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg9.npy",
+        "bytes": 2097280,
+        "sha256": "7278cae1a2628ea03abf2835813753c2cac3afb56e04bd86863f380b33afaddd",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg9.npy",
+        "bytes": 65664,
+        "sha256": "cee99e1a994cc9ce834096307fef2acdd51604d00b563023de781f691cebdb1d",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.0701766386628151,
+        -0.04036623612046242
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 10,
+    "h5_index": 10,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg10.npy",
+      "bytes": 8388736,
+      "sha256": "03d4b8980c82c085c11340ec4f382f1ce140f68d9e3f259114d5d215e2447e71",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg10.npy",
+        "bytes": 16777344,
+        "sha256": "5526734de9b3012b48e04bb20588ddd4bd93286249646947b9a9dec77c537c71",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg10.npy",
+        "bytes": 1048704,
+        "sha256": "fa72b88290bed39d6804c55d5a68e0fcfac3943e6c3110c489f54c2b1297e087",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg10.npy",
+        "bytes": 2097280,
+        "sha256": "d55524cc01a262823a103ffb4b72d80765dfe27e8caa7157c983cb2668d48da3",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg10.npy",
+        "bytes": 65664,
+        "sha256": "d82bc3072a065bee5fa86600117d840ad6a5d2ae8f877f1f3747b99d8f14e0ce",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.07516495138406754,
+        -0.041355330497026443
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 11,
+    "h5_index": 11,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg11.npy",
+      "bytes": 8388736,
+      "sha256": "5ac5fb90f31a727b4a1b036fa3b86547e3f4adbf09b97ff26a7445d0c09d7f49",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg11.npy",
+        "bytes": 16777344,
+        "sha256": "83a6f41b816ad426c0b15a5fff380b50e4a72a6f3df68340649efe7a82aecbc8",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg11.npy",
+        "bytes": 1048704,
+        "sha256": "abcd7d0c014a038a30f182eb5b77d539fd2ad754a6d68d82c3dec2c52b97f45b",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg11.npy",
+        "bytes": 2097280,
+        "sha256": "d01131c21fff34a46f5c124e0ea192976648597ea2f93d94a3abee916fddf92b",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg11.npy",
+        "bytes": 65664,
+        "sha256": "560c3da9a9d087586709f181a238c42ce2f3d13520e5f6647d96a20aaa822cae",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.06830233335494995,
+        -0.03399349004030228
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 12,
+    "h5_index": 12,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg12.npy",
+      "bytes": 8388736,
+      "sha256": "3b20e195c81e350a12bbc4f305b1877a50e7be96f340de5dac31bf7d8905f969",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg12.npy",
+        "bytes": 16777344,
+        "sha256": "74b3e48a3c0ae022d60b16e63a26bffbbdd43aaeab81340d0fcea34e284525ed",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg12.npy",
+        "bytes": 1048704,
+        "sha256": "55459424d280882244c0eaafd709215df2c59744aa1bf093212dc4057ec1e224",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg12.npy",
+        "bytes": 2097280,
+        "sha256": "5d81c19fedb53b1714f68f87fc154a549b5179090ff93a4b9d7392d6405feb86",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg12.npy",
+        "bytes": 65664,
+        "sha256": "86bebc7ba8525f5ccc599445af9383d1129553abb6714de6b9544f0129879c03",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.0742405354976654,
+        -0.02466992847621441
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 13,
+    "h5_index": 13,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg13.npy",
+      "bytes": 8388736,
+      "sha256": "27dbe452d112f2419544b02a1d3f0a856cf33deb16993f5cdb6983577ee5e64f",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg13.npy",
+        "bytes": 16777344,
+        "sha256": "9e088baf9431553f0f73db4ab8d0a0403f968be42a2ee1272021e9a2b92483d4",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg13.npy",
+        "bytes": 1048704,
+        "sha256": "38ccfdee9eacbe143052c3e13c181a5153c78b4a29a29145f83f6f10b95ee554",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg13.npy",
+        "bytes": 2097280,
+        "sha256": "477beb7a2a47a25f6dc54738a7724f86418d87e4a938a36bc52b4b769190fb87",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg13.npy",
+        "bytes": 65664,
+        "sha256": "cf44fe58f59debc081acfd3b76e89f30ef93881ab5b9185fc25c60e0a0fab2a2",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.07473345845937729,
+        -0.03592132404446602
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 14,
+    "h5_index": 14,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg14.npy",
+      "bytes": 8388736,
+      "sha256": "78240763af813feb8ef65b02b4740f81379c38bfcc02aad8a38bd22956f8c0d1",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg14.npy",
+        "bytes": 16777344,
+        "sha256": "c7a7ec564f291f3e563433cb3c9b799364abfcd399f2667037b017d82ee6f5e6",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg14.npy",
+        "bytes": 1048704,
+        "sha256": "962bd27221aee17d898a570654a9df9b5a47a29b8efbc65bea257d131461724a",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg14.npy",
+        "bytes": 2097280,
+        "sha256": "142c53fcfe232b5004d1a609b26d6b84b270014ac91de53d3df871b8d37fdca2",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg14.npy",
+        "bytes": 65664,
+        "sha256": "2f1376e8c4754bbf6c8dd8660654df40cbdd30445b943576054f6db0cb8dff67",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.07687912881374359,
+        -0.03790700063109398
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 15,
+    "h5_index": 15,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg15.npy",
+      "bytes": 8388736,
+      "sha256": "fc16e550680bd6672266b552205a4d5db31a3a58e74008f89184dd193a54e8c7",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg15.npy",
+        "bytes": 16777344,
+        "sha256": "d2ec604ac532b6b91c6cad3e89ef2ee4963946f0d14d20e6749b5c581843defb",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg15.npy",
+        "bytes": 1048704,
+        "sha256": "bea05b4efe710d2b7cde0ec0fd24d399dd9a613ffcf7e83814893ea4fc4d2483",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg15.npy",
+        "bytes": 2097280,
+        "sha256": "4e98fa12b2347d4b6cb17cd795c7d0896b94aacad776dbb75fa28b158ec0dbdc",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg15.npy",
+        "bytes": 65664,
+        "sha256": "4759540ad3be95cb99991004b57776289b174a3e0ea4124c87e42b8058b09c97",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.082489512860775,
+        -0.039072901010513306
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 16,
+    "h5_index": 16,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg16.npy",
+      "bytes": 8388736,
+      "sha256": "986c510461f0b01f30dd13978ecd8ca18ed293eba4b749735a5c19dfba291c42",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg16.npy",
+        "bytes": 16777344,
+        "sha256": "f5260217e536dc039b38ec3df665af9162c2793b152b1e298e6fe83c18044dad",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg16.npy",
+        "bytes": 1048704,
+        "sha256": "349ef0bd4e514cbf9919ed7578cce498370cc7fcb825927908674aecad28349d",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg16.npy",
+        "bytes": 2097280,
+        "sha256": "68053056419f78bb17899e254900fb9dcce2f817325edfb94b7769a8ef966088",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg16.npy",
+        "bytes": 65664,
+        "sha256": "b391d18275e0116e9716b69e001a80f7e2b9fea555458ca86c9006f333cdb686",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.07352664321660995,
+        -0.02964191325008869
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 17,
+    "h5_index": 17,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg17.npy",
+      "bytes": 8388736,
+      "sha256": "163350b7daf4fd21ca4bcb5decb79387f6b16b365d5fda8ab0a6bbea2a542bc7",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 2.590592384338379,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg17.npy",
+        "bytes": 16777344,
+        "sha256": "7b7a16c6505d7c05aa6ca8218b6cd9d4807af87cdcf6513a68720823fcfb62b3",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg17.npy",
+        "bytes": 1048704,
+        "sha256": "a1c0b7f3edc2cf437651589cf8dcad481d83742a73a4f96386bd276d6865867a",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg17.npy",
+        "bytes": 2097280,
+        "sha256": "b24301f23903b21c8882b0808c4058f4e265d3c8d8c5c95841d66f18a74b378e",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg17.npy",
+        "bytes": 65664,
+        "sha256": "63f465b8935c30691cea111585ba49b20cb48dbc26a39a2a3b8538248a1502e5",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.08595258742570877,
+        -0.036809369921684265
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 18,
+    "h5_index": 18,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg18.npy",
+      "bytes": 8388736,
+      "sha256": "4a7ed4e5346417b77d06709eca440b02a223dd30128fa36121c62518175b1dd4",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg18.npy",
+        "bytes": 16777344,
+        "sha256": "3ad4fce4da938b0a7f65db0341e5689e087e53769b25117a329664c6cb7631b8",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg18.npy",
+        "bytes": 1048704,
+        "sha256": "abb4c3cbbd62521ced2d908420406b37d180944acb5ca177a08c2c864b232d56",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg18.npy",
+        "bytes": 2097280,
+        "sha256": "1faa4b77ec151acad91f40f3a20eb77e84ab5dad85af33a36e5dff7032a379f3",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg18.npy",
+        "bytes": 65664,
+        "sha256": "c80b47033e63fb985ef588cca6833ddbc1bd797d523ed4d9af3cadad9f2b54a6",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.05959424003958702,
+        -0.031579263508319855
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "WV3",
+    "split": "full",
+    "scene_index_zero_based": 19,
+    "h5_index": 19,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+    "source_h5_sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+    "lpan_h5_sha256": "83e969b1f25234f3908ca2dfeb2fc725fa5eb0fca401aa279b6b9093e927db41",
+    "prediction": {
+      "path": "Ours_raw/WV3/full/pred/testimg19.npy",
+      "bytes": 8388736,
+      "sha256": "06aed2ed670e1509d3228e29259814895cf36e903eae7935e7c17d5d2f159e62",
+      "shape": [
+        8,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/WV3/full/lms/testimg19.npy",
+        "bytes": 16777344,
+        "sha256": "e65521a551b3f62a98a027018d6c7d9a4aa280192d208c76808a8d0a3ad6d270",
+        "dtype": "float64",
+        "shape": [
+          8,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/WV3/full/ms/testimg19.npy",
+        "bytes": 1048704,
+        "sha256": "3855d171614ca4abd85a36eba3abb3faa418dc47abe238dd6befc2aeea7e7725",
+        "dtype": "float64",
+        "shape": [
+          8,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/WV3/full/pan/testimg19.npy",
+        "bytes": 2097280,
+        "sha256": "baa1c14bf53308dd773a3c84779d9c5dff9cb4233a63c72290453fa08d213740",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/WV3/full/lpan/testimg19.npy",
+        "bytes": 65664,
+        "sha256": "b5f3ed78a5de08c304edfd5d17679793f344aede11939a20a140ce7a35d9f9bd",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.08112354576587677,
+        -0.039783477783203125
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  }
+]

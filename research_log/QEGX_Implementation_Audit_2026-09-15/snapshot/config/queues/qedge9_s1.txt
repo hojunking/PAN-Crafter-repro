@@ -1,0 +1,8 @@
+# QEDGE9 s1 (2026-09-15 17:20 사용자 결정: seed 1234 묶음을 s4 대신 s1 이; 계획 research_log/PAN_QEDGE9_W104D121_S5_S4_Experiment_Plan_2026-09-15.md §6, 노트 research_log/2026-09-15_qedge9-implementation.md §9).
+# 전부 W104·D121, seed 1234, **v2**(s4 의 E0 config v1 과 이름 충돌 방지; 학습 정의는 같고 예산 metadata·호스트만 다르다). QEC 는 pilot(J0 v2 exact50K → tools/qedge9_cue.py pilot) 이 필요해 마지막.
+# 기동은 tools/qedge9_prepare_s1.sh (SMEC12 chain DONE 뒤 자동; 마감 파일 없음 = soft 정책). gate 'pakd50' 는 s1 에서 꺼져 있다(큐 순서 그대로).
+PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v2
+PAKD50_JQ_W104_D121_WV3_T0_S1234_FRESH50_v2
+PAKD50_QE50_W104_D121_WV3_T0_S1234_FRESH50_v2
+PAKD50_QES_W104_D121_WV3_T0_S1234_FRESH50_v2
+PAKD50_QEC_W104_D121_WV3_T0_S1234_FRESH50_v2

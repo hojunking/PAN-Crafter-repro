@@ -1,0 +1,310 @@
+{
+ "rule": "per scene: 2x2 audit tiles where max(scene-trained, fine-tuned) region HQNR exceeds max(zero-shot, Brovey) by >= 0.0031, highest such HQNR; zoom box by PAN edge rule",
+ "regions": [
+  {
+   "scene_id": "200014103764_01",
+   "ms_row": 2176,
+   "ms_col": 7872,
+   "size_pan": 512,
+   "pan_sobel_mean": null,
+   "region_fr": {
+    "BROVEY8": {
+     "hqnr": 0.7719185470624077,
+     "d_lambda": 0.1777421046795314,
+     "d_s": 0.06122367679978454
+    },
+    "ZS_WV3": {
+     "hqnr": 0.8602323785793293,
+     "d_lambda": 0.023365331867562927,
+     "d_s": 0.11918895524940173
+    },
+    "SC_SCENE_EXACT20K": {
+     "hqnr": 0.8677341525450022,
+     "d_lambda": 0.045420385213090025,
+     "d_s": 0.09097597924715353
+    },
+    "FT_WV3_SCENE_EXACT20K": {
+     "hqnr": 0.8487256261519982,
+     "d_lambda": 0.03732750751105082,
+     "d_s": 0.11836512701956002
+    }
+   },
+   "box_pan_yx": [
+    16,
+    384
+   ],
+   "box_size_pan": 128,
+   "stretch_lo": [
+    58.0,
+    242.0,
+    311.0
+   ],
+   "stretch_hi": [
+    923.1699829101562,
+    1458.1700439453125,
+    972.0
+   ],
+   "order": "V01",
+   "category": "Urban",
+   "kind": "scene-trained best",
+   "selection": {
+    "sid": "200014103764_01",
+    "origin": [
+     2176,
+     7872
+    ],
+    "box": [
+     16,
+     384
+    ],
+    "best_adapted": "SC_SCENE_EXACT20K",
+    "best_adapted_hqnr": 0.8677341525450022,
+    "margin": 0.007501773965672864
+   }
+  },
+  {
+   "scene_id": "200014103758_01",
+   "ms_row": 2688,
+   "ms_col": 4352,
+   "size_pan": 512,
+   "pan_sobel_mean": null,
+   "region_fr": {
+    "BROVEY8": {
+     "hqnr": 0.5686654284990456,
+     "d_lambda": 0.33913585406337643,
+     "d_s": 0.15098740955953158
+    },
+    "ZS_WV3": {
+     "hqnr": 0.8458895168374259,
+     "d_lambda": 0.08212541780427252,
+     "d_s": 0.07785176686134007
+    },
+    "SC_SCENE_EXACT20K": {
+     "hqnr": 0.8518686135010753,
+     "d_lambda": 0.07159696584119965,
+     "d_s": 0.08219218253087766
+    },
+    "FT_WV3_SCENE_EXACT20K": {
+     "hqnr": 0.8328944402986489,
+     "d_lambda": 0.08686337096440122,
+     "d_s": 0.08746096704415021
+    }
+   },
+   "box_pan_yx": [
+    0,
+    304
+   ],
+   "box_size_pan": 128,
+   "stretch_lo": [
+    95.0,
+    182.0,
+    172.0
+   ],
+   "stretch_hi": [
+    734.0,
+    723.3400268554688,
+    496.0
+   ],
+   "order": "V02",
+   "category": "Urban / lake / hills",
+   "kind": "scene-trained best",
+   "selection": {
+    "sid": "200014103758_01",
+    "origin": [
+     2688,
+     4352
+    ],
+    "box": [
+     0,
+     304
+    ],
+    "best_adapted": "SC_SCENE_EXACT20K",
+    "best_adapted_hqnr": 0.8518686135010753,
+    "margin": 0.005979096663649486
+   }
+  },
+  {
+   "scene_id": "200014103802_01",
+   "ms_row": 1152,
+   "ms_col": 7680,
+   "size_pan": 512,
+   "pan_sobel_mean": null,
+   "region_fr": {
+    "BROVEY8": {
+     "hqnr": 0.5424515861922721,
+     "d_lambda": 0.37138475648728986,
+     "d_s": 0.1372627243001132
+    },
+    "ZS_WV3": {
+     "hqnr": 0.7100999936629537,
+     "d_lambda": 0.16896944974115022,
+     "d_s": 0.1453643715837844
+    },
+    "SC_SCENE_EXACT20K": {
+     "hqnr": 0.7201201599263987,
+     "d_lambda": 0.1449928009846387,
+     "d_s": 0.157778509472845
+    },
+    "FT_WV3_SCENE_EXACT20K": {
+     "hqnr": 0.6899237569579473,
+     "d_lambda": 0.1809504435532942,
+     "d_s": 0.15752901430707822
+    }
+   },
+   "box_pan_yx": [
+    368,
+    128
+   ],
+   "box_size_pan": 128,
+   "stretch_lo": [
+    93.0,
+    245.0,
+    252.0
+   ],
+   "stretch_hi": [
+    194.1699981689453,
+    363.0,
+    295.0
+   ],
+   "order": "V03",
+   "category": "Rural plain",
+   "kind": "scene-trained best",
+   "selection": {
+    "sid": "200014103802_01",
+    "origin": [
+     1152,
+     7680
+    ],
+    "box": [
+     368,
+     128
+    ],
+    "best_adapted": "SC_SCENE_EXACT20K",
+    "best_adapted_hqnr": 0.7201201599263987,
+    "margin": 0.01002016626344493
+   }
+  },
+  {
+   "scene_id": "200014103714_01",
+   "ms_row": 4736,
+   "ms_col": 7808,
+   "size_pan": 512,
+   "pan_sobel_mean": null,
+   "region_fr": {
+    "BROVEY8": {
+     "hqnr": 0.43941533585885467,
+     "d_lambda": 0.37009068337287326,
+     "d_s": 0.3047224694750199
+    },
+    "ZS_WV3": {
+     "hqnr": 0.7187384441694336,
+     "d_lambda": 0.19090512265786116,
+     "d_s": 0.11276207922838546
+    },
+    "SC_SCENE_EXACT20K": {
+     "hqnr": 0.7353686975621642,
+     "d_lambda": 0.17909330338270701,
+     "d_s": 0.1044031132233135
+    },
+    "FT_WV3_SCENE_EXACT20K": {
+     "hqnr": 0.6263078874001974,
+     "d_lambda": 0.27919557237083237,
+     "d_s": 0.13436748616970673
+    }
+   },
+   "box_pan_yx": [
+    128,
+    0
+   ],
+   "box_size_pan": 128,
+   "stretch_lo": [
+    77.0,
+    271.0,
+    285.0
+   ],
+   "stretch_hi": [
+    372.0,
+    656.1699829101562,
+    463.0
+   ],
+   "order": "V04",
+   "category": "Rural / new town",
+   "kind": "scene-trained best",
+   "selection": {
+    "sid": "200014103714_01",
+    "origin": [
+     4736,
+     7808
+    ],
+    "box": [
+     128,
+     0
+    ],
+    "best_adapted": "SC_SCENE_EXACT20K",
+    "best_adapted_hqnr": 0.7353686975621642,
+    "margin": 0.01663025339273061
+   }
+  },
+  {
+   "scene_id": "200014103525_01",
+   "ms_row": 4352,
+   "ms_col": 5824,
+   "size_pan": 512,
+   "pan_sobel_mean": null,
+   "region_fr": {
+    "BROVEY8": {
+     "hqnr": 0.5546489439095048,
+     "d_lambda": 0.3367183662371812,
+     "d_s": 0.16675910552650666
+    },
+    "ZS_WV3": {
+     "hqnr": 0.8013958511487362,
+     "d_lambda": 0.09367433617527562,
+     "d_s": 0.11612247626533317
+    },
+    "SC_SCENE_EXACT20K": {
+     "hqnr": 0.8073127389566512,
+     "d_lambda": 0.0713164691443518,
+     "d_s": 0.13071251032409503
+    },
+    "FT_WV3_SCENE_EXACT20K": {
+     "hqnr": 0.7930601384811198,
+     "d_lambda": 0.08470807184930745,
+     "d_s": 0.13352079806999878
+    }
+   },
+   "box_pan_yx": [
+    128,
+    16
+   ],
+   "box_size_pan": 128,
+   "stretch_lo": [
+    185.0,
+    417.0,
+    326.0
+   ],
+   "stretch_hi": [
+    326.0,
+    603.0,
+    440.0
+   ],
+   "order": "V05",
+   "category": "Haze / thin cloud",
+   "kind": "scene-trained best",
+   "selection": {
+    "sid": "200014103525_01",
+    "origin": [
+     4352,
+     5824
+    ],
+    "box": [
+     128,
+     16
+    ],
+    "best_adapted": "SC_SCENE_EXACT20K",
+    "best_adapted_hqnr": 0.8073127389566512,
+    "margin": 0.0059168878079149945
+   }
+  }
+ ]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "incomplete_control_is_terminal",
+  "kind": "defect_reproduction",
+  "passed": true,
+  "step": 1010,
+  "checkpoint_present": false,
+  "candidate_grid_present": false,
+  "note": "Empty marker fixtures expose existence-only admission; no actual result is alleged incomplete. qedge9_switch lines 40-42 then skips config checks for this terminal run."
+}

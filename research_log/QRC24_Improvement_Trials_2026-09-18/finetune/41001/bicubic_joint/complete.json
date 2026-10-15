@@ -1,0 +1,12 @@
+{
+  "arm": "bicubic_joint",
+  "updates": 1000,
+  "seconds": 28.542454957962036,
+  "initial_hash": "c8a15f80da34de2d",
+  "model_sha256": "b59ad85ad6d7843f41a43c95d4d6d98ee2ec45bd1543131db33376b56a13d03e",
+  "A_frozen": false,
+  "A_unchanged": false,
+  "teacher_unchanged": true,
+  "peak_allocated_mib": 560.74658203125,
+  "at": "2026-09-18T13:54:21.316626+09:00"
+}

@@ -1,0 +1,309 @@
+{
+  "checks": [
+    {
+      "name": "PASS atlas coverage and role separation",
+      "passed": true,
+      "coverage": {
+        "fr512": 480,
+        "native64": 98304,
+        "rr256": 480
+      },
+      "roles": {
+        "A": 512,
+        "B": 2048,
+        "C": 512,
+        "D": 1024
+      },
+      "actual_known_scene_ids": 0
+    },
+    {
+      "name": "PASS P0 consistency absent rather than zero",
+      "passed": true
+    },
+    {
+      "name": "PASS model file hashes unchanged since G00",
+      "passed": true,
+      "n_assets": 26
+    },
+    {
+      "name": "PASS A-only thresholds and Probe-B separate medians",
+      "passed": true
+    },
+    {
+      "name": "PASS D20 corrected FR input reached saved results",
+      "passed": true,
+      "n": 200,
+      "epe_max_abs_error": 1.192092896062924e-07,
+      "d20_source_mtime": "2026-09-14T23:30:43"
+    },
+    {
+      "name": "PASS full core residual cache reproduces q/EPE",
+      "passed": true,
+      "probe_rows": 1572864,
+      "max_abs_error": 1.3832063816554552e-07
+    },
+    {
+      "name": "BUG reproduced: detailed strata reused across checkpoints",
+      "passed": true,
+      "detail_labels": {
+        "L1E4_S1234_best_raw": {
+          "n": 256,
+          "mismatched_primary_label": 59,
+          "own_quadrant_counts": {
+            "EuCu": 71,
+            "EdCd": 68,
+            "EdCu": 61,
+            "EuCd": 56
+          }
+        },
+        "L1E4_S7777_best_raw": {
+          "n": 256,
+          "mismatched_primary_label": 17,
+          "own_quadrant_counts": {
+            "EdCd": 67,
+            "EuCd": 64,
+            "EuCu": 63,
+            "EdCu": 62
+          }
+        },
+        "L000_S2025_best_raw": {
+          "n": 256,
+          "mismatched_primary_label": 29,
+          "own_quadrant_counts": {
+            "EuCd": 71,
+            "EdCu": 67,
+            "EdCd": 62,
+            "EuCu": 56
+          }
+        }
+      }
+    },
+    {
+      "name": "BUG reproduced: old blur calibration is not split A",
+      "passed": true,
+      "selected_old_calibration": 256,
+      "overlap_with_campaign_roles": {
+        "A": 18,
+        "B": 56,
+        "C": 12,
+        "D": 25
+      },
+      "outside_campaign": 145
+    },
+    {
+      "name": "BUG reproduced: K10 leave-one-pool-out crosses source blocks",
+      "passed": true,
+      "actual_pair_A_pools": 16,
+      "shared_source_groups_per_held_pool": [
+        33,
+        34,
+        33,
+        39,
+        30,
+        35,
+        33,
+        34,
+        38,
+        35,
+        31,
+        31,
+        32,
+        35,
+        34,
+        29
+      ],
+      "total_source_groups": [
+        33,
+        34,
+        33,
+        39,
+        30,
+        35,
+        33,
+        34,
+        38,
+        35,
+        31,
+        31,
+        32,
+        35,
+        34,
+        29
+      ],
+      "cells": {
+        "EdCu_Aneg": 583,
+        "EuCd_Aneg": 562,
+        "EdCd_Aneg": 448,
+        "EuCu_Aneg": 441,
+        "EdCu_Apos": 5,
+        "EuCu_Apos": 5,
+        "EdCd_Apos": 2,
+        "EuCd_Apos": 2
+      }
+    },
+    {
+      "name": "BUG reproduced: shuffle accepts 3 samples below minimum 8",
+      "passed": true,
+      "status": [
+        "ok",
+        "ok",
+        "ok"
+      ]
+    },
+    {
+      "name": "PASS current shuffle preserves EA cells and q-label mass",
+      "passed": true,
+      "changed_fraction": 0.453125
+    },
+    {
+      "name": "BUG reproduced: noise-sized utility marked resolved; dependent pools not shrunk",
+      "passed": true,
+      "noise": 0.001,
+      "max_utility": 4e-06,
+      "resolved": true,
+      "n_used": 4
+    },
+    {
+      "name": "BUG reproduced: K20 reaches training with zero utility and no entry validation",
+      "passed": true
+    },
+    {
+      "name": "BUG reproduced: standalone G00 invalid status exits zero",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "BUG reproduced: H2 aggregates A and B instead of B-only",
+      "passed": true,
+      "aggregate": 0.0,
+      "bank_B_expected": 1.0
+    },
+    {
+      "name": "BUG reproduced: report calls inconclusive H2 opposed",
+      "passed": true,
+      "state": "Opposed in tested setting",
+      "all_CI_include_zero": true
+    },
+    {
+      "name": "PASS real checkpoint probe q formula",
+      "passed": true
+    },
+    {
+      "name": "PASS actual routing R0",
+      "passed": true,
+      "base_A": 0.0026506702415645123,
+      "extra_U": 0.0
+    },
+    {
+      "name": "PASS R0 equals existing forward and base gradient",
+      "passed": true,
+      "gradient_max_abs": 0.0
+    },
+    {
+      "name": "PASS actual routing RH",
+      "passed": true,
+      "base_A": 0.0026506702415645123,
+      "extra_U": 0.00862350594252348
+    },
+    {
+      "name": "PASS actual routing RS",
+      "passed": true,
+      "base_A": 0.0026506702415645123,
+      "extra_U": 0.049271054565906525
+    },
+    {
+      "name": "PASS actual routing K20",
+      "passed": true,
+      "base_A": 0.0026506702415645123,
+      "extra_U": 0.02513226307928562
+    },
+    {
+      "name": "PASS extra hard/soft/mixed leave direct A gradient unchanged",
+      "passed": true,
+      "max_abs": {
+        "R0": 0.0,
+        "RH": 0.0,
+        "RS": 0.0,
+        "K20": 0.0
+      }
+    },
+    {
+      "name": "PASS same-source AdamW first A update identical across arms",
+      "passed": true
+    },
+    {
+      "name": "PASS source/Teacher states unchanged and no parameter sharing",
+      "passed": true
+    },
+    {
+      "name": "PASS stress known inverse uses c0-epsilon",
+      "passed": true
+    },
+    {
+      "name": "BUG reproduced: d_e_band columns hold absolute stress error",
+      "passed": true,
+      "band_mean": 0.0064084448385983706,
+      "stress_l1": 0.006408442743122578,
+      "expected_delta": 6.258301436901093e-05
+    },
+    {
+      "name": "PASS D50 A-only measurement and restoration",
+      "passed": true,
+      "g_rec_norm": 0.00407343590632081,
+      "g_off_norm": 1.563706398010254,
+      "delta_qB": -0.00014922022819519043
+    },
+    {
+      "name": "PASS actual run_trial restores optimizer/source/RNG across arm order",
+      "passed": true,
+      "audit_updates": 2,
+      "production_updates": 64,
+      "limitation": "Does not validate 64-step utility magnitude or its uncertainty"
+    },
+    {
+      "name": "PASS utility labels have specified signs",
+      "passed": true,
+      "U_soft_hard": 2.037733793258667e-06,
+      "audit_updates": 2
+    }
+  ],
+  "device": "cpu",
+  "torch": "2.4.0",
+  "coverage": {
+    "fr512": 480,
+    "native64": 98304,
+    "rr256": 480
+  },
+  "detail_labels": {
+    "L1E4_S1234_best_raw": {
+      "n": 256,
+      "mismatched_primary_label": 59,
+      "own_quadrant_counts": {
+        "EuCu": 71,
+        "EdCd": 68,
+        "EdCu": 61,
+        "EuCd": 56
+      }
+    },
+    "L1E4_S7777_best_raw": {
+      "n": 256,
+      "mismatched_primary_label": 17,
+      "own_quadrant_counts": {
+        "EdCd": 67,
+        "EuCd": 64,
+        "EuCu": 63,
+        "EdCu": 62
+      }
+    },
+    "L000_S2025_best_raw": {
+      "n": 256,
+      "mismatched_primary_label": 29,
+      "own_quadrant_counts": {
+        "EuCd": 71,
+        "EdCu": 67,
+        "EdCd": 62,
+        "EuCu": 56
+      }
+    }
+  }
+}

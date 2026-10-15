@@ -1,0 +1,574 @@
+{
+  "head": "4ea38e3521a98bf0edcb6188d5de5475e0451f5b",
+  "started_at": "2026-09-15T10:45:45+0900",
+  "checks": [
+    {
+      "name": "PAKD_unit_suite_isolated",
+      "passed": false,
+      "kind": "conformance",
+      "ok_count": 82,
+      "rc": 1
+    },
+    {
+      "name": "DCR_unit_suite_isolated_output",
+      "passed": true,
+      "kind": "conformance",
+      "ok_count": 13,
+      "rc": 0
+    },
+    {
+      "name": "s3_config_J_R3_NOEDGE",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "s3_config_J_N0_EDGE",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "s3_config_LF0",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "s3_config_LFQ",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "s3_config_LFX",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "s3_explicit_queue_and_reservations",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "s3_six_confirmation_bundles",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "s3_confirmation_budget",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "JK0_actual_loss_A_U_gradients",
+      "passed": true,
+      "kind": "conformance",
+      "loss_error": 0.0,
+      "A_error": 8.614733815193176e-09,
+      "U_error": 0.0,
+      "soft": 4.936387267662212e-05
+    },
+    {
+      "name": "LFX_actual_loss_A_U_gradients",
+      "passed": true,
+      "kind": "conformance",
+      "loss_error": 0.0,
+      "A_error": 0.0,
+      "U_error": 0.0,
+      "soft": -0.0
+    },
+    {
+      "name": "LF0_joint_prefix_local_two_update_identity",
+      "passed": true,
+      "kind": "conformance",
+      "joint": "J0",
+      "indices": [
+        0,
+        24999
+      ],
+      "note": "bounded CPU state-transition check, not a full 25K/GPU reproducibility claim"
+    },
+    {
+      "name": "LF0_freeze_25000",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "LF0_freeze_25001",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "LFQ_joint_prefix_local_two_update_identity",
+      "passed": true,
+      "kind": "conformance",
+      "joint": "JQ",
+      "indices": [
+        0,
+        24999
+      ],
+      "note": "bounded CPU state-transition check, not a full 25K/GPU reproducibility claim"
+    },
+    {
+      "name": "LFQ_freeze_25000",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "LFQ_freeze_25001",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "LFX_joint_prefix_local_two_update_identity",
+      "passed": true,
+      "kind": "conformance",
+      "joint": "XJ",
+      "indices": [
+        0,
+        24999
+      ],
+      "note": "bounded CPU state-transition check, not a full 25K/GPU reproducibility claim"
+    },
+    {
+      "name": "LFX_freeze_25000",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "LFX_freeze_25001",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "D01_reference_sample_migrates_A_to_D",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "labels": [
+        "A",
+        "D"
+      ]
+    },
+    {
+      "name": "D04_patch_only_metadata_does_not_close_gate",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "gate": {
+        "passed": true,
+        "status": "ROUTING_CANDIDATE_OPEN",
+        "conditions": {
+          "1_teacher_C_varies_and_support": {
+            "ok": true,
+            "C_cv": 0.3,
+            "degenerate": false
+          },
+          "2_U_differs_by_C_at_same_R": {
+            "ok": true,
+            "pairs": {
+              "DISC:A-C": {
+                "diff": 0.0,
+                "ci95": [
+                  0.0,
+                  0.0
+                ],
+                "n": [
+                  16,
+                  16
+                ],
+                "excludes_zero": false
+              },
+              "DISC:B-D": {
+                "diff": -0.004,
+                "ci95": [
+                  -0.004,
+                  -0.004
+                ],
+                "n": [
+                  16,
+                  16
+                ],
+                "excludes_zero": true
+              },
+              "CONF:A-C": {
+                "diff": 0.0,
+                "ci95": [
+                  0.0,
+                  0.0
+                ],
+                "n": [
+                  16,
+                  16
+                ],
+                "excludes_zero": false
+              },
+              "CONF:B-D": {
+                "diff": -0.004,
+                "ci95": [
+                  -0.004,
+                  -0.004
+                ],
+                "n": [
+                  16,
+                  16
+                ],
+                "excludes_zero": true
+              }
+            }
+          },
+          "3_harmful_cell_reproduced": {
+            "ok": true,
+            "candidates": [
+              "B"
+            ],
+            "detail": {
+              "A": {
+                "per": {
+                  "CONF@25250": {
+                    "n": 8,
+                    "U_median": 0.002,
+                    "neg_frac": 0.0
+                  },
+                  "CONF@45450": {
+                    "n": 8,
+                    "U_median": 0.002,
+                    "neg_frac": 0.0
+                  },
+                  "DISC@25250": {
+                    "n": 8,
+                    "U_median": 0.002,
+                    "neg_frac": 0.0
+                  },
+                  "DISC@45450": {
+                    "n": 8,
+                    "U_median": 0.002,
+                    "neg_frac": 0.0
+                  }
+                },
+                "harmful_everywhere": false,
+                "n_contexts": 4
+              },
+              "B": {
+                "per": {
+                  "CONF@25250": {
+                    "n": 8,
+                    "U_median": -0.002,
+                    "neg_frac": 1.0
+                  },
+                  "CONF@45450": {
+                    "n": 8,
+                    "U_median": -0.002,
+                    "neg_frac": 1.0
+                  },
+                  "DISC@25250": {
+                    "n": 8,
+                    "U_median": -0.002,
+                    "neg_frac": 1.0
+                  },
+                  "DISC@45450": {
+                    "n": 8,
+                    "U_median": -0.002,
+                    "neg_frac": 1.0
+                  }
+                },
+                "harmful_everywhere": true,
+                "n_contexts": 4
+              },
+              "C": {
+                "per": {
+                  "CONF@25250": {
+                    "n": 8,
+                    "U_median": 0.002,
+                    "neg_frac": 0.0
+                  },
+                  "CONF@45450": {
+                    "n": 8,
+                    "U_median": 0.002,
+                    "neg_frac": 0.0
+                  },
+                  "DISC@25250": {
+                    "n": 8,
+                    "U_median": 0.002,
+                    "neg_frac": 0.0
+                  },
+                  "DISC@45450": {
+                    "n": 8,
+                    "U_median": 0.002,
+                    "neg_frac": 0.0
+                  }
+                },
+                "harmful_everywhere": false,
+                "n_contexts": 4
+              },
+              "D": {
+                "per": {
+                  "CONF@25250": {
+                    "n": 8,
+                    "U_median": 0.002,
+                    "neg_frac": 0.0
+                  },
+                  "CONF@45450": {
+                    "n": 8,
+                    "U_median": 0.002,
+                    "neg_frac": 0.0
+                  },
+                  "DISC@25250": {
+                    "n": 8,
+                    "U_median": 0.002,
+                    "neg_frac": 0.0
+                  },
+                  "DISC@45450": {
+                    "n": 8,
+                    "U_median": 0.002,
+                    "neg_frac": 0.0
+                  }
+                },
+                "harmful_everywhere": false,
+                "n_contexts": 4
+              }
+            }
+          },
+          "4_conf_bootstrap_negative": {
+            "ok": true,
+            "by_cell": {
+              "B": {
+                "point": -0.002,
+                "ci95": [
+                  -0.002,
+                  -0.002
+                ],
+                "n_groups": 8,
+                "n": 16,
+                "consistent_negative": true
+              }
+            }
+          },
+          "5_selection_record": {
+            "cells_considered": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "candidates": [
+              "B"
+            ],
+            "z_star": "B",
+            "note": "Test HQNR 로 고르지 않았다 (DISC 후보 → CONF 확인)"
+          }
+        },
+        "z_star": "B",
+        "attenuation": 0.5,
+        "note": "통과해도 B2/B3 는 자동 실행하지 않는다 (§9.4: 별도 연장 예산·사람 결정)"
+      }
+    },
+    {
+      "name": "D04_one_checkpoint_still_opens",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "contexts": 2
+    },
+    {
+      "name": "D04_no_DISC_still_opens",
+      "passed": true,
+      "kind": "defect_reproduction"
+    },
+    {
+      "name": "D04_only_two_groups_still_opens",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "groups": 2
+    },
+    {
+      "name": "D04_zstar_selected_using_CONF_instead_of_DISC",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "DISC_worst": "B",
+      "selected": "A"
+    },
+    {
+      "name": "D04_episode_support_query_share_source_groups",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "overlap": [
+        "blk000",
+        "blk001",
+        "blk002",
+        "blk003"
+      ],
+      "patch_disjoint": true
+    },
+    {
+      "name": "D03_zero_floor_zero_soft_norm_not_marked_NA",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "norm_LK": 0.0,
+      "na": "",
+      "cos": 0.0
+    },
+    {
+      "name": "D00_resume_checker_accepts_invalid_smoke",
+      "passed": true,
+      "kind": "defect_reproduction"
+    },
+    {
+      "name": "D03_resume_checker_accepts_routing_failure",
+      "passed": true,
+      "kind": "defect_reproduction"
+    },
+    {
+      "name": "DCR_complete_accepts_empty_exports_without_exit_last",
+      "passed": true,
+      "kind": "defect_reproduction"
+    },
+    {
+      "name": "DCR_last_missing_metadata_assumes_50000",
+      "passed": true,
+      "kind": "defect_reproduction"
+    },
+    {
+      "name": "report_ROUTING_candidate_without_B2_B3_results",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "labels": [
+        "INCONCLUSIVE (paired seed < 2)",
+        "QUADRANT_ROUTING_CANDIDATE (D04 gate 통과; B2/B3·CMASS 확인 필요)"
+      ]
+    },
+    {
+      "name": "report_ROBUSTNESS_label_without_robustness_or_D04_evidence",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "labels": [
+        "INCONCLUSIVE (paired seed < 2)",
+        "ROBUSTNESS_ONLY? — C–R 상관은 있으나 KD utility 의 추가정보 없음 (D04) — 사람이 표 C/D02 와 함께 판단"
+      ]
+    },
+    {
+      "name": "D04_no_candidates_raises_instead_of_not_run",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "error": "[Errno 2] No such file or directory: '/tmp/recent-md-d04-missing-0df3qp78/micro_update_utility.csv'"
+    },
+    {
+      "name": "s3_shell_fixture_LFX",
+      "passed": true,
+      "kind": "conformance",
+      "rc": 0
+    },
+    {
+      "name": "s3_dry_run_registers_live_confirmations_and_loses_mandatory",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "extra": [
+        "PAKD50_XJ_W112_D123_WV3_T0_S4321_FRESH50_v1",
+        "PAKD50_LF0_W112_D123_WV3_T0_S4321_FRESH50_v1",
+        "PAKD50_LFX_W112_D123_WV3_T0_S4321_FRESH50_v1"
+      ],
+      "mandatory": [
+        "# s3 기본 묶음 (예산 gate 예약; 완료된 run 은 trainer 가 0 으로 센다) — gen_pakd50_configs.write_mandatory_file",
+        "PAKD50_J_R3_NOEDGE_W112_D123_WV3_T0_S2026_FRESH50_v1",
+        "PAKD50_J_N0_EDGE_W112_D123_WV3_T0_S2026_FRESH50_v1",
+        "PAKD50_LF0_W112_D123_WV3_T0_S2026_FRESH50_v1",
+        "PAKD50_LFQ_W112_D123_WV3_T0_S2026_FRESH50_v1",
+        "PAKD50_LFX_W112_D123_WV3_T0_S2026_FRESH50_v1"
+      ]
+    },
+    {
+      "name": "s3_shell_fixture_J_N0_EDGE",
+      "passed": true,
+      "kind": "conformance",
+      "rc": 0
+    },
+    {
+      "name": "s3_repeated_WIN_exceeds_3_runs",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "extra": [
+        "PAKD50_XJ_W112_D123_WV3_T0_S4321_FRESH50_v1",
+        "PAKD50_LF0_W112_D123_WV3_T0_S4321_FRESH50_v1",
+        "PAKD50_LFX_W112_D123_WV3_T0_S4321_FRESH50_v1",
+        "PAKD50_J0_W112_D123_WV3_T0_S4321_FRESH50_v1",
+        "PAKD50_J_N0_EDGE_W112_D123_WV3_T0_S4321_FRESH50_v1"
+      ]
+    },
+    {
+      "name": "s3_admission_spends_core_budget_without_reserving_confirmation_pair",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "remaining_h": 9,
+      "core_h": 7.9943333333,
+      "required_with_confirmation_h": 12.9163333333,
+      "todo": [
+        "J_R3_NOEDGE",
+        "J_N0_EDGE",
+        "LF0",
+        "LFQ",
+        "LFX"
+      ],
+      "dropped": [
+        "PAKD50_XJ_W112_D123_WV3_T0_S4321_FRESH50_v1",
+        "PAKD50_LF0_W112_D123_WV3_T0_S4321_FRESH50_v1",
+        "PAKD50_LFX_W112_D123_WV3_T0_S4321_FRESH50_v1"
+      ]
+    },
+    {
+      "name": "W104_D121_five_configs_absent",
+      "passed": false,
+      "kind": "implementation_gap",
+      "names": [
+        "PAKD50_NA0_W104_D121_WV3_T0_S1234_FRESH50_v1",
+        "PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v1",
+        "PAKD50_JQ_W104_D121_WV3_T0_S1234_FRESH50_v1",
+        "PAKD50_XJ_W104_D121_WV3_T0_S1234_FRESH50_v1",
+        "PAKD50_F0_W104_D121_WV3_T0_S1234_FRESH50_v1"
+      ]
+    },
+    {
+      "name": "W104_D121_NA0_not_registered",
+      "passed": false,
+      "kind": "implementation_gap"
+    },
+    {
+      "name": "W104_D121_run_parser_still_W112_specific",
+      "passed": false,
+      "kind": "implementation_gap",
+      "parsed": "JQ"
+    },
+    {
+      "name": "W104_D121_reservation_rejects_architecture_run",
+      "passed": false,
+      "kind": "implementation_gap",
+      "error": null
+    },
+    {
+      "name": "W104_D121_s4_still_old_queue_and_confirmation",
+      "passed": false,
+      "kind": "implementation_gap",
+      "current_priority": [
+        "NA0@W104_D121",
+        "J0@W104_D121",
+        "JQ@W104_D121",
+        "XJ@W104_D121",
+        "F0@W104_D121"
+      ]
+    },
+    {
+      "name": "architecture_budget_arithmetic",
+      "passed": true,
+      "kind": "conformance"
+    }
+  ],
+  "device": "cpu",
+  "finished_at": "2026-09-15T10:46:23+0900",
+  "summary": {
+    "conformance": {
+      "total": 24,
+      "passed": 23
+    },
+    "defect_reproduction": {
+      "total": 18,
+      "passed": 18
+    },
+    "implementation_gap": {
+      "total": 5,
+      "passed": 0
+    }
+  }
+}

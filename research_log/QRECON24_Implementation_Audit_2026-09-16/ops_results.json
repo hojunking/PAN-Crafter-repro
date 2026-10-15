@@ -1,0 +1,176 @@
+[
+  {
+    "name": "s1_table_config_queue",
+    "passed": true,
+    "kind": "conformance",
+    "runs": 12,
+    "mismatches": [],
+    "reservation_h": 33.67999999999999
+  },
+  {
+    "name": "s2_table_config_queue",
+    "passed": true,
+    "kind": "conformance",
+    "runs": 12,
+    "mismatches": [],
+    "reservation_h": 35.12
+  },
+  {
+    "name": "s3_table_config_queue",
+    "passed": true,
+    "kind": "conformance",
+    "runs": 18,
+    "mismatches": [],
+    "reservation_h": 32.15999999999999
+  },
+  {
+    "name": "s4_table_config_queue",
+    "passed": true,
+    "kind": "conformance",
+    "runs": 14,
+    "mismatches": [],
+    "reservation_h": 34.925333333333334
+  },
+  {
+    "name": "s5_table_config_queue",
+    "passed": true,
+    "kind": "conformance",
+    "runs": 12,
+    "mismatches": [],
+    "reservation_h": 33.248
+  },
+  {
+    "name": "all_68_unique",
+    "passed": true,
+    "kind": "conformance"
+  },
+  {
+    "name": "nonexistent_G22_controls",
+    "passed": true,
+    "kind": "defect_reproduction",
+    "affected": 26,
+    "examples": [
+      {
+        "run": "PAKD50_QRC24_S4_H22_W104_D121_WV3_T0_S1234_FRESH50_v1",
+        "control": "PAKD50_QRC24_S4_G22_W104_D121_WV3_T0_S1234_FRESH50_v1"
+      },
+      {
+        "run": "PAKD50_QRC24_S4_H12_W104_D121_WV3_T0_S1234_FRESH50_v1",
+        "control": "PAKD50_QRC24_S4_G22_W104_D121_WV3_T0_S1234_FRESH50_v1"
+      },
+      {
+        "run": "PAKD50_QRC24_S5_L070_W104_D121_WV3_T0_S1103_FRESH50_v1",
+        "control": "PAKD50_QRC24_S5_G22_W104_D121_WV3_T0_S1103_FRESH50_v1"
+      },
+      {
+        "run": "PAKD50_QRC24_S5_L050_W104_D121_WV3_T0_S1103_FRESH50_v1",
+        "control": "PAKD50_QRC24_S5_G22_W104_D121_WV3_T0_S1103_FRESH50_v1"
+      }
+    ]
+  },
+  {
+    "name": "epoch25_resume_rejected",
+    "passed": true,
+    "kind": "defect_reproduction",
+    "error": "exact resume: checkpoint 의 epoch 상태(start 4848, n_batches 202) 와 global_step 5050/loader 202 가 맞지 않는다 — 처음부터 다시 돌린다",
+    "save_epoch": 25,
+    "batches_per_epoch": 202
+  },
+  {
+    "name": "extend_not_connected_to_waiter",
+    "passed": true,
+    "kind": "defect_reproduction",
+    "extend_rc": 0,
+    "mandatory_len": 12,
+    "new_configs": 3,
+    "waiter_status": "DONE"
+  },
+  {
+    "name": "export_hours_counted_as_training",
+    "passed": true,
+    "kind": "defect_reproduction",
+    "training_h": 23.4,
+    "including_exports_h": 24.6,
+    "exit_code": 1,
+    "output": "신규 완료 Train(h) 합 24.60 h (12 run; ledger work_dir/_qrecon24_budget/ledger.json)\n!! --extend 실패\n   ≥ 24h — 확장 불필요 (§8.3)"
+  },
+  {
+    "name": "switch_drops_existing_qrc_extensions",
+    "passed": true,
+    "kind": "defect_reproduction",
+    "before": [
+      "PAKD50_QRC24_S1_G22_W104_D121_WV3_T0_S9091_FRESH50_v1",
+      "PAKD50_QRC24_S1_A_UNIF_W104_D121_WV3_T0_S9091_FRESH50_v1",
+      "PAKD50_QRC24_S1_A_FREEZE_W104_D121_WV3_T0_S9091_FRESH50_v1"
+    ],
+    "after": [],
+    "archived_files": [
+      "extra_priority.pre_qrecon24_0916-1624.txt"
+    ]
+  },
+  {
+    "name": "incomplete_run_verified",
+    "passed": true,
+    "kind": "defect_reproduction",
+    "verification": {
+      "run": "PAKD50_QRC24_S1_G22_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "ok": true,
+      "checks": {
+        "results_mats": true,
+        "last_exact_step": true,
+        "candidate_grid": true,
+        "kdv_manifest": true,
+        "teacher_is_T0": null,
+        "train_sha_matches_cue": null,
+        "init_matches_shared_file": null
+      },
+      "notes": [
+        "Teacher 없음(no-KD/no-align run)",
+        "dataset_hashes 또는 cue 자산 없음",
+        "초기값 hash/파일 없음"
+      ]
+    }
+  },
+  {
+    "name": "strict_threshold_official_rr",
+    "passed": true,
+    "kind": "conformance"
+  },
+  {
+    "name": "official_mode_mixes_proxy_candidate",
+    "passed": true,
+    "kind": "defect_reproduction",
+    "selected_step": 1010,
+    "selected_rr_scc": 0.999,
+    "official": false,
+    "notes": [
+      "step 1010: checkpoint missing",
+      "proxy 정렬: CSV 의 학습 중 rr_scc/rr_ergas/rr_sam 만 (PSNR/Q8/SSIM 없음) — --official 로 공식 RR 6 지표를 채운다"
+    ]
+  },
+  {
+    "name": "selector_provenance_missing",
+    "passed": true,
+    "kind": "defect_reproduction",
+    "top_level_fields": [
+      "eligible_ranked",
+      "exact50K",
+      "h_consistency",
+      "late6",
+      "legacy_best",
+      "n_candidates",
+      "n_eligible",
+      "note",
+      "notes",
+      "official",
+      "raw_max",
+      "rr_targets",
+      "run",
+      "selector",
+      "six_pass_best",
+      "target",
+      "target_feasible",
+      "threshold"
+    ]
+  }
+]

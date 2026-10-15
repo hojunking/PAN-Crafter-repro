@@ -1,0 +1,1023 @@
+{
+  "campaign": {
+    "campaign_id": "PANDA_QG40_20260920_v1",
+    "t0_utc": "2026-09-20T05:12:28+09:00",
+    "deadline_utc": "2026-09-21T21:12:28+09:00",
+    "admission_cutoff_utc": "2026-09-21T17:12:28+09:00",
+    "c3_cutoff_utc": "2026-09-21T03:12:28+09:00",
+    "close_hours": 4
+  },
+  "release": "a19dfeb4733480b6132890a9ad4a9fff20c3bdd4",
+  "delivery": [
+    {
+      "server": "s1",
+      "head": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+      "overlay": "a19dfeb4733480b6132890a9ad4a9fff20c3bdd4",
+      "files": 147,
+      "backed_up": [],
+      "already_registered": true,
+      "original_source_preserved": true,
+      "at": "2026-09-20T05:30:05.07676+09:00"
+    },
+    {
+      "server": "s2",
+      "head": "0ec113218f60f861dab18ab84f3083b730890979",
+      "overlay": "a19dfeb4733480b6132890a9ad4a9fff20c3bdd4",
+      "files": 147,
+      "backed_up": [],
+      "already_registered": false,
+      "original_source_preserved": true,
+      "at": "2026-09-20T05:30:11.211501+09:00"
+    },
+    {
+      "server": "s3",
+      "head": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+      "overlay": "a19dfeb4733480b6132890a9ad4a9fff20c3bdd4",
+      "files": 147,
+      "backed_up": [],
+      "already_registered": false,
+      "original_source_preserved": true,
+      "at": "2026-09-20T05:30:16.799867+09:00"
+    },
+    {
+      "server": "s4",
+      "head": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+      "overlay": "a19dfeb4733480b6132890a9ad4a9fff20c3bdd4",
+      "files": 147,
+      "backed_up": [],
+      "already_registered": false,
+      "original_source_preserved": true,
+      "at": "2026-09-20T05:30:22.634933+09:00"
+    },
+    {
+      "server": "s5",
+      "head": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+      "overlay": "a19dfeb4733480b6132890a9ad4a9fff20c3bdd4",
+      "files": 147,
+      "backed_up": [],
+      "already_registered": false,
+      "original_source_preserved": true,
+      "at": "2026-09-20T05:30:28.857016+09:00"
+    }
+  ],
+  "data_transfers": [
+    {
+      "server": "s2",
+      "sensor": "QB",
+      "split": "train",
+      "source": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb_msfix.h5",
+      "alias": "honbul",
+      "repo": "/home/honbul/Desktop/song/PAN-Crafter",
+      "target": "/home/honbul/Desktop/song/PAN-Crafter/data/qg40_exact_sources/QB/train_qb_msfix.h5",
+      "sha256": "c7fb3ef0744f3fd21330925003f6bd6eb110f8a181c23ea6d9ce086c81710ba9",
+      "bytes": 5194907648,
+      "status": "VERIFIED_AND_BOUND"
+    },
+    {
+      "server": "s2",
+      "sensor": "QB",
+      "split": "val",
+      "source": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb_msfix.h5",
+      "alias": "honbul",
+      "repo": "/home/honbul/Desktop/song/PAN-Crafter",
+      "target": "/home/honbul/Desktop/song/PAN-Crafter/data/qg40_exact_sources/QB/valid_qb_msfix.h5",
+      "sha256": "79f5bb48905876e8b278868a4ca9b266ef52582bd26b9c31b60462b708a411fa",
+      "bytes": 577421312,
+      "status": "VERIFIED_AND_BOUND"
+    },
+    {
+      "server": "s3",
+      "sensor": "GF2",
+      "split": "fr",
+      "source": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/full_examples_mat20/test_gf2_OrigScale_mat20.h5",
+      "alias": "song",
+      "repo": "/home/user/Desktop/song/PAN-Crafter",
+      "target": "/home/user/Desktop/song/PAN-Crafter/data/qg40_exact_sources/GF2/test_gf2_OrigScale_mat20.h5",
+      "sha256": "e52d151f262a74f96e59f03124f86a27d80841073ce60376856ae679020d00dc",
+      "bytes": 220207104,
+      "status": "VERIFIED_AND_BOUND"
+    },
+    {
+      "server": "s4",
+      "sensor": "QB",
+      "split": "train",
+      "source": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb_msfix.h5",
+      "alias": "minte",
+      "repo": "/home/wty/Desktop/song/PAN-Crafter",
+      "target": "/home/wty/Desktop/song/PAN-Crafter/data/qg40_exact_sources/QB/train_qb_msfix.h5",
+      "sha256": "c7fb3ef0744f3fd21330925003f6bd6eb110f8a181c23ea6d9ce086c81710ba9",
+      "bytes": 5194907648,
+      "status": "VERIFIED_AND_BOUND"
+    },
+    {
+      "server": "s4",
+      "sensor": "QB",
+      "split": "val",
+      "source": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb_msfix.h5",
+      "alias": "minte",
+      "repo": "/home/wty/Desktop/song/PAN-Crafter",
+      "target": "/home/wty/Desktop/song/PAN-Crafter/data/qg40_exact_sources/QB/valid_qb_msfix.h5",
+      "sha256": "79f5bb48905876e8b278868a4ca9b266ef52582bd26b9c31b60462b708a411fa",
+      "bytes": 577421312,
+      "status": "VERIFIED_AND_BOUND"
+    },
+    {
+      "server": "s4",
+      "sensor": "QB",
+      "split": "fr",
+      "source": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+      "alias": "minte",
+      "repo": "/home/wty/Desktop/song/PAN-Crafter",
+      "target": "/home/wty/Desktop/song/PAN-Crafter/data/qg40_exact_sources/QB/test_qb_OrigScale_mat20.h5",
+      "sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+      "bytes": 220207104,
+      "status": "VERIFIED_AND_BOUND"
+    },
+    {
+      "server": "s5",
+      "sensor": "GF2",
+      "split": "fr",
+      "source": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/full_examples_mat20/test_gf2_OrigScale_mat20.h5",
+      "alias": "jeje",
+      "repo": "/home/user/Desktop/song/PAN-Crafter",
+      "target": "/home/user/Desktop/song/PAN-Crafter/data/qg40_exact_sources/GF2/test_gf2_OrigScale_mat20.h5",
+      "sha256": "e52d151f262a74f96e59f03124f86a27d80841073ce60376856ae679020d00dc",
+      "bytes": 220207104,
+      "status": "VERIFIED_AND_BOUND"
+    }
+  ],
+  "snapshots": [
+    {
+      "server": "s1",
+      "result": {
+        "head": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+        "s1": {
+          "status": {
+            "campaign_id": "PANDA_QG40_20260920_v1",
+            "server_id": "s1",
+            "status": "WAIT_WV3_CASE_BOUNDARY",
+            "runs": {},
+            "blocks": {},
+            "observations": []
+          },
+          "preflight": {},
+          "registered": true,
+          "latest_files": [
+            ".registration.lock",
+            ".runner.lock",
+            "recovery.json",
+            "registration.json",
+            "runner.log",
+            "sensor_spec.json",
+            "status.json"
+          ]
+        },
+        "parts": [],
+        "native_recovery": [
+          "*/15 * * * * /home/knuvi/Desktop/song/PAN-Crafter/tools/_watchdog.sh # PANCRAFTER-WATCHDOG",
+          "@reboot sleep 120 && /home/knuvi/Desktop/song/PAN-Crafter/tools/_watchdog.sh # PANCRAFTER-WATCHDOG",
+          "*/5 * * * * /home/knuvi/miniconda3/envs/pancrafter/bin/python /home/knuvi/Desktop/song/PAN-Crafter/tools/extra_metrics.py start --server s1 --if-enabled >/dev/null 2>&1 # PANCRAFTER-EXTRA-METRICS-s1",
+          "*/5 * * * * /home/knuvi/miniconda3/envs/pancrafter/bin/python /home/knuvi/Desktop/song/PAN-Crafter/tools/qg40_runner.py ensure --server s1 # PANDA-QG40-s1-77742ccbdddd",
+          "@reboot sleep 120 && /home/knuvi/miniconda3/envs/pancrafter/bin/python /home/knuvi/Desktop/song/PAN-Crafter/tools/qg40_runner.py ensure --server s1 # PANDA-QG40-s1-77742ccbdddd"
+        ],
+        "processes": [
+          "1783597 /home/knuvi/miniconda3/envs/pancrafter/bin/python tools/fh20r1_train.py --config config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1.yaml --device cuda",
+          "1875170 /home/knuvi/miniconda3/envs/pancrafter/bin/python /home/knuvi/Desktop/song/PAN-Crafter/tools/qg40_runner.py run --server s1",
+          "2003334 /home/knuvi/miniconda3/envs/pancrafter/bin/python tools/fh20r1_train.py --config config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1.yaml --device cuda",
+          "2003341 /home/knuvi/miniconda3/envs/pancrafter/bin/python tools/fh20r1_train.py --config config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1.yaml --device cuda",
+          "2003351 /home/knuvi/miniconda3/envs/pancrafter/bin/python tools/fh20r1_train.py --config config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1.yaml --device cuda",
+          "2003358 /home/knuvi/miniconda3/envs/pancrafter/bin/python tools/fh20r1_train.py --config config/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1.yaml --device cuda",
+          "4126859 /home/knuvi/miniconda3/envs/pancrafter/bin/python /home/knuvi/Desktop/song/PAN-Crafter/tools/r2_runner.py run --server s1"
+        ]
+      }
+    },
+    {
+      "server": "s2",
+      "result": {
+        "head": "0ec113218f60f861dab18ab84f3083b730890979",
+        "parts": [],
+        "native_recovery": [
+          "*/15 * * * * /home/honbul/Desktop/song/PAN-Crafter/tools/_watchdog.sh # PANCRAFTER-WATCHDOG",
+          "@reboot sleep 120 && /home/honbul/Desktop/song/PAN-Crafter/tools/_watchdog.sh # PANCRAFTER-WATCHDOG"
+        ],
+        "processes": [
+          "3086077 /opt/conda/bin/python /home/honbul/Desktop/song/PAN-Crafter/tools/r2_runner.py run --server s2",
+          "3785015 /opt/conda/bin/python tools/fh20r1_train.py --config config/FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73204_BASE_FRESH50_v1.yaml --device cuda",
+          "3878283 /opt/conda/bin/python tools/fh20r1_train.py --config config/FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73204_BASE_FRESH50_v1.yaml --device cuda",
+          "3878286 /opt/conda/bin/python tools/fh20r1_train.py --config config/FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73204_BASE_FRESH50_v1.yaml --device cuda",
+          "3878295 /opt/conda/bin/python tools/fh20r1_train.py --config config/FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73204_BASE_FRESH50_v1.yaml --device cuda",
+          "3878302 /opt/conda/bin/python tools/fh20r1_train.py --config config/FH20R1_S2_S_PL_W104_D122_WV3_TF2_TS71001_SS73204_BASE_FRESH50_v1.yaml --device cuda"
+        ]
+      }
+    },
+    {
+      "server": "s3",
+      "result": {
+        "head": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+        "s3": {
+          "status": {
+            "campaign_id": "PANDA_QG40_20260920_v1",
+            "server_id": "s3",
+            "status": "WAIT_WV3_CASE_BOUNDARY",
+            "runs": {},
+            "blocks": {},
+            "observations": []
+          },
+          "preflight": {},
+          "registered": true,
+          "latest_files": [
+            ".registration.lock",
+            ".runner.lock",
+            "recovery.json",
+            "registration.json",
+            "sensor_spec.json",
+            "status.json"
+          ]
+        },
+        "parts": [],
+        "native_recovery": [
+          "*/15 * * * * /home/user/Desktop/song/PAN-Crafter/tools/_watchdog.sh # PANCRAFTER-WATCHDOG",
+          "@reboot sleep 120 && /home/user/Desktop/song/PAN-Crafter/tools/_watchdog.sh # PANCRAFTER-WATCHDOG",
+          "*/5 * * * * /usr/bin/python3 /home/user/Desktop/song/PAN-Crafter/.git/codex-qg40-host-recovery.py s3 >> /home/user/Desktop/song/PAN-Crafter/.git/codex-qg40-deploy-20260920/s3/host-recovery.log 2>&1 # CODEX-QG40-DOCKER-s3-20260920",
+          "@reboot sleep 120 && /usr/bin/python3 /home/user/Desktop/song/PAN-Crafter/.git/codex-qg40-host-recovery.py s3 >> /home/user/Desktop/song/PAN-Crafter/.git/codex-qg40-deploy-20260920/s3/host-recovery.log 2>&1 # CODEX-QG40-DOCKER-s3-20260920",
+          "* * * * * /usr/bin/python3 /home/user/Desktop/song/PAN-Crafter/.git/codex-qg40-gf2-relay.py >> /home/user/Desktop/song/PAN-Crafter/.git/codex-qg40-deploy-20260920/s3/gf2-relay.log 2>&1 # CODEX-QG40-GF2-REFERENCE-20260920"
+        ],
+        "processes": [
+          "2510225 /opt/conda/bin/python /home/user/Desktop/song/PAN-Crafter/tools/r2_runner.py run --server s3",
+          "3281918 /opt/conda/bin/python tools/fh20r1_train.py --config config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73307_BASE_FRESH50_v1.yaml --device cuda",
+          "3328115 /opt/conda/bin/python tools/qg40_runner.py start --foreground",
+          "3347857 /opt/conda/bin/python tools/fh20r1_train.py --config config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73307_BASE_FRESH50_v1.yaml --device cuda",
+          "3347858 /opt/conda/bin/python tools/fh20r1_train.py --config config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73307_BASE_FRESH50_v1.yaml --device cuda",
+          "3347859 /opt/conda/bin/python tools/fh20r1_train.py --config config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73307_BASE_FRESH50_v1.yaml --device cuda",
+          "3347860 /opt/conda/bin/python tools/fh20r1_train.py --config config/FH20R1_S3_S_PH_W104_D122_WV3_TF3_TS71001_SS73307_BASE_FRESH50_v1.yaml --device cuda"
+        ]
+      }
+    },
+    {
+      "server": "s4",
+      "result": {
+        "head": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+        "parts": [
+          {
+            "path": "data/qg40_exact_sources/QB/train_qb_msfix.h5.part",
+            "bytes": 4125360128
+          }
+        ],
+        "native_recovery": [
+          "# NVIDIA SDK Manager updater",
+          "# NVIDIA SDK Manager updater",
+          "0 12 */7 * * /bin/bash /home/wty/.nvsdkm/.updater/updater.sh",
+          "*/15 * * * * /home/wty/Desktop/song/PAN-Crafter/tools/_s4_watchdog.sh # PANCRAFTER-WATCHDOG",
+          "@reboot sleep 120 && /home/wty/Desktop/song/PAN-Crafter/tools/_s4_watchdog.sh # PANCRAFTER-WATCHDOG",
+          "*/15 * * * * /home/wty/Desktop/song/PAN-Crafter/tools/_watchdog.sh # PANCRAFTER-WATCHDOG",
+          "@reboot sleep 120 && /home/wty/Desktop/song/PAN-Crafter/tools/_watchdog.sh # PANCRAFTER-WATCHDOG",
+          "*/5 * * * * /usr/bin/python3 /home/wty/Desktop/song/PAN-Crafter/.git/codex-qg40-host-recovery.py s4 >> /home/wty/Desktop/song/PAN-Crafter/.git/codex-qg40-deploy-20260920/s4/host-recovery.log 2>&1 # CODEX-QG40-DOCKER-s4-20260920",
+          "@reboot sleep 120 && /usr/bin/python3 /home/wty/Desktop/song/PAN-Crafter/.git/codex-qg40-host-recovery.py s4 >> /home/wty/Desktop/song/PAN-Crafter/.git/codex-qg40-deploy-20260920/s4/host-recovery.log 2>&1 # CODEX-QG40-DOCKER-s4-20260920"
+        ],
+        "processes": [
+          " 524278 /opt/conda/bin/python /home/wty/Desktop/song/PAN-Crafter/tools/r2_runner.py run --server s4",
+          "1259350 /opt/conda/bin/python tools/fh20r1_train.py --config config/FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1.yaml --device cuda",
+          "1333916 /opt/conda/bin/python tools/fh20r1_train.py --config config/FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1.yaml --device cuda",
+          "1333917 /opt/conda/bin/python tools/fh20r1_train.py --config config/FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1.yaml --device cuda",
+          "1333924 /opt/conda/bin/python tools/fh20r1_train.py --config config/FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1.yaml --device cuda",
+          "1333931 /opt/conda/bin/python tools/fh20r1_train.py --config config/FH20R1_S4_S_PLH_W104_D122_WV3_TF4_TS71001_SS73403_BASE_FRESH50_v1.yaml --device cuda"
+        ]
+      }
+    },
+    {
+      "server": "s5",
+      "result": {
+        "head": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+        "s5": {
+          "status": {
+            "campaign_id": "PANDA_QG40_20260920_v1",
+            "server_id": "s5",
+            "status": "WAIT_REFERENCE",
+            "runs": {},
+            "blocks": {},
+            "observations": [],
+            "waiting_reference": "GF2_TA",
+            "reference_owner": "s3",
+            "expected_transfer_path": "/home/user/Desktop/song/PAN-Crafter/work_dir/_qg40/s5/incoming/GF2_TA.tar.gz",
+            "deadline_utc": "2026-09-21T21:12:28+09:00"
+          },
+          "preflight": {
+            "complete": true,
+            "method_tests": 26,
+            "real_native_forward": true,
+            "device": "cuda"
+          },
+          "registered": true,
+          "latest_files": [
+            ".registration.lock",
+            ".runner.lock",
+            "dataset_manifest.json",
+            "method_regression.json",
+            "phase_coordinates.json",
+            "preflight.json",
+            "preflight.log",
+            "recovery.json",
+            "registration.json",
+            "sensor_spec.json",
+            "status.json"
+          ]
+        },
+        "parts": [],
+        "native_recovery": [
+          "*/15 * * * * /home/user/Desktop/song/PAN-Crafter/tools/_s5_watchdog.sh # PANCRAFTER-WATCHDOG",
+          "@reboot sleep 120 && /home/user/Desktop/song/PAN-Crafter/tools/_s5_watchdog.sh # PANCRAFTER-WATCHDOG",
+          "*/15 * * * * /home/user/Desktop/song/PAN-Crafter/tools/_watchdog.sh # PANCRAFTER-WATCHDOG",
+          "@reboot sleep 120 && /home/user/Desktop/song/PAN-Crafter/tools/_watchdog.sh # PANCRAFTER-WATCHDOG",
+          "*/5 * * * * /usr/bin/python3 /home/user/Desktop/song/PAN-Crafter/.git/codex-qg40-host-recovery.py s5 >> /home/user/Desktop/song/PAN-Crafter/.git/codex-qg40-deploy-20260920/s5/host-recovery.log 2>&1 # CODEX-QG40-DOCKER-s5-20260920",
+          "@reboot sleep 120 && /usr/bin/python3 /home/user/Desktop/song/PAN-Crafter/.git/codex-qg40-host-recovery.py s5 >> /home/user/Desktop/song/PAN-Crafter/.git/codex-qg40-deploy-20260920/s5/host-recovery.log 2>&1 # CODEX-QG40-DOCKER-s5-20260920"
+        ],
+        "processes": [
+          "3913343 /opt/conda/bin/python tools/qg40_runner.py start --foreground"
+        ]
+      }
+    }
+  ],
+  "s2_runtime": {
+    "files": {
+      "fh12/__init__.py": "ce2ad5ca08a031014691bd98db6df783de2e65ac7a1e23237f63bc8446857f3b",
+      "fh12/calibration.py": "7c771b819fd25d226b9f9c909c2ddf55a31cfcac545257989d059e2543890617",
+      "fh12/common.py": "992dc568c5733c058a9c63b665ed3c094db8e811d62d2c726297c56683a46200",
+      "fh12/data.py": "d38e3bb36b925e1b31f5fd1e99995eb1ca0be04d3d4517b9ee43aa04daddb3ae",
+      "fh12/evaluation.py": "c5370f768b05065bc5bf35ba3386206b6197a19fa659e891d730b3196787c9c0",
+      "fh12/losses.py": "8e9250ce03eaa27196572490aae77df0d42317fbda14d16ffdf94342cea76ab3",
+      "fh12/model.py": "4c53d96ede6facdf150825ef1480e6bcc0b028e88a987e64f8c1981882257495",
+      "fh12/plan.py": "34ad6dfb397abe940950dea81e48557dccf7e0fd834ef6fb37fe2a8dee4caa4d",
+      "fh12/postrun.py": "7a6c137e5731973d0a48c56fb1d47a91f704f476407b295ca6db656d444a2694",
+      "fh12/training.py": "1832d431a11b910bbcf71c1a731d09de4940060beff534e31800180fa7923222",
+      "fh12/upload.py": "19bf04c44c68a6e1a4f566d6babeabafee4ef6fd647ec64ce915f18934c49676",
+      "model/pancrafter_paper.py": "a766a01a5e21d86924bd87e41b064b58dcd0407d5b4cf3200e2d8aea22603de8",
+      "model/swin.py": "cdc270141d0209a34bec67b2a615fb51b23e30f4a0455398ba17c951252c2a99",
+      "model/pancrafter.py": "7bd4a28ff874e74602aefb319da1f93d620e78ca931bd24129f38b980492dd5a",
+      "pa/aligner.py": "ebf6b026b213dc857b5e9d39ba5d3070356a51092b11c32f3ffac0bb861faa2f",
+      "pa/warp.py": "b7ea18eb1c09a9462763bfe0146454df2c6593c8dce9107328804a33ed02fcab",
+      "pa/losses.py": "06eb9a117181355a899f2f0a24f8934b5867459f8fe645337aac2c8a0774279c",
+      "pa/offset.py": "8e70f6999d311eaba9d9ff35fc7e4da05d2f0439fc1735d125a1342eec9b5dba",
+      "tools/repair_lpan.py": "c7bab1542611c33fb50369160be3930043de449d13e963c7f125d83d9e018131",
+      "tools/eval_dlpan.py": "5671d44da1026653ac028ff97f81375420fa195a55fd3721ee8140904239fdab",
+      "tools/metrics/eval_rr.py": "a64a95ffde9b7d0278fa883bda1acaf895cca74d2b07b79f56285c60e8ba0c4a",
+      "tools/metrics/eval_fr.py": "b511d42b4db46d863c737b50606e9488c8ca5d9c7b07678ddc5bb7c1d9df01d4",
+      "tools/metrics/q2n.py": "89d1bf28a211e18a6fa8a2b6f8f7162f4b6716d15b2097888e773f1f73be10d1",
+      "qg40/__init__.py": "15d60ccf67faf5cb46da32a52d79b86b163169bf5c9a547a1fb7dc4dcdc1bc49",
+      "qg40/alignment_diagnostics.py": "64f7bcce94f51096c2d62e135d1e1a65fbc2b9ade1115311c9a392912e3f4e68",
+      "qg40/bootstrap.py": "48c8db1dc79fa02128df788796117c56d90a9b3e0fbddf85813035a5dcbd92c2",
+      "qg40/branch_evidence.py": "74e24518e03ad6d687771051bb5736c7556cd7b98553aaeda2ddd238be5a33da",
+      "qg40/calibration.py": "19d7a56c870da2f3ea393c744cc598e30d0801f70b3b6622dbf1821bd8c79a1c",
+      "qg40/common.py": "2436e46163b7ecff703d4a75d65046b4d945a57e62c3b6e69ee4c98f7c1b5334",
+      "qg40/controller.py": "d283452e691e7ccb99362cf9db7b90fe1b710173717abadaa13135e8fd87a00d",
+      "qg40/data.py": "f6e7cff272dff0ccb5da4cdf213e629fc7b60556254859e8a019448c9cdd8619",
+      "qg40/deployment.py": "290578232ceb5804278cf550ca21d05d8f5c9adecd773f795acc4e8d18791cf1",
+      "qg40/diagnostics.py": "0fef802725af82b05742e6181701c4fa10bcaf74affb99b2e035b88aa2db1688",
+      "qg40/error_distribution.py": "7e92de2e52675772a67f33aea0b16837aa0f865ff2d1e7398db98352eb78f71d",
+      "qg40/evaluation.py": "9dae7eedad2caf5b2d7b5b0687389789695bb72c26817a491d167a09f1f336c3",
+      "qg40/exposure.py": "03e09525ebfb670d18cb64a47413c4c85fcecd868eb2a9570b59c9c9a9885696",
+      "qg40/input_distribution.py": "25349a65c3c15df810b514d8435628181950b3ff85acfc461823195e441547ff",
+      "qg40/losses.py": "5db94f360564ac6bc764f2264e839dca98b9b114874c2d0da7e9535ad05e9472",
+      "qg40/model.py": "1fc6c83c552fc7035ee3d716991234e089f93608c378f9367ce08fe147c59b9c",
+      "qg40/p1.py": "a53ea22f96168e19f8b48ba8f310a8e51203464fe6b6e325766ef3f01399b4c4",
+      "qg40/phase_audit.py": "fc96d6061188918ef050fde345cfe889cd3c8dacf861da7568167a1411915448",
+      "qg40/plan.py": "f45e8423a317c9534b75c7f0c49d0de5d1f513b74b7cba8e1dcdcb1948ad6a4f",
+      "qg40/policy.py": "1f3e6b940e5f4298e5f0076609c11974032ea4716988e76107bbeec22363ed9e",
+      "qg40/postrun.py": "6a4c623843a630729473c183c4d39eec382f90f9f6bc9cbe1ed5b716b56f15db",
+      "qg40/preflight.py": "04a81ce8862f7c5d0c5908f5bdd8759674d236eeacf9798b0cc0dd1682b1772f",
+      "qg40/reference_parity.py": "5ede86f59ef4bc8ba190dcec3ff77190d7ef1367393b0d8641afa401edbab6d4",
+      "qg40/references.py": "a47acbe9e6d92ac379e2c499c94e7e0da288158c65bbbbbfb009d3591b2c2eec",
+      "qg40/resources.py": "dfa5924cd23519b45f92c79a398c7b0b9b3ad3e699216e19f6801b88696dc399",
+      "qg40/sheet_helpers.py": "2b4c2d536edec18ea96154bbb96128492e4b24474854c743ac58afe78cda9cb5",
+      "qg40/training.py": "2aae67907cdc912e365c3105ad6a8a09a3990f168aa586ae20b5e169e8938d49",
+      "qg40/upload.py": "ac630f3f46e2571648d5a02571a04b3b741be646955526eefa39fa3601182247",
+      "tools/qg40_runner.py": "243f20fc93488a79db8eb577bbe3a56c7faed839049fca41e2a41b0f453fc353",
+      "tools/metrics/__init__.py": "37a799c555396f30cb55cfdb64d9bc5089b009caf894aa2c235eedfaad009734",
+      "tools/metrics/jqm.py": "6962af58f8ac251fb087fbcf6dbde40bc502ec34083bd60a543b2daf0f8ce94b",
+      "tools/repair_qb_ms.py": "0ed95018fd88afde7194eac8fdd5ae79de7b9056574766e339726dbc0a7c8884",
+      "qg40/sensor_sources.json": "de88ae6c803302dfbe15cedc85f882866cabee5854eacae9733af490c12f6f2e",
+      "qg40/SENSOR_SOURCE_EVIDENCE.md": "c49d716791677b02da6e99084f1f65839669dfee975a355f664ec84276c93c83",
+      "external/DLPan/wald_utilities.py": "c7d076395eec052dd4ed391e6f51e5fa79661a3fc283816a63ccdb100ff5bdbf"
+    },
+    "content_sha256": "0cf7bf2af1a81036a115b3b9a181c4cc0d3f292e7a7927383f25c5819dee9d8c",
+    "git_release": "0ec113218f60f861dab18ab84f3083b730890979",
+    "torch": "2.8.0+cu128",
+    "numpy": "1.26.4",
+    "scipy": "1.13.1",
+    "skimage": "0.24.0",
+    "cuda": "12.8",
+    "cudnn": 91002,
+    "tf32_matmul": false,
+    "tf32_cudnn": true,
+    "numeric_method_revision": "QG40_SYNC_FREQ_C4_v1",
+    "consumer_campaign": "PANDA_QG40_20260920_v1"
+  },
+  "s4_runtime": {
+    "files": {
+      "fh12/__init__.py": "ce2ad5ca08a031014691bd98db6df783de2e65ac7a1e23237f63bc8446857f3b",
+      "fh12/calibration.py": "7c771b819fd25d226b9f9c909c2ddf55a31cfcac545257989d059e2543890617",
+      "fh12/common.py": "992dc568c5733c058a9c63b665ed3c094db8e811d62d2c726297c56683a46200",
+      "fh12/data.py": "d38e3bb36b925e1b31f5fd1e99995eb1ca0be04d3d4517b9ee43aa04daddb3ae",
+      "fh12/evaluation.py": "c5370f768b05065bc5bf35ba3386206b6197a19fa659e891d730b3196787c9c0",
+      "fh12/losses.py": "8e9250ce03eaa27196572490aae77df0d42317fbda14d16ffdf94342cea76ab3",
+      "fh12/model.py": "4c53d96ede6facdf150825ef1480e6bcc0b028e88a987e64f8c1981882257495",
+      "fh12/plan.py": "34ad6dfb397abe940950dea81e48557dccf7e0fd834ef6fb37fe2a8dee4caa4d",
+      "fh12/postrun.py": "7a6c137e5731973d0a48c56fb1d47a91f704f476407b295ca6db656d444a2694",
+      "fh12/training.py": "1832d431a11b910bbcf71c1a731d09de4940060beff534e31800180fa7923222",
+      "fh12/upload.py": "19bf04c44c68a6e1a4f566d6babeabafee4ef6fd647ec64ce915f18934c49676",
+      "model/pancrafter_paper.py": "a766a01a5e21d86924bd87e41b064b58dcd0407d5b4cf3200e2d8aea22603de8",
+      "model/swin.py": "cdc270141d0209a34bec67b2a615fb51b23e30f4a0455398ba17c951252c2a99",
+      "model/pancrafter.py": "7bd4a28ff874e74602aefb319da1f93d620e78ca931bd24129f38b980492dd5a",
+      "pa/aligner.py": "ebf6b026b213dc857b5e9d39ba5d3070356a51092b11c32f3ffac0bb861faa2f",
+      "pa/warp.py": "b7ea18eb1c09a9462763bfe0146454df2c6593c8dce9107328804a33ed02fcab",
+      "pa/losses.py": "06eb9a117181355a899f2f0a24f8934b5867459f8fe645337aac2c8a0774279c",
+      "pa/offset.py": "8e70f6999d311eaba9d9ff35fc7e4da05d2f0439fc1735d125a1342eec9b5dba",
+      "tools/repair_lpan.py": "c7bab1542611c33fb50369160be3930043de449d13e963c7f125d83d9e018131",
+      "tools/eval_dlpan.py": "5671d44da1026653ac028ff97f81375420fa195a55fd3721ee8140904239fdab",
+      "tools/metrics/eval_rr.py": "a64a95ffde9b7d0278fa883bda1acaf895cca74d2b07b79f56285c60e8ba0c4a",
+      "tools/metrics/eval_fr.py": "b511d42b4db46d863c737b50606e9488c8ca5d9c7b07678ddc5bb7c1d9df01d4",
+      "tools/metrics/q2n.py": "89d1bf28a211e18a6fa8a2b6f8f7162f4b6716d15b2097888e773f1f73be10d1",
+      "qg40/__init__.py": "15d60ccf67faf5cb46da32a52d79b86b163169bf5c9a547a1fb7dc4dcdc1bc49",
+      "qg40/alignment_diagnostics.py": "64f7bcce94f51096c2d62e135d1e1a65fbc2b9ade1115311c9a392912e3f4e68",
+      "qg40/bootstrap.py": "48c8db1dc79fa02128df788796117c56d90a9b3e0fbddf85813035a5dcbd92c2",
+      "qg40/branch_evidence.py": "74e24518e03ad6d687771051bb5736c7556cd7b98553aaeda2ddd238be5a33da",
+      "qg40/calibration.py": "19d7a56c870da2f3ea393c744cc598e30d0801f70b3b6622dbf1821bd8c79a1c",
+      "qg40/common.py": "2436e46163b7ecff703d4a75d65046b4d945a57e62c3b6e69ee4c98f7c1b5334",
+      "qg40/controller.py": "d283452e691e7ccb99362cf9db7b90fe1b710173717abadaa13135e8fd87a00d",
+      "qg40/data.py": "f6e7cff272dff0ccb5da4cdf213e629fc7b60556254859e8a019448c9cdd8619",
+      "qg40/deployment.py": "290578232ceb5804278cf550ca21d05d8f5c9adecd773f795acc4e8d18791cf1",
+      "qg40/diagnostics.py": "0fef802725af82b05742e6181701c4fa10bcaf74affb99b2e035b88aa2db1688",
+      "qg40/error_distribution.py": "7e92de2e52675772a67f33aea0b16837aa0f865ff2d1e7398db98352eb78f71d",
+      "qg40/evaluation.py": "9dae7eedad2caf5b2d7b5b0687389789695bb72c26817a491d167a09f1f336c3",
+      "qg40/exposure.py": "03e09525ebfb670d18cb64a47413c4c85fcecd868eb2a9570b59c9c9a9885696",
+      "qg40/input_distribution.py": "25349a65c3c15df810b514d8435628181950b3ff85acfc461823195e441547ff",
+      "qg40/losses.py": "5db94f360564ac6bc764f2264e839dca98b9b114874c2d0da7e9535ad05e9472",
+      "qg40/model.py": "1fc6c83c552fc7035ee3d716991234e089f93608c378f9367ce08fe147c59b9c",
+      "qg40/p1.py": "a53ea22f96168e19f8b48ba8f310a8e51203464fe6b6e325766ef3f01399b4c4",
+      "qg40/phase_audit.py": "fc96d6061188918ef050fde345cfe889cd3c8dacf861da7568167a1411915448",
+      "qg40/plan.py": "f45e8423a317c9534b75c7f0c49d0de5d1f513b74b7cba8e1dcdcb1948ad6a4f",
+      "qg40/policy.py": "1f3e6b940e5f4298e5f0076609c11974032ea4716988e76107bbeec22363ed9e",
+      "qg40/postrun.py": "6a4c623843a630729473c183c4d39eec382f90f9f6bc9cbe1ed5b716b56f15db",
+      "qg40/preflight.py": "04a81ce8862f7c5d0c5908f5bdd8759674d236eeacf9798b0cc0dd1682b1772f",
+      "qg40/reference_parity.py": "5ede86f59ef4bc8ba190dcec3ff77190d7ef1367393b0d8641afa401edbab6d4",
+      "qg40/references.py": "a47acbe9e6d92ac379e2c499c94e7e0da288158c65bbbbbfb009d3591b2c2eec",
+      "qg40/resources.py": "dfa5924cd23519b45f92c79a398c7b0b9b3ad3e699216e19f6801b88696dc399",
+      "qg40/sheet_helpers.py": "2b4c2d536edec18ea96154bbb96128492e4b24474854c743ac58afe78cda9cb5",
+      "qg40/training.py": "2aae67907cdc912e365c3105ad6a8a09a3990f168aa586ae20b5e169e8938d49",
+      "qg40/upload.py": "ac630f3f46e2571648d5a02571a04b3b741be646955526eefa39fa3601182247",
+      "tools/qg40_runner.py": "243f20fc93488a79db8eb577bbe3a56c7faed839049fca41e2a41b0f453fc353",
+      "tools/metrics/__init__.py": "37a799c555396f30cb55cfdb64d9bc5089b009caf894aa2c235eedfaad009734",
+      "tools/metrics/jqm.py": "6962af58f8ac251fb087fbcf6dbde40bc502ec34083bd60a543b2daf0f8ce94b",
+      "tools/repair_qb_ms.py": "0ed95018fd88afde7194eac8fdd5ae79de7b9056574766e339726dbc0a7c8884",
+      "qg40/sensor_sources.json": "de88ae6c803302dfbe15cedc85f882866cabee5854eacae9733af490c12f6f2e",
+      "qg40/SENSOR_SOURCE_EVIDENCE.md": "c49d716791677b02da6e99084f1f65839669dfee975a355f664ec84276c93c83",
+      "external/DLPan/wald_utilities.py": "c7d076395eec052dd4ed391e6f51e5fa79661a3fc283816a63ccdb100ff5bdbf"
+    },
+    "content_sha256": "0cf7bf2af1a81036a115b3b9a181c4cc0d3f292e7a7927383f25c5819dee9d8c",
+    "git_release": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+    "torch": "2.8.0+cu128",
+    "numpy": "1.26.4",
+    "scipy": "1.13.1",
+    "skimage": "0.24.0",
+    "cuda": "12.8",
+    "cudnn": 91002,
+    "tf32_matmul": false,
+    "tf32_cudnn": true,
+    "numeric_method_revision": "QG40_SYNC_FREQ_C4_v1",
+    "consumer_campaign": "PANDA_QG40_20260920_v1"
+  },
+  "s2_block": {
+    "kind": "AUTOMATIC_APPROVAL_REVIEW_REJECTED",
+    "scope": "s1 to s2 QB train/validation dataset transfer, 5772328960 bytes",
+    "user_confirmation_pending": false,
+    "transferred": true,
+    "status": "RESOLVED_BY_EXPLICIT_USER_APPROVAL",
+    "user_approval": "진행해라"
+  },
+  "s5_prior_WV3_failure": {
+    "actual_updates": 36218,
+    "error": "CUDA error: the launch timed out and was terminated",
+    "fresh_restart_performed": false
+  },
+  "helpers": {
+    "host_recovery": ".git/codex-qg40-host-recovery.py",
+    "gf2_relay": ".git/codex-qg40-gf2-relay.py",
+    "binder": ".git/codex-qg40-bind.py"
+  },
+  "last_verified_at_utc": "2026-09-20T01:04:50Z",
+  "final_states": {
+    "s1": {
+      "status": "RUNNING",
+      "reason": null,
+      "runs": [
+        {
+          "run": "QGBASE_QB_TB_P0_W112_D123_TS81002_FRESH50_v1",
+          "status": "UPLOAD_VERIFIED",
+          "updates": 50000,
+          "upload_verified": true
+        },
+        {
+          "run": "QGBASE_QB_S_PLH_W104_D122_TB_TS81002_SS82001_BASE_FRESH50_v1",
+          "status": "UPLOAD_VERIFIED",
+          "updates": 50000,
+          "upload_verified": true
+        },
+        {
+          "run": "QGBASE_QB_S_PLH_W104_D122_TB_TS81002_SS82002_BASE_FRESH50_v1",
+          "status": "RUNNING",
+          "updates": 31310,
+          "upload_verified": false
+        }
+      ]
+    },
+    "s2": {
+      "status": "WAIT_WV3_CASE_BOUNDARY",
+      "reason": null,
+      "runs": []
+    },
+    "s3": {
+      "status": "RUNNING",
+      "reason": null,
+      "runs": [
+        {
+          "run": "QGBASE_GF2_TA_P0_W112_D123_TS91001_FRESH50_v1",
+          "status": "UPLOAD_VERIFIED",
+          "updates": 50000,
+          "upload_verified": true
+        },
+        {
+          "run": "QGBASE_GF2_S_PLH_W104_D122_TA_TS91001_SS92001_BASE_FRESH50_v1",
+          "status": "RUNNING",
+          "updates": 18180,
+          "upload_verified": false
+        }
+      ]
+    },
+    "s4": {
+      "status": "RUNNING",
+      "reason": null,
+      "runs": [
+        {
+          "run": "QGBASE_QB_TA_P0_W112_D123_TS81001_FRESH50_v1",
+          "status": "UPLOAD_VERIFIED",
+          "updates": 50000,
+          "upload_verified": true
+        },
+        {
+          "run": "QGBASE_QB_S_PLH_W104_D122_TA_TS81001_SS82001_BASE_FRESH50_v1",
+          "status": "UPLOAD_VERIFIED",
+          "updates": 50000,
+          "upload_verified": true
+        },
+        {
+          "run": "QGBASE_QB_S_PLH_W104_D122_TA_TS81001_SS82002_BASE_FRESH50_v1",
+          "status": "UPLOAD_VERIFIED",
+          "updates": 50000,
+          "upload_verified": true
+        },
+        {
+          "run": "QG40_QB_S_PLH_W104_D122_TA_TS81001_SS82004_BASE_FRESH50_v1",
+          "status": "RUNNING",
+          "updates": 37370,
+          "upload_verified": false
+        }
+      ]
+    },
+    "s5": {
+      "status": "RUNNING",
+      "reason": null,
+      "runs": [
+        {
+          "run": "QGBASE_GF2_S_PLH_W104_D122_TA_TS91001_SS92003_BASE_FRESH50_v1",
+          "status": "RUNNING",
+          "updates": 18180,
+          "upload_verified": false
+        }
+      ]
+    }
+  },
+  "s2_cuda_smoke": {
+    "passed": true,
+    "forward_backward": true,
+    "device": "NVIDIA CMP 170HX",
+    "capability": [
+      8,
+      0
+    ],
+    "torch": "2.8.0+cu128",
+    "cuda": "12.8"
+  },
+  "initial_final_states_at_0605_KST": {
+    "s1": {
+      "status": {
+        "campaign_id": "PANDA_QG40_20260920_v1",
+        "server_id": "s1",
+        "status": "WAIT_WV3_CASE_BOUNDARY",
+        "runs": {},
+        "blocks": {},
+        "observations": []
+      },
+      "registered": true,
+      "preflight_complete": null,
+      "cuda_forward": null
+    },
+    "s3": {
+      "status": {
+        "campaign_id": "PANDA_QG40_20260920_v1",
+        "server_id": "s3",
+        "status": "WAIT_WV3_CASE_BOUNDARY",
+        "runs": {},
+        "blocks": {},
+        "observations": []
+      },
+      "registered": true,
+      "preflight_complete": null,
+      "cuda_forward": null
+    },
+    "s4": {
+      "status": {
+        "campaign_id": "PANDA_QG40_20260920_v1",
+        "server_id": "s4",
+        "status": "WAIT_WV3_CASE_BOUNDARY",
+        "runs": {},
+        "blocks": {},
+        "observations": []
+      },
+      "registered": true,
+      "preflight_complete": null,
+      "cuda_forward": null
+    },
+    "s5": {
+      "status": {
+        "campaign_id": "PANDA_QG40_20260920_v1",
+        "server_id": "s5",
+        "status": "WAIT_REFERENCE",
+        "runs": {},
+        "blocks": {},
+        "observations": [],
+        "waiting_reference": "GF2_TA",
+        "reference_owner": "s3",
+        "expected_transfer_path": "/home/user/Desktop/song/PAN-Crafter/work_dir/_qg40/s5/incoming/GF2_TA.tar.gz",
+        "deadline_utc": "2026-09-21T21:12:28+09:00"
+      },
+      "registered": true,
+      "preflight_complete": true,
+      "cuda_forward": true
+    },
+    "s2": {
+      "status": "AWAITING_EXPLICIT_DATA_TRANSFER_APPROVAL",
+      "code_deployed": true,
+      "cpu_tests": 161,
+      "idle_policy_tests": 6,
+      "cuda_smoke": true,
+      "registered": false
+    }
+  },
+  "gf2_calibration_recovery": {
+    "action": "RECOMPUTE_UNPUBLISHED_CALIBRATION",
+    "reason": "Measured batch64/16 GPU arithmetic mismatch; batch16 groups and parity agree exactly",
+    "original_archive": "/home/user/Desktop/song/PAN-Crafter/.git/codex-qg40-deploy-20260920/s3/unpublished-GF2_TA-batch64-20260920",
+    "original_sha256": {
+      "q_cache.npz": "2d165458f27bcb94d6778d98e09c68d72095704f6a851282550e1376997dc29b",
+      "calibration.json": "6b68d6c4e40d4d9d47bca519acd59c6b30204027979db90c6ef39366ab18e441"
+    },
+    "calibration_batch_size": 16,
+    "original_calibration_batch_size": 64,
+    "teacher_checkpoint_sha256": "0fb973376f9f00947d295620d96062b621145607aee311e28c889caefb656dab",
+    "source_content_sha256": "0cf7bf2af1a81036a115b3b9a181c4cc0d3f292e7a7927383f25c5819dee9d8c",
+    "atol": 3E-06,
+    "rtol": 2E-05,
+    "at_utc": "2026-09-20T09:38:15.906976+09:00",
+    "status": "VERIFIED_AND_EXPORTED",
+    "reference_manifest": "/home/user/Desktop/song/PAN-Crafter/work_dir/_qg40/s3/references/GF2_TA/reference_manifest.json",
+    "archive": "/home/user/Desktop/song/PAN-Crafter/work_dir/_qg40/s3/outgoing/GF2_TA.tar.gz",
+    "reference_parity": {
+      "AXIS16": [
+        [
+          0.25,
+          0.0
+        ],
+        [
+          -0.25,
+          0.0
+        ],
+        [
+          0.0,
+          0.25
+        ],
+        [
+          0.0,
+          -0.25
+        ],
+        [
+          0.5,
+          0.0
+        ],
+        [
+          -0.5,
+          0.0
+        ],
+        [
+          0.0,
+          0.5
+        ],
+        [
+          0.0,
+          -0.5
+        ],
+        [
+          1.0,
+          0.0
+        ],
+        [
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          -1.0
+        ],
+        [
+          2.0,
+          0.0
+        ],
+        [
+          -2.0,
+          0.0
+        ],
+        [
+          0.0,
+          2.0
+        ],
+        [
+          0.0,
+          -2.0
+        ]
+      ],
+      "atol": 3E-06,
+      "augmentation": {
+        "crop": false,
+        "hflip": true,
+        "id": "FH12_LEGACY_FIXED_HV_ROT4_v1",
+        "integer_index": "base_no_augmentation",
+        "order": [
+          "horizontal_flip",
+          "vertical_flip",
+          "np.rot90"
+        ],
+        "rotations": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "tuple_index": "fixed_HV_then_rot",
+        "vflip": true
+      },
+      "augmentation_sha256": "da89aab427ad38d13cf61051387b53933d7b4d1a79f98d5cd3d06711dfc4b18a",
+      "base_count": 19809,
+      "cached_q": [
+        [
+          0.4152250289916992,
+          0.40907537937164307,
+          0.41297584772109985,
+          0.4117414355278015
+        ],
+        [
+          0.41485339403152466,
+          0.4069686830043793,
+          0.4126967489719391,
+          0.4045461416244507
+        ],
+        [
+          0.3995257616043091,
+          0.3864370584487915,
+          0.3790833353996277,
+          0.38791772723197937
+        ],
+        [
+          0.42039868235588074,
+          0.4205206632614136,
+          0.4245612919330597,
+          0.4137243628501892
+        ],
+        [
+          0.45429426431655884,
+          0.4593774974346161,
+          0.484672486782074,
+          0.46629711985588074
+        ],
+        [
+          0.434166818857193,
+          0.4539862871170044,
+          0.44628775119781494,
+          0.45213988423347473
+        ],
+        [
+          0.4009943902492523,
+          0.4060312509536743,
+          0.3975500762462616,
+          0.3953937590122223
+        ],
+        [
+          0.4066549241542816,
+          0.4049451947212219,
+          0.4095466136932373,
+          0.4058241546154022
+        ],
+        [
+          0.40493178367614746,
+          0.4068851172924042,
+          0.40551772713661194,
+          0.4002596139907837
+        ],
+        [
+          0.40608155727386475,
+          0.40045595169067383,
+          0.405830442905426,
+          0.3934391736984253
+        ],
+        [
+          0.41908663511276245,
+          0.4126097559928894,
+          0.43683385848999023,
+          0.42811617255210876
+        ],
+        [
+          0.42278414964675903,
+          0.4168359041213989,
+          0.41674378514289856,
+          0.4155949056148529
+        ],
+        [
+          0.3960137665271759,
+          0.3940623998641968,
+          0.39147138595581055,
+          0.3886429965496063
+        ],
+        [
+          0.35314783453941345,
+          0.3563889265060425,
+          0.35725176334381104,
+          0.35301923751831055
+        ],
+        [
+          0.3930171728134155,
+          0.3882973790168762,
+          0.3905417323112488,
+          0.38352203369140625
+        ],
+        [
+          0.4319922924041748,
+          0.4349781572818756,
+          0.44281864166259766,
+          0.4412986636161804
+        ]
+      ],
+      "data_identity": "b54bc377c1ccace3707b96b4f7f3eab90e7683666d5a7f344246164a05c12556",
+      "indices": [
+        45,
+        248,
+        15371,
+        117,
+        18296,
+        3817,
+        18673,
+        9041,
+        11708,
+        10998,
+        18599,
+        18889,
+        17126,
+        4362,
+        10751,
+        1794
+      ],
+      "indices_sha256": "b17cfeb8ba01e59ef788edd6d8805228e8f5e66d3668fd8002bcd83656761512",
+      "max_abs_error": 0.0,
+      "note": "Actual frozen Teacher and local fixed-HV/rotation views; no quality gate",
+      "online_q": [
+        [
+          0.4152250289916992,
+          0.40907537937164307,
+          0.41297584772109985,
+          0.4117414355278015
+        ],
+        [
+          0.41485339403152466,
+          0.4069686830043793,
+          0.4126967489719391,
+          0.4045461416244507
+        ],
+        [
+          0.3995257616043091,
+          0.3864370584487915,
+          0.3790833353996277,
+          0.38791772723197937
+        ],
+        [
+          0.42039868235588074,
+          0.4205206632614136,
+          0.4245612919330597,
+          0.4137243628501892
+        ],
+        [
+          0.45429426431655884,
+          0.4593774974346161,
+          0.484672486782074,
+          0.46629711985588074
+        ],
+        [
+          0.434166818857193,
+          0.4539862871170044,
+          0.44628775119781494,
+          0.45213988423347473
+        ],
+        [
+          0.4009943902492523,
+          0.4060312509536743,
+          0.3975500762462616,
+          0.3953937590122223
+        ],
+        [
+          0.4066549241542816,
+          0.4049451947212219,
+          0.4095466136932373,
+          0.4058241546154022
+        ],
+        [
+          0.40493178367614746,
+          0.4068851172924042,
+          0.40551772713661194,
+          0.4002596139907837
+        ],
+        [
+          0.40608155727386475,
+          0.40045595169067383,
+          0.405830442905426,
+          0.3934391736984253
+        ],
+        [
+          0.41908663511276245,
+          0.4126097559928894,
+          0.43683385848999023,
+          0.42811617255210876
+        ],
+        [
+          0.42278414964675903,
+          0.4168359041213989,
+          0.41674378514289856,
+          0.4155949056148529
+        ],
+        [
+          0.3960137665271759,
+          0.3940623998641968,
+          0.39147138595581055,
+          0.3886429965496063
+        ],
+        [
+          0.35314783453941345,
+          0.3563889265060425,
+          0.35725176334381104,
+          0.35301923751831055
+        ],
+        [
+          0.3930171728134155,
+          0.3882973790168762,
+          0.3905417323112488,
+          0.38352203369140625
+        ],
+        [
+          0.4319922924041748,
+          0.4349781572818756,
+          0.44281864166259766,
+          0.4412986636161804
+        ]
+      ],
+      "passed": true,
+      "reference_identity": {
+        "q_cache_sha256": "ddbb74a2a97661098a10db7bd9d17f5b7f7c5cb92b65ce39dd35751ed6b6d8ac",
+        "reference_id": "GF2_TA",
+        "source_content_sha256": "0cf7bf2af1a81036a115b3b9a181c4cc0d3f292e7a7927383f25c5819dee9d8c",
+        "teacher_checkpoint_sha256": "0fb973376f9f00947d295620d96062b621145607aee311e28c889caefb656dab",
+        "teacher_run_id": "QGBASE_GF2_TA_P0_W112_D123_TS91001_FRESH50_v1"
+      },
+      "rtol": 2E-05,
+      "schema": "QG40_QCACHE_ONLINE_PARITY_v1",
+      "seed": 271828,
+      "status": "MEASURED",
+      "synthetic_test": false,
+      "units": "HR_PAN_PIXELS",
+      "views": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    "finished_at_utc": "2026-09-20T09:39:28.343245+09:00"
+  }
+}

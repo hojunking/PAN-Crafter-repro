@@ -1,0 +1,44 @@
+{
+  "n_variants": 57,
+  "n_outputs": 2280,
+  "n_finetune": 9,
+  "updates_per_arm": 1000,
+  "baseline_reproduction": [
+    {
+      "seed": 1234,
+      "name": "AbUb",
+      "delta_ergas": 0.0
+    },
+    {
+      "seed": 3407,
+      "name": "AbUb",
+      "delta_ergas": 0.0
+    },
+    {
+      "seed": 41001,
+      "name": "AbUb",
+      "delta_ergas": 0.0
+    },
+    {
+      "seed": 1234,
+      "name": "AlUl",
+      "delta_ergas": 0.0
+    },
+    {
+      "seed": 3407,
+      "name": "AlUl",
+      "delta_ergas": 0.0
+    },
+    {
+      "seed": 41001,
+      "name": "AlUl",
+      "delta_ergas": 0.0
+    }
+  ],
+  "frozen_source_hashes_match": true,
+  "source_checkpoint_hashes_match": true,
+  "finetune_same_initial_within_seed": true,
+  "teacher_unchanged": true,
+  "A_freeze_unchanged": true,
+  "no_sheet_network": true
+}

@@ -1,0 +1,87 @@
+{
+ "run": "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S41001_FRESH50_v1",
+ "selector": "HQNR9585_RR_v1",
+ "selector_order": [
+  "scc",
+  "ergas",
+  "psnr",
+  "sam",
+  "q8",
+  "ssim",
+  "hqnr"
+ ],
+ "threshold": 0.9585,
+ "official": false,
+ "target_status": "no_eligible",
+ "n_candidates": 50,
+ "n_eligible": 0,
+ "n_official_evaluated": 0,
+ "n_unevaluated": 0,
+ "target_feasible": false,
+ "target": null,
+ "joint_pass": null,
+ "joint_pass_note": "official RR 이 완료된 target 에서만 판정한다. proxy 값으로는 joint_pass 를 확정하지 않는다 (R2 §2.2)",
+ "proxy_target": null,
+ "six_pass_best": null,
+ "legacy_best": {
+  "step": 30300,
+  "hqnr": 0.9564283129124169,
+  "fr_mat20_hqnr": 0.9564283129124169
+ },
+ "h_consistency": {
+  "step": 30300,
+  "csv_hqnr": 0.9564283129124169,
+  "fr_mat20_hqnr": 0.9564283129124169,
+  "abs_diff": 0.0
+ },
+ "raw_max": {
+  "step": 30300,
+  "hqnr": 0.9564283129124169
+ },
+ "exact50K": {
+  "step": 50000,
+  "hqnr": 0.9546226136935017,
+  "scc": 0.991099326367151,
+  "ergas": 2.0423874832171682
+ },
+ "late6": {
+  "steps": [
+   45450,
+   46460,
+   47470,
+   48480,
+   49490,
+   50000
+  ],
+  "n": 6,
+  "hqnr_mean": 0.9546379724876144
+ },
+ "eligible_ranked": [],
+ "eligible_unevaluated": [],
+ "evaluator": {
+  "eval_rr": "a64a95ffde9b7d0278fa883bda1acaf895cca74d2b07b79f56285c60e8ba0c4a",
+  "eval_dlpan": "5671d44da1026653ac028ff97f81375420fa195a55fd3721ee8140904239fdab",
+  "gspread_upload": "640211c2702a8e7a1477a9b05b11384f60f8a92c6c388842abcf0ff816ccdcf2",
+  "q2n": "89d1bf28a211e18a6fa8a2b6f8f7162f4b6716d15b2097888e773f1f73be10d1",
+  "eval_fr_paperset_version": "2026-09-10.5"
+ },
+ "rr_eval_seconds_total": 0.0,
+ "notes": [],
+ "rr_targets": {
+  "scc": "> 0.988",
+  "ergas": "< 2.04",
+  "psnr": "> 37.956",
+  "sam": "< 2.787",
+  "q8": "> 0.922",
+  "ssim": "> 0.976"
+ },
+ "display_decimals": {
+  "scc": 3,
+  "ergas": 3,
+  "psnr": 3,
+  "sam": 3,
+  "q8": 3,
+  "ssim": 3
+ },
+ "note": "같은 checkpoint 의 raw H(mat20 전체 frame) 하한 통과 뒤 RR 정렬; legacy/raw-max/exact50K/late6 는 보존·병기 (§7.2–§7.3). FR fSCC 와 RR SCC 는 다른 값이다. 공식 RR 는 candidate checkpoint 재추론(hash 로 캐시 검증)."
+}

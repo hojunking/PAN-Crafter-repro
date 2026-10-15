@@ -1,0 +1,21 @@
+{
+  "check": "R_median_tie_erases_cells_but_not_degenerate",
+  "reproduced": true,
+  "thresholds": {
+    "T0": {
+      "tC": 64.5,
+      "tR": 0.2,
+      "n": 128,
+      "C_iqr": 63.5,
+      "R_iqr": 0.0,
+      "numerical_floor_C": 0.0,
+      "degenerate_metric": false,
+      "C_cv": 0.9844961240310077,
+      "source": "T0 CAL median (진단상 상대 구간; 물리적 참값 아님)"
+    }
+  },
+  "cells": {
+    "A": 64,
+    "C": 64
+  }
+}

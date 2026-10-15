@@ -1,0 +1,691 @@
+{
+  "commit": "2d0fc25e54aa190688031f2feba0ad2a22db506c",
+  "started_at": "2026-09-15T01:36:58+0900",
+  "device": "cpu",
+  "checks": [
+    {
+      "name": "existing_unit_suite_in_isolated_checkout",
+      "passed": true,
+      "kind": "conformance",
+      "exit_code": 0,
+      "ok_assertions": 78
+    },
+    {
+      "name": "explicit_order_s2",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_JR_W112_D123_WV3_T0_S777_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_XJ_W112_D123_WV3_T0_S777_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_J_R3_NOEDGE_W112_D123_WV3_T0_S777_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_J_N0_EDGE_W112_D123_WV3_T0_S777_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "explicit_order_s4",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_F0_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_RC0_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_RCQ_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_JR_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_XJ_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_J_R3_NOEDGE_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "explicit_order_s5",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_PQ_W112_D123_WV3_T0_S2026_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_F0_W112_D123_WV3_T0_S2026_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_LF0_W112_D123_WV3_T0_S2026_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_LFQ_W112_D123_WV3_T0_S2026_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_RC0_W112_D123_WV3_T0_S2026_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_RCQ_W112_D123_WV3_T0_S2026_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "reservation_arithmetic_core_and_confirmation",
+      "passed": true,
+      "kind": "conformance",
+      "core": {
+        "s2": 10.918666666666667,
+        "s4": 9.69,
+        "s5": 10.427000000000001
+      },
+      "slot_total": 43.91566666666667,
+      "barrier_elapsed": 17.358666666666668
+    },
+    {
+      "name": "JR_manual_loss_and_A_U_gradients",
+      "passed": true,
+      "kind": "conformance",
+      "scalar_error": 0.0,
+      "A_max_abs_error": 0.0,
+      "U_max_abs_error": 0.0,
+      "soft": -0.0,
+      "edge": -0.0,
+      "rec_A_L1": 40.716995750553906,
+      "soft_A_L1": 0.0,
+      "edge_A_L1": 0.0
+    },
+    {
+      "name": "JR_native_student_forward",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "XJ_manual_loss_and_A_U_gradients",
+      "passed": true,
+      "kind": "conformance",
+      "scalar_error": 0.0,
+      "A_max_abs_error": 7.450580596923828e-09,
+      "U_max_abs_error": 1.6763806343078613e-08,
+      "soft": -0.0,
+      "edge": 0.0017700230237096548,
+      "rec_A_L1": 40.716995750553906,
+      "soft_A_L1": 0.0,
+      "edge_A_L1": 3.0465926317265257
+    },
+    {
+      "name": "XJ_native_student_forward",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "J_R3_NOEDGE_manual_loss_and_A_U_gradients",
+      "passed": true,
+      "kind": "conformance",
+      "scalar_error": 0.0,
+      "A_max_abs_error": 3.725290298461914e-09,
+      "U_max_abs_error": 1.210719347000122e-08,
+      "soft": 0.00013216721708886325,
+      "edge": -0.0,
+      "rec_A_L1": 40.716995750553906,
+      "soft_A_L1": 0.5904374565579928,
+      "edge_A_L1": 0.0
+    },
+    {
+      "name": "J_R3_NOEDGE_native_student_forward",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "J_N0_EDGE_manual_loss_and_A_U_gradients",
+      "passed": true,
+      "kind": "conformance",
+      "scalar_error": 0.0,
+      "A_max_abs_error": 0.0,
+      "U_max_abs_error": 0.0,
+      "soft": -0.0,
+      "edge": 0.0017700230237096548,
+      "rec_A_L1": 40.716995750553906,
+      "soft_A_L1": 0.0,
+      "edge_A_L1": 3.0465926317265257
+    },
+    {
+      "name": "J_N0_EDGE_native_student_forward",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "J_N0_EDGE_no_teacher_object_needed",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "F0_manual_loss_and_A_U_gradients",
+      "passed": true,
+      "kind": "conformance",
+      "scalar_error": 0.0,
+      "A_max_abs_error": 0,
+      "U_max_abs_error": 0.0,
+      "soft": -0.0,
+      "edge": -0.0,
+      "rec_A_L1": 0.0,
+      "soft_A_L1": 0,
+      "edge_A_L1": 0
+    },
+    {
+      "name": "F0_native_student_forward",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "F0_frozen_A_after_AdamW",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "RC0_manual_loss_and_A_U_gradients",
+      "passed": true,
+      "kind": "conformance",
+      "scalar_error": 0.0,
+      "A_max_abs_error": 0.0,
+      "U_max_abs_error": 0.0,
+      "soft": -0.0,
+      "edge": -0.0,
+      "rec_A_L1": 40.716995750553906,
+      "soft_A_L1": 0.0,
+      "edge_A_L1": 0.0
+    },
+    {
+      "name": "RC0_native_student_forward",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "RC0_no_offset_and_live_reconstruction_A",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "RCQ_manual_loss_and_A_U_gradients",
+      "passed": true,
+      "kind": "conformance",
+      "scalar_error": 0.0,
+      "A_max_abs_error": 7.450580596923828e-09,
+      "U_max_abs_error": 1.210719347000122e-08,
+      "soft": 0.00013216721708886325,
+      "edge": 0.0017700230237096548,
+      "rec_A_L1": 40.716995750553906,
+      "soft_A_L1": 0.5904374565579928,
+      "edge_A_L1": 3.0465926317265257
+    },
+    {
+      "name": "RCQ_native_student_forward",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "RCQ_no_offset_and_live_reconstruction_A",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "PQ_manual_loss_and_A_U_gradients",
+      "passed": true,
+      "kind": "conformance",
+      "scalar_error": 0.0,
+      "A_max_abs_error": 3.026798367500305e-08,
+      "U_max_abs_error": 1.210719347000122e-08,
+      "soft": 0.00013216721708886325,
+      "edge": 0.0017700230237096548,
+      "rec_A_L1": 40.716995750553906,
+      "soft_A_L1": 0.5904374565579928,
+      "edge_A_L1": 3.0465926317265257
+    },
+    {
+      "name": "PQ_native_student_forward",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "LF0_manual_loss_and_A_U_gradients",
+      "passed": true,
+      "kind": "conformance",
+      "scalar_error": 0.0,
+      "A_max_abs_error": 0.0,
+      "U_max_abs_error": 0.0,
+      "soft": -0.0,
+      "edge": -0.0,
+      "rec_A_L1": 40.716995750553906,
+      "soft_A_L1": 0.0,
+      "edge_A_L1": 0.0
+    },
+    {
+      "name": "LF0_native_student_forward",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "LFQ_manual_loss_and_A_U_gradients",
+      "passed": true,
+      "kind": "conformance",
+      "scalar_error": 0.0,
+      "A_max_abs_error": 7.450580596923828e-09,
+      "U_max_abs_error": 1.210719347000122e-08,
+      "soft": 0.00013216721708886325,
+      "edge": 0.0017700230237096548,
+      "rec_A_L1": 40.716995750553906,
+      "soft_A_L1": 0.5904374565579928,
+      "edge_A_L1": 3.0465926317265257
+    },
+    {
+      "name": "LFQ_native_student_forward",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "LF0_actual_AdamW_boundary_24999",
+      "passed": true,
+      "kind": "conformance",
+      "active": true,
+      "A_changed": true,
+      "U_changed": true,
+      "A_moment_steps": [
+        1.0
+      ],
+      "U_lr": 5e-05,
+      "cosine_global_step": 25000
+    },
+    {
+      "name": "LF0_actual_AdamW_boundary_25000",
+      "passed": true,
+      "kind": "conformance",
+      "active": false,
+      "A_changed": false,
+      "U_changed": true,
+      "A_moment_steps": [
+        1.0
+      ],
+      "U_lr": 4.9996858407348486e-05,
+      "cosine_global_step": 25001
+    },
+    {
+      "name": "LF0_actual_AdamW_boundary_25001",
+      "passed": true,
+      "kind": "conformance",
+      "active": false,
+      "A_changed": false,
+      "U_changed": true,
+      "A_moment_steps": [
+        1.0
+      ],
+      "U_lr": 4.9993716814709356e-05,
+      "cosine_global_step": 25002
+    },
+    {
+      "name": "LFQ_actual_AdamW_boundary_24999",
+      "passed": true,
+      "kind": "conformance",
+      "active": true,
+      "A_changed": true,
+      "U_changed": true,
+      "A_moment_steps": [
+        1.0
+      ],
+      "U_lr": 5e-05,
+      "cosine_global_step": 25000
+    },
+    {
+      "name": "LFQ_actual_AdamW_boundary_25000",
+      "passed": true,
+      "kind": "conformance",
+      "active": false,
+      "A_changed": false,
+      "U_changed": true,
+      "A_moment_steps": [
+        1.0
+      ],
+      "U_lr": 4.9996858407348486e-05,
+      "cosine_global_step": 25001
+    },
+    {
+      "name": "LFQ_actual_AdamW_boundary_25001",
+      "passed": true,
+      "kind": "conformance",
+      "active": false,
+      "A_changed": false,
+      "U_changed": true,
+      "A_moment_steps": [
+        1.0
+      ],
+      "U_lr": 4.9993716814709356e-05,
+      "cosine_global_step": 25002
+    },
+    {
+      "name": "teacher_and_input_data_unchanged",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "shell_fixture_config_generation",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "dry_run_execution",
+      "passed": true,
+      "kind": "conformance",
+      "exit_code": 0
+    },
+    {
+      "name": "BUG_dry_run_creates_live_control_files",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "created": [
+        "work_dir/_pakd50/calibration_resolved.json",
+        "work_dir/_pakd50/mandatory_runs.txt",
+        "work_dir/_pakd50/reservations.json"
+      ]
+    },
+    {
+      "name": "confirm_RCQ_dry_run_execution",
+      "passed": true,
+      "kind": "conformance",
+      "exit_code": 0
+    },
+    {
+      "name": "BUG_confirmation_mandatory_overwritten",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "extra": [
+        "PAKD50_RCQ_W112_D123_WV3_T0_S3407_FRESH50_v1",
+        "PAKD50_RC0_W112_D123_WV3_T0_S3407_FRESH50_v1",
+        "PAKD50_F0_W112_D123_WV3_T0_S3407_FRESH50_v1"
+      ],
+      "mandatory": [
+        "# s4 기본 묶음 (예산 gate 예약; 완료된 run 은 trainer 가 0 으로 센다) — gen_pakd50_configs.write_mandatory_file",
+        "PAKD50_F0_W112_D123_WV3_T0_S1234_FRESH50_v1",
+        "PAKD50_RC0_W112_D123_WV3_T0_S1234_FRESH50_v1",
+        "PAKD50_RCQ_W112_D123_WV3_T0_S1234_FRESH50_v1",
+        "PAKD50_JR_W112_D123_WV3_T0_S1234_FRESH50_v1",
+        "PAKD50_XJ_W112_D123_WV3_T0_S1234_FRESH50_v1",
+        "PAKD50_J_R3_NOEDGE_W112_D123_WV3_T0_S1234_FRESH50_v1"
+      ]
+    },
+    {
+      "name": "confirm_LFQ_dry_run_execution",
+      "passed": true,
+      "kind": "conformance",
+      "exit_code": 0
+    },
+    {
+      "name": "BUG_repeated_confirmation_exceeds_three_and_changes_WIN",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "extra": [
+        "PAKD50_RCQ_W112_D123_WV3_T0_S3407_FRESH50_v1",
+        "PAKD50_RC0_W112_D123_WV3_T0_S3407_FRESH50_v1",
+        "PAKD50_F0_W112_D123_WV3_T0_S3407_FRESH50_v1",
+        "PAKD50_LFQ_W112_D123_WV3_T0_S3407_FRESH50_v1",
+        "PAKD50_LF0_W112_D123_WV3_T0_S3407_FRESH50_v1"
+      ]
+    },
+    {
+      "name": "BUG_basic_upload_also_dispatches_pa_diag",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "commands": [
+        "tools/eval_fr_paperset.py PAKD50_RCQ_W112_D123_WV3_T0_S1234_FRESH50_v1",
+        "tools/pa_diag.py --run PAKD50_RCQ_W112_D123_WV3_T0_S1234_FRESH50_v1",
+        "gspread/gspread_upload.py PAKD50_RCQ_W112_D123_WV3_T0_S1234_FRESH50_v1"
+      ]
+    },
+    {
+      "name": "BUG_completion_accepts_two_empty_files_without_exit_or_exact50K",
+      "passed": true,
+      "kind": "defect_reproduction"
+    },
+    {
+      "name": "BUG_gate_admits_confirmation_without_global_core_barrier",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "emitted": [
+        "PAKD50_RCQ_W112_D123_WV3_T0_S9091_FRESH50_v1",
+        "PAKD50_RC0_W112_D123_WV3_T0_S9091_FRESH50_v1",
+        "PAKD50_F0_W112_D123_WV3_T0_S9091_FRESH50_v1"
+      ],
+      "remaining_h": 7.0,
+      "example_other_server_core_remaining_h": 2.0,
+      "required_finish_h": 8.440000000000001
+    },
+    {
+      "name": "BUG_plan_table_omits_registered_confirmations",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "plan_rows": 6,
+      "registered_confirmations": 3
+    },
+    {
+      "name": "BUG_old_extra_priority_survives_new_scope",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "todo": [
+        "PQ",
+        "F0",
+        "LF0",
+        "LFQ",
+        "RC0",
+        "RCQ",
+        "DPQ"
+      ]
+    },
+    {
+      "name": "BUG_local_admission_skips_higher_priority_to_run_cheaper_F0",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "todo": [
+        "F0"
+      ],
+      "dropped": [
+        "PQ",
+        "LF0",
+        "LFQ",
+        "RC0",
+        "RCQ"
+      ]
+    },
+    {
+      "name": "BUG_killing_runner_preserves_training_but_loses_following_upload",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "runner_exit_code": -15
+    },
+    {
+      "name": "GAP_missing_init_pins_for_s2_s5_confirmation",
+      "passed": true,
+      "kind": "readiness_gap",
+      "pins": {
+        "1234": "c988a6c95b17f4fd",
+        "777": null,
+        "2026": null,
+        "3407": null,
+        "9091": null
+      }
+    }
+  ],
+  "configs": [
+    {
+      "server": "s2",
+      "run": "PAKD50_JR_W112_D123_WV3_T0_S777_FRESH50_v1",
+      "init_pin": null,
+      "backend": "R1",
+      "protocol": "I-AEQ"
+    },
+    {
+      "server": "s2",
+      "run": "PAKD50_XJ_W112_D123_WV3_T0_S777_FRESH50_v1",
+      "init_pin": null,
+      "backend": "R1",
+      "protocol": "I-AEQ"
+    },
+    {
+      "server": "s2",
+      "run": "PAKD50_J_R3_NOEDGE_W112_D123_WV3_T0_S777_FRESH50_v1",
+      "init_pin": null,
+      "backend": "R3",
+      "protocol": "I-AEQ"
+    },
+    {
+      "server": "s2",
+      "run": "PAKD50_J_N0_EDGE_W112_D123_WV3_T0_S777_FRESH50_v1",
+      "init_pin": null,
+      "backend": "N0",
+      "protocol": "I-AEQ"
+    },
+    {
+      "server": "s4",
+      "run": "PAKD50_F0_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "init_pin": {
+        "unet_sha256_16": "c988a6c95b17f4fd"
+      },
+      "backend": "N0",
+      "protocol": "I-NATIVE-TRANSFER"
+    },
+    {
+      "server": "s4",
+      "run": "PAKD50_RC0_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "init_pin": {
+        "unet_sha256_16": "c988a6c95b17f4fd"
+      },
+      "backend": "N0",
+      "protocol": "I-NATIVE-TRANSFER"
+    },
+    {
+      "server": "s4",
+      "run": "PAKD50_RCQ_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "init_pin": {
+        "unet_sha256_16": "c988a6c95b17f4fd"
+      },
+      "backend": "R3",
+      "protocol": "I-NATIVE-TRANSFER"
+    },
+    {
+      "server": "s4",
+      "run": "PAKD50_JR_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "init_pin": {
+        "unet_sha256_16": "c988a6c95b17f4fd"
+      },
+      "backend": "R1",
+      "protocol": "I-AEQ"
+    },
+    {
+      "server": "s4",
+      "run": "PAKD50_XJ_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "init_pin": {
+        "unet_sha256_16": "c988a6c95b17f4fd"
+      },
+      "backend": "R1",
+      "protocol": "I-AEQ"
+    },
+    {
+      "server": "s4",
+      "run": "PAKD50_J_R3_NOEDGE_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "init_pin": {
+        "unet_sha256_16": "c988a6c95b17f4fd"
+      },
+      "backend": "R3",
+      "protocol": "I-AEQ"
+    },
+    {
+      "server": "s5",
+      "run": "PAKD50_PQ_W112_D123_WV3_T0_S2026_FRESH50_v1",
+      "init_pin": null,
+      "backend": "R3",
+      "protocol": "I-AEQ"
+    },
+    {
+      "server": "s5",
+      "run": "PAKD50_F0_W112_D123_WV3_T0_S2026_FRESH50_v1",
+      "init_pin": null,
+      "backend": "N0",
+      "protocol": "I-NATIVE-TRANSFER"
+    },
+    {
+      "server": "s5",
+      "run": "PAKD50_LF0_W112_D123_WV3_T0_S2026_FRESH50_v1",
+      "init_pin": null,
+      "backend": "N0",
+      "protocol": "I-AEQ"
+    },
+    {
+      "server": "s5",
+      "run": "PAKD50_LFQ_W112_D123_WV3_T0_S2026_FRESH50_v1",
+      "init_pin": null,
+      "backend": "R3",
+      "protocol": "I-AEQ"
+    },
+    {
+      "server": "s5",
+      "run": "PAKD50_RC0_W112_D123_WV3_T0_S2026_FRESH50_v1",
+      "init_pin": null,
+      "backend": "N0",
+      "protocol": "I-NATIVE-TRANSFER"
+    },
+    {
+      "server": "s5",
+      "run": "PAKD50_RCQ_W112_D123_WV3_T0_S2026_FRESH50_v1",
+      "init_pin": null,
+      "backend": "R3",
+      "protocol": "I-NATIVE-TRANSFER"
+    }
+  ],
+  "finished_at": "2026-09-15T01:37:37+0900",
+  "summary": {
+    "conformance": {
+      "total": 56,
+      "passed": 56
+    },
+    "defect_reproduction": {
+      "total": 10,
+      "passed": 10
+    },
+    "readiness_gap": {
+      "total": 1,
+      "passed": 1
+    }
+  }
+}

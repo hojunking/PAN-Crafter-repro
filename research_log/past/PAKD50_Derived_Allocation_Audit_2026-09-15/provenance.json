@@ -1,0 +1,254 @@
+{
+  "time": "2026-09-15T01:39:06+0900",
+  "head": "2d0fc25e54aa190688031f2feba0ad2a22db506c",
+  "local_server": "s1",
+  "scope": "local source/config + CPU actual loss steps + /tmp shell/gate fixtures; s2/s4/s5 runtime not inspected",
+  "files": [
+    {
+      "path": "assets/pakd50/T0_run/teacher_assets.json",
+      "sha256": "76ea2607a0ff0c44bfd2d38daddea29425e2ffb62016d8415d7b6a999e7c5bbe",
+      "bytes": 1216
+    },
+    {
+      "path": "assets/pakd50/calibration_resolved.json",
+      "sha256": "dc76a3b02e16fa3d1b9fc8d91b24bb0b420db118d56af5d416e540f82f195ea8",
+      "bytes": 2303
+    },
+    {
+      "path": "assets/pakd50/campaign_clock.json",
+      "sha256": "6a4fa08a11993531c9654ecdd36a0675fe9f9a518b0ffddb2e46a31c4d3bf4c3",
+      "bytes": 691
+    },
+    {
+      "path": "assets/pakd50/init_hashes.json",
+      "sha256": "c8c4072430decc28b6b28979269d01f883c9d7ef2ab4e1f9df2976fd12e1e44b",
+      "bytes": 495
+    },
+    {
+      "path": "config/PAKD50_F0_W112_D123_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "07224c9601cd17345adbc47d849416f0a03d952a1806f0de63d87273cd295262",
+      "bytes": 6051
+    },
+    {
+      "path": "config/PAKD50_F0_W112_D123_WV3_T0_S2026_FRESH50_v1.yaml",
+      "sha256": "777c983470c360f9bea0a9e9fb972eb1983b7c2af9199778540ad1d0381924f8",
+      "bytes": 5999
+    },
+    {
+      "path": "config/PAKD50_JR_W112_D123_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "498f096ab748998ea393c81c069566c57335061fa626c849e806f50e08f9ca61",
+      "bytes": 6256
+    },
+    {
+      "path": "config/PAKD50_JR_W112_D123_WV3_T0_S777_FRESH50_v1.yaml",
+      "sha256": "b0bb24521dccff919b80709172dac75dd6796a7f698c12300c42a5b58d78dad0",
+      "bytes": 6194
+    },
+    {
+      "path": "config/PAKD50_J_N0_EDGE_W112_D123_WV3_T0_S777_FRESH50_v1.yaml",
+      "sha256": "b3911b2b267fbeb67db3a514ff65fad5b8087f1e8af6ab78c3f782eb76038c48",
+      "bytes": 6546
+    },
+    {
+      "path": "config/PAKD50_J_R3_NOEDGE_W112_D123_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "e14342b668bd9f6645a70f5dcc5b609f35a80d8ecdd874294a8c2da8db1d37cd",
+      "bytes": 6380
+    },
+    {
+      "path": "config/PAKD50_J_R3_NOEDGE_W112_D123_WV3_T0_S777_FRESH50_v1.yaml",
+      "sha256": "c598aa0f3d3c43dda82b9e88c2c4a5324b540c3cfef9dd3237680bf080e904b6",
+      "bytes": 6318
+    },
+    {
+      "path": "config/PAKD50_LF0_W112_D123_WV3_T0_S2026_FRESH50_v1.yaml",
+      "sha256": "c94a636cea74f94a4678f44f68b72376f5609fbfc4a83d2bc54e79d7c6f945c7",
+      "bytes": 6265
+    },
+    {
+      "path": "config/PAKD50_LFQ_W112_D123_WV3_T0_S2026_FRESH50_v1.yaml",
+      "sha256": "8788c036f4f8bf05ef2844c5349068b876bd6d3a396a843ac20dc1e869e1ff15",
+      "bytes": 6594
+    },
+    {
+      "path": "config/PAKD50_PQ_W112_D123_WV3_T0_S2026_FRESH50_v1.yaml",
+      "sha256": "d647c555df7a763fc95e3e85437c8d1bb62dd5e80ad425191c591b34229dd387",
+      "bytes": 6665
+    },
+    {
+      "path": "config/PAKD50_RC0_W112_D123_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "f6f47d255f5480c5ddcf9e4a1abf5e7d3d547965ba5a4b55f1721e639359d314",
+      "bytes": 6157
+    },
+    {
+      "path": "config/PAKD50_RC0_W112_D123_WV3_T0_S2026_FRESH50_v1.yaml",
+      "sha256": "536d73ea781b0f371be68bd0d019aec2a7baa91e9cb10249b06dfd863d81e7b3",
+      "bytes": 6105
+    },
+    {
+      "path": "config/PAKD50_RCQ_W112_D123_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "427a5f1a532c3f84ceb2b9fea7207f331b3297253ee9e015ed5dec009e412746",
+      "bytes": 6434
+    },
+    {
+      "path": "config/PAKD50_RCQ_W112_D123_WV3_T0_S2026_FRESH50_v1.yaml",
+      "sha256": "5726da97a84dad917f170624a8ada18c5790339fb2c07dd27999b12f5ca55d90",
+      "bytes": 6382
+    },
+    {
+      "path": "config/PAKD50_XJ_W112_D123_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "a5ffb176dd3cc4805c367a39f4eeacfff282eedd6bb0d1128b1467c4d802ba85",
+      "bytes": 6537
+    },
+    {
+      "path": "config/PAKD50_XJ_W112_D123_WV3_T0_S777_FRESH50_v1.yaml",
+      "sha256": "8788de54482ce1d964cd27feb6a5216c54f02289c09b4b70578a98727475d15c",
+      "bytes": 6475
+    },
+    {
+      "path": "kdv/forward.py",
+      "sha256": "f29c09446e93fe40d97eb903242c8d306fe3d7d381744a13c46093284996ff52",
+      "bytes": 3540
+    },
+    {
+      "path": "kdv/losses_rec.py",
+      "sha256": "092e68d3c96b7a145f1f6821ef0aa44c4dfc3658f8338670c2ee27f56ba52997",
+      "bytes": 6305
+    },
+    {
+      "path": "kdv/registry.py",
+      "sha256": "c459f690928e660f311580511cfa502ed9363b762004b079dd2c1eded4d8470b",
+      "bytes": 35912
+    },
+    {
+      "path": "kdv/teacher_assets.py",
+      "sha256": "616ee40abd022ada9a072ce0c063fe8e23537aa53e5698c4e5b71801fb144533",
+      "bytes": 7390
+    },
+    {
+      "path": "main.py",
+      "sha256": "16675e5446a038f5372ea3e68cd37d92a8f907b3beca797cf618781c2ec5cbe3",
+      "bytes": 23706
+    },
+    {
+      "path": "research_log/2026-09-15_pakd50-derived-allocation-implementation.md",
+      "sha256": "d2f07a838d1139d2d22e9e561e24baac0d5340e96ff69e0bb33536d2d6cd5a72",
+      "bytes": 11557
+    },
+    {
+      "path": "research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md",
+      "sha256": "782826e14376f4826e4982b29abb22936ecd58034e1619d34d35c7d047c9f6bc",
+      "bytes": 17946
+    },
+    {
+      "path": "tools/_run_cases.sh",
+      "sha256": "868d8ec365565d87820d39e00d75025fb261d64113d8390657b016ceef19b92a",
+      "bytes": 8802
+    },
+    {
+      "path": "tools/_upload.sh",
+      "sha256": "e63e034e73e78baeba9ecddc0976cfd22d1cb0406a0bd3add725f30ef0a908c1",
+      "bytes": 7410
+    },
+    {
+      "path": "tools/campaign_gate.py",
+      "sha256": "2eeb960e8e65286eceb3fc59a89eb94c8bd0c0101f1ac0f8673a662bac66b824",
+      "bytes": 26285
+    },
+    {
+      "path": "tools/campaign_start.sh",
+      "sha256": "14326a6ead50493504c93a78911c744a0376b8b1a0f636888b6d60584bfc345e",
+      "bytes": 3299
+    },
+    {
+      "path": "tools/gen_pakd50_configs.py",
+      "sha256": "6f385af33aa20d1e1f46c1e8c109f154e51dcbc279936cfdae8408706256ccee",
+      "bytes": 39684
+    },
+    {
+      "path": "tools/pa_diag.py",
+      "sha256": "45a57251c60de4b9384484eeba0e13bf87650bdb21b26df0a9b5c915b7160d1e",
+      "bytes": 16426
+    },
+    {
+      "path": "tools/pakd50_reallocate.sh",
+      "sha256": "e069b234df00c49c63aae3f7add017beb960fa0dd5a2839039015e3249825053",
+      "bytes": 6962
+    },
+    {
+      "path": "tools/pakd50_requeue.sh",
+      "sha256": "7c647dae205ed2a4aca25e285cf24f120c1fa75185e4674aaea94d4c5ef2c116",
+      "bytes": 3753
+    },
+    {
+      "path": "tools/pakd50_unit_tests.py",
+      "sha256": "dc01444209a06fc9bad9bcb72eec30f16017455de6548d03117f05dbb45c7412",
+      "bytes": 42949
+    },
+    {
+      "path": "tools/run.sh",
+      "sha256": "94f504f606ade5c21c88db7ef6086877a8db9365d00dc09f91fce4dcd03a0ddd",
+      "bytes": 3274
+    },
+    {
+      "path": "train_kdv.py",
+      "sha256": "4f0c56ca7ff9495d41f300081b551581e9565ced5d34a70ed0bccec901b3390c",
+      "bytes": 137507
+    },
+    {
+      "path": "assets/pakd50/T0_run/best_hqnr/model.safetensors",
+      "sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+      "bytes": 11068280,
+      "snapshot": "not copied; existing asset"
+    },
+    {
+      "path": "work_dir/_kdv_init_w112_d123/init_unet_seed1234.pt",
+      "sha256": "b2c113b1a882f3625a6882d831089b9f0788670caff1bf7ac58ee66b5b580302",
+      "bytes": 10664018,
+      "snapshot": "not copied; existing asset"
+    },
+    {
+      "path": "work_dir/PAKD50_J0_W112_D123_WV3_T0_S1234_FRESH50_v1/candidates/step-4040/model.safetensors",
+      "sha256": "5670c2e224c5e678fd691b944d21cfe1834878df3c7005f084f524357fdc804b",
+      "bytes": 11068280,
+      "snapshot": "not copied; existing asset"
+    }
+  ],
+  "shell_syntax": [
+    {
+      "file": "tools/pakd50_reallocate.sh",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "file": "tools/pakd50_requeue.sh",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "file": "tools/_run_cases.sh",
+      "exit": 0,
+      "stderr": ""
+    },
+    {
+      "file": "tools/_upload.sh",
+      "exit": 0,
+      "stderr": ""
+    }
+  ],
+  "python_ast": "PASS",
+  "verification_summary": {
+    "conformance": {
+      "total": 56,
+      "passed": 56
+    },
+    "defect_reproduction": {
+      "total": 10,
+      "passed": 10
+    },
+    "readiness_gap": {
+      "total": 1,
+      "passed": 1
+    }
+  },
+  "test_harness_note": "First pass compared YAML learning_rate string 1e-4 directly to float; corrected to use actual main.get_parser conversion and reran full suite. Initial harness log retained."
+}

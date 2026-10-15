@@ -1,0 +1,18 @@
+{
+  "server": "s1",
+  "asset": "/tmp/qedge9-asset-negative-kxbvh_5w/inconsistent-theta.json",
+  "npz_sha256": "b83cc5d1a25e8766d1813c9d19d956efc24e0f152553e53c4894fa18dcdf563e",
+  "theta_q": 1000000000.0,
+  "checked_at": "2026-09-15T16:31:22",
+  "gpu": "cpu",
+  "teacher_aligner_hash_ok": true,
+  "dataset_sha_ok": true,
+  "feeder_contract_ok": true,
+  "n_views": 16,
+  "max_abs_dq": 0.0,
+  "mean_abs_dq": 0.0,
+  "max_abs_de": 0.10000000894069672,
+  "label_flips": 8,
+  "near_threshold": 0,
+  "pass_": true
+}

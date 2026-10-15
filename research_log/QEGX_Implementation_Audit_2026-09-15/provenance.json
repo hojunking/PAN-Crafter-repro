@@ -1,0 +1,354 @@
+{
+  "at": "2026-09-15T20:05:47+0900",
+  "head": "ac232452e6b789225edad6817a04627afdbc7bd2",
+  "files": [
+    {
+      "path": "CLAUDE.md",
+      "sha256": "e960b55c066e6554c355e2a42d267cca6d6862723f18658fe66893bdef284890"
+    },
+    {
+      "path": "assets/pakd50/T0_run/meta/config.yaml",
+      "sha256": "c584d9e3405bc77774fc69a79367c1d243ebe27bdb8f98e18dc8d541764a8da4"
+    },
+    {
+      "path": "assets/pakd50/calibration_resolved.json",
+      "sha256": "dc76a3b02e16fa3d1b9fc8d91b24bb0b420db118d56af5d416e540f82f195ea8"
+    },
+    {
+      "path": "assets/pakd50/campaign_clock.json",
+      "sha256": "6a4fa08a11993531c9654ecdd36a0675fe9f9a518b0ffddb2e46a31c4d3bf4c3"
+    },
+    {
+      "path": "assets/pakd50/init_hashes.json",
+      "sha256": "6ad85577885cc716f5b67bf9f0e5a8e1d9b3f9f70c3b5e1b450ef5d3bc8cde7e"
+    },
+    {
+      "path": "assets/qedge9/cue_T0_AXIS16_v1.json",
+      "sha256": "33447ea9b615579b46ed5926fb6a72d3677cbdab8cce23b4afa0d0da06d6f101"
+    },
+    {
+      "path": "assets/qedge9/cue_T0_AXIS16_v1.npz",
+      "sha256": "b83cc5d1a25e8766d1813c9d19d956efc24e0f152553e53c4894fa18dcdf563e"
+    },
+    {
+      "path": "config/PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v2.yaml",
+      "sha256": "dc170bf4a80877bacc59d0ed23b007e604d96c9c55b139fac627fbf0090b9fcf"
+    },
+    {
+      "path": "config/PAKD50_J0_W104_D121_WV3_T0_S2026_FRESH50_v1.yaml",
+      "sha256": "45e1b49f8e0ac18a204ae1108cf2db65e78b2b90a88cc69da6093a80df6c6f77"
+    },
+    {
+      "path": "config/PAKD50_J0_W104_D121_WV3_T0_S2026_FRESH50_v2.yaml",
+      "sha256": "142d2ddcdd331fef2236af35ede876ba79e43a747425dd8b99d84782d6f7a973"
+    },
+    {
+      "path": "config/PAKD50_J0_W104_D121_WV3_T0_S3407_FRESH50_v1.yaml",
+      "sha256": "2b2d8ca3fb46c9c1122401625b901b59375c4d891e9edbe305f1419ba993de8f"
+    },
+    {
+      "path": "config/PAKD50_J0_W104_D121_WV3_T0_S4321_FRESH50_v2.yaml",
+      "sha256": "3c0ac468701bada41edcb77c87205e842be5270439256d74c1957b8f6378ec21"
+    },
+    {
+      "path": "config/PAKD50_J0_W104_D121_WV3_T0_S777_FRESH50_v1.yaml",
+      "sha256": "18c02068e8924b62cc0e15ca867eeda412fe5c31c3fc04e5001f723c1abf6702"
+    },
+    {
+      "path": "config/PAKD50_JE0_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "677ec5c512a61739864bffd76edf11a97a4a865cfc88631c84f5f9ce8c06306a"
+    },
+    {
+      "path": "config/PAKD50_JE0_W104_D121_WV3_T0_S3407_FRESH50_v1.yaml",
+      "sha256": "f59b8eeb50ea0eb620ba116a3e48540a992d02f02b4cf725c9a82633627eb45e"
+    },
+    {
+      "path": "config/PAKD50_JQ_W104_D121_WV3_T0_S1234_FRESH50_v2.yaml",
+      "sha256": "e344a5d66b9747cb2b7e9a1dbc2676e4d6245287dbf5e8ec6980bc6871a76d03"
+    },
+    {
+      "path": "config/PAKD50_JQ_W104_D121_WV3_T0_S2026_FRESH50_v1.yaml",
+      "sha256": "931fbbe76815ea5c634a13f918f9bfc417844595c61ef98857ce420d17365491"
+    },
+    {
+      "path": "config/PAKD50_JQ_W104_D121_WV3_T0_S2026_FRESH50_v2.yaml",
+      "sha256": "d702349d040d5df2b844a19f7d698298c52581cc17680adf5804c8aaf3a369b8"
+    },
+    {
+      "path": "config/PAKD50_JQ_W104_D121_WV3_T0_S3407_FRESH50_v1.yaml",
+      "sha256": "8d42d08bc88f1c80fa1bba5f058a5a70cc6e99b1dc7285b8863b3cbd8e78b914"
+    },
+    {
+      "path": "config/PAKD50_JQ_W104_D121_WV3_T0_S4321_FRESH50_v2.yaml",
+      "sha256": "dc516affa2ffbcef7a881630078811c07f2c04710889ccd190762b3fdd8a4637"
+    },
+    {
+      "path": "config/PAKD50_JQ_W104_D121_WV3_T0_S777_FRESH50_v1.yaml",
+      "sha256": "28f464ee61b86a57a5da36d3b03b017fe7b2a6d349bbd95599cb212ff5805afc"
+    },
+    {
+      "path": "config/PAKD50_J_QB005_W104_D121_WV3_T0_S2026_FRESH50_v2.yaml",
+      "sha256": "bf4f5f6ea3a58ea8415056f63e25c5deef165a22d89bb8f77d3b89ebd39fbd44"
+    },
+    {
+      "path": "config/PAKD50_J_R3_NOEDGE_W104_D121_WV3_T0_S2026_FRESH50_v2.yaml",
+      "sha256": "a669a256f86543dd220e0525c448acad7b24dac80b0501d71f56f8ee5f65a8ce"
+    },
+    {
+      "path": "config/PAKD50_LF0_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "92206ac0084d377e2ff5104bc354ab7f3908512076856b979803e530dbca0819"
+    },
+    {
+      "path": "config/PAKD50_LFQE50_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "7203fe76f0d69e3a8dbdb80187a1434ab527573cdce62d8b0689c7c297e51a5e"
+    },
+    {
+      "path": "config/PAKD50_LFQ_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "2b19f0b640f719cad0bbc75dfdac20c471eda56c839a4cbe94578bd7b7102001"
+    },
+    {
+      "path": "config/PAKD50_LFX_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "f6e71a8480ab97f8fd88b1ebf8f39079b2dbc7fcf2c3f92a4aa351ad242da5b8"
+    },
+    {
+      "path": "config/PAKD50_QE50_B005_W104_D121_WV3_T0_S2026_FRESH50_v2.yaml",
+      "sha256": "a4c407e807907629d46d30d87b799060f5cd2f6b7f6fe4b54013ff14c4f783a5"
+    },
+    {
+      "path": "config/PAKD50_QE50_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "a6d1fc7feb0dccfe6de121ce62d8873dd4461951aa86e7c046af1543a1a71aaa"
+    },
+    {
+      "path": "config/PAKD50_QE50_W104_D121_WV3_T0_S1234_FRESH50_v2.yaml",
+      "sha256": "70d0a8b9a1b660fa073625c6a00612e48ed31eb627a178e73b93a9d64f99af94"
+    },
+    {
+      "path": "config/PAKD50_QE50_W104_D121_WV3_T0_S2026_FRESH50_v1.yaml",
+      "sha256": "9147c7304741128b52f356a612c383a3a9a1e0cd4b5d37db4f7d9845383e125a"
+    },
+    {
+      "path": "config/PAKD50_QE50_W104_D121_WV3_T0_S2026_FRESH50_v2.yaml",
+      "sha256": "ac3b581d04e65f2c7c3da1d13e73297a0689257e59d8d2bf5a0002857faf8334"
+    },
+    {
+      "path": "config/PAKD50_QE50_W104_D121_WV3_T0_S3407_FRESH50_v1.yaml",
+      "sha256": "8c755df4419bd273a678378a80ce1470757cab322f711b357a6c6c1aacf2faea"
+    },
+    {
+      "path": "config/PAKD50_QE50_W104_D121_WV3_T0_S4321_FRESH50_v2.yaml",
+      "sha256": "a890f5166ab9fe22893b693fea7e87696eca7c3118453805d5473c73322d6768"
+    },
+    {
+      "path": "config/PAKD50_QE50_W104_D121_WV3_T0_S777_FRESH50_v1.yaml",
+      "sha256": "6a1f8cd9e19be6e27fb53b15d9c492730a56d1275f02116bc3de1e08133ba8a0"
+    },
+    {
+      "path": "config/PAKD50_QEC3_W104_D121_WV3_T0_S2026_FRESH50_v2.yaml",
+      "sha256": "261e563458cf7fbd0a620f8bc4569c4cee62699add6db1c6daa2238b7d1b4461"
+    },
+    {
+      "path": "config/PAKD50_QEC_W104_D121_WV3_T0_S1234_FRESH50_v2.yaml",
+      "sha256": "585726dff191444bb3d4c21cfd6fe1817fe1c028ee891d67a369814ff7a793a1"
+    },
+    {
+      "path": "config/PAKD50_QER50_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "39fbb8d063f67823aa083049ed4c8d075bc671d0a9e19eaacf3c4b763af0049c"
+    },
+    {
+      "path": "config/PAKD50_QER50_W104_D121_WV3_T0_S3407_FRESH50_v1.yaml",
+      "sha256": "d52cd23831ed2d7aaf2f51f25fefb18f1d4d0075a9dc33d0870c58f7f663b451"
+    },
+    {
+      "path": "config/PAKD50_QERS_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "c195675b4bab2846728b3ead2dbda72b9628d118157d2eb77ee21edc4a61f7e4"
+    },
+    {
+      "path": "config/PAKD50_QERS_W104_D121_WV3_T0_S3407_FRESH50_v1.yaml",
+      "sha256": "db4ab65b87305149827a636b1feffee2204901d716cb12f9f2e8f0e8094c6f5f"
+    },
+    {
+      "path": "config/PAKD50_QES_W104_D121_WV3_T0_S1234_FRESH50_v2.yaml",
+      "sha256": "93475b0a06db93d9c47e510a3c3ef3d4d852043dc242ecb88a153b29cbd388cf"
+    },
+    {
+      "path": "config/PAKD50_QES_W104_D121_WV3_T0_S2026_FRESH50_v2.yaml",
+      "sha256": "9043b9c1f33b19dae1d0c99fd990fa3df8eb0dddcfa9dc4e59ea32377f484908"
+    },
+    {
+      "path": "config/PAKD50_QX50_W104_D121_WV3_T0_S2026_FRESH50_v2.yaml",
+      "sha256": "9acc52b3ac765a0ab3187ccc592ec3e5bb2965b18a7a71e85e4402413d9dfae5"
+    },
+    {
+      "path": "config/PAKD50_QX50_W104_D121_WV3_T0_S4321_FRESH50_v2.yaml",
+      "sha256": "fd181f3185140b86d4d03b7a8dfe0ad92079ce4dd7ce1ead31c3dcc3a4dd87fb"
+    },
+    {
+      "path": "config/PAKD50_XJ_W104_D121_WV3_T0_S2026_FRESH50_v2.yaml",
+      "sha256": "3cbc220c46a80c05c6217989402719c1800affa6ca7f336f7aafb7ee909df429"
+    },
+    {
+      "path": "config/PAKD50_XJ_W104_D121_WV3_T0_S4321_FRESH50_v2.yaml",
+      "sha256": "a5430bedbb037a873e490a7f24ca87425a0a15a80e6cb4bb894e86f90855eb9f"
+    },
+    {
+      "path": "config/queues/qedge9_s1.txt",
+      "sha256": "90350a09745f704277d73c568deb9ff758767ccf310ee47550cab2c8108da14a"
+    },
+    {
+      "path": "config/queues/qegx_s3.txt",
+      "sha256": "415106997b57c8d365c2ad86798e22d9f170614962e0f916f552b10900b4e8b7"
+    },
+    {
+      "path": "config/queues/qegx_s4.txt",
+      "sha256": "0f3447c114cbf5bda128cc34d84617470044dde07db01f604c49f06112ecacec"
+    },
+    {
+      "path": "gspread/gspread_upload.py",
+      "sha256": "90dbd932f007180d608c714af4800dd2ecbcfd6f9e5db2cac8b3827387576f8c"
+    },
+    {
+      "path": "kdv/calibration.py",
+      "sha256": "dc3b2b200bf747d215d87e25db46f28ebbf8de875eceff25d3468722192127d0"
+    },
+    {
+      "path": "kdv/edge_gate.py",
+      "sha256": "ba59f9685b4e8792e0b946e2471a2b80f4b012ce1bd352f60f8b86eb59142117"
+    },
+    {
+      "path": "kdv/losses_rec.py",
+      "sha256": "092e68d3c96b7a145f1f6821ef0aa44c4dfc3658f8338670c2ee27f56ba52997"
+    },
+    {
+      "path": "kdv/registry.py",
+      "sha256": "c3ff8579e7c373e9c2a31cac1e429322aa0af209f8cdc1f7c3e341f7152baaa1"
+    },
+    {
+      "path": "kdv/resume.py",
+      "sha256": "6c3f1f564c2ba347c97065bbf091379b8b1a6542b90ee23da5e1202cdbd76192"
+    },
+    {
+      "path": "kdv/teacher_assets.py",
+      "sha256": "616ee40abd022ada9a072ce0c063fe8e23537aa53e5698c4e5b71801fb144533"
+    },
+    {
+      "path": "main.py",
+      "sha256": "16675e5446a038f5372ea3e68cd37d92a8f907b3beca797cf618781c2ec5cbe3"
+    },
+    {
+      "path": "pa/losses.py",
+      "sha256": "06eb9a117181355a899f2f0a24f8934b5867459f8fe645337aac2c8a0774279c"
+    },
+    {
+      "path": "pa/model.py",
+      "sha256": "e162cbc77e0b15af87f27ef7573b101c0b977cd171f679ff902c782f8a87a393"
+    },
+    {
+      "path": "pa/warp.py",
+      "sha256": "b7ea18eb1c09a9462763bfe0146454df2c6593c8dce9107328804a33ed02fcab"
+    },
+    {
+      "path": "research_log/2026-09-15_qedge9-implementation.md",
+      "sha256": "e6eec064380b1f75cac8a50142efb38db064b5f7d846fd981042f64401734cd9"
+    },
+    {
+      "path": "research_log/2026-09-15_qegx-implementation.md",
+      "sha256": "6b66080df67e22b04d4079d3c69117331fc9dc13b63d8966cebcaf17d3665ee4"
+    },
+    {
+      "path": "research_log/PAN_QEGX_S3_S4_W104D121_Experiment_Plan_2026-09-15.md",
+      "sha256": "78a49d9dbe003f123bd4ba3af2e7ec286dc9e51329ab9054f6cde66413dcdc6d"
+    },
+    {
+      "path": "research_log/S3_Run_Handoff_QEGX_2026-09-15.md",
+      "sha256": "e5629aa3e1013c776418dd6093f11b8ca4317a911f934856743cee7ef03ab5b8"
+    },
+    {
+      "path": "research_log/S4_Run_Handoff_QEGX_2026-09-15.md",
+      "sha256": "1814e92872f33588329999cbc45c6fc7f95e96029dd1fbffc93c5b7243ed8172"
+    },
+    {
+      "path": "tools/_run_cases.sh",
+      "sha256": "868d8ec365565d87820d39e00d75025fb261d64113d8390657b016ceef19b92a"
+    },
+    {
+      "path": "tools/_upload.sh",
+      "sha256": "c4506d6debc547f6917e189df9a45e4f5890d996be8e7479f711945dafa49fd9"
+    },
+    {
+      "path": "tools/_watchdog.sh",
+      "sha256": "f52bdb9c42542e0f50c963189818b5e7e1a14fccfd5a9822d79e4b783520a280"
+    },
+    {
+      "path": "tools/campaign_gate.py",
+      "sha256": "35c8ccbe482219c2b023cc60f389b7f1eaff74e021121a02db7c473a7aeb6feb"
+    },
+    {
+      "path": "tools/campaign_start.sh",
+      "sha256": "14326a6ead50493504c93a78911c744a0376b8b1a0f636888b6d60584bfc345e"
+    },
+    {
+      "path": "tools/gen_pakd50_configs.py",
+      "sha256": "72e1dd8e7cc6977025146ddbe228ca6d0faa67cc099da95ffb6b451bc02b7bdf"
+    },
+    {
+      "path": "tools/pakd50_unit_tests.py",
+      "sha256": "6cf3da1f9a13db294061f2c8c73900cfbf0dd8bd5326f6a43cbee0bdccad1cfc"
+    },
+    {
+      "path": "tools/qedge9_cue.py",
+      "sha256": "d6b133fc0e32459fc1f84006445618714aaabce4d20055c0da2f398694c56ef9"
+    },
+    {
+      "path": "tools/qedge9_prepare_s1.sh",
+      "sha256": "93cf130a8e1665d5be37b0db280ad55e452a40b2f58b5fa5449ef77f55df9295"
+    },
+    {
+      "path": "tools/qedge9_switch.sh",
+      "sha256": "9da38385e2c985d19d309d195b1e90826cd5a959c20b07967169d9cbf1146c7e"
+    },
+    {
+      "path": "tools/qedge9_waiter.sh",
+      "sha256": "d810b87de3c2fa2992be61a70369e894d0cb060e67ddd6fcf7e41f3385be958a"
+    },
+    {
+      "path": "tools/qegx_switch.sh",
+      "sha256": "cc018b5c4439873a0c53e03fc443884e07b4fc48b2211c283d305c4c71625bae"
+    },
+    {
+      "path": "tools/qegx_waiter.sh",
+      "sha256": "ded64ae1758b711c7fd2763c8677358154ef18d507cf28a4f9329ab3542614e3"
+    },
+    {
+      "path": "tools/run.sh",
+      "sha256": "94f504f606ade5c21c88db7ef6086877a8db9365d00dc09f91fce4dcd03a0ddd"
+    },
+    {
+      "path": "train_kdv.py",
+      "sha256": "2200513fc1521d117aeb20bbe5ca284c352929dc73ce1a244152e52180035f58"
+    },
+    {
+      "path": "train_pa.py",
+      "sha256": "a1c66c379f22e17c2171d9c2f0eccc5f016840d71ddf7df396717306e5b05be6"
+    },
+    {
+      "path": "train.py",
+      "sha256": "59d17eaf82c707e3e0f23f8e51058cdd2991dfbe1715ba5cfa4fcee6d14a7193",
+      "added_at_final_check": true
+    },
+    {
+      "path": "pa/offset.py",
+      "sha256": "8e70f6999d311eaba9d9ff35fc7e4da05d2f0439fc1735d125a1342eec9b5dba",
+      "added_at_final_check": true
+    },
+    {
+      "path": "feeders/feeder.py",
+      "sha256": "08ca231c582287f0ff23307eb7413738a674a48294862b02499aa24cf4e55ef1",
+      "added_at_final_check": true
+    },
+    {
+      "path": "model/pancrafter_paper.py",
+      "sha256": "a766a01a5e21d86924bd87e41b064b58dcd0407d5b4cf3200e2d8aea22603de8",
+      "added_at_final_check": true
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+Read-only host ps/nvidia-smi observed at 2026-09-15T10:55:42+09:00
+training PID 1268078, start 09:33:13, GPU 6680 MiB, config PAKD50_JK0_W112_D123_WV3_T0_S1234_FRESH50_v1.yaml
+runner PID 1267201 start 09:33:05 bash ./tools/_run_cases.sh
+DCR runner PID 1328592 start 09:42:47 bash ./tools/dcr12_run.sh
+Four additional main.py-looking child processes were DataLoader workers (PPID 1268078), not four distinct training runs.

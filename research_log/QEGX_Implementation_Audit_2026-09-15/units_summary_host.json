@@ -1,0 +1,1 @@
+{"rc": 0, "checks": 136, "note": "CPU isolated fixture; unsandboxed local IPC allowed for DataLoader workers"}

@@ -1,0 +1,194 @@
+{
+ "run": "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1",
+ "selector": "HQNR9585_RR_v1",
+ "selector_order": [
+  "scc",
+  "ergas",
+  "psnr",
+  "sam",
+  "q8",
+  "ssim",
+  "hqnr"
+ ],
+ "threshold": 0.9585,
+ "official": true,
+ "target_status": "official",
+ "n_candidates": 50,
+ "n_eligible": 2,
+ "n_official_evaluated": 2,
+ "n_unevaluated": 0,
+ "target_feasible": true,
+ "target": {
+  "step": 31310,
+  "hqnr": 0.9591475525152621,
+  "fscc": 0.8822607225509383,
+  "scc": 0.9875815873754069,
+  "ergas": 2.0712336831455342,
+  "sam": 2.812256638030454,
+  "psnr": 37.87710393438536,
+  "q8": 0.919420015489718,
+  "ssim": 0.975157148117112,
+  "rr_mat": "work_dir/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1/results/reduced_candidate_step-31310.mat",
+  "official_rr": true,
+  "rr_cached": false,
+  "rr_identity": {
+   "checkpoint_sha256": "b3bb5d615b15c3854ccd09889227fdfaaee4e3554f8a5816ec1192ba595ab09f",
+   "config_sha256": "77239295d3e0e837fb1c176420ac075693e271e23ce1d63d42f29ecb22392e2f",
+   "reduced_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+   "evaluator": {
+    "eval_rr": "a64a95ffde9b7d0278fa883bda1acaf895cca74d2b07b79f56285c60e8ba0c4a",
+    "eval_dlpan": "5671d44da1026653ac028ff97f81375420fa195a55fd3721ee8140904239fdab",
+    "gspread_upload": "9ccee1a6657886b4954e1b95505c2c66e0ab945c610965eee0621eba1a99d449",
+    "q2n": "89d1bf28a211e18a6fa8a2b6f8f7162f4b6716d15b2097888e773f1f73be10d1",
+    "eval_fr_paperset_version": "2026-09-10.5"
+   },
+   "step": 31310,
+   "device": "cuda",
+   "forward": "kdv/A-FT/R3: aligner on (learned Δ, view margin 4), raw_original view",
+   "evaluated_at": "2026-09-18T04:02:32"
+  },
+  "rr_pass": {
+   "scc": false,
+   "ergas": false,
+   "psnr": false,
+   "sam": false,
+   "q8": false,
+   "ssim": false
+  },
+  "numeric_pass_all6": false,
+  "display_tie": {
+   "scc": true,
+   "ergas": false,
+   "psnr": false,
+   "sam": false,
+   "q8": false,
+   "ssim": false
+  }
+ },
+ "joint_pass": false,
+ "joint_pass_note": "official RR 이 완료된 target 에서만 판정한다. proxy 값으로는 joint_pass 를 확정하지 않는다 (R2 §2.2)",
+ "proxy_target": null,
+ "six_pass_best": null,
+ "legacy_best": {
+  "step": 31310,
+  "hqnr": 0.9591475525152621,
+  "fr_mat20_hqnr": 0.9591475525152621
+ },
+ "h_consistency": {
+  "step": 31310,
+  "csv_hqnr": 0.9591475525152621,
+  "fr_mat20_hqnr": 0.9591475525152621,
+  "abs_diff": 0.0
+ },
+ "raw_max": {
+  "step": 31310,
+  "hqnr": 0.9591475525152621
+ },
+ "exact50K": {
+  "step": 50000,
+  "hqnr": 0.9566664324872887,
+  "scc": 0.9911442773166319,
+  "ergas": 2.0426673503040473
+ },
+ "late6": {
+  "steps": [
+   45450,
+   46460,
+   47470,
+   48480,
+   49490,
+   50000
+  ],
+  "n": 6,
+  "hqnr_mean": 0.956700150550888
+ },
+ "eligible_ranked": [
+  {
+   "step": 31310,
+   "hqnr": 0.9591475525152621,
+   "fscc": 0.8822607225509383,
+   "scc": 0.9875815873754069,
+   "ergas": 2.0712336831455342,
+   "sam": 2.812256638030454,
+   "psnr": 37.87710393438536,
+   "q8": 0.919420015489718,
+   "ssim": 0.975157148117112,
+   "rr_mat": "work_dir/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1/results/reduced_candidate_step-31310.mat",
+   "official_rr": true,
+   "rr_cached": false,
+   "rr_identity": {
+    "checkpoint_sha256": "b3bb5d615b15c3854ccd09889227fdfaaee4e3554f8a5816ec1192ba595ab09f",
+    "config_sha256": "77239295d3e0e837fb1c176420ac075693e271e23ce1d63d42f29ecb22392e2f",
+    "reduced_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "evaluator": {
+     "eval_rr": "a64a95ffde9b7d0278fa883bda1acaf895cca74d2b07b79f56285c60e8ba0c4a",
+     "eval_dlpan": "5671d44da1026653ac028ff97f81375420fa195a55fd3721ee8140904239fdab",
+     "gspread_upload": "9ccee1a6657886b4954e1b95505c2c66e0ab945c610965eee0621eba1a99d449",
+     "q2n": "89d1bf28a211e18a6fa8a2b6f8f7162f4b6716d15b2097888e773f1f73be10d1",
+     "eval_fr_paperset_version": "2026-09-10.5"
+    },
+    "step": 31310,
+    "device": "cuda",
+    "forward": "kdv/A-FT/R3: aligner on (learned Δ, view margin 4), raw_original view",
+    "evaluated_at": "2026-09-18T04:02:32"
+   }
+  },
+  {
+   "step": 25250,
+   "hqnr": 0.9588671017042433,
+   "fscc": 0.8892041329643364,
+   "scc": 0.987238094853162,
+   "ergas": 2.092365627355865,
+   "sam": 2.8346612281717753,
+   "psnr": 37.791992036740865,
+   "q8": 0.9180109657353543,
+   "ssim": 0.9746400554417486,
+   "rr_mat": "work_dir/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1/results/reduced_candidate_step-25250.mat",
+   "official_rr": true,
+   "rr_cached": false,
+   "rr_identity": {
+    "checkpoint_sha256": "049e836d9b32578c8d9768e2694107348ebcf7f37ef3499383645359a2765da8",
+    "config_sha256": "77239295d3e0e837fb1c176420ac075693e271e23ce1d63d42f29ecb22392e2f",
+    "reduced_h5_sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+    "evaluator": {
+     "eval_rr": "a64a95ffde9b7d0278fa883bda1acaf895cca74d2b07b79f56285c60e8ba0c4a",
+     "eval_dlpan": "5671d44da1026653ac028ff97f81375420fa195a55fd3721ee8140904239fdab",
+     "gspread_upload": "9ccee1a6657886b4954e1b95505c2c66e0ab945c610965eee0621eba1a99d449",
+     "q2n": "89d1bf28a211e18a6fa8a2b6f8f7162f4b6716d15b2097888e773f1f73be10d1",
+     "eval_fr_paperset_version": "2026-09-10.5"
+    },
+    "step": 25250,
+    "device": "cuda",
+    "forward": "kdv/A-FT/R3: aligner on (learned Δ, view margin 4), raw_original view",
+    "evaluated_at": "2026-09-18T04:02:27"
+   }
+  }
+ ],
+ "eligible_unevaluated": [],
+ "evaluator": {
+  "eval_rr": "a64a95ffde9b7d0278fa883bda1acaf895cca74d2b07b79f56285c60e8ba0c4a",
+  "eval_dlpan": "5671d44da1026653ac028ff97f81375420fa195a55fd3721ee8140904239fdab",
+  "gspread_upload": "9ccee1a6657886b4954e1b95505c2c66e0ab945c610965eee0621eba1a99d449",
+  "q2n": "89d1bf28a211e18a6fa8a2b6f8f7162f4b6716d15b2097888e773f1f73be10d1",
+  "eval_fr_paperset_version": "2026-09-10.5"
+ },
+ "rr_eval_seconds_total": 10.641123056411743,
+ "notes": [],
+ "rr_targets": {
+  "scc": "> 0.988",
+  "ergas": "< 2.04",
+  "psnr": "> 37.956",
+  "sam": "< 2.787",
+  "q8": "> 0.922",
+  "ssim": "> 0.976"
+ },
+ "display_decimals": {
+  "scc": 3,
+  "ergas": 3,
+  "psnr": 3,
+  "sam": 3,
+  "q8": 3,
+  "ssim": 3
+ },
+ "note": "같은 checkpoint 의 raw H(mat20 전체 frame) 하한 통과 뒤 RR 정렬; legacy/raw-max/exact50K/late6 는 보존·병기 (§7.2–§7.3). FR fSCC 와 RR SCC 는 다른 값이다. 공식 RR 는 candidate checkpoint 재추론(hash 로 캐시 검증)."
+}

@@ -1,0 +1,410 @@
+{
+  "status": "PASS",
+  "required_npy_count": 80,
+  "actual_npy_count": 80,
+  "prediction_files": 40,
+  "gt_files": 40,
+  "image_rendering_performed": false,
+  "per_scene": [
+    {
+      "sensor": "WV3",
+      "index": 0,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 1,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 2,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 3,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 4,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 5,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 6,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 7,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 8,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 9,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 10,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 11,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 12,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 13,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 14,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 15,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 16,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 17,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 18,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 19,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 0,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 1,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 2,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 3,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 4,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 5,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 6,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 7,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 8,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 9,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 10,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 11,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 12,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 13,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 14,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 15,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 16,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 17,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 18,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    },
+    {
+      "sensor": "QB",
+      "index": 19,
+      "pred_byte_identical": true,
+      "gt_source_cast_exact": true,
+      "gt_cast_max_abs_error_dn": 0.0,
+      "gt_cast_lossless": true,
+      "shape_dtype_finite_roundtrip_passed": true,
+      "scene_pairing_passed": true
+    }
+  ]
+}

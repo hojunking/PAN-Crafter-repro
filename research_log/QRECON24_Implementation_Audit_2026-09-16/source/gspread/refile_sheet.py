@@ -1,0 +1,149 @@
+#!/usr/bin/env python
+"""시트 재정리 — 새 업로드분을 범주 구분행 아래로 되돌린다.
+
+`gspread_upload.py` 는 새 실행을 **시트 맨 아래에 덧붙인다**(범주와 무관하게).
+캠페인이 끝나면 이 스크립트로 다시 범주별로 묶는다.
+
+    python gspread/refile_sheet.py --dry-run          # 무엇이 어디로 갈지만 출력
+    python gspread/refile_sheet.py                    # 실제 반영 (백업 자동 저장)
+    python gspread/refile_sheet.py --archive          # *-전체 시트도 함께 갱신
+
+안전장치: 반영 전에 모든 시트를 gspread/_sheet_backup/ 에 JSON 으로 저장하고,
+반영 후 "원본 데이터행 ⊆ 결과" 를 셀 단위로 검증한다. 불일치면 즉시 중단한다.
+범주 정의는 gspread/sheet_categories.py 한 곳에만 있다.
+"""
+import argparse, json, os, sys, time
+from collections import Counter
+import gspread
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "gspread"))
+from sheet_categories import classify, run_tag, NAME, DESC, SEP as _SEP  # noqa: E402
+
+CRED = os.path.join(ROOT, "gspread", "account.json")
+BK = os.path.join(ROOT, "gspread", "_sheet_backup")
+SHEET = "pan-cvpr27"
+# 표시 순서. 2026-09-11: 현 접근 범주(BASE96·PA·PO10·KDV)를 REF 다음에 두고, 여기 없는 범주도 절대 버리지 않는다(regroup 이 ORDER 로 보충).
+DISPLAY = ["REF", "BASE96", "PA", "PO10", "KDV", "NF16", "PALS24", "PALSV18", "NA104", "SEED", "P25", "SUBMOD", "ARCH", "ATTN", "KD", "SE", "MS", "S1GRID", "MUT", "GA", "SR", "UVS", "MULTISET", "MISC"]
+SEP = _SEP
+
+
+def ncol_of(vals):
+    """헤더(3행)의 마지막 라벨 인덱스 = Notes 열. 2026-09-07 열 추가(FR·paper) 뒤로는 22, 그 전(_v1)은 19."""
+    hdr = vals[2] if len(vals) > 2 else []
+    labels = [i for i, c in enumerate(hdr) if c.strip()]
+    return labels[-1] if labels else 19
+
+
+def datarows(vals):
+    return [r for i, r in enumerate(vals)
+            if i >= 3 and len(r) > 1 and r[1].strip() and not r[1].startswith(SEP)]
+
+
+def regroup(vals, ref_order=None):
+    """헤더 3행 + 범주 구분행 + 데이터행 으로 재구성. 데이터는 하나도 버리지 않는다.
+
+    ref_order: 실행명 -> 순번. 주어지면 범주 안에서 그 순서(예: 옛 `_v1` 시트의 순서)를 따르고,
+    거기 없는 새 run 은 뒤에 Date 순으로 붙인다. 없으면 시트에 있던 순서 그대로.
+    """
+    header = vals[0:3]
+    ncol = ncol_of(vals)
+    data = datarows(vals)
+    buckets = {}
+    for r in data:
+        buckets.setdefault(classify(r[1]), []).append(r)
+    if ref_order:
+        date_i = next((i for i, c in enumerate(header[2]) if c.strip() == "Date"), ncol - 1)
+        big = 10 ** 6
+        for k in buckets:
+            buckets[k].sort(key=lambda r: (ref_order.get(run_tag(r[1]), big),
+                                            r[date_i] if len(r) > date_i else ""))
+    out = [list(x) for x in header]
+    sep = []
+    from sheet_categories import ORDER as _ORDER
+    for k in DISPLAY + [k for k in _ORDER if k not in DISPLAY] + [k for k in buckets if k not in DISPLAY and k not in _ORDER]:
+        if not buckets.get(k):
+            continue
+        row = [""] * max(len(header[2]), ncol + 1)
+        row[1] = f"{SEP}{NAME[k]}"
+        if k in DESC:                         # 캠페인 설명은 Notes(마지막 열)에
+            row[ncol] = DESC[k]
+        out.append(row); sep.append(len(out))
+        out.extend(list(r) for r in buckets[k])
+    return out, sep, data, ncol
+
+
+def _col(idx0):
+    """0-based 열 인덱스 -> A1 열 문자."""
+    s, c = "", idx0 + 1
+    while c:
+        c, r = divmod(c - 1, 26)
+        s = chr(65 + r) + s
+    return s
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--archive", action="store_true", help="*-전체 시트도 갱신")
+    ap.add_argument("--sheet", action="append", default=None,
+                    help="이 탭만 (여러 번 지정 가능). 기본: '-전체'·'_v1' 을 뺀 WV3-* 전부")
+    ap.add_argument("--ref", default=None,
+                    help="범주 안 순서를 이 탭의 순서에 맞춘다 (예: WV3-s1_v1). 거기 없는 run 은 뒤에 Date 순")
+    a = ap.parse_args()
+
+    gc = gspread.service_account(filename=CRED)
+    sh = gc.open(SHEET)
+    os.makedirs(BK, exist_ok=True)
+    if a.sheet:
+        targets = a.sheet
+    else:
+        targets = [w.title for w in sh.worksheets()
+                   if w.title.startswith("WV3-") and not w.title.endswith("_v1")
+                   and (a.archive or not w.title.endswith("-전체"))]
+    ref_order = None
+    if a.ref:
+        ref_vals = sh.worksheet(a.ref).get_all_values()
+        ref_order = {run_tag(r[1]): i for i, r in enumerate(datarows(ref_vals))}
+        print(f"[ref] {a.ref}: {len(ref_order)}개 run 순서 기준")
+
+    for title in targets:
+        ws = sh.worksheet(title)
+        vals = ws.get_all_values()
+        json.dump(vals, open(os.path.join(BK, f"{title}.json"), "w"), ensure_ascii=False, indent=1)
+        out, sep, data, ncol = regroup(vals, ref_order)
+
+        print(f"[{title}] 데이터 {len(data)}행 -> 범주 {len(sep)}개 (Notes 열 index {ncol} = {_col(ncol)})")
+        if a.dry_run:
+            for k in DISPLAY:
+                g = [run_tag(r[1]) for r in datarows(out) if classify(r[1]) == k]
+                if g:
+                    print(f"   {NAME[k][:40]:<42} {len(g):>2}건  {', '.join(g[:6])}"
+                          + (" …" if len(g) > 6 else ""))
+            continue
+
+        last_col = _col(ncol)
+        ws.batch_clear([f"B4:{last_col}{ws.row_count}"])
+        ws.update(values=[(r + [""] * (ncol + 1))[1:ncol + 1] for r in out[3:]], range_name="B4",
+                  value_input_option="RAW")
+        reqs = [{"repeatCell": {
+            "range": {"sheetId": ws.id, "startRowIndex": rr - 1, "endRowIndex": rr,
+                      "startColumnIndex": 1, "endColumnIndex": ncol + 1},
+            "cell": {"userEnteredFormat": {
+                "backgroundColor": {"red": .87, "green": .89, "blue": .93},
+                "textFormat": {"bold": True}}},
+            "fields": "userEnteredFormat(backgroundColor,textFormat.bold)"}} for rr in sep]
+        sh.batch_update({"requests": reqs})
+
+        after = datarows(ws.get_all_values())
+        lost = Counter(tuple(r) for r in data) - Counter(tuple(r) for r in after)
+        if lost:
+            print(f"  ★검증 실패 — {sum(lost.values())}행 손실. "
+                  f"백업: {os.path.join(BK, title + '.json')}")
+            sys.exit(1)
+        print(f"  검증 OK (데이터행 {len(after)}, 손실 0)")
+        time.sleep(2)
+
+
+if __name__ == "__main__":
+    main()

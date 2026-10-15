@@ -1,0 +1,96 @@
+{
+  "captured_at": "2026-09-15T10:57:25+0900",
+  "head": "d616740e4b9188218f93b736394d6224b674534e",
+  "files": [
+    {
+      "path": "work_dir/_dcr12_s1_campaign/run.log",
+      "bytes": 1265,
+      "sha256": "988c765ff9c2d336a40c1e06ab56b0a643c7a745574ebc654592ad8bb13e3a8a"
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/panel_ids.json",
+      "bytes": 22676,
+      "sha256": "64f1294de309f9b748d08c3132f06b8e4e2cf79198491b726af71b91e32daf73"
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/manifest.json",
+      "bytes": 7440,
+      "sha256": "54ecab0ac878f95b16a6e518d64dbd380334b7cd2847bef3fca34db744f50393"
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/d00_smoke.json",
+      "bytes": 1834,
+      "sha256": "7c4ef4ff960d0faebe17ac1141a9abc473fc50c3313ab6bb0f2dcdadd443de41"
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/d01_stats.json",
+      "bytes": 12958,
+      "sha256": "73a65d1ab2daf7102100bb86dabfba173392b1b21a8d00d0650a7355eb34ae57"
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/d02_stats.json",
+      "bytes": 6664,
+      "sha256": "dc25267b5fde59ea2f4d7b32edd280594df4ea116206be5c87eee26c9b7b4408"
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/d03_summary.json",
+      "bytes": 2309,
+      "sha256": "6f777545c1abf26bbc7c000e72582164caa19082fd5d10f0cf87c2cf605ce622"
+    },
+    {
+      "path": "work_dir/_dcr12_s1_campaign/time_ledger.jsonl",
+      "bytes": 4209,
+      "sha256": "341c9daf008bc178bbb4b35f9539c031c326c282bcd209002711ff7be8872532"
+    },
+    {
+      "path": "work_dir/_pakd50/mandatory_runs.txt",
+      "bytes": 219,
+      "sha256": "215c1e5a8e737c0bed53f2117d2f870813f7ac5ab1d69e478192cff8343bea02"
+    },
+    {
+      "path": "work_dir/campaign_gates_enabled.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "config/queues/dcr12_s1.txt",
+      "bytes": 571,
+      "sha256": "5aa970000fbbe886768ef6db265fae170bcdbb1263943f46c3a6095c23c7b5d0"
+    },
+    {
+      "path": "work_dir/_pakd50_budget/ledger.json",
+      "bytes": 5112,
+      "sha256": "ee560992dedb14c78351686bca037ecaf67fd5e7044b782a3322ae1993f444d9"
+    },
+    {
+      "path": "assets/pakd50/campaign_clock.json",
+      "bytes": 691,
+      "sha256": "6a4fa08a11993531c9654ecdd36a0675fe9f9a518b0ffddb2e46a31c4d3bf4c3"
+    },
+    {
+      "path": "work_dir/cases_queue.txt",
+      "bytes": 571,
+      "sha256": "5aa970000fbbe886768ef6db265fae170bcdbb1263943f46c3a6095c23c7b5d0"
+    },
+    {
+      "path": "work_dir/cases_deadline.txt",
+      "bytes": 26,
+      "sha256": "d11c6988e495c4df38ae59f1d6572445dc78c08135b35d492bbf55743418541c"
+    },
+    {
+      "path": "work_dir/PAKD50_JK0_W112_D123_WV3_T0_S1234_FRESH50_v1/meta/config.yaml",
+      "bytes": 6689,
+      "sha256": "94a664daedef3832b808d2bf9a71b5806dacd9f6b3cef814f5bdc7edb6b407de"
+    },
+    {
+      "path": "work_dir/PAKD50_JK0_W112_D123_WV3_T0_S1234_FRESH50_v1/initialization_hashes.json",
+      "bytes": 334,
+      "sha256": "6118e0587bdda2d30b7f1f1f08320ecc14605f97bf1352a3655881729dd517e2"
+    },
+    {
+      "path": "work_dir/PAKD50_JK0_W112_D123_WV3_T0_S1234_FRESH50_v1/checkpoint_metrics.csv",
+      "bytes": 20411,
+      "sha256": "e1b7d02fbfd6df96112ee0f0f7fa9b24edc6a67ceffcafdcd309437949c42993"
+    }
+  ]
+}

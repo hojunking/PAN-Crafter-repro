@@ -1,0 +1,12 @@
+{
+  "returncode": 0,
+  "passed": 195,
+  "failures": [],
+  "tail": [
+    "  OK  K51 phase hold(V15·V16·§2): 새 학습을 시작할 수 있는 네 경로가 전부 hold 를 본다 — smoke_cases(rc 2 = 원장 기록 없는 일시 사유) · waiter(HOLD_EVAL, 재기동 안 함) · cron watchdog · switch(기동 거부) · campaign_gate(조건부 실행 안 염) · hold 는 진행 중 학습을 죽이지 않는다(preempt_running_training False) · 복귀 manifest 에 큐 파일 내용·sha·revision·다음 미완 case 를 담는다 · 평가 우회가 학습 경로에 남지 않는다(sampler 복원 검사) ",
+    "  OK  K51 독립 복귀·분석 순서(V13·V14·V17·§1.3·§10.5): 평가/복귀 코드 어디에도 '다른 서버 평가 완료' 나 's1 분석 완료' 를 기다리는 조건이 없다 · 평가 완료가 recipe lock 을 만들거나 본 방법(정상 추론 A_ON)을 바꾸지 않는다 · s1 분석 도구는 §7.1 네 자산과 §7.3 AXIS16(반경 .25/.5/1/2 × 4 축 = 16) 을 쓰고 q_size 를 학습 q 와 분리해 적는다 ",
+    "  OK  K51 문서·protocol: 계획서(있으면 protocol id 일치) · 구현 노트 · 도구 5 종 존재 · 모든 도구가 같은 protocol id 를 쓴다 ",
+    "",
+    "ALL OK (0 failed)"
+  ]
+}

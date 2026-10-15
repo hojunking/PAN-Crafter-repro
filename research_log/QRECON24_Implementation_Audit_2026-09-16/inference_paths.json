@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "selector_vs_trainer_max": 0.0,
+  "selector_vs_training_forward_max": 0.0,
+  "cpu_shift": [
+    [
+      0.006685622967779636,
+      0.13904425501823425
+    ]
+  ],
+  "export_gpu_shift": [
+    0.006667771376669407,
+    0.13903655111789703
+  ],
+  "shift_max_difference": 1.7851591110229492e-05,
+  "note": "Same CPU inputs/checkpoint: independent load_run_model + real PATrainer._infer and kdv_forward versus selector helper build. Cross-device export comparison remains a separate numerical discrepancy, not classified as proven selector algorithm error."
+}

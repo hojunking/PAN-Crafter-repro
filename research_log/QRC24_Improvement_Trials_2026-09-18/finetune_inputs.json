@@ -1,0 +1,225 @@
+{
+  "teacher": {
+    "run": "T0_run",
+    "run_dir": "/home/knuvi/Desktop/song/PAN-Crafter/assets/pakd50/T0_run",
+    "tag": "best_hqnr",
+    "file": "/home/knuvi/Desktop/song/PAN-Crafter/assets/pakd50/T0_run/best_hqnr/model.safetensors",
+    "file_sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+    "tensors_sha256_16": "7d9b52112797bbff",
+    "trainer": "kdv",
+    "width": 112,
+    "depth": [
+      1,
+      2,
+      3
+    ],
+    "in_mode": "paper",
+    "norm": "ln",
+    "backbone_params": 2658888,
+    "aligner_params": 105330,
+    "aligner_view_margin": 4,
+    "sampler": true,
+    "seed": 2025,
+    "kdv": {
+      "campaign_id": "PALS24_W112D123_N2LAST_R200_v2",
+      "plan_protocol_id": "PALS_W112D123_N2LAST_R200_v1",
+      "document_revision": "24GPUh_v2",
+      "case_id": "L1E4",
+      "run_kind": "CONTROLLED",
+      "version": "v1",
+      "check_run_name": false,
+      "input_protocol": "I-AEQ",
+      "aligner_policy": "A-FT",
+      "diag_every": 1000,
+      "calibration": {
+        "n_patches": 3072,
+        "seed": 1234
+      },
+      "aligner_lr": 1e-05,
+      "rec": {
+        "case": "N0"
+      },
+      "stat": {
+        "enabled": false
+      },
+      "geom_kd": {
+        "mode": "G0"
+      },
+      "eval": {
+        "fixed_reference_from_donor": true
+      },
+      "budget": {
+        "ledger": "work_dir/_pals24_budget/ledger.json",
+        "total_gpu_hours": 24.0,
+        "reserve_hours": 4.0,
+        "margin": 1.1,
+        "required": false,
+        "projected_hours": null,
+        "projected_map": {
+          "PALS24_L000_W112_D123_WV3_S2025_N2LAST_R200_v1": 2.0,
+          "PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1": 2.0,
+          "PALS24_CTRLP0_W112_D123_WV3_S2025_N2LAST_R200_v1": 2.0
+        },
+        "remaining_mandatory": [
+          "PALS24_L000_W112_D123_WV3_S2025_N2LAST_R200_v1",
+          "PALS24_CTRLP0_W112_D123_WV3_S2025_N2LAST_R200_v1"
+        ]
+      },
+      "recipe": "N2_SG",
+      "donor": {
+        "source": "work_dir/PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT/last",
+        "view_margin_hr": 4,
+        "expected_sha256": "9d4cbf218cd8f6743942115e882d87d664d663935a1a1ba295a9903e27f3f816",
+        "expected_step": 50000
+      },
+      "corruption": {
+        "radius_hr": 2.0,
+        "corruption_seed_offset": 2000
+      },
+      "aux": {
+        "offset_weight": 0.0001,
+        "offset_ramp_updates": 0,
+        "offset_stop_reference": true,
+        "geometry_weight": 0.0,
+        "ramp_updates": 5000,
+        "geometry_sigma_hr": 2.0,
+        "geometry_margin_hr": 11
+      }
+    },
+    "tag_meta": {
+      "step": 24240,
+      "epoch": 120,
+      "selection_view": "raw_original",
+      "hqnr": 0.9569763995761281,
+      "fscc": 0.8785613365978273,
+      "protocol_id": "PAN_GLOBAL_ALIGN_EVAL_v2",
+      "roi_hash": "b5979ef01aa92480",
+      "alias": "best_hqnr",
+      "case": "A-FT/N0/OFF/G0",
+      "rr_scc": 0.9909490095562754,
+      "rr_ergas": 2.056243509745785,
+      "rr_sam": 2.796378489282271,
+      "hqnr_aligned_valid": 0.9600467222562281
+    },
+    "expected_sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32"
+  },
+  "q_weight": {
+    "mode": "continuous_v1",
+    "formula": "w_i = qref/(qref + q_T(i)); q_T = frozen T0 aligner AXIS16 raw q (cue asset), sg",
+    "formula_note": "2026-09-16 저녁 사용자 결정: 분자의 2 제거 (계획 §2.3 의 2qref/(qref+q) 아님; w(qref)=0.5); λE 는 2 배 환산(6e-4/2e-3/6e-3), uniform 대조 = s_q(qref) = 0.5",
+    "numerator_factor": 1.0,
+    "uniform_weight": 0.5,
+    "qref": 0.3276133416220546,
+    "a_weight": "q",
+    "e_weight": "q",
+    "asset": "assets/qedge9/cue_T0_AXIS16_v1.json",
+    "asset_id": "526dbd718af54c4a0c3eb5fd81778caa",
+    "npz_sha256": "b83cc5d1a25e8766d1813c9d19d956efc24e0f152553e53c4894fa18dcdf563e",
+    "q_source": "T0 aligner (frozen) raw q",
+    "A_loss": "weighted_H_only",
+    "A_soft": 0,
+    "A_edge": 0,
+    "student_offset": 0,
+    "stats": {
+      "qref": 0.3276133416220546,
+      "theta_q_asset": 0.3276133416220546,
+      "q_min": 0.2708114506676793,
+      "q_max": 0.49714307906106114,
+      "q_mean": 0.3307763594697438,
+      "w_min": 0.3972243603156243,
+      "w_max": 0.5474595067636119,
+      "w_mean_all": 0.49815727502514945,
+      "w_mean_calib": 0.4982136104944798,
+      "w_at_qref": 0.5,
+      "numerator_factor": 1.0,
+      "w_shuffle_mean_all": 0.4981572750251495,
+      "w_sha256_16": "e19774ad27c7e4c1",
+      "w_shuffle_sha256_16": "abd354dc0ab76d6e",
+      "shuffle": {
+        "n_strata": 40,
+        "n_shuffled": 40,
+        "n_degenerate": 0,
+        "n_small": 0,
+        "n_views_shuffled": 38856,
+        "seed": 51515
+      },
+      "w_sha256": "e19774ad27c7e4c1fa244a7bae99510728a8ec65732fd3103308e00938ee4c12",
+      "w_shuffle_sha256": "abd354dc0ab76d6e13f2e0a8721a6a629c9723782a96b16719b8887609145b04",
+      "permutation_sha256": "be978688ccac59dc9c29567b915a31cd63d3665556871b52e01b0fa676a3dd5c",
+      "q_raw_sha256": "697f3b34bc7ffb8ef3933958ff0242e7d9b5989d9c3455b3366065a831fb9947",
+      "multiset_preserved": true,
+      "n_views": 38856
+    },
+    "checks": {
+      "asset_id": "526dbd718af54c4a0c3eb5fd81778caa",
+      "teacher_aligner_hash": "493aca181f93ae68",
+      "teacher_view_margin": 4,
+      "train_sha256": "f9e7ec381390ff36ddffd0714df7af07a3c5f456078b219a25f3e18372228f82",
+      "feeder_contract": {
+        "hflip": true,
+        "vflip": true,
+        "rot": true,
+        "crop": false
+      }
+    },
+    "teacher": {
+      "run": "T0_run",
+      "tag": "best_hqnr",
+      "file_sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+      "tensors_sha256_16": "7d9b52112797bbff",
+      "aligner_state_hash": "493aca181f93ae68",
+      "aligner_view_margin": 4,
+      "selected_step": 24240,
+      "adapter": "predict_c(aligner, view(P, margin), view(bicubic↑4 M, margin)) — Teacher forward 와 동일; U 는 q 에 쓰지 않음"
+    },
+    "computed_at": "2026-09-15T15:50:48",
+    "source_server": "s1"
+  },
+  "train": {
+    "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5",
+    "sha256": "f9e7ec381390ff36ddffd0714df7af07a3c5f456078b219a25f3e18372228f82",
+    "lpan_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3_pan.h5",
+    "lpan_sha256": "3ce697e7d57b04a02175b2f393fb762c897ed47c1a1e11e7f1a27018be5a5628"
+  },
+  "order_sha": "c16a3e7d99076436cb8c28c2e808d0ccfdddda89673ba53ff70a1b5e5c85043e",
+  "protocol": {
+    "seed": 1234,
+    "updates": 1000,
+    "batch_size": 8,
+    "U_lr": 1e-05,
+    "A_lr": 3e-07,
+    "optimizer": "AdamW reset betas(.9,.999) eps1e-8 weight_decay.01",
+    "scheduler": "constant",
+    "arms": [
+      "bicubic_joint",
+      "lms_Aref_joint",
+      "bicubic_Afreeze"
+    ],
+    "same_order_seed": 20260918,
+    "teacher": "frozen T0",
+    "note": "small matched pilot, not exact resume or fresh50K"
+  },
+  "reference_check": {
+    "gt_to_bic": {
+      "median": [
+        0.5229027510261226,
+        0.4899649634856369
+      ],
+      "mean_norm": 0.7463753719844126
+    },
+    "gt_to_lms": {
+      "median": [
+        0.04272203817082777,
+        0.0011106384071379069
+      ],
+      "mean_norm": 0.20015163664717625
+    },
+    "lms_to_bic": {
+      "median": [
+        0.4994199191387615,
+        0.49352375604603227
+      ],
+      "mean_norm": 0.6834648940989205
+    }
+  }
+}

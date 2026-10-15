@@ -1,0 +1,12 @@
+{
+  "arm": "bicubic_Afreeze",
+  "updates": 1000,
+  "seconds": 23.017370223999023,
+  "initial_hash": "c8a15f80da34de2d",
+  "model_sha256": "43cf68dca1bb8780707d915b965377b3d8ae4bce87cc12be974829dff14891ed",
+  "A_frozen": true,
+  "A_unchanged": true,
+  "teacher_unchanged": true,
+  "peak_allocated_mib": 469.0126953125,
+  "at": "2026-09-18T13:55:46.519196+09:00"
+}

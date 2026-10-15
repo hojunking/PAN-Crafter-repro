@@ -1,0 +1,280 @@
+{
+ "question": "are NN grid/noise patterns real model outputs or inference/stitching/rendering artifacts",
+ "reproduction": {
+  "note": "re-inference with same checkpoint and inputs; 2 regions x 4 tiles x 3 NN methods; single pass = 512x512 region + 128 px context in one forward",
+  "per_region": {
+   "200014103764_01": {
+    "lpan_recompute_maxabs_center": 0.0,
+    "ZS_WV3": {
+     "tile_repro_maxabs_DN": 0.0,
+     "single_pass_vs_tiles_maxabs_DN": 0.0069580078125,
+     "single_pass_vs_tiles_meanabs_DN": 0.00015598842583131045,
+     "detail_gain_tiles": 1.7514126932361835,
+     "detail_gain_single": 1.7514126842165811,
+     "unrelated_hf_tiles": 1.5302624045686344,
+     "unrelated_hf_single": 1.530262396687934
+    },
+    "SC_SCENE_EXACT20K": {
+     "tile_repro_maxabs_DN": 0.0,
+     "single_pass_vs_tiles_maxabs_DN": 0.0025634765625,
+     "single_pass_vs_tiles_meanabs_DN": 0.00013529062562156469,
+     "detail_gain_tiles": 2.2882811431096752,
+     "detail_gain_single": 2.2882811507990937,
+     "unrelated_hf_tiles": 1.6581165007374536,
+     "unrelated_hf_single": 1.6581163129500245
+    },
+    "FT_WV3_SCENE_EXACT20K": {
+     "tile_repro_maxabs_DN": 0.0,
+     "single_pass_vs_tiles_maxabs_DN": 0.0035400390625,
+     "single_pass_vs_tiles_meanabs_DN": 0.00015499602886848152,
+     "detail_gain_tiles": 2.0596841665156727,
+     "detail_gain_single": 2.059684143250407,
+     "unrelated_hf_tiles": 1.776592163633441,
+     "unrelated_hf_single": 1.776592329841784
+    },
+    "BROVEY8": {
+     "detail_gain": 0.9950442173696074,
+     "unrelated_hf": 0.05873025105899204
+    }
+   },
+   "200014103525_01": {
+    "lpan_recompute_maxabs_center": 0.0,
+    "ZS_WV3": {
+     "tile_repro_maxabs_DN": 0.0,
+     "single_pass_vs_tiles_maxabs_DN": 0.00244140625,
+     "single_pass_vs_tiles_meanabs_DN": 0.00010899478365899995,
+     "detail_gain_tiles": 1.240681152413523,
+     "detail_gain_single": 1.240681137902109,
+     "unrelated_hf_tiles": 0.8700293754447842,
+     "unrelated_hf_single": 0.8700293652686351
+    },
+    "SC_SCENE_EXACT20K": {
+     "tile_repro_maxabs_DN": 0.0,
+     "single_pass_vs_tiles_maxabs_DN": 0.00164794921875,
+     "single_pass_vs_tiles_meanabs_DN": 7.749407814117149e-05,
+     "detail_gain_tiles": 3.180535601947845,
+     "detail_gain_single": 3.1805355944139913,
+     "unrelated_hf_tiles": 2.589049697644607,
+     "unrelated_hf_single": 2.589049691511828
+    },
+    "FT_WV3_SCENE_EXACT20K": {
+     "tile_repro_maxabs_DN": 0.0,
+     "single_pass_vs_tiles_maxabs_DN": 0.0029296875,
+     "single_pass_vs_tiles_meanabs_DN": 0.0001227655739057809,
+     "detail_gain_tiles": 3.286681025366458,
+     "detail_gain_single": 3.286681608438893,
+     "unrelated_hf_tiles": 2.651356453871923,
+     "unrelated_hf_single": 2.6513566997396274
+    },
+    "BROVEY8": {
+     "detail_gain": 0.9970476284841835,
+     "unrelated_hf": 0.018822278175374216
+    }
+   }
+  }
+ },
+ "detail_gain_definition": "highpass(sigma1) regression slope of output band-mean on reference, after low-pass(sigma4) scale matching; unrelated_hf = residual std / reference highpass std",
+ "fr_gain_vs_PAN_median_64tiles": {
+  "200014103764_01": {
+   "BROVEY8": [
+    1.0,
+    0.04
+   ],
+   "ZS_WV3": [
+    1.86,
+    1.48
+   ],
+   "SC_SCENE_EXACT20K": [
+    2.49,
+    1.87
+   ],
+   "FT_WV3_SCENE_EXACT20K": [
+    2.25,
+    1.99
+   ]
+  },
+  "200014103758_01": {
+   "BROVEY8": [
+    1.0,
+    0.0
+   ],
+   "ZS_WV3": [
+    0.83,
+    0.69
+   ],
+   "SC_SCENE_EXACT20K": [
+    3.59,
+    2.74
+   ],
+   "FT_WV3_SCENE_EXACT20K": [
+    2.49,
+    2.23
+   ]
+  },
+  "200014103802_01": {
+   "BROVEY8": [
+    1.0,
+    0.0
+   ],
+   "ZS_WV3": [
+    0.93,
+    1.03
+   ],
+   "SC_SCENE_EXACT20K": [
+    3.88,
+    3.02
+   ],
+   "FT_WV3_SCENE_EXACT20K": [
+    3.2,
+    2.88
+   ]
+  },
+  "200014103714_01": {
+   "BROVEY8": [
+    1.0,
+    0.0
+   ],
+   "ZS_WV3": [
+    0.83,
+    0.99
+   ],
+   "SC_SCENE_EXACT20K": [
+    3.65,
+    2.97
+   ],
+   "FT_WV3_SCENE_EXACT20K": [
+    2.6,
+    2.4
+   ]
+  },
+  "200014103525_01": {
+   "BROVEY8": [
+    1.0,
+    0.0
+   ],
+   "ZS_WV3": [
+    1.12,
+    0.88
+   ],
+   "SC_SCENE_EXACT20K": [
+    4.91,
+    3.41
+   ],
+   "FT_WV3_SCENE_EXACT20K": [
+    5.02,
+    3.58
+   ]
+  }
+ },
+ "rr_gain_vs_GT_median_64tiles": {
+  "200014103764_01": {
+   "BROVEY8": [
+    0.346,
+    0.241
+   ],
+   "ZS_WV3": [
+    0.711,
+    0.426
+   ],
+   "SC_SCENE_EXACT20K": [
+    0.952,
+    0.241
+   ],
+   "FT_WV3_SCENE_EXACT20K": [
+    0.94,
+    0.239
+   ],
+   "rrPAN_hf_over_GT_hf": 0.337
+  },
+  "200014103758_01": {
+   "BROVEY8": [
+    0.175,
+    0.139
+   ],
+   "ZS_WV3": [
+    0.192,
+    0.21
+   ],
+   "SC_SCENE_EXACT20K": [
+    0.901,
+    0.245
+   ],
+   "FT_WV3_SCENE_EXACT20K": [
+    0.935,
+    0.256
+   ],
+   "rrPAN_hf_over_GT_hf": 0.305
+  },
+  "200014103802_01": {
+   "BROVEY8": [
+    0.291,
+    0.224
+   ],
+   "ZS_WV3": [
+    0.282,
+    0.262
+   ],
+   "SC_SCENE_EXACT20K": [
+    0.908,
+    0.27
+   ],
+   "FT_WV3_SCENE_EXACT20K": [
+    0.908,
+    0.268
+   ],
+   "rrPAN_hf_over_GT_hf": 0.302
+  },
+  "200014103714_01": {
+   "BROVEY8": [
+    0.245,
+    0.183
+   ],
+   "ZS_WV3": [
+    0.249,
+    0.23
+   ],
+   "SC_SCENE_EXACT20K": [
+    0.943,
+    0.237
+   ],
+   "FT_WV3_SCENE_EXACT20K": [
+    0.934,
+    0.234
+   ],
+   "rrPAN_hf_over_GT_hf": 0.313
+  },
+  "200014103525_01": {
+   "BROVEY8": [
+    0.261,
+    0.225
+   ],
+   "ZS_WV3": [
+    0.282,
+    0.431
+   ],
+   "SC_SCENE_EXACT20K": [
+    0.864,
+    0.32
+   ],
+   "FT_WV3_SCENE_EXACT20K": [
+    0.857,
+    0.311
+   ],
+   "rrPAN_hf_over_GT_hf": 0.308
+  }
+ },
+ "wv3_reference": {
+  "donor_on_wv3_fr20": {
+   "period4_ratio": 4.73,
+   "pan_period4": 0.96,
+   "detail_gain": 0.787,
+   "unrelated_hf": 0.83
+  },
+  "paper_final_wv3_fr20": {
+   "period4_ratio": 3.54,
+   "detail_gain": 0.783,
+   "unrelated_hf": 0.729
+  }
+ },
+ "rendering": "figures re-rendered at 1 image px = 1 output px (nearest, no resampling); earlier versions used lanczos resampling"
+}

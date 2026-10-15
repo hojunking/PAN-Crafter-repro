@@ -1,0 +1,3594 @@
+{
+  "admission_granted": false,
+  "dataset_values_read": false,
+  "errors": [],
+  "files": [
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            4,
+            512,
+            512
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            4,
+            128,
+            128
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            512,
+            512
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/full_examples_h5/test_gf2_OrigScale_multiExm1.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RATIO4_OBSERVATIONS_UNKNOWN_ROLE",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/full_examples_h5/test_gf2_OrigScale_multiExm1.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/CANConv/data/datasets/gf2/test_gf2_OrigScale_multiExm1.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 220202744
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            128,
+            128
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/full_examples_h5/test_gf2_OrigScale_multiExm1_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/full_examples_h5/test_gf2_OrigScale_multiExm1_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/full_examples_h5/test_gf2_OrigScale_multiExm1_pan.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 1311864
+    },
+    {
+      "admission_granted": false,
+      "attributes": {
+        "source": "PanCollection Testing Dataset (FullData, mat Format) \u2014 Google Drive folder 16pGIqvwWfyQVvkk3s1xrwLpavqQd0Bv7"
+      },
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            4,
+            512,
+            512
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            4,
+            128,
+            128
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            512,
+            512
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/full_examples_mat20/test_gf2_OrigScale_mat20.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RATIO4_OBSERVATIONS_UNKNOWN_ROLE",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/full_examples_mat20/test_gf2_OrigScale_mat20.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/full_examples_mat20/test_gf2_OrigScale_mat20.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 220207104
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            128,
+            128
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/full_examples_mat20/test_gf2_OrigScale_mat20_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/full_examples_mat20/test_gf2_OrigScale_mat20_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/full_examples_mat20/test_gf2_OrigScale_mat20_pan.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 2623488
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "gt": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            4,
+            256,
+            256
+          ]
+        },
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            4,
+            256,
+            256
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            4,
+            64,
+            64
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            256,
+            256
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/reduced_examples_h5/test_gf2_multiExm1.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RATIO4_OBSERVATIONS_UNKNOWN_ROLE",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/reduced_examples_h5/test_gf2_multiExm1.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/CANConv/data/datasets/gf2/test_gf2_multiExm1.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 96997376
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            64,
+            64
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/reduced_examples_h5/test_gf2_multiExm1_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/reduced_examples_h5/test_gf2_multiExm1_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/reduced_examples_h5/test_gf2_multiExm1_pan.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 328824
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "RR_PATCH_ONLY",
+      "datasets": {
+        "gt": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            19809,
+            4,
+            64,
+            64
+          ]
+        },
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            19809,
+            4,
+            64,
+            64
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            19809,
+            4,
+            16,
+            16
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            19809,
+            1,
+            64,
+            64
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/train_gf2.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RR_PATCH_ONLY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/train_gf2.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/CANConv/data/datasets/gf2/train_gf2.h5",
+      "role_from_path_only": "UNKNOWN_ROLE",
+      "size_bytes": 6004189352
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "UNKNOWN_GEOMETRY",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            19809,
+            1,
+            16,
+            16
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/train_gf2_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/train_gf2_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/train_gf2_pan.h5",
+      "role_from_path_only": "UNKNOWN_ROLE",
+      "size_bytes": 20285560
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "VALIDATION_NOT_TRAIN",
+      "datasets": {
+        "gt": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            2201,
+            4,
+            64,
+            64
+          ]
+        },
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            2201,
+            4,
+            64,
+            64
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            2201,
+            4,
+            16,
+            16
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            2201,
+            1,
+            64,
+            64
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/valid_gf2.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RR_PATCH_ONLY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/valid_gf2.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/CANConv/data/datasets/gf2/valid_gf2.h5",
+      "role_from_path_only": "VALIDATION_NOT_TRAIN",
+      "size_bytes": 667134120
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "VALIDATION_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            2201,
+            1,
+            16,
+            16
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/valid_gf2_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/valid_gf2_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/GF2/valid_gf2_pan.h5",
+      "role_from_path_only": "VALIDATION_NOT_TRAIN",
+      "size_bytes": 2254968
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            4,
+            512,
+            512
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            4,
+            128,
+            128
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            512,
+            512
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_h5/test_qb_OrigScale_multiExm1.h5",
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_h5_repaired/test_qb_OrigScale_multiExm1.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RATIO4_OBSERVATIONS_UNKNOWN_ROLE",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_h5/test_qb_OrigScale_multiExm1.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_OrigScale_multiExm1.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 220203008
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            128,
+            128
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_h5/test_qb_OrigScale_multiExm1_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_h5/test_qb_OrigScale_multiExm1_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_h5/test_qb_OrigScale_multiExm1_pan.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 1311864
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            128,
+            128
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_h5_repaired/test_qb_OrigScale_multiExm1_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_h5_repaired/test_qb_OrigScale_multiExm1_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_h5_repaired/test_qb_OrigScale_multiExm1_pan.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 1312768
+    },
+    {
+      "admission_granted": false,
+      "attributes": {
+        "source": "PanCollection Testing Dataset (FullData, mat Format) \u2014 Google Drive folder 16pGIqvwWfyQVvkk3s1xrwLpavqQd0Bv7"
+      },
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            4,
+            512,
+            512
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            4,
+            128,
+            128
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            512,
+            512
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RATIO4_OBSERVATIONS_UNKNOWN_ROLE",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 220207104
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            128,
+            128
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20_pan.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 2623488
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "gt": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            4,
+            256,
+            256
+          ]
+        },
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            4,
+            256,
+            256
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            4,
+            64,
+            64
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            256,
+            256
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/reduced_examples_h5/test_qb_multiExm1.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RATIO4_OBSERVATIONS_UNKNOWN_ROLE",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/reduced_examples_h5/test_qb_multiExm1.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 96997376
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            64,
+            64
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/reduced_examples_h5/test_qb_multiExm1_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/reduced_examples_h5/test_qb_multiExm1_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/reduced_examples_h5/test_qb_multiExm1_pan.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 328824
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "RR_PATCH_ONLY",
+      "datasets": {
+        "gt": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            17139,
+            4,
+            64,
+            64
+          ]
+        },
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            17139,
+            4,
+            64,
+            64
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            17139,
+            4,
+            16,
+            16
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            17139,
+            1,
+            64,
+            64
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RR_PATCH_ONLY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/train_qb.h5",
+      "role_from_path_only": "UNKNOWN_ROLE",
+      "size_bytes": 5194901672
+    },
+    {
+      "admission_granted": false,
+      "attributes": {
+        "built_at": "2026-09-08T17:56:35",
+        "repair": "ms = genMTF(QB) replicate filter(gt)[2::4,2::4]; lms = interp23tap(ms); KNOWN_ISSUES F-3",
+        "source": "train_qb.h5"
+      },
+      "classification": "RR_PATCH_ONLY",
+      "datasets": {
+        "gt": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            17139,
+            4,
+            64,
+            64
+          ]
+        },
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            17139,
+            4,
+            64,
+            64
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            17139,
+            4,
+            16,
+            16
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            17139,
+            1,
+            64,
+            64
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb_msfix.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RR_PATCH_ONLY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb_msfix.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb_msfix.h5",
+      "role_from_path_only": "UNKNOWN_ROLE",
+      "size_bytes": 5194907648
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "UNKNOWN_GEOMETRY",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            17139,
+            1,
+            16,
+            16
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb_msfix_pan.h5",
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb_msfix_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb_pan.h5",
+      "role_from_path_only": "UNKNOWN_ROLE",
+      "size_bytes": 17551480
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "VALIDATION_NOT_TRAIN",
+      "datasets": {
+        "gt": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            1905,
+            4,
+            64,
+            64
+          ]
+        },
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            1905,
+            4,
+            64,
+            64
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            1905,
+            4,
+            16,
+            16
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            1905,
+            1,
+            64,
+            64
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RR_PATCH_ONLY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/valid_qb.h5",
+      "role_from_path_only": "VALIDATION_NOT_TRAIN",
+      "size_bytes": 577415336
+    },
+    {
+      "admission_granted": false,
+      "attributes": {
+        "built_at": "2026-09-08T17:56:41",
+        "repair": "ms = genMTF(QB) replicate filter(gt)[2::4,2::4]; lms = interp23tap(ms); KNOWN_ISSUES F-3",
+        "source": "valid_qb.h5"
+      },
+      "classification": "VALIDATION_NOT_TRAIN",
+      "datasets": {
+        "gt": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            1905,
+            4,
+            64,
+            64
+          ]
+        },
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            1905,
+            4,
+            64,
+            64
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            1905,
+            4,
+            16,
+            16
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            1905,
+            1,
+            64,
+            64
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb_msfix.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RR_PATCH_ONLY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb_msfix.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb_msfix.h5",
+      "role_from_path_only": "VALIDATION_NOT_TRAIN",
+      "size_bytes": 577421312
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "VALIDATION_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1905,
+            1,
+            16,
+            16
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb_msfix_pan.h5",
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb_msfix_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb_pan.h5",
+      "role_from_path_only": "VALIDATION_NOT_TRAIN",
+      "size_bytes": 1951864
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            8,
+            512,
+            512
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            8,
+            128,
+            128
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            512,
+            512
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV2/full_examples_h5/test_wv2_OrigScale_multiExm1.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RATIO4_OBSERVATIONS_UNKNOWN_ROLE",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV2/full_examples_h5/test_wv2_OrigScale_multiExm1.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv2/test_wv2_OrigScale_multiExm1.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 398460664
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            128,
+            128
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV2/full_examples_h5/test_wv2_OrigScale_multiExm1_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV2/full_examples_h5/test_wv2_OrigScale_multiExm1_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV2/full_examples_h5/test_wv2_OrigScale_multiExm1_pan.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 1312768
+    },
+    {
+      "admission_granted": false,
+      "attributes": {
+        "source": "PanCollection Testing Dataset (FullData, mat Format) \u2014 Google Drive folder 16pGIqvwWfyQVvkk3s1xrwLpavqQd0Bv7"
+      },
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            8,
+            512,
+            512
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            8,
+            128,
+            128
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            512,
+            512
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV2/full_examples_mat20/test_wv2_OrigScale_mat20.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RATIO4_OBSERVATIONS_UNKNOWN_ROLE",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV2/full_examples_mat20/test_wv2_OrigScale_mat20.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV2/full_examples_mat20/test_wv2_OrigScale_mat20.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 398465024
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            128,
+            128
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV2/full_examples_mat20/test_wv2_OrigScale_mat20_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV2/full_examples_mat20/test_wv2_OrigScale_mat20_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV2/full_examples_mat20/test_wv2_OrigScale_mat20_pan.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 2623488
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "gt": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            8,
+            256,
+            256
+          ]
+        },
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            8,
+            256,
+            256
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            8,
+            64,
+            64
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            256,
+            256
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV2/reduced_examples_h5/test_wv2_multiExm1.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RATIO4_OBSERVATIONS_UNKNOWN_ROLE",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV2/reduced_examples_h5/test_wv2_multiExm1.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv2/test_wv2_multiExm1.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 183504896
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            64,
+            64
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV2/reduced_examples_h5/test_wv2_multiExm1_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV2/reduced_examples_h5/test_wv2_multiExm1_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV2/reduced_examples_h5/test_wv2_multiExm1_pan.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 329728
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            8,
+            512,
+            512
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            8,
+            128,
+            128
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            512,
+            512
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5/test_wv3_OrigScale_multiExm1.h5",
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5_repaired/test_wv3_OrigScale_multiExm1.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RATIO4_OBSERVATIONS_UNKNOWN_ROLE",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5/test_wv3_OrigScale_multiExm1.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_OrigScale_multiExm1.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 398460928
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            128,
+            128
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5/test_wv3_OrigScale_multiExm1_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5/test_wv3_OrigScale_multiExm1_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5/test_wv3_OrigScale_multiExm1_pan.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 1311864
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            128,
+            128
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5_repaired/test_wv3_OrigScale_multiExm1_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5_repaired/test_wv3_OrigScale_multiExm1_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_h5_repaired/test_wv3_OrigScale_multiExm1_pan.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 1312768
+    },
+    {
+      "admission_granted": false,
+      "attributes": {
+        "source": "PanCollection Testing Dataset (FullData, mat Format) \u2014 Google Drive folder 16pGIqvwWfyQVvkk3s1xrwLpavqQd0Bv7"
+      },
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            8,
+            512,
+            512
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            8,
+            128,
+            128
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            512,
+            512
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RATIO4_OBSERVATIONS_UNKNOWN_ROLE",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 398465024
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            128,
+            128
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20_pan.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 2623488
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "gt": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            8,
+            256,
+            256
+          ]
+        },
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            8,
+            256,
+            256
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            8,
+            64,
+            64
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            256,
+            256
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5",
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5_regen/test_wv3_multiExm1.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RATIO4_OBSERVATIONS_UNKNOWN_ROLE",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 183504896
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            64,
+            64
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1_pan.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 328824
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "EVAL_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            20,
+            1,
+            64,
+            64
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5_regen/test_wv3_multiExm1_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5_regen/test_wv3_multiExm1_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5_regen/test_wv3_multiExm1_pan.h5",
+      "role_from_path_only": "EVAL_NOT_TRAIN",
+      "size_bytes": 329728
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "RR_PATCH_ONLY",
+      "datasets": {
+        "gt": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            9714,
+            8,
+            64,
+            64
+          ]
+        },
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            9714,
+            8,
+            64,
+            64
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            9714,
+            8,
+            16,
+            16
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            9714,
+            1,
+            64,
+            64
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RR_PATCH_ONLY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/train_wv3.h5",
+      "role_from_path_only": "UNKNOWN_ROLE",
+      "size_bytes": 5570398376
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "UNKNOWN_GEOMETRY",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            9714,
+            1,
+            16,
+            16
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3_pan.h5",
+      "role_from_path_only": "UNKNOWN_ROLE",
+      "size_bytes": 9948280
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "VALIDATION_NOT_TRAIN",
+      "datasets": {
+        "gt": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            1080,
+            8,
+            64,
+            64
+          ]
+        },
+        "lms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            1080,
+            8,
+            64,
+            64
+          ]
+        },
+        "ms": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            1080,
+            8,
+            16,
+            16
+          ]
+        },
+        "pan": {
+          "attributes": {},
+          "dtype": "float64",
+          "kind": "dataset",
+          "shape": [
+            1080,
+            1,
+            64,
+            64
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "RR_PATCH_ONLY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/valid_wv3.h5",
+      "role_from_path_only": "VALIDATION_NOT_TRAIN",
+      "size_bytes": 619317416
+    },
+    {
+      "admission_granted": false,
+      "attributes": {},
+      "classification": "VALIDATION_NOT_TRAIN",
+      "datasets": {
+        "lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1080,
+            1,
+            16,
+            16
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3_pan.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "UNKNOWN_GEOMETRY",
+      "groups": {},
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [],
+        "scene_fields": [],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3_pan.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3_pan.h5",
+      "role_from_path_only": "VALIDATION_NOT_TRAIN",
+      "size_bytes": 1107064
+    },
+    {
+      "admission_granted": false,
+      "attributes": {
+        "axis_order": "NCHW",
+        "band_order": "[\"Coastal\",\"Blue\",\"Green\",\"Yellow\",\"Red\",\"RedEdge\",\"NIR1\",\"NIR2\"]",
+        "complete": true,
+        "coordinate_system": "sensor_pixel_space; NOT ORTHORECTIFIED",
+        "no_native_hrms_ground_truth": true,
+        "nominal_max": 2047,
+        "ratio": 4,
+        "scene_id": "200014103525_01",
+        "schema": "PANPV_NATIVE_RR_SCENE_v3",
+        "source_ms_col": 12,
+        "source_ms_row": 0,
+        "value_encoding": "delivery_DN_unscaled"
+      },
+      "classification": "NATIVE_SCENE_CANDIDATE",
+      "datasets": {
+        "metadata/build_receipt_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/geometry_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/lp_profile_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/normalization_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/rr_profile_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/source_manifest_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/source_metadata_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/split_provenance_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "native/common_valid_ms": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            6728,
+            8792
+          ]
+        },
+        "native/lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            6728,
+            8792
+          ]
+        },
+        "native/lpan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            6728,
+            8792
+          ]
+        },
+        "native/ms": {
+          "attributes": {},
+          "dtype": "uint16",
+          "kind": "dataset",
+          "shape": [
+            1,
+            8,
+            6728,
+            8792
+          ]
+        },
+        "native/ms_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            6728,
+            8792
+          ]
+        },
+        "native/pan": {
+          "attributes": {},
+          "dtype": "uint16",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            26912,
+            35168
+          ]
+        },
+        "native/pan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            26912,
+            35168
+          ]
+        },
+        "rr/lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            1682,
+            2198
+          ]
+        },
+        "rr/lpan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            1682,
+            2198
+          ]
+        },
+        "rr/ms": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            8,
+            1682,
+            2198
+          ]
+        },
+        "rr/ms_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            1682,
+            2198
+          ]
+        },
+        "rr/pan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            6728,
+            8792
+          ]
+        },
+        "rr/pan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            6728,
+            8792
+          ]
+        },
+        "splits/blocks": {
+          "attributes": {},
+          "dtype": "int32",
+          "kind": "dataset",
+          "shape": [
+            63,
+            5
+          ]
+        },
+        "splits/candidate_keep": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            7777
+          ]
+        },
+        "splits/candidate_patch_index": {
+          "attributes": {},
+          "dtype": "int32",
+          "kind": "dataset",
+          "shape": [
+            7777,
+            4
+          ]
+        },
+        "splits/patch_index": {
+          "attributes": {
+            "columns": "row,col,split_code,block_id",
+            "coordinate_frame": "canonical native MS pixels",
+            "dependency_buffer": 128,
+            "target_size": 64
+          },
+          "dtype": "int32",
+          "kind": "dataset",
+          "shape": [
+            7777,
+            4
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/private/PANPV_S1_WV2_20261003_v3/extracted/practical_5scene_v3_20261002/scenes/200014103525_01.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "NATIVE_SCENE_CANDIDATE",
+      "groups": {
+        "metadata": {
+          "attributes": {},
+          "kind": "group"
+        },
+        "native": {
+          "attributes": {},
+          "kind": "group"
+        },
+        "rr": {
+          "attributes": {},
+          "kind": "group"
+        },
+        "splits": {
+          "attributes": {},
+          "kind": "group"
+        }
+      },
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [
+          "@coordinate_system",
+          "splits/candidate_patch_index",
+          "splits/patch_index",
+          "splits/patch_index@coordinate_frame"
+        ],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [
+          "metadata/geometry_json",
+          "metadata/source_manifest_json",
+          "metadata/source_metadata_json",
+          "metadata/split_provenance_json",
+          "splits"
+        ],
+        "scene_fields": [
+          "@scene_id"
+        ],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/private/PANPV_S1_WV2_20261003_v3/extracted/practical_5scene_v3_20261002/scenes/200014103525_01.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/private/PANPV_S1_WV2_20261003_v3/extracted/practical_5scene_v3_20261002/scenes/200014103525_01.h5",
+      "role_from_path_only": "UNKNOWN_ROLE",
+      "size_bytes": 1689825490
+    },
+    {
+      "admission_granted": false,
+      "attributes": {
+        "axis_order": "NCHW",
+        "band_order": "[\"Coastal\",\"Blue\",\"Green\",\"Yellow\",\"Red\",\"RedEdge\",\"NIR1\",\"NIR2\"]",
+        "complete": true,
+        "coordinate_system": "sensor_pixel_space; NOT ORTHORECTIFIED",
+        "no_native_hrms_ground_truth": true,
+        "nominal_max": 2047,
+        "ratio": 4,
+        "scene_id": "200014103714_01",
+        "schema": "PANPV_NATIVE_RR_SCENE_v3",
+        "source_ms_col": 12,
+        "source_ms_row": 0,
+        "value_encoding": "delivery_DN_unscaled"
+      },
+      "classification": "NATIVE_SCENE_CANDIDATE",
+      "datasets": {
+        "metadata/build_receipt_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/geometry_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/lp_profile_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/normalization_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/rr_profile_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/source_manifest_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/source_metadata_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/split_provenance_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "native/common_valid_ms": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            7256,
+            8792
+          ]
+        },
+        "native/lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            7256,
+            8792
+          ]
+        },
+        "native/lpan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            7256,
+            8792
+          ]
+        },
+        "native/ms": {
+          "attributes": {},
+          "dtype": "uint16",
+          "kind": "dataset",
+          "shape": [
+            1,
+            8,
+            7256,
+            8792
+          ]
+        },
+        "native/ms_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            7256,
+            8792
+          ]
+        },
+        "native/pan": {
+          "attributes": {},
+          "dtype": "uint16",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            29024,
+            35168
+          ]
+        },
+        "native/pan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            29024,
+            35168
+          ]
+        },
+        "rr/lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            1814,
+            2198
+          ]
+        },
+        "rr/lpan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            1814,
+            2198
+          ]
+        },
+        "rr/ms": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            8,
+            1814,
+            2198
+          ]
+        },
+        "rr/ms_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            1814,
+            2198
+          ]
+        },
+        "rr/pan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            7256,
+            8792
+          ]
+        },
+        "rr/pan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            7256,
+            8792
+          ]
+        },
+        "splits/blocks": {
+          "attributes": {},
+          "dtype": "int32",
+          "kind": "dataset",
+          "shape": [
+            72,
+            5
+          ]
+        },
+        "splits/candidate_keep": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            8484
+          ]
+        },
+        "splits/candidate_patch_index": {
+          "attributes": {},
+          "dtype": "int32",
+          "kind": "dataset",
+          "shape": [
+            8484,
+            4
+          ]
+        },
+        "splits/patch_index": {
+          "attributes": {
+            "columns": "row,col,split_code,block_id",
+            "coordinate_frame": "canonical native MS pixels",
+            "dependency_buffer": 128,
+            "target_size": 64
+          },
+          "dtype": "int32",
+          "kind": "dataset",
+          "shape": [
+            8484,
+            4
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/private/PANPV_S1_WV2_20261003_v3/extracted/practical_5scene_v3_20261002/scenes/200014103714_01.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "NATIVE_SCENE_CANDIDATE",
+      "groups": {
+        "metadata": {
+          "attributes": {},
+          "kind": "group"
+        },
+        "native": {
+          "attributes": {},
+          "kind": "group"
+        },
+        "rr": {
+          "attributes": {},
+          "kind": "group"
+        },
+        "splits": {
+          "attributes": {},
+          "kind": "group"
+        }
+      },
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [
+          "@coordinate_system",
+          "splits/candidate_patch_index",
+          "splits/patch_index",
+          "splits/patch_index@coordinate_frame"
+        ],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [
+          "metadata/geometry_json",
+          "metadata/source_manifest_json",
+          "metadata/source_metadata_json",
+          "metadata/split_provenance_json",
+          "splits"
+        ],
+        "scene_fields": [
+          "@scene_id"
+        ],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/private/PANPV_S1_WV2_20261003_v3/extracted/practical_5scene_v3_20261002/scenes/200014103714_01.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/private/PANPV_S1_WV2_20261003_v3/extracted/practical_5scene_v3_20261002/scenes/200014103714_01.h5",
+      "role_from_path_only": "UNKNOWN_ROLE",
+      "size_bytes": 2178797633
+    },
+    {
+      "admission_granted": false,
+      "attributes": {
+        "axis_order": "NCHW",
+        "band_order": "[\"Coastal\",\"Blue\",\"Green\",\"Yellow\",\"Red\",\"RedEdge\",\"NIR1\",\"NIR2\"]",
+        "complete": true,
+        "coordinate_system": "sensor_pixel_space; NOT ORTHORECTIFIED",
+        "no_native_hrms_ground_truth": true,
+        "nominal_max": 2047,
+        "ratio": 4,
+        "scene_id": "200014103758_01",
+        "schema": "PANPV_NATIVE_RR_SCENE_v3",
+        "source_ms_col": 12,
+        "source_ms_row": 0,
+        "value_encoding": "delivery_DN_unscaled"
+      },
+      "classification": "NATIVE_SCENE_CANDIDATE",
+      "datasets": {
+        "metadata/build_receipt_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/geometry_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/lp_profile_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/normalization_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/rr_profile_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/source_manifest_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/source_metadata_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/split_provenance_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "native/common_valid_ms": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            6844,
+            8792
+          ]
+        },
+        "native/lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            6844,
+            8792
+          ]
+        },
+        "native/lpan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            6844,
+            8792
+          ]
+        },
+        "native/ms": {
+          "attributes": {},
+          "dtype": "uint16",
+          "kind": "dataset",
+          "shape": [
+            1,
+            8,
+            6844,
+            8792
+          ]
+        },
+        "native/ms_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            6844,
+            8792
+          ]
+        },
+        "native/pan": {
+          "attributes": {},
+          "dtype": "uint16",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            27376,
+            35168
+          ]
+        },
+        "native/pan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            27376,
+            35168
+          ]
+        },
+        "rr/lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            1711,
+            2198
+          ]
+        },
+        "rr/lpan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            1711,
+            2198
+          ]
+        },
+        "rr/ms": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            8,
+            1711,
+            2198
+          ]
+        },
+        "rr/ms_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            1711,
+            2198
+          ]
+        },
+        "rr/pan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            6844,
+            8792
+          ]
+        },
+        "rr/pan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            6844,
+            8792
+          ]
+        },
+        "splits/blocks": {
+          "attributes": {},
+          "dtype": "int32",
+          "kind": "dataset",
+          "shape": [
+            63,
+            5
+          ]
+        },
+        "splits/candidate_keep": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            7878
+          ]
+        },
+        "splits/candidate_patch_index": {
+          "attributes": {},
+          "dtype": "int32",
+          "kind": "dataset",
+          "shape": [
+            7878,
+            4
+          ]
+        },
+        "splits/patch_index": {
+          "attributes": {
+            "columns": "row,col,split_code,block_id",
+            "coordinate_frame": "canonical native MS pixels",
+            "dependency_buffer": 128,
+            "target_size": 64
+          },
+          "dtype": "int32",
+          "kind": "dataset",
+          "shape": [
+            7878,
+            4
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/private/PANPV_S1_WV2_20261003_v3/extracted/practical_5scene_v3_20261002/scenes/200014103758_01.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "NATIVE_SCENE_CANDIDATE",
+      "groups": {
+        "metadata": {
+          "attributes": {},
+          "kind": "group"
+        },
+        "native": {
+          "attributes": {},
+          "kind": "group"
+        },
+        "rr": {
+          "attributes": {},
+          "kind": "group"
+        },
+        "splits": {
+          "attributes": {},
+          "kind": "group"
+        }
+      },
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [
+          "@coordinate_system",
+          "splits/candidate_patch_index",
+          "splits/patch_index",
+          "splits/patch_index@coordinate_frame"
+        ],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [
+          "metadata/geometry_json",
+          "metadata/source_manifest_json",
+          "metadata/source_metadata_json",
+          "metadata/split_provenance_json",
+          "splits"
+        ],
+        "scene_fields": [
+          "@scene_id"
+        ],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/private/PANPV_S1_WV2_20261003_v3/extracted/practical_5scene_v3_20261002/scenes/200014103758_01.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/private/PANPV_S1_WV2_20261003_v3/extracted/practical_5scene_v3_20261002/scenes/200014103758_01.h5",
+      "role_from_path_only": "UNKNOWN_ROLE",
+      "size_bytes": 1971177385
+    },
+    {
+      "admission_granted": false,
+      "attributes": {
+        "axis_order": "NCHW",
+        "band_order": "[\"Coastal\",\"Blue\",\"Green\",\"Yellow\",\"Red\",\"RedEdge\",\"NIR1\",\"NIR2\"]",
+        "complete": true,
+        "coordinate_system": "sensor_pixel_space; NOT ORTHORECTIFIED",
+        "no_native_hrms_ground_truth": true,
+        "nominal_max": 2047,
+        "ratio": 4,
+        "scene_id": "200014103764_01",
+        "schema": "PANPV_NATIVE_RR_SCENE_v3",
+        "source_ms_col": 12,
+        "source_ms_row": 0,
+        "value_encoding": "delivery_DN_unscaled"
+      },
+      "classification": "NATIVE_SCENE_CANDIDATE",
+      "datasets": {
+        "metadata/build_receipt_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/geometry_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/lp_profile_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/normalization_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/rr_profile_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/source_manifest_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/source_metadata_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/split_provenance_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "native/common_valid_ms": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            7056,
+            8792
+          ]
+        },
+        "native/lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            7056,
+            8792
+          ]
+        },
+        "native/lpan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            7056,
+            8792
+          ]
+        },
+        "native/ms": {
+          "attributes": {},
+          "dtype": "uint16",
+          "kind": "dataset",
+          "shape": [
+            1,
+            8,
+            7056,
+            8792
+          ]
+        },
+        "native/ms_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            7056,
+            8792
+          ]
+        },
+        "native/pan": {
+          "attributes": {},
+          "dtype": "uint16",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            28224,
+            35168
+          ]
+        },
+        "native/pan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            28224,
+            35168
+          ]
+        },
+        "rr/lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            1764,
+            2198
+          ]
+        },
+        "rr/lpan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            1764,
+            2198
+          ]
+        },
+        "rr/ms": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            8,
+            1764,
+            2198
+          ]
+        },
+        "rr/ms_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            1764,
+            2198
+          ]
+        },
+        "rr/pan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            7056,
+            8792
+          ]
+        },
+        "rr/pan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            7056,
+            8792
+          ]
+        },
+        "splits/blocks": {
+          "attributes": {},
+          "dtype": "int32",
+          "kind": "dataset",
+          "shape": [
+            63,
+            5
+          ]
+        },
+        "splits/candidate_keep": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            8282
+          ]
+        },
+        "splits/candidate_patch_index": {
+          "attributes": {},
+          "dtype": "int32",
+          "kind": "dataset",
+          "shape": [
+            8282,
+            4
+          ]
+        },
+        "splits/patch_index": {
+          "attributes": {
+            "columns": "row,col,split_code,block_id",
+            "coordinate_frame": "canonical native MS pixels",
+            "dependency_buffer": 128,
+            "target_size": 64
+          },
+          "dtype": "int32",
+          "kind": "dataset",
+          "shape": [
+            8282,
+            4
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/private/PANPV_S1_WV2_20261003_v3/extracted/practical_5scene_v3_20261002/scenes/200014103764_01.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "NATIVE_SCENE_CANDIDATE",
+      "groups": {
+        "metadata": {
+          "attributes": {},
+          "kind": "group"
+        },
+        "native": {
+          "attributes": {},
+          "kind": "group"
+        },
+        "rr": {
+          "attributes": {},
+          "kind": "group"
+        },
+        "splits": {
+          "attributes": {},
+          "kind": "group"
+        }
+      },
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [
+          "@coordinate_system",
+          "splits/candidate_patch_index",
+          "splits/patch_index",
+          "splits/patch_index@coordinate_frame"
+        ],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [
+          "metadata/geometry_json",
+          "metadata/source_manifest_json",
+          "metadata/source_metadata_json",
+          "metadata/split_provenance_json",
+          "splits"
+        ],
+        "scene_fields": [
+          "@scene_id"
+        ],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/private/PANPV_S1_WV2_20261003_v3/extracted/practical_5scene_v3_20261002/scenes/200014103764_01.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/private/PANPV_S1_WV2_20261003_v3/extracted/practical_5scene_v3_20261002/scenes/200014103764_01.h5",
+      "role_from_path_only": "UNKNOWN_ROLE",
+      "size_bytes": 2214913956
+    },
+    {
+      "admission_granted": false,
+      "attributes": {
+        "axis_order": "NCHW",
+        "band_order": "[\"Coastal\",\"Blue\",\"Green\",\"Yellow\",\"Red\",\"RedEdge\",\"NIR1\",\"NIR2\"]",
+        "complete": true,
+        "coordinate_system": "sensor_pixel_space; NOT ORTHORECTIFIED",
+        "no_native_hrms_ground_truth": true,
+        "nominal_max": 2047,
+        "ratio": 4,
+        "scene_id": "200014103802_01",
+        "schema": "PANPV_NATIVE_RR_SCENE_v3",
+        "source_ms_col": 12,
+        "source_ms_row": 0,
+        "value_encoding": "delivery_DN_unscaled"
+      },
+      "classification": "NATIVE_SCENE_CANDIDATE",
+      "datasets": {
+        "metadata/build_receipt_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/geometry_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/lp_profile_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/normalization_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/rr_profile_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/source_manifest_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/source_metadata_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "metadata/split_provenance_json": {
+          "attributes": {},
+          "dtype": "object",
+          "kind": "dataset",
+          "shape": []
+        },
+        "native/common_valid_ms": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            5912,
+            8792
+          ]
+        },
+        "native/lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            5912,
+            8792
+          ]
+        },
+        "native/lpan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            5912,
+            8792
+          ]
+        },
+        "native/ms": {
+          "attributes": {},
+          "dtype": "uint16",
+          "kind": "dataset",
+          "shape": [
+            1,
+            8,
+            5912,
+            8792
+          ]
+        },
+        "native/ms_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            5912,
+            8792
+          ]
+        },
+        "native/pan": {
+          "attributes": {},
+          "dtype": "uint16",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            23648,
+            35168
+          ]
+        },
+        "native/pan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            23648,
+            35168
+          ]
+        },
+        "rr/lpan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            1478,
+            2198
+          ]
+        },
+        "rr/lpan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            1478,
+            2198
+          ]
+        },
+        "rr/ms": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            8,
+            1478,
+            2198
+          ]
+        },
+        "rr/ms_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            1478,
+            2198
+          ]
+        },
+        "rr/pan": {
+          "attributes": {},
+          "dtype": "float32",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            5912,
+            8792
+          ]
+        },
+        "rr/pan_valid": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            1,
+            1,
+            5912,
+            8792
+          ]
+        },
+        "splits/blocks": {
+          "attributes": {},
+          "dtype": "int32",
+          "kind": "dataset",
+          "shape": [
+            54,
+            5
+          ]
+        },
+        "splits/candidate_keep": {
+          "attributes": {},
+          "dtype": "uint8",
+          "kind": "dataset",
+          "shape": [
+            6868
+          ]
+        },
+        "splits/candidate_patch_index": {
+          "attributes": {},
+          "dtype": "int32",
+          "kind": "dataset",
+          "shape": [
+            6868,
+            4
+          ]
+        },
+        "splits/patch_index": {
+          "attributes": {
+            "columns": "row,col,split_code,block_id",
+            "coordinate_frame": "canonical native MS pixels",
+            "dependency_buffer": 128,
+            "target_size": 64
+          },
+          "dtype": "int32",
+          "kind": "dataset",
+          "shape": [
+            6868,
+            4
+          ]
+        }
+      },
+      "discovered_paths": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/data/private/PANPV_S1_WV2_20261003_v3/extracted/practical_5scene_v3_20261002/scenes/200014103802_01.h5"
+      ],
+      "full_file_sha256_verified": false,
+      "geometry_class": "NATIVE_SCENE_CANDIDATE",
+      "groups": {
+        "metadata": {
+          "attributes": {},
+          "kind": "group"
+        },
+        "native": {
+          "attributes": {},
+          "kind": "group"
+        },
+        "rr": {
+          "attributes": {},
+          "kind": "group"
+        },
+        "splits": {
+          "attributes": {},
+          "kind": "group"
+        }
+      },
+      "lineage_metadata": {
+        "acquisition_fields": [],
+        "crop_fields": [
+          "@coordinate_system",
+          "splits/candidate_patch_index",
+          "splits/patch_index",
+          "splits/patch_index@coordinate_frame"
+        ],
+        "note": "Field presence only; metadata dataset values and underlying lineage are not verified.",
+        "provenance_containers": [
+          "metadata/geometry_json",
+          "metadata/source_manifest_json",
+          "metadata/source_metadata_json",
+          "metadata/split_provenance_json",
+          "splits"
+        ],
+        "scene_fields": [
+          "@scene_id"
+        ],
+        "verified_source_identity": false
+      },
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/private/PANPV_S1_WV2_20261003_v3/extracted/practical_5scene_v3_20261002/scenes/200014103802_01.h5",
+      "resolved_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/private/PANPV_S1_WV2_20261003_v3/extracted/practical_5scene_v3_20261002/scenes/200014103802_01.h5",
+      "role_from_path_only": "UNKNOWN_ROLE",
+      "size_bytes": 1745232723
+    }
+  ],
+  "full_file_sha256_verified": false,
+  "limitations": [
+    "Shapes do not establish native acquisition, source-scene identity, or training role.",
+    "Metadata datasets are listed but not read; large attributes and object lists are capped.",
+    "No exact/near-duplicate, crop correspondence, geographic separation, or prior audit performed.",
+    "Repeated physical directories/files are deduplicated, including symlink cycles."
+  ],
+  "roots": [
+    "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection",
+    "/home/knuvi/Desktop/song/PAN-Crafter/data/private/PANPV_S1_WV2_20261003_v3/extracted/practical_5scene_v3_20261002/scenes"
+  ],
+  "schema": "TEACHER48_PREPARATION_INVENTORY_V1",
+  "summary": {
+    "classifications": {
+      "EVAL_NOT_TRAIN": 27,
+      "NATIVE_SCENE_CANDIDATE": 5,
+      "RR_PATCH_ONLY": 4,
+      "UNKNOWN_GEOMETRY": 3,
+      "VALIDATION_NOT_TRAIN": 7
+    },
+    "error_count": 0,
+    "file_count": 46
+  }
+}

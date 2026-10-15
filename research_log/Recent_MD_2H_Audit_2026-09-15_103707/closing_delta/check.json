@@ -1,0 +1,12 @@
+{
+  "at": "2026-09-15T11:08:32+0900",
+  "head": "d616740e4b9188218f93b736394d6224b674534e",
+  "scope": "Late SMEC12-only working-tree additions; original five MD window remains fixed.",
+  "changed_files": [
+    "gspread/sheet_categories.py",
+    "tools/_upload.sh"
+  ],
+  "PAKD_category_unchanged": true,
+  "n_PAKD_configs": 46,
+  "shell_syntax_rc": 0
+}

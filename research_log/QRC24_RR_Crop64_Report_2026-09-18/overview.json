@@ -1,0 +1,18 @@
+{
+  "n_runs": 15,
+  "n_checkpoints": 18,
+  "n_main_outputs": 720,
+  "g23_selected_ergas_full": 2.087007739351099,
+  "g23_selected_ergas_crop": 2.0861098320853046,
+  "g23_selected_delta_ergas": -0.0008979072657940476,
+  "g23_last_delta_ergas": -0.0006401355784932209,
+  "primary_improved": 15,
+  "missing_servers": [
+    "s2",
+    "s3",
+    "s4",
+    "s5"
+  ],
+  "legacy_max_run_mean_ergas_difference": 1.4004061485661801e-06,
+  "all_checks_passed": true
+}

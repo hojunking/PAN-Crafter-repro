@@ -1,0 +1,21 @@
+{
+  "at": "2026-09-18T13:57:32.432176+09:00",
+  "versions": {
+    "torch": "2.4.0",
+    "numpy": "1.26.4",
+    "scipy": "1.13.1",
+    "h5py": "3.12.1",
+    "scikit-image": "0.24.0",
+    "safetensors": "0.4.4"
+  },
+  "file_sha256": {
+    "research_log/QRC24_Improvement_Trials_2026-09-18/report.py": "1db00f9891bbc98bce069025fb47029bb1363f3f967e53bdaed5c98f4e7db952",
+    "research_log/QRC24_Improvement_Trials_2026-09-18/common.py": "96024482a626a78dd849c678b888bff5b2085ca491eef71e126301aede47a189",
+    "research_log/QRC24_Improvement_Trials_2026-09-18/finetune_remaining.py": "13e8dc37af4a834d8c8097d76ddea8741dc0ea894224a7dbe890f6f246258fb6",
+    "research_log/QRC24_Improvement_Trials_2026-09-18/inference.py": "abec9f33a69af6fd6afb8e70984fe39663747ea213d96388037ec00d091fcaf5",
+    "research_log/QRC24_Improvement_Trials_2026-09-18/finetune.py": "30f278baf5d1259c2777f6c00c86b026ecba2b9b9f4601b882cb0b33b532fed4",
+    "research_log/QRC24_Improvement_Trials_2026-09-18/reference_check.py": "e583c2ce65e36744fbee634473cdd77540c408581fdd652664c940143e054d9f",
+    "research_log/QRC24_Improvement_Trials_2026-09-18/prepare.py": "b32a0d1f70115753ba09e5dd56113dbe5370378aac9a758cfff98f7bc3cec296",
+    "/home/knuvi/Desktop/song/DLPan-Toolbox/01-DL-toolbox(Pytorch)/UDL/pansharpening/models/APNN/wald_utilities.py": "c7d076395eec052dd4ed391e6f51e5fa79661a3fc283816a63ccdb100ff5bdbf"
+  }
+}

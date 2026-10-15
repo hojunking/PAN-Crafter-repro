@@ -1,0 +1,114 @@
+[
+  {
+    "name": "live_s1_optimizer_init_teacher",
+    "passed": true,
+    "kind": "conformance",
+    "groups": [
+      {
+        "name": "backbone",
+        "lr": 9.991796434444349e-05,
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "eps": 1e-08,
+        "weight_decay": 0.01,
+        "amsgrad": false,
+        "foreach": null,
+        "maximize": false,
+        "capturable": false,
+        "differentiable": false,
+        "fused": null,
+        "initial_lr": 0.0001,
+        "n_params": 74
+      },
+      {
+        "name": "aligner",
+        "lr": 9.991796434444349e-07,
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "eps": 1e-08,
+        "weight_decay": 0.01,
+        "amsgrad": false,
+        "foreach": null,
+        "maximize": false,
+        "capturable": false,
+        "differentiable": false,
+        "fused": null,
+        "initial_lr": 1e-06,
+        "n_params": 22
+      }
+    ],
+    "scheduler": {
+      "base_lrs": [
+        0.0001,
+        1e-06
+      ],
+      "last_epoch": 1010,
+      "verbose": false,
+      "_step_count": 1011,
+      "_get_lr_called_within_step": false,
+      "_last_lr": [
+        9.991796434444349e-05,
+        9.991796434444349e-07
+      ],
+      "lr_lambdas": [
+        null,
+        null
+      ]
+    },
+    "init_sha16": "3965232db289bf84",
+    "release": "15204de6c29ae5c7bc1ad29f6a2220a60eae31c6"
+  },
+  {
+    "name": "official_RR_W104_export_equivalence",
+    "passed": false,
+    "kind": "conformance",
+    "checkpoint_step": 27270,
+    "max_pixel_error_DN": 10.27850341796875,
+    "pixel_rmse_DN": 0.380892813205719,
+    "metrics": {
+      "scc": 0.9873707686203584,
+      "ergas": 2.0836811501730312,
+      "psnr": 37.83112216171195,
+      "sam": 2.812378458608417,
+      "q8": 0.9191554774311772,
+      "ssim": 0.9749508208028951
+    },
+    "metric_abs_differences": {
+      "scc": 2.6254000632386365e-06,
+      "ergas": 0.0002984090121036509,
+      "psnr": 0.0011859716291695577,
+      "sam": 0.0005186957970564343,
+      "q8": 6.174265839431481e-05,
+      "ssim": 9.648241055648654e-06
+    },
+    "device": "cpu",
+    "reference_device": "original completed run export"
+  },
+  {
+    "name": "official_cache_unbound_to_checkpoint",
+    "passed": true,
+    "kind": "defect_reproduction",
+    "note": "Only /tmp copy replaced; cached .mat bypassed loading a now invalid checkpoint."
+  },
+  {
+    "name": "resolved_optimizer_contract_incomplete",
+    "passed": true,
+    "kind": "defect_reproduction",
+    "resolved_training": {
+      "optimizer": "AdamW",
+      "lr": 0.0001,
+      "weight_decay": 0.01,
+      "scheduler": "cosine",
+      "warmup": 100,
+      "batch": 48,
+      "updates": 50000,
+      "amp": "no",
+      "seed": 1234
+    },
+    "note": "Actual checkpoint groups correct, but required resolved manifest fields absent."
+  }
+]

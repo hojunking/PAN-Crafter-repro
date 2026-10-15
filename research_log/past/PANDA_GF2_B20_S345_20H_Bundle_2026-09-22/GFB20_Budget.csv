@@ -1,0 +1,4 @@
+﻿server,core_ft_runs,core_ft_hours_each,stream_ft_runs,stream_ft_hours_each,fresh100_runs,fresh100_hours_each,replay_ft_runs,replay_ft_hours_each,setup_hours,diagnostic_hours,aug_calibration_hours,closeout_hours,before_closeout_hours,max_initial_reserved_hours
+s3,6,0.6,4,0.6,2,2.35,4,0.6,0.8,0.5,0.0,2.0,14.4,16.4
+s4,6,0.65,0,0.0,4,2.5,0,0.0,0.8,0.5,0.0,2.0,15.200000000000001,17.200000000000003
+s5,6,0.65,0,0.0,4,2.6,0,0.0,0.8,0.5,2.0,2.0,17.6,19.6

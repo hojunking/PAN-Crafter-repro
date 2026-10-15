@@ -1,0 +1,25 @@
+[
+  {
+    "name": "dry_run_operational_noop",
+    "passed": true,
+    "kind": "conformance",
+    "rc": 0
+  },
+  {
+    "name": "switch_keeps_old_pending_after_current",
+    "passed": true,
+    "kind": "defect_reproduction",
+    "switch_rc": 0,
+    "executed": [
+      "OLD_CURRENT",
+      "OLD_PENDING_1",
+      "OLD_PENDING_2"
+    ],
+    "queue_after": [
+      "OLD_CURRENT",
+      "OLD_PENDING_1",
+      "OLD_PENDING_2"
+    ],
+    "note": "Actual switch + original runner ORDER loop; only run_case is a no-training stub. At least remaining current ORDER/EXTRA pass is retained before a new gate pass."
+  }
+]

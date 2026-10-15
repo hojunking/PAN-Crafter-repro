@@ -1,0 +1,2020 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-28",
+  "scope": "runtime worktrees; main/release/ops worktrees excluded from cleanup",
+  "policy": {
+    "nas_excluded_entirely": true,
+    "datasets_stay_in_main": true,
+    "important_results_stay_in_main": true,
+    "cold_archive_uses_original_path_symlinks_after_verified_move": true
+  },
+  "entries": [
+    {
+      "server": "s1",
+      "name": "PAN-Crafter-runtime-ablr2-s1-6bb78e6d6118",
+      "source_path": "/home/knuvi/Desktop/song/PAN-Crafter-runtime-ablr2-s1-6bb78e6d6118",
+      "head": "6bb78e6d61183a7ed1cd1da992527e7207d48ba3",
+      "git_common_dir": "/home/knuvi/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 158597120,
+      "regular_files_before": 2163,
+      "classification": "OFFLINE_RAID_CODE_ALIAS_REMOVED",
+      "source_present": false,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "data",
+          "target": "/home/knuvi/Desktop/song/PAN-Crafter/data"
+        },
+        {
+          "path": "work_dir",
+          "target": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "gspread/_profile_cache.json",
+          "target": "/home/knuvi/Desktop/song/PAN-Crafter/gspread/_profile_cache.json"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/knuvi/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/main",
+        "refs/heads/release/gf2-g20-20260921",
+        "refs/remotes/origin/main"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pancrafter-ablr2x-s1-52184d5578a2-20260923T051414",
+        "/pancrafter-ablr2x-s1-52184d5578a2-20260923T050435",
+        "/pancrafter-ablr2-s1-6bb78e6d6118-20260921T051942064963"
+      ],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/dataset_manifest.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runtime_release_ablr2x.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runtime_release.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_WV3_s1_TS781002_TZERO_END50000/reference_manifest.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_WV3_s1_TS781001_TZERO_END50000/reference_manifest.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_WV3_s1_TS781002_TPLUS_END50000/reference_manifest.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_WV3_s1_TS781001_TPLUS_END50000/reference_manifest.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/measured_runtime_parity.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/request_snapshot/e5ec47e7a44a8ebd6e0210ccdadbf26d97dc235ef3b1c0046ecee91cb42c8419/dataset_manifest.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/request_snapshot/e5ec47e7a44a8ebd6e0210ccdadbf26d97dc235ef3b1c0046ecee91cb42c8419/runtime_release.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/boundary_snapshot/dataset_manifest.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/boundary_snapshot/runtime_release.json"
+      ],
+      "code_or_document_references": [
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/2026-09-23_ablr2x-implementation-report.md",
+          "line": 42,
+          "text": "원 실행: `PAN-Crafter-runtime-ablr2-s1-6bb78e6d6118`."
+        },
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/ABLR2X_Implementation_Validation_2026-09-23/runtime_parity_s1.json",
+          "line": 2198,
+          "text": "  \"origin_root\": \"/home/knuvi/Desktop/song/PAN-Crafter-runtime-ablr2-s1-6bb78e6d6118\","
+        },
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/ABLR2X_Implementation_Validation_2026-09-23/runtime_parity_s1.json",
+          "line": 2315,
+          "text": "    \"imported_root\": \"/home/knuvi/Desktop/song/PAN-Crafter-runtime-ablr2-s1-6bb78e6d6118\","
+        },
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter-gf2-release/research_log/2026-09-23_ablr2x-implementation-report.md",
+          "line": 42,
+          "text": "원 실행: `PAN-Crafter-runtime-ablr2-s1-6bb78e6d6118`."
+        },
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter-gf2-release/research_log/ABLR2X_Implementation_Validation_2026-09-23/runtime_parity_s1.json",
+          "line": 2198,
+          "text": "  \"origin_root\": \"/home/knuvi/Desktop/song/PAN-Crafter-runtime-ablr2-s1-6bb78e6d6118\","
+        },
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter-gf2-release/research_log/ABLR2X_Implementation_Validation_2026-09-23/runtime_parity_s1.json",
+          "line": 2315,
+          "text": "    \"imported_root\": \"/home/knuvi/Desktop/song/PAN-Crafter-runtime-ablr2-s1-6bb78e6d6118\","
+        }
+      ],
+      "code_archive": "/raid/PAN_ARCHIVE/s1/source_snapshots/20260928-approved-01/PAN-Crafter-runtime-ablr2-s1-6bb78e6d6118.tar",
+      "code_archive_sha256": "0a5da74a7bc8480289f3528c2b73f35f61635bbad2e1c0e2d4457797aa5e985a",
+      "previous_classification": "KEEP_REPRODUCTION_PATH",
+      "physical_path": "/raid/PAN_ARCHIVE/s1/runtimes/PAN-Crafter-runtime-ablr2-s1-6bb78e6d6118",
+      "source_path_is_symlink": true,
+      "local_physical_runtime_directory": false,
+      "source_contents_preserved": true,
+      "relocation_record": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_operator_storage/20260928-s1-runtime-raid/result.json",
+      "cleanup_record": "storage/20261013_sibling_worktree_cleanup/applied.json",
+      "cleanup_at": "2026-10-13T14:58:13.532612+09:00"
+    },
+    {
+      "server": "s1",
+      "name": "PAN-Crafter-runtime-ablr2x-s1-52184d5578a2",
+      "source_path": "/home/knuvi/Desktop/song/PAN-Crafter-runtime-ablr2x-s1-52184d5578a2",
+      "head": "52184d5578a2a10721e435f8fbf4a759497768e5",
+      "git_common_dir": "/home/knuvi/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 161226752,
+      "regular_files_before": 2331,
+      "classification": "OFFLINE_RAID_CODE_ALIAS_REMOVED",
+      "source_present": false,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "data",
+          "target": "/home/knuvi/Desktop/song/PAN-Crafter/data"
+        },
+        {
+          "path": "work_dir",
+          "target": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "gspread/_profile_cache.json",
+          "target": "/home/knuvi/Desktop/song/PAN-Crafter/gspread/_profile_cache.json"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/knuvi/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/main",
+        "refs/heads/release/gf2-g20-20260921",
+        "refs/remotes/origin/main"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pancrafter-ablr2x-s1-52184d5578a2-20260923T051414",
+        "/pancrafter-ablr2x-s1-52184d5578a2-20260923T050435"
+      ],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runtime_release_ablr2x.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_WV3_s1_TS781005_TPLUS_END50000/reference_manifest.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_WV3_s1_TS781003_TPLUS_END50000/reference_manifest.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_WV3_s1_TS781003_TZERO_END50000/reference_manifest.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_WV3_s1_TS781005_TZERO_END50000/reference_manifest.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_WV3_s1_TS781004_TPLUS_END50000/reference_manifest.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_WV3_s1_TS781004_TZERO_END50000/reference_manifest.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/measured_runtime_parity.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/raid/PAN_ARCHIVE/s1/source_snapshots/20260928-approved-01/PAN-Crafter-runtime-ablr2x-s1-52184d5578a2.tar",
+      "code_archive_sha256": "6896a7481aa179756a4d75fc9438e17f8615d9f971af835d5f5e029c84bc0524",
+      "previous_classification": "KEEP_REPRODUCTION_PATH",
+      "physical_path": "/raid/PAN_ARCHIVE/s1/runtimes/PAN-Crafter-runtime-ablr2x-s1-52184d5578a2",
+      "source_path_is_symlink": true,
+      "local_physical_runtime_directory": false,
+      "source_contents_preserved": true,
+      "relocation_record": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_operator_storage/20260928-s1-runtime-raid/result.json",
+      "cleanup_record": "storage/20261013_sibling_worktree_cleanup/applied.json",
+      "cleanup_at": "2026-10-13T14:58:13.532612+09:00"
+    },
+    {
+      "server": "s1",
+      "name": "PAN-Crafter-runtime-g20-s1-20260920",
+      "source_path": "/home/knuvi/Desktop/song/PAN-Crafter-runtime-g20-s1-20260920",
+      "head": "8a63d10604901609facfd22b2b195724ea0122f6",
+      "git_common_dir": "/home/knuvi/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 191021056,
+      "regular_files_before": 3502,
+      "classification": "OFFLINE_RAID_CODE_ALIAS_REMOVED",
+      "source_present": false,
+      "changed_or_untracked_nonlink_paths": 1324,
+      "source_change_sample": [
+        "M g20/controller.py",
+        " M g20/preflight.py",
+        " M g20/references.py",
+        " M g20/upload.py",
+        " M tools/_watchdog.sh",
+        "?? g20/gpu_exception.py",
+        "?? g20/metric_exception.py",
+        "?? g20/migration.py"
+      ],
+      "shared_links": [],
+      "retaining_git_refs": [
+        "refs/heads/backup/gf2-pre-cleanup-s1-20260921",
+        "refs/heads/main",
+        "refs/heads/ops/pre-ablr2x-s1-20260923",
+        "refs/heads/release/gf2-g20-20260921",
+        "refs/remotes/origin/main"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pan-g20-s1-existing-env-recovery-20260921",
+        "/pan-g20-s1-current-runtime-probe-20260921",
+        "/pan-g20-s1-approved-recovery-20260921",
+        "/pan-g20-s1-output-probe-20260921",
+        "/pan-g20-s1-metric-replay-20260921",
+        "/pan-g20-s1-q-precision-20260921",
+        "/pan-g20-s1-runtime-validation-20260921",
+        "/pan-g20-s1-20260920",
+        "/pan-g20-s1-20260920-before-filter-131837"
+      ],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_g20/s1/source_amendment/deployment.json",
+        "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_g20/s1/source_amendment_v2/deployment.json"
+      ],
+      "code_or_document_references": [
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/2026-09-21_gf2-paper-protocol-reference-audit.md",
+          "line": 17,
+          "text": "실제 실행 소스 위치: `/home/knuvi/Desktop/song/PAN-Crafter-runtime-g20-s1-20260920`."
+        },
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/0920/2026-09-20_g20-all-server-activation.json",
+          "line": 5,
+          "text": "    \"runtime\": \"/home/knuvi/Desktop/song/PAN-Crafter-runtime-g20-s1-20260920\","
+        },
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter-gf2-release/ops/gf2/profiles/s1.json",
+          "line": 123,
+          "text": "  \"live_runtime\": \"/home/knuvi/Desktop/song/PAN-Crafter-runtime-g20-s1-20260920\","
+        }
+      ],
+      "code_archive": "/raid/PAN_ARCHIVE/s1/source_snapshots/20260928-approved-01/PAN-Crafter-runtime-g20-s1-20260920.tar",
+      "code_archive_sha256": "d47d219e9032d880acc15b56df7eccdac8127c6e23649980432dc7e694f5850e",
+      "previous_classification": "KEEP_MODIFIED_SOURCE",
+      "physical_path": "/raid/PAN_ARCHIVE/s1/runtimes/PAN-Crafter-runtime-g20-s1-20260920",
+      "source_path_is_symlink": true,
+      "local_physical_runtime_directory": false,
+      "source_contents_preserved": true,
+      "relocation_record": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_operator_storage/20260928-s1-runtime-raid/result.json",
+      "cleanup_record": "storage/20261013_sibling_worktree_cleanup/applied.json",
+      "cleanup_at": "2026-10-13T14:58:13.532612+09:00"
+    },
+    {
+      "server": "s1",
+      "name": "PAN-Crafter-runtime-qg40-s1-20260920",
+      "source_path": "/home/knuvi/Desktop/song/PAN-Crafter-runtime-qg40-s1-20260920",
+      "head": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+      "git_common_dir": "/home/knuvi/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 149852160,
+      "regular_files_before": 1818,
+      "classification": "OFFLINE_RAID_CODE_ALIAS_REMOVED",
+      "source_present": false,
+      "changed_or_untracked_nonlink_paths": 147,
+      "source_change_sample": [
+        "?? config/qg40/QG40_GF2_S_PLH_W104_D122_TA_C3_TS91001_SS92001_BASE_FRESH50_v1.yaml",
+        "?? config/qg40/QG40_GF2_S_PLH_W104_D122_TA_C3_TS91001_SS92002_BASE_FRESH50_v1.yaml",
+        "?? config/qg40/QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92004_BASE_FRESH50_v1.yaml",
+        "?? config/qg40/QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92005_BASE_FRESH50_v1.yaml",
+        "?? config/qg40/QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92006_A24R_FRESH50_v1.yaml",
+        "?? config/qg40/QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92006_B20_FRESH50_v1.yaml",
+        "?? config/qg40/QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92006_BASE_FRESH50_v1.yaml",
+        "?? config/qg40/QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92006_E10_FRESH50_v1.yaml"
+      ],
+      "shared_links": [],
+      "retaining_git_refs": [
+        "refs/heads/backup/gf2-pre-cleanup-s1-20260921",
+        "refs/heads/backup/gf2-release-before-gspread-20260921",
+        "refs/heads/backup/main-before-sync-20260920",
+        "refs/heads/fh20r1-r2",
+        "refs/heads/main",
+        "refs/heads/ops/pre-ablr2x-s1-20260923",
+        "refs/heads/ops/qg40-s1-recovery-20260920",
+        "refs/heads/ops/qg40-s2-portability-20260920",
+        "refs/heads/qg40-20260920-preparation",
+        "refs/heads/release/gf2-g20-20260921",
+        "refs/heads/reporting-extra-metrics",
+        "refs/remotes/origin/fh20r1-r2",
+        "refs/remotes/origin/main",
+        "refs/remotes/origin/reporting-extra-metrics"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pancrafter-fr-raw-s1-20260925-013321",
+        "/pancrafter-rr-raw-gt-s1-20260924-124726",
+        "/pancrafter-ours-export-s1-20260924-031541",
+        "/pan-qg40-s1-frozen-20260920"
+      ],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [],
+      "code_or_document_references": [
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/0920/2026-09-20_qg40-runtime-baselines-and-s1-recovery.json",
+          "line": 106,
+          "text": "      \"runtime\": \"/home/knuvi/Desktop/song/PAN-Crafter-runtime-qg40-s1-20260920\","
+        },
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/0920/2026-09-20_qg40-runtime-baselines-and-s1-recovery.json",
+          "line": 107,
+          "text": "      \"gitdir\": \"/home/knuvi/Desktop/song/PAN-Crafter/.git/worktrees/PAN-Crafter-runtime-qg40-s1-20260920\","
+        },
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/0920/2026-09-20_qg40-runtime-baselines-and-s1-recovery.json",
+          "line": 129,
+          "text": "        \"/home/knuvi/Desktop/song/PAN-Crafter-runtime-qg40-s1-20260920:/home/knuvi/Desktop/song/PAN-Crafter:ro\","
+        },
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/0920/2026-09-20_qg40-runtime-baselines-and-s1-recovery.json",
+          "line": 141,
+          "text": "        \"GIT_DIR=/opt/qg40-git/common/worktrees/PAN-Crafter-runtime-qg40-s1-20260920\","
+        },
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/0920/2026-09-20_qg40-runtime-baselines-and-s1-recovery.md",
+          "line": 73,
+          "text": "`/home/knuvi/Desktop/song/PAN-Crafter-runtime-qg40-s1-20260920`"
+        },
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_FR_raw_delivery_20260925_013321KST/Ours_s1_WV3_QB_FR_raw_20260925_013740KST/validation/fr_metric_comparison.json",
+          "line": 311,
+          "text": "    \"evaluator_path\": \"/home/knuvi/Desktop/song/PAN-Crafter-runtime-qg40-s1-20260920/fh12/evaluation.py\","
+        },
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_FR_raw_delivery_20260925_013321KST/Ours_s1_WV3_QB_FR_raw_20260925_013740KST/validation/fr_metric_comparison.json",
+          "line": 959,
+          "text": "    \"evaluator_path\": \"/home/knuvi/Desktop/song/PAN-Crafter-runtime-qg40-s1-20260920/qg40/evaluation.py\","
+        },
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_RR_raw_gt_delivery_20260924_124726KST/Ours_s1_WV3_QB_RR_raw_gt_20260924_125135KST/validation/rr_metric_comparison.json",
+          "line": 860,
+          "text": "    \"evaluator_path\": \"/home/knuvi/Desktop/song/PAN-Crafter-runtime-qg40-s1-20260920/fh12/evaluation.py\","
+        },
+        {
+          "path": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_RR_raw_gt_delivery_20260924_124726KST/Ours_s1_WV3_QB_RR_raw_gt_20260924_125135KST/validation/rr_metric_comparison.json",
+          "line": 1682,
+          "text": "    \"evaluator_path\": \"/home/knuvi/Desktop/song/PAN-Crafter-runtime-qg40-s1-20260920/qg40/evaluation.py\","
+        }
+      ],
+      "code_archive": "/raid/PAN_ARCHIVE/s1/source_snapshots/20260928-approved-01/PAN-Crafter-runtime-qg40-s1-20260920.tar",
+      "code_archive_sha256": "49b13d0931d2593036b18a2d377f896d1d6f2c0d4aa5a9d762cbcc90c2cc04e4",
+      "previous_classification": "KEEP_MODIFIED_SOURCE",
+      "physical_path": "/raid/PAN_ARCHIVE/s1/runtimes/PAN-Crafter-runtime-qg40-s1-20260920",
+      "source_path_is_symlink": true,
+      "local_physical_runtime_directory": false,
+      "source_contents_preserved": true,
+      "relocation_record": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_operator_storage/20260928-s1-runtime-raid/result.json",
+      "cleanup_record": "storage/20261013_sibling_worktree_cleanup/applied.json",
+      "cleanup_at": "2026-10-13T14:58:13.532612+09:00"
+    },
+    {
+      "server": "s2",
+      "name": "PAN-Crafter-gf2-release-runtime-ablr2-s2-1d1eb8abb6a3",
+      "source_path": "/home/honbul/Desktop/song/PAN-Crafter-gf2-release-runtime-ablr2-s2-1d1eb8abb6a3",
+      "head": "1d1eb8abb6a3e8cb0aa7b6d91799d266155d4cca",
+      "git_common_dir": "/home/honbul/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 158789632,
+      "regular_files_before": 2176,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "data",
+          "target": "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/data_view"
+        },
+        {
+          "path": "work_dir",
+          "target": "/home/honbul/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/honbul/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/pre-ablr2x-s2-20260923",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pancrafter-ablr2x-s2-d035afa7f756-resource-recovery-20260924",
+        "/pancrafter-ablr2x-s2-d035afa7f756-20260923T051431",
+        "/pancrafter-ablr2x-s2-d035afa7f756-20260923T050448",
+        "/pancrafter-ablr2-s2-1d1eb8abb6a3-20260921T053055",
+        "/pancrafter-ablr2-s2-1d1eb8abb6a3-20260921T052919"
+      ],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/dataset_manifest.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/runtime_release.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/runtime_release_ablr2x.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_QB_s2_TS881001_TPLUS_END50000/reference_manifest.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_QB_s2_TS881002_TZERO_END50000/reference_manifest.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_QB_s2_TS881001_TZERO_END50000/reference_manifest.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_QB_s2_TS881002_TPLUS_END50000/reference_manifest.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/migration/measured_runtime_parity.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/migration/request_snapshot/e788976474f9afad0cac8ca4d2dfce4eeefaa4a3cb5a575a1a7e5a143c444d43/dataset_manifest.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/migration/request_snapshot/e788976474f9afad0cac8ca4d2dfce4eeefaa4a3cb5a575a1a7e5a143c444d43/runtime_release.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/migration/boundary_snapshot/dataset_manifest.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/migration/boundary_snapshot/runtime_release.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/mnt/nvme/archive/PAN_ARCHIVE/s2/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-ablr2-s2-1d1eb8abb6a3.tar",
+      "code_archive_sha256": "3c7a2d89b16b9ba5221faf890ab8596897985517d4b48f61b6845ce24de4e1df"
+    },
+    {
+      "server": "s2",
+      "name": "PAN-Crafter-gf2-release-runtime-ablr2x-s2-d035afa7f756",
+      "source_path": "/home/honbul/Desktop/song/PAN-Crafter-gf2-release-runtime-ablr2x-s2-d035afa7f756",
+      "head": "d035afa7f756251e4f7d59cf43dd4f936157d496",
+      "git_common_dir": "/home/honbul/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 161423360,
+      "regular_files_before": 2344,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "data",
+          "target": "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/data_view"
+        },
+        {
+          "path": "work_dir",
+          "target": "/home/honbul/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/honbul/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pancrafter-ablr2x-s2-d035afa7f756-resource-recovery-20260924",
+        "/pancrafter-ablr2x-s2-d035afa7f756-20260923T051431",
+        "/pancrafter-ablr2x-s2-d035afa7f756-20260923T050448"
+      ],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/runtime_release_ablr2x.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_QB_s2_TS881003_TZERO_END50000/reference_manifest.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_QB_s2_TS881005_TPLUS_END50000/reference_manifest.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_QB_s2_TS881003_TPLUS_END50000/reference_manifest.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_QB_s2_TS881004_TZERO_END50000/reference_manifest.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_QB_s2_TS881004_TPLUS_END50000/reference_manifest.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/references/PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2_QB_s2_TS881005_TZERO_END50000/reference_manifest.json",
+        "/home/honbul/Desktop/song/PAN-Crafter/work_dir/ablr2/QB/s2/migration/measured_runtime_parity.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/mnt/nvme/archive/PAN_ARCHIVE/s2/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-ablr2x-s2-d035afa7f756.tar",
+      "code_archive_sha256": "cc1f6cd8cf75b1415589380893e3509e8ebe726cf8b23249561e373dc28e3eb7"
+    },
+    {
+      "server": "s2",
+      "name": "PAN-Crafter-runtime-g20-s2-20260920",
+      "source_path": "/home/honbul/Desktop/song/PAN-Crafter-runtime-g20-s2-20260920",
+      "head": "0ec113218f60f861dab18ab84f3083b730890979",
+      "git_common_dir": "/home/honbul/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 191381504,
+      "regular_files_before": 2384,
+      "classification": "KEEP_MODIFIED_SOURCE",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 152,
+      "source_change_sample": [
+        "M tools/_watchdog.sh",
+        " M tools/fh12_runner.py",
+        " M tools/fh20r1_runner.py",
+        " M tools/mix20h_postrun.py",
+        " M tools/mix20h_runner.py",
+        "?? config/g20/G20_GF2_S_S1_R0_TS91001_SS93001_BASE_PLH_W104_D122_FRESH50_v1.yaml",
+        "?? config/g20/G20_GF2_S_S1_R0_TS91001_SS93002_BASE_PLH_W104_D122_FRESH50_v1.yaml",
+        "?? config/g20/G20_GF2_S_S1_R1_TS91002_SS93001_BASE_PLH_W104_D122_FRESH50_v1.yaml"
+      ],
+      "shared_links": [],
+      "retaining_git_refs": [
+        "refs/heads/backup/gf2-pre-cleanup-s2-20260921",
+        "refs/heads/server/170hx"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pan-g20-s2-r4-recovery-20260921",
+        "/pan-g20-s2-upload-diagnostic-20260921",
+        "/pan-g20-s2-r4-diagnostic-20260921",
+        "/pan-g20-s2-20260920",
+        "/pan-g20-s2-mkl-preflight-20260920",
+        "/pan-g20-s2-20260920-mkl-failure-20260920",
+        "/pan-g20-s2-20260920-before-filter-131851",
+        "/pan-g20-s2-20260920-before-idle-policy"
+      ],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [],
+      "code_or_document_references": [
+        {
+          "path": "/home/honbul/Desktop/song/PAN-Crafter-gf2-release/ops/gf2/profiles/s2.json",
+          "line": 115,
+          "text": "  \"live_runtime\": \"/home/honbul/Desktop/song/PAN-Crafter-runtime-g20-s2-20260920\","
+        }
+      ],
+      "code_archive": "/mnt/nvme/archive/PAN_ARCHIVE/s2/source_snapshots/20260928-approved-01/PAN-Crafter-runtime-g20-s2-20260920.tar",
+      "code_archive_sha256": "cbb3cc885b2622ea22834c37fc645cab05b1653760a5695390a18904449b8d00"
+    },
+    {
+      "server": "s3",
+      "name": "PAN-Crafter-gf2-release-runtime-ablr2x-s3-c8fb7b21a212",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-gf2-release-runtime-ablr2x-s3-c8fb7b21a212",
+      "head": "c8fb7b21a212d4dd3e3fc33154101394dbb84f2a",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 161431552,
+      "regular_files_before": 2346,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "work_dir",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "data",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir/_l100/s3/data_view"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/user/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pancrafter-ablr2x-s3-c8fb7b21a212-20260923T050125"
+      ],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/ablr2/GF2/s3/runtime_release_ablr2x.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/ablr2/GF2/s3/state.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/ablr2/GF2/s3/dataset_manifest.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/ablr2/GF2/s3/references/PANDA_ABL_GF2_S3_ADAPTIVE_LOOP_20260923_v1_GF2_s3_TS981004_TZERO_END50000/reference_manifest.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/ablr2/GF2/s3/references/PANDA_ABL_GF2_S3_ADAPTIVE_LOOP_20260923_v1_GF2_s3_TS981002_TZERO_END50000/reference_manifest.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/ablr2/GF2/s3/references/PANDA_ABL_GF2_S3_ADAPTIVE_LOOP_20260923_v1_GF2_s3_TS981005_TZERO_END50000/reference_manifest.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/ablr2/GF2/s3/references/PANDA_ABL_GF2_S3_ADAPTIVE_LOOP_20260923_v1_GF2_s3_TS981003_TZERO_END50000/reference_manifest.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/ablr2/GF2/s3/references/PANDA_ABL_GF2_S3_ADAPTIVE_LOOP_20260923_v1_GF2_s3_TS981001_TZERO_END50000/reference_manifest.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/ablr2/GF2/s3/references/PANDA_ABL_GF2_S3_ADAPTIVE_LOOP_20260923_v1_GF2_s3_TS981005_TPLUS_END50000/reference_manifest.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/ablr2/GF2/s3/references/PANDA_ABL_GF2_S3_ADAPTIVE_LOOP_20260923_v1_GF2_s3_TS981001_TPLUS_END50000/reference_manifest.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/ablr2/GF2/s3/references/PANDA_ABL_GF2_S3_ADAPTIVE_LOOP_20260923_v1_GF2_s3_TS981004_TPLUS_END50000/reference_manifest.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/ablr2/GF2/s3/references/PANDA_ABL_GF2_S3_ADAPTIVE_LOOP_20260923_v1_GF2_s3_TS981002_TPLUS_END50000/reference_manifest.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/ablr2/GF2/s3/references/PANDA_ABL_GF2_S3_ADAPTIVE_LOOP_20260923_v1_GF2_s3_TS981003_TPLUS_END50000/reference_manifest.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/home/user/Desktop/song/PAN_ARCHIVE/s3/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-ablr2x-s3-c8fb7b21a212.tar",
+      "code_archive_sha256": "a51e139df7091ce644c6c094594f7604e1a8286f6c66f94113cdd8103a784a94"
+    },
+    {
+      "server": "s3",
+      "name": "PAN-Crafter-gf2-release-runtime-gfb20-s3-060ba8d20992",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-gf2-release-runtime-gfb20-s3-060ba8d20992",
+      "head": "060ba8d209925854f1f3c30496c6366c4cb09016",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 159444992,
+      "regular_files_before": 2229,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "work_dir",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "data",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir/_l100/s3/data_view"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/user/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/pre-ablr2x-s3-20260923",
+        "refs/heads/ops/pre-gfp40-20260922",
+        "refs/heads/ops/pre-pcrepro-s3-20260922",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/_gfb20/s3/source_and_data_manifest.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/_gfb20/s3/runtime_release.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/home/user/Desktop/song/PAN_ARCHIVE/s3/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-gfb20-s3-060ba8d20992.tar",
+      "code_archive_sha256": "aa5c26e381efa303351f1e5572537141bc6b20061864206bc8a22d944783da70"
+    },
+    {
+      "server": "s3",
+      "name": "PAN-Crafter-gf2-release-runtime-gfb20-s3-3de787788c36",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-gf2-release-runtime-gfb20-s3-3de787788c36",
+      "head": "3de787788c36a389c05ccd9d6f8f7b4b30d2529d",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 159440896,
+      "regular_files_before": 2228,
+      "classification": "ARCHIVED_WORKING_COPY_REMOVED",
+      "source_present": false,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "work_dir",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "data",
+          "target": "/home/user/Desktop/song/PAN-Crafter/data"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/user/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/pre-ablr2x-s3-20260923",
+        "refs/heads/ops/pre-gfp40-20260922",
+        "refs/heads/ops/pre-pcrepro-s3-20260922",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [],
+      "code_or_document_references": [],
+      "code_archive": "/home/user/Desktop/song/PAN_ARCHIVE/s3/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-gfb20-s3-3de787788c36.tar",
+      "code_archive_sha256": "c4b54e782774b3ee34e0722913cfd95779d3e4f6ba22da7a9532824a0912f4cf",
+      "removal_receipt": {
+        "server": "s3",
+        "source": "/home/user/Desktop/song/PAN-Crafter-gf2-release-runtime-gfb20-s3-3de787788c36",
+        "archive": "/home/user/Desktop/song/PAN_ARCHIVE/s3/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-gfb20-s3-3de787788c36.tar",
+        "archive_sha256": "c4b54e782774b3ee34e0722913cfd95779d3e4f6ba22da7a9532824a0912f4cf",
+        "head": "3de787788c36a389c05ccd9d6f8f7b4b30d2529d",
+        "retaining_local_branches": [
+          "refs/heads/ops/pre-ablr2x-s3-20260923",
+          "refs/heads/ops/pre-gfp40-20260922",
+          "refs/heads/ops/pre-pcrepro-s3-20260922",
+          "refs/heads/release/gf2-g20-20260921"
+        ],
+        "regular_files_sha256_verified": 2226,
+        "dataset_retained_in_main": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/pan_h5/pan_h5.zip",
+          "relative_path": "pan_h5/pan_h5.zip",
+          "sha256": "320e9479ea2f06059e289a4715cdd7c2e75ba11206170ae7d1d3d500982c2d50",
+          "restore_note": "Restore runtime code from the tar and copy/link this retained main dataset; .git metadata is recreated from the retained commit."
+        },
+        "preserved_shared_targets": [
+          {
+            "path": "data",
+            "target": "/home/user/Desktop/song/PAN-Crafter/data",
+            "device": 66305,
+            "inode": 39858910
+          },
+          {
+            "path": "gspread/account.json",
+            "target": "/home/user/Desktop/song/PAN-Crafter/gspread/account.json",
+            "device": 66305,
+            "inode": 39584598
+          },
+          {
+            "path": "work_dir",
+            "target": "/home/user/Desktop/song/PAN-Crafter/work_dir",
+            "device": 66305,
+            "inode": 39748509
+          }
+        ],
+        "research_data_deleted": false,
+        "status": "ARCHIVED_SOURCE_COPY_REMOVED",
+        "finished_epoch": 1790584517.4621792,
+        "git_force_used": false
+      }
+    },
+    {
+      "server": "s3",
+      "name": "PAN-Crafter-gf2-release-runtime-gfp40-s3-0d2074f55f2e",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-gf2-release-runtime-gfp40-s3-0d2074f55f2e",
+      "head": "0d2074f55f2ee48094b2b789288c6dca3a574c68",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 160047104,
+      "regular_files_before": 2274,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "work_dir",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "data",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir/_l100/s3/data_view"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/user/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/pre-ablr2x-s3-20260923",
+        "refs/heads/ops/pre-pcrepro-s3-20260922",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/_gfp40/s3/runtime_release.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/home/user/Desktop/song/PAN_ARCHIVE/s3/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-gfp40-s3-0d2074f55f2e.tar",
+      "code_archive_sha256": "e9ff172fc41a767d47f7c1f19ad3746c6e8dc381302e9560c204250dae61d298"
+    },
+    {
+      "server": "s3",
+      "name": "PAN-Crafter-gf2-release-runtime-l100-s3-bf9d6abab750",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-gf2-release-runtime-l100-s3-bf9d6abab750",
+      "head": "bf9d6abab7501eb88c576d25f874bfbeb4db7d71",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 158142464,
+      "regular_files_before": 2124,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "work_dir",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "data",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir/_l100/s3/data_view"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/user/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/backup/gf2-before-gfb20-20260922",
+        "refs/heads/ops/pre-ablr2x-s3-20260923",
+        "refs/heads/ops/pre-gfp40-20260922",
+        "refs/heads/ops/pre-pcrepro-s3-20260922",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/_l100/s3/references/L100I1_R50_S3_TS94001/reference_manifest.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/_l100/s3/references/L100I1_R100_S3_TS94001/reference_manifest.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/home/user/Desktop/song/PAN_ARCHIVE/s3/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-l100-s3-bf9d6abab750.tar",
+      "code_archive_sha256": "e527298ad0c3989e9027662bab097deb4d06fe627427f420dc105436c4765dcd"
+    },
+    {
+      "server": "s3",
+      "name": "PAN-Crafter-gf2-release-runtime-pcrepro-s3-4e4bca82d235",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-gf2-release-runtime-pcrepro-s3-4e4bca82d235",
+      "head": "4e4bca82d23548f66c7c9bce542c84944df8330b",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 160460800,
+      "regular_files_before": 2312,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "work_dir",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "data",
+          "target": "/home/user/Desktop/song/PAN-Crafter/data"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/user/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/pre-ablr2x-s3-20260923",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/_pcrepro/s3/runtime_release.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/home/user/Desktop/song/PAN_ARCHIVE/s3/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-pcrepro-s3-4e4bca82d235.tar",
+      "code_archive_sha256": "a92eb552dbba4aaeeaa268d93cd7d6396e73ba6199106f9c7869e1c963f3ac23"
+    },
+    {
+      "server": "s3",
+      "name": "PAN-Crafter-runtime-g20-s3-20260920",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-runtime-g20-s3-20260920",
+      "head": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 150446080,
+      "regular_files_before": 1815,
+      "classification": "KEEP_MODIFIED_SOURCE",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 164,
+      "source_change_sample": [
+        "M tools/_run_cases.sh",
+        " M tools/_upload.sh",
+        " M tools/_watchdog.sh",
+        " M tools/build_fr_paperset.py",
+        " M tools/campaign_start.sh",
+        " M tools/eqrec4/common.py",
+        " M tools/eqrec4_prepare.sh",
+        " M tools/eqrec4_run.sh"
+      ],
+      "shared_links": [],
+      "retaining_git_refs": [
+        "refs/heads/backup/gf2-before-gfb20-20260922",
+        "refs/heads/backup/gf2-before-l100-20260921",
+        "refs/heads/backup/gf2-pre-cleanup-s3-20260921",
+        "refs/heads/backup/gf2-release-before-gspread-20260921",
+        "refs/heads/main",
+        "refs/heads/ops/pre-ablr2x-s3-20260923",
+        "refs/heads/ops/pre-gfp40-20260922",
+        "refs/heads/ops/pre-pcrepro-s3-20260922",
+        "refs/heads/release/gf2-g20-20260921",
+        "refs/remotes/origin/HEAD",
+        "refs/remotes/origin/fh20r1-r2",
+        "refs/remotes/origin/main",
+        "refs/remotes/origin/reporting-extra-metrics"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pan-g20-s3-20260920",
+        "/pan-g20-s3-20260920-before-filter-131907"
+      ],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [],
+      "code_or_document_references": [
+        {
+          "path": "/home/user/Desktop/song/PAN-Crafter-gf2-release/ops/gf2/profiles/s3.json",
+          "line": 108,
+          "text": "  \"live_runtime\": \"/home/user/Desktop/song/PAN-Crafter-runtime-g20-s3-20260920\","
+        }
+      ],
+      "code_archive": "/home/user/Desktop/song/PAN_ARCHIVE/s3/source_snapshots/20260928-approved-01/PAN-Crafter-runtime-g20-s3-20260920.tar",
+      "code_archive_sha256": "32ec9c3459315bf7c0750a44c47a8df28904ddc0f5f2f1ebca1916772a2af4bd"
+    },
+    {
+      "server": "s4",
+      "name": "PAN-Crafter-gf2-release-runtime-g23sens-s4-108bee06f373",
+      "source_path": "/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-g23sens-s4-108bee06f373",
+      "head": "108bee06f37338a980226255d02e846fc6bbd7c9",
+      "git_common_dir": "/home/wty/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 162258944,
+      "regular_files_before": 2440,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "work_dir",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "data",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/data"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pancrafter-g23sens-s4-108bee06f373-20260923T171039"
+      ],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/wty/Desktop/song/PAN-Crafter/work_dir/g23sens/s4/runtime_release.json",
+        "/home/wty/Desktop/song/PAN-Crafter/work_dir/g23sens/s4/runtime_bindings.json",
+        "/home/wty/Desktop/song/PAN-Crafter/work_dir/_qualitative_interlude/s4/20260923T180227Z/snapshot_paused/s4_runtime_bindings.json",
+        "/home/wty/Desktop/song/PAN-Crafter/work_dir/_qualitative_interlude/s4/20260923T180227Z/snapshot_paused/s4_runtime_release.json",
+        "/home/wty/Desktop/song/PAN-Crafter/work_dir/_qualitative_interlude/s4/20260923T180227Z/snapshot_before/s4_runtime_bindings.json",
+        "/home/wty/Desktop/song/PAN-Crafter/work_dir/_qualitative_interlude/s4/20260923T180227Z/snapshot_before/s4_runtime_release.json"
+      ],
+      "code_or_document_references": [
+        {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/result_log/best_model_result/reports/pause_resume_transaction.json",
+          "line": 11,
+          "text": "    \"/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-g23sens-s4-108bee06f373/tools/g23sens_runner.py\","
+        },
+        {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/result_log/best_model_result/reports/pause_resume_transaction.json",
+          "line": 18,
+          "text": "  \"original_cwd\": \"/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-g23sens-s4-108bee06f373\","
+        },
+        {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/result_log/best_model_result/reports/pause_resume_transaction.json",
+          "line": 25,
+          "text": "      \"/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-g23sens-s4-108bee06f373/tools/g23sens_runner.py\","
+        },
+        {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/result_log/best_model_result/reports/pause_resume_transaction.json",
+          "line": 32,
+          "text": "    \"cwd\": \"/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-g23sens-s4-108bee06f373\","
+        },
+        {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/result_log/best_model_result/reports/pause_resume_transaction.json",
+          "line": 45,
+          "text": "        \"Source\": \"/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-g23sens-s4-108bee06f373\","
+        },
+        {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/result_log/best_model_result/reports/pause_resume_transaction.json",
+          "line": 46,
+          "text": "        \"Destination\": \"/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-g23sens-s4-108bee06f373\","
+        },
+        {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/result_log/best_model_result/reports/pause_resume_transaction.json",
+          "line": 157,
+          "text": "  \"sens_root\": \"/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-g23sens-s4-108bee06f373\","
+        },
+        {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/result_log/best_model_result/reports/resume_verification.json",
+          "line": 18,
+          "text": "      \"/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-g23sens-s4-108bee06f373/tools/g23sens_runner.py\","
+        },
+        {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/result_log/best_model_result/reports/resume_verification.json",
+          "line": 23,
+          "text": "      \"/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-g23sens-s4-108bee06f373/work_dir/g23sens/s4/runs/SENS_G23_WV3_s4_C000000_BASE_S1234_F50K_v1/attempt001/config.json\","
+        }
+      ],
+      "code_archive": "/home/wty/Desktop/song/PAN_ARCHIVE/s4/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-g23sens-s4-108bee06f373.tar",
+      "code_archive_sha256": "6f3fa00b01b944ef8623ec226f25cf49467c61f5eb8283330af5f5b552e8d5df"
+    },
+    {
+      "server": "s4",
+      "name": "PAN-Crafter-gf2-release-runtime-g23sens-s4-71e5faafed24",
+      "source_path": "/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-g23sens-s4-71e5faafed24",
+      "head": "71e5faafed245877cbb763c5738ae11f3abd5884",
+      "git_common_dir": "/home/wty/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 162250752,
+      "regular_files_before": 2439,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "work_dir",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "data",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/data"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/pre-gradient-fix-s4-20260924",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pancrafter-g23sens-s4-71e5faafed24-20260923T143735"
+      ],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [],
+      "code_or_document_references": [],
+      "code_archive": "/home/wty/Desktop/song/PAN_ARCHIVE/s4/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-g23sens-s4-71e5faafed24.tar",
+      "code_archive_sha256": "488fd89cea3bdf455419d96f0e34e13ea042109efbd21e16fdc62a80c3dd112b"
+    },
+    {
+      "server": "s4",
+      "name": "PAN-Crafter-gf2-release-runtime-gfb20-s4-060ba8d20992",
+      "source_path": "/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-gfb20-s4-060ba8d20992",
+      "head": "060ba8d209925854f1f3c30496c6366c4cb09016",
+      "git_common_dir": "/home/wty/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 159444992,
+      "regular_files_before": 2229,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "work_dir",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "data",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/work_dir/_l100/s4/data_view"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/pre-g23sens-s4-20260923",
+        "refs/heads/ops/pre-gfp40-20260922",
+        "refs/heads/ops/pre-gradient-fix-s4-20260924",
+        "refs/heads/ops/pre-pcrepro-20260922",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/wty/Desktop/song/PAN-Crafter/work_dir/_gfb20/s4/runtime_release.json",
+        "/home/wty/Desktop/song/PAN-Crafter/work_dir/_gfb20/s4/source_and_data_manifest.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/home/wty/Desktop/song/PAN_ARCHIVE/s4/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-gfb20-s4-060ba8d20992.tar",
+      "code_archive_sha256": "0555f327455ecedc05786c1a54e8a95cc5a4d001c41b643e80d4d68a66796c23"
+    },
+    {
+      "server": "s4",
+      "name": "PAN-Crafter-gf2-release-runtime-gfb20-s4-3de787788c36",
+      "source_path": "/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-gfb20-s4-3de787788c36",
+      "head": "3de787788c36a389c05ccd9d6f8f7b4b30d2529d",
+      "git_common_dir": "/home/wty/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 159440896,
+      "regular_files_before": 2228,
+      "classification": "ARCHIVED_WORKING_COPY_REMOVED",
+      "source_present": false,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "work_dir",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "data",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/data"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/pre-g23sens-s4-20260923",
+        "refs/heads/ops/pre-gfp40-20260922",
+        "refs/heads/ops/pre-gradient-fix-s4-20260924",
+        "refs/heads/ops/pre-pcrepro-20260922",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [],
+      "code_or_document_references": [],
+      "code_archive": "/home/wty/Desktop/song/PAN_ARCHIVE/s4/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-gfb20-s4-3de787788c36.tar",
+      "code_archive_sha256": "0bcba7232ed70e71f3f13080f4b01876cf0416322f0b078a4626d59a1842fdc3",
+      "removal_receipt": {
+        "server": "s4",
+        "source": "/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-gfb20-s4-3de787788c36",
+        "archive": "/home/wty/Desktop/song/PAN_ARCHIVE/s4/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-gfb20-s4-3de787788c36.tar",
+        "archive_sha256": "0bcba7232ed70e71f3f13080f4b01876cf0416322f0b078a4626d59a1842fdc3",
+        "head": "3de787788c36a389c05ccd9d6f8f7b4b30d2529d",
+        "retaining_local_branches": [
+          "refs/heads/ops/pre-g23sens-s4-20260923",
+          "refs/heads/ops/pre-gfp40-20260922",
+          "refs/heads/ops/pre-gradient-fix-s4-20260924",
+          "refs/heads/ops/pre-pcrepro-20260922",
+          "refs/heads/release/gf2-g20-20260921"
+        ],
+        "regular_files_sha256_verified": 2226,
+        "dataset_retained_in_main": {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/pan_h5/pan_h5.zip",
+          "relative_path": "pan_h5/pan_h5.zip",
+          "sha256": "320e9479ea2f06059e289a4715cdd7c2e75ba11206170ae7d1d3d500982c2d50",
+          "restore_note": "Restore runtime code from the tar and copy/link this retained main dataset; .git metadata is recreated from the retained commit."
+        },
+        "preserved_shared_targets": [
+          {
+            "path": "data",
+            "target": "/home/wty/Desktop/song/PAN-Crafter/data",
+            "device": 66308,
+            "inode": 241201579
+          },
+          {
+            "path": "gspread/account.json",
+            "target": "/home/wty/Desktop/song/PAN-Crafter/gspread/account.json",
+            "device": 66308,
+            "inode": 241201638
+          },
+          {
+            "path": "work_dir",
+            "target": "/home/wty/Desktop/song/PAN-Crafter/work_dir",
+            "device": 66308,
+            "inode": 240276222
+          }
+        ],
+        "research_data_deleted": false,
+        "status": "ARCHIVED_SOURCE_COPY_REMOVED",
+        "finished_epoch": 1790584519.9048784,
+        "git_force_used": false
+      }
+    },
+    {
+      "server": "s4",
+      "name": "PAN-Crafter-gf2-release-runtime-gfp40-s4-0d2074f55f2e",
+      "source_path": "/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-gfp40-s4-0d2074f55f2e",
+      "head": "0d2074f55f2ee48094b2b789288c6dca3a574c68",
+      "git_common_dir": "/home/wty/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 160047104,
+      "regular_files_before": 2274,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "work_dir",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "data",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/work_dir/_l100/s4/data_view"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/pre-g23sens-s4-20260923",
+        "refs/heads/ops/pre-gradient-fix-s4-20260924",
+        "refs/heads/ops/pre-pcrepro-20260922",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/wty/Desktop/song/PAN-Crafter/work_dir/_gfp40/s4/runtime_release.json"
+      ],
+      "code_or_document_references": [
+        {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/result_log/best_model_result/reports/pause_resume_transaction.json",
+          "line": 158,
+          "text": "  \"gf2_root\": \"/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-gfp40-s4-0d2074f55f2e\","
+        },
+        {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/result_log/best_model_result/provenance/config.resolved.yaml",
+          "line": 196,
+          "text": "    \"dataset_manifest\": \"/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-gfp40-s4-0d2074f55f2e/work_dir/_gfp40/s4/dataset_manifest.json\","
+        },
+        {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/result_log/best_model_result/provenance/config.resolved.yaml",
+          "line": 197,
+          "text": "    \"reference_manifest\": \"/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-gfp40-s4-0d2074f55f2e/work_dir/_gfp40/s4/references/R4_100.json\","
+        },
+        {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/result_log/best_model_result/provenance/config.resolved.yaml",
+          "line": 198,
+          "text": "    \"parent_manifest\": \"/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-gfp40-s4-0d2074f55f2e/work_dir/_gfp40/s4/parents/P4B.json\","
+        },
+        {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/result_log/best_model_result/provenance/config.resolved.yaml",
+          "line": 201,
+          "text": "    \"window_path\": \"/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-gfp40-s4-0d2074f55f2e/work_dir/_gfp40/s4/campaign_window.json\","
+        }
+      ],
+      "code_archive": "/home/wty/Desktop/song/PAN_ARCHIVE/s4/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-gfp40-s4-0d2074f55f2e.tar",
+      "code_archive_sha256": "38a7939e4a3b1fd1f8a113a520d8640f974b3fbdd8bebc2e6c52126494ad561a"
+    },
+    {
+      "server": "s4",
+      "name": "PAN-Crafter-gf2-release-runtime-l100-s4-bf9d6abab750",
+      "source_path": "/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-l100-s4-bf9d6abab750",
+      "head": "bf9d6abab7501eb88c576d25f874bfbeb4db7d71",
+      "git_common_dir": "/home/wty/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 158138368,
+      "regular_files_before": 2124,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "work_dir",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "data",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/work_dir/_l100/s4/data_view"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/backup/gf2-before-gfb20-20260922",
+        "refs/heads/ops/pre-g23sens-s4-20260923",
+        "refs/heads/ops/pre-gfp40-20260922",
+        "refs/heads/ops/pre-gradient-fix-s4-20260924",
+        "refs/heads/ops/pre-pcrepro-20260922",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/wty/Desktop/song/PAN-Crafter/work_dir/_l100/s4/references/L100I1_R100_S4_TS94002/reference_manifest.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/home/wty/Desktop/song/PAN_ARCHIVE/s4/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-l100-s4-bf9d6abab750.tar",
+      "code_archive_sha256": "41bf8196fdf6d50591837fe3fd4dbcce1bbf8f796ad2b9e4e87f6620e7ca2fcc"
+    },
+    {
+      "server": "s4",
+      "name": "PAN-Crafter-gf2-release-runtime-maina-hqnr-s4-454f66c3363b",
+      "source_path": "/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-maina-hqnr-s4-454f66c3363b",
+      "head": "454f66c3363beeca318b5b5b2d37da933c2185d4",
+      "git_common_dir": "/home/wty/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 162488320,
+      "regular_files_before": 2467,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "work_dir",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "data",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/data"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/maina-blackwell-20260925"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/wty/Desktop/song/PAN-Crafter/work_dir/maina_hqnr/s4/runtime_release_before_unicode_fix.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/home/wty/Desktop/song/PAN_ARCHIVE/s4/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-maina-hqnr-s4-454f66c3363b.tar",
+      "code_archive_sha256": "5e82c1539d0565d727576162c89a19074d1accf7eb1a2cffe78cf90bd2ee4a10"
+    },
+    {
+      "server": "s4",
+      "name": "PAN-Crafter-gf2-release-runtime-maina-hqnr-s4-f1a97025088d",
+      "source_path": "/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-maina-hqnr-s4-f1a97025088d",
+      "head": "f1a97025088de97b82ec6bf6115840e9ce6e6ba2",
+      "git_common_dir": "/home/wty/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 162492416,
+      "regular_files_before": 2467,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "work_dir",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "data",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/data"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/maina-blackwell-20260925"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pancrafter-maina-hqnr-s4-20260924T190927235505"
+      ],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/wty/Desktop/song/PAN-Crafter/work_dir/maina_hqnr/s4/runtime_release.json",
+        "/home/wty/Desktop/song/PAN-Crafter/work_dir/maina_hqnr/s4/runtime_bindings.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/home/wty/Desktop/song/PAN_ARCHIVE/s4/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-maina-hqnr-s4-f1a97025088d.tar",
+      "code_archive_sha256": "2609d96f92ef0a97f6a4fe85a41b0958f1cbbb9a2c62ed626d7e5b011db9813a"
+    },
+    {
+      "server": "s4",
+      "name": "PAN-Crafter-gf2-release-runtime-pcrepro-s4-4e4bca82d235",
+      "source_path": "/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-pcrepro-s4-4e4bca82d235",
+      "head": "4e4bca82d23548f66c7c9bce542c84944df8330b",
+      "git_common_dir": "/home/wty/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 160460800,
+      "regular_files_before": 2312,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "work_dir",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "data",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/data"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/wty/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/pre-g23sens-s4-20260923",
+        "refs/heads/ops/pre-gradient-fix-s4-20260924",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pancrafter-g23sens-s4-108bee06f373-20260923T171039",
+        "/pancrafter-g23sens-s4-71e5faafed24-20260923T143735"
+      ],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [
+        "/home/wty/Desktop/song/PAN-Crafter/work_dir/_pcrepro/s4/runtime_release.json"
+      ],
+      "code_or_document_references": [
+        {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/result_log/best_model_result/reports/pause_resume_transaction.json",
+          "line": 77,
+          "text": "        \"Source\": \"/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-pcrepro-s4-4e4bca82d235\","
+        },
+        {
+          "path": "/home/wty/Desktop/song/PAN-Crafter/result_log/best_model_result/reports/pause_resume_transaction.json",
+          "line": 78,
+          "text": "        \"Destination\": \"/home/wty/Desktop/song/PAN-Crafter-gf2-release-runtime-pcrepro-s4-4e4bca82d235\","
+        }
+      ],
+      "code_archive": "/home/wty/Desktop/song/PAN_ARCHIVE/s4/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-pcrepro-s4-4e4bca82d235.tar",
+      "code_archive_sha256": "cb74abab80615ff55087002c558bf32a93100878f30e57529d86453996623a37"
+    },
+    {
+      "server": "s4",
+      "name": "PAN-Crafter-runtime-g20-s4-20260920",
+      "source_path": "/home/wty/Desktop/song/PAN-Crafter-runtime-g20-s4-20260920",
+      "head": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+      "git_common_dir": "/home/wty/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 150401024,
+      "regular_files_before": 1814,
+      "classification": "KEEP_MODIFIED_SOURCE",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 147,
+      "source_change_sample": [
+        "M tools/_watchdog.sh",
+        " M tools/mix20h_postrun.py",
+        " M tools/pakd50_unit_tests.py",
+        " M tools/run.sh",
+        "?? config/g20/G20_GF2_S_S1_R0_TS91001_SS93001_BASE_PLH_W104_D122_FRESH50_v1.yaml",
+        "?? config/g20/G20_GF2_S_S1_R0_TS91001_SS93002_BASE_PLH_W104_D122_FRESH50_v1.yaml",
+        "?? config/g20/G20_GF2_S_S1_R1_TS91002_SS93001_BASE_PLH_W104_D122_FRESH50_v1.yaml",
+        "?? config/g20/G20_GF2_S_S1_R1_TS91002_SS93002_BASE_PLH_W104_D122_FRESH50_v1.yaml"
+      ],
+      "shared_links": [],
+      "retaining_git_refs": [
+        "refs/heads/backup/gf2-before-gfb20-20260922",
+        "refs/heads/backup/gf2-before-l100-20260921",
+        "refs/heads/backup/gf2-pre-cleanup-s4-20260921",
+        "refs/heads/backup/gf2-release-before-gspread-20260921",
+        "refs/heads/main",
+        "refs/heads/ops/maina-blackwell-20260925",
+        "refs/heads/ops/pre-g23sens-s4-20260923",
+        "refs/heads/ops/pre-gfp40-20260922",
+        "refs/heads/ops/pre-gradient-fix-s4-20260924",
+        "refs/heads/ops/pre-pcrepro-20260922",
+        "refs/heads/release/gf2-g20-20260921",
+        "refs/heads/release/maina-hqnr-20260925",
+        "refs/remotes/origin/HEAD",
+        "refs/remotes/origin/fh20r1-r2",
+        "refs/remotes/origin/main",
+        "refs/remotes/origin/reporting-extra-metrics"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pan-g20-s4-20260920",
+        "/pan-g20-s4-20260920-before-filter-131920"
+      ],
+      "other_running_containers_with_ancestor_mount": [],
+      "resume_or_provenance_records": [],
+      "code_or_document_references": [],
+      "code_archive": "/home/wty/Desktop/song/PAN_ARCHIVE/s4/source_snapshots/20260928-approved-01/PAN-Crafter-runtime-g20-s4-20260920.tar",
+      "code_archive_sha256": "291728397d005de2205220fd1c4705222bcca62af313cdb61f56094adb3fb3f1"
+    },
+    {
+      "server": "s5",
+      "name": "PAN-Crafter-gf2-release-runtime-g23sens-s5-03ecf56523f9",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-gf2-release-runtime-g23sens-s5-03ecf56523f9",
+      "head": "03ecf56523f98f4a088fc1a2581f35134e9dae5f",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 162250752,
+      "regular_files_before": 2439,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "data",
+          "target": "/home/user/Desktop/song/PAN-Crafter/data"
+        },
+        {
+          "path": "work_dir",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/user/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/pre-gradient-fix-s5-20260924",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pancrafter-g23sens-s5-03ecf56523f9-20260923T143740"
+      ],
+      "other_running_containers_with_ancestor_mount": [
+        "/jingiju_govtech_yolo"
+      ],
+      "resume_or_provenance_records": [],
+      "code_or_document_references": [],
+      "code_archive": "/home/user/AI_DATA/PAN_ARCHIVE/s5/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-g23sens-s5-03ecf56523f9.tar",
+      "code_archive_sha256": "187c047c7be7aa5c8e98b9fdeb12f2081b9b4f945dd1baf7c0436f056528c349"
+    },
+    {
+      "server": "s5",
+      "name": "PAN-Crafter-gf2-release-runtime-g23sens-s5-0f06f9cdeb26",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-gf2-release-runtime-g23sens-s5-0f06f9cdeb26",
+      "head": "0f06f9cdeb269d3698cbed5b400af5229110460d",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 162263040,
+      "regular_files_before": 2441,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "data",
+          "target": "/home/user/Desktop/song/PAN-Crafter/data"
+        },
+        {
+          "path": "work_dir",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/user/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pancrafter-g23sens-s5-0f06f9c-history-20260924",
+        "/pancrafter-g23sens-s5-0f06f9cdeb26-20260924T013540"
+      ],
+      "other_running_containers_with_ancestor_mount": [
+        "/jingiju_govtech_yolo"
+      ],
+      "resume_or_provenance_records": [
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/g23sens/s5/runtime_bindings.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/g23sens/s5/runtime_release.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/home/user/AI_DATA/PAN_ARCHIVE/s5/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-g23sens-s5-0f06f9cdeb26.tar",
+      "code_archive_sha256": "2d78d3ddd67670c0679a96f9b2742157451e7c13f573982ad9b22b27a8ba6e11"
+    },
+    {
+      "server": "s5",
+      "name": "PAN-Crafter-gf2-release-runtime-g23sens-s5-24c64987f9ae",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-gf2-release-runtime-g23sens-s5-24c64987f9ae",
+      "head": "24c64987f9ae3b30e2f3b5af435b83392b770e50",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 162258944,
+      "regular_files_before": 2440,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "data",
+          "target": "/home/user/Desktop/song/PAN-Crafter/data"
+        },
+        {
+          "path": "work_dir",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/user/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pancrafter-g23sens-s5-0f06f9c-history-20260924",
+        "/pancrafter-g23sens-s5-0f06f9cdeb26-20260924T013540",
+        "/pancrafter-g23sens-s5-24c64987f9ae-20260923T171051"
+      ],
+      "other_running_containers_with_ancestor_mount": [
+        "/jingiju_govtech_yolo"
+      ],
+      "resume_or_provenance_records": [],
+      "code_or_document_references": [],
+      "code_archive": "/home/user/AI_DATA/PAN_ARCHIVE/s5/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-g23sens-s5-24c64987f9ae.tar",
+      "code_archive_sha256": "8337287dc52d3986362f273d88213cbec5fb2a4553fe667e700f6e36b89f8b70"
+    },
+    {
+      "server": "s5",
+      "name": "PAN-Crafter-gf2-release-runtime-gfb20-s5-060ba8d20992",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-gf2-release-runtime-gfb20-s5-060ba8d20992",
+      "head": "060ba8d209925854f1f3c30496c6366c4cb09016",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 159444992,
+      "regular_files_before": 2229,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "data",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir/_l100/s5/data_view"
+        },
+        {
+          "path": "work_dir",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/user/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/pre-g23sens-s5-20260923",
+        "refs/heads/ops/pre-gfp40-20260922",
+        "refs/heads/ops/pre-gradient-fix-s5-20260924",
+        "refs/heads/ops/pre-pcrepro-20260922",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [],
+      "other_running_containers_with_ancestor_mount": [
+        "/jingiju_govtech_yolo"
+      ],
+      "resume_or_provenance_records": [
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/_gfp40/s5/banks/q_shards/g1250/manifest.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/_gfp40/s5/banks/q_shards/g0750/manifest.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/_gfp40/s5/banks/q_shards/g1000/manifest.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/_gfb20/s5/runtime_release.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/_gfb20/s5/source_and_data_manifest.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/home/user/AI_DATA/PAN_ARCHIVE/s5/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-gfb20-s5-060ba8d20992.tar",
+      "code_archive_sha256": "ceeca49ec68c3dea7368d96f5d2789854e03de2340418921ec7ea5c04ef96f76"
+    },
+    {
+      "server": "s5",
+      "name": "PAN-Crafter-gf2-release-runtime-gfb20-s5-3de787788c36",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-gf2-release-runtime-gfb20-s5-3de787788c36",
+      "head": "3de787788c36a389c05ccd9d6f8f7b4b30d2529d",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 159440896,
+      "regular_files_before": 2228,
+      "classification": "HOLD_OTHER_RUNNING_CONTAINER_VIEW",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "data",
+          "target": "/home/user/Desktop/song/PAN-Crafter/data"
+        },
+        {
+          "path": "work_dir",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/user/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/pre-g23sens-s5-20260923",
+        "refs/heads/ops/pre-gfp40-20260922",
+        "refs/heads/ops/pre-gradient-fix-s5-20260924",
+        "refs/heads/ops/pre-pcrepro-20260922",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [],
+      "other_running_containers_with_ancestor_mount": [
+        "/jingiju_govtech_yolo"
+      ],
+      "resume_or_provenance_records": [],
+      "code_or_document_references": [],
+      "code_archive": "/home/user/AI_DATA/PAN_ARCHIVE/s5/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-gfb20-s5-3de787788c36.tar",
+      "code_archive_sha256": "c344155104371a40530f4e9aa072edbac5f56d2bf3801f6149726a3cca4cffb2"
+    },
+    {
+      "server": "s5",
+      "name": "PAN-Crafter-gf2-release-runtime-gfp40-s5-0d2074f55f2e",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-gf2-release-runtime-gfp40-s5-0d2074f55f2e",
+      "head": "0d2074f55f2ee48094b2b789288c6dca3a574c68",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 160047104,
+      "regular_files_before": 2274,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "data",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir/_l100/s5/data_view"
+        },
+        {
+          "path": "work_dir",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/user/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/pre-g23sens-s5-20260923",
+        "refs/heads/ops/pre-gradient-fix-s5-20260924",
+        "refs/heads/ops/pre-pcrepro-20260922",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [],
+      "other_running_containers_with_ancestor_mount": [
+        "/jingiju_govtech_yolo"
+      ],
+      "resume_or_provenance_records": [
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/_gfp40/s5/runtime_release.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/home/user/AI_DATA/PAN_ARCHIVE/s5/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-gfp40-s5-0d2074f55f2e.tar",
+      "code_archive_sha256": "b11123a73dfddbf3776e9b16dbcf0f027d8a0ac50658d429635efc0c8ce6b915"
+    },
+    {
+      "server": "s5",
+      "name": "PAN-Crafter-gf2-release-runtime-l100-s5-bf9d6abab750",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-gf2-release-runtime-l100-s5-bf9d6abab750",
+      "head": "bf9d6abab7501eb88c576d25f874bfbeb4db7d71",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 158138368,
+      "regular_files_before": 2124,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "data",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir/_l100/s5/data_view"
+        },
+        {
+          "path": "work_dir",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/user/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/backup/gf2-before-gfb20-20260922",
+        "refs/heads/ops/pre-g23sens-s5-20260923",
+        "refs/heads/ops/pre-gfp40-20260922",
+        "refs/heads/ops/pre-gradient-fix-s5-20260924",
+        "refs/heads/ops/pre-pcrepro-20260922",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [],
+      "other_running_containers_with_ancestor_mount": [
+        "/jingiju_govtech_yolo"
+      ],
+      "resume_or_provenance_records": [
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/_l100/s5/references/L100I1_R100_S5_TS94003/reference_manifest.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/_gfb20/s5/mixed/mixed_reference_manifest.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/home/user/AI_DATA/PAN_ARCHIVE/s5/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-l100-s5-bf9d6abab750.tar",
+      "code_archive_sha256": "dfe3c08bacfdf258b3e7ed83752001e002bb4e6bab603e9bfc4aea31452c7505"
+    },
+    {
+      "server": "s5",
+      "name": "PAN-Crafter-gf2-release-runtime-maina-hqnr-s5-f1a97025088d",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-gf2-release-runtime-maina-hqnr-s5-f1a97025088d",
+      "head": "f1a97025088de97b82ec6bf6115840e9ce6e6ba2",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 162496512,
+      "regular_files_before": 2467,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "data",
+          "target": "/home/user/Desktop/song/PAN-Crafter/data"
+        },
+        {
+          "path": "work_dir",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/user/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/maina-blackwell-20260925"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pancrafter-maina-hqnr-s5-20260924T191049411206"
+      ],
+      "other_running_containers_with_ancestor_mount": [
+        "/jingiju_govtech_yolo"
+      ],
+      "resume_or_provenance_records": [
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/maina_hqnr/s5/runtime_bindings.json",
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/maina_hqnr/s5/runtime_release.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/home/user/AI_DATA/PAN_ARCHIVE/s5/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-maina-hqnr-s5-f1a97025088d.tar",
+      "code_archive_sha256": "6677b3d0d61ff625ccfeee26351121ed46fbc5f9d6eebe966b42a71fb4755b1c"
+    },
+    {
+      "server": "s5",
+      "name": "PAN-Crafter-gf2-release-runtime-pcrepro-s5-4e4bca82d235",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-gf2-release-runtime-pcrepro-s5-4e4bca82d235",
+      "head": "4e4bca82d23548f66c7c9bce542c84944df8330b",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 160464896,
+      "regular_files_before": 2312,
+      "classification": "KEEP_REPRODUCTION_PATH",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 0,
+      "source_change_sample": [],
+      "shared_links": [
+        {
+          "path": "data",
+          "target": "/home/user/Desktop/song/PAN-Crafter/data"
+        },
+        {
+          "path": "work_dir",
+          "target": "/home/user/Desktop/song/PAN-Crafter/work_dir"
+        },
+        {
+          "path": "gspread/account.json",
+          "target": "/home/user/Desktop/song/PAN-Crafter/gspread/account.json"
+        }
+      ],
+      "retaining_git_refs": [
+        "refs/heads/ops/pre-g23sens-s5-20260923",
+        "refs/heads/ops/pre-gradient-fix-s5-20260924",
+        "refs/heads/release/gf2-g20-20260921"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pancrafter-g23sens-s5-0f06f9c-history-20260924",
+        "/pancrafter-g23sens-s5-0f06f9cdeb26-20260924T013540",
+        "/pancrafter-g23sens-s5-24c64987f9ae-20260923T171051",
+        "/pancrafter-g23sens-s5-03ecf56523f9-20260923T143740"
+      ],
+      "other_running_containers_with_ancestor_mount": [
+        "/jingiju_govtech_yolo"
+      ],
+      "resume_or_provenance_records": [
+        "/home/user/Desktop/song/PAN-Crafter/work_dir/_pcrepro/s5/runtime_release.json"
+      ],
+      "code_or_document_references": [],
+      "code_archive": "/home/user/AI_DATA/PAN_ARCHIVE/s5/source_snapshots/20260928-approved-01/PAN-Crafter-gf2-release-runtime-pcrepro-s5-4e4bca82d235.tar",
+      "code_archive_sha256": "60ef5486bc93ce8df384d79c4039e8b62f95ef455ca9968c1ac2261dd9a0657c"
+    },
+    {
+      "server": "s5",
+      "name": "PAN-Crafter-runtime-g20-s5-20260920",
+      "source_path": "/home/user/Desktop/song/PAN-Crafter-runtime-g20-s5-20260920",
+      "head": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+      "git_common_dir": "/home/user/Desktop/song/PAN-Crafter/.git",
+      "git_type": "WORKTREE",
+      "allocated_bytes_before": 150409216,
+      "regular_files_before": 1815,
+      "classification": "KEEP_MODIFIED_SOURCE",
+      "source_present": true,
+      "changed_or_untracked_nonlink_paths": 148,
+      "source_change_sample": [
+        "M tools/_watchdog.sh",
+        " M tools/mix20h_postrun.py",
+        " M tools/pakd50_unit_tests.py",
+        " M tools/run.sh",
+        "?? config/g20/G20_GF2_S_S1_R0_TS91001_SS93001_BASE_PLH_W104_D122_FRESH50_v1.yaml",
+        "?? config/g20/G20_GF2_S_S1_R0_TS91001_SS93002_BASE_PLH_W104_D122_FRESH50_v1.yaml",
+        "?? config/g20/G20_GF2_S_S1_R1_TS91002_SS93001_BASE_PLH_W104_D122_FRESH50_v1.yaml",
+        "?? config/g20/G20_GF2_S_S1_R1_TS91002_SS93002_BASE_PLH_W104_D122_FRESH50_v1.yaml"
+      ],
+      "shared_links": [],
+      "retaining_git_refs": [
+        "refs/heads/backup/gf2-before-gfb20-20260922",
+        "refs/heads/backup/gf2-before-l100-20260921",
+        "refs/heads/backup/gf2-pre-cleanup-s5-20260921",
+        "refs/heads/backup/gf2-release-before-gspread-20260921",
+        "refs/heads/main",
+        "refs/heads/ops/maina-blackwell-20260925",
+        "refs/heads/ops/pre-g23sens-s5-20260923",
+        "refs/heads/ops/pre-gfp40-20260922",
+        "refs/heads/ops/pre-gradient-fix-s5-20260924",
+        "refs/heads/ops/pre-pcrepro-20260922",
+        "refs/heads/release/gf2-g20-20260921",
+        "refs/heads/release/maina-hqnr-20260925",
+        "refs/remotes/origin/HEAD",
+        "refs/remotes/origin/fh20r1-r2",
+        "refs/remotes/origin/main",
+        "refs/remotes/origin/reporting-extra-metrics"
+      ],
+      "direct_process_count": 0,
+      "direct_running_containers": [],
+      "stopped_container_references": [
+        "/pan-g20-s5-20260920",
+        "/pan-g20-s5-20260920-before-filter-131714"
+      ],
+      "other_running_containers_with_ancestor_mount": [
+        "/jingiju_govtech_yolo"
+      ],
+      "resume_or_provenance_records": [],
+      "code_or_document_references": [],
+      "code_archive": "/home/user/AI_DATA/PAN_ARCHIVE/s5/source_snapshots/20260928-approved-01/PAN-Crafter-runtime-g20-s5-20260920.tar",
+      "code_archive_sha256": "9a03e9d7f62c550905a7c09066c276e86412a699fafd433db7f542cd3810635d"
+    }
+  ],
+  "summary": [
+    {
+      "server": "s1",
+      "before": 4,
+      "after": 4,
+      "MiB_before": 630.08984375,
+      "MiB_removed": 0.0,
+      "classification": {
+        "RAID_WORKTREE_WITH_LOCAL_ALIAS": 4
+      },
+      "physical_worktrees_on_raid": 4,
+      "physical_worktrees_in_song": 0,
+      "local_compatibility_symlinks": 4
+    },
+    {
+      "server": "s2",
+      "before": 3,
+      "after": 3,
+      "MiB_before": 487.89453125,
+      "MiB_removed": 0.0,
+      "classification": {
+        "KEEP_REPRODUCTION_PATH": 2,
+        "KEEP_MODIFIED_SOURCE": 1
+      }
+    },
+    {
+      "server": "s3",
+      "before": 7,
+      "after": 6,
+      "MiB_before": 1058.01953125,
+      "MiB_removed": 152.0546875,
+      "classification": {
+        "KEEP_REPRODUCTION_PATH": 5,
+        "ARCHIVED_WORKING_COPY_REMOVED": 1,
+        "KEEP_MODIFIED_SOURCE": 1
+      }
+    },
+    {
+      "server": "s4",
+      "before": 10,
+      "after": 9,
+      "MiB_before": 1523.421875,
+      "MiB_removed": 152.0546875,
+      "classification": {
+        "KEEP_REPRODUCTION_PATH": 8,
+        "ARCHIVED_WORKING_COPY_REMOVED": 1,
+        "KEEP_MODIFIED_SOURCE": 1
+      }
+    },
+    {
+      "server": "s5",
+      "before": 10,
+      "after": 10,
+      "MiB_before": 1523.22265625,
+      "MiB_removed": 0.0,
+      "classification": {
+        "KEEP_REPRODUCTION_PATH": 8,
+        "HOLD_OTHER_RUNNING_CONTAINER_VIEW": 1,
+        "KEEP_MODIFIED_SOURCE": 1
+      }
+    }
+  ],
+  "recording_server": "s1",
+  "s1_latest_relocation": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_operator_storage/20260928-s1-runtime-raid/result.json"
+}

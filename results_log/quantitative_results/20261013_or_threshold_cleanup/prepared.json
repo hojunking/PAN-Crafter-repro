@@ -1,0 +1,1160 @@
+{
+  "server": "s1",
+  "prepared_at": "2026-10-13T14:08:03.907337+09:00",
+  "status": "PREPARED_NOT_DELETED",
+  "payload_sha256": "bc2780e1e4fefa788c7f6fc80c519976844eb15040966cd029c37d7d074a87ba",
+  "manifest_sha256": "f4df29a94bef554358e6d0cb25641346c0cdde8a66d6119f52b9a8cead024915",
+  "csv_checks": {
+    "WV3_quantitative_results.csv": {
+      "rows": 16582,
+      "sha256": "8d884d20edd026b2e88c67447141e41380b2b7c4f4188c8e44bec17e70fa274f"
+    },
+    "UNRESOLVED_quantitative_results.csv": {
+      "rows": 1,
+      "sha256": "8cb8e60e8eb68f223787696b28b738ec3889567b10cdb05d1bb628748d9b8323"
+    },
+    "WV2_quantitative_results.csv": {
+      "rows": 1,
+      "sha256": "c4b202abd8166408cdca18e116ba1106fba78b43d152faeba888675d9e851aba"
+    },
+    "GF2_quantitative_results.csv": {
+      "rows": 716,
+      "sha256": "c5d0617c457efff35408ce98ada42e1a16c666f09070278fbe1e199227dd411e"
+    },
+    "QB_quantitative_results.csv": {
+      "rows": 870,
+      "sha256": "7c748197f1cbc379a86f0e2328a5fbe78d5ce566e9cf741d899ae71d3af01aa2"
+    }
+  },
+  "numeric_archive": {
+    "file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/quantitative_results/20261013_or_threshold_cleanup/original_numeric_sources.jsonl.gz",
+    "count": 8630,
+    "omitted": [],
+    "sha256": "b6e696a045a55495b38774a8faf06fdc0aebe5359ae8f45e70503a90297ab9b1"
+  },
+  "targets": 323,
+  "candidate_runs": 254,
+  "runs": [
+    "15204de_PAKD50_QRC24_S1_G22_W104_D121_WV3_T0_S1234_FRESH50_v1",
+    "A1_asym_114_10",
+    "A2_asym_014_10",
+    "ABLR2_WV3_s1_r000_P01_C00_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_C01_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_C02_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_C03_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_C04_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_C05_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_C06_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_C07_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_C08_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_C09_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_C10_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_C12_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_C13_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_C14_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_C15_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_C16_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_C17_SS791001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_TPLUS_TS781001_FRESH50",
+    "ABLR2_WV3_s1_r000_P01_TZERO_TS781001_FRESH50",
+    "ABLR2_WV3_s1_r000_P02_C00_SS791002_FRESH50",
+    "ABLR2_WV3_s1_r000_P02_C04_SS791002_FRESH50",
+    "ABLR2_WV3_s1_r000_P02_C06_SS791002_FRESH50",
+    "ABLR2_WV3_s1_r000_P02_C08_SS791002_FRESH50",
+    "ABLR2_WV3_s1_r000_P02_C16_SS791002_FRESH50",
+    "ABLR2_WV3_s1_r000_P02_TPLUS_TS781002_FRESH50",
+    "ABLR2_WV3_s1_r000_P02_TZERO_TS781002_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C00_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C01_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C02_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C03_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C04_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C05_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C06_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C07_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C08_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C09_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C10_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C11_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C12_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C13_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C14_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C15_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C16_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_C17_SS791003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_TPLUS_TS781003_FRESH50",
+    "ABLR2_WV3_s1_r000_P03_TZERO_TS781003_FRESH50",
+    "ABLR2_WV3_s1_r000_P04_C00_SS791004_FRESH50",
+    "ABLR2_WV3_s1_r000_P04_C01_SS791004_FRESH50",
+    "ABLR2_WV3_s1_r000_P04_C02_SS791004_FRESH50",
+    "ABLR2_WV3_s1_r000_P04_C03_SS791004_FRESH50",
+    "ABLR2_WV3_s1_r000_P04_C05_SS791004_FRESH50",
+    "ABLR2_WV3_s1_r000_P04_C08_SS791004_FRESH50",
+    "ABLR2_WV3_s1_r000_P04_C11_SS791004_FRESH50",
+    "ABLR2_WV3_s1_r000_P04_C12_SS791004_FRESH50",
+    "ABLR2_WV3_s1_r000_P04_C16_SS791004_FRESH50",
+    "ABLR2_WV3_s1_r000_P04_TPLUS_TS781004_FRESH50",
+    "ABLR2_WV3_s1_r000_P04_TZERO_TS781004_FRESH50",
+    "ABLR2_WV3_s1_r000_P05_C00_SS791005_FRESH50",
+    "ABLR2_WV3_s1_r000_P05_C04_SS791005_FRESH50",
+    "ABLR2_WV3_s1_r000_P05_C07_SS791005_FRESH50",
+    "ABLR2_WV3_s1_r000_P05_C08_SS791005_FRESH50",
+    "ABLR2_WV3_s1_r000_P05_C09_SS791005_FRESH50",
+    "ABLR2_WV3_s1_r000_P05_C10_SS791005_FRESH50",
+    "ABLR2_WV3_s1_r000_P05_C11_SS791005_FRESH50",
+    "ABLR2_WV3_s1_r000_P05_C16_SS791005_FRESH50",
+    "ABLR2_WV3_s1_r000_P05_TPLUS_TS781005_FRESH50",
+    "ABLR2_WV3_s1_r000_P05_TZERO_TS781005_FRESH50",
+    "AF_G1_PAN2M_GLOBALCORR_W168_D123_DUAL",
+    "ARCH_W168_D123_DUAL_GF2_S1234",
+    "ARCH_W168_D123_DUAL_GF2_S1234_sel1219",
+    "ARCH_W168_D123_DUAL_GF2_S2025",
+    "ARCH_W168_D123_DUAL_GF2_S7777",
+    "ARCH_W168_D123_DUAL_GF2_S7777_sel1219",
+    "ARCH_W168_D123_DUAL_QB_S1234_msbug",
+    "ARCH_W168_D123_DUAL_QB_S2025_msbug",
+    "ARCH_W168_D123_DUAL_QB_S7777_msbug",
+    "ATL2_WV3_S1_R1_SS261006101_B00_F50K_v2",
+    "ATL2_WV3_S1_R1_SS261006101_B02_F50K_v2",
+    "ATL2_WV3_S1_R1_SS261006101_B03_F50K_v2",
+    "ATL2_WV3_S1_R1_SS261006101_B04_F50K_v2",
+    "ATL2_WV3_S1_R1_SS261006101_B05_F50K_v2",
+    "ATL2_WV3_S1_R1_SS261006101_B07_F50K_v2",
+    "ATL2_WV3_S1_R1_SS261006101_M00_F50K_v2",
+    "ATL2_WV3_S1_R2_SS261006102_B00_F50K_v2",
+    "B01_GF2_P0_W112_D123_S2025_BOOTSCRATCH",
+    "B01_QB_P0_W112_D123_S2025_BOOTSCRATCH",
+    "B02_QB_DONN2_W112_D123_R200_S2025_BOOTSCRATCH",
+    "B03_GF2_L000_W112_D123_S2025_DONB02",
+    "B03_GF2_L1E4_W112_D123_S2025_DONB02",
+    "B03_QB_L000_W112_D123_S2025_DONB02",
+    "B03_QB_L1E4_W112_D123_S2025_DONB02",
+    "B04_GF2_L1E4_W112_D123_S1234_DONB02",
+    "B04_QB_L1E4_W112_D123_S1234_DONB02",
+    "BASE_W96_D124_MSPAN_WV3_S1234",
+    "BASE_W96_D124_MSPAN_WV3_S2025",
+    "BASE_W96_D124_MSPAN_WV3_S7777",
+    "CM3A_btl_nopan_d124",
+    "CM3A_d122",
+    "FH12_S1_S_P0_W104_D121_WV3_TP0_TS71001_SS72001_FRESH50_v1",
+    "FH12_S1_T_P0_W112_D123_WV3_S71001_FRESH50_v1",
+    "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73103_BASE_FRESH50_v1",
+    "FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73104_BASE_FRESH50_v1",
+    "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73103_BASE_FRESH50_v1",
+    "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73105_BASE_FRESH50_v1",
+    "FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73106_BASE_FRESH50_v1",
+    "G20_GF2_S_S1_R0_TS91001_SS93001_BASE_PLH_W104_D122_FRESH50_v1",
+    "G20_GF2_S_S1_R0_TS91001_SS93002_BASE_PLH_W104_D122_FRESH50_v1",
+    "G20_GF2_S_S1_R1_TS91002_SS93001_BASE_PLH_W104_D122_FRESH50_v1",
+    "G20_GF2_S_S1_R1_TS91002_SS93002_BASE_PLH_W104_D122_FRESH50_v1",
+    "G20_GF2_T_S1_TS91002_C100_P0_W112_D123_FRESH50_v1",
+    "GA_C1_FROZEN_RT_A100_W152_D123_DUAL",
+    "GA_C2_INPUTONLY_A025_W152_D123_DUAL",
+    "GA_C2_INPUTONLY_A050_W152_D123_DUAL",
+    "GA_C2_INPUTONLY_A075_W152_D123_DUAL",
+    "GA_C2_INPUTONLY_A100_W152_D123_DUAL",
+    "GA_C3_FROZEN_DUALFRAME_A100_W152_D123_DUAL",
+    "GA_CTRL_C2_BICUBIC15_A100_W152_D123_DUAL",
+    "K1B_T1_specKD",
+    "L1_11_lr_fuse_w64",
+    "L1_9_lr_fuse_w64",
+    "N3_9_d124_noattn",
+    "NF16_P1_W112_D123_WV3_S1234_N2LAST_v1",
+    "NF16_P3_W112_D123_WV3_S1234_N2LAST_v1",
+    "NF16_P3_W112_D123_WV3_S7777_N2LAST_v1",
+    "NF16_P4_W112_D123_WV3_S1234_N2LAST_v1",
+    "NF16_P4_W112_D123_WV3_S7777_N2LAST_v1",
+    "PAKD50_JQ_W104_D121_WV3_T0_S1234_FRESH50_v2",
+    "PAKD50_QE50_W104_D121_WV3_T0_S1234_FRESH50_v2",
+    "PAKD50_QEC_W104_D121_WV3_T0_S1234_FRESH50_v2",
+    "PAKD50_QES_W104_D121_WV3_T0_S1234_FRESH50_v2",
+    "PAKD50_QRC24_S1_A03_SHUF_W104_D121_WV3_T0_S1234_FRESH50_v2",
+    "PAKD50_QRC24_S1_A03_UNIF_W104_D121_WV3_T0_S1234_FRESH50_v2",
+    "PAKD50_QRC24_S1_A_FREEZE_W104_D121_WV3_T0_S1234_FRESH50_v1",
+    "PAKD50_QRC24_S1_A_FREEZE_W104_D121_WV3_T0_S3407_FRESH50_v1",
+    "PAKD50_QRC24_S1_A_SHUF_W104_D121_WV3_T0_S1234_FRESH50_v1",
+    "PAKD50_QRC24_S1_A_SHUF_W104_D121_WV3_T0_S3407_FRESH50_v1",
+    "PAKD50_QRC24_S1_A_UNIF_W104_D121_WV3_T0_S1234_FRESH50_v1",
+    "PAKD50_QRC24_S1_A_UNIF_W104_D121_WV3_T0_S3407_FRESH50_v1",
+    "PAKD50_QRC24_S1_B20A03_W104_D121_WV3_T0_S52001_FRESH50_v4",
+    "PAKD50_QRC24_S1_B20A03_W104_D121_WV3_T0_S52006_FRESH50_v4",
+    "PAKD50_QRC24_S1_G21_W104_D121_WV3_T0_S1234_FRESH50_v1",
+    "PAKD50_QRC24_S1_G21_W104_D121_WV3_T0_S3407_FRESH50_v1",
+    "PAKD50_QRC24_S1_G22_W104_D121_WV3_T0_S1234_FRESH50_v1",
+    "PAKD50_QRC24_S1_G22_W104_D121_WV3_T0_S3407_FRESH50_v1",
+    "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S41006_FRESH50_v1",
+    "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S52001_FRESH50_v4",
+    "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S52006_FRESH50_v4",
+    "PO10_N1_REC_W112_D123_WV3_S2025_R200_FRSTAT",
+    "PO10_N1_REC_W96_D124_WV3_S2025",
+    "PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT",
+    "PO10_N3_OFFNOSG_W112_D123_WV3_S2025_R200_FRSTAT",
+    "QG40_QB_TB_C3_P0_W112_D123_TS81002_C3_FRESH50_v1",
+    "QGBASE_QB_TB_P0_W112_D123_TS81002_FRESH50_v1",
+    "R6_w96_d024_noattn",
+    "RB01_WV3_S1_R1_SS9281101_QESUR_F50K_v1",
+    "RB01_WV3_S1_R1_SS9281101_QFULL_F50K_v1",
+    "RB01_WV3_S1_R1_SS9281101_QMEAN_F50K_v1",
+    "RB01_WV3_S1_R1_SS9281101_QSHUF_F50K_v1",
+    "RB01_WV3_S1_R2_SS9281102_QESUR_F50K_v1",
+    "RB01_WV3_S1_R2_SS9281102_QFULL_F50K_v1",
+    "RB01_WV3_S1_R2_SS9281102_QMEAN_F50K_v1",
+    "RB01_WV3_S1_R2_SS9281102_QSHUF_F50K_v1",
+    "RBM12_WV3_S1_R1_SS261001101_QALIGN_F50K_v1",
+    "RBM12_WV3_S1_R1_SS261001101_QEDGE_F50K_v1",
+    "RBM12_WV3_S1_R1_SS261001101_QMEAN_F50K_v1",
+    "RBM12_WV3_S1_R1_SS261001101_QSHUF_F50K_v1",
+    "RBM12_WV3_S1_R2_SS261001102_QALIGN_F50K_v1",
+    "RBM12_WV3_S1_R2_SS261001102_QEDGE_F50K_v1",
+    "RBM12_WV3_S1_R2_SS261001102_QESUR_F50K_v1",
+    "RBM12_WV3_S1_R2_SS261001102_QFULL_F50K_v1",
+    "RBM12_WV3_S1_R2_SS261001102_QMEAN_F50K_v1",
+    "RBM12_WV3_S1_R2_SS261001102_QSHUF_F50K_v1",
+    "RBM12_WV3_S1_R3_SS261001103_QALIGN_F50K_v1",
+    "RBM12_WV3_S1_R3_SS261001103_QEDGE_F50K_v1",
+    "RBM12_WV3_S1_R3_SS261001103_QESUR_F50K_v1",
+    "RBM12_WV3_S1_R3_SS261001103_QSHUF_F50K_v1",
+    "SR_J2_C2RAND_MSONLY_R050_P050_W168_D123_DUAL",
+    "SR_J3_BLURCTRL_MATCH_R050_W168_D123_DUAL",
+    "SR_J4_CJCONS_R050_L100_W168_D123_DUAL",
+    "SW2_add_9ch",
+    "SW2_d122_9ch",
+    "SW2_d122_w96_9ch",
+    "SW4_add",
+    "T1_c6_unc",
+    "T2_c6_unc_sis",
+    "abl_A1btl",
+    "abl_A2enc",
+    "abl_A3dec",
+    "abl_B1kpan",
+    "abl_B2panbr",
+    "abl_B3hf",
+    "abl_C1gate",
+    "abl_C2resmod",
+    "c5_c2d124",
+    "c7_c1w96",
+    "c8_c4w96",
+    "combo_dec4_btl_resmod",
+    "combo_dec4_resmod",
+    "combo_gate_dec4",
+    "combo_gate_resmod",
+    "combo_hf_dec4",
+    "combo_hf_dec4_btl_resmod",
+    "combo_hf_gate",
+    "combo_hf_gate_dec4",
+    "combo_hf_resmod",
+    "d122_9ch",
+    "d122_w96",
+    "d122_w96_9ch",
+    "killed_PALSV18_L3E5_S1234_attempt1",
+    "p25_d124",
+    "p25_d322",
+    "p25_d322_s1234",
+    "p25_s1234",
+    "p25_s2025",
+    "p25_s7777",
+    "p25_w96",
+    "p25_w96_s1234",
+    "p25_w96_s7777",
+    "paper_ln",
+    "paper_ln_mlp1",
+    "paper_wv3",
+    "sweep_W128D2222A3",
+    "sweep_W128D2222A5",
+    "sweep_W32D1121A3",
+    "sweep_W32D1121A5",
+    "sweep_W64D1121A1",
+    "sweep_W64D1121A3",
+    "sweep_W64D1121A5",
+    "sweep_W96D1121A1",
+    "sweep_W96D1121A3",
+    "sweep_W96D1121A5",
+    "sweep_W96D2222A3",
+    "sweep_W96D2222A5",
+    "wv3_baseline_valsel",
+    "wv3_fixed_valsel",
+    "x1_enc4_dec4",
+    "x1_panbr_dec4",
+    "x1_panbr_enc4",
+    "x1_panbr_enc4_dec4",
+    "x2_A5_enc4",
+    "x2_A5_gate_resmod",
+    "x2_A5_panbr",
+    "x3_maxcut_50k",
+    "y_W128D1121_A2",
+    "y_W64D1121_A1",
+    "y_W64D1121_A2",
+    "y_W96D1121_A1",
+    "y_W96D1121_A2",
+    "y_W96D2222_A2",
+    "z_seed1234",
+    "z_seed7777"
+  ],
+  "regular_files": 137524,
+  "reclaim_file_bytes": 133566017536,
+  "directory_bytes": 54718464,
+  "skipped": [
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/QRECON24_Implementation_Audit_2026-09-16/live_s1",
+      "runs": [
+        "live_s1"
+      ],
+      "kind": "run",
+      "reason": "outside result payload scope (retained source/audit record)"
+    }
+  ],
+  "kept_signatures": [
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_C0_W96_D124_MS2",
+      "signature": "7e3a384d3e9970e2f96305a9b5d0d6253d310d64224956f5329338abe5fc758b"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PA_A3_GEO_W96_D124_9CH_S2025",
+      "signature": "086bf7d6f720d0b0fa468100bd8702a1991400f60dd49a7f6c81c4b6bdcdbe79"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/wv3_fixed",
+      "signature": "5bcc8f7d3619ed98155d287d2d1a618fac28ccb5bc36290a17f1d2bffa0c44ef"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_JR_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "signature": "3a50636b6e15bebaf8133e72ce3189fa26a2850c6957d119fa8b3e2c56abad41"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALS24_L000_W112_D123_WV3_S2025_N2LAST_R200_v1",
+      "signature": "0c1430a93ab50246c116285f1b121e3b52600d7d35a71f21e56a834e407e0c1a"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/PALS24_L000_W112_D123_WV3_S2025_N2LAST_R200_v1",
+      "signature": "87364875ae87bd492dca7cd87477fb680b319fe4cc8eafdf466868f54355c239"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/K2_R4_uknow",
+      "signature": "266e139df7e2cd8ed432e0c919f9ffcf91aafb65b042e4ad7332bf0f982b0865"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/c1_nopan",
+      "signature": "405000779f25cbaba0de37fd4dd9dbadbc831bc1510356c578a2713e1c0c85dc"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/wv3_baseline",
+      "signature": "fb38010a560d2490bb4cfadf0e2425d0392c8d71863becd53d9c70c90e7dbe52"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/R4_w96_d124_noattn",
+      "signature": "46426f6623742ab2c3b002015e96abda6d28f1ae5dc5841a29096f25e581271d"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/K0_R4_base",
+      "signature": "5ec7e9db95427f65002daf891665685724297e0ba6cb71a30abbd81f8c069b6c"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_W152_D223_DUAL",
+      "signature": "26a02b0efaed2c0f11c318571d000bbdb5aa10070c15279a81d1f68174ed1780"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/MS1_R4_msonly",
+      "signature": "63a4ae547448833bc3eee710f922b574d629ab45b0b5ea32d19d0f7112489419"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/FH12_S1_S_PLH_W104_D121_WV3_TP0_TS71001_SS72001_FRESH50_v1",
+      "signature": "761e30339a987613d2cc596754354e59a1a595515b863836298f7bb6977ade3b"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_T05_W152_D123_DUAL",
+      "signature": "ee7d7ab9f4023ae4c29ca8806fabd47c6cfd9abbbfd6a873f6b567eb567d49e1"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_dcr12_bundle/PAKD50_FQ_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "signature": "4d30fbc65fad26ccc7f2943a0dd4153c0d7e092bb3cab84a8daf378686771d5d"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_FQ_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "signature": "7db9cf1ba7ff1575c12b073a8f2ae25da6c406608f4570b4a5458ed24111fa73"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_dcr12_bundle/PAKD50_JK0_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "signature": "b19afeafcb6514d72ba803e9a6ee5ed88121b88a32c9844657a44a9c8a7d165a"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_JK0_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "signature": "a04fed5d02238121896b3e5a714cf635663637d44f5d95c9f3f6d266d4da0d2d"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/Recent_MD_2H_Audit_2026-09-15_103707/runtime_final/work_dir/PAKD50_JK0_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "signature": "0d0de52732aa4449b9378c1e90717040dba5a55fe1da6120047de03fb6170839"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_T00_W160_D122_MS2",
+      "signature": "ee25b7501b27d9def5c3f1ad5cadf662c3a99424c7c9f61a4fbdd9b276865a27"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/d122",
+      "signature": "b8f63b707e74ee84e10199ae881c2a5e7971264ab6004a1f99ee4bb881f36897"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/GA_C4_TRAIN_DUALFRAME_W152_D123_DUAL",
+      "signature": "2e170871aa13986c7d32082623198d15348d57bb7a275a30d2bbcfa94f2634c0"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73105_BASE_FRESH50_v1",
+      "signature": "8a5bfc8a91ea555eb517b16c53e41ed3fef953902e0e0bbc933b536935b5ddb1"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_W144_D134_DUAL",
+      "signature": "2b6c549722926fc10f6ff5c1e0ba40238633f67a99eed0778c7a328e562377df"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/GA_P0_PHASEFIX_W152_D123_DUAL",
+      "signature": "86ee379841ccc9e96b708ed367b5220e52bb9d9270fd1a7f17914a21706d8f13"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/K1B_R4_specKD",
+      "signature": "0e9780f7aa8272ea387a1819cd9b11aa2db84ef5ca8db8d891aaa86c76e1dd46"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/R3_w112_d124_noattn",
+      "signature": "aaca004264275015d97ae1b01cfe90dd8e11670af7de2c344075fc68e8e1dd04"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/m1_single",
+      "signature": "b659a36bf5319dbd9e8c9086869230609fa93404f269ad59c7ab68879713e54f"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73101_BASE_FRESH50_v1",
+      "signature": "88e4191e486efb2d872640878ea2406dafa4c132ae011210f289be388f37d789"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_A0_W128_D124_MS2",
+      "signature": "6e80ba3216f1b03058095c72f303d3604927ef1add2a0b6b51b45761a79b086f"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/s1_A1",
+      "signature": "c79852fa58d4d3d64ee24d35a067ea1b4836c32c1b26fb2c29b43275fda813f2"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_T05_W160_D122_DUAL",
+      "signature": "92508805e660e071b368deb908ddfa1f75328d2e06e0c2eebdfc97e77f7bc300"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/QG40_QB_S_PLH_W104_D122_TB_TS81002_SS82005_BASE_FRESH50_v1",
+      "signature": "f1c679e22b33b2bc26b87293685fd9737b31bcd6662062a026b6d55d2552c614"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/SR_J4_CJCONS_R050_L010_S1234_W168_D123_DUAL",
+      "signature": "4a6bc3467c5b891b0e045cd8629256d98f82846ebc26d260e8bc77d364536204"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_W136_D234_DUAL",
+      "signature": "2d52dc2d6fb3043fe5538a1bb71f3203f92b7d9189066c803cf36f3b53f6bc6a"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/SW2_add",
+      "signature": "ff8acde2c543ae891f511e532d4904ff72187f8469edb2e2c2d0c63b65d9bab8"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALS24_L1E4_W112_D123_WV3_S7777_N2LAST_R200_v1",
+      "signature": "156957722763df3c35e251c5c56e894b85f2fd19170ba553d19f51b2fb1595bc"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/PALS24_L1E4_W112_D123_WV3_S7777_N2LAST_R200_v1",
+      "signature": "bad013abd87332d205628f5ed5a9adbbc170a8745a19f4880e63fb99eacb708e"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ARCH_W168_D123_DUAL_QB_S1234_sel1219",
+      "signature": "686dd652f1e8abfef8daae02ec9a8780ed713ea0a93cab0fcb733bcba90b1a52"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_qrecon24/preserved/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "signature": "a7c6ae3fdcf2e31c37944b747210893d8d4a08bac80e1b44a623c7f8d6b52b9a"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "signature": "c7be6f8feee8f226e81b8f06f48b37bcc7d8c920a17e0daa690f7c55939e227a"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/NOA_Implementation_Audit_2026-09-18/runtime_snapshot/work_dir/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "signature": "7407fdcb57b39a5d5ffc0443ba09e88b365adfaffd0347b3aec9858e8a4856ac"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "signature": "533aeeaa01812f563bfc368fbb43810f5e655058bbf0a08bd47769bb19b16239"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/QRC24_RR_Crop64_Report_2026-09-18/results/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "signature": "08f84d50135c288dd89cd8cdf1cfc5499db0234da26ea49aa7ab827cfdba38e2"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/QRC24_RR_Crop64_Report_2026-09-18/assets/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "signature": "beea43014c9a73da124824c6abd8d9c5f4d4f910dce591060cd26dd500ac2a10"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_W168_D223_DUAL",
+      "signature": "6f4d5a81d46d1204a90810ec22fd6c64dc6d41ec7a5b62c646f3e4139f39f932"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALSV18_L3E4_W112_D123_WV3_S7777_N2LAST_R200_v1",
+      "signature": "fe96565b88348bafba23e45edab21a5bd54a39c52e02baf39fc9b47e068b3a1b"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/PALSV18_L3E4_W112_D123_WV3_S7777_N2LAST_R200_v1",
+      "signature": "fdd0be457019b3c7898411bc2700d93b1b88035018559faf1718fc37a5ca6252"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/FH20R1_S1_S_PLH_W104_D121_WV3_TF1_TS71001_SS73102_BASE_FRESH50_v1",
+      "signature": "da4c0b16c6be84b8a941a846b3ac6ee5673fdb23060f1fec6693f7b90d19f107"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73102_BASE_FRESH50_v1",
+      "signature": "d27dbcc581e05c2601526c3853af6c9d96e80d1aa24776f6adc2d6c6dd147e87"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_panda_rb/20261001/B02_M12/train/s1/R1/QESUR",
+      "signature": "4e6f596dd620520cea44bc8411b91cf3c7df3ccb3313fb7fea9a4f179411fba0"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_panda_rb/20261001/B02_M12/train/s1/R1/QFULL",
+      "signature": "f9fd369f528f9c578e0c7127845545384068a10382ab01cb5f6d462b9b05cb15"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALS24_L000_W112_D123_WV3_S7777_N2LAST_R200_v1",
+      "signature": "59bf92dd40bad05180cef4431a2b344cdcf68ad8ef08ca77dfdc38d4d56626a3"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/PALS24_L000_W112_D123_WV3_S7777_N2LAST_R200_v1",
+      "signature": "ab26675527d72b646f257ed62bdf3ae20e0f166a96490dbbe106f0d47bb22274"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/MS1_w128_9ch_msonly",
+      "signature": "68bb7742d5ea25c4d062f6e5f7e54461748d27fc7e8e89707436cf1281d3c6f0"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ARCH_W168_D123_DUAL_GF2_S2025_sel1219",
+      "signature": "51131a7b04526dc94f5c40b486d32db96980b7448d8629f4a4e658c822245508"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/QG40_QB_S_PLH_W104_D122_TB_TS81002_SS82004_BASE_FRESH50_v1",
+      "signature": "102998d01b969bb3d29387f942109dab9191852ead165d7519c96ce7c9745dc0"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/boundary_snapshot/runs/ABLR2_WV3_s1_r000_P02_C09_SS791002_FRESH50",
+      "signature": "a005ce5fe213817bd95d3adf5a128c8606253c9ce4f1efb54ca316114ebebf28"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/request_snapshot/e5ec47e7a44a8ebd6e0210ccdadbf26d97dc235ef3b1c0046ecee91cb42c8419/runs/ABLR2_WV3_s1_r000_P02_C09_SS791002_FRESH50",
+      "signature": "b2d4f25c6999a09c4797efcd35bdf3e68c5739ffd1a8924243c8be5fa311b779"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P02_C09_SS791002_FRESH50",
+      "signature": "f18f4270d1cb4974195fa34778bf76877216e0f08554e31e01f841f5fbddf2da"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/boundary_snapshot/runs/ABLR2_WV3_s1_r000_P02_C13_SS791002_FRESH50",
+      "signature": "a6a6111971653b7f28d204a1e6c23a690e3ef87ccdfde220951d9bda207dd5df"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/request_snapshot/e5ec47e7a44a8ebd6e0210ccdadbf26d97dc235ef3b1c0046ecee91cb42c8419/runs/ABLR2_WV3_s1_r000_P02_C13_SS791002_FRESH50",
+      "signature": "6c248bfde348a686d169a84af87922be0cac8d2aec329702eccc82e3bff92948"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P02_C13_SS791002_FRESH50",
+      "signature": "a212c40a55968f00d2303903f04f3959d6a4444be541a1a06fe6b904d77d9aa2"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/boundary_snapshot/runs/ABLR2_WV3_s1_r000_P02_C10_SS791002_FRESH50",
+      "signature": "f64a477d93040a2834f09442278f250a46c4c9e001deb55cc50a79f6499ea6ef"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/request_snapshot/e5ec47e7a44a8ebd6e0210ccdadbf26d97dc235ef3b1c0046ecee91cb42c8419/runs/ABLR2_WV3_s1_r000_P02_C10_SS791002_FRESH50",
+      "signature": "8ca65c655a9a91064b86006b2913ec8de9f55b54db508b3b28823bf83e2ac94a"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P02_C10_SS791002_FRESH50",
+      "signature": "1d51f14530ad0cce05559c232062d54a77d774e154054b14f275a5e852e5d79d"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/boundary_snapshot/runs/ABLR2_WV3_s1_r000_P02_C02_SS791002_FRESH50",
+      "signature": "b70fb3ec7bf418c8c5a663b38d10ccbb73fc6d2318961349fcc7b5d033dc65fa"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/request_snapshot/e5ec47e7a44a8ebd6e0210ccdadbf26d97dc235ef3b1c0046ecee91cb42c8419/runs/ABLR2_WV3_s1_r000_P02_C02_SS791002_FRESH50",
+      "signature": "5a25821b6475333f89d782b7796447c2c0f25ad500b4ac31dd62715b49d878f8"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P02_C02_SS791002_FRESH50",
+      "signature": "a73ffe058b57a65e14a8d852d53c86d9fb3a15c115f0c5599516e643821fb2e1"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/boundary_snapshot/runs/ABLR2_WV3_s1_r000_P02_C11_SS791002_FRESH50",
+      "signature": "08f69cf2b345e85fe57d0e71aa094844cd5742b1e4e0262b0a82b0cb49c51128"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/request_snapshot/e5ec47e7a44a8ebd6e0210ccdadbf26d97dc235ef3b1c0046ecee91cb42c8419/runs/ABLR2_WV3_s1_r000_P02_C11_SS791002_FRESH50",
+      "signature": "1a2b51917dbb201414fd7e08e3170991d30c38e2959c95bc9a7e9c7135a48720"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P02_C11_SS791002_FRESH50",
+      "signature": "2b667fafcb27400a70d90e1e2774e6324ef220fa011f3dee56f5f1a5d987ab41"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/boundary_snapshot/runs/ABLR2_WV3_s1_r000_P02_C03_SS791002_FRESH50",
+      "signature": "846b516f87fcd1ad9c1f8bc07a87fc1932fa0433f90e03b30e9aa0995e0abdb1"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/request_snapshot/e5ec47e7a44a8ebd6e0210ccdadbf26d97dc235ef3b1c0046ecee91cb42c8419/runs/ABLR2_WV3_s1_r000_P02_C03_SS791002_FRESH50",
+      "signature": "dcfe73794a15302d3a1066982b35c83dfa5d5b833557bf5909b1fcd56b67bf83"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P02_C03_SS791002_FRESH50",
+      "signature": "425709dfcdabc2163c8858f2fa34aec2d98fd9bb6ceecb1cff3068a6d9d6f041"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/boundary_snapshot/runs/ABLR2_WV3_s1_r000_P02_C12_SS791002_FRESH50",
+      "signature": "87dd7b1c575a0365425ac111261bfd9755e185c8a5d998a27a367e0588e7abd6"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/request_snapshot/e5ec47e7a44a8ebd6e0210ccdadbf26d97dc235ef3b1c0046ecee91cb42c8419/runs/ABLR2_WV3_s1_r000_P02_C12_SS791002_FRESH50",
+      "signature": "83a1def41dc69b1d9bb86821e328c258822494941eb96bd642c3dd3720014b3f"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P02_C12_SS791002_FRESH50",
+      "signature": "63d05ae5cfa8a289b9ad240fff6eff16d64e42032b98771b56bf204d7b603f1e"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/boundary_snapshot/runs/ABLR2_WV3_s1_r000_P01_C11_SS791001_FRESH50",
+      "signature": "23a94710b3df2137c0b88410d046960e74d4147de4d3279a5ea75d407f776fc8"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/request_snapshot/e5ec47e7a44a8ebd6e0210ccdadbf26d97dc235ef3b1c0046ecee91cb42c8419/runs/ABLR2_WV3_s1_r000_P01_C11_SS791001_FRESH50",
+      "signature": "113f6f7d5411ea0625727223ab38d9982894aaaf94afa78955065f21dd194032"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P01_C11_SS791001_FRESH50",
+      "signature": "e437ed17909475baf518af5088238faf5540d1eb7e8cd42649e2f09c3f628987"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/boundary_snapshot/runs/ABLR2_WV3_s1_r000_P02_C15_SS791002_FRESH50",
+      "signature": "c045179c854c134eb114fd7dd4064456c25db5bf710f500de92798b783c532ca"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/request_snapshot/e5ec47e7a44a8ebd6e0210ccdadbf26d97dc235ef3b1c0046ecee91cb42c8419/runs/ABLR2_WV3_s1_r000_P02_C15_SS791002_FRESH50",
+      "signature": "3923a9021928b96ae54ed059672358525aa49ab0938abb205f40897a6a35e0ce"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P02_C15_SS791002_FRESH50",
+      "signature": "2a2c987f14a2b94c6af800d3d78257daf44cd53d5c12b9d4bce774fc97c49f92"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/boundary_snapshot/runs/ABLR2_WV3_s1_r000_P02_C14_SS791002_FRESH50",
+      "signature": "dc6a786bd623315d926a4f0384de5da64f6b368e3f9f114b5b5a5a0f17b774a5"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/request_snapshot/e5ec47e7a44a8ebd6e0210ccdadbf26d97dc235ef3b1c0046ecee91cb42c8419/runs/ABLR2_WV3_s1_r000_P02_C14_SS791002_FRESH50",
+      "signature": "21786b12a15b894fde41ff7ddf48e2f338291f6bdf8019d080dae66673a0fc4b"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P02_C14_SS791002_FRESH50",
+      "signature": "3161cc5d0169038c2287e10f8483873879314e3aec4e52c227828c7b5415a625"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/boundary_snapshot/runs/ABLR2_WV3_s1_r000_P02_C01_SS791002_FRESH50",
+      "signature": "f78c31869791f8503dc6d0145e414131af58a3d92225dc6e873a050b77a8438a"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/request_snapshot/e5ec47e7a44a8ebd6e0210ccdadbf26d97dc235ef3b1c0046ecee91cb42c8419/runs/ABLR2_WV3_s1_r000_P02_C01_SS791002_FRESH50",
+      "signature": "1ab6c21c5cdc07148c2fc1be8a3abc62a600b26d5edc09d9eadd2f1ca5c43377"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P02_C01_SS791002_FRESH50",
+      "signature": "8cdb5d659df1b8ed8b5ab083392f1fe0a8c1b3d17cc752e20dbbb01b1729e10e"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P04_C10_SS791004_FRESH50",
+      "signature": "9c4e8f7df272d431d2b94ea1c8e4c3b91e1f3c1c1b192ca795fc49f3775d17a5"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P05_C06_SS791005_FRESH50",
+      "signature": "d6a33b6214afb36d87d873d126ee455ed4fd2c7118a56b18932e0a32614e4fb3"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P05_C02_SS791005_FRESH50",
+      "signature": "86b3fe1e6e6f15d1f0c3eec2a0984dc55fe6bb5bc58db0ec0f38353bd5664c8f"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P04_C04_SS791004_FRESH50",
+      "signature": "5625cdf0ac5de41d1a2dddbe93a4ca4da774168ad97cb7859c27eb3fbb08c559"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P04_C15_SS791004_FRESH50",
+      "signature": "a93156ebe4e0218744b68cf90cb43fe4c33100f6e38fa40fd270d0c554b955b2"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P04_C06_SS791004_FRESH50",
+      "signature": "d8fb5da48ff8e3a487a0b5ba359d7937f916fd2d52b72fffc55a414850c34739"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P05_C17_SS791005_FRESH50",
+      "signature": "824cdd84d641076dacbf026688df32da75568b1cd4fa7b3346a6c57fe60ad1fe"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P02_C05_SS791002_FRESH50",
+      "signature": "48970a0da875048889ecf1b8e2f421396d841d338870dbdb72aa0aaf1bb6260a"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P02_C07_SS791002_FRESH50",
+      "signature": "1b3beeecf6bb9e1b5b7d3aed0458d24057f171f2804ace08e803e99950afb92f"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P05_C01_SS791005_FRESH50",
+      "signature": "c7542e0bd84b512b28ad1fd9dd58d1791de347b97cbe311ccafcfe3d66a286be"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P02_C17_SS791002_FRESH50",
+      "signature": "427cc7cd274eb18ee1762dfd5e95d502c1b0f83b4cdb3f7ffca9970d8729ef49"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P05_C03_SS791005_FRESH50",
+      "signature": "52b7ea8acc3b34c94004433a57e9911711f9a52b40d0b7dd11d0dd104b3470ac"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P05_C05_SS791005_FRESH50",
+      "signature": "4044890cefa5e91b09218fcc4bf04195c00b0ff9aeb06d8d660bff8d76877d0e"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P04_C17_SS791004_FRESH50",
+      "signature": "3c60f61985e8739d882ea876400131ed056a32678ad771c814520d3480099e73"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P04_C09_SS791004_FRESH50",
+      "signature": "edea7b0e89c3e3a887e7ef8a7f24ae99012bd167f567eaca90b8c1166894b92b"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P04_C07_SS791004_FRESH50",
+      "signature": "3e965ac7b4f678f04fd976fdf80d6eae6880b30c28991c6166da4e3a87776cb8"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P04_C14_SS791004_FRESH50",
+      "signature": "dbe281d2603e4f329f6efba8079f26c5fb417bac0c37b409c74f1f4b00e25e25"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/runs/ABLR2_WV3_s1_r000_P04_C13_SS791004_FRESH50",
+      "signature": "c851bcfa1e7618572502dc6383b39aa945f8586a7c8d0489210f57f2c8cae1ce"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/MS1_w96_9ch_msonly",
+      "signature": "65b14b1c4dce942b7a8a2c5c9374d54cfe3caf16edd4fe02115930dc47d29ce7"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_T05_W168_D123_DUAL_zs_wv2",
+      "signature": "6bdd64f0517fac0d5b5f37effb9811dcc0124a20d32d772569b372863b98b695"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/c4_noattn",
+      "signature": "5592e84ab81292bd422d0857ec6998c47f98b133711c672842075701f08964aa"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/QG40_QB_S_PLH_W104_D122_TB_C3_TS81002_SS82002_BASE_FRESH50_v1",
+      "signature": "014ee62eb804f316730619ad7f87e1a4c2c34c03e9bacbd2ebbcf01709ec4808"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALSV18_L3E5_W112_D123_WV3_S7777_N2LAST_R200_v1",
+      "signature": "d3e6caf0f9b7ac3f65e893f84623b5e576493942ec0d679537315061c755aca9"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/PALSV18_L3E5_W112_D123_WV3_S7777_N2LAST_R200_v1",
+      "signature": "adfa89b963f5216bdc665815e3a75b170ee6e0c157f225f9fdefcdb57ef472d6"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/SR_J4_CJCONS_R050_L010_W168_D123_DUAL",
+      "signature": "262f1b0f4da02d83be1ec64dc705ed5b2855fcfdd854bef97b93c453d23455c3"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/K1A_R4_fullKD",
+      "signature": "9cc14b1fe86d0b3d292458dca5e070d511aacb0ee149202b92b2c339d30cf4eb"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/SE1_R4_btl_se",
+      "signature": "9634d903b1d657237f3829718148d9363d7fba675e7a839e3e65dc71032aa31c"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALS24_L1E4_W112_D123_WV3_S1234_N2LAST_R200_v1",
+      "signature": "df158d83bf7024ce323a2ee88ce7c9c7c081e10709fe10c4a0eec0f7a9e0e0ba"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/PALS24_L1E4_W112_D123_WV3_S1234_N2LAST_R200_v1",
+      "signature": "879e785f1d3d6924ee15fee8c68a62ae08b3d6ca5590a96c737c45c0d9455327"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_JQ_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "signature": "5670ca27040fa0aad1abbc00ec020190ddd2636a810af13bfa15f6f33f4c3bd1"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_F0_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "signature": "cfb59e61450fe2dccc09cdf6fdc8118326b72a14a6ffd551b0f77117e0be716c"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_T02_W160_D124_MS2",
+      "signature": "02428d8427f6865e2bf300b2dff21da8dcd27bb9e3f4442abd40d710ae65f340"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/SW6_add",
+      "signature": "65d4c551859611176fc3121f9999e9f7a04729c74df6f000be5807283175d74b"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/c0_hqnr",
+      "signature": "dc2fba912e06787b6a1056ccdd5b39eab33cbe3ea8a57198b5febd9451ab6ff2"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_T01_W144_D124_MS2",
+      "signature": "4ffb5e1f4ff2e7adde43aa0ffa97e8a8875c92e9587bcc8c8ab3d759386c4d52"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/K4_R4_uknow_gtvar_sis",
+      "signature": "d6713f070ae0d1c1091ccef36d7ce4976ccdaa689dc4e582021feab3b7dcd0a4"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/SR_J1_C2RAND_BOTH_R050_W168_D123_DUAL",
+      "signature": "ce0518294a17c11bc8169c4e3a6f33321d6633a29da472f2586a84d9a45b5400"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALSV18_L3E4_W112_D123_WV3_S1234_N2LAST_R200_v1",
+      "signature": "bc421d3b550436bea95d6d54eeb91bb0ac2fc9955192f78558d0ab845e5f6292"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/PALSV18_L3E4_W112_D123_WV3_S1234_N2LAST_R200_v1",
+      "signature": "8841a5502a960f173d03241568deb709a761bedc6567175593a292894027d992"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_po10_gate_N3",
+      "signature": "7203e539a4c17ec2681de47b0beb3999de28b4cbb2ad4b0a5dbdc7e3d899794a"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/c6_c4d124",
+      "signature": "b98e29ef83329f40c38c0f46187b74915d45d29176f68fc321f950c9a9380982"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v2",
+      "signature": "9b9ac2df16571e254083d247b5ea84dfe6ab060eb727a2cdef8f7ca1e30772da"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/c3b_btl",
+      "signature": "035ad6158864fddb80650cfa729e6fe5550f90f2a0b38931c43f0ebcffc05a8a"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/QGBASE_QB_S_PLH_W104_D122_TB_TS81002_SS82002_BASE_FRESH50_v1",
+      "signature": "847687122503490d2155ec91526787808b6ac623bffd5942d9bb40db045d591c"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALS24_CTRLP0_W112_D123_WV3_S2025_N2LAST_R200_v1",
+      "signature": "8f7342bcce02e8004094601bc05347347b6a134e8096588d404b565fe5e2d735"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/PALS24_CTRLP0_W112_D123_WV3_S2025_N2LAST_R200_v1",
+      "signature": "762b89e7d898b8f330f643388131ad94095de020608d19c9ca3811dc71c6afe7"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/SE2_R4_dec_h2_se",
+      "signature": "9dd22d8efd3be791114b9140283d1f49f651912a249040f50daec91335a07da8"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALS24_L3E3_W112_D123_WV3_S1234_N2LAST_R200_v1",
+      "signature": "4e1892d0b3df2701be0ff924befda77955bb27b0965ca65f8136dcd51ae7ec3a"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PA_A1_REC_W96_D124_9CH_S2025",
+      "signature": "32b882b14d6eac3623f4f189e21302606c9a7a1316107d9505f534d191ccd479"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALSV18_L3E5_W112_D123_WV3_S2025_N2LAST_R200_v1",
+      "signature": "14b9ead5796d543d87af91dd49740ce4047ba26624314d2104af72aa035800a4"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/PALSV18_L3E5_W112_D123_WV3_S2025_N2LAST_R200_v1",
+      "signature": "ab7534196ed3e45e2b9e6961f2ae7c435be3af22d78e6df83f02061bc4082c7f"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PANPV_S1_WV2_20261004_R1/s1/runs/PV_S1_200014103758_01_FT_WV3_SCENE_R01_SE261002",
+      "signature": "4cf6aedad4e15ed4aab1a09484d95d6bf62e0ab0441b52ab07ae7c5646c8bc0e"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PANPV_S1_WV2_20261004_R1/s1/runs/PV_S1_200014103802_01_FT_WV3_SCENE_R01_SE261002",
+      "signature": "a8ad26c4b3aa7ce28cfb949a6e826e6d0db8ac6ac42b3bdcfd29412f817d5431"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PANPV_S1_WV2_20261004_R1/s1/runs/PV_S1_200014103764_01_FT_WV3_SCENE_R01_SE261002",
+      "signature": "a3fb7e1cadf4680d031722850348cfb89807f838d8b0f9c4c4814ce5e93e8c23"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PANPV_S1_WV2_20261004_R1/s1/runs/PV_S1_200014103764_01_SC_SCENE_R01_SE261002",
+      "signature": "7dc25a02aae0f90c9bd312259a90b4ec65861d5f7e25576fae31e86c046406a7"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PANPV_S1_WV2_20261004_R1/s1/runs/PV_S1_200014103714_01_SC_SCENE_R01_SE261002",
+      "signature": "4e687981ebf9746d8b671b23d1e936923c46ee923c1ba371ff320c804ac2607f"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PANPV_S1_WV2_20261004_R1/s1/runs/PV_S1_200014103525_01_SC_SCENE_R01_SE261002",
+      "signature": "f16ec314cc458291d7936edc61ca05926684d7557df716de029fcc9fcc59f1a7"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PANPV_S1_WV2_20261004_R1/s1/runs/PV_S1_200014103802_01_SC_SCENE_R01_SE261002",
+      "signature": "97709d97d6e9328279d9c5a61d4ff992d37193c264467a28a2a55ad4cd86b723"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PANPV_S1_WV2_20261004_R1/s1/runs/PV_S1_200014103525_01_FT_WV3_SCENE_R01_SE261002",
+      "signature": "f3b83f4b634419c96ce0dbf10ee9f46c5442853dd396f12ccc0b829173f5949c"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PANPV_S1_WV2_20261004_R1/s1/runs/PV_S1_200014103758_01_SC_SCENE_R01_SE261002",
+      "signature": "ebc61f0ffc8f5b2478e593b838810f8230b69dc6dd4d482919b8a6d4d6abcfc3"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PANPV_S1_WV2_20261004_R1/s1/runs/PV_S1_200014103714_01_FT_WV3_SCENE_R01_SE261002",
+      "signature": "1e54a92179ca62157d52c15e6a88aeffdb0f366303899f51c94b42930d33712e"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1",
+      "signature": "f7c6b19c26949746d8573a59d0918851c31c19b67d17508a759fa20fb227f87b"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1",
+      "signature": "62be69bbdff2288823e996b23e028fcfbb60ebfdf0d2540033a6d95abad44197"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Resolution_Check_2026-09-18/inputs/work_dir/PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1",
+      "signature": "1c5eb6d0b48f5dc189285e835b465d27f94422b62ea4442753b3c1f338a8b3df"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/c2_encbtl",
+      "signature": "133153d067716e9b87cad1357921bfe2d1d7226e7e84f4a8735411dc510e4a51"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/GA_C4_TRAIN_RT_W152_D123_DUAL",
+      "signature": "2f833f32c2a6556c64318c65d8999bf9b750e8f4bdf6422fc79f2ee4e126f2f1"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_T05_W144_D124_DUAL",
+      "signature": "ee803e388bb2c7503be71ca81a293d703f8f1acf5a498a94e83ee3336e07be51"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/K3_R4_uknow_gtvar",
+      "signature": "d222157e1accb4fdcfcc600c19b3ff382de9726402fa06ac46303a460989eb90"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/c6_d126",
+      "signature": "d32a0ceef195f69472515132d35254bfa3e5f288193cc3f5a5f0f01705d0329a"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73104_BASE_FRESH50_v1",
+      "signature": "abc12c5077bd5caf93fad8fbf4e51c251578638cb48e03bc78b545968318fe86"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/QG40_QB_S_PLH_W104_D122_TB_TS81002_SS82009_BASE_FRESH50_v1",
+      "signature": "646042cd030834fea40055850b82b55c005ac46ea2dd1bac0f34d6b7d0051132"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/SR_J2_C2RAND_MSONLY_R050_W168_D123_DUAL",
+      "signature": "024dcdae7347ef774c62a8becb44dada4b2419678cfdad66ec314c9e4f0b8b65"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/NF16_P2_W112_D123_WV3_S1234_N2LAST_v1",
+      "signature": "c10942767ccd80982dbb647f5363a3be48b051846adb6c685862df2449541186"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/NF16_P2_W112_D123_WV3_S1234_N2LAST_v1",
+      "signature": "9a5a3b024c42e555dbec88cff7fec1a3381823bc5f30813e0af6d6af61ce33b4"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ARCH_W168_D123_DUAL_QB_S2025_sel1219",
+      "signature": "15cf294ba1ebbeb95b9d2e004012fb0dec02933666a988020562c3b44227bd04"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/c3e_enc",
+      "signature": "a6c9ae42308442043302932b067ff174da17d3ac22015503f5e8d8ee1123d614"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/NF16_P0_W112_D123_WV3_S1234_N2LAST_v1",
+      "signature": "1d580a88aca3ebe61af6432e2fc1bd1ea7fd6aea150d158504b66403c971b116"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/NF16_P0_W112_D123_WV3_S1234_N2LAST_v1",
+      "signature": "661db0485e6c0893996a90bbbdc2c7077d319f170262f903af46c8b30fe457a0"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALSV18_L3E4_W112_D123_WV3_S2025_N2LAST_R200_v1",
+      "signature": "65bcc7cdb0a301b5b04d6056fd1c9593b611294d04ba5e247eb51b1d79d55c45"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/PALSV18_L3E4_W112_D123_WV3_S2025_N2LAST_R200_v1",
+      "signature": "93ab077ea027891b9f00c1355961537deaf176c670532c1d5c52e5c1123a01a5"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/B02_GF2_DONN2_W112_D123_R200_S2025_BOOTSCRATCH",
+      "signature": "4a5ce790eee8368f9169ce9b7b36d2beb3f1166688a426634e568f1a95b20a94"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_INVALID_augphase_GA_P0_PHASEFIX_W152_D123_DUAL",
+      "signature": "5a22d3d6e44a465d87c9ced3e9a783f7d586301f9d5bcb1e42b0db3698c058e4"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_T05_W176_D122_DUAL",
+      "signature": "8e6b800fbe6f5e7a3116d4a537852ccc566d855f74ecd7376e0113010331a420"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/R1_w128_d024_noattn",
+      "signature": "8c1a89dbc43e77c327e6378140337e8dd82843c51a09c0c3c86c44cbe49435ca"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_J0_W112_D123_WV3_T0_S1234_FRESH50_v1",
+      "signature": "bfd4895dac8084cfe7593cddca972502065a1420019e67b9561063aee5a21562"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALS24_CTRLP0_W112_D123_WV3_S7777_N2LAST_R200_v1",
+      "signature": "709a9f2d6475cffa687e8b56ca9757837697006d25441f4ebb92069ad6494cf6"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/PALS24_CTRLP0_W112_D123_WV3_S7777_N2LAST_R200_v1",
+      "signature": "d889b8da7a775da1f9133f196bc806059d7be038a4f79072b27029494167dfae"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/FH20R1_S1_S_PLH_W104_D122_WV3_TF1_TS71001_SS73101_BASE_FRESH50_v1",
+      "signature": "bf7cbb28ffba7a6be2c96129d0998254936438c55b9a517ea81c226cbf68329e"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_T03_W176_D122_MS2",
+      "signature": "cb99355cd9326ce3047a2316b87621571003f0c672639dc84844a69492de504e"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/aligner_teacher_lms_v2/s1/runs/ATL2_WV3_S1_R1_SS261006101_M03_F50K_v2",
+      "signature": "0b365568da680e024c0175459e1035a8c29fd339535555838a1855eb8a8d3fc4"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/aligner_teacher_lms_v2/s1/runs/ATL2_WV3_S1_R1_SS261006101_M04_F50K_v2",
+      "signature": "c046f2987f2d17a80f52cde9063e084a4c77597f354e4efe8c6ff417c030bf97"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/aligner_teacher_lms_v2/s1/runs/ATL2_WV3_S1_R1_SS261006101_M02_F50K_v2",
+      "signature": "273dd4ff1a225137d8f7f3bc781beedcb1207c6a986c6a69c5d3d430695e66f9"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/aligner_teacher_lms_v2/s1/runs/ATL2_WV3_S1_R1_SS261006101_M06_F50K_v2",
+      "signature": "cc46e6f3ecced0160264a9078f1a68287e299fd1b13aa67cf852d4c7a15defff"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/aligner_teacher_lms_v2/s1/runs/ATL2_WV3_S1_R1_SS261006101_U00_F50K_v2",
+      "signature": "4c4d1a913490bd08e71ec03df9e70feeba2af11af411ba18bbace263d8b49e59"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/aligner_teacher_lms_v2/s1/runs/ATL2_WV3_S1_R1_SS261006101_M01_F50K_v2",
+      "signature": "6e75bae8125dba30fe2c7b033ed9e5c9bdfd2f6ebb75f78ef5597740c5671c36"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/aligner_teacher_lms_v2/s1/runs/ATL2_WV3_S1_R1_SS261006101_M07_F50K_v2",
+      "signature": "0dc41b0e607401823f5953ea63cb0e4eb4d106eb7bc7dfa1e2fa9b6a10bd8cde"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/aligner_teacher_lms_v2/s1/runs/ATL2_WV3_S1_R1_SS261006101_M05_F50K_v2",
+      "signature": "8244ee5792e8cd87906157282f03513243300c6f023f89c4117ad9d15a987307"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/aligner_teacher_lms_v2/s1/runs/ATL2_WV3_S1_R1_SS261006101_U03_F50K_v2",
+      "signature": "c8666fbd5e54644feefd151f44042b18e98a51878dc147b88e00ebe71a6b2d27"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/s1_A0",
+      "signature": "4158f3887f50ff8d938d7cc3380ebe4943e89ceef3b7a2ff888c98386bd3a633"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/QGBASE_QB_S_PLH_W104_D122_TB_TS81002_SS82001_BASE_FRESH50_v1",
+      "signature": "9356d486bfe3429094a7d0411645ed12298c230b9c4c1303bdce4f0c1044d91c"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_T05_W168_D123_DUAL",
+      "signature": "8cbb57cc46d5ca8e5629cd579f8e0a5f56a300462e800ca36bef48588c7f086b"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PA_A2_OUTEDGE_W96_D124_9CH_S2025",
+      "signature": "7a9b5c3923a7a06023880d083fc3d5abacd17b61b66b1078c15db8ae7f9508a4"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/QG40_QB_S_PLH_W104_D122_TB_C3_TS81002_SS82001_BASE_FRESH50_v1",
+      "signature": "871a609474a07f5a3764900f26dc03d0b58a581c902d8a4892264b7031e5e8e6"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/MS1_w128_msonly",
+      "signature": "c0b159e6422daf104bb836603d3cf076893fd3ce14dc5dd8d5c428359dade8cf"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ARCH_W168_D123_DUAL_QB_S2025",
+      "signature": "ecf6e363c48c708ced7ee36c877688122f5d64cc7008491fe4ba1db4eb711c74"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALS24_L1E3_W112_D123_WV3_S1234_N2LAST_R200_v1",
+      "signature": "0c442164fd5bfb0ca0af7f9f9357b6b17b5b1cf0d315f211de94e513243c35db"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_W144_D224_DUAL",
+      "signature": "4bf173d952d1aa82949f2a1d93334b52efabb8dcd565896ff9b7af6e42e078d0"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PALSV18_L3E5_W112_D123_WV3_S1234_N2LAST_R200_v1",
+      "signature": "e008de61dfbb69d20fd793e9fe98facedca2140aafa7272c8f7e97d976ee3026"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/PALSV18_L3E5_W112_D123_WV3_S1234_N2LAST_R200_v1",
+      "signature": "a950e0914230927d9798c669516d7888643fee52fd83115179d53cba98919e55"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S3407_FRESH50_v1",
+      "signature": "4bfdbde1cfdf1d9e8f541fddb2a7f6cd28d591e9cf27ffd79e4a77063c3208ea"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/past/Aligner_Three_Axes_Analysis_2026-09-18/inputs/work_dir/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S3407_FRESH50_v1",
+      "signature": "df24e4745599e2899a24f3cf9a5fe41c65c3d248a9fee54d85caca2693abf171"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/QRC24_RR_Crop64_Report_2026-09-18/results/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S3407_FRESH50_v1",
+      "signature": "b8bb8886e5b73f5a42fe2bddcdb5b72e50aec6d10a4b0a269d4c7a0691568e01"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/QRC24_RR_Crop64_Report_2026-09-18/assets/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S3407_FRESH50_v1",
+      "signature": "36ca263eb55dc9a99ea7da6d861a5e8419b01968700cbf7840d80c73e6cce633"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_W168_D124_DUAL",
+      "signature": "ec17b0984b9fb0aa1f6a83143193f47f651831c382bb6ace381d94c39d55c8eb"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/QG40_QB_S_PLH_W104_D122_TB_TS81002_SS82008_BASE_FRESH50_v1",
+      "signature": "380f838dc3a6594814976e046d1d488401dda7f7d2d7ad27c0aefc246ba23571"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S41001_FRESH50_v1",
+      "signature": "63e9a33a61aa905459c162c83f879c6a4135ac340c44e1e5690c2e1f4a5b7105"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/QRC24_RR_Crop64_Report_2026-09-18/results/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S41001_FRESH50_v1",
+      "signature": "261eb686e52dcada2d5365b647c40322cbab0a35556cfeea10def4179ae2d084"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/QRC24_RR_Crop64_Report_2026-09-18/assets/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S41001_FRESH50_v1",
+      "signature": "34da43b66b7ff8d00ec69859fa5b01974e5133e72a1dc26c4adb016ae59c956d"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/S1_T05_W160_D124_DUAL",
+      "signature": "40079feeebe77259e8514e2b525e5ffab15ca9a0a8a621bc15c00da077f1ba88"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PANPV_S1_WV2_20261004_R1/s1/donor_pretrain/run",
+      "signature": "e38f5a94ff90cafd49767a8b79546867317e293ba5bf84d850ad7db6c714bfe2"
+    }
+  ],
+  "filesystem_before": {
+    "66307": {
+      "sample": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/ablr2/WV3/s1/migration/request_snapshot/e5ec47e7a44a8ebd6e0210ccdadbf26d97dc235ef3b1c0046ecee91cb42c8419/runs/ABLR2_WV3_s1_r000_P02_TZERO_TS781002_FRESH50",
+      "free": 249210433536,
+      "available": 198033215488,
+      "size": 1005994856448
+    }
+  }
+}

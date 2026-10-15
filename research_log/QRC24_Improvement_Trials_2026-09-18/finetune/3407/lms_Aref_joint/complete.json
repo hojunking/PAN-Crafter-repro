@@ -1,0 +1,12 @@
+{
+  "arm": "lms_Aref_joint",
+  "updates": 1000,
+  "seconds": 30.253381490707397,
+  "initial_hash": "cefc9d45926fbdef",
+  "model_sha256": "d439f60d932967c39f15b0cd71b9dd495e66b83111fb10d094b25e609eda8722",
+  "A_frozen": false,
+  "A_unchanged": false,
+  "teacher_unchanged": true,
+  "peak_allocated_mib": 561.74658203125,
+  "at": "2026-09-18T13:52:41.870447+09:00"
+}

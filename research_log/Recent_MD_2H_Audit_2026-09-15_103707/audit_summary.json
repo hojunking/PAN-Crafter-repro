@@ -1,0 +1,12 @@
+{
+  "report": "research_log/PAN_Recent_MD_2H_Implementation_Audit_2026-09-15.md",
+  "report_sha256": "3004d33795c181c4d66c0cc3f562cb9fb7cf2e00c74a4fa10b411078ebe21e80",
+  "scope_files": 5,
+  "fixed_test_commit": "d616740e4b9188218f93b736394d6224b674534e",
+  "existing_unit_checks": 105,
+  "conformance_checks": 45,
+  "defect_reproduction_checks": 23,
+  "additional_degenerate_cell_reproduction": true,
+  "late_delta_check": "closing_delta/check.json",
+  "report_links_ok": true
+}

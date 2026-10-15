@@ -1,0 +1,205 @@
+{
+  "checks": [
+    {
+      "name": "original_cue_identity",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "T0_full_sha_margin_A",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "actual_online_16_views",
+      "passed": true,
+      "kind": "conformance",
+      "max_dq": 5.2317045629024506e-06,
+      "max_de": 6.268732249736786e-06
+    },
+    {
+      "name": "student_actual_W104D121",
+      "passed": false,
+      "kind": "conformance",
+      "backbone_params": 1903624
+    },
+    {
+      "name": "QE50_actual_gradient",
+      "passed": true,
+      "kind": "conformance",
+      "A_error": 0.0,
+      "U_error": 0.0,
+      "A_reference_max": 0.00025766593171283603,
+      "gate": [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      "A_adjusted": 0,
+      "soft": 0.0019056163728237152
+    },
+    {
+      "name": "QX50_actual_gradient",
+      "passed": true,
+      "kind": "conformance",
+      "A_error": 0.0,
+      "U_error": 0.0,
+      "A_reference_max": 0.0002528541081119329,
+      "gate": [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      "A_adjusted": 0,
+      "soft": 0.0
+    },
+    {
+      "name": "QE50_B005_actual_gradient",
+      "passed": true,
+      "kind": "conformance",
+      "A_error": 0.0,
+      "U_error": 0.0,
+      "A_reference_max": 0.0002552600344642997,
+      "gate": [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      "A_adjusted": 0,
+      "soft": 0.0009528081864118576
+    },
+    {
+      "name": "QEC3_actual_gradient",
+      "passed": true,
+      "kind": "conformance",
+      "A_error": 0.0,
+      "U_error": 0.0,
+      "A_reference_max": 0.00025541966897435486,
+      "gate": [
+        0.3700000047683716,
+        0.3700000047683716,
+        0.3700000047683716,
+        0.3700000047683716
+      ],
+      "A_adjusted": 0,
+      "soft": 0.0019056163728237152
+    },
+    {
+      "name": "QES_actual_gradient",
+      "passed": true,
+      "kind": "conformance",
+      "A_error": 0.0,
+      "U_error": 0.0,
+      "A_reference_max": 0.0002528066688682884,
+      "gate": [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "A_adjusted": 0,
+      "soft": 0.0019056163728237152
+    },
+    {
+      "name": "QER50_actual_gradient",
+      "passed": true,
+      "kind": "conformance",
+      "A_error": 8.094502845779061e-11,
+      "U_error": 0.0,
+      "A_reference_max": 0.00025766593171283603,
+      "gate": [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      "A_adjusted": 22,
+      "soft": 0.0019056163728237152
+    },
+    {
+      "name": "QERS_actual_gradient",
+      "passed": true,
+      "kind": "conformance",
+      "A_error": 6.912159733474255e-11,
+      "U_error": 0.0,
+      "A_reference_max": 0.0002528066688682884,
+      "gate": [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "A_adjusted": 22,
+      "soft": 0.0019056163728237152
+    },
+    {
+      "name": "LF_real_updates_across_boundary",
+      "passed": true,
+      "kind": "conformance",
+      "steps": [
+        {
+          "step": 24999,
+          "active": true,
+          "A_changed": true,
+          "offset": 0.7316800355911255,
+          "U_edge": 0.0013002995401620865
+        },
+        {
+          "step": 25000,
+          "active": false,
+          "A_changed": false,
+          "offset": 0.0,
+          "U_edge": 0.001298415125347674
+        },
+        {
+          "step": 25001,
+          "active": false,
+          "A_changed": false,
+          "offset": 0.0,
+          "U_edge": 0.00129121751524508
+        }
+      ]
+    },
+    {
+      "name": "route_scale_and_accumulation_algebra",
+      "passed": true,
+      "kind": "conformance",
+      "note": "CPU scaling algebra, scale=128/accum=2; this is not CUDA AMP execution."
+    },
+    {
+      "name": "nonmedian_replacement_asset_accepted",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "actual_calibration_median": 0.3276133416220546,
+      "accepted_theta": 0.4,
+      "accepted_asset_id": "afd5fe9d1064bb0252062ce2f7aa7e01",
+      "note": "Original asset untouched. All dependent label/shuffle/hash fields recomputed; no expected plan asset ID is pinned in config."
+    },
+    {
+      "name": "previous_asset_id_mismatch_rejected",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "unverified_pilot_hash_accepted",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "note": "Correct run/tag/step but arbitrary nonempty checkpoint hashes; current loader does not compare actual local pilot bytes."
+    }
+  ],
+  "device": "cpu",
+  "summary": {
+    "conformance": {
+      "total": 14,
+      "passed": 13
+    },
+    "defect_reproduction": {
+      "total": 2,
+      "passed": 2
+    }
+  },
+  "finished_at": "2026-09-15T20:13:40+0900"
+}

@@ -1,0 +1,3302 @@
+[
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 0,
+    "h5_index": 0,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg0.npy",
+      "bytes": 1048704,
+      "sha256": "2402529b0e8ead2ff60616e9b2933642ac3b5e9958ec28f15a4f33ea151857d8",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 1343.0450439453125
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg0.npy",
+        "bytes": 2097280,
+        "sha256": "29fbee39ab53cd70d14267886a3f590acfb110705a8d0ee30756ac8247bddf51",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg0.npy",
+        "bytes": 2097280,
+        "sha256": "ee1a04c92ae28060ae9bca828b85a11e27223bfda6e27b019207680250feade1",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg0.npy",
+        "bytes": 131200,
+        "sha256": "929a1f439765445d1f861b35aec6ee7a61d55cab44efb73474c8edccb581653d",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg0.npy",
+        "bytes": 524416,
+        "sha256": "a5f24802cbc6f316b3826943e056ab59ac51a96ed6d3b1d1d925138d8a47f608",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg0.npy",
+        "bytes": 16512,
+        "sha256": "1d35abb4063f83eea3230c4fc6b3e73290183d1bf332fdea6da9dcc255278b2f",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.01790543831884861,
+        0.007024870254099369
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 1,
+    "h5_index": 1,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg1.npy",
+      "bytes": 1048704,
+      "sha256": "fb9fd7a665bd943f4cc61dd3b1dfda1c4116c512651be1b60c5ee78f388ac703",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 1220.509765625
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg1.npy",
+        "bytes": 2097280,
+        "sha256": "c48df7702c9075e979f35833866f10f5be57b741871e8877c016541703e893cc",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg1.npy",
+        "bytes": 2097280,
+        "sha256": "a3ddfad9209083707de303bb6e6a0ed3c780c381984b7964f073492500eeaec9",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg1.npy",
+        "bytes": 131200,
+        "sha256": "235620d5c37e6b6e392499f04bf7f8a599bbca79ebca15127833b7fa358d20db",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg1.npy",
+        "bytes": 524416,
+        "sha256": "a81f432191b442db250b20cf28fb1eb67d5b3b0d317e90e02964cb5f2341f56a",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg1.npy",
+        "bytes": 16512,
+        "sha256": "45e0712b16627e1f35e725bd56d7258cb5cbb69de548bc5dd625fb8a69e8c6dd",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.014014651998877525,
+        0.012936953455209732
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 2,
+    "h5_index": 2,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg2.npy",
+      "bytes": 1048704,
+      "sha256": "59cdccf283e58e8791eb48f2bc924adf7746bd8d2cea0219b71808c0d927390f",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 1959.0858154296875
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg2.npy",
+        "bytes": 2097280,
+        "sha256": "b62c644587dbe3376e61407eb76f683809a64719c70c0f9d3bad44747c87ef1c",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg2.npy",
+        "bytes": 2097280,
+        "sha256": "816f6ed41b2bc3b775177a685e77b43bc503ed4514d57d9e251b3a1be1c0c880",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg2.npy",
+        "bytes": 131200,
+        "sha256": "78754d6bfa543a1c0461ffc243e4ad3090ad2e5cebaa68da960d6be34779efcc",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg2.npy",
+        "bytes": 524416,
+        "sha256": "f93ae817331cbcc5535295268eeb9ddf922b66694cb5bad8f12970a487e89502",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg2.npy",
+        "bytes": 16512,
+        "sha256": "a77662f8b372a0cf208d8be38ecdc7c647569bdc3185dec9453ef57dc9c1e505",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.06544724851846695,
+        0.0022072980646044016
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 3,
+    "h5_index": 3,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg3.npy",
+      "bytes": 1048704,
+      "sha256": "5eebeca924a4029849fae66b78c2408c2581fc5e6a40bf25209087fc6a64e5c6",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 1998.252197265625
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg3.npy",
+        "bytes": 2097280,
+        "sha256": "82a63a872ea8edd4b1eff4c7e5e400d69cd12ffc062b0b05bc5e83143e81706f",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg3.npy",
+        "bytes": 2097280,
+        "sha256": "76d59dd1a97b6934f0a3039d812d3dda3c331ff9ded15327ec3bf0954b81cbc0",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg3.npy",
+        "bytes": 131200,
+        "sha256": "e244febf160e56105ccb3fcf02511b0173cc0916ada374374c8a0fc793e76420",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg3.npy",
+        "bytes": 524416,
+        "sha256": "924d08e1bb40391658e4e59c7b1843f4970d7a0613ccdabe52de6b3750792c48",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg3.npy",
+        "bytes": 16512,
+        "sha256": "5993b93a12295c1951f52dccecc14255eeccf0c52c505bb2725f30904d2cba14",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.056349627673625946,
+        0.0023604172747582197
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 4,
+    "h5_index": 4,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg4.npy",
+      "bytes": 1048704,
+      "sha256": "d0fe201d63ea4b4035c9a3b21d7f4cd93224a34fce4d4b9fe5d46250c45e24b3",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg4.npy",
+        "bytes": 2097280,
+        "sha256": "3c89d62c5f521109c87d51946b93a22ddc5a4ebe18fab97d58938a64e6e1d16e",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg4.npy",
+        "bytes": 2097280,
+        "sha256": "649f267c62e231b061b152bce3493cc442c22ee64cbf794fc0f42d557df32f70",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg4.npy",
+        "bytes": 131200,
+        "sha256": "6ef48057044d65c3261e2c1d2e2b7b572cb919521051a2bb2b3053d11ae18299",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg4.npy",
+        "bytes": 524416,
+        "sha256": "dac9acf96887821d540bc3faea4c9ed545e5dcf3775019337895df711ffa8a40",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg4.npy",
+        "bytes": 16512,
+        "sha256": "aee3c846d9c2badf6fe8d85f20761ddca44e71b1a2fe1c5a7c08ea04ec5b8c66",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.038057733327150345,
+        0.003635982982814312
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 5,
+    "h5_index": 5,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg5.npy",
+      "bytes": 1048704,
+      "sha256": "8b4514f7797291f9ada0b9ee6a3ef8343952c819e4086a0913822cd88402fd01",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg5.npy",
+        "bytes": 2097280,
+        "sha256": "e72afbb9d0eb0588832a08b45941419f748015e0472034e0a7bd53fa0720b6c0",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg5.npy",
+        "bytes": 2097280,
+        "sha256": "70f1e4a30a5fa69a4d6c68295f1cedcf075b83ee49db3a6fefa10e865f3fd9d4",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg5.npy",
+        "bytes": 131200,
+        "sha256": "1c9f863440ba6ad23d4d85194eecfc0f20ae964a543182469b9a8f8c83cd7637",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg5.npy",
+        "bytes": 524416,
+        "sha256": "aa290892e4c077b2a5130a9b7212412b1b1420255401530cefe0863285b3b0c3",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg5.npy",
+        "bytes": 16512,
+        "sha256": "9e13e29ed66ee52f97d64b2ef764b43f42949869a5a1fd53ce6f423d71e4d64b",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.03840367868542671,
+        0.001935165491886437
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 6,
+    "h5_index": 6,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg6.npy",
+      "bytes": 1048704,
+      "sha256": "a6d1bceb19e014d35051004b221cc479816f048668742fe6adb730caead5be42",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg6.npy",
+        "bytes": 2097280,
+        "sha256": "d508506e9989b20dbc7faa8ea2d3582f83dcbb21bb5b7cb65a87b3c584886420",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg6.npy",
+        "bytes": 2097280,
+        "sha256": "1bc6ec22168256852482d0f818b5704d4260efaa614a4132538baa674897b837",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg6.npy",
+        "bytes": 131200,
+        "sha256": "0d6f156dc192cd1147acaf3ea0397398a3a1d6aa64216d7ceef0e210de7d8c9a",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg6.npy",
+        "bytes": 524416,
+        "sha256": "6e2851fced8856340174800ded9438783e33a97b6c568b2b0357d36ed822d54d",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg6.npy",
+        "bytes": 16512,
+        "sha256": "592e89531f1b1ed6e10e3e448ede2416babb06ee23f7b42d3fabdcb2a0bcfc30",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.036335621029138565,
+        0.0022777675185352564
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 7,
+    "h5_index": 7,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg7.npy",
+      "bytes": 1048704,
+      "sha256": "c5cfb4bbc301a231c076c66689d9c2c194901b8d459f80233752b17f48aad287",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg7.npy",
+        "bytes": 2097280,
+        "sha256": "3167dbeeffd461fbd6888e20f11c507bb6e230e81b55d871ee8423a0d56aa380",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg7.npy",
+        "bytes": 2097280,
+        "sha256": "4b3566474dff035c7b414fc9e0865ef767c47a75bef80770cb44afd1cd15a7f9",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg7.npy",
+        "bytes": 131200,
+        "sha256": "9f79df3b8d6ef2810412d20b6e2332c23af6bf6f4fc3a3ad7711731127489247",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg7.npy",
+        "bytes": 524416,
+        "sha256": "8fab87e914bf7bce3b03b838e7fe5c6c2b77e69cbf83356cf0670e2a15938805",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg7.npy",
+        "bytes": 16512,
+        "sha256": "054ccaabadfeb77857a88ddb4380903d3326220cd23280ad1ad6989ac4464709",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.03352194279432297,
+        0.0034680874086916447
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 8,
+    "h5_index": 8,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg8.npy",
+      "bytes": 1048704,
+      "sha256": "079ebc8b17400ac842842b5b02a8b62b118cf7e628f0f5a141405e1abe6b5738",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg8.npy",
+        "bytes": 2097280,
+        "sha256": "612913cf11725a8096d4e72718ea9c084734557cd6648b958cb0099a529b9db1",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg8.npy",
+        "bytes": 2097280,
+        "sha256": "7c15eeba9cd1cbb21c5356810082418477e3b197c514aab223c324d0fe50f800",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg8.npy",
+        "bytes": 131200,
+        "sha256": "1f0bcfbc536752858569592bcdeebac427e3b557f0b7b89272a747df42447510",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg8.npy",
+        "bytes": 524416,
+        "sha256": "b8c86d646e51e33adfc178f6e0524e03ae478cc2f2f7288207e8021073c0a26c",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg8.npy",
+        "bytes": 16512,
+        "sha256": "e0e176504f5fba7ee2bda9c0ee6d3eb5f338de62f4ef7d0ffa9a4a2401572507",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.04098319634795189,
+        0.003524094121530652
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 9,
+    "h5_index": 9,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg9.npy",
+      "bytes": 1048704,
+      "sha256": "2b0f1db9a099a9c722fe42451c9561424750162b1857b58a08fa3ce081b43f2b",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg9.npy",
+        "bytes": 2097280,
+        "sha256": "bd270a69d82735968b8e29c19d8d8337d657cbc612a4b24b6465bbc13b7f0bf7",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg9.npy",
+        "bytes": 2097280,
+        "sha256": "21b2eba2ad4a411a136daa656312829f44799629174bc3eab9b8bced9a0bd8ef",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg9.npy",
+        "bytes": 131200,
+        "sha256": "606280c56c599e388052ad95809a663c54ee56a8d5889e1fed2d92848bf0d283",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg9.npy",
+        "bytes": 524416,
+        "sha256": "3f75672ccd62a3992f8889645fe6f40dfb6e86f2a039570f492b664c4e70b4cc",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg9.npy",
+        "bytes": 16512,
+        "sha256": "3531acbdcb7dd1ac3e3b3b9c1095ebbce26bae3f6297a77002ec54f7ff05817b",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.03687787801027298,
+        0.0006164820515550673
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 10,
+    "h5_index": 10,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg10.npy",
+      "bytes": 1048704,
+      "sha256": "6673c21f564c17b71023089afc473760708c246c6c0a7411721779cd2d0907e3",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg10.npy",
+        "bytes": 2097280,
+        "sha256": "869a527f1720dec108302e47242fdd27be8df683fd00aefc65d5dc66800a9e50",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg10.npy",
+        "bytes": 2097280,
+        "sha256": "b64ed1540abf723f2370dd58df6d96577fb9daadc29d0dce022e0d52a7c6c961",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg10.npy",
+        "bytes": 131200,
+        "sha256": "2df02be4ec422e8197359cb72f6b4952941dd663c7b32b811bd1e487373021d7",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg10.npy",
+        "bytes": 524416,
+        "sha256": "e34fe7da1e7c920ec27653dd764e2d9bb3e56ff9c4c2b3e804bfd8a1b434bc62",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg10.npy",
+        "bytes": 16512,
+        "sha256": "748866601459d4285f978638c983e0e8ebd8b9b6cea5057d2808e96003a0e17d",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.05225767195224762,
+        0.0017238090513274074
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 11,
+    "h5_index": 11,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg11.npy",
+      "bytes": 1048704,
+      "sha256": "3c79f9a9a9e7d146188653755b6303bbe31e65a542b3b7e8f61189ff476fcba5",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg11.npy",
+        "bytes": 2097280,
+        "sha256": "5a2d725c590e7ab06747bd4753ea0c526c8b19b4970ea8c41fb426784012a810",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg11.npy",
+        "bytes": 2097280,
+        "sha256": "bcb19760ba08d8989c6f26265aa8860b526d460c4c540d977c16dc8ecbb2b113",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg11.npy",
+        "bytes": 131200,
+        "sha256": "14d9ec10084f197620d967019a130b8712631fab6492d36ddec60dadfeaf1927",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg11.npy",
+        "bytes": 524416,
+        "sha256": "492ddc2d8dd963a7d29f666cbbe7720601044fdf3b9ef78b29346143628271fc",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg11.npy",
+        "bytes": 16512,
+        "sha256": "220902e67bb26ac0973ecaab2ee08badc529acfa7c40814cf7ca231d6e3a0c02",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.041816383600234985,
+        0.0025269011966884136
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 12,
+    "h5_index": 12,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg12.npy",
+      "bytes": 1048704,
+      "sha256": "19d12f4e00eaa87d391494f09b39735cddfa14372228eb90f47f2a0219664f5c",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg12.npy",
+        "bytes": 2097280,
+        "sha256": "0b723b172503518ce63b6cd12e43f0455cf982cb671a081045f448ad26647b0c",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg12.npy",
+        "bytes": 2097280,
+        "sha256": "1f2b9ca96bffd9e5dc6e60db4f177fd46030b8c0a0b7cb6fda789af084a269ac",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg12.npy",
+        "bytes": 131200,
+        "sha256": "78eb37417152f757cb1eb05d9f81517361fcd0df9e96a45c8220d5730d8743bb",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg12.npy",
+        "bytes": 524416,
+        "sha256": "799cf1908b93e358db1e55e0167360995c04ad6e48d50a128539d57990d2fb9c",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg12.npy",
+        "bytes": 16512,
+        "sha256": "c70ab84cfba09658ca263c0b3dc48f74b930ff6a962cf08139805695fd6328be",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.049983154982328415,
+        0.0006085667992010713
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 13,
+    "h5_index": 13,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg13.npy",
+      "bytes": 1048704,
+      "sha256": "1b0032f72171bff04c211324c630167079e587396e84c2397526835e7c98c26f",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg13.npy",
+        "bytes": 2097280,
+        "sha256": "c83f3e8f01f40471c5411ab854a5e33676b5504521375f28802489b132552727",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg13.npy",
+        "bytes": 2097280,
+        "sha256": "d2412b73c83b2f50f3fa02f159fc3aab7b26046db54ca14a12bb9d95e11f752b",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg13.npy",
+        "bytes": 131200,
+        "sha256": "c7e168ac86fdf9027bdfc8b52159b706fb18b9791af97e113ec900f81a811645",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg13.npy",
+        "bytes": 524416,
+        "sha256": "559eaf25ffdc23369756eabb45eb26e95cfd38d07eb71173f42e0471c1031ddc",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg13.npy",
+        "bytes": 16512,
+        "sha256": "f7902f9b7aa90228a7d3fab82fb815ffbc215de0901b76cb2ab696513f0a2110",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.04703950881958008,
+        -0.0018389822216704488
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 14,
+    "h5_index": 14,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg14.npy",
+      "bytes": 1048704,
+      "sha256": "966cc064bc2d707404a6aaf75f89866f46c0c5bbb43b0193198f460365f6b8ca",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2029.42919921875
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg14.npy",
+        "bytes": 2097280,
+        "sha256": "d7fe95031ea6b0c73e5c481e4f996e7c043562953692a59fc63b2051d32197bb",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg14.npy",
+        "bytes": 2097280,
+        "sha256": "b284991dcba38368db7f1c71ba5494cf03a5c5256e38212fd43ced6150967062",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg14.npy",
+        "bytes": 131200,
+        "sha256": "4bcb71816df55270d60cd6e8fca259ffc3743801297067bedda5476819ff579c",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg14.npy",
+        "bytes": 524416,
+        "sha256": "35d9f0714ff600eafe1d0d8fe08a393dabab21a4acd3e029e577558d7509a31b",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg14.npy",
+        "bytes": 16512,
+        "sha256": "87ca38d424076c643c71b26fb4eae33f9fc01c64a19e44800ffa3aad45eb99dd",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.04374731704592705,
+        -0.0016482864739373326
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 15,
+    "h5_index": 15,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg15.npy",
+      "bytes": 1048704,
+      "sha256": "0506afc4cb83fc5dc1099c0833811507a45e99a21810fdb0e30cd961a77d744a",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg15.npy",
+        "bytes": 2097280,
+        "sha256": "982dd8f1d1fa5fb9cf3e75ec5cb8f60f2ac9b75cdabe1f27a1a595ccc88e6fb7",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg15.npy",
+        "bytes": 2097280,
+        "sha256": "83065be983ed9b64c4ba1d13379f90bc305dd0024f725a6eb64b4532b92c186d",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg15.npy",
+        "bytes": 131200,
+        "sha256": "86c8e3f4568d3f32f58acc48aaa6723dd771556646233a6f887966d03d769aa1",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg15.npy",
+        "bytes": 524416,
+        "sha256": "691f450058d20aae4a8fed3f1e5ca6bf4927a07e3985eec66a90a8537aeb8ef5",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg15.npy",
+        "bytes": 16512,
+        "sha256": "8c1e6b96162dc4f5da3647c98f0934a347997a3db044bfe7b05bae327864b416",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.046113889664411545,
+        -0.001542252372018993
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 16,
+    "h5_index": 16,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg16.npy",
+      "bytes": 1048704,
+      "sha256": "e3a36738b77643e54ce36351cbb615ed50330c9544faa496c38e8431b5e06dff",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg16.npy",
+        "bytes": 2097280,
+        "sha256": "63a596f99236ee73d6612ff6791351e475e3c5684eb9c2abb87b7c208b3c4bfc",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg16.npy",
+        "bytes": 2097280,
+        "sha256": "3b1e27dad63fef9aba2488789d0e5589c0c5f270d37e86f440943ece80042434",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg16.npy",
+        "bytes": 131200,
+        "sha256": "57737b2f30e252088619cebc40597de39f12a86200f6953c824aa8fe1762558d",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg16.npy",
+        "bytes": 524416,
+        "sha256": "5deacab0643ec4d127cf697191c7cc3cf443645a68d486efb7028462ed985c6f",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg16.npy",
+        "bytes": 16512,
+        "sha256": "f6468c7d743f56fad43bbdf5a248010395e5043c3ae09f797711469807b33592",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.04076957330107689,
+        -0.0007379946182481945
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 17,
+    "h5_index": 17,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg17.npy",
+      "bytes": 1048704,
+      "sha256": "a6fbb20454555229f709f4f9f15905f07e88af0110f381b7d6f71b1ef3f3e7da",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 1969.3533935546875
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg17.npy",
+        "bytes": 2097280,
+        "sha256": "7028e92662c4496622ce76f4586b866f61e90d336275b73d7bf90687fb9c7766",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg17.npy",
+        "bytes": 2097280,
+        "sha256": "31206a0478579b256271de7aa826ed8e7ec76ec7fee1b7cbbe026093f529a602",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg17.npy",
+        "bytes": 131200,
+        "sha256": "78ed46b8f2a52854f4b9127f24975ce5c4aa0eb854e8ab7e564274e97963c175",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg17.npy",
+        "bytes": 524416,
+        "sha256": "dc25390b02b5155e5815d9e6b091f722c29769321e19ab3c50fc1bb74390ce5c",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg17.npy",
+        "bytes": 16512,
+        "sha256": "b3893cb8bd63811bb7fc42723694d0bf66d3d1670907121eca7d6b0c39b5918d",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.030100345611572266,
+        -0.00017970979388337582
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 18,
+    "h5_index": 18,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg18.npy",
+      "bytes": 1048704,
+      "sha256": "1911a094678b4bd4491273547847b356cc37bd0eb81215df3e34922107ee962a",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg18.npy",
+        "bytes": 2097280,
+        "sha256": "e37607ecfd6a1f38470cb1cdd685cdc496405ab4bfce861e455415ebd13f7d0f",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg18.npy",
+        "bytes": 2097280,
+        "sha256": "821ced9288129670da849539e5ceb519d30899b80969d9a0378cc7fb96b400cf",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg18.npy",
+        "bytes": 131200,
+        "sha256": "b477b48f49d6eb226af0efaa09a9fd290a50d466d0eab56a20ac899fb3f9ee5d",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg18.npy",
+        "bytes": 524416,
+        "sha256": "57dab6b2571a116c8fb17d438b0c81b8f3ba0d3eb0773ca515a74446340e14bd",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg18.npy",
+        "bytes": 16512,
+        "sha256": "79c4af0bb80cccba18b303b663c09847b045a81c2d19a366029be59c17de58a5",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.042753174901008606,
+        -0.003166565438732505
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "reduced",
+    "scene_index_zero_based": 19,
+    "h5_index": 19,
+    "source_h5": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+    "source_h5_sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+    "lpan_h5_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+    "prediction": {
+      "path": "Ours_raw/QB/reduced/pred/testimg19.npy",
+      "bytes": 1048704,
+      "sha256": "98d3706d3bcf9b0328b449c8f00ccc2d39224794f3b499b4bf2460ab6d71f963",
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "gt": {
+        "path": "references/QB/reduced/gt/testimg19.npy",
+        "bytes": 2097280,
+        "sha256": "9b5dd94548bda66dce8888c6c8c7efdf2be99226c531faaae004044201de41f4",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "lms": {
+        "path": "references/QB/reduced/lms/testimg19.npy",
+        "bytes": 2097280,
+        "sha256": "1076dfb366cfdce87f0044cb4705cb319cd8744f6fe9e770e80020fda67fdeb0",
+        "dtype": "float64",
+        "shape": [
+          4,
+          256,
+          256
+        ]
+      },
+      "ms": {
+        "path": "references/QB/reduced/ms/testimg19.npy",
+        "bytes": 131200,
+        "sha256": "8d52236eec469e40531203a60a6549c38338073d4e5950e1889d69b960e7dfa1",
+        "dtype": "float64",
+        "shape": [
+          4,
+          64,
+          64
+        ]
+      },
+      "pan": {
+        "path": "references/QB/reduced/pan/testimg19.npy",
+        "bytes": 524416,
+        "sha256": "1a63878ca7d89c055260da288c0ec4a7a71977f2e77ba7d6cf2c9e618f161109",
+        "dtype": "float64",
+        "shape": [
+          1,
+          256,
+          256
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/reduced/lpan/testimg19.npy",
+        "bytes": 16512,
+        "sha256": "c1961d6c93b5a64c307df82f274428308e4f4972f617d8663ccfd2c68833d45e",
+        "dtype": "float32",
+        "shape": [
+          1,
+          64,
+          64
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.03786270320415497,
+        -0.001817256328649819
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 0,
+    "h5_index": 0,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg0.npy",
+      "bytes": 4194432,
+      "sha256": "aa2bf5ab90d595d7306d07f1a937e66f04ca752fbeb335d732083134ea791f4a",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg0.npy",
+        "bytes": 8388736,
+        "sha256": "72c49b7d580d9eed2b8460e518f1f701e9532d183912be7b3cd880f346e1368b",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg0.npy",
+        "bytes": 524416,
+        "sha256": "6973d7a3bbba129406d412881855c6aabec65726a0e273f279345559b9a72c66",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg0.npy",
+        "bytes": 2097280,
+        "sha256": "a748fd03ac0a9b2e7bba89d4d5ad8146161d90395b272109a255c206bca13b41",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg0.npy",
+        "bytes": 65664,
+        "sha256": "98888d24362e0823ce9e0f3354f211cfd222b3c53c6bf0b19e56b288909b027f",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.04496071860194206,
+        -0.031842369586229324
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 1,
+    "h5_index": 1,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg1.npy",
+      "bytes": 4194432,
+      "sha256": "f81593bcbdacb50b846402ed4cf45d6551164f1b6860e76340b8ebce4d2dff09",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg1.npy",
+        "bytes": 8388736,
+        "sha256": "bc9cf0ccd33828d529e235e001473863f54aa41a50f6ff9547b40e3bd24ab247",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg1.npy",
+        "bytes": 524416,
+        "sha256": "b2538888ba70f8ed90f3cf09fe599d65f6a1b3a3f62c1fb45ab75ab83fe31b48",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg1.npy",
+        "bytes": 2097280,
+        "sha256": "28f36de69eafdc207b747fa00fcce82a4f14d6d4ad0cb76f90fb3ed6cb7ae49b",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg1.npy",
+        "bytes": 65664,
+        "sha256": "d8d68b32721a98ade387f5326a420cab916a83c69d027796c3866f785a060c35",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.04915245622396469,
+        -0.04076508432626724
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 2,
+    "h5_index": 2,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg2.npy",
+      "bytes": 4194432,
+      "sha256": "ccf820f1604860542f5790c1bf435e7fdacaac3932bf5373dd38fd6c6928e810",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg2.npy",
+        "bytes": 8388736,
+        "sha256": "8475fc61a5154581d25c9169ba07a6522601ddc6a3ca1914825942cef65193a7",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg2.npy",
+        "bytes": 524416,
+        "sha256": "530c8788b05a8ce94d2d62e15aafa89f8066fd1dfc1fded71582806fbc41aacc",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg2.npy",
+        "bytes": 2097280,
+        "sha256": "f7ecea27b459df9487f14f52dc61d89f9adae5b66a6574bde68ada80429b8e86",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg2.npy",
+        "bytes": 65664,
+        "sha256": "e3728be8721f480bc78bb7793299cbb58abe7519edae32d65301dd4e79660ab0",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.04795374721288681,
+        -0.05038398131728172
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 3,
+    "h5_index": 3,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg3.npy",
+      "bytes": 4194432,
+      "sha256": "9497ef21e49d0080598330ca8efe1f0ba831272def6d4b0e872af8923f0b5535",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg3.npy",
+        "bytes": 8388736,
+        "sha256": "51fd74576464e93d1e24f93f96ab950b7135c0b284617834c0038d37bba28bc1",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg3.npy",
+        "bytes": 524416,
+        "sha256": "82fe1ef0923c65559322b080d233fa57f0083b8d98a6474d64d819720bdd7eb5",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg3.npy",
+        "bytes": 2097280,
+        "sha256": "f6b79f5ed02f9de267164e8a4d03fca4c9db7f5abf8cb04537bf697d2e79e692",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg3.npy",
+        "bytes": 65664,
+        "sha256": "088ec872a9dc17c1d96dbcc2fdacbdaa2d623088d39bd6449940d25558a17102",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.047420669347047806,
+        -0.04173192009329796
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 4,
+    "h5_index": 4,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg4.npy",
+      "bytes": 4194432,
+      "sha256": "6bc7faf70789fe77b496eb9c8eb9000973f8ae48424856e33593a802ec31cb50",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg4.npy",
+        "bytes": 8388736,
+        "sha256": "d9d7180dc53b62a0e35c34d79d975cf2f6eeb0a0e63fbab16dba32e350f49e0f",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg4.npy",
+        "bytes": 524416,
+        "sha256": "f2f83f36e7ddf31a0416610af236cfb808763300577813177056014cd6a08ad9",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg4.npy",
+        "bytes": 2097280,
+        "sha256": "7d9cf6d6988842b12b855c828ad25e32da4487b30f3836a11d4bbfb454d163bd",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg4.npy",
+        "bytes": 65664,
+        "sha256": "da13a98a3566cddd25d92966bc84977564b8fceef32ebb9a4d9168238b85482a",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.041494254022836685,
+        -0.044413160532712936
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 5,
+    "h5_index": 5,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg5.npy",
+      "bytes": 4194432,
+      "sha256": "1feedadc02a91b9e97a29c5e6b98432468321afdb9ede1d2ee7a16d511278994",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg5.npy",
+        "bytes": 8388736,
+        "sha256": "d1d88fb9023b8ab8e95236ce9726d04a4c7a8bf9efa3e1fa7e01b90bae33bea8",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg5.npy",
+        "bytes": 524416,
+        "sha256": "496e27df304f3d6e72f5db53d2fe36eabab123af6e96589ce29533d201d54299",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg5.npy",
+        "bytes": 2097280,
+        "sha256": "55b094d6699a915e40ca95835b329b2ce89777ed448a83c096c9039c81daeb83",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg5.npy",
+        "bytes": 65664,
+        "sha256": "20b946adfc74e99951c50d77c0d3dde3e4d8e3c2b5bc37c82cf0bab197ef39e8",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.050545137375593185,
+        -0.04113563522696495
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 6,
+    "h5_index": 6,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg6.npy",
+      "bytes": 4194432,
+      "sha256": "a3503700f79cb691b136bd6244a264d84f9c6ebd955791468d8605288559d35a",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg6.npy",
+        "bytes": 8388736,
+        "sha256": "b7a02f91bc0ffb5ff96324554cd8ff17d01769601a6f7603b0e69792468b151b",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg6.npy",
+        "bytes": 524416,
+        "sha256": "0ded948e280d8bf287e31f12db70c18f8cd39e9ac72d6116c49ef8d9537d4e13",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg6.npy",
+        "bytes": 2097280,
+        "sha256": "4610a77af08f779d7e3ee2649dc96f833c3b04bef81e4f532ffbc7c1750cee03",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg6.npy",
+        "bytes": 65664,
+        "sha256": "c0f7694166685dc594b2c6130813a793ac4d277aa150e2f032ea5a4aa7fed3ff",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.045680686831474304,
+        -0.04271525517106056
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 7,
+    "h5_index": 7,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg7.npy",
+      "bytes": 4194432,
+      "sha256": "926a4f200ba0ca89e8348daa687a009ac1b8e0220236dcd28c44d69d540e8e36",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg7.npy",
+        "bytes": 8388736,
+        "sha256": "dcf2042ba3b08f0fafa5fbe946132884922fc03996df99d9718a1d29c3b435b7",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg7.npy",
+        "bytes": 524416,
+        "sha256": "da5fdcfa54e5002d485236aa9d0c5f44c5624d6d4538dd6853023e97df27300f",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg7.npy",
+        "bytes": 2097280,
+        "sha256": "050e9bfe11112fb1491ee99a950ab7a6cd7314e0d360ec09acd454c9c30b3fd9",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg7.npy",
+        "bytes": 65664,
+        "sha256": "703f62d10e3366ced7f6365208bcfbf7da7750c745bfb609ef55140212ae2617",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.0424761101603508,
+        -0.045215897262096405
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 8,
+    "h5_index": 8,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg8.npy",
+      "bytes": 4194432,
+      "sha256": "184f35f620753dc765dca6bef7bd7da2466c601783f7b22ab5a8c92a3d80f51d",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg8.npy",
+        "bytes": 8388736,
+        "sha256": "1674615fb4e8fda5d1b1f3681a961664bb4a5814ee0c14dc6172066ffa7b1469",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg8.npy",
+        "bytes": 524416,
+        "sha256": "2218d4ce2c4378d353e133ca4c556df58e83a98df0df0ffd0041201c52740545",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg8.npy",
+        "bytes": 2097280,
+        "sha256": "cf5c22121748741b3798ec73fabee6afaefd2dafdf6c8b4e47847af9bf85d00c",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg8.npy",
+        "bytes": 65664,
+        "sha256": "25a18af04eb699e74d2c59f77a1f29241740fe9e2644802d17c78d74ff2bde3c",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.04323934391140938,
+        -0.05165465176105499
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 9,
+    "h5_index": 9,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg9.npy",
+      "bytes": 4194432,
+      "sha256": "77005dc309dfd81e9fc9bcfd0accedc400ed2096bdac620b3d42f4776de6cb18",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg9.npy",
+        "bytes": 8388736,
+        "sha256": "fbb112b6174c1a303cc08297a4303ddaa77f6b0e99b5d22066e4bf8d407f0d80",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg9.npy",
+        "bytes": 524416,
+        "sha256": "53c8bf1876ea9a70431bb7f2670ea6750934ed00c444a8642f553fef65dbb4ac",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg9.npy",
+        "bytes": 2097280,
+        "sha256": "fa6ed0140ea419898ee847a8e48837f368a342a9558db60676f35e8a46db4efb",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg9.npy",
+        "bytes": 65664,
+        "sha256": "ca8bdc7545529946fb4b1737bfb2094b1e2f8227f98cbfe88008e0bc8fd113ff",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.03911041095852852,
+        -0.04674430564045906
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 10,
+    "h5_index": 10,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg10.npy",
+      "bytes": 4194432,
+      "sha256": "740070108ff82be97c16992fbf0cc79dafb5ba1fd67d366c1baf3856a58a22d3",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg10.npy",
+        "bytes": 8388736,
+        "sha256": "26eaa254aa5c62f07c3ab288ecdf128ca90709ab28b296c18523fe6543cd1138",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg10.npy",
+        "bytes": 524416,
+        "sha256": "9e780d0c354613d84e6ebad2fde8f822098f9cb7d7de0d967e0ba46ac6fdff31",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg10.npy",
+        "bytes": 2097280,
+        "sha256": "777c0dc5ce6a43433e9aae908b9d7d8d01750f7390e55eaff90c30ecf03fc25a",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg10.npy",
+        "bytes": 65664,
+        "sha256": "9f2eae6970e73acff87c541f17646503963a4c2407f20bbeac9ee218d72cb2a5",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.039643943309783936,
+        -0.042629048228263855
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 11,
+    "h5_index": 11,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg11.npy",
+      "bytes": 4194432,
+      "sha256": "90bfd8eabe3091ec4381b015197992befeb6b92005f07e800e3b119370040b4f",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg11.npy",
+        "bytes": 8388736,
+        "sha256": "a076f2212e4a521021614ef60a7c98797f5d0ac445e1ac8782f723a70bd82765",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg11.npy",
+        "bytes": 524416,
+        "sha256": "cea337208e596b7b1195d37e159f795bea4047e44091ffa88639b996e836eb61",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg11.npy",
+        "bytes": 2097280,
+        "sha256": "ef288f513cc3fae0f300754ea3eb9ebe3d0294045910354f7be0e58a67d64d5c",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg11.npy",
+        "bytes": 65664,
+        "sha256": "ab1cfb120818daba434113130a35cae2401138e1ee2f614f1eecd3fcee70664b",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.045906368643045425,
+        -0.039263609796762466
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 12,
+    "h5_index": 12,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg12.npy",
+      "bytes": 4194432,
+      "sha256": "3fe34ee748b8bfb2b2cf3c7342e15453eb449f1ed93603e6a9ebbbc57e594359",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg12.npy",
+        "bytes": 8388736,
+        "sha256": "38b932fb271c74c50d7176c6b9e724f8113945e6b04752f19af1769a6d0bb6e4",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg12.npy",
+        "bytes": 524416,
+        "sha256": "bd2b2888808a6cbf631b05c39baf6b6ffea7a2d8bd847b8ace4e5813341ad943",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg12.npy",
+        "bytes": 2097280,
+        "sha256": "e06613cb48094253d335f4926d5461f8b61f040db783b3e308ec14d5483ead9c",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg12.npy",
+        "bytes": 65664,
+        "sha256": "6eb3a50e55cc86d2be1f0a3653f401cbed42f5e335d21c9405c17f10ce13e189",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.039818234741687775,
+        -0.03509426862001419
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 13,
+    "h5_index": 13,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg13.npy",
+      "bytes": 4194432,
+      "sha256": "662bcc42d37c80e6263b08ce520ed490b5639b3728a1fd3fb98fe43ca174ddb7",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg13.npy",
+        "bytes": 8388736,
+        "sha256": "2252d42ed729cdb8b98302ddfc8c14f6abf957db42ff79a3465e3f694300d211",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg13.npy",
+        "bytes": 524416,
+        "sha256": "1394ea850ed360fff0d31b464e43dffc6de0e0256a2935ab84f2caa3368077c5",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg13.npy",
+        "bytes": 2097280,
+        "sha256": "12823cf336bf61435f29c380bb1ab75832b1872e15be1c1585effe2d41cee784",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg13.npy",
+        "bytes": 65664,
+        "sha256": "a9e5a0669b5a5e95e0f3979f8367a9e6028d2d6064d0bf0c2dc8977cfd495a65",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.04010787233710289,
+        -0.03956128656864166
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 14,
+    "h5_index": 14,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg14.npy",
+      "bytes": 4194432,
+      "sha256": "e5ee893c41adb10cb503e5ac17ad12fb88437668f90e9c7f3315c1fe21d6666c",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg14.npy",
+        "bytes": 8388736,
+        "sha256": "b68f888803ae58951c7a30539746b841551db9de4dd76fac678c012d2db67568",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg14.npy",
+        "bytes": 524416,
+        "sha256": "2ecda764add8d7a64204da50221a09b21d382be3d574b5811f367857047a4134",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg14.npy",
+        "bytes": 2097280,
+        "sha256": "4e8e870167c97b41311725a0e745b46b4bebe8184ffac160b5ef4aeb98077cab",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg14.npy",
+        "bytes": 65664,
+        "sha256": "5b217c114064bce52200bee2413c21550d976066918d63ada21b83115071f45f",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.038242045789957047,
+        -0.041376590728759766
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 15,
+    "h5_index": 15,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg15.npy",
+      "bytes": 4194432,
+      "sha256": "de551aa08d4688cdd10570e5fecb6d82cf834ebe98fa19d05fdaa1588687edc2",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg15.npy",
+        "bytes": 8388736,
+        "sha256": "1984c1ad4b30a5c51ad4b7d6e22941db74e9e075cc18959492778c11cb13fad8",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg15.npy",
+        "bytes": 524416,
+        "sha256": "f24b8dc6dfb64ec971af758b2530d58b0f4db3d13fd092b2a0907c0344ac18e1",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg15.npy",
+        "bytes": 2097280,
+        "sha256": "a7e95ee2cf8937ebaa11a6484a0ee1ffab346e590ab2ed8fa79fe7605b756671",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg15.npy",
+        "bytes": 65664,
+        "sha256": "999defed7437229fe30479b141a495f91407cb47c6070bd9c110e8091dcc148c",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.04448004066944122,
+        -0.039804358035326004
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 16,
+    "h5_index": 16,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg16.npy",
+      "bytes": 4194432,
+      "sha256": "eda8d9cd508dda9e69d2989698506b4f4d2a44580dc47c9c9b516b044ac3858e",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg16.npy",
+        "bytes": 8388736,
+        "sha256": "7f128559b5b2004db5c027d975ec96b850e094b768711672e8d07c9f23d00772",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg16.npy",
+        "bytes": 524416,
+        "sha256": "54eb8348ff20a738b8dd3f5ba2553139a8f0398372a2e8bb3cdb70918bb5767a",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg16.npy",
+        "bytes": 2097280,
+        "sha256": "e916733553cb2c9d9ad85de942ff854086b77368fbaa5d2090e3bba3fd918921",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg16.npy",
+        "bytes": 65664,
+        "sha256": "5f95a190b4aaebc289516019cad4122ffb5201c1c56b6b14bf070eab5a8cbc47",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.0481453612446785,
+        -0.047968219965696335
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 17,
+    "h5_index": 17,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg17.npy",
+      "bytes": 4194432,
+      "sha256": "ee5bf1c852210e09831995d80ab14bbccbda09d810ed408353799706a44eafc3",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg17.npy",
+        "bytes": 8388736,
+        "sha256": "a38a9cc0ced332ee76a71595fea2c1c11c311dcf285c82d81146afd49a0a651b",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg17.npy",
+        "bytes": 524416,
+        "sha256": "2f3093365feb59b1466d401a44970ead9a5655c9fbd945ef666f14d52e5d56a5",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg17.npy",
+        "bytes": 2097280,
+        "sha256": "e944edaa878657e8955508360eed1098e61c08f35661e5c035bee0bb74af37b5",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg17.npy",
+        "bytes": 65664,
+        "sha256": "411cad4508a591ebbcacc9149d0c947fbf275c0fa4dc52d05ffcafb0bb610f10",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.05160978436470032,
+        -0.049126770347356796
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 18,
+    "h5_index": 18,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg18.npy",
+      "bytes": 4194432,
+      "sha256": "3a576c8795ea93709659a3b6856e8b33d9dc743b26b83419789ca58da8c5a89c",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg18.npy",
+        "bytes": 8388736,
+        "sha256": "cdea2fe89a28fd726aadd416376d8b29e7ede5a7e7a3b9445214d8879b3beb86",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg18.npy",
+        "bytes": 524416,
+        "sha256": "f2444d8106fb9a538aea1d7ff88affbd77b4dfa437912439da6b42ab591a9d6c",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg18.npy",
+        "bytes": 2097280,
+        "sha256": "ffc8de0ddfbb85294f1ab4ec155677324614af77fbbe94f4129cc9512d387edf",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg18.npy",
+        "bytes": 65664,
+        "sha256": "9ba0d651a7418b3e162a29dc93e87a7d030f05bd453cb2e28edf422fcd7ecf8b",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.03944094851613045,
+        -0.05091427266597748
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  },
+  {
+    "sensor": "QB",
+    "split": "full",
+    "scene_index_zero_based": 19,
+    "h5_index": 19,
+    "source_h5": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+    "source_h5_sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+    "lpan_h5_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+    "prediction": {
+      "path": "Ours_raw/QB/full/pred/testimg19.npy",
+      "bytes": 4194432,
+      "sha256": "51f8dded160cfe86d4ac434df9a01964a5d2f987ae3fcc465f2754a6eaa1e570",
+      "shape": [
+        4,
+        512,
+        512
+      ],
+      "dtype": "float32",
+      "axis": "CHW",
+      "unit": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "references": {
+      "lms": {
+        "path": "references/QB/full/lms/testimg19.npy",
+        "bytes": 8388736,
+        "sha256": "8b59792819c6f74cef32ad86904656109e487e8127364913b6287e332af9c986",
+        "dtype": "float64",
+        "shape": [
+          4,
+          512,
+          512
+        ]
+      },
+      "ms": {
+        "path": "references/QB/full/ms/testimg19.npy",
+        "bytes": 524416,
+        "sha256": "8f6bac251b53014ce1995d64b29bd17dd936c38551fb8d609ac1d1a35f341bc3",
+        "dtype": "float64",
+        "shape": [
+          4,
+          128,
+          128
+        ]
+      },
+      "pan": {
+        "path": "references/QB/full/pan/testimg19.npy",
+        "bytes": 2097280,
+        "sha256": "1737e271377b225f3e1a4f0f7f16aeef8495b6a4c436b7d7a60728026346a1d0",
+        "dtype": "float64",
+        "shape": [
+          1,
+          512,
+          512
+        ]
+      },
+      "lpan": {
+        "path": "references/QB/full/lpan/testimg19.npy",
+        "bytes": 65664,
+        "sha256": "2cce39a3a43c9cb02952ee81013d11d94fbd4fa991cf67fc3808c2c6933a71ac",
+        "dtype": "float32",
+        "shape": [
+          1,
+          128,
+          128
+        ]
+      }
+    },
+    "predicted_delta": [
+      [
+        0.03136631101369858,
+        -0.05777513608336449
+      ]
+    ],
+    "correspondence": "original H5 index verified; external paper scene/ROI not reverified"
+  }
+]

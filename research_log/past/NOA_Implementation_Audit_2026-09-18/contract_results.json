@@ -1,0 +1,88 @@
+{
+  "dry_run_removed_hold": true,
+  "release_without_metrics_upload_or_analysis": true,
+  "cohort_source_taken_from_current_host": "s1",
+  "pending_current_never_evaluated": {
+    "pending": "PAKD50_QRC24_S1_CURRENT",
+    "now_completed": true,
+    "evaluated": [
+      "PAKD50_QRC24_S1_FIXTURE"
+    ]
+  },
+  "device_change_reused_cache_without_inference": true,
+  "rr_data_change_reused_cache_without_inference": true,
+  "partial_refresh_accepts_old_fr_as_new_identity": {
+    "inferences": [],
+    "new_config_version": 2,
+    "fr_versions": {
+      "A_ON": 1.0,
+      "A_BYPASS_RAW": 1.0
+    }
+  },
+  "cache_rerun_loses_upload_marker": true,
+  "cache_rerun_loses_elapsed_seconds": true,
+  "cohort_checkpoint_sha_not_enforced": {
+    "captured": "63aff5fbf5985b9f9b198ba4a4fea5bedd37a64f38b1b6eb355fb1353a93a856",
+    "evaluated": "72a638b404b531101e18dad423ed23cb462a53ede53d7dda270583debfce1d2f"
+  },
+  "rr_only_status": "[noa] cohort s1_20260918-020626 (server s1, 2026-09-18T02:06:26)\n   N_identified 1 · N_required 1 · 정의 미확정 0\n   N_on_rr 1 · N_on_fr 0 · N_noa_rr 1 · N_noa_fr 0\n   N_pair_verified 1 · N_uploaded 0\n   S1_FIXTURE                               step 100    완료   ΔERGAS +0.0000 · ΔHQNR +nan\n",
+  "upload_aliases_with_different_steps_both_written": [
+    "Z4:AY4",
+    "Z5:AY5"
+  ],
+  "upload_with_unknown_source_accepted": true,
+  "upload_marked_done_without_readback": true,
+  "upload_read_requests": [
+    [
+      "header",
+      2
+    ],
+    [
+      "header",
+      3
+    ],
+    [
+      "range",
+      "B4:B"
+    ]
+  ],
+  "s1_assets_default_execution": [
+    {
+      "run": "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "split": "rr",
+      "scenes": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "device": "cuda"
+    },
+    {
+      "run": "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S3407_FRESH50_v1",
+      "split": "rr",
+      "scenes": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "device": "cuda"
+    },
+    {
+      "run": "PAKD50_QRC24_S1_G22_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "split": "rr",
+      "scenes": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "device": "cuda"
+    }
+  ],
+  "documented_teacher_option_exit": 2
+}

@@ -1,0 +1,154 @@
+"""접근법 범주 분류 — 시트 정리용. 단일 소스."""
+import re
+
+# (범주키, 표시명, 판별함수)  — 위에서부터 처음 맞는 것으로 확정한다
+CATS = [
+ ("PAKD50", "㉕ 통합 캠페인 PAKD50 (T0 = PALS24 L1E4 seed 2025 aligner 재사용·적응 × N0/R1/Q12/X02, FRESH50, s1–s5) — 실행명 PAKD50_<case>_W112_D123_WV3_T0_S<seed>_FRESH50_v1",
+  lambda t: t.startswith("PAKD50_")),
+ ("MS", "⑨ MS-only (MARs PAN mode 제거) 계열 — 시드복제·dual 대조군 포함",
+  lambda t: t.startswith(("MS1_","MS2_")) or t == "R4_dual_ctrl"),
+ ("REF", "① 기준·참조 — 논문 / 외부모델 / 배포본 재현 / 논문충실 재구성",
+  lambda t: t.startswith(("■","□")) or t.startswith(("wv3_baseline","wv3_fixed","paper_wv3","paper_ln","paper_nocrop","s1_A0","s1_A1"))),
+ ("SEED", "② 시드 변동 측정 — 판정선(2σ) 산출용",
+  lambda t: re.search(r"_s(1234|7777|2025)\b", t) is not None),
+ ("P25", "③ 25K 예비 스크리닝 — 구조·세팅 탐색 (50K 와 가로 비교 금지)",
+  lambda t: t.startswith(("p25_","x3_maxcut"))),
+ ("SUBMOD", "④ 서브모듈 제거 경량화 (c 계열) — 무엇을 빼도 되는가",
+  lambda t: re.match(r"^c\d", t) or t.startswith(("m1_single","CM3A_btl_nopan"))),
+ ("ARCH", "⑤ 아키텍처 탐색 24h (N/R/A/L 계열) — 폭·깊이·비대칭·신규구조",
+  lambda t: re.match(r"^(N\d|R\d|A\d|L1_)", t) is not None),
+ ("ATTN", "⑥ Swin·CM3A attention + 압축 귀속 (SW/d122 계열)",
+  lambda t: t.startswith(("SW","CM3A_d122","d122","LR_"))),
+ ("KD", "⑦ KD 캠페인 — Teacher(T) / Student 사다리(K0~K4)",
+  lambda t: re.match(r"^(T\d_|K\d)", t) is not None),
+ ("SE", "⑧ SE(SENet) ablation — 채널 재조정",
+  lambda t: t.startswith("SE") and not t.startswith("SEED")),
+ ("MUT", "⑩ Mutual / DML 상호학습 (s2)",
+  lambda t: t.startswith(("M0_","M1_","M2_","M3_","dml_"))),
+ ("GA", "⑫ Global alignment (GA 계열) — interp23tap phase 수정 + 전역 sub-pixel shift (frozen/partial/trainable)",
+  lambda t: t.startswith("GA_")),
+ ("SR", "⑬ Shift-robust conditioning + M-frame PAN guidance (SR/AF 계열) — random jitter·blur control·consistency·global correlator",
+  lambda t: t.startswith(("SR_", "AF_"))),
+ ("UVS", "⑭ UVS-KD (s2) — uncertainty routing · GT residual variance · shift-token KD · teacher forcing (teacher c0_hqnr → d122)",
+  lambda t: t.startswith("UVS_")),
+ ("NA104", "㉒ W104·D122 no-align KD (NA104, s2·s3) — aligner·PAN warp 없는 같은 골격에서 GT-anchored KD(REC N0/R0/R1/R2/R3) · 출력 통계(IV/GV/GC/SC/M2 × H/T/FIX/WH/AD) · 방향 gate(TRI-A/B) · 필수 대조군(CTL). 주 selector 는 best_rr_val(검증 ERGAS), best_hqnr 는 exploratory",
+  lambda t: t.startswith("NA104_")),
+ ("PALSV18", "㉔ L1E4 근방 미세조정·정합 능력 검증 (PALSV18, s1, 18 GPU-h) — PALS24 recipe 에서 λ_off 3e-5 / 3e-4 × seed 1234·7777·2025 (6벌), 대조군 P0/L000/L1E4 × 3 seed 는 NF16/PALS24 재사용. 주 판정 best_raw raw_original HQNR → fSCC; V0–V4 정합 검증은 진단",
+  lambda t: t.startswith("PALSV18_")),
+ ("PALS24", "㉓ P2 기반 offset-consistency 가중치 비교 (PALS24, s1, 24 GPU-h) — NF16 P2/P3 recipe 에서 λ_off 만 0.0001/0.001/0.003 (seed 1234 탐색) + 고정 λ* 를 P0·L000(λ 0) 과 seed 7777·2025 에서 대응 비교. 주 판정 best_raw raw_original HQNR → fSCC",
+  lambda t: t.startswith("PALS24_")),
+ ("NF16", "㉑ N2 정합 능력 보존 + native HRMS fitting (NF16, P0–P4, s1) — N2 R200 last aligner 재사용: P0 aligner 없음 / P1 frozen / P2 fine-tune / P3 +aligner 전용 offset 연습 / P4 +GT 구조(A3 geometry)",
+  lambda t: t.startswith("NF16_")),
+ ("KDV", "⑳ s2 W112·D123 GT-anchored adaptive KD · 출력 통계 variance · aligner 재사용 (S2W112D123 계열) — REC N0/R1/R3, STAT GV-H/AD, aligner A-FR/A-FT/A-SC/A-ID, Teacher T112",
+  lambda t: t.startswith("S2W112")),
+ ("PO10", "⑲ PAN 추가 변위 + offset consistency (PO10, N1–N3) — 학습 PAN 에 원판 R=1 HR px 무작위 변위, ĉε+ε≈ĉ0 감독, aligner 고정 내부 view 4px",
+  lambda t: t.startswith("PO10_")),
+ ("PA", "⑱ PAN 앞단 전역 정합 A1–A3 (PA 계열) — 학습되는 global shift CNN 이 PAN 만 MS 프레임으로 sampling, W96·D124 B0 위 · A1 recon / A2 +edge / A3 +geo",
+  lambda t: t.startswith("PA_A")),
+ ("BASE96", "⑰ 새 baseline U-Net (BASE_W*_D*_MSPAN) — MS+PAN 9ch · LPAN/HPAN 없음 · PAN task 없음(단일 HRMS) · MARs γ/β 제거 · W96·D124 3-seed(s3) + W112·D124 / W96·D123 / W112·D123 변형(s3)",
+  lambda t: t.startswith("BASE_W") and "_MSPAN_" in t),
+ ("MULTISET", "⑯ 아키텍처 고정 다중 데이터셋 3-seed — W168·d123·dual·11ch·nocrop·attn 없음, WV3/QB/GF2 학습(seed 2025·1234·7777) + WV2 zero-shot",
+  lambda t: t.startswith("ARCH_W168_D123_DUAL_") or "_zs_" in t),
+ ("S1GRID", "⑮ Teacher 후보 격자 (S1 계열) — 폭 W·깊이 D·MS2/DUAL 스크리닝, HQNR 선택 (S1_T05_W168_D123_DUAL 이 SR anchor)",
+  lambda t: t.startswith("S1_")),
+ ("MISC", "⑪ 기타 대조군",
+  lambda t: True),
+]
+ORDER = [c[0] for c in CATS]
+# 2026-09-11 시트 정리: 현 접근(BASE/PA/PO10/KDV)과 무관한 범주는 WV3-<server>_v1 탭으로 옮겼다 (gspread/archive_to_v1.py).
+# gspread_upload.py --all 은 이 범주의 run 을 다시 올리지 않는다 (--include-archived 로만).
+KEEP = ("REF", "BASE96", "PA", "PO10", "KDV", "NF16", "NA104", "PALS24", "PALSV18", "PAKD50")
+ARCHIVED = tuple(k for k in ORDER if k not in KEEP)
+NAME  = {c[0]: c[1] for c in CATS}
+SEP = "▍"          # 구분행 B열 접두. refile_sheet 와 gspread_upload 가 같이 쓴다
+
+# 캠페인 설명 — 구분행의 Notes 에 들어간다. 여기 있는 범주만 업로드 시 구분행을 자동으로 넣는다
+# (업로드는 시트 맨 아래에 덧붙이므로, 새 캠페인이 지난 실험과 섞여 보이지 않게 한다).
+DESC = {
+ "PAKD50": ("[캠페인] PAKD50 통합 (raw HQNR 0.959–0.960 목표, 50h 병렬) · s1 seed 1234 / s2 777 / s3 2026 / s4 1234(s1 교차)+3407(확인) · 2026-09-14 · "
+            "research_log/PAN_Integrated_50H_Experiment_Plan_HQNR959_960_2026-09-14.md (+ s4: PAN_S4_Integrated_Experiment_Cases_2026-09-14.md). "
+            "Teacher T0 = PALS24_L1E4_…_S2025 best_hqnr 의 A+U(frozen); Student 는 T0 aligner 복사(J: 공동 적응 A LR 1e-5 / F: frozen / AL: A LR 3e-6) + 새 U-Net(W112·D123, seed 별 초기값). "
+            "case 토큰: J0/F0/AL0 = N0(GT L1) · JR/FR = R1(hard (1+αd)L1) · JQ/FQ/ALQ = Q12(R3 adaptive + GT edge λE) · XJ/XF = X02(R1 + edge) · J_QA05/QB005/QB02/QE025/QE10 = Q12 계수만(α 0.5 / β 0.05 / β 0.2 / λE×0.5 / λE×2) · "
+            "s5(seed 2026·확인 9091): D* = 0–4999 A 동결 · LF* = 25K 뒤 A 동결 · P* = A 는 L0+offset 만(U 는 backend 전체) · DP* = D+P · JK0/JE0 = A 로 가는 soft/edge 만 차단 (뒤 글자 0/Q/R/X = N0/Q12/R1/X02). "
+            "재배정 2026-09-15(research_log/PAN_PAKD50_S2_S4_S5_Derived_Run_Allocation_2026-09-15.md; s2 seed 777 / s4 1234 / s5 2026): J_R3_NOEDGE = J + R3 adaptive soft, GT edge 없음 · J_N0_EDGE = J + GT L1 + λE GT edge(Teacher 를 loss 에 쓰지 않음) · "
+            "RC0/RCQ = A trainable(LR 1e-5) 인데 Student 단계 offset 연습 없음(입력 매 update native, I-NATIVE-TRANSFER) + N0/Q12. "
+            "s3 추가 2026-09-15(PAN_PAKD50_Latest_Sheet_Analysis_and_S3_Experiments_2026-09-15.md; seed 2026·확인 4321): J_R3_NOEDGE → J_N0_EDGE → LF0 → LFQ → LFX(= LF 일정 + X02: 25K 뒤 A 동결, soft 없음). "
+            "s4 골격 이식 2026-09-15(PAN_PAKD50_S4_W104D121_Architecture_Allocation_2026-09-15.md; branch A104D121_T0FIX_E0_v1): 실행명 토큰 _W104_D121_ = Student U 만 W104·depth[1,2,1](backbone 1.9036 M), Teacher T0/A·τR·λE0 는 W112 그대로(coefficient transfer) — "
+            "NA0(aligner 없음, plain GT) → J0 → JQ → XJ → F0 @ seed 1234, 확인 seed 3407 은 J0/WIN × 두 골격. X열 'PAKD50 / <case> / A104D121 / FRESH50'. 작은 JQ 가 큰 JQ 보다 높아도 KD 효과가 커진 것이 아니다 — 각 골격의 J0 대비 차이와 절대 HQNR 을 같이 본다. "
+            "τR·λE 는 공통 package assets/pakd50/calibration_resolved.json. 시트 HQNR = best_raw raw_original(주 판정, 후보 격자 GRID1010_50K_v1). X열 '통합실험' = PAKD50 / <case> / FRESH50."),
+ "NA104": ("[캠페인] W104·D122 no-align KD · s2·s3 · Teacher seed 2025 / Student seed 1234(반복 2025·777) · 2026-09-11 · research_log/PAN_S2_W104_D122_NoAlign_KD_Experiment_Plan_2026-09-11.md. "
+           "aligner 도 PAN warp 도 없는 동일 골격(2.0989 M)에서 'Teacher 가 남긴 복원·구조 오차를 GT 중심으로 더 fitting하는 KD' 만 본다 — 정합 연구(PA/PO10/NF16/KDV) 와 직접 대응하지 않는다. "
+           "실행명 토큰: <case id>_W104_D122_WV3_<rec>_<stat>[_TRI_A*_B*_C*]_S<seed>_v1. 약명→세팅은 research_log/2026-09-11_na104-implementation.md §3 표."),
+ "PALSV18": ("[캠페인] PALSV18 (L1E4 근방 미세조정·정합 검증, 18 GPU-h) · s1 · seed 1234·7777·2025 · 2026-09-13 · research_log/PAN_L1E4_Refinement_AlignmentValidation_S1_18GPUh_2026-09-13.md. "
+             "PALS24 와 같은 recipe 에서 λ_off 만 3e-5(L3E5)/3e-4(L3E4). 실행명 PALSV18_<case>_W112_D123_WV3_S<seed>_N2LAST_R200_v1. 대조 P0/L000/L1E4 는 NF16/PALS24 행 그대로(work_dir/_palsv18_campaign/reuse_registry.json). "
+             "시트 HQNR = best_raw raw_original(주 판정); V0–V4(반응·모달리티·native 위치·개입·stress) 는 work_dir/_palsv18_campaign 의 표에만."),
+ "PALS24": ("[캠페인] PALS24 (P2 기반 λ_off 비교, 24 GPU-h) · s1 · 탐색 seed 1234 / 확인 seed 7777·2025 · 2026-09-12 · research_log/PAN_P2_P3_LambdaSweep_MetricAware_24GPUh_Plan_2026-09-12_v2.md. "
+            "NF16 P2(λ 0)/P3(λ 0.01) 과 같은 recipe(W112·D123 새 U-Net + N2 R200 last aligner fine-tune, native 복원, 홀수 update 에 P_ε 를 aligner 에만) 에서 λ_off 만 바꾼다. "
+            "실행명 토큰 PALS24_<case>_W112_D123_WV3_S<seed>_N2LAST_R200_v1: CTRLP0 = aligner 없음(NF16 P0 정의) · L000 = λ 0(NF16 P2 정의) · L1E4/L1E3/L3E3 = λ 1e-4/1e-3/3e-3 · L1E2 = λ 0.01(NF16 P3 정의). "
+            "seed 1234 의 CTRLP0/L000/L1E2 는 NF16 P0/P2/P3 행을 재사용(work_dir/_pals24_campaign/reuse_registry.json). 시트 HQNR = best_raw 의 raw_original(주 판정), aligned 열은 진단만."),
+ "NF16": ("[캠페인] NF16 (N2 정합 능력 보존 + native fitting, 16 GPU-h) · s1 · seed 1234(반복 7777) · 2026-09-11 · research_log/PAN_N2_NativeFitting_16GPUh_W112_D123_2026-09-11.md. "
+          "W112·D123 U-Net 을 같은 저장 초기값에서 새로 학습, aligner 는 PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT 의 정확한 50K last(내부 view 4px) 재사용. "
+          "복원은 매 update native(추가 jitter 없음). P0 NOALIGN(aligner·sampler 없음) / P1 FROZEN / P2 FT-REC(aligner LR 1e-5) / P3 FT-EQ(홀수 update 에 P_ε 를 aligner 에만 넣어 |ĉε+ε−sg ĉ0|, λ 0.01 즉시) / P4 FT-EQ-GEO(+A3 geometry λ 0.01, 5K ramp). "
+          "시트 HQNR = best_raw 의 raw_original (초기 checkpoint 일 수 있음 — 인과 비교는 last 끼리, run 폴더 checkpoint_metrics.csv 의 aligned_valid·aligned_fixed_v64 참조)"),
+ "KDV": ("[캠페인] s2 W112·D123 KD·variance·aligner 재사용 · seed 1234(Teacher 2025) · 2026-09-10 · research_log/PAN_S2_W112_KD_Variance_Plan_and_References_2026-09-10/. "
+         "Student/Teacher 모두 W112·D123 U-Net(9ch, 단일 HRMS, γβ 제거; 계획 원안 D124 → 사용자 결정 D123, s1 PO10 R200 과 같은 골격). 이름 S2W112D123_<recipe>_<input>_<aligner>_<rec>_<stat>_<geomKD>_s<seed>_<ver>: "
+         "recipe NOALIGN(aligner 없음)/A1(donor = s1 PA_A1 seed2025 aligner)/T112DFR(donor frozen + 복원 supervised Teacher) · input IA(native) · "
+         "aligner AID(없음)/AFR(donor frozen, Teacher 와 correction 공유)/AFT(donor 초기화 후 학습)/ASC(독립 초기화 학습) · "
+         "rec N0(L1)/R1((1+d_T)L1)/R3(adaptive hard/soft, τ_R train calibration) · stat OFF/GVH(GT gradient-variance 5×5)/GVAD(GT+Teacher adaptive, τ_V·λ_V calibration) · G0(alignment KD 없음). "
+         "시트 HQNR = best_raw 의 raw_original(전체 프레임) + HQNR(V64). best_aligned·best_rr_val·last, fitting_bins.csv, gradient 진단은 run 폴더"),
+ "PO10": ("[캠페인] PO10 offset consistency 10 GPU-h · s1 seed 2025 · 2026-09-10 · research_log/PAN_OffsetConsistency_10GPUh_W96_D124_2026-09-10.md. "
+          "A1 골격·aligner·init 그대로, optimizer update 를 native/corrupt 1:1 교대: corrupt 는 PAN 에만 원판(R=1 HR px, audit 부록 E train P90 0.25 LR px×4) 무작위 변위 ε. "
+          "N1 L_rec / N2 +0.01·|ĉε+ε−sg(ĉ0)| (5K ramp) / N3 같은 loss, stop-gradient 없음. aligner 는 고정 내부 crop(4 px) 만 본다. "
+          "시트 HQNR = best_raw 의 raw_original. 반응 진단(offset_response_*.csv)·gradient 진단은 run 폴더. 과거 A1 은 전체 view 라 배경 기준"),
+ "PA": ("[캠페인] PAN 앞단 전역 정합 A1–A3 · 2026-09-09 · research_log/PAN_A1_A3_Global_PAN_Alignment_W96_D124_2026-09-09_v2.md. "
+        "B0(BASE_W96_D124_MSPAN) 골격·학습 조건 그대로, 앞에 dual-stem global shift CNN(0.105M, zero-init head) 을 붙여 PAN 만 Δ̂ 로 bicubic sampling(P̃). "
+        "MS base·GT·출력은 M-frame 고정. A1 L_rec / A2 +0.1·L_edge(Scharr) / A3 +0.01·L_geo(normalized gradient outer product), 5K ramp. "
+        "서버-seed block: s1 2025 (A1→A2→A3) · s2 1234 (A2→A3→A1) · s3 7777 (A3→A1→A2). 시트 HQNR 은 best_raw 의 raw_original view(원 PAN, 전체 프레임). "
+        "raw_valid·aligned_valid·best_aligned 는 run 폴더 checkpoint_metrics.csv / pa_diag.json"),
+ "BASE96": ("[캠페인] 새 baseline W96·D124 WV3 3-seed · s3 · 2026-09-09 · research_log/PAN_research_baseline_W96_D124_2026-09-09.md 의 고정 기준: "
+            "U-Net W96 · depth [1,2,4] · 입력 MS+PAN 만(9ch, in_mode paper) · LPAN/HPAN 채널 없음 · PAN reconstruction task·loss 없음(mars ms) · "
+            "MARs mode γ/β 제거(mode_modulation false) · attention 없음 · crop=False · bicubic 잔차 base · 50K AdamW 1e-4/wd0.01 cosine · "
+            "seed 2025·1234·7777. best 선택·보고 = 논문 세트(.mat 20장 전체) HQNR. config: tools/gen_w96_d124_mspan_configs.py · "
+            "큐 config/queues/base_w96_d124_mspan_wv3_3seed.txt. 과거 W168·d123 dual 결과는 직접 대조군이 아니다(문서 §7)"),
+ "MULTISET": ("[캠페인] 아키텍처 고정 다중 데이터셋 3-seed · 2026-09-08/09 · S1_T05_W168_D123_DUAL 구조(W168 · depth [1,2,3] · dual MARs · 11ch · "
+              "crop=False · attention 없음 · 50K · AdamW 1e-4/wd0.01 cosine) 그대로, 데이터셋만 바꾼다: WV3(seed 2025·1234·7777) · "
+              "QB(4밴드, 학습셋 ms 복구본 F-3, FR lpan 복구본) · GF2(4밴드, max_pixel 1023) 각 3 seed + WV3 checkpoint 의 WV2 zero-shot(_zs_wv2). "
+              "best 선택·보고 모두 논문 세트(.mat 20장 전체, 지표 v2) HQNR — 12-19 부분집합 없음. 각 서버(s1/s2/s3)가 같은 큐(config/queues/arch_w168_multiset_3seed.txt)를 돈다. "
+              "tools/arch_multiset_prepare.sh 로 준비·기동"),
+ "UVS": ("[캠페인] UVS-KD 30h · s2 · 2026-09-06 · teacher c0_hqnr(7.17M, CM3A 3) → student d122(3.18M). 공통: 입력·잔차 base = 제공 lms, "
+         "PAN 3ch 는 δ(LR px)×4 강체 warp, PAN mode 는 raw. teacher 신호(R_T·U_T·δ_T·c_T)는 cache. "
+         "B0 baseline / K0 output KD / K1 uncertainty routing / K2 +GT residual variance / S0 shift-token KD / M1 K2+shift / "
+         "M2 +teacher forcing(η 1→0, 5K–20K) / M3 +shift-effect loss / R1 seed / C1 w96. 판정 HQNR→fSCC + controlled-shift AUC. "
+         "계획 research_log/2026-09-06_uvs-kd_30h_experiment-plan.md · 검토 research_log/2026-09-06_uvs-kd-plan-review.md"),
+ "SR": ("[캠페인] Shift-robust 30h · s1 · 2026-09-06 · backbone W168·d123 dual 11ch nocrop 50K, **원 bicubic·원 feeder·M-frame 출력** 고정 "
+        "(interp23tap·cache·inverse 전부 폐기). 바뀌는 것은 네트워크가 보는 MS 조건 채널뿐: J1 ±0.5 HR px 무작위 전역 jitter(두 mode) / "
+        "J2 MS mode 만 / J3 위치 이동 없는 matched Gaussian blur(σ* 보정) / J4 clean+jitter 두 branch + 잔차 consistency λ0.1 / "
+        "G1 first conv 를 PAN·MS 기여로 분리해 synthetic-supervised global correlator 로 PAN feature 만 M-frame 으로 sampling. "
+        "판정 HQNR(장면별 평균)→fSCC(12-19). anchor S1_T05_W168_D123_DUAL HQNR 0.9571 / fSCC 0.8785. "
+        "계획 research_log/s1_w168_d123_shift_robust_alignment_30h_plan.md · 검토 research_log/2026-09-06_shift-robust-plan-review.md"),
+ "GA": ("[캠페인] Global alignment 40h · s1 · 2026-09-04 21:27 기동 · backbone W152·d123 dual 11ch nocrop 50K 고정. "
+        "공통 변경: 입력 MS/LPAN 업샘플을 bicubic(phase 1.5) → interp23tap(=데이터셋 lms 정확 재현) 로 교체. "
+        "Δ = GT 없이 MTF↓PAN vs LRMS 로 추정한 전역 sub-pixel shift(LR px; FR 12-19 ≈(−0.16,+0.18), train 은 추정 노이즈). "
+        "P0 phase 보정만 / C1 frozen round-trip(M 출력) / C3 frozen dual-frame(P 출력, GT loss 만 inverse) / "
+        "C2 조건입력 부분 shift α / C4 trainable ShiftNet(pretrain gate FAIL 시 미실행). "
+        "판정 HQNR→fSCC(12-19). anchor S1_T05_W152_D123_DUAL HQNR 0.9546. "
+        "계획 research_log/s1_w152_d123_global_alignment_40h_plan.md · 검토 research_log/2026-09-04_global-alignment-plan-review.md"),
+}
+
+
+def separator_cell(key):
+    return f"{SEP}{NAME[key]}"
+
+def run_tag(cell):
+    """B열 문자열에서 실행명만 뽑는다.  'K0_R4_base (50K) · w96 ...' -> 'K0_R4_base'"""
+    s = cell.strip()
+    if s.startswith(("■","□")):
+        return s
+    return re.split(r"\s*[(·]", s)[0].strip()
+
+def classify(cell):
+    t = run_tag(cell)
+    for key, _, f in CATS:
+        if f(t):
+            return key
+    return "MISC"

@@ -1,0 +1,35 @@
+{
+ "total_gpu_hours": 46.0,
+ "entries": {
+  "gate": {
+   "kind": "gate",
+   "hours": 0.017222222222222222,
+   "note": "T0 \uac80\uc99d\u00b7\uc7ac\ud604, gate, \u03c4R, smoke (\uacc4\ud68d \u00a79.3 0\u20134h)",
+   "finished": "2026-09-14T13:22:31"
+  },
+  "PAKD50_J0_W112_D123_WV3_T0_S1234_FRESH50_v1": {
+   "started": "2026-09-14T13:22:55",
+   "required": false,
+   "case": "A-FT/N0/OFF/G0",
+   "kind": "run",
+   "status": "RUNNING",
+   "used_hours_before": 0.017222222222222222,
+   "projected_hours": 4.0,
+   "margin": 1.1,
+   "remaining_mandatory": [],
+   "pair_with": null,
+   "projected_total_hours": 8.417222222222222,
+   "needed_hours": 4.4,
+   "ok": true,
+   "decision": "RUN",
+   "warn": false
+  }
+ },
+ "throughput": {
+  "t_native_s": 0.067,
+  "t_offset_exercise_s": 0.073,
+  "projected_run_hours_50k": 1.902777777777778,
+  "note": "50 \ud3c9\uac00 \u00d7 67s \ud3ec\ud568 (eval_epoch 5)",
+  "measured_at": "2026-09-14T13:22:31"
+ }
+}

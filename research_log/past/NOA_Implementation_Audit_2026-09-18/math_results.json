@@ -1,0 +1,458 @@
+{
+  "run": "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1",
+  "checkpoint_sha256": "b3bb5d615b15c3854ccd09889227fdfaaee4e3554f8a5816ec1192ba595ab09f",
+  "forward": "kdv/A-FT/R3: aligner on (learned Δ, view margin 4), raw_original view",
+  "device": "cpu",
+  "splits": {
+    "rr": {
+      "A_ON": {
+        "calls": {
+          "aligner_calls": 1,
+          "warp_calls": 1
+        },
+        "grid_sample_calls": 1,
+        "backbone_inputs": [
+          [
+            [
+              1,
+              1,
+              256,
+              256
+            ],
+            [
+              1,
+              1,
+              64,
+              64
+            ],
+            [
+              1,
+              8,
+              64,
+              64
+            ],
+            [
+              1
+            ]
+          ]
+        ],
+        "aligner_input_shapes": [
+          "[[1, 1, 248, 248], [1, 8, 248, 248]]"
+        ],
+        "extra": {
+          "delta": [
+            -0.01608520746231079,
+            0.11221455037593842
+          ]
+        },
+        "sampler_restored": true
+      },
+      "A_BYPASS_RAW": {
+        "calls": {
+          "aligner_calls": 0,
+          "warp_calls": 0
+        },
+        "grid_sample_calls": 0,
+        "backbone_inputs": [
+          [
+            [
+              1,
+              1,
+              256,
+              256
+            ],
+            [
+              1,
+              1,
+              64,
+              64
+            ],
+            [
+              1,
+              8,
+              64,
+              64
+            ],
+            [
+              1
+            ]
+          ]
+        ],
+        "aligner_input_shapes": [],
+        "extra": {
+          "delta": [
+            0.0,
+            0.0
+          ]
+        },
+        "sampler_restored": true
+      },
+      "A_ZERO_WARP": {
+        "calls": {
+          "aligner_calls": 0,
+          "warp_calls": 1
+        },
+        "grid_sample_calls": 1,
+        "backbone_inputs": [
+          [
+            [
+              1,
+              1,
+              256,
+              256
+            ],
+            [
+              1,
+              1,
+              64,
+              64
+            ],
+            [
+              1,
+              8,
+              64,
+              64
+            ],
+            [
+              1
+            ]
+          ]
+        ],
+        "aligner_input_shapes": [],
+        "extra": {
+          "delta": [
+            0.0,
+            0.0
+          ]
+        },
+        "sampler_restored": true
+      },
+      "A_CROP64_MED": {
+        "calls": {
+          "aligner_calls": 16,
+          "warp_calls": 1
+        },
+        "grid_sample_calls": 1,
+        "backbone_inputs": [
+          [
+            [
+              1,
+              1,
+              256,
+              256
+            ],
+            [
+              1,
+              1,
+              64,
+              64
+            ],
+            [
+              1,
+              8,
+              64,
+              64
+            ],
+            [
+              1
+            ]
+          ]
+        ],
+        "aligner_input_shapes": [
+          "[[1, 1, 56, 56], [1, 8, 56, 56]]"
+        ],
+        "extra": {
+          "consensus_delta": [
+            -0.018999392166733742,
+            0.10999929904937744
+          ],
+          "n_crops": 16,
+          "crop_delta_std": [
+            0.04154026880860329,
+            0.05737844854593277
+          ],
+          "delta": [
+            -0.018999392166733742,
+            0.10999929904937744
+          ]
+        },
+        "sampler_restored": true
+      },
+      "checks": {
+        "noa_manual_max_abs": 0.0,
+        "consensus_numpy_max_abs": 0.0,
+        "zero_noa_max_abs": 0.0,
+        "on_noa_max_abs": 0.10746508836746216,
+        "seconds": 4.195225715637207,
+        "n_scenes_available": 20
+      }
+    },
+    "fr": {
+      "A_ON": {
+        "calls": {
+          "aligner_calls": 1,
+          "warp_calls": 1
+        },
+        "grid_sample_calls": 1,
+        "backbone_inputs": [
+          [
+            [
+              1,
+              1,
+              512,
+              512
+            ],
+            [
+              1,
+              1,
+              128,
+              128
+            ],
+            [
+              1,
+              8,
+              128,
+              128
+            ],
+            [
+              1
+            ]
+          ]
+        ],
+        "aligner_input_shapes": [
+          "[[1, 1, 504, 504], [1, 8, 504, 504]]"
+        ],
+        "extra": {
+          "delta": [
+            0.3094528019428253,
+            -0.20971818268299103
+          ]
+        },
+        "sampler_restored": true
+      },
+      "A_BYPASS_RAW": {
+        "calls": {
+          "aligner_calls": 0,
+          "warp_calls": 0
+        },
+        "grid_sample_calls": 0,
+        "backbone_inputs": [
+          [
+            [
+              1,
+              1,
+              512,
+              512
+            ],
+            [
+              1,
+              1,
+              128,
+              128
+            ],
+            [
+              1,
+              8,
+              128,
+              128
+            ],
+            [
+              1
+            ]
+          ]
+        ],
+        "aligner_input_shapes": [],
+        "extra": {
+          "delta": [
+            0.0,
+            0.0
+          ]
+        },
+        "sampler_restored": true
+      },
+      "A_ZERO_WARP": {
+        "calls": {
+          "aligner_calls": 0,
+          "warp_calls": 1
+        },
+        "grid_sample_calls": 1,
+        "backbone_inputs": [
+          [
+            [
+              1,
+              1,
+              512,
+              512
+            ],
+            [
+              1,
+              1,
+              128,
+              128
+            ],
+            [
+              1,
+              8,
+              128,
+              128
+            ],
+            [
+              1
+            ]
+          ]
+        ],
+        "aligner_input_shapes": [],
+        "extra": {
+          "delta": [
+            0.0,
+            0.0
+          ]
+        },
+        "sampler_restored": true
+      },
+      "A_CROP64_MED": {
+        "calls": {
+          "aligner_calls": 64,
+          "warp_calls": 1
+        },
+        "grid_sample_calls": 1,
+        "backbone_inputs": [
+          [
+            [
+              1,
+              1,
+              512,
+              512
+            ],
+            [
+              1,
+              1,
+              128,
+              128
+            ],
+            [
+              1,
+              8,
+              128,
+              128
+            ],
+            [
+              1
+            ]
+          ]
+        ],
+        "aligner_input_shapes": [
+          "[[1, 1, 56, 56], [1, 8, 56, 56]]"
+        ],
+        "extra": {
+          "consensus_delta": [
+            0.3166843354701996,
+            -0.2086721956729889
+          ],
+          "n_crops": 64,
+          "crop_delta_std": [
+            0.08635132014751434,
+            0.05407818779349327
+          ],
+          "delta": [
+            0.3166843354701996,
+            -0.2086721956729889
+          ]
+        },
+        "sampler_restored": true
+      },
+      "checks": {
+        "noa_manual_max_abs": 0.0,
+        "consensus_numpy_max_abs": 0.0,
+        "zero_noa_max_abs": 0.0,
+        "on_noa_max_abs": 0.8890610337257385,
+        "seconds": 21.20224094390869,
+        "n_scenes_available": 20
+      }
+    }
+  },
+  "state_unchanged": true,
+  "no_grads": true,
+  "probe_rr": {
+    "n_rows": 21,
+    "sizes": {
+      "64": 16,
+      "128": 4,
+      "256": 1
+    },
+    "q_size_values": [
+      0.46875
+    ],
+    "keys": [
+      "size",
+      "crop_index",
+      "y0",
+      "x0",
+      "is_full",
+      "dy",
+      "dx",
+      "q_size"
+    ]
+  },
+  "probe_fr": {
+    "n_rows": 85,
+    "sizes": {
+      "64": 64,
+      "128": 16,
+      "256": 4,
+      "512": 1
+    },
+    "q_size_values": [
+      0.46875
+    ],
+    "keys": [
+      "size",
+      "crop_index",
+      "y0",
+      "x0",
+      "is_full",
+      "dy",
+      "dx",
+      "q_size"
+    ]
+  },
+  "scene_aggregation_counterexample": {
+    "expected_within_scene_crop_dy_std": 0,
+    "reported": 57.735026918962575
+  },
+  "selector_counterexample": {
+    "selector": "HQNR9585_RR_v1",
+    "order": [
+      [
+        "scc",
+        -1
+      ],
+      [
+        "ergas",
+        1
+      ],
+      [
+        "psnr",
+        -1
+      ],
+      [
+        "sam",
+        1
+      ],
+      [
+        "q8",
+        -1
+      ],
+      [
+        "ssim",
+        -1
+      ],
+      [
+        "hqnr",
+        -1
+      ]
+    ],
+    "expected_step": 1010,
+    "selected_step": 2020
+  }
+}

@@ -1,0 +1,8 @@
+Do not start an experiment just to restore source.
+For each prepared.json entry: git worktree add --detach <original path> <retaining_ref>.
+Apply the verified existing source tar if present, then source-supplement tar if present.
+Restore recorded symlinks and file modes from rows; preserve targets. Shared data/results were not archived or removed.
+Git commits remain in refs/archive/sibling-cleanup-20261013/<folder-name>.
+For s1 offline RAID: do not create replacement empty runtime folders on /raid. Reconnect the original volume first; restore logical symlink and use git worktree repair, or reconstruct a fresh worktree from the recorded commit and preserved source.
+
+S1 clarification: the old worktree registrations were removed. To reuse RAID-resident source, reconnect the original RAID, restore each saved *.git-registration.tar.gz into the main .git/worktrees directory after checking for conflicts, restore the recorded logical symlink, and then run git worktree repair on that path. Do not assume repair alone recreates deleted registration metadata. Verify HEAD, modified files and shared links before any experiment restart.

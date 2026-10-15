@@ -1,0 +1,100 @@
+{
+  "checks": [
+    {
+      "name": "actual_online_384_views",
+      "passed": false,
+      "kind": "conformance",
+      "verification": {
+        "server": "s1",
+        "asset": "assets/qedge9/cue_T0_AXIS16_v1.json",
+        "npz_sha256": "b83cc5d1a25e8766d1813c9d19d956efc24e0f152553e53c4894fa18dcdf563e",
+        "theta_q": 0.3276133416220546,
+        "checked_at": "2026-09-15T16:34:20",
+        "gpu": "cpu",
+        "teacher_aligner_hash_ok": true,
+        "dataset_sha_ok": true,
+        "feeder_contract_ok": true,
+        "n_views": 384,
+        "max_abs_dq": 1.4561694115400314e-05,
+        "mean_abs_dq": 2.2448748495662585e-06,
+        "max_abs_de": 2.1532177925109863e-05,
+        "label_flips": 0,
+        "near_threshold": 21,
+        "pass_": true
+      }
+    },
+    {
+      "name": "same_asset_path_and_config_reload_accepts_opposite_gate",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "asset_path_unchanged": true,
+      "old_hash": "b83cc5d1a25e8766d1813c9d19d956efc24e0f152553e53c4894fa18dcdf563e",
+      "new_hash": "3dee1bcbcb744b08437b507b65c8850fde81dcb7dea5b1b5535ea17a62efccf3"
+    },
+    {
+      "name": "pilot_accepts_wrong_case_seed_depth_non50K_tag",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "pilot": {
+        "c_E": 0.49999999659008915,
+        "sum_gE": 0.27312226220965385,
+        "sum_E": 0.546244528144598,
+        "n_views": 8,
+        "views": "calibration",
+        "gate_frac": 0.5,
+        "mean_E_gated": 0.06828056555241346,
+        "mean_E_all": 0.06828056601807475,
+        "pilot_run": "PAKD50_QE50_W104_D123_WV3_T0_S777_FRESH50_v1",
+        "pilot_tag": "best_hqnr",
+        "pilot_sha256_16": "diagnostic_fixture",
+        "pilot_file_sha256": "diagnostic_fixture",
+        "pilot_step": 1010,
+        "pilot_width": 104,
+        "pilot_depth": [
+          1,
+          2,
+          3
+        ],
+        "cue": "assets/qedge9/cue_T0_AXIS16_v1.json",
+        "cue_npz_sha256": "b83cc5d1a25e8766d1813c9d19d956efc24e0f152553e53c4894fa18dcdf563e",
+        "theta_q": 0.3276133416220546,
+        "computed_at": "2026-09-15T16:34:59",
+        "server": "s1",
+        "rule": "c_E = \u03a3_i g_i E_pilot(i) / \u03a3_i E_pilot(i) (train calibration view, \uace0\uc815 pilot; \u00a76.1) \u2014 \uace0\uc815 pilot \uc5d0\uc11c edge loss \ud3c9\uade0\uc744 \ub9de\ucd98 \ub300\uc870\uc774\uc9c0 \uc804 \ud559\uc2b5 gradient \uc77c\uce58 \ub300\uc870\uac00 \uc544\ub2c8\ub2e4",
+        "note": "0.5 \ub85c \ub450\uc9c0 \uc54a\ub294\ub2e4: \uc120\ud0dd patch \uc758 edge \uc624\ucc28\uac00 \ud06c\uba74 c_E > 0.5"
+      },
+      "note": "guard fixture: actual W104D123 model, 2 real base patches x 4 views; loader and cue population restricted to isolate validation"
+    },
+    {
+      "name": "switch_kills_owned_parent_loses_postprocessing",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "switch_rc": 0,
+      "parent_rc": -15,
+      "child_completed": true,
+      "postprocessing": false,
+      "note": "all process ids came from one audit-owned parent; ps/crontab/start/watchdog replaced with isolated stubs"
+    },
+    {
+      "name": "switch_preserves_unplanned_old_extra",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "extra": [
+        "PAKD50_LFQ_W112_D123_WV3_T0_S9091_FRESH50_v1"
+      ],
+      "scheduled_count": 7
+    }
+  ],
+  "head": "433ad67f4ae0da7516e3c1dcaa6845af1ec1e837",
+  "finished_at": "2026-09-15T16:35:01+0900",
+  "summary": {
+    "conformance": {
+      "total": 1,
+      "passed": 0
+    },
+    "defect_reproduction": {
+      "total": 4,
+      "passed": 4
+    }
+  }
+}

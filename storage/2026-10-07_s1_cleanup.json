@@ -1,0 +1,54 @@
+{
+  "schema": "PAN_SERVER_CLEANUP_SUMMARY_v1",
+  "status": "COMPLETE",
+  "server": "s1",
+  "recorded_at": "2026-10-07T09:57:31.165018+09:00",
+  "exact_duplicate_files_consolidated": 398,
+  "dedup_reclaimed_bytes": 2801205248,
+  "approved_historical_resume_files_removed": 1248,
+  "historical_resume_reclaimed_bytes": 33817427968,
+  "scientific_payload_reclaimed_bytes": 36618633216,
+  "stopped_pan_containers_removed": 23,
+  "code_cache_files_removed": 125,
+  "code_cache_removed_bytes": 2117632,
+  "latest_resume_states_preserved": 24,
+  "before_free_bytes": 86195978240,
+  "after_free_bytes": 122806972416,
+  "main_disk_total_bytes": 1005994856448,
+  "main_disk_used_bytes": 832010665984,
+  "relocated_data_bytes": 0,
+  "external_archive_space_consumed_bytes": 0,
+  "nas_used": false,
+  "all_official_candidate_selected_models_and_evaluation_results_preserved": true,
+  "initial_final_latest_restart_states_preserved": true,
+  "ta2_unchanged_and_running": {
+    "id": "65b40957e87b3c70a4def10047ac4e5dd094f7bc1cb052dfbe7b66699fd5b05d",
+    "name": "/ta2-s1-run-20261006T072729979720",
+    "started_at": "2026-10-06T07:27:30.169566715Z",
+    "running": true
+  },
+  "representative_docker_read": {
+    "status": "PASS",
+    "model_tensors": 112,
+    "resume_update": 50000,
+    "gpu_used": false
+  },
+  "other_projects_untouched": true,
+  "approved_irreversible_loss": "Exact optimizer/RNG/sampler state at the listed old intermediate updates.",
+  "remaining_shared_docker_cache_not_pruned": true,
+  "receipts": {
+    "immutable-dedup-plan.json": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_operator_storage/20261007-s1-cleanup/immutable-dedup-plan.json",
+    "immutable-dedup-events.jsonl": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_operator_storage/20261007-s1-cleanup/immutable-dedup-events.jsonl",
+    "historical-resume-deletion-plan.json": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_operator_storage/20261007-s1-cleanup/historical-resume-deletion-plan.json",
+    "historical-resume-deletion-events.jsonl": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_operator_storage/20261007-s1-cleanup/historical-resume-deletion-events.jsonl",
+    "stopped-container-removal.json": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_operator_storage/20261007-s1-cleanup/stopped-container-removal.json",
+    "postcheck.json": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_operator_storage/20261007-s1-cleanup/postcheck.json"
+  },
+  "inventory": {
+    "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_operator_storage/20261007-s1-cleanup/file-inventory.json.gz",
+    "original_bytes": 93895013,
+    "compressed_bytes": 10251730,
+    "uncompressed_sha256": "aa539f38d837e72566d551fb1f7c4868816b427cda3bb47eff412efc1a616004"
+  },
+  "audit_directory": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_operator_storage/20261007-s1-cleanup"
+}

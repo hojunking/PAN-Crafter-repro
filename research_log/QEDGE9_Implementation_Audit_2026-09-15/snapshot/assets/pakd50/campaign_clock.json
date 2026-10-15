@@ -1,0 +1,9 @@
+{
+ "campaign_id": "PAKD50_W112D123_WV3_20260914_v1",
+ "start": "2026-09-14T13:22:31",
+ "training_deadline": "2026-09-16T11:22:31",
+ "final_deadline": "2026-09-16T15:22:31",
+ "set_by": "s1",
+ "timezone": "Asia/Seoul (서버 로컬 시각; 세 서버 동일 시간대)",
+ "note": "세 서버 공통 절대 시계 (계획 §9.1·§11.2, 감사 F05). start = s1 prepare 완료·체인 기동 시각. 학습 run 은 예상 종료가 training_deadline 을 넘기면 시작하지 않는다(config kdv.budget.training_deadline → trainer 예산 gate; gate 'pakd50' admission). 46–50h 는 selected/last 재평가·집계·hash 검증(감사) 구간. 단계 재기동으로 늘리지 않는다."
+}

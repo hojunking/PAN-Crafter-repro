@@ -1,0 +1,549 @@
+{
+ "rule": "2x2 audit tiles and zoom box set by eye on PAN only (parking lots / roads with vehicles), shortlisted by rank_vehicle_tiles; stretch as main figures; region_fr = mean of per-tile FR metrics over the region tiles",
+ "sets": {
+  "_1": [
+   {
+    "scene_id": "200014103764_01",
+    "ms_row": 2816,
+    "ms_col": 7296,
+    "size_pan": 512,
+    "pan_sobel_mean": null,
+    "region_fr": {
+     "BROVEY8": {
+      "hqnr": 0.6793857341862218,
+      "d_lambda": 0.26604581353093043,
+      "d_s": 0.07448272303461834
+     },
+     "ZS_WV3": {
+      "hqnr": 0.8057420683131151,
+      "d_lambda": 0.06237330532124963,
+      "d_s": 0.1407095277775589
+     },
+     "SC_SCENE_EXACT20K": {
+      "hqnr": 0.8083208527603591,
+      "d_lambda": 0.07607443466052438,
+      "d_s": 0.12523666993663846
+     },
+     "FT_WV3_SCENE_EXACT20K": {
+      "hqnr": 0.7982086450679178,
+      "d_lambda": 0.06620804543385889,
+      "d_s": 0.1453193620021619
+     }
+    },
+    "box_pan_yx": [
+     304,
+     32
+    ],
+    "box_size_pan": 128,
+    "stretch_lo": [
+     70.0,
+     277.8299865722656,
+     328.0
+    ],
+    "stretch_hi": [
+     1084.3399658203125,
+     1737.1700439453125,
+     1166.1700439453125
+    ],
+    "order": "V01",
+    "category": "Urban",
+    "kind": "parking lot",
+    "vehicle_candidates": 153,
+    "ms_correlation": {
+     "BROVEY8": 0.9790273663860517,
+     "ZS_WV3": 0.9835952716589534,
+     "SC_SCENE_EXACT20K": 0.9874176395549575,
+     "FT_WV3_SCENE_EXACT20K": 0.989087301075646
+    }
+   },
+   {
+    "scene_id": "200014103758_01",
+    "ms_row": 2368,
+    "ms_col": 4480,
+    "size_pan": 512,
+    "pan_sobel_mean": null,
+    "region_fr": {
+     "BROVEY8": {
+      "hqnr": 0.6049382496082472,
+      "d_lambda": 0.30516642796493754,
+      "d_s": 0.1298884831454289
+     },
+     "ZS_WV3": {
+      "hqnr": 0.8615111622724124,
+      "d_lambda": 0.04209812699724802,
+      "d_s": 0.10059293232581497
+     },
+     "SC_SCENE_EXACT20K": {
+      "hqnr": 0.8465020190926854,
+      "d_lambda": 0.05756891776848555,
+      "d_s": 0.10179075496692418
+     },
+     "FT_WV3_SCENE_EXACT20K": {
+      "hqnr": 0.826823081900036,
+      "d_lambda": 0.06643009446152356,
+      "d_s": 0.11435237983009569
+     }
+    },
+    "box_pan_yx": [
+     352,
+     368
+    ],
+    "box_size_pan": 128,
+    "stretch_lo": [
+     104.0,
+     189.0,
+     179.0
+    ],
+    "stretch_hi": [
+     805.0,
+     796.0,
+     546.1699829101562
+    ],
+    "order": "V02",
+    "category": "Urban / lake / hills",
+    "kind": "parking lot",
+    "vehicle_candidates": 276,
+    "ms_correlation": {
+     "BROVEY8": 0.9655616253690076,
+     "ZS_WV3": 0.981692003187927,
+     "SC_SCENE_EXACT20K": 0.9868605042232358,
+     "FT_WV3_SCENE_EXACT20K": 0.982943024967932
+    }
+   },
+   {
+    "scene_id": "200014103802_01",
+    "ms_row": 4864,
+    "ms_col": 3328,
+    "size_pan": 512,
+    "pan_sobel_mean": null,
+    "region_fr": {
+     "BROVEY8": {
+      "hqnr": 0.6407937556102199,
+      "d_lambda": 0.26910224649423453,
+      "d_s": 0.12325709689696199
+     },
+     "ZS_WV3": {
+      "hqnr": 0.8447484745724478,
+      "d_lambda": 0.06881216887850472,
+      "d_s": 0.09294115779708517
+     },
+     "SC_SCENE_EXACT20K": {
+      "hqnr": 0.7909413601361763,
+      "d_lambda": 0.07859078901336339,
+      "d_s": 0.1416361558083186
+     },
+     "FT_WV3_SCENE_EXACT20K": {
+      "hqnr": 0.7662455086629965,
+      "d_lambda": 0.10019371384952536,
+      "d_s": 0.14843432696934222
+     }
+    },
+    "box_pan_yx": [
+     256,
+     330
+    ],
+    "box_size_pan": 128,
+    "stretch_lo": [
+     102.0,
+     262.0,
+     263.0
+    ],
+    "stretch_hi": [
+     511.1700134277344,
+     668.0,
+     562.0
+    ],
+    "order": "V03",
+    "category": "Rural plain",
+    "kind": "highway",
+    "vehicle_candidates": 71,
+    "ms_correlation": {
+     "BROVEY8": 0.9738567299669141,
+     "ZS_WV3": 0.9821237605826365,
+     "SC_SCENE_EXACT20K": 0.9897492021178802,
+     "FT_WV3_SCENE_EXACT20K": 0.9838955117824075
+    }
+   },
+   {
+    "scene_id": "200014103714_01",
+    "ms_row": 384,
+    "ms_col": 1280,
+    "size_pan": 512,
+    "pan_sobel_mean": null,
+    "region_fr": {
+     "BROVEY8": {
+      "hqnr": 0.7739147382297911,
+      "d_lambda": 0.16290646674575687,
+      "d_s": 0.0754503919631724
+     },
+     "ZS_WV3": {
+      "hqnr": 0.819584302595104,
+      "d_lambda": 0.031372624123504556,
+      "d_s": 0.15391613961401948
+     },
+     "SC_SCENE_EXACT20K": {
+      "hqnr": 0.7680172307303376,
+      "d_lambda": 0.06746072482179993,
+      "d_s": 0.17646601213965826
+     },
+     "FT_WV3_SCENE_EXACT20K": {
+      "hqnr": 0.7771079570599202,
+      "d_lambda": 0.06760160759594791,
+      "d_s": 0.16666471118534384
+     }
+    },
+    "box_pan_yx": [
+     300,
+     80
+    ],
+    "box_size_pan": 128,
+    "stretch_lo": [
+     86.0,
+     297.8299865722656,
+     309.0
+    ],
+    "stretch_hi": [
+     676.1699829101562,
+     1192.1700439453125,
+     837.0
+    ],
+    "order": "V04",
+    "category": "Rural / new town",
+    "kind": "parking lot",
+    "vehicle_candidates": 301,
+    "ms_correlation": {
+     "BROVEY8": 0.9653648069319739,
+     "ZS_WV3": 0.9699343728234474,
+     "SC_SCENE_EXACT20K": 0.9764182136464166,
+     "FT_WV3_SCENE_EXACT20K": 0.9751416869187792
+    }
+   },
+   {
+    "scene_id": "200014103525_01",
+    "ms_row": 2240,
+    "ms_col": 4736,
+    "size_pan": 512,
+    "pan_sobel_mean": null,
+    "region_fr": {
+     "BROVEY8": {
+      "hqnr": 0.8186517819716741,
+      "d_lambda": 0.10406704177165349,
+      "d_s": 0.0865743282346804
+     },
+     "ZS_WV3": {
+      "hqnr": 0.8928187390936618,
+      "d_lambda": 0.022911540016696763,
+      "d_s": 0.0862281917733217
+     },
+     "SC_SCENE_EXACT20K": {
+      "hqnr": 0.8225370264097731,
+      "d_lambda": 0.036990122056480335,
+      "d_s": 0.14582326491435016
+     },
+     "FT_WV3_SCENE_EXACT20K": {
+      "hqnr": 0.7852907359317723,
+      "d_lambda": 0.054794868989040985,
+      "d_s": 0.16915030640596057
+     }
+    },
+    "box_pan_yx": [
+     360,
+     128
+    ],
+    "box_size_pan": 128,
+    "stretch_lo": [
+     181.0,
+     407.0,
+     322.0
+    ],
+    "stretch_hi": [
+     442.1700134277344,
+     764.0,
+     561.0
+    ],
+    "order": "V05",
+    "category": "Haze / thin cloud",
+    "kind": "parking lot",
+    "vehicle_candidates": 205,
+    "ms_correlation": {
+     "BROVEY8": 0.9868178069557823,
+     "ZS_WV3": 0.9791963988311086,
+     "SC_SCENE_EXACT20K": 0.9946801068091502,
+     "FT_WV3_SCENE_EXACT20K": 0.9916439326511324
+    }
+   }
+  ],
+  "_2": [
+   {
+    "scene_id": "200014103764_01",
+    "ms_row": 1216,
+    "ms_col": 2624,
+    "size_pan": 512,
+    "pan_sobel_mean": null,
+    "region_fr": {
+     "BROVEY8": {
+      "hqnr": 0.6429908078106037,
+      "d_lambda": 0.29444696142939586,
+      "d_s": 0.08831334450266523
+     },
+     "ZS_WV3": {
+      "hqnr": 0.8083152560514567,
+      "d_lambda": 0.0670182271421575,
+      "d_s": 0.13365696904964325
+     },
+     "SC_SCENE_EXACT20K": {
+      "hqnr": 0.823512482111125,
+      "d_lambda": 0.06993163758089652,
+      "d_s": 0.11437587717009497
+     },
+     "FT_WV3_SCENE_EXACT20K": {
+      "hqnr": 0.814455534614773,
+      "d_lambda": 0.06121850865541509,
+      "d_s": 0.13239121943352494
+     }
+    },
+    "box_pan_yx": [
+     260,
+     44
+    ],
+    "box_size_pan": 128,
+    "stretch_lo": [
+     48.0,
+     242.8300018310547,
+     305.0
+    ],
+    "stretch_hi": [
+     1342.0,
+     2047.0,
+     1426.1700439453125
+    ],
+    "order": "V01",
+    "category": "Urban",
+    "kind": "road traffic",
+    "vehicle_candidates": 224,
+    "ms_correlation": {
+     "BROVEY8": 0.9726695826746906,
+     "ZS_WV3": 0.9857325042882649,
+     "SC_SCENE_EXACT20K": 0.9855966222571809,
+     "FT_WV3_SCENE_EXACT20K": 0.9879424160313676
+    }
+   },
+   {
+    "scene_id": "200014103758_01",
+    "ms_row": 2368,
+    "ms_col": 4352,
+    "size_pan": 512,
+    "pan_sobel_mean": null,
+    "region_fr": {
+     "BROVEY8": {
+      "hqnr": 0.5817292351958486,
+      "d_lambda": 0.3338504671843122,
+      "d_s": 0.12769334740385221
+     },
+     "ZS_WV3": {
+      "hqnr": 0.8761730404057713,
+      "d_lambda": 0.04236293934023702,
+      "d_s": 0.08521848769220436
+     },
+     "SC_SCENE_EXACT20K": {
+      "hqnr": 0.8602469424517534,
+      "d_lambda": 0.05724132882598082,
+      "d_s": 0.08761516211089096
+     },
+     "FT_WV3_SCENE_EXACT20K": {
+      "hqnr": 0.8391774361272135,
+      "d_lambda": 0.0651267432886998,
+      "d_s": 0.10280580366885342
+     }
+    },
+    "box_pan_yx": [
+     360,
+     40
+    ],
+    "box_size_pan": 128,
+    "stretch_lo": [
+     99.0,
+     190.0,
+     175.0
+    ],
+    "stretch_hi": [
+     746.0,
+     716.1699829101562,
+     487.0
+    ],
+    "order": "V02",
+    "category": "Urban / lake / hills",
+    "kind": "bus + car lot",
+    "vehicle_candidates": 154,
+    "ms_correlation": {
+     "BROVEY8": 0.9663999944517787,
+     "ZS_WV3": 0.9834083851774306,
+     "SC_SCENE_EXACT20K": 0.9886384332398713,
+     "FT_WV3_SCENE_EXACT20K": 0.9845744441232696
+    }
+   },
+   {
+    "scene_id": "200014103802_01",
+    "ms_row": 1600,
+    "ms_col": 7808,
+    "size_pan": 512,
+    "pan_sobel_mean": null,
+    "region_fr": {
+     "BROVEY8": {
+      "hqnr": 0.7061349904035037,
+      "d_lambda": 0.2093888147591915,
+      "d_s": 0.10712018844665688
+     },
+     "ZS_WV3": {
+      "hqnr": 0.866933459614191,
+      "d_lambda": 0.04663040191247056,
+      "d_s": 0.0908863277025779
+     },
+     "SC_SCENE_EXACT20K": {
+      "hqnr": 0.8432468263277509,
+      "d_lambda": 0.06066445423842712,
+      "d_s": 0.10258944457407948
+     },
+     "FT_WV3_SCENE_EXACT20K": {
+      "hqnr": 0.8142553485105047,
+      "d_lambda": 0.07138464412247417,
+      "d_s": 0.12317076589601642
+     }
+    },
+    "box_pan_yx": [
+     384,
+     256
+    ],
+    "box_size_pan": 128,
+    "stretch_lo": [
+     108.0,
+     277.0,
+     260.0
+    ],
+    "stretch_hi": [
+     663.0,
+     872.0,
+     618.1699829101562
+    ],
+    "order": "V03",
+    "category": "Rural plain",
+    "kind": "village road",
+    "vehicle_candidates": 110,
+    "ms_correlation": {
+     "BROVEY8": 0.9725319211835766,
+     "ZS_WV3": 0.982790854814551,
+     "SC_SCENE_EXACT20K": 0.990409960154084,
+     "FT_WV3_SCENE_EXACT20K": 0.9843473968657204
+    }
+   },
+   {
+    "scene_id": "200014103714_01",
+    "ms_row": 5888,
+    "ms_col": 4864,
+    "size_pan": 512,
+    "pan_sobel_mean": null,
+    "region_fr": {
+     "BROVEY8": {
+      "hqnr": 0.7420991226218477,
+      "d_lambda": 0.1740606382155598,
+      "d_s": 0.10212664982308717
+     },
+     "ZS_WV3": {
+      "hqnr": 0.8349661400978741,
+      "d_lambda": 0.04929853123012373,
+      "d_s": 0.12175054114380643
+     },
+     "SC_SCENE_EXACT20K": {
+      "hqnr": 0.7916318820495524,
+      "d_lambda": 0.06552976577225933,
+      "d_s": 0.15292868672798673
+     },
+     "FT_WV3_SCENE_EXACT20K": {
+      "hqnr": 0.8047365070103902,
+      "d_lambda": 0.065624561779341,
+      "d_s": 0.13878739035772486
+     }
+    },
+    "box_pan_yx": [
+     384,
+     260
+    ],
+    "box_size_pan": 128,
+    "stretch_lo": [
+     85.0,
+     290.0,
+     300.0
+    ],
+    "stretch_hi": [
+     579.1699829101562,
+     1045.1700439453125,
+     758.0
+    ],
+    "order": "V04",
+    "category": "Rural / new town",
+    "kind": "bus/truck depot",
+    "vehicle_candidates": 183,
+    "ms_correlation": {
+     "BROVEY8": 0.9633351761036074,
+     "ZS_WV3": 0.9757833802374769,
+     "SC_SCENE_EXACT20K": 0.9805225676759994,
+     "FT_WV3_SCENE_EXACT20K": 0.975429014875299
+    }
+   },
+   {
+    "scene_id": "200014103525_01",
+    "ms_row": 2688,
+    "ms_col": 4608,
+    "size_pan": 512,
+    "pan_sobel_mean": null,
+    "region_fr": {
+     "BROVEY8": {
+      "hqnr": 0.800726881602242,
+      "d_lambda": 0.11658567470740491,
+      "d_s": 0.09364184919468706
+     },
+     "ZS_WV3": {
+      "hqnr": 0.8717507140252128,
+      "d_lambda": 0.028964408376743356,
+      "d_s": 0.10226273971742367
+     },
+     "SC_SCENE_EXACT20K": {
+      "hqnr": 0.7868932360514564,
+      "d_lambda": 0.04344369117121871,
+      "d_s": 0.1774244416169532
+     },
+     "FT_WV3_SCENE_EXACT20K": {
+      "hqnr": 0.7481390747578197,
+      "d_lambda": 0.06738122468086888,
+      "d_s": 0.19804711204820757
+     }
+    },
+    "box_pan_yx": [
+     360,
+     30
+    ],
+    "box_size_pan": 128,
+    "stretch_lo": [
+     187.0,
+     410.0,
+     330.0
+    ],
+    "stretch_hi": [
+     400.1700134277344,
+     717.0,
+     531.1699829101562
+    ],
+    "order": "V05",
+    "category": "Haze / thin cloud",
+    "kind": "highway traffic",
+    "vehicle_candidates": 238,
+    "ms_correlation": {
+     "BROVEY8": 0.987520187345923,
+     "ZS_WV3": 0.9780582536969626,
+     "SC_SCENE_EXACT20K": 0.9946027840612625,
+     "FT_WV3_SCENE_EXACT20K": 0.9909913823634231
+    }
+   }
+  ]
+ }
+}

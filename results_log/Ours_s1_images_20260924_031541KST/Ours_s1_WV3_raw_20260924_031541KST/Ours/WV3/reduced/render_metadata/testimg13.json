@@ -1,0 +1,144 @@
+{
+  "configuration": {
+    "band_order": [
+      "Coastal",
+      "Blue",
+      "Green",
+      "Yellow",
+      "Red",
+      "RedEdge",
+      "NIR1",
+      "NIR2"
+    ],
+    "canconv_renderer_verified": false,
+    "canconv_scene_correspondence_verified": false,
+    "convention_source": "tools/qrc24_qualitative.py shared GT/LMS 1-99% convention; not CANConv comparison renderer",
+    "crop": null,
+    "error_colormap": "linear grayscale",
+    "error_formula": "mean_C(abs(pred_DN-GT_DN))",
+    "error_limits_dn": [
+      0.0,
+      102.35000000000001
+    ],
+    "error_summary_dn": {
+      "max": 190.88535690307617,
+      "mean": 9.350922793470431
+    },
+    "gamma": 1.0,
+    "input_axis": "CHW",
+    "input_unit": "DN",
+    "max_dn": 2047.0,
+    "pan_bounds_dn": [
+      137.54749770174192,
+      1266.228848608295
+    ],
+    "paper_comparison_ready": false,
+    "percentiles": [
+      1.0,
+      99.0
+    ],
+    "reference": "RR GT",
+    "resize": null,
+    "rgb_bounds_dn": [
+      [
+        66.0,
+        1045.6500000000015
+      ],
+      [
+        185.0,
+        1601.0
+      ],
+      [
+        211.0,
+        1117.0
+      ]
+    ],
+    "rgb_indices_zero_based": [
+      4,
+      2,
+      1
+    ],
+    "rgb_quantization": "clip display [0,1], round-to-nearest uint8 [0,255]",
+    "roi": null,
+    "rr_fr_scene_correspondence": "not asserted; scene indices belong to separate split orders",
+    "scene_index_zero_based": 13,
+    "sensor": "WV3",
+    "source_arrays_modified": false,
+    "source_shape_chw": [
+      8,
+      256,
+      256
+    ],
+    "split": "reduced",
+    "standalone_pngs_unannotated_to_preserve_all_pixels": true,
+    "standalone_size_wh": [
+      256,
+      256
+    ],
+    "status": "PREVIEW_ONLY_CANCONV_RENDERER_UNVERIFIED",
+    "stretch": "per-scene reference per-band percentiles, shared across all RGB views",
+    "stretch_denominator_epsilon": 1e-12
+  },
+  "files": [
+    {
+      "bytes": 83564,
+      "mode": "RGB",
+      "path": "output/testimg13.png",
+      "sha256": "40cf790048748adc44b92117334f359db6efa177fada7fa5f5f2012eb45c2046",
+      "size_wh": [
+        256,
+        256
+      ]
+    },
+    {
+      "bytes": 102385,
+      "mode": "RGB",
+      "path": "reference/testimg13.png",
+      "sha256": "a44e1759548c19a88306ce8d9a2fde5c5f917a6de490358fb8bd5270e4aeec3a",
+      "size_wh": [
+        256,
+        256
+      ]
+    },
+    {
+      "bytes": 45677,
+      "mode": "RGB",
+      "path": "input_lms/testimg13.png",
+      "sha256": "3753e51baa19b13a57739b0a72fb5ed775f8344c2cb3110a121520086042ba29",
+      "size_wh": [
+        256,
+        256
+      ]
+    },
+    {
+      "bytes": 45405,
+      "mode": "RGB",
+      "path": "input_pan/testimg13.png",
+      "sha256": "1cd7364a3c7491e5e600760ff36c7b6190f64f17876f23f829637d93ceb27fd0",
+      "size_wh": [
+        256,
+        256
+      ]
+    },
+    {
+      "bytes": 81389,
+      "mode": "RGB",
+      "path": "errormap/testimg13.png",
+      "sha256": "f0b89d0e98eff53236d0b9eabb6eff13725dd0270ed487ded119b81a5ccf3a30",
+      "size_wh": [
+        256,
+        256
+      ]
+    },
+    {
+      "bytes": 396021,
+      "mode": "RGB",
+      "path": "compare_output/testimg13.png",
+      "sha256": "bba12c51385fdde9c7b28904494ccd039607ef5c625a931cabbd288513850874",
+      "size_wh": [
+        1280,
+        313
+      ]
+    }
+  ]
+}

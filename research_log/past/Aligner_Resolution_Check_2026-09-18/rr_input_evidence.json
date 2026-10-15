@@ -1,0 +1,281 @@
+{
+  "captured_at": "2026-09-18T12:52:44.379029",
+  "runs": {
+    "PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT": {
+      "config_sha256": "cfa6bc47b82363761f81848138550b231540f9a4916d02154a65a9158f236322",
+      "inputs": {
+        "train_feeder_args": {
+          "args": {
+            "dataroot": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5",
+            "crop": false,
+            "hflip": true,
+            "vflip": true,
+            "rot": true,
+            "crop_ratio": 0.75,
+            "ms_size": 16
+          },
+          "h5_attrs": {},
+          "shapes": {
+            "gt": [
+              9714,
+              8,
+              64,
+              64
+            ],
+            "lms": [
+              9714,
+              8,
+              64,
+              64
+            ],
+            "ms": [
+              9714,
+              8,
+              16,
+              16
+            ],
+            "pan": [
+              9714,
+              1,
+              64,
+              64
+            ]
+          }
+        },
+        "val_feeder_args": {
+          "args": {
+            "dataroot": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5"
+          },
+          "h5_attrs": {},
+          "shapes": {
+            "gt": [
+              1080,
+              8,
+              64,
+              64
+            ],
+            "lms": [
+              1080,
+              8,
+              64,
+              64
+            ],
+            "ms": [
+              1080,
+              8,
+              16,
+              16
+            ],
+            "pan": [
+              1080,
+              1,
+              64,
+              64
+            ]
+          }
+        },
+        "test_reduced_feeder_args": {
+          "args": {
+            "dataroot": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5"
+          },
+          "h5_attrs": {},
+          "shapes": {
+            "gt": [
+              20,
+              8,
+              256,
+              256
+            ],
+            "lms": [
+              20,
+              8,
+              256,
+              256
+            ],
+            "ms": [
+              20,
+              8,
+              64,
+              64
+            ],
+            "pan": [
+              20,
+              1,
+              256,
+              256
+            ]
+          }
+        },
+        "test_full_feeder_args": {
+          "args": {
+            "dataroot": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5"
+          },
+          "h5_attrs": {
+            "source": "PanCollection Testing Dataset (FullData, mat Format) — Google Drive folder 16pGIqvwWfyQVvkk3s1xrwLpavqQd0Bv7"
+          },
+          "shapes": {
+            "lms": [
+              20,
+              8,
+              512,
+              512
+            ],
+            "ms": [
+              20,
+              8,
+              128,
+              128
+            ],
+            "pan": [
+              20,
+              1,
+              512,
+              512
+            ]
+          }
+        }
+      }
+    },
+    "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1": {
+      "config_sha256": "77239295d3e0e837fb1c176420ac075693e271e23ce1d63d42f29ecb22392e2f",
+      "inputs": {
+        "train_feeder_args": {
+          "args": {
+            "dataroot": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/train_wv3.h5",
+            "crop": false,
+            "hflip": true,
+            "vflip": true,
+            "rot": true,
+            "return_meta": true,
+            "crop_ratio": 0.75,
+            "ms_size": 16
+          },
+          "h5_attrs": {},
+          "shapes": {
+            "gt": [
+              9714,
+              8,
+              64,
+              64
+            ],
+            "lms": [
+              9714,
+              8,
+              64,
+              64
+            ],
+            "ms": [
+              9714,
+              8,
+              16,
+              16
+            ],
+            "pan": [
+              9714,
+              1,
+              64,
+              64
+            ]
+          }
+        },
+        "val_feeder_args": {
+          "args": {
+            "dataroot": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/valid_wv3.h5"
+          },
+          "h5_attrs": {},
+          "shapes": {
+            "gt": [
+              1080,
+              8,
+              64,
+              64
+            ],
+            "lms": [
+              1080,
+              8,
+              64,
+              64
+            ],
+            "ms": [
+              1080,
+              8,
+              16,
+              16
+            ],
+            "pan": [
+              1080,
+              1,
+              64,
+              64
+            ]
+          }
+        },
+        "test_reduced_feeder_args": {
+          "args": {
+            "dataroot": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5"
+          },
+          "h5_attrs": {},
+          "shapes": {
+            "gt": [
+              20,
+              8,
+              256,
+              256
+            ],
+            "lms": [
+              20,
+              8,
+              256,
+              256
+            ],
+            "ms": [
+              20,
+              8,
+              64,
+              64
+            ],
+            "pan": [
+              20,
+              1,
+              256,
+              256
+            ]
+          }
+        },
+        "test_full_feeder_args": {
+          "args": {
+            "dataroot": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5"
+          },
+          "h5_attrs": {
+            "source": "PanCollection Testing Dataset (FullData, mat Format) — Google Drive folder 16pGIqvwWfyQVvkk3s1xrwLpavqQd0Bv7"
+          },
+          "shapes": {
+            "lms": [
+              20,
+              8,
+              512,
+              512
+            ],
+            "ms": [
+              20,
+              8,
+              128,
+              128
+            ],
+            "pan": [
+              20,
+              1,
+              512,
+              512
+            ]
+          }
+        }
+      }
+    }
+  },
+  "limitations": [
+    "H5 shapes do not establish GSD or original WV3 generation provenance",
+    "Official QB demo supports crop-based protocol, not exact provenance for each local WV3 sample",
+    "No new model inference or training in this RR handling analysis"
+  ]
+}

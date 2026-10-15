@@ -1,0 +1,2 @@
+./tools/run.sh PAKD50_QRC24_S1_G22_W104_D121_WV3_T0_S1234_FRESH50_v1 
+python -u main.py --config /home/knuvi/Desktop/song/PAN-Crafter/config/PAKD50_QRC24_S1_G22_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml 

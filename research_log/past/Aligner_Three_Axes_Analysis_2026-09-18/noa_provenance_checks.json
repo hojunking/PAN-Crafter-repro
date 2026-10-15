@@ -1,0 +1,379 @@
+[
+  {
+    "run": "PAKD50_QRC24_S1_A03_SHUF_W104_D121_WV3_T0_S1234_FRESH50_v2",
+    "checks": {
+      "A_ON_rr_n20": true,
+      "A_ON_rr_record_matches_file": true,
+      "A_ON_fr_n20": true,
+      "A_ON_fr_record_matches_file": true,
+      "A_ON_config_hash_matches": true,
+      "A_ON_ckpt_hash_matches_record": true,
+      "A_ON_calls_valid": true,
+      "A_BYPASS_RAW_rr_n20": true,
+      "A_BYPASS_RAW_rr_record_matches_file": true,
+      "A_BYPASS_RAW_fr_n20": true,
+      "A_BYPASS_RAW_fr_record_matches_file": true,
+      "A_BYPASS_RAW_config_hash_matches": true,
+      "A_BYPASS_RAW_ckpt_hash_matches_record": true,
+      "A_BYPASS_RAW_calls_valid": true,
+      "on_noa_common_identity_matches": true,
+      "current_checkpoint_matches": true,
+      "factor1_training_manifest": true,
+      "scene_hqnr_mean_matches": true
+    },
+    "passed": true,
+    "limitations": [
+      "RR dataset hash not in original identity",
+      "precision/environment not fully recorded",
+      "no remote/source-server certification"
+    ]
+  },
+  {
+    "run": "PAKD50_QRC24_S1_A03_UNIF_W104_D121_WV3_T0_S1234_FRESH50_v2",
+    "checks": {
+      "A_ON_rr_n20": true,
+      "A_ON_rr_record_matches_file": true,
+      "A_ON_fr_n20": true,
+      "A_ON_fr_record_matches_file": true,
+      "A_ON_config_hash_matches": true,
+      "A_ON_ckpt_hash_matches_record": true,
+      "A_ON_calls_valid": true,
+      "A_BYPASS_RAW_rr_n20": true,
+      "A_BYPASS_RAW_rr_record_matches_file": true,
+      "A_BYPASS_RAW_fr_n20": true,
+      "A_BYPASS_RAW_fr_record_matches_file": true,
+      "A_BYPASS_RAW_config_hash_matches": true,
+      "A_BYPASS_RAW_ckpt_hash_matches_record": true,
+      "A_BYPASS_RAW_calls_valid": true,
+      "on_noa_common_identity_matches": true,
+      "current_checkpoint_matches": true,
+      "factor1_training_manifest": true,
+      "scene_hqnr_mean_matches": true
+    },
+    "passed": true,
+    "limitations": [
+      "RR dataset hash not in original identity",
+      "precision/environment not fully recorded",
+      "no remote/source-server certification"
+    ]
+  },
+  {
+    "run": "PAKD50_QRC24_S1_A_FREEZE_W104_D121_WV3_T0_S1234_FRESH50_v1",
+    "checks": {
+      "A_ON_rr_n20": true,
+      "A_ON_rr_record_matches_file": true,
+      "A_ON_fr_n20": true,
+      "A_ON_fr_record_matches_file": true,
+      "A_ON_config_hash_matches": true,
+      "A_ON_ckpt_hash_matches_record": true,
+      "A_ON_calls_valid": true,
+      "A_BYPASS_RAW_rr_n20": true,
+      "A_BYPASS_RAW_rr_record_matches_file": true,
+      "A_BYPASS_RAW_fr_n20": true,
+      "A_BYPASS_RAW_fr_record_matches_file": true,
+      "A_BYPASS_RAW_config_hash_matches": true,
+      "A_BYPASS_RAW_ckpt_hash_matches_record": true,
+      "A_BYPASS_RAW_calls_valid": true,
+      "on_noa_common_identity_matches": true,
+      "current_checkpoint_matches": true,
+      "factor1_training_manifest": true,
+      "scene_hqnr_mean_matches": true
+    },
+    "passed": true,
+    "limitations": [
+      "RR dataset hash not in original identity",
+      "precision/environment not fully recorded",
+      "no remote/source-server certification"
+    ]
+  },
+  {
+    "run": "PAKD50_QRC24_S1_A_FREEZE_W104_D121_WV3_T0_S3407_FRESH50_v1",
+    "checks": {
+      "A_ON_rr_n20": true,
+      "A_ON_rr_record_matches_file": true,
+      "A_ON_fr_n20": true,
+      "A_ON_fr_record_matches_file": true,
+      "A_ON_config_hash_matches": true,
+      "A_ON_ckpt_hash_matches_record": true,
+      "A_ON_calls_valid": true,
+      "A_BYPASS_RAW_rr_n20": true,
+      "A_BYPASS_RAW_rr_record_matches_file": true,
+      "A_BYPASS_RAW_fr_n20": true,
+      "A_BYPASS_RAW_fr_record_matches_file": true,
+      "A_BYPASS_RAW_config_hash_matches": true,
+      "A_BYPASS_RAW_ckpt_hash_matches_record": true,
+      "A_BYPASS_RAW_calls_valid": true,
+      "on_noa_common_identity_matches": true,
+      "current_checkpoint_matches": true,
+      "factor1_training_manifest": true,
+      "scene_hqnr_mean_matches": true
+    },
+    "passed": true,
+    "limitations": [
+      "RR dataset hash not in original identity",
+      "precision/environment not fully recorded",
+      "no remote/source-server certification"
+    ]
+  },
+  {
+    "run": "PAKD50_QRC24_S1_A_SHUF_W104_D121_WV3_T0_S1234_FRESH50_v1",
+    "checks": {
+      "A_ON_rr_n20": true,
+      "A_ON_rr_record_matches_file": true,
+      "A_ON_fr_n20": true,
+      "A_ON_fr_record_matches_file": true,
+      "A_ON_config_hash_matches": true,
+      "A_ON_ckpt_hash_matches_record": true,
+      "A_ON_calls_valid": true,
+      "A_BYPASS_RAW_rr_n20": true,
+      "A_BYPASS_RAW_rr_record_matches_file": true,
+      "A_BYPASS_RAW_fr_n20": true,
+      "A_BYPASS_RAW_fr_record_matches_file": true,
+      "A_BYPASS_RAW_config_hash_matches": true,
+      "A_BYPASS_RAW_ckpt_hash_matches_record": true,
+      "A_BYPASS_RAW_calls_valid": true,
+      "on_noa_common_identity_matches": true,
+      "current_checkpoint_matches": true,
+      "factor1_training_manifest": true,
+      "scene_hqnr_mean_matches": true
+    },
+    "passed": true,
+    "limitations": [
+      "RR dataset hash not in original identity",
+      "precision/environment not fully recorded",
+      "no remote/source-server certification"
+    ]
+  },
+  {
+    "run": "PAKD50_QRC24_S1_A_SHUF_W104_D121_WV3_T0_S3407_FRESH50_v1",
+    "checks": {
+      "A_ON_rr_n20": true,
+      "A_ON_rr_record_matches_file": true,
+      "A_ON_fr_n20": true,
+      "A_ON_fr_record_matches_file": true,
+      "A_ON_config_hash_matches": true,
+      "A_ON_ckpt_hash_matches_record": true,
+      "A_ON_calls_valid": true,
+      "A_BYPASS_RAW_rr_n20": true,
+      "A_BYPASS_RAW_rr_record_matches_file": true,
+      "A_BYPASS_RAW_fr_n20": true,
+      "A_BYPASS_RAW_fr_record_matches_file": true,
+      "A_BYPASS_RAW_config_hash_matches": true,
+      "A_BYPASS_RAW_ckpt_hash_matches_record": true,
+      "A_BYPASS_RAW_calls_valid": true,
+      "on_noa_common_identity_matches": true,
+      "current_checkpoint_matches": true,
+      "factor1_training_manifest": true,
+      "scene_hqnr_mean_matches": true
+    },
+    "passed": true,
+    "limitations": [
+      "RR dataset hash not in original identity",
+      "precision/environment not fully recorded",
+      "no remote/source-server certification"
+    ]
+  },
+  {
+    "run": "PAKD50_QRC24_S1_A_UNIF_W104_D121_WV3_T0_S1234_FRESH50_v1",
+    "checks": {
+      "A_ON_rr_n20": true,
+      "A_ON_rr_record_matches_file": true,
+      "A_ON_fr_n20": true,
+      "A_ON_fr_record_matches_file": true,
+      "A_ON_config_hash_matches": true,
+      "A_ON_ckpt_hash_matches_record": true,
+      "A_ON_calls_valid": true,
+      "A_BYPASS_RAW_rr_n20": true,
+      "A_BYPASS_RAW_rr_record_matches_file": true,
+      "A_BYPASS_RAW_fr_n20": true,
+      "A_BYPASS_RAW_fr_record_matches_file": true,
+      "A_BYPASS_RAW_config_hash_matches": true,
+      "A_BYPASS_RAW_ckpt_hash_matches_record": true,
+      "A_BYPASS_RAW_calls_valid": true,
+      "on_noa_common_identity_matches": true,
+      "current_checkpoint_matches": true,
+      "factor1_training_manifest": true,
+      "scene_hqnr_mean_matches": true
+    },
+    "passed": true,
+    "limitations": [
+      "RR dataset hash not in original identity",
+      "precision/environment not fully recorded",
+      "no remote/source-server certification"
+    ]
+  },
+  {
+    "run": "PAKD50_QRC24_S1_A_UNIF_W104_D121_WV3_T0_S3407_FRESH50_v1",
+    "checks": {
+      "A_ON_rr_n20": true,
+      "A_ON_rr_record_matches_file": true,
+      "A_ON_fr_n20": true,
+      "A_ON_fr_record_matches_file": true,
+      "A_ON_config_hash_matches": true,
+      "A_ON_ckpt_hash_matches_record": true,
+      "A_ON_calls_valid": true,
+      "A_BYPASS_RAW_rr_n20": true,
+      "A_BYPASS_RAW_rr_record_matches_file": true,
+      "A_BYPASS_RAW_fr_n20": true,
+      "A_BYPASS_RAW_fr_record_matches_file": true,
+      "A_BYPASS_RAW_config_hash_matches": true,
+      "A_BYPASS_RAW_ckpt_hash_matches_record": true,
+      "A_BYPASS_RAW_calls_valid": true,
+      "on_noa_common_identity_matches": true,
+      "current_checkpoint_matches": true,
+      "factor1_training_manifest": true,
+      "scene_hqnr_mean_matches": true
+    },
+    "passed": true,
+    "limitations": [
+      "RR dataset hash not in original identity",
+      "precision/environment not fully recorded",
+      "no remote/source-server certification"
+    ]
+  },
+  {
+    "run": "PAKD50_QRC24_S1_G21_W104_D121_WV3_T0_S1234_FRESH50_v1",
+    "checks": {
+      "A_ON_rr_n20": true,
+      "A_ON_rr_record_matches_file": true,
+      "A_ON_fr_n20": true,
+      "A_ON_fr_record_matches_file": true,
+      "A_ON_config_hash_matches": true,
+      "A_ON_ckpt_hash_matches_record": true,
+      "A_ON_calls_valid": true,
+      "A_BYPASS_RAW_rr_n20": true,
+      "A_BYPASS_RAW_rr_record_matches_file": true,
+      "A_BYPASS_RAW_fr_n20": true,
+      "A_BYPASS_RAW_fr_record_matches_file": true,
+      "A_BYPASS_RAW_config_hash_matches": true,
+      "A_BYPASS_RAW_ckpt_hash_matches_record": true,
+      "A_BYPASS_RAW_calls_valid": true,
+      "on_noa_common_identity_matches": true,
+      "current_checkpoint_matches": true,
+      "factor1_training_manifest": true,
+      "scene_hqnr_mean_matches": true
+    },
+    "passed": true,
+    "limitations": [
+      "RR dataset hash not in original identity",
+      "precision/environment not fully recorded",
+      "no remote/source-server certification"
+    ]
+  },
+  {
+    "run": "PAKD50_QRC24_S1_G22_W104_D121_WV3_T0_S1234_FRESH50_v1",
+    "checks": {
+      "A_ON_rr_n20": true,
+      "A_ON_rr_record_matches_file": true,
+      "A_ON_fr_n20": true,
+      "A_ON_fr_record_matches_file": true,
+      "A_ON_config_hash_matches": true,
+      "A_ON_ckpt_hash_matches_record": true,
+      "A_ON_calls_valid": true,
+      "A_BYPASS_RAW_rr_n20": true,
+      "A_BYPASS_RAW_rr_record_matches_file": true,
+      "A_BYPASS_RAW_fr_n20": true,
+      "A_BYPASS_RAW_fr_record_matches_file": true,
+      "A_BYPASS_RAW_config_hash_matches": true,
+      "A_BYPASS_RAW_ckpt_hash_matches_record": true,
+      "A_BYPASS_RAW_calls_valid": true,
+      "on_noa_common_identity_matches": true,
+      "current_checkpoint_matches": true,
+      "factor1_training_manifest": true,
+      "scene_hqnr_mean_matches": true
+    },
+    "passed": true,
+    "limitations": [
+      "RR dataset hash not in original identity",
+      "precision/environment not fully recorded",
+      "no remote/source-server certification"
+    ]
+  },
+  {
+    "run": "PAKD50_QRC24_S1_G22_W104_D121_WV3_T0_S3407_FRESH50_v1",
+    "checks": {
+      "A_ON_rr_n20": true,
+      "A_ON_rr_record_matches_file": true,
+      "A_ON_fr_n20": true,
+      "A_ON_fr_record_matches_file": true,
+      "A_ON_config_hash_matches": true,
+      "A_ON_ckpt_hash_matches_record": true,
+      "A_ON_calls_valid": true,
+      "A_BYPASS_RAW_rr_n20": true,
+      "A_BYPASS_RAW_rr_record_matches_file": true,
+      "A_BYPASS_RAW_fr_n20": true,
+      "A_BYPASS_RAW_fr_record_matches_file": true,
+      "A_BYPASS_RAW_config_hash_matches": true,
+      "A_BYPASS_RAW_ckpt_hash_matches_record": true,
+      "A_BYPASS_RAW_calls_valid": true,
+      "on_noa_common_identity_matches": true,
+      "current_checkpoint_matches": true,
+      "factor1_training_manifest": true,
+      "scene_hqnr_mean_matches": true
+    },
+    "passed": true,
+    "limitations": [
+      "RR dataset hash not in original identity",
+      "precision/environment not fully recorded",
+      "no remote/source-server certification"
+    ]
+  },
+  {
+    "run": "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1",
+    "checks": {
+      "A_ON_rr_n20": true,
+      "A_ON_rr_record_matches_file": true,
+      "A_ON_fr_n20": true,
+      "A_ON_fr_record_matches_file": true,
+      "A_ON_config_hash_matches": true,
+      "A_ON_ckpt_hash_matches_record": true,
+      "A_ON_calls_valid": true,
+      "A_BYPASS_RAW_rr_n20": true,
+      "A_BYPASS_RAW_rr_record_matches_file": true,
+      "A_BYPASS_RAW_fr_n20": true,
+      "A_BYPASS_RAW_fr_record_matches_file": true,
+      "A_BYPASS_RAW_config_hash_matches": true,
+      "A_BYPASS_RAW_ckpt_hash_matches_record": true,
+      "A_BYPASS_RAW_calls_valid": true,
+      "on_noa_common_identity_matches": true,
+      "current_checkpoint_matches": true,
+      "factor1_training_manifest": true,
+      "scene_hqnr_mean_matches": true
+    },
+    "passed": true,
+    "limitations": [
+      "RR dataset hash not in original identity",
+      "precision/environment not fully recorded",
+      "no remote/source-server certification"
+    ]
+  },
+  {
+    "run": "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S3407_FRESH50_v1",
+    "checks": {
+      "A_ON_rr_n20": true,
+      "A_ON_rr_record_matches_file": true,
+      "A_ON_fr_n20": true,
+      "A_ON_fr_record_matches_file": true,
+      "A_ON_config_hash_matches": true,
+      "A_ON_ckpt_hash_matches_record": true,
+      "A_ON_calls_valid": true,
+      "A_BYPASS_RAW_rr_n20": true,
+      "A_BYPASS_RAW_rr_record_matches_file": true,
+      "A_BYPASS_RAW_fr_n20": true,
+      "A_BYPASS_RAW_fr_record_matches_file": true,
+      "A_BYPASS_RAW_config_hash_matches": true,
+      "A_BYPASS_RAW_ckpt_hash_matches_record": true,
+      "A_BYPASS_RAW_calls_valid": true,
+      "on_noa_common_identity_matches": true,
+      "current_checkpoint_matches": true,
+      "factor1_training_manifest": true,
+      "scene_hqnr_mean_matches": true
+    },
+    "passed": true,
+    "limitations": [
+      "RR dataset hash not in original identity",
+      "precision/environment not fully recorded",
+      "no remote/source-server certification"
+    ]
+  }
+]

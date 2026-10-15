@@ -1,0 +1,29 @@
+{
+  "ids": [
+    45,
+    248,
+    15371,
+    117,
+    18296,
+    3817,
+    18673,
+    9041,
+    11708,
+    10998,
+    18599,
+    18889,
+    17126,
+    4362,
+    10751,
+    1794
+  ],
+  "old_cache_vs_parity16_max_abs": 1.6689300537109375e-05,
+  "old_cache_vs_groups64_max_abs": 0.0,
+  "groups16_vs_parity16_max_abs": 0.0,
+  "repeat16_max_abs": 0.0,
+  "groups16_pass": true,
+  "atol": 3e-06,
+  "rtol": 2e-05,
+  "checkpoint_sha": "0fb973376f9f00947d295620d96062b621145607aee311e28c889caefb656dab",
+  "source_sha": "0cf7bf2af1a81036a115b3b9a181c4cc0d3f292e7a7927383f25c5819dee9d8c"
+}

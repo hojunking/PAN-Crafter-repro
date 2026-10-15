@@ -1,0 +1,10 @@
+{
+  "qrecon24_target_selection.json": {
+    "sha256": "5d2a06ce2168b89f9a4e282e5ad915dffc64dc40d77ecf35b52d35f42c7a4047",
+    "source": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1/results/qrecon24_target_selection.json"
+  },
+  "qrecon24_target_selection_HQNR9585_ERGAS2040_v2.json": {
+    "sha256": "9806982b05ac2b7e4e7c3b957d0637b479cb5c9f63d356d86c862167de9e2a59",
+    "source": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1/results/qrecon24_target_selection_HQNR9585_ERGAS2040_v2.json"
+  }
+}

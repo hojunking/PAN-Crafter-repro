@@ -1,0 +1,14 @@
+{
+  "results_log/2026-09-09_alignment-analysis-and-new-baseline.md": "427ba6e6af092b3e14be7a8943867d868dcd7120d9524ab8daefd473ccd92dca",
+  "results_log/2026-09-10_pa-a1-a3-s1-results.md": "3fd15614bf37ebecd9a96af0d726302cedc13ae7d4696f30ff2559819e6a539e",
+  "results_log/2026-09-12_s1_alignment-axis-verdict.md": "4f0495d9440304f808fbfd2c2d3cc02caff298c2106f13f7e1b3b7009d31fab6",
+  "results_log/2026-09-13_s1_pals24-lambda-sweep.md": "fb38790e4454d93b61a6e0ab62c348b8d624dccaa45687d3913880732ee49cc8",
+  "results_log/2026-09-14_palsv18-lambda-confirmed-and-na104-null.md": "3a1c60381bcfcf01ac318ad93d94c4f95e3ed844bd62dfd2d2551f05657b6af1",
+  "results_log/2026-09-15_s1_eqrec4-results.md": "152fb2a33b40b538450b061ba183696401aa43df1f052ed1ffa353b538ff2057",
+  "results_log/2026-09-17_pan-aligner-method-audit.md": "2bbebf43a69602ad0b1f5cf02036a2d38d660064e464083f8804096c3fdccb15",
+  "research_log/PAN_AllServers_StudentEval_AlignerAnalysis_CurrentMethod_Integrated_2026-09-18.md": "bdbd6794cd6b36138244adbc900a7b009e511122897b55eb7cf19350ba4578fa",
+  "tools/s1_aligner_analysis.py": "eb69d53a260e7f5f282aa9501d2476f3d6a73b2aa08d9cb4eb8736f6a6930012",
+  "tools/noa_eval.py": "7c9af7df7097ef857335fe977fbed484ef98c98793a4abd80fe67a9ca5f0ad6b",
+  "tools/eqrec4_visuals.py": "b3c692c4356eccaed3c929e143c82d35cfc13ef0e885353322de43032a0e5c20",
+  "tools/qrecon24_version_audit.py": "6d5df0951ed032a20507dd305df4882d2fdd7467440c262f5a06ee2d6d661e92"
+}

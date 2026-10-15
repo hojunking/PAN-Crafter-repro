@@ -1,0 +1,105 @@
+{
+ "teacher_id": "T0",
+ "rec": {
+  "tau_R": 0.012463942170143127,
+  "source": "config",
+  "tau_scale": 1.0,
+  "tau_R_used": 0.012463942170143127
+ },
+ "stat": {
+  "tau_V": 1.0,
+  "eps_V": 1e-06,
+  "degenerate": false,
+  "note": "signed edge: criterion \ubbf8\uc0ac\uc6a9(H \ub9cc)",
+  "kind": "edge",
+  "from_cache": true,
+  "source": "calibrate",
+  "windows": [
+   5
+  ],
+  "transform": "none",
+  "transform_eps": 1e-12,
+  "domain": "final_hrms",
+  "per_window": {
+   "5": {
+    "tau_V": 1.0,
+    "eps_V": 1e-06,
+    "degenerate": false,
+    "note": "signed edge: criterion \ubbf8\uc0ac\uc6a9(H \ub9cc)",
+    "kind": "edge",
+    "from_cache": true,
+    "source": "calibrate"
+   }
+  }
+ },
+ "lambda": {
+  "lambda_V": 0.001,
+  "source": "config",
+  "lambda_scale": 1.0
+ },
+ "qrecon": {
+  "mode": "continuous_v1",
+  "formula": "w_i = 2*qref/(qref + q_T(i)); q_T = frozen T0 aligner AXIS16 raw q (cue asset), sg",
+  "qref": 0.3276133416220546,
+  "a_weight": "q",
+  "e_weight": "q",
+  "asset": "assets/qedge9/cue_T0_AXIS16_v1.json",
+  "asset_id": "526dbd718af54c4a0c3eb5fd81778caa",
+  "npz_sha256": "b83cc5d1a25e8766d1813c9d19d956efc24e0f152553e53c4894fa18dcdf563e",
+  "q_source": "T0 aligner (frozen) raw q",
+  "A_loss": "weighted_H_only",
+  "A_soft": 0,
+  "A_edge": 0,
+  "student_offset": 0,
+  "stats": {
+   "qref": 0.3276133416220546,
+   "theta_q_asset": 0.3276133416220546,
+   "q_min": 0.2708114506676793,
+   "q_max": 0.49714307906106114,
+   "q_mean": 0.3307763594697438,
+   "w_min": 0.7944487206312486,
+   "w_max": 1.0949190135272238,
+   "w_mean_all": 0.9963145500502989,
+   "w_mean_calib": 0.9964272209889596,
+   "w_at_qref": 1.0,
+   "w_shuffle_mean_all": 0.996314550050299,
+   "w_sha256_16": "e96bc6742477d497",
+   "w_shuffle_sha256_16": "a31a3897570c52f7",
+   "shuffle": {
+    "n_strata": 40,
+    "n_shuffled": 40,
+    "n_degenerate": 0,
+    "n_small": 0,
+    "n_views_shuffled": 38856,
+    "seed": 51515
+   },
+   "multiset_preserved": true,
+   "n_views": 38856
+  },
+  "checks": {
+   "asset_id": "526dbd718af54c4a0c3eb5fd81778caa",
+   "teacher_aligner_hash": "493aca181f93ae68",
+   "teacher_view_margin": 4,
+   "train_sha256": "f9e7ec381390ff36ddffd0714df7af07a3c5f456078b219a25f3e18372228f82",
+   "feeder_contract": {
+    "hflip": true,
+    "vflip": true,
+    "rot": true,
+    "crop": false
+   }
+  },
+  "teacher": {
+   "run": "T0_run",
+   "tag": "best_hqnr",
+   "file_sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+   "tensors_sha256_16": "7d9b52112797bbff",
+   "aligner_state_hash": "493aca181f93ae68",
+   "aligner_view_margin": 4,
+   "selected_step": 24240,
+   "adapter": "predict_c(aligner, view(P, margin), view(bicubic\u21914 M, margin)) \u2014 Teacher forward \uc640 \ub3d9\uc77c; U \ub294 q \uc5d0 \uc4f0\uc9c0 \uc54a\uc74c"
+  },
+  "computed_at": "2026-09-15T15:50:48",
+  "source_server": "s1"
+ },
+ "calibration_set": null
+}

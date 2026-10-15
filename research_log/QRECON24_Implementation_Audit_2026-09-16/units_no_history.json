@@ -1,0 +1,7 @@
+{
+  "rc": 1,
+  "checks": 170,
+  "failures": [
+    "  FAIL K48c selector HQNR9585_RR_v1 proxy \ucd9c\ub825(\u00a77.2\u2013\u00a77.3; FQ S1234: \ud6c4\ubcf4 50, \uc801\uaca9 0, target_feasible false, official false, h_consistency(CSV raw H == fr_mat20 H) 0, legacy/raw-max/exact50K/late6 \ubcf4\uc874) \u2014 \uacf5\uc2dd RR 6 \uc9c0\ud45c \uacbd\ub85c(--official) \ub294 09-16 s1 \uac80\uc99d(best_hqnr \ud6c4\ubcf4 == \uc5c5\ub85c\ub354 _rr \uac12 \uc77c\uce58, \ub178\ud2b8 \u00a75) selector rc 1 !! /tmp/qrc24-audit-unit-k9ov50b7/work_dir/PAKD50_FQ_W112_D123_WV3_T0_S1234_FRESH50_v1/checkpoint_metrics.csv \uc5c6\uc74c"
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "at": "2026-09-15T16:25:30+0900",
+  "head": "433ad67f4ae0da7516e3c1dcaa6845af1ec1e837",
+  "files": [
+    {
+      "path": "CLAUDE.md",
+      "sha256": "b0014254924630c47496d14473359bd28d56d2983c286248c4ccf88497416126"
+    },
+    {
+      "path": "assets/pakd50/T0_run/meta/config.yaml",
+      "sha256": "c584d9e3405bc77774fc69a79367c1d243ebe27bdb8f98e18dc8d541764a8da4"
+    },
+    {
+      "path": "assets/pakd50/calibration_resolved.json",
+      "sha256": "dc76a3b02e16fa3d1b9fc8d91b24bb0b420db118d56af5d416e540f82f195ea8"
+    },
+    {
+      "path": "assets/pakd50/campaign_clock.json",
+      "sha256": "6a4fa08a11993531c9654ecdd36a0675fe9f9a518b0ffddb2e46a31c4d3bf4c3"
+    },
+    {
+      "path": "assets/pakd50/init_hashes.json",
+      "sha256": "6ad85577885cc716f5b67bf9f0e5a8e1d9b3f9f70c3b5e1b450ef5d3bc8cde7e"
+    },
+    {
+      "path": "assets/qedge9/cue_T0_AXIS16_v1.json",
+      "sha256": "5a1e299bce09b8f8a40d92763d2ab0476b422275649b72f1a0e41c827fcbf340"
+    },
+    {
+      "path": "assets/qedge9/cue_T0_AXIS16_v1.npz",
+      "sha256": "b83cc5d1a25e8766d1813c9d19d956efc24e0f152553e53c4894fa18dcdf563e"
+    },
+    {
+      "path": "config/PAKD50_J0_W104_D121_WV3_T0_S2026_FRESH50_v1.yaml",
+      "sha256": "323eaeaabead46fa5e1faf8645514d5feee3921a73f95eafda657a48ae4b71b8"
+    },
+    {
+      "path": "config/PAKD50_J0_W104_D121_WV3_T0_S777_FRESH50_v1.yaml",
+      "sha256": "2e62646a12cd3ab40e340b73df35588cf4f7ded16edc6a2833a408ce65aaa673"
+    },
+    {
+      "path": "config/PAKD50_JQ_W104_D121_WV3_T0_S2026_FRESH50_v1.yaml",
+      "sha256": "93df7cfc12ee04c029e0a17bb0ef05aea526214f141b52772db6e276618ce727"
+    },
+    {
+      "path": "config/PAKD50_JQ_W104_D121_WV3_T0_S777_FRESH50_v1.yaml",
+      "sha256": "ee5711c75375a3d118d617c095e75aea81414e0d5392b8272c9827dd89dc19a6"
+    },
+    {
+      "path": "config/PAKD50_QE50_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "083fcc8d23be28a15ac72a32963acef862d3ff9619463cb7caa1c020db99c9ff"
+    },
+    {
+      "path": "config/PAKD50_QE50_W104_D121_WV3_T0_S2026_FRESH50_v1.yaml",
+      "sha256": "54f6d099799419007c07d9adb6e1672ed923f875ab086e6526507cc5579b54f8"
+    },
+    {
+      "path": "config/PAKD50_QE50_W104_D121_WV3_T0_S777_FRESH50_v1.yaml",
+      "sha256": "c8a1a79ff9878b706c79d828fa58e984412cc21315d79da4a0a51b13861bc612"
+    },
+    {
+      "path": "config/PAKD50_QEC_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "6396a4753a7d65f20cedc43569d647d70c0be2003387a5077311c75724ac2fa7"
+    },
+    {
+      "path": "config/PAKD50_QES_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "0296b6bda110aef90528848e1db6d6e983d504b0adba3ecb8ffb1a6513d8fe8e"
+    },
+    {
+      "path": "feeders/feeder.py",
+      "sha256": "08ca231c582287f0ff23307eb7413738a674a48294862b02499aa24cf4e55ef1"
+    },
+    {
+      "path": "gspread/gspread_upload.py",
+      "sha256": "bb658bd779dbaddc90fe1778bb834c5498a9df857f39dbb44580a25368aee785"
+    },
+    {
+      "path": "gspread/sheet_categories.py",
+      "sha256": "3950b58b8349ad7bfd962443908916f96dfdcefce4cfd048fe4333c739021e1b"
+    },
+    {
+      "path": "kdv/calibration.py",
+      "sha256": "dc3b2b200bf747d215d87e25db46f28ebbf8de875eceff25d3468722192127d0"
+    },
+    {
+      "path": "kdv/edge_gate.py",
+      "sha256": "6f96e6a56081370c1bcd9e01cb7fd49d4d9469228ddb856ce1ab50075a2f6c61"
+    },
+    {
+      "path": "kdv/forward.py",
+      "sha256": "f29c09446e93fe40d97eb903242c8d306fe3d7d381744a13c46093284996ff52"
+    },
+    {
+      "path": "kdv/losses_rec.py",
+      "sha256": "092e68d3c96b7a145f1f6821ef0aa44c4dfc3658f8338670c2ee27f56ba52997"
+    },
+    {
+      "path": "kdv/registry.py",
+      "sha256": "cb3ba35b7d8bd83ad2857b922b3d872cbeba08a74eb4623df4b364426ee1e379"
+    },
+    {
+      "path": "kdv/teacher_assets.py",
+      "sha256": "616ee40abd022ada9a072ce0c063fe8e23537aa53e5698c4e5b71801fb144533"
+    },
+    {
+      "path": "main.py",
+      "sha256": "16675e5446a038f5372ea3e68cd37d92a8f907b3beca797cf618781c2ec5cbe3"
+    },
+    {
+      "path": "model/pancrafter_paper.py",
+      "sha256": "a766a01a5e21d86924bd87e41b064b58dcd0407d5b4cf3200e2d8aea22603de8"
+    },
+    {
+      "path": "pa/losses.py",
+      "sha256": "06eb9a117181355a899f2f0a24f8934b5867459f8fe645337aac2c8a0774279c"
+    },
+    {
+      "path": "pa/model.py",
+      "sha256": "e162cbc77e0b15af87f27ef7573b101c0b977cd171f679ff902c782f8a87a393"
+    },
+    {
+      "path": "pa/offset.py",
+      "sha256": "8e70f6999d311eaba9d9ff35fc7e4da05d2f0439fc1735d125a1342eec9b5dba"
+    },
+    {
+      "path": "pa/warp.py",
+      "sha256": "b7ea18eb1c09a9462763bfe0146454df2c6593c8dce9107328804a33ed02fcab"
+    },
+    {
+      "path": "research_log/2026-09-15_qedge9-implementation.md",
+      "sha256": "3b13850e5ff17201ababde3b4da30110d25221ab6bb8eee7b8e1d1348943fd18"
+    },
+    {
+      "path": "research_log/PAN_QEDGE9_W104D121_S5_S4_Experiment_Plan_2026-09-15.md",
+      "sha256": "15713b48082629c76305189357ff5b5dba28f611ffb2c8c5091b5a2da3e26d00"
+    },
+    {
+      "path": "tools/_run_cases.sh",
+      "sha256": "868d8ec365565d87820d39e00d75025fb261d64113d8390657b016ceef19b92a"
+    },
+    {
+      "path": "tools/_upload.sh",
+      "sha256": "c4506d6debc547f6917e189df9a45e4f5890d996be8e7479f711945dafa49fd9"
+    },
+    {
+      "path": "tools/_watchdog.sh",
+      "sha256": "f52bdb9c42542e0f50c963189818b5e7e1a14fccfd5a9822d79e4b783520a280"
+    },
+    {
+      "path": "tools/campaign_gate.py",
+      "sha256": "c45107e40969300c8ebed0b75d4d8a3fb63e6c1001fcb75d9091c065dfa6ba1e"
+    },
+    {
+      "path": "tools/campaign_start.sh",
+      "sha256": "14326a6ead50493504c93a78911c744a0376b8b1a0f636888b6d60584bfc345e"
+    },
+    {
+      "path": "tools/eqrec4/common.py",
+      "sha256": "589e1ce553a0e5a81f2536580f014261ab23fe8b2308b11d98beaaffad17ee3d"
+    },
+    {
+      "path": "tools/gen_pakd50_configs.py",
+      "sha256": "1cd277f6ad13c239fe75798755ade74f27b9df93dc1dd322d39f5d0cc31952e6"
+    },
+    {
+      "path": "tools/pakd50_reallocate.sh",
+      "sha256": "a1f2b88d61761169817258db25dd6c7b5b8d0236766a94ffd4554b14794c8667"
+    },
+    {
+      "path": "tools/pakd50_unit_tests.py",
+      "sha256": "e99a04bef76a7ca83bcc969b1efd12574081df757464e780b3c9c53bc2736790"
+    },
+    {
+      "path": "tools/qedge9_cue.py",
+      "sha256": "905c83f9f930c9223eb076646208587e9890038996cd09dfa9cdec485c54c9c1"
+    },
+    {
+      "path": "tools/qedge9_switch.sh",
+      "sha256": "cd2f297650b97f9ed122a1da3564003f9ede45c37446131e0a6e5d4679ac4bfa"
+    },
+    {
+      "path": "train_kdv.py",
+      "sha256": "34038c87bd321a67edb8f22c27c6456d4f703db42f43b048fb1d684a855a23ab"
+    },
+    {
+      "path": "train_pa.py",
+      "sha256": "a1c66c379f22e17c2171d9c2f0eccc5f016840d71ddf7df396717306e5b05be6"
+    }
+  ]
+}

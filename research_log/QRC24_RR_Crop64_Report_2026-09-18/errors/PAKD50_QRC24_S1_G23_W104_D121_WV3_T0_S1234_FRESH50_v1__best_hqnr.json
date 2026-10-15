@@ -1,0 +1,19 @@
+{
+  "asset": {
+    "run": "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1",
+    "server": "s1",
+    "profile": "G23",
+    "seed": 1234,
+    "checkpoint": "best_hqnr",
+    "step": 31310,
+    "panel": "existing_selected",
+    "snapshot": "assets/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1/best_hqnr",
+    "checkpoint_sha256": "b3bb5d615b15c3854ccd09889227fdfaaee4e3554f8a5816ec1192ba595ab09f",
+    "config_sha256": "77239295d3e0e837fb1c176420ac075693e271e23ce1d63d42f29ecb22392e2f",
+    "legacy_rr_mat": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1/results/reduced_best_hqnr.mat",
+    "selected_hqnr": 0.9591475525152621,
+    "definition": "single_definition_factor1"
+  },
+  "error": "ValueError('Expected a torch.device with a specified index or an integer, but got:cuda')",
+  "at": "2026-09-18T13:16:33.149236"
+}

@@ -1,0 +1,24 @@
+[
+  {
+    "sensor": "WV3",
+    "package": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST",
+    "archive": {
+      "path": "Ours_s1_WV3_raw_20260924_031541KST.zip",
+      "bytes": 700458970,
+      "sha256": "bd3f589ed6baa7b6d85f13942872a767df14957a81deace7b763953231d84a59",
+      "zip_crc_verified": true,
+      "file_count": 500
+    }
+  },
+  {
+    "sensor": "QB",
+    "package": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST",
+    "archive": {
+      "path": "Ours_s1_QB_raw_20260924_031541KST.zip",
+      "bytes": 403967357,
+      "sha256": "af6323c499ffdff33551bd429085885eed49bbd935b41eb5b9e477238c618cc5",
+      "zip_crc_verified": true,
+      "file_count": 499
+    }
+  }
+]

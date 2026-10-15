@@ -1,0 +1,76 @@
+{
+ "run": "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S3407_FRESH50_v1",
+ "selector": "HQNR9585_RR_v1",
+ "threshold": 0.9585,
+ "official": false,
+ "target_status": "no_eligible",
+ "n_candidates": 50,
+ "n_eligible": 0,
+ "n_official_evaluated": 0,
+ "n_unevaluated": 0,
+ "target_feasible": false,
+ "target": null,
+ "proxy_target": null,
+ "six_pass_best": null,
+ "legacy_best": {
+  "step": 19190,
+  "hqnr": 0.9561959050996007,
+  "fr_mat20_hqnr": 0.9561959050996007
+ },
+ "h_consistency": {
+  "step": 19190,
+  "csv_hqnr": 0.9561959050996007,
+  "fr_mat20_hqnr": 0.9561959050996007,
+  "abs_diff": 0.0
+ },
+ "raw_max": {
+  "step": 18180,
+  "hqnr": 0.9562715132522916
+ },
+ "exact50K": {
+  "step": 50000,
+  "hqnr": 0.9544831701184009,
+  "scc": 0.9910834497327965,
+  "ergas": 2.0456575574220452
+ },
+ "late6": {
+  "steps": [
+   45450,
+   46460,
+   47470,
+   48480,
+   49490,
+   50000
+  ],
+  "n": 6,
+  "hqnr_mean": 0.95454462179775
+ },
+ "eligible_ranked": [],
+ "eligible_unevaluated": [],
+ "evaluator": {
+  "eval_rr": "a64a95ffde9b7d0278fa883bda1acaf895cca74d2b07b79f56285c60e8ba0c4a",
+  "eval_dlpan": "5671d44da1026653ac028ff97f81375420fa195a55fd3721ee8140904239fdab",
+  "gspread_upload": "9ccee1a6657886b4954e1b95505c2c66e0ab945c610965eee0621eba1a99d449",
+  "q2n": "89d1bf28a211e18a6fa8a2b6f8f7162f4b6716d15b2097888e773f1f73be10d1",
+  "eval_fr_paperset_version": "2026-09-10.5"
+ },
+ "rr_eval_seconds_total": 0.0,
+ "notes": [],
+ "rr_targets": {
+  "scc": "> 0.988",
+  "ergas": "< 2.04",
+  "psnr": "> 37.956",
+  "sam": "< 2.787",
+  "q8": "> 0.922",
+  "ssim": "> 0.976"
+ },
+ "display_decimals": {
+  "scc": 3,
+  "ergas": 3,
+  "psnr": 3,
+  "sam": 3,
+  "q8": 3,
+  "ssim": 3
+ },
+ "note": "같은 checkpoint 의 raw H(mat20 전체 frame) 하한 통과 뒤 RR 정렬; legacy/raw-max/exact50K/late6 는 보존·병기 (§7.2–§7.3). FR fSCC 와 RR SCC 는 다른 값이다. 공식 RR 는 candidate checkpoint 재추론(hash 로 캐시 검증)."
+}

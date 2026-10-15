@@ -1,0 +1,607 @@
+{
+  "checked_at_utc": "2026-09-20T03:49:52.749119+00:00",
+  "status": {
+    "campaign_id": "PANDA_QG40_20260920_v1",
+    "server_id": "s2",
+    "status": "BLOCKED_INTEGRITY",
+    "runs": {},
+    "blocks": {},
+    "observations": [],
+    "active_processes": [
+      {
+        "pid": 1643,
+        "script": "main.py",
+        "waiting_controller": false
+      }
+    ],
+    "gpu_processes": [],
+    "reason": "ValueError: Local reference import failed; inspect reference_import.log"
+  },
+  "preflight": {
+    "complete": true,
+    "status": "LOCAL_READY",
+    "server_id": "s2",
+    "sensor": "QB",
+    "at_utc": "2026-09-20T03:31:38.914241+00:00",
+    "source_identity": {
+      "content_sha256": "0cf7bf2af1a81036a115b3b9a181c4cc0d3f292e7a7927383f25c5819dee9d8c"
+    },
+    "sensor_spec_sha256": "f27dc9b618d6178da883a1a5e0c621c05b2d5a7cfb67e16c146029ad71c37af0",
+    "dataset_manifest_sha256": "6dc15e1753b7c1c72b5f675dfb20ffa21491819fa590c52fae09cb31e810c73e",
+    "method_tests": 26,
+    "real_native_forward": true,
+    "device": "cuda",
+    "performance_gate": false,
+    "cross_server_barrier": false
+  },
+  "gpu": "0 %, 701 MiB, 65536 MiB\n",
+  "gpu_processes": "1643, .venv/bin/python, 280 MiB\n209531, /mnt/nvme/projects/conda/envs/fly-cube/bin/python3.11, 364 MiB\n",
+  "container": "pan-qg40-s2-20260920 Exited (2) 18 minutes ago\n",
+  "qg_train_processes": [],
+  "cpu_import": {
+    "published": false,
+    "probe_parity": {
+      "output": 6.556510925292969e-7,
+      "delta": 1.1175870895385742e-8,
+      "atol": 0.000003,
+      "rtol": 0.00002,
+      "pass": true
+    },
+    "q_cache_online_parity": {
+      "schema": "QG40_QCACHE_ONLINE_PARITY_v1",
+      "status": "MEASURED",
+      "passed": true,
+      "synthetic_test": false,
+      "reference_identity": {
+        "reference_id": "QB_TA",
+        "teacher_run_id": "QGBASE_QB_TA_P0_W112_D123_TS81001_FRESH50_v1",
+        "teacher_checkpoint_sha256": "426b6f721a73eaacb4686c901e8930f0079da859801479f4259965da49eca065",
+        "q_cache_sha256": "f1aa0e5fb96bd65ef87232fb77a7257d511be21bc1131d7c5b088dfcb4cd2189",
+        "source_content_sha256": "0cf7bf2af1a81036a115b3b9a181c4cc0d3f292e7a7927383f25c5819dee9d8c"
+      },
+      "data_identity": "4ca21c1d4547059dcecc778e3ee1643527cdfcf273db2ab3faf84193cc1db290",
+      "base_count": 17139,
+      "seed": 271828,
+      "indices": [
+        39,
+        214,
+        13297,
+        101,
+        15829,
+        3302,
+        16154,
+        7821,
+        10129,
+        9515,
+        16092,
+        16342,
+        14818,
+        3774,
+        9301,
+        1552
+      ],
+      "indices_sha256": "f5a259dd48e9b23fabf00566c99fca8accd52bf04da01864f08ec36c71434ba8",
+      "views": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "augmentation": {
+        "id": "FH12_LEGACY_FIXED_HV_ROT4_v1",
+        "crop": false,
+        "hflip": true,
+        "vflip": true,
+        "rotations": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "order": [
+          "horizontal_flip",
+          "vertical_flip",
+          "np.rot90"
+        ],
+        "integer_index": "base_no_augmentation",
+        "tuple_index": "fixed_HV_then_rot"
+      },
+      "augmentation_sha256": "da89aab427ad38d13cf61051387b53933d7b4d1a79f98d5cd3d06711dfc4b18a",
+      "AXIS16": [
+        [
+          0.25,
+          0
+        ],
+        [
+          -0.25,
+          0
+        ],
+        [
+          0,
+          0.25
+        ],
+        [
+          0,
+          -0.25
+        ],
+        [
+          0.5,
+          0
+        ],
+        [
+          -0.5,
+          0
+        ],
+        [
+          0,
+          0.5
+        ],
+        [
+          0,
+          -0.5
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          -2,
+          0
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          -2
+        ]
+      ],
+      "units": "HR_PAN_PIXELS",
+      "cached_q": [
+        [
+          0.45717599987983704,
+          0.4548131823539734,
+          0.4515150189399719,
+          0.4517020583152771
+        ],
+        [
+          0.4496832489967346,
+          0.4494480490684509,
+          0.4482402205467224,
+          0.449783056974411
+        ],
+        [
+          0.45445990562438965,
+          0.45514926314353943,
+          0.45275941491127014,
+          0.4558164179325104
+        ],
+        [
+          0.45337870717048645,
+          0.45173007249832153,
+          0.45362743735313416,
+          0.4508649706840515
+        ],
+        [
+          0.458666056394577,
+          0.4599514603614807,
+          0.459504097700119,
+          0.4616677463054657
+        ],
+        [
+          0.46090537309646606,
+          0.4577108919620514,
+          0.4602411985397339,
+          0.45907098054885864
+        ],
+        [
+          0.4586111605167389,
+          0.45489493012428284,
+          0.45747441053390503,
+          0.4559588134288788
+        ],
+        [
+          0.45934945344924927,
+          0.4587370455265045,
+          0.45923954248428345,
+          0.4564461410045624
+        ],
+        [
+          0.46338507533073425,
+          0.46438339352607727,
+          0.46523725986480713,
+          0.46437937021255493
+        ],
+        [
+          0.45558059215545654,
+          0.4535648822784424,
+          0.4521159529685974,
+          0.4545295238494873
+        ],
+        [
+          0.46038591861724854,
+          0.45700424909591675,
+          0.4587118327617645,
+          0.4586986005306244
+        ],
+        [
+          0.4560104310512543,
+          0.4524776041507721,
+          0.4520851969718933,
+          0.4539809226989746
+        ],
+        [
+          0.4624866247177124,
+          0.46247291564941406,
+          0.46150076389312744,
+          0.46225717663764954
+        ],
+        [
+          0.45501163601875305,
+          0.45428699254989624,
+          0.4538101553916931,
+          0.45733708143234253
+        ],
+        [
+          0.46358704566955566,
+          0.4607604742050171,
+          0.46143269538879395,
+          0.46132367849349976
+        ],
+        [
+          0.45183414220809937,
+          0.4524719715118408,
+          0.45226532220840454,
+          0.452629953622818
+        ]
+      ],
+      "online_q": [
+        [
+          0.45717573165893555,
+          0.45481353998184204,
+          0.4515153765678406,
+          0.45170217752456665
+        ],
+        [
+          0.4496839642524719,
+          0.4494480788707733,
+          0.4482400417327881,
+          0.4497828781604767
+        ],
+        [
+          0.4544590711593628,
+          0.45515066385269165,
+          0.4527595341205597,
+          0.45581549406051636
+        ],
+        [
+          0.453378289937973,
+          0.4517287015914917,
+          0.45362699031829834,
+          0.45086532831192017
+        ],
+        [
+          0.4586658775806427,
+          0.45995044708251953,
+          0.4595041871070862,
+          0.4616682827472687
+        ],
+        [
+          0.46090543270111084,
+          0.45771142840385437,
+          0.4602418839931488,
+          0.45907020568847656
+        ],
+        [
+          0.4586105942726135,
+          0.45489662885665894,
+          0.4574749171733856,
+          0.4559570252895355
+        ],
+        [
+          0.4593490958213806,
+          0.45873764157295227,
+          0.4592396020889282,
+          0.4564454257488251
+        ],
+        [
+          0.46338507533073425,
+          0.4643832743167877,
+          0.46523624658584595,
+          0.4643784165382385
+        ],
+        [
+          0.45558038353919983,
+          0.4535646438598633,
+          0.45211583375930786,
+          0.4545285999774933
+        ],
+        [
+          0.4603872299194336,
+          0.45700520277023315,
+          0.45871177315711975,
+          0.4586973786354065
+        ],
+        [
+          0.45600998401641846,
+          0.45247742533683777,
+          0.4520854353904724,
+          0.4539804756641388
+        ],
+        [
+          0.46248677372932434,
+          0.46247318387031555,
+          0.46150168776512146,
+          0.46225684881210327
+        ],
+        [
+          0.4550107717514038,
+          0.45428740978240967,
+          0.4538097679615021,
+          0.4573362469673157
+        ],
+        [
+          0.4635881781578064,
+          0.460759699344635,
+          0.4614332318305969,
+          0.46132296323776245
+        ],
+        [
+          0.45183348655700684,
+          0.4524726867675781,
+          0.45226573944091797,
+          0.4526301324367523
+        ]
+      ],
+      "max_abs_error": 0.0000017881393432617188,
+      "atol": 0.000003,
+      "rtol": 0.00002,
+      "note": "Actual frozen Teacher and local fixed-HV/rotation views; no quality gate"
+    }
+  },
+  "lp_diagnostics": [
+    {
+      "server": "s2",
+      "at_utc": "2026-09-20T03:49:13.323871+00:00",
+      "opencv": "4.10.0",
+      "opencv_build_sha256": "48f8ec94132cbcc9234820dc03d1cb766767c898c1239bac89fd1e3fa6e90e9e",
+      "cpu_features": "SSE SSE2 SSE3 *SSE4.1 *SSE4.2 *FP16 *AVX *AVX2 *AVX512-SKX?",
+      "ipp": "ippIP AVX2 (l9) 2021.11.0 (-) Feb  1 2024",
+      "ipp_use": true,
+      "cpu": [
+        "model name\t: AMD Ryzen 9 5900X 12-Core Processor"
+      ],
+      "source_identity": {
+        "files": {
+          "fh12/__init__.py": "ce2ad5ca08a031014691bd98db6df783de2e65ac7a1e23237f63bc8446857f3b",
+          "fh12/calibration.py": "7c771b819fd25d226b9f9c909c2ddf55a31cfcac545257989d059e2543890617",
+          "fh12/common.py": "992dc568c5733c058a9c63b665ed3c094db8e811d62d2c726297c56683a46200",
+          "fh12/data.py": "d38e3bb36b925e1b31f5fd1e99995eb1ca0be04d3d4517b9ee43aa04daddb3ae",
+          "fh12/evaluation.py": "c5370f768b05065bc5bf35ba3386206b6197a19fa659e891d730b3196787c9c0",
+          "fh12/losses.py": "8e9250ce03eaa27196572490aae77df0d42317fbda14d16ffdf94342cea76ab3",
+          "fh12/model.py": "4c53d96ede6facdf150825ef1480e6bcc0b028e88a987e64f8c1981882257495",
+          "fh12/plan.py": "34ad6dfb397abe940950dea81e48557dccf7e0fd834ef6fb37fe2a8dee4caa4d",
+          "fh12/postrun.py": "7a6c137e5731973d0a48c56fb1d47a91f704f476407b295ca6db656d444a2694",
+          "fh12/training.py": "1832d431a11b910bbcf71c1a731d09de4940060beff534e31800180fa7923222",
+          "fh12/upload.py": "19bf04c44c68a6e1a4f566d6babeabafee4ef6fd647ec64ce915f18934c49676",
+          "model/pancrafter_paper.py": "a766a01a5e21d86924bd87e41b064b58dcd0407d5b4cf3200e2d8aea22603de8",
+          "model/swin.py": "cdc270141d0209a34bec67b2a615fb51b23e30f4a0455398ba17c951252c2a99",
+          "model/pancrafter.py": "7bd4a28ff874e74602aefb319da1f93d620e78ca931bd24129f38b980492dd5a",
+          "pa/aligner.py": "ebf6b026b213dc857b5e9d39ba5d3070356a51092b11c32f3ffac0bb861faa2f",
+          "pa/warp.py": "b7ea18eb1c09a9462763bfe0146454df2c6593c8dce9107328804a33ed02fcab",
+          "pa/losses.py": "06eb9a117181355a899f2f0a24f8934b5867459f8fe645337aac2c8a0774279c",
+          "pa/offset.py": "8e70f6999d311eaba9d9ff35fc7e4da05d2f0439fc1735d125a1342eec9b5dba",
+          "tools/repair_lpan.py": "c7bab1542611c33fb50369160be3930043de449d13e963c7f125d83d9e018131",
+          "tools/eval_dlpan.py": "5671d44da1026653ac028ff97f81375420fa195a55fd3721ee8140904239fdab",
+          "tools/metrics/eval_rr.py": "a64a95ffde9b7d0278fa883bda1acaf895cca74d2b07b79f56285c60e8ba0c4a",
+          "tools/metrics/eval_fr.py": "b511d42b4db46d863c737b50606e9488c8ca5d9c7b07678ddc5bb7c1d9df01d4",
+          "tools/metrics/q2n.py": "89d1bf28a211e18a6fa8a2b6f8f7162f4b6716d15b2097888e773f1f73be10d1",
+          "qg40/__init__.py": "15d60ccf67faf5cb46da32a52d79b86b163169bf5c9a547a1fb7dc4dcdc1bc49",
+          "qg40/alignment_diagnostics.py": "64f7bcce94f51096c2d62e135d1e1a65fbc2b9ade1115311c9a392912e3f4e68",
+          "qg40/bootstrap.py": "48c8db1dc79fa02128df788796117c56d90a9b3e0fbddf85813035a5dcbd92c2",
+          "qg40/branch_evidence.py": "74e24518e03ad6d687771051bb5736c7556cd7b98553aaeda2ddd238be5a33da",
+          "qg40/calibration.py": "19d7a56c870da2f3ea393c744cc598e30d0801f70b3b6622dbf1821bd8c79a1c",
+          "qg40/common.py": "2436e46163b7ecff703d4a75d65046b4d945a57e62c3b6e69ee4c98f7c1b5334",
+          "qg40/controller.py": "d283452e691e7ccb99362cf9db7b90fe1b710173717abadaa13135e8fd87a00d",
+          "qg40/data.py": "f6e7cff272dff0ccb5da4cdf213e629fc7b60556254859e8a019448c9cdd8619",
+          "qg40/deployment.py": "290578232ceb5804278cf550ca21d05d8f5c9adecd773f795acc4e8d18791cf1",
+          "qg40/diagnostics.py": "0fef802725af82b05742e6181701c4fa10bcaf74affb99b2e035b88aa2db1688",
+          "qg40/error_distribution.py": "7e92de2e52675772a67f33aea0b16837aa0f865ff2d1e7398db98352eb78f71d",
+          "qg40/evaluation.py": "9dae7eedad2caf5b2d7b5b0687389789695bb72c26817a491d167a09f1f336c3",
+          "qg40/exposure.py": "03e09525ebfb670d18cb64a47413c4c85fcecd868eb2a9570b59c9c9a9885696",
+          "qg40/input_distribution.py": "25349a65c3c15df810b514d8435628181950b3ff85acfc461823195e441547ff",
+          "qg40/losses.py": "5db94f360564ac6bc764f2264e839dca98b9b114874c2d0da7e9535ad05e9472",
+          "qg40/model.py": "1fc6c83c552fc7035ee3d716991234e089f93608c378f9367ce08fe147c59b9c",
+          "qg40/p1.py": "a53ea22f96168e19f8b48ba8f310a8e51203464fe6b6e325766ef3f01399b4c4",
+          "qg40/phase_audit.py": "fc96d6061188918ef050fde345cfe889cd3c8dacf861da7568167a1411915448",
+          "qg40/plan.py": "f45e8423a317c9534b75c7f0c49d0de5d1f513b74b7cba8e1dcdcb1948ad6a4f",
+          "qg40/policy.py": "1f3e6b940e5f4298e5f0076609c11974032ea4716988e76107bbeec22363ed9e",
+          "qg40/postrun.py": "6a4c623843a630729473c183c4d39eec382f90f9f6bc9cbe1ed5b716b56f15db",
+          "qg40/preflight.py": "04a81ce8862f7c5d0c5908f5bdd8759674d236eeacf9798b0cc0dd1682b1772f",
+          "qg40/reference_parity.py": "5ede86f59ef4bc8ba190dcec3ff77190d7ef1367393b0d8641afa401edbab6d4",
+          "qg40/references.py": "a47acbe9e6d92ac379e2c499c94e7e0da288158c65bbbbbfb009d3591b2c2eec",
+          "qg40/resources.py": "dfa5924cd23519b45f92c79a398c7b0b9b3ad3e699216e19f6801b88696dc399",
+          "qg40/sheet_helpers.py": "2b4c2d536edec18ea96154bbb96128492e4b24474854c743ac58afe78cda9cb5",
+          "qg40/training.py": "2aae67907cdc912e365c3105ad6a8a09a3990f168aa586ae20b5e169e8938d49",
+          "qg40/upload.py": "ac630f3f46e2571648d5a02571a04b3b741be646955526eefa39fa3601182247",
+          "tools/qg40_runner.py": "243f20fc93488a79db8eb577bbe3a56c7faed839049fca41e2a41b0f453fc353",
+          "tools/metrics/__init__.py": "37a799c555396f30cb55cfdb64d9bc5089b009caf894aa2c235eedfaad009734",
+          "tools/metrics/jqm.py": "6962af58f8ac251fb087fbcf6dbde40bc502ec34083bd60a543b2daf0f8ce94b",
+          "tools/repair_qb_ms.py": "0ed95018fd88afde7194eac8fdd5ae79de7b9056574766e339726dbc0a7c8884",
+          "qg40/sensor_sources.json": "de88ae6c803302dfbe15cedc85f882866cabee5854eacae9733af490c12f6f2e",
+          "qg40/SENSOR_SOURCE_EVIDENCE.md": "c49d716791677b02da6e99084f1f65839669dfee975a355f664ec84276c93c83",
+          "external/DLPan/wald_utilities.py": "c7d076395eec052dd4ed391e6f51e5fa79661a3fc283816a63ccdb100ff5bdbf"
+        },
+        "content_sha256": "0cf7bf2af1a81036a115b3b9a181c4cc0d3f292e7a7927383f25c5819dee9d8c",
+        "git_release": "0ec113218f60f861dab18ab84f3083b730890979",
+        "torch": "2.8.0+cu128",
+        "numpy": "1.26.4",
+        "scipy": "1.13.1",
+        "skimage": "0.24.0",
+        "cuda": "12.8",
+        "cudnn": 91002,
+        "tf32_matmul": false,
+        "tf32_cudnn": true,
+        "numeric_method_revision": "QG40_SYNC_FREQ_C4_v1",
+        "consumer_campaign": "PANDA_QG40_20260920_v1"
+      },
+      "read_only_cache_diagnostic": true,
+      "modes": [
+        {
+          "mode": "default",
+          "sha256": "41109ab5de530dcb49fcccaff02f97167ce697331db72f91686e619dd1b4f78d",
+          "min": -3.546888125002465e-14,
+          "max_abs_difference_from_existing": 0,
+          "changed_elements": 0,
+          "changed_elements_excluding_near_zero": 0
+        },
+        {
+          "mode": "ipp_off",
+          "sha256": "4556288930ce61dddf4bf6c62e9b510605ffd21df5175ddaf85871df78196fed",
+          "min": 3.2313148196679714e-14,
+          "max_abs_difference_from_existing": 2.3283064365386963e-10,
+          "changed_elements": 2048,
+          "changed_elements_excluding_near_zero": 388
+        },
+        {
+          "mode": "unoptimized",
+          "sha256": "4556288930ce61dddf4bf6c62e9b510605ffd21df5175ddaf85871df78196fed",
+          "min": 3.2313148196679714e-14,
+          "max_abs_difference_from_existing": 2.3283064365386963e-10,
+          "changed_elements": 2048,
+          "changed_elements_excluding_near_zero": 388
+        }
+      ]
+    },
+    {
+      "server": "s4",
+      "at_utc": "2026-09-20T03:49:15.286286+00:00",
+      "opencv": "4.10.0",
+      "opencv_build_sha256": "48f8ec94132cbcc9234820dc03d1cb766767c898c1239bac89fd1e3fa6e90e9e",
+      "cpu_features": "SSE SSE2 SSE3 *SSE4.1 *SSE4.2 *FP16 *AVX *AVX2 *AVX512-SKX",
+      "ipp": "ippIP AVX-512F/CD/BW/DQ/VL (k0) 2021.11.0 (-) Feb  1 2024",
+      "ipp_use": true,
+      "cpu": [
+        "model name\t: AMD Ryzen 9 9950X 16-Core Processor"
+      ],
+      "source_identity": {
+        "files": {
+          "fh12/__init__.py": "ce2ad5ca08a031014691bd98db6df783de2e65ac7a1e23237f63bc8446857f3b",
+          "fh12/calibration.py": "7c771b819fd25d226b9f9c909c2ddf55a31cfcac545257989d059e2543890617",
+          "fh12/common.py": "992dc568c5733c058a9c63b665ed3c094db8e811d62d2c726297c56683a46200",
+          "fh12/data.py": "d38e3bb36b925e1b31f5fd1e99995eb1ca0be04d3d4517b9ee43aa04daddb3ae",
+          "fh12/evaluation.py": "c5370f768b05065bc5bf35ba3386206b6197a19fa659e891d730b3196787c9c0",
+          "fh12/losses.py": "8e9250ce03eaa27196572490aae77df0d42317fbda14d16ffdf94342cea76ab3",
+          "fh12/model.py": "4c53d96ede6facdf150825ef1480e6bcc0b028e88a987e64f8c1981882257495",
+          "fh12/plan.py": "34ad6dfb397abe940950dea81e48557dccf7e0fd834ef6fb37fe2a8dee4caa4d",
+          "fh12/postrun.py": "7a6c137e5731973d0a48c56fb1d47a91f704f476407b295ca6db656d444a2694",
+          "fh12/training.py": "1832d431a11b910bbcf71c1a731d09de4940060beff534e31800180fa7923222",
+          "fh12/upload.py": "19bf04c44c68a6e1a4f566d6babeabafee4ef6fd647ec64ce915f18934c49676",
+          "model/pancrafter_paper.py": "a766a01a5e21d86924bd87e41b064b58dcd0407d5b4cf3200e2d8aea22603de8",
+          "model/swin.py": "cdc270141d0209a34bec67b2a615fb51b23e30f4a0455398ba17c951252c2a99",
+          "model/pancrafter.py": "7bd4a28ff874e74602aefb319da1f93d620e78ca931bd24129f38b980492dd5a",
+          "pa/aligner.py": "ebf6b026b213dc857b5e9d39ba5d3070356a51092b11c32f3ffac0bb861faa2f",
+          "pa/warp.py": "b7ea18eb1c09a9462763bfe0146454df2c6593c8dce9107328804a33ed02fcab",
+          "pa/losses.py": "06eb9a117181355a899f2f0a24f8934b5867459f8fe645337aac2c8a0774279c",
+          "pa/offset.py": "8e70f6999d311eaba9d9ff35fc7e4da05d2f0439fc1735d125a1342eec9b5dba",
+          "tools/repair_lpan.py": "c7bab1542611c33fb50369160be3930043de449d13e963c7f125d83d9e018131",
+          "tools/eval_dlpan.py": "5671d44da1026653ac028ff97f81375420fa195a55fd3721ee8140904239fdab",
+          "tools/metrics/eval_rr.py": "a64a95ffde9b7d0278fa883bda1acaf895cca74d2b07b79f56285c60e8ba0c4a",
+          "tools/metrics/eval_fr.py": "b511d42b4db46d863c737b50606e9488c8ca5d9c7b07678ddc5bb7c1d9df01d4",
+          "tools/metrics/q2n.py": "89d1bf28a211e18a6fa8a2b6f8f7162f4b6716d15b2097888e773f1f73be10d1",
+          "qg40/__init__.py": "15d60ccf67faf5cb46da32a52d79b86b163169bf5c9a547a1fb7dc4dcdc1bc49",
+          "qg40/alignment_diagnostics.py": "64f7bcce94f51096c2d62e135d1e1a65fbc2b9ade1115311c9a392912e3f4e68",
+          "qg40/bootstrap.py": "48c8db1dc79fa02128df788796117c56d90a9b3e0fbddf85813035a5dcbd92c2",
+          "qg40/branch_evidence.py": "74e24518e03ad6d687771051bb5736c7556cd7b98553aaeda2ddd238be5a33da",
+          "qg40/calibration.py": "19d7a56c870da2f3ea393c744cc598e30d0801f70b3b6622dbf1821bd8c79a1c",
+          "qg40/common.py": "2436e46163b7ecff703d4a75d65046b4d945a57e62c3b6e69ee4c98f7c1b5334",
+          "qg40/controller.py": "d283452e691e7ccb99362cf9db7b90fe1b710173717abadaa13135e8fd87a00d",
+          "qg40/data.py": "f6e7cff272dff0ccb5da4cdf213e629fc7b60556254859e8a019448c9cdd8619",
+          "qg40/deployment.py": "290578232ceb5804278cf550ca21d05d8f5c9adecd773f795acc4e8d18791cf1",
+          "qg40/diagnostics.py": "0fef802725af82b05742e6181701c4fa10bcaf74affb99b2e035b88aa2db1688",
+          "qg40/error_distribution.py": "7e92de2e52675772a67f33aea0b16837aa0f865ff2d1e7398db98352eb78f71d",
+          "qg40/evaluation.py": "9dae7eedad2caf5b2d7b5b0687389789695bb72c26817a491d167a09f1f336c3",
+          "qg40/exposure.py": "03e09525ebfb670d18cb64a47413c4c85fcecd868eb2a9570b59c9c9a9885696",
+          "qg40/input_distribution.py": "25349a65c3c15df810b514d8435628181950b3ff85acfc461823195e441547ff",
+          "qg40/losses.py": "5db94f360564ac6bc764f2264e839dca98b9b114874c2d0da7e9535ad05e9472",
+          "qg40/model.py": "1fc6c83c552fc7035ee3d716991234e089f93608c378f9367ce08fe147c59b9c",
+          "qg40/p1.py": "a53ea22f96168e19f8b48ba8f310a8e51203464fe6b6e325766ef3f01399b4c4",
+          "qg40/phase_audit.py": "fc96d6061188918ef050fde345cfe889cd3c8dacf861da7568167a1411915448",
+          "qg40/plan.py": "f45e8423a317c9534b75c7f0c49d0de5d1f513b74b7cba8e1dcdcb1948ad6a4f",
+          "qg40/policy.py": "1f3e6b940e5f4298e5f0076609c11974032ea4716988e76107bbeec22363ed9e",
+          "qg40/postrun.py": "6a4c623843a630729473c183c4d39eec382f90f9f6bc9cbe1ed5b716b56f15db",
+          "qg40/preflight.py": "04a81ce8862f7c5d0c5908f5bdd8759674d236eeacf9798b0cc0dd1682b1772f",
+          "qg40/reference_parity.py": "5ede86f59ef4bc8ba190dcec3ff77190d7ef1367393b0d8641afa401edbab6d4",
+          "qg40/references.py": "a47acbe9e6d92ac379e2c499c94e7e0da288158c65bbbbbfb009d3591b2c2eec",
+          "qg40/resources.py": "dfa5924cd23519b45f92c79a398c7b0b9b3ad3e699216e19f6801b88696dc399",
+          "qg40/sheet_helpers.py": "2b4c2d536edec18ea96154bbb96128492e4b24474854c743ac58afe78cda9cb5",
+          "qg40/training.py": "2aae67907cdc912e365c3105ad6a8a09a3990f168aa586ae20b5e169e8938d49",
+          "qg40/upload.py": "ac630f3f46e2571648d5a02571a04b3b741be646955526eefa39fa3601182247",
+          "tools/qg40_runner.py": "243f20fc93488a79db8eb577bbe3a56c7faed839049fca41e2a41b0f453fc353",
+          "tools/metrics/__init__.py": "37a799c555396f30cb55cfdb64d9bc5089b009caf894aa2c235eedfaad009734",
+          "tools/metrics/jqm.py": "6962af58f8ac251fb087fbcf6dbde40bc502ec34083bd60a543b2daf0f8ce94b",
+          "tools/repair_qb_ms.py": "0ed95018fd88afde7194eac8fdd5ae79de7b9056574766e339726dbc0a7c8884",
+          "qg40/sensor_sources.json": "de88ae6c803302dfbe15cedc85f882866cabee5854eacae9733af490c12f6f2e",
+          "qg40/SENSOR_SOURCE_EVIDENCE.md": "c49d716791677b02da6e99084f1f65839669dfee975a355f664ec84276c93c83",
+          "external/DLPan/wald_utilities.py": "c7d076395eec052dd4ed391e6f51e5fa79661a3fc283816a63ccdb100ff5bdbf"
+        },
+        "content_sha256": "0cf7bf2af1a81036a115b3b9a181c4cc0d3f292e7a7927383f25c5819dee9d8c",
+        "git_release": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+        "torch": "2.8.0+cu128",
+        "numpy": "1.26.4",
+        "scipy": "1.13.1",
+        "skimage": "0.24.0",
+        "cuda": "12.8",
+        "cudnn": 91002,
+        "tf32_matmul": false,
+        "tf32_cudnn": true,
+        "numeric_method_revision": "QG40_SYNC_FREQ_C4_v1",
+        "consumer_campaign": "PANDA_QG40_20260920_v1"
+      },
+      "read_only_cache_diagnostic": true,
+      "modes": [
+        {
+          "mode": "default",
+          "sha256": "4bfb0a170da75215c3bfc276361452030356df77f959cac511f138cab928a6b6",
+          "min": -2.357855969118642e-14,
+          "max_abs_difference_from_existing": 0,
+          "changed_elements": 0,
+          "changed_elements_excluding_near_zero": 0
+        },
+        {
+          "mode": "ipp_off",
+          "sha256": "4556288930ce61dddf4bf6c62e9b510605ffd21df5175ddaf85871df78196fed",
+          "min": 3.2313148196679714e-14,
+          "max_abs_difference_from_existing": 2.3283064365386963e-10,
+          "changed_elements": 2046,
+          "changed_elements_excluding_near_zero": 386
+        },
+        {
+          "mode": "unoptimized",
+          "sha256": "4556288930ce61dddf4bf6c62e9b510605ffd21df5175ddaf85871df78196fed",
+          "min": 3.2313148196679714e-14,
+          "max_abs_difference_from_existing": 2.3283064365386963e-10,
+          "changed_elements": 2046,
+          "changed_elements_excluding_near_zero": 386
+        }
+      ]
+    }
+  ]
+}

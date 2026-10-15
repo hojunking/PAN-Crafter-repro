@@ -1,0 +1,28 @@
+{
+ "package_id": "T0",
+ "source_run": "PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1",
+ "checkpoint_kind": "best_raw (best_hqnr alias)",
+ "selected_update": 24240,
+ "recorded_hqnr_raw_original": 0.9569763995761281,
+ "files": {
+  "meta/config.yaml": "c584d9e3405bc77774fc69a79367c1d243ebe27bdb8f98e18dc8d541764a8da4",
+  "best_hqnr/model.safetensors": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+  "best_hqnr_meta.json": "8e84fbd349c3c46a483b9b0000c9b28de6c56525113f2ce3b8ba1087cafb2fe3",
+  "init_and_teacher_hashes.json": "55498dd76590169f33f2e10a4506bc4cb69eedaab8c20f5b3318876c3e9148d9"
+ },
+ "checkpoint_sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+ "tensors_sha256_16": "7d9b52112797bbff",
+ "aligner_tensors_sha256_16": "493aca181f93ae68",
+ "aligner_params": 105330,
+ "backbone_params": 2658888,
+ "width": 112,
+ "depth": [
+  1,
+  2,
+  3
+ ],
+ "aligner_view_margin": 4,
+ "frozen_own_aligner": true,
+ "note": "s1 work_dir \uc6d0\ubcf8\uc758 \uc0ac\ubcf8 (same layout). s2/s3 \ub294 \uc774 \ud3f4\ub354\ub97c teacher.run / donor.source \ub85c \uc4f4\ub2e4. \ud30c\uc77c sha \ub97c prepare \uac00 \uac80\uc99d\ud55c\ub2e4.",
+ "packed_at": "2026-09-14T13:12:55"
+}

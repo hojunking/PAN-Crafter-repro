@@ -1,0 +1,44 @@
+{
+  "scope": "local CPU mathematical and loss-component checks only; not s2/CUDA/W112 integration",
+  "date": "2026-09-10",
+  "checks": [
+    {
+      "file": "pan_gt_anchored_kd.py",
+      "sha256": "36a69ad5516a635a86e895c8af291d3f8253fc49e6f3326d4862edaa3fc0f2a9",
+      "return_code": 0,
+      "test_count": 10,
+      "passed": true,
+      "output": "test_ablation_modes (__main__._Tests.test_ablation_modes) ... ok\ntest_both_wrong_still_receive_gt_gradient (__main__._Tests.test_both_wrong_still_receive_gt_gradient) ... ok\ntest_coefficient_bounds_random_inputs (__main__._Tests.test_coefficient_bounds_random_inputs) ... ok\ntest_elementwise_gt_direction_with_conflicting_bands (__main__._Tests.test_elementwise_gt_direction_with_conflicting_bands) ... ok\ntest_exact_gt_has_zero_loss_and_zero_gradient (__main__._Tests.test_exact_gt_has_zero_loss_and_zero_gradient) ... ok\ntest_fp16_inputs_compute_loss_in_float32 (__main__._Tests.test_fp16_inputs_compute_loss_in_float32) ... ok\ntest_input_and_config_validation (__main__._Tests.test_input_and_config_validation) ... ok\ntest_main_formula_matches_hand_calculation (__main__._Tests.test_main_formula_matches_hand_calculation) ... ok\ntest_student_better_disables_soft (__main__._Tests.test_student_better_disables_soft) ... ok\ntest_teacher_and_routing_are_detached (__main__._Tests.test_teacher_and_routing_are_detached) ... ok\n\n----------------------------------------------------------------------\nRan 10 tests in 0.016s\n\nOK\n"
+    },
+    {
+      "file": "pan_s2_w112_stat_kd_reference.py",
+      "sha256": "539a3011a3876301fddeccf37b6ae9d32e8f2d6c9f564c89f510c6bf6f04dc1a",
+      "return_code": 0,
+      "test_count": 12,
+      "passed": true,
+      "output": "test_bad_config (__main__._Tests.test_bad_config) ... ok\ntest_bandwise_brightness_offsets (__main__._Tests.test_bandwise_brightness_offsets) ... ok\ntest_constants_zero (__main__._Tests.test_constants_zero) ... ok\ntest_direct_student_gradient (__main__._Tests.test_direct_student_gradient) ... ok\ntest_exact_gt_has_zero_loss (__main__._Tests.test_exact_gt_has_zero_loss) ... ok\ntest_grad_cov_diagonal_matches_grad_var (__main__._Tests.test_grad_cov_diagonal_matches_grad_var) ... ok\ntest_half_cast_and_finite (__main__._Tests.test_half_cast_and_finite) ... ok\ntest_population_variance_explicit (__main__._Tests.test_population_variance_explicit) ... ok\ntest_scalar_intensity_scaling_squared (__main__._Tests.test_scalar_intensity_scaling_squared) ... ok\ntest_shapes_share_centers (__main__._Tests.test_shapes_share_centers) ... ok\ntest_spectral_cov_symmetry_psd (__main__._Tests.test_spectral_cov_symmetry_psd) ... ok\ntest_target_detach_and_live_student (__main__._Tests.test_target_detach_and_live_student) ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.044s\n\nOK\n"
+    }
+  ],
+  "environment": {
+    "torch": "2.10.0+cpu",
+    "cuda_available": false
+  },
+  "total_test_count": 22,
+  "document_checks": {
+    "utf8": true,
+    "fences_balanced": true,
+    "display_math_balanced": true,
+    "sections": 26,
+    "bytes": 89698
+  },
+  "not_tested": [
+    "actual W112-D124 backbone",
+    "actual PAN aligner integration",
+    "PanCollection dataset training",
+    "s2 server access",
+    "CUDA/AMP/backward",
+    "GPU memory and throughput",
+    "alignment uncertainty calibration",
+    "run launcher and evaluator"
+  ]
+}

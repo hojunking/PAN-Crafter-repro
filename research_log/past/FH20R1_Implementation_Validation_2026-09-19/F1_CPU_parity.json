@@ -1,0 +1,258 @@
+{
+  "status": "PASS",
+  "atol": 0.000003,
+  "rtol": 0.00002,
+  "comparisons": {
+    "fr_c": {
+      "shape": [
+        2,
+        2
+      ],
+      "max_abs": 0
+    },
+    "fr_official_metrics": {
+      "shape": [
+        2,
+        3
+      ],
+      "max_abs": 0
+    },
+    "fr_y": {
+      "shape": [
+        2,
+        8,
+        512,
+        512
+      ],
+      "max_abs": 0
+    },
+    "q_radius_rot0": {
+      "shape": [
+        8,
+        4
+      ],
+      "max_abs": 0
+    },
+    "q_radius_rot1": {
+      "shape": [
+        8,
+        4
+      ],
+      "max_abs": 0
+    },
+    "q_radius_rot2": {
+      "shape": [
+        8,
+        4
+      ],
+      "max_abs": 0
+    },
+    "q_radius_rot3": {
+      "shape": [
+        8,
+        4
+      ],
+      "max_abs": 0
+    },
+    "q_rot0": {
+      "shape": [
+        8
+      ],
+      "max_abs": 0
+    },
+    "q_rot1": {
+      "shape": [
+        8
+      ],
+      "max_abs": 0
+    },
+    "q_rot2": {
+      "shape": [
+        8
+      ],
+      "max_abs": 0
+    },
+    "q_rot3": {
+      "shape": [
+        8
+      ],
+      "max_abs": 0
+    },
+    "rr_c": {
+      "shape": [
+        2,
+        2
+      ],
+      "max_abs": 0
+    },
+    "rr_official_metrics": {
+      "shape": [
+        2,
+        6
+      ],
+      "max_abs": 0
+    },
+    "rr_y": {
+      "shape": [
+        2,
+        8,
+        256,
+        256
+      ],
+      "max_abs": 0
+    },
+    "student_grad_a_y": {
+      "shape": [
+        8,
+        8,
+        64,
+        64
+      ],
+      "max_abs": 0
+    },
+    "student_grad_u_y": {
+      "shape": [
+        8,
+        8,
+        64,
+        64
+      ],
+      "max_abs": 0
+    },
+    "student_loss": {
+      "shape": [
+        5
+      ],
+      "max_abs": 0
+    },
+    "teacher_loss_0": {
+      "shape": [
+        3
+      ],
+      "max_abs": 0
+    },
+    "teacher_loss_1": {
+      "shape": [
+        3
+      ],
+      "max_abs": 0
+    },
+    "train_c": {
+      "shape": [
+        8,
+        2
+      ],
+      "max_abs": 0
+    },
+    "train_y": {
+      "shape": [
+        8,
+        8,
+        64,
+        64
+      ],
+      "max_abs": 0
+    }
+  },
+  "sample_counts": {
+    "train64": 8,
+    "rr256": 2,
+    "fr512": 2
+  },
+  "train_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "rr_ids": [
+    0,
+    1
+  ],
+  "fr_ids": [
+    0,
+    1
+  ],
+  "readers": {
+    "historical": {
+      "source_root": "/tmp/fh20r1-origin-reader-m9rt8h2m",
+      "torch": "2.4.0",
+      "numpy": "1.26.4",
+      "cuda": "11.8",
+      "device": "cpu",
+      "step0_state_hash": "6273653c6f37aeb5e80592011086416c37c6f22fdfc4772b9b0e4edfe9cde931",
+      "init_policy": "FH12_named_tensor_fresh9_zero_extra_v1",
+      "precision": "fp32",
+      "tf32_matmul": false,
+      "tf32_cudnn": true
+    },
+    "current": {
+      "source_root": "/home/knuvi/Desktop/song/PAN-Crafter",
+      "torch": "2.4.0",
+      "numpy": "1.26.4",
+      "cuda": "11.8",
+      "device": "cpu",
+      "step0_state_hash": "6273653c6f37aeb5e80592011086416c37c6f22fdfc4772b9b0e4edfe9cde931",
+      "init_policy": "FH12_named_tensor_fresh9_zero_extra_v1",
+      "precision": "fp32",
+      "tf32_matmul": false,
+      "tf32_cudnn": true
+    }
+  },
+  "origin_git_release": "a5e9f858ed33349f8d67a3d30007faa9977cb064",
+  "origin_source_identity": {
+    "content_sha256": "c3c1ade0d8f43f29edeab61b0584cc0ab866c45947ee9fb816629fe35cf6c5ec",
+    "cuda": "11.8",
+    "cudnn": 90100,
+    "files": {
+      "fh12/__init__.py": "ce2ad5ca08a031014691bd98db6df783de2e65ac7a1e23237f63bc8446857f3b",
+      "fh12/calibration.py": "7c771b819fd25d226b9f9c909c2ddf55a31cfcac545257989d059e2543890617",
+      "fh12/common.py": "992dc568c5733c058a9c63b665ed3c094db8e811d62d2c726297c56683a46200",
+      "fh12/data.py": "d38e3bb36b925e1b31f5fd1e99995eb1ca0be04d3d4517b9ee43aa04daddb3ae",
+      "fh12/evaluation.py": "c5370f768b05065bc5bf35ba3386206b6197a19fa659e891d730b3196787c9c0",
+      "fh12/losses.py": "8e9250ce03eaa27196572490aae77df0d42317fbda14d16ffdf94342cea76ab3",
+      "fh12/model.py": "4c53d96ede6facdf150825ef1480e6bcc0b028e88a987e64f8c1981882257495",
+      "fh12/plan.py": "34ad6dfb397abe940950dea81e48557dccf7e0fd834ef6fb37fe2a8dee4caa4d",
+      "fh12/postrun.py": "7a6c137e5731973d0a48c56fb1d47a91f704f476407b295ca6db656d444a2694",
+      "fh12/training.py": "1832d431a11b910bbcf71c1a731d09de4940060beff534e31800180fa7923222",
+      "fh12/upload.py": "19bf04c44c68a6e1a4f566d6babeabafee4ef6fd647ec64ce915f18934c49676",
+      "model/pancrafter.py": "7bd4a28ff874e74602aefb319da1f93d620e78ca931bd24129f38b980492dd5a",
+      "model/pancrafter_paper.py": "a766a01a5e21d86924bd87e41b064b58dcd0407d5b4cf3200e2d8aea22603de8",
+      "model/swin.py": "cdc270141d0209a34bec67b2a615fb51b23e30f4a0455398ba17c951252c2a99",
+      "pa/aligner.py": "ebf6b026b213dc857b5e9d39ba5d3070356a51092b11c32f3ffac0bb861faa2f",
+      "pa/losses.py": "06eb9a117181355a899f2f0a24f8934b5867459f8fe645337aac2c8a0774279c",
+      "pa/offset.py": "8e70f6999d311eaba9d9ff35fc7e4da05d2f0439fc1735d125a1342eec9b5dba",
+      "pa/warp.py": "b7ea18eb1c09a9462763bfe0146454df2c6593c8dce9107328804a33ed02fcab",
+      "tools/eval_dlpan.py": "5671d44da1026653ac028ff97f81375420fa195a55fd3721ee8140904239fdab",
+      "tools/metrics/eval_fr.py": "b511d42b4db46d863c737b50606e9488c8ca5d9c7b07678ddc5bb7c1d9df01d4",
+      "tools/metrics/eval_rr.py": "a64a95ffde9b7d0278fa883bda1acaf895cca74d2b07b79f56285c60e8ba0c4a",
+      "tools/metrics/q2n.py": "89d1bf28a211e18a6fa8a2b6f8f7162f4b6716d15b2097888e773f1f73be10d1",
+      "tools/repair_lpan.py": "c7bab1542611c33fb50369160be3930043de449d13e963c7f125d83d9e018131"
+    },
+    "git_release": "a5e9f858ed33349f8d67a3d30007faa9977cb064",
+    "numpy": "1.26.4",
+    "scipy": "1.13.1",
+    "skimage": "0.24.0",
+    "tf32_cudnn": true,
+    "tf32_matmul": false,
+    "torch": "2.4.0"
+  },
+  "runtime_policy": "Both readers use the actual current consumer FP32/TF32 settings; historical metadata is preserved separately",
+  "loss_and_q_probe": "Teacher even/odd losses, Student LU/LA and output gradients, train8 x rot4 AXIS16",
+  "original_metadata_modified": false,
+  "source_override": false,
+  "origin_validate": "PASS",
+  "teacher_checkpoint_sha256": "04ef8e756ae8b229c67ef14daf1912f0658f2e5c8bfe30afa9e0b476486fc519",
+  "q_shape": [
+    9714,
+    4
+  ],
+  "tau_R": 0.012118559330701828,
+  "q_ref": 0.4532603621482849,
+  "published_bridge": false,
+  "validation_scope": "Read-only local F1 CPU comparison, not a GPU/all-scenes certification; no runtime campaign or bridge was published."
+}

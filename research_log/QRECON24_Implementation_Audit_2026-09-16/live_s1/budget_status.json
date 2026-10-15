@@ -1,0 +1,37 @@
+{
+ "started": "2026-09-16T16:21:38",
+ "required": true,
+ "case": "A-FT/R3/EDGEHQRC/G0",
+ "kind": "run",
+ "status": "RUNNING",
+ "used_hours_before": 0,
+ "projected_hours": 2.5515151515151513,
+ "margin": 1.1,
+ "time_policy": {
+  "mode": "no_hard_limit",
+  "target_elapsed_hours": null,
+  "hard_deadline": null,
+  "inherit_parent_deadline": false,
+  "min_operating_hours": 24.0
+ },
+ "remaining_mandatory": [
+  "PAKD50_QRC24_S1_A_UNIF_W104_D121_WV3_T0_S1234_FRESH50_v1",
+  "PAKD50_QRC24_S1_A_FREEZE_W104_D121_WV3_T0_S1234_FRESH50_v1",
+  "PAKD50_QRC24_S1_G21_W104_D121_WV3_T0_S1234_FRESH50_v1",
+  "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1",
+  "PAKD50_QRC24_S1_A_SHUF_W104_D121_WV3_T0_S1234_FRESH50_v1",
+  "PAKD50_QRC24_S1_G22_W104_D121_WV3_T0_S3407_FRESH50_v1",
+  "PAKD50_QRC24_S1_A_UNIF_W104_D121_WV3_T0_S3407_FRESH50_v1",
+  "PAKD50_QRC24_S1_A_FREEZE_W104_D121_WV3_T0_S3407_FRESH50_v1",
+  "PAKD50_QRC24_S1_G21_W104_D121_WV3_T0_S3407_FRESH50_v1",
+  "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S3407_FRESH50_v1",
+  "PAKD50_QRC24_S1_A_SHUF_W104_D121_WV3_T0_S3407_FRESH50_v1"
+ ],
+ "remaining_mandatory_source": "file",
+ "pair_with": null,
+ "projected_total_hours": 33.68,
+ "needed_hours": 33.68,
+ "ok": true,
+ "decision": "RUN",
+ "warn": false
+}

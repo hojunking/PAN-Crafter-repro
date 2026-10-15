@@ -1,0 +1,55 @@
+{
+  "completed_at": "2026-09-16T16:36:47.347729+09:00",
+  "initial_head": "15204de6c29ae5c7bc1ad29f6a2220a60eae31c6",
+  "final_head": "8a50aecbcaccba54d52b3519dc841f068026c2d2",
+  "source_changes_reviewed": [
+    "48c0fad: plan header only",
+    "8a50aec: K48c portable fixture"
+  ],
+  "production_changes_by_audit": false,
+  "remote_servers_verified": false,
+  "core_math_checks": {
+    "passed": 37,
+    "total": 37
+  },
+  "configs": {
+    "verified": 68,
+    "servers": [
+      12,
+      12,
+      18,
+      14,
+      12
+    ]
+  },
+  "profiles": 29,
+  "original_units_with_history": {
+    "rc": 0,
+    "checks": 171,
+    "failures": []
+  },
+  "latest_units_other_history": {
+    "rc": 0,
+    "checks": 171,
+    "failures": []
+  },
+  "latest_units_no_history_note": "171 OK, K48c explicitly skipped due to no history",
+  "open_findings": {
+    "P1": [
+      "F01 epoch-end resume",
+      "F02 old pending survives handoff",
+      "F03 extensions not connected to execution"
+    ],
+    "P2": [
+      "F04 extra queue migration drops QRC entries",
+      "F05 time accounting",
+      "F06 mixed proxy official ranking",
+      "F07 unbound official cache",
+      "F08 insufficient completion verification",
+      "F09 dangling control IDs",
+      "F10 incomplete reproducibility manifest"
+    ]
+  },
+  "unresolved_validation": "CPU official RR inference differs from historical GPU export; same CPU selector/trainer/forward exactly equal",
+  "report": "/home/knuvi/Desktop/song/PAN-Crafter/research_log/PAN_QRECON24_Implementation_Audit_2026-09-16.md"
+}

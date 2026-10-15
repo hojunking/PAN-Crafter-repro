@@ -1,0 +1,7 @@
+{
+  "command": "noa_eval_switch.sh --release --dry-run",
+  "returncode": 0,
+  "hold_removed": true,
+  "stdout": "[noa-switch] 서버 s1 · protocol PAN_ALLSERVER_NOA_AUDIT_METHOD_v2_20260918 · 노트 research_log/2026-09-18_noa-eval-implementation.md\n[noa-switch] ⑥ 복귀 — hold 해제 후 원래 큐로\nfixture status: required incomplete\n[phase] hold 해제 (phase 였음: LOCAL_STUDENT_EVAL) — 이제 runner/대기자/watchdog 가 다음 case 를 시작할 수 있다\n   복귀 대상: 없음(큐 완료) · 저장 revision None\n   chain 이 죽어 있으면 ./tools/qrecon24_switch.sh 로 복원한다 (tools/eval_phase.py resume 도 같은 일을 한다)\n",
+  "stderr": ""
+}

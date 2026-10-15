@@ -1,0 +1,209 @@
+[
+  {
+    "server": "s1",
+    "at_utc": "2026-09-20T13:22:37.148795+00:00",
+    "runtime": "/home/knuvi/Desktop/song/PAN-Crafter-runtime-g20-s1-20260920",
+    "runtime_git_head": "8a63d10604901609facfd22b2b195724ea0122f6",
+    "source_commit": "e2d838a3f9ea45170fb71052710b38acc9992c61",
+    "source_files": 77,
+    "source_mismatches": [],
+    "window": {
+      "campaign_id": "PANDA_GF2_G20_ALL5_20260920_v1",
+      "t0_utc": "2026-09-20T13:05:13+00:00",
+      "deadline_utc": "2026-09-21T09:05:13+00:00",
+      "admission_cutoff_utc": "2026-09-21T05:05:13+00:00",
+      "train_finish_utc": "2026-09-21T07:05:13+00:00",
+      "close_hours": 2
+    },
+    "window_sha256": "9a06b3f8f616ceb9482243c1f897bd9755b34687fa2032f98e6e14359b54d985",
+    "registered": true,
+    "registered_source_sha256": "cdb98d2c18dcfa3225102aab1846cdc5db812b283de15a73c7244924fd65bdab",
+    "g20_status": "DEFINED_NOT_DEPLOYED",
+    "g20_reason": null,
+    "transition": "WAIT_ADMITTED_LEGACY_BLOCK",
+    "preflight": null,
+    "r0_parity": null,
+    "parity_deltas": {},
+    "active": [],
+    "qg40_status": "RUNNING",
+    "qg40_active": [
+      {
+        "run": "QG40_QB_S_PLH_W104_D122_TB_TS81002_SS82008_BASE_FRESH50_v1",
+        "status": "RUNNING",
+        "updates": 21210
+      }
+    ],
+    "launcher_sha256": "4ba34147fc7339b00c39638c0e760fcdc7a1a06535388b4199ad48bb1a207ca2",
+    "recovery_cron": [
+      "*/5 * * * * /usr/bin/python3 /home/knuvi/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/g20_host_recovery.py >> /home/knuvi/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/host-recovery.log 2>&1 # PANDA-G20-DOCKER-s1-20260920",
+      "@reboot sleep 120 && /usr/bin/python3 /home/knuvi/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/g20_host_recovery.py >> /home/knuvi/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/host-recovery.log 2>&1 # PANDA-G20-DOCKER-s1-20260920"
+    ],
+    "gpu": "88 %, 5281 MiB"
+  },
+  {
+    "server": "s2",
+    "at_utc": "2026-09-20T13:22:38.313926+00:00",
+    "runtime": "/home/honbul/Desktop/song/PAN-Crafter-runtime-g20-s2-20260920",
+    "runtime_git_head": "0ec113218f60f861dab18ab84f3083b730890979",
+    "source_commit": "e2d838a3f9ea45170fb71052710b38acc9992c61",
+    "source_files": 77,
+    "source_mismatches": [],
+    "window": {
+      "campaign_id": "PANDA_GF2_G20_ALL5_20260920_v1",
+      "t0_utc": "2026-09-20T13:05:13+00:00",
+      "deadline_utc": "2026-09-21T09:05:13+00:00",
+      "admission_cutoff_utc": "2026-09-21T05:05:13+00:00",
+      "train_finish_utc": "2026-09-21T07:05:13+00:00",
+      "close_hours": 2
+    },
+    "window_sha256": "9a06b3f8f616ceb9482243c1f897bd9755b34687fa2032f98e6e14359b54d985",
+    "registered": true,
+    "registered_source_sha256": "4e18b1b6ec1c93616ce2211aea02752b68cf5f2995a1789e82f55d45e3e89e72",
+    "g20_status": "WAIT_LOCAL_RESOURCE",
+    "g20_reason": null,
+    "transition": "DRAINING_FINAL_LEGACY_CASE",
+    "preflight": null,
+    "r0_parity": null,
+    "parity_deltas": {},
+    "active": [],
+    "qg40_status": "RUNNING",
+    "qg40_active": [
+      {
+        "run": "QG40_QB_S_PLH_W104_D122_TA_TS81001_SS82007_BASE_FRESH50_v1",
+        "status": "RUNNING",
+        "updates": 41410
+      }
+    ],
+    "launcher_sha256": "4ba34147fc7339b00c39638c0e760fcdc7a1a06535388b4199ad48bb1a207ca2",
+    "recovery_cron": [
+      "*/5 * * * * /usr/bin/python3 /home/honbul/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/g20_host_recovery.py >> /home/honbul/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/host-recovery.log 2>&1 # PANDA-G20-DOCKER-s2-20260920",
+      "@reboot sleep 120 && /usr/bin/python3 /home/honbul/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/g20_host_recovery.py >> /home/honbul/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/host-recovery.log 2>&1 # PANDA-G20-DOCKER-s2-20260920"
+    ],
+    "gpu": "95 %, 5558 MiB"
+  },
+  {
+    "server": "s3",
+    "at_utc": "2026-09-20T13:22:37.948518+00:00",
+    "runtime": "/home/user/Desktop/song/PAN-Crafter-runtime-g20-s3-20260920",
+    "runtime_git_head": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+    "source_commit": "e2d838a3f9ea45170fb71052710b38acc9992c61",
+    "source_files": 77,
+    "source_mismatches": [],
+    "window": {
+      "campaign_id": "PANDA_GF2_G20_ALL5_20260920_v1",
+      "t0_utc": "2026-09-20T13:05:13+00:00",
+      "deadline_utc": "2026-09-21T09:05:13+00:00",
+      "admission_cutoff_utc": "2026-09-21T05:05:13+00:00",
+      "train_finish_utc": "2026-09-21T07:05:13+00:00",
+      "close_hours": 2
+    },
+    "window_sha256": "9a06b3f8f616ceb9482243c1f897bd9755b34687fa2032f98e6e14359b54d985",
+    "registered": true,
+    "registered_source_sha256": "cdb98d2c18dcfa3225102aab1846cdc5db812b283de15a73c7244924fd65bdab",
+    "g20_status": "DEFINED_NOT_DEPLOYED",
+    "g20_reason": null,
+    "transition": "WAIT_ADMITTED_LEGACY_BLOCK",
+    "preflight": null,
+    "r0_parity": null,
+    "parity_deltas": {},
+    "active": [],
+    "qg40_status": "RUNNING",
+    "qg40_active": [
+      {
+        "run": "QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92020_BASE_FRESH50_v1",
+        "status": "RUNNING",
+        "updates": 18180
+      }
+    ],
+    "launcher_sha256": "4ba34147fc7339b00c39638c0e760fcdc7a1a06535388b4199ad48bb1a207ca2",
+    "recovery_cron": [
+      "*/5 * * * * /usr/bin/python3 /home/user/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/g20_host_recovery.py >> /home/user/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/host-recovery.log 2>&1 # PANDA-G20-DOCKER-s3-20260920",
+      "@reboot sleep 120 && /usr/bin/python3 /home/user/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/g20_host_recovery.py >> /home/user/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/host-recovery.log 2>&1 # PANDA-G20-DOCKER-s3-20260920"
+    ],
+    "gpu": "27 %, 4498 MiB"
+  },
+  {
+    "server": "s4",
+    "at_utc": "2026-09-20T13:22:40.774151+00:00",
+    "runtime": "/home/wty/Desktop/song/PAN-Crafter-runtime-g20-s4-20260920",
+    "runtime_git_head": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+    "source_commit": "e2d838a3f9ea45170fb71052710b38acc9992c61",
+    "source_files": 77,
+    "source_mismatches": [],
+    "window": {
+      "campaign_id": "PANDA_GF2_G20_ALL5_20260920_v1",
+      "t0_utc": "2026-09-20T13:05:13+00:00",
+      "deadline_utc": "2026-09-21T09:05:13+00:00",
+      "admission_cutoff_utc": "2026-09-21T05:05:13+00:00",
+      "train_finish_utc": "2026-09-21T07:05:13+00:00",
+      "close_hours": 2
+    },
+    "window_sha256": "9a06b3f8f616ceb9482243c1f897bd9755b34687fa2032f98e6e14359b54d985",
+    "registered": true,
+    "registered_source_sha256": "cdb98d2c18dcfa3225102aab1846cdc5db812b283de15a73c7244924fd65bdab",
+    "g20_status": "RUNNING",
+    "g20_reason": null,
+    "transition": "LEGACY_ADMISSIONS_HELD",
+    "preflight": "LOCAL_READY",
+    "r0_parity": "PASS",
+    "parity_deltas": {},
+    "active": [
+      {
+        "run": "G20_GF2_S_S4_R0_TS91001_SS93001_BASE_PLH_W104_D122_FRESH50_v1",
+        "status": "RUNNING",
+        "updates": null,
+        "n_evaluated": null
+      }
+    ],
+    "qg40_status": "FINITE_QUEUE_FINISHED",
+    "qg40_active": [],
+    "launcher_sha256": "4ba34147fc7339b00c39638c0e760fcdc7a1a06535388b4199ad48bb1a207ca2",
+    "recovery_cron": [
+      "*/5 * * * * /usr/bin/python3 /home/wty/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/g20_host_recovery.py >> /home/wty/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/host-recovery.log 2>&1 # PANDA-G20-DOCKER-s4-20260920",
+      "@reboot sleep 120 && /usr/bin/python3 /home/wty/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/g20_host_recovery.py >> /home/wty/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/host-recovery.log 2>&1 # PANDA-G20-DOCKER-s4-20260920"
+    ],
+    "gpu": "0 %, 3168 MiB"
+  },
+  {
+    "server": "s5",
+    "at_utc": "2026-09-20T13:22:39.311730+00:00",
+    "runtime": "/home/user/Desktop/song/PAN-Crafter-runtime-g20-s5-20260920",
+    "runtime_git_head": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+    "source_commit": "e2d838a3f9ea45170fb71052710b38acc9992c61",
+    "source_files": 77,
+    "source_mismatches": [],
+    "window": {
+      "campaign_id": "PANDA_GF2_G20_ALL5_20260920_v1",
+      "t0_utc": "2026-09-20T13:05:13+00:00",
+      "deadline_utc": "2026-09-21T09:05:13+00:00",
+      "admission_cutoff_utc": "2026-09-21T05:05:13+00:00",
+      "train_finish_utc": "2026-09-21T07:05:13+00:00",
+      "close_hours": 2
+    },
+    "window_sha256": "9a06b3f8f616ceb9482243c1f897bd9755b34687fa2032f98e6e14359b54d985",
+    "registered": true,
+    "registered_source_sha256": "cdb98d2c18dcfa3225102aab1846cdc5db812b283de15a73c7244924fd65bdab",
+    "g20_status": "RUNNING",
+    "g20_reason": null,
+    "transition": "LEGACY_ADMISSIONS_HELD",
+    "preflight": "LOCAL_READY",
+    "r0_parity": "PASS",
+    "parity_deltas": {},
+    "active": [
+      {
+        "run": "G20_GF2_S_S5_R0_TS91001_SS93001_BASE_PLH_W104_D122_FRESH50_v1",
+        "status": "RUNNING",
+        "updates": 3030,
+        "n_evaluated": 3
+      }
+    ],
+    "qg40_status": "FINITE_QUEUE_FINISHED",
+    "qg40_active": [],
+    "launcher_sha256": "4ba34147fc7339b00c39638c0e760fcdc7a1a06535388b4199ad48bb1a207ca2",
+    "recovery_cron": [
+      "*/5 * * * * /usr/bin/python3 /home/user/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/g20_host_recovery.py >> /home/user/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/host-recovery.log 2>&1 # PANDA-G20-DOCKER-s5-20260920",
+      "@reboot sleep 120 && /usr/bin/python3 /home/user/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/g20_host_recovery.py >> /home/user/Desktop/song/PAN-Crafter/.git/codex-g20-activation-20260920/host-recovery.log 2>&1 # PANDA-G20-DOCKER-s5-20260920"
+    ],
+    "gpu": "96 %, 4967 MiB"
+  }
+]

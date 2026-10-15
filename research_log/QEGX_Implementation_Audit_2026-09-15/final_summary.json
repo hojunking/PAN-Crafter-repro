@@ -1,0 +1,22 @@
+{
+  "completed_at": "2026-09-15T20:24:55+0900",
+  "head": "ac232452e6b789225edad6817a04627afdbc7bd2",
+  "source_files": 86,
+  "changed_original_source_files": [],
+  "additional_committed_sources_checked": [
+    "train.py",
+    "pa/offset.py",
+    "feeders/feeder.py",
+    "model/pancrafter_paper.py"
+  ],
+  "tracked_changes": "",
+  "unit_checks": 136,
+  "unit_rc": 0,
+  "conformance_checks": 53,
+  "conformance_passed": 53,
+  "defect_scenarios": 6,
+  "defect_scenarios_reproduced": 6,
+  "report_links": 39,
+  "broken_links": [],
+  "remote_s3_s4_runtime_verified": false
+}

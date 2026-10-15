@@ -1,0 +1,41 @@
+{
+  "start_epoch": 1789429027.0,
+  "end_epoch": 1789436227.0,
+  "files": [
+    {
+      "path": "research_log/PAN_Consistency_Reconstruction_Quadrant_Validation_12H_2026-09-14.md",
+      "mtime": "2026-09-15T09:17:45.060034+09:00",
+      "birth": null,
+      "bytes": 48345,
+      "lines": 761
+    },
+    {
+      "path": "research_log/2026-09-15_dcr12-implementation.md",
+      "mtime": "2026-09-15T09:43:55.715400+09:00",
+      "birth": null,
+      "bytes": 8240,
+      "lines": 49
+    },
+    {
+      "path": "research_log/2026-09-15_pakd50-s3-additions-implementation.md",
+      "mtime": "2026-09-15T10:24:07.764970+09:00",
+      "birth": null,
+      "bytes": 5681,
+      "lines": 39
+    },
+    {
+      "path": "research_log/PAN_PAKD50_S4_W104D121_Architecture_Allocation_2026-09-15.md",
+      "mtime": "2026-09-15T10:34:59.733024+09:00",
+      "birth": null,
+      "bytes": 22996,
+      "lines": 300
+    },
+    {
+      "path": "research_log/PAN_PAKD50_Latest_Sheet_Analysis_and_S3_Experiments_2026-09-15.md",
+      "mtime": "2026-09-15T10:19:07.535398+09:00",
+      "birth": null,
+      "bytes": 21939,
+      "lines": 334
+    }
+  ]
+}

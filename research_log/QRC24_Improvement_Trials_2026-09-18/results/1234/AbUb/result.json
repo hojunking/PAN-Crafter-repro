@@ -1,0 +1,701 @@
+{
+  "seed": 1234,
+  "name": "AbUb",
+  "identity": {
+    "model_hash": "72244f3049ad2540",
+    "bias": [
+      0.0,
+      0.0
+    ],
+    "ref": "bicubic",
+    "source": {
+      "model/pancrafter_paper.py": "a766a01a5e21d86924bd87e41b064b58dcd0407d5b4cf3200e2d8aea22603de8",
+      "model/se.py": "fcc37b1052c628fc4904712e853398025f74532f20d7bfc22556e46ce68138b4",
+      "model/pancrafter.py": "7bd4a28ff874e74602aefb319da1f93d620e78ca931bd24129f38b980492dd5a",
+      "model/swin.py": "cdc270141d0209a34bec67b2a615fb51b23e30f4a0455398ba17c951252c2a99",
+      "model/lr_tinyswin.py": "350857d61607fa9aa07f8470c346c3940b0372b43d4f4370633ee3ec35358815",
+      "model/lr_fuse.py": "67b2164dd29dedbc598d3b6b743c2d7ff28052c1fb33ffc374b033ff8ddb6667",
+      "pa/warp.py": "b7ea18eb1c09a9462763bfe0146454df2c6593c8dce9107328804a33ed02fcab",
+      "pa/model.py": "e162cbc77e0b15af87f27ef7573b101c0b977cd171f679ff902c782f8a87a393",
+      "pa/offset.py": "8e70f6999d311eaba9d9ff35fc7e4da05d2f0439fc1735d125a1342eec9b5dba",
+      "pa/aligner.py": "ebf6b026b213dc857b5e9d39ba5d3070356a51092b11c32f3ffac0bb861faa2f",
+      "pa/selector.py": "c37d74e822eda80e8c298db6183fd33aebe44760471b062451cec7a702335bf9",
+      "pa/__init__.py": "cb83dc8b47c143ea2453b13e85af96cfe1c35b190262b8ed7adc5b4ab2c8d304",
+      "pa/evalviews.py": "9f1c31c11358d807645d0a0824b26885b9ff41a53d974bb59bbae49ea9d0c1b9",
+      "pa/losses.py": "06eb9a117181355a899f2f0a24f8934b5867459f8fe645337aac2c8a0774279c",
+      "kdv/registry.py": "208a1818fe3f7b9c701dbfe46eef1badeb6888c04b0398beaf71563e2c4f4b1a",
+      "kdv/calibration.py": "dc3b2b200bf747d215d87e25db46f28ebbf8de875eceff25d3468722192127d0",
+      "kdv/losses_rec.py": "092e68d3c96b7a145f1f6821ef0aa44c4dfc3658f8338670c2ee27f56ba52997",
+      "kdv/protocol.py": "1182c4f39c51516b5a14cf9daba87882a64102dfb85fd12bac85b108a8beaaec",
+      "kdv/alignment_kd.py": "627c84233d8d9c966f603337f38fc09713ec12a75e7dbdf980a629aeacfb94a5",
+      "kdv/teacher_assets.py": "616ee40abd022ada9a072ce0c063fe8e23537aa53e5698c4e5b71801fb144533",
+      "kdv/eval_modes.py": "b4781e9094668bce6dee43d6653f635a8284bcdb25e2a04fbd1aa205408dd6fc",
+      "kdv/losses_stat.py": "67be9512f009ee71c37f16bf7369c43ec43374026a0acecd3a2ba2fed7c7ccbc",
+      "kdv/tri.py": "bd45da6bdce5e9b51ecf76bab9fc5fc2b04761785802160c037f6cd51fa76171",
+      "kdv/forward.py": "f29c09446e93fe40d97eb903242c8d306fe3d7d381744a13c46093284996ff52",
+      "kdv/resume.py": "2f82ab5b9470fe400b17b262643d8ad21fbe0237443e0cae2f10fe370f4d5227",
+      "kdv/qrecon.py": "cf1726828b79b27ca0ed7e168a9f4ed10dbc8752afcd89ee36ceed32709ade71",
+      "kdv/__init__.py": "23226a47bcdffccf238bbf7417db4ead936cf2f580c81652eb7e6b109b83105c",
+      "kdv/edge_gate.py": "a26ffea99c2435468e350febde691b55bf1c48e7867c4cba79d6f745a7a1b546",
+      "feeders/feeder.py": "08ca231c582287f0ff23307eb7413738a674a48294862b02499aa24cf4e55ef1",
+      "feeders/feeder_align.py": "89db8f77743cbd00c711da057a153892123f064ca408085450a138dd879e845d",
+      "feeders/feeder_uvs.py": "e1aba58a0ec5cbc8c58783f9dab27621f93ce780318a34600349b0e8f6311715",
+      "feeders/__init__.py": "6c1c6ec3f1a33e96311f726ab41656ee37515f9aff4e6f7b4d69ff6366c4a44b",
+      "tools/collect_combo.py": "d257f0cdfc71483fe2cb95f938ab6b258de7b995f0c2a5785318f222ee38a64a",
+      "tools/align_infer_sweep.py": "cc66fadaf06836096508c7f2a9caedc66fc27f9ff331db6e2d0ebefd541bac86",
+      "tools/qrecon24_preserve.py": "d40b9619afe7c11606ce8f064bb567fd53302862bb570387c3b3bd932123600d",
+      "tools/eval_dlpan_fr.py": "23192f5d61a091b829ce597787d05d5b09ec4a8bc6055ccc3fb6548238126c83",
+      "tools/plateau_report.py": "6a5b9639e54c0aebbc3b49a28f8296ed5fc74df46c13626ed670d2c15a29a754",
+      "tools/setup_wv2.py": "efafa6a2921384e9a1a254b9f6c15d491512afc190ed3569ba50ebe0837a3ddf",
+      "tools/dcr12.py": "ccb83ee1897869bacef7562811e14c94daf80cda0b0962b89f750a68d73ac546",
+      "tools/pals24_unit_tests.py": "059e9e785c45849f906025084f52d0f24d76d0eae0e1d7df0d392ec41704ee37",
+      "tools/pa_unit_tests.py": "d30aff5987e9d3cc4994f54062ea5717fed465e42ac3b8f3fb89df214f01584c",
+      "tools/qedge9_cue.py": "d6b133fc0e32459fc1f84006445618714aaabce4d20055c0da2f398694c56ef9",
+      "tools/s1_aligner_analysis.py": "eb69d53a260e7f5f282aa9501d2476f3d6a73b2aa08d9cb4eb8736f6a6930012",
+      "tools/align_after_training_diag.py": "9a83b98a772ef9f017ebc2895bd211bb8c6a1d1a1ec7db9333540ac2b8134643",
+      "tools/sr_infer_diag.py": "4156f9b31659cc335ddbe5a720d2cf247e6328569c2fa227d8935845bb8ad425",
+      "tools/uncertainty_diag.py": "15aa0b67f9646fb0ab7e4691db6c399f6595c7cbd8be8d9dd91cc2a65bcd7e50",
+      "tools/pakd50_calibrate.py": "e89e0e0a0ee91593fea7dee4fd4001411abe014592bc5fe01069688a2f7ee72c",
+      "tools/eqrec4_unit_tests.py": "4df3bf5f1e883aa3231cd6df7ac72d52c0e1f06bd6eabcab57ead01c99eeaddd",
+      "tools/gen_nf16_configs.py": "164a037605cfe11ceb101559b1d8ef724e15c0ca83536425273d5d9d374ed785",
+      "tools/eqrec4_visuals.py": "b3c692c4356eccaed3c929e143c82d35cfc13ef0e885353322de43032a0e5c20",
+      "tools/check_calibration.py": "e7014dd75fb863da70978ced98ebcbdfcc12a9145dfe0e26e71947d4a394ccb1",
+      "tools/aligner_constant_control.py": "fbc0a3eb4c87588caa8fbf063ba7216ca2f53278d92e49f7d75a5c32bc6d583d",
+      "tools/eval_phase.py": "a7cabdf5f59b48e6044abc801b9869268efdfc776e801817872524d64485d1ff",
+      "tools/pakd50_unit_tests.py": "3690b4fcf1124e9422e6f704c79241c603363727daeb8d989d30be245cdf0739",
+      "tools/aligner_audit_figures.py": "6384ff7335182cbed5a5d0504546b10c2b81ff21007034fc530f5eea6345281a",
+      "tools/qrc24_fixed_step_rr.py": "2c87271876f7faeb8d0103854b5a3f1727bf7151498201e2e2703aeff82c7bff",
+      "tools/gen_na104_configs.py": "6c20a6660857a4231e5d1b142d7528979d61594e1d74f35156a8bcf9d344193e",
+      "tools/repair_qb_ms.py": "0ed95018fd88afde7194eac8fdd5ae79de7b9056574766e339726dbc0a7c8884",
+      "tools/smoke_cases.py": "8d1a92f2c248d4031eb55e7fe623e003fd204b41723f390752d5379657e227fa",
+      "tools/test_kd.py": "de907a921cc28f382c39c24759aacc8ef2f132c0753d5eff58328f0bb780f136",
+      "tools/make_cannet_reference.py": "72419a9755457dc1d613468f61fc97042128a327b01ad843cd2e2ec623a2be57",
+      "tools/gen_arch_multiset_configs.py": "eea5571eb80d5d213147e31e0fc58cca6c0aa04a966ab09936501c3610c836bb",
+      "tools/plot_metrics.py": "bb2cc25ed2ee2843dda334dd69b25d6a06631e73196f7a4684aca07e108832cb",
+      "tools/framework_figs_run_t0.py": "6095ea7cf3a2c7da1e2ad448be42417fab8af2e39ea752febae228c458e6f24e",
+      "tools/pals24_metric_gate.py": "9aad67d2565e6a87e2346f6237d7353f1a93b6692b5fd0ad27e71bacf84f7063",
+      "tools/gen_smec12_bootstrap.py": "c7a768ddfff24ba74c0970e66736e1e980ec993379362d0558824bb0aa2c2cda",
+      "tools/collect_sweep.py": "1cbf69c96265629129a5a1bc155e1e8b79b2d8a5581976888124b0f4aae341d9",
+      "tools/qrecon24_postrun.py": "270416ed46b8f2cdcee44da539855872367a105642cf91c1e75b304d0697deae",
+      "tools/uvs_build_cache.py": "7035afbf26e054c773a826aae41398a4db290a7c31ab3e9c59d29d239e1c2bd0",
+      "tools/gen_palsv18_configs.py": "bce388a94c44079c31acd4ac396dbd03616cc919856b6afde9479f942c89b02c",
+      "tools/plan_combos.py": "fe2710a86ba7b453bd6f07951b128617f3987404e3da47f1b58c9926f3d956a0",
+      "tools/smec12.py": "bd5bfe1b9ae0800f375f8122daf45dca9f704bdb628a2ce181969c54b6ca5a36",
+      "tools/check_data.py": "4e8721890c6e5e022dd9e8dabe8de17ae9eba3d5a411f883055f102f385a08c9",
+      "tools/export_mat.py": "03cbcce5c6f94066841fda1c4695db79576eda008ba7f39ddf55fecc7f48d37d",
+      "tools/kdv_unit_tests.py": "5fa053153f88aa40bfd3956e462016b6f7cb401338f48d83abd94bdd69f6caeb",
+      "tools/collect_exp.py": "4d2e798423b0db125df82b4b8e6743098ff5e349d743a292baf93f290839fe1d",
+      "tools/align_diag.py": "ea5dc98ef239f66b4e3f75d22be0336bd99ee6b7997127923750abb3eea21d8c",
+      "tools/framework_figs_export.py": "dc4e7b3c7dd7020393bb1602f8f56eef7ab742497bbc273f381a6b74a903513c",
+      "tools/po10_unit_tests.py": "714205ac22e874b2e201b8f24b0b8f1386e5357c20a4ba6fe5236e2c91c1df70",
+      "tools/paper_figs.py": "55dac9ceee714d4dee2673e0ebc3d3d4cebe171bac475e41564f39117decdd30",
+      "tools/na104_20h.py": "d97cf89f27e49fb86d8233ccaa942e49fb84b3843d327bbbc77fc2778148a30a",
+      "tools/best_on_grid.py": "ec45239386e4b81bb7c4e1e67a0183785e59a98678faff93b821ffef766603f0",
+      "tools/build_shift_cache.py": "e61c08c6257ca0ee8f681fde1c4c9e47bd2e60e918a4c4c201441825ac1c1f02",
+      "tools/verify_swin.py": "efe805716026463e3114af4fbefb9d7b5b580f8ac06ac379c777e892e1dc7279",
+      "tools/qrc24_lock.py": "8e13e6a39fa03d8c59925238879e01c618b176982c72baf4e0bd272734a310ca",
+      "tools/test_uvs.py": "7b3f862f9e40f4daee53d15f8f31a2f06b6e9b6d81da7e3c987deed579df18b4",
+      "tools/gen_kdv_configs.py": "77f6a8de539a717d2b2b21aaa1fcfa798255bb19a4eb3242959b834c15271341",
+      "tools/eqrec4.py": "3620bf56739d4212cd027694c4a0dc51e428c52c73722aecc10e03e375fe141a",
+      "tools/analyze_uncertainty.py": "20b31f2aa642c19d4ce12de9792f97ddd950543be902f88d82ee860e4a5106d4",
+      "tools/po10_diag.py": "6f7cab83404c5d0d0006f3e7492fcec14091bbdc2bbb21ad7f1bccee4862b224",
+      "tools/eval_fr_paperset.py": "f6dfc408b2d6d5b5270ba666020fae2030e26438c9be7d290d364521a7146a7b",
+      "tools/make_report_figures.py": "3cc91522507ce9d468075ffadfcbc14c08144e88de3e4fb579dd16545e8bd6fe",
+      "tools/aligner_frame_review.py": "e5a5229e350cce16f60295fe185cce1aec2439cd1e51170fc74d073e455491b4",
+      "tools/gen_po10_configs.py": "d1e1f1cb3e332785c9a4cedd315be27a36315cc518fcb55f7605136a4f937f3e",
+      "tools/uvs_controlled_shift.py": "1ebfb46895a3e7ce6b624235f958cf2d8fb92927d76fc8e200fbb76c2f4f2013",
+      "tools/na104_hqnr_report.py": "53a79ffa1730a53cffa47320348fe4f332478be4108618c9cf2fe61ea5c28f1a",
+      "tools/na104_diag.py": "b8bbb046442d6c1a80376cfa2d76c18bb54798ed179730a81a87f27502d24ea3",
+      "tools/gen_pa_configs.py": "e87cee0a07cc1cc000e540d10a23cd05a5de958f47c545d3c28a4bb9a5a04760",
+      "tools/palsv18_report.py": "b4852e2b5185087847749e782c7413003f3ce7810cf48f5122c30b0d079130e5",
+      "tools/prune_workdir.py": "d40df71578347b848641be7d1b45ed00043fdf0a2ab5d162f9f17fa55a70d836",
+      "tools/noa_eval.py": "7c9af7df7097ef857335fe977fbed484ef98c98793a4abd80fe67a9ca5f0ad6b",
+      "tools/smec12_unit_tests.py": "6aad3e361415f50f68e9c1d19c4bb8ed25014e1ce3e379743938130b7cc8e850",
+      "tools/repair_lpan.py": "c7bab1542611c33fb50369160be3930043de449d13e963c7f125d83d9e018131",
+      "tools/local_align_diag.py": "1370f9db2fcf6c6715209733989e3d707585e687291956ee21edb5a8aae330d0",
+      "tools/gen_w96_d124_mspan_configs.py": "a009f8e5e058ad629d8f25d3b96f20fcfd6e7250d458ec49b01c687473e74812",
+      "tools/verify_metrics.py": "152a121f494dbbbdc619166f4a1eef0e3d3eba4693dc5c5ca00c62d991dc1abc",
+      "tools/calibrate_blur.py": "7cf06f2f8f8e9ec3308453a8aa7a7fa953595214f469e8d8520c15224d60435e",
+      "tools/palsv18_validate.py": "3fbf2bc3ecff3f040e6a6ebc2c4cdd7cc6778ff8dd8d8093a36823a5958cb307",
+      "tools/nf16_unit_tests.py": "97a9beeca82400fde2a0a4fb669d0ce5e90efe668b269b496315e8d95627d2f6",
+      "tools/aligner_scope_audit.py": "02daa726e366fa41e28665470ea48a8732812bcad155a583f68cba7d4f047686",
+      "tools/campaign_gate.py": "5a5626ea390d7c6832239ec3fb066991702e632ae3f34fefda6250002f70a37b",
+      "tools/aligner_rr_sweep.py": "b8d677bf79616ad1df69f41b09ce475b81f0185b155ce5407a069db9e44a742b",
+      "tools/na104_unit_tests.py": "c178b3d147ca85b4e9a0bd4c8db7894827c324759d470d47552caa6c0d668bb8",
+      "tools/scene_compare.py": "ef0c8d2047220cb9960a54b2eca12bc43d88edc114af1443f769b7a36e094afb",
+      "tools/gtvar_audit.py": "b801f699cf4f1cf7f3baf9682fff36fb61d672a427437f627c7379120cfd6196",
+      "tools/na104_20h_unit_tests.py": "a23504303f9302ef8eddfb89588f49bd8ca458c5afbfdea469e01fe3eb932f0a",
+      "tools/profile_sweep.py": "5f00a5017d863c556da0f72a4deb9e678baf7b552d324f722da9193d3b1cd5e1",
+      "tools/gen_pals24_configs.py": "c19ad940a3f1761566e2d3d8cc5da6e69ca6b4d30e02e40e8b11a4be707de035",
+      "tools/pals24_select_lambda.py": "45f8beed999267d1e0631fcc69a68755ff72447ea036efd53888d90b988bed11",
+      "tools/analyze_se_gates.py": "8d3d4f4286dd1e5ebf66e186f271bb8846545c6ae2cfb55748cb2e66746180a8",
+      "tools/aligner_scope_audit_tests.py": "e5761aeb3647926f0269bebe2b3a1c098e559c7f6743e524f92023d47b839d3b",
+      "tools/_ledger_update.py": "ce5ba3d0b390ce3ae24fc0a2b889005abfff0b8c4e8613f050fb83a3b5ebba3b",
+      "tools/pa_synthetic_check.py": "9a880b8d60990da84ad0f3898e31b809d9c961e2469786d012e984cd8d6c6a1f",
+      "tools/pals24_report.py": "38138d204555c2a75f049dc11f680ff5ac905a238d63e101adc7d087f2d137db",
+      "tools/palsv18_unit_tests.py": "a6bd84313648605d4c4065acd5acc0eeffeea2a77e12e43e15b2c1dc3fd31687",
+      "tools/uvs_prepare_teacher.py": "8a8418060e6caef5f756ff6f659ef690a9c0977ddb3a64fc71712a8d20f53e64",
+      "tools/aligner_shift_example.py": "29ec975368ce6720eb7e70faa2c96346414f99269dfc9b00b34754c9669b4784",
+      "tools/pretrain_shiftnet.py": "90743a72ee224fcf6064ffb2c3b890e6535b7004badde55c9c25da943e613072",
+      "tools/collect_ablation.py": "196339f006944388423f82b935533b1abd194b514d5168c9cb464644cd869d20",
+      "tools/qrecon24_select.py": "e0f435ef753a3744087d00fa3cacffc71437750c3cf901d84043e98596796f39",
+      "tools/test_shift_robust.py": "67f9a89bb0dc53d9a9ce2a72fc3f8f492e8b7249fa075cbf8d2c3183d8b4da85",
+      "tools/qrecon24_version_audit.py": "6d5df0951ed032a20507dd305df4882d2fdd7467440c262f5a06ee2d6d661e92",
+      "tools/test_alignment.py": "a4c25004ed5dd92c24f4b19064e3ee65faa9bf8108a55124874da871e4dce4f7",
+      "tools/dcr12_bundle.py": "09ee5c9ff6bb9c042667cf8891184c5e419617be99f908e9f290aa90c829b1ae",
+      "tools/dcr12_unit_tests.py": "6416673474d7938eb3b378dc6e8a043718cadba609b4a7fe1a960967661b56f3",
+      "tools/make_zeroshot_run.py": "468cd636c31e793f3035c91b13fb590910c960bd5c0dcb9f2ab932d3009ffbdb",
+      "tools/qrc24_qualitative.py": "01a70a9dd31a0edf160ecfbbfca3805aee252ec4270e75ba16826bb64572bae5",
+      "tools/calibrate_head.py": "f87b0d8b8943093cf239484b57ba0810300e256fc5231966d1591731fcf14b8c",
+      "tools/eval_dlpan.py": "5671d44da1026653ac028ff97f81375420fa195a55fd3721ee8140904239fdab",
+      "tools/pa_diag.py": "45a57251c60de4b9384484eeba0e13bf87650bdb21b26df0a9b5c915b7160d1e",
+      "tools/profile_models.py": "6d961ff3f43d3268e4212e269989fc17ef0d09b2f675a6a3e2bc2c995a7aa17f",
+      "tools/kdv_teacher_covhead.py": "6bf814e0b0a3ff431494a47758fed3aec692a242d5961b2e1143803b71207300",
+      "tools/eqrec4_bundle.py": "041397f169682c8b251b9fb9a3c6de8ea325c824dba40812b8ac614a03a88a35",
+      "tools/gen_pakd50_configs.py": "428ab397e74640c93f82d7ddd90853727acd1a7437d268d351e3bbf4cf6428d4",
+      "tools/build_fr_paperset.py": "a514ad316328dbfe17096451196610d9860b393b4b79adfd6580c3ac60b7e116",
+      "tools/metrics/jqm.py": "6962af58f8ac251fb087fbcf6dbde40bc502ec34083bd60a543b2daf0f8ce94b",
+      "tools/metrics/eval_fr.py": "b511d42b4db46d863c737b50606e9488c8ca5d9c7b07678ddc5bb7c1d9df01d4",
+      "tools/metrics/__init__.py": "37a799c555396f30cb55cfdb64d9bc5089b009caf894aa2c235eedfaad009734",
+      "tools/metrics/q2n.py": "89d1bf28a211e18a6fa8a2b6f8f7162f4b6716d15b2097888e773f1f73be10d1",
+      "tools/metrics/eval_rr.py": "a64a95ffde9b7d0278fa883bda1acaf895cca74d2b07b79f56285c60e8ba0c4a",
+      "tools/eqrec4/d50.py": "74bb6daa42afb3d49c40c68fdfc996d5e7784c900a3f3d392f592c32b8aa9621",
+      "tools/eqrec4/report.py": "8ebd309035fdebb122695650d6d2548e7c38e31238dc2b3cd26ae89fd9dce4b2",
+      "tools/eqrec4/d30b.py": "3ac813c80ce6b68c5dac6f415478336a78a34a1c537f101f8e4c66f554a9a473",
+      "tools/eqrec4/common.py": "589e1ce553a0e5a81f2536580f014261ab23fe8b2308b11d98beaaffad17ee3d",
+      "tools/eqrec4/d30.py": "d26bbc2d274771dc82345df203fac5df3f06fea8fe3cc95d4ef1c56d96cd19aa",
+      "tools/eqrec4/d10.py": "4996f3a8f1d1e92a7eafcb3ada8dbbefa4fb91e359b4953a709b292f621389b9",
+      "tools/eqrec4/d40.py": "6fdc124e912a76b4061fe4cbd9447595540ddec51b2fd6fbff55d84ee4578d2a",
+      "tools/eqrec4/g00.py": "84409228820858d088c3faf3dddcd5d056f8a96e10feb9cc415f19fc97dda5c3",
+      "tools/eqrec4/d20.py": "d7756cbf068a719974cebb33d4935f415d02d9b95d9665e54853b89cbd9802c4",
+      "tools/eqrec4/k10.py": "3eaec1c3bfe40d5d4fec27763180eb8b4c751bfc8cfba2bd5bd36bc3ffc2ed16",
+      "tools/eqrec4/k20.py": "df9243f679b219976efd8fdee9df279bb89af41bdc21904b14428f9addf92813",
+      "tools/eqrec4/__init__.py": "6e62949628d846e3f783571c7a59bcfe0a5d1aef706feb73af22f0fbc299c153",
+      "tools/dcr12/report.py": "21b35b3d93280c68676008d967d0a9fb60feb42cfd5f69e27a2914d0dd8fda9a",
+      "tools/dcr12/common.py": "22dedc7f606a54e7d359876d52291f3fa0d8e7410935f548c251f4d394dfa83d",
+      "tools/dcr12/results.py": "a1ec92c089fb11b13900bb6b8e17124985b14df27e7b0432fddc509da39061ff",
+      "tools/dcr12/d04.py": "4af8d8de6c0ec3ee68722fce79b5ee1ef92beebae0593de2fdcb22fa0f2ee62c",
+      "tools/dcr12/d03.py": "e6de5c5ce79ec152eabd3dd27634449b728ee95dc9aa473aa8969ffe31792074",
+      "tools/dcr12/d01.py": "9b621b8cf253e049e24755f86fb1ebc83abeea7c8e0d40bf74aea048ab940d38",
+      "tools/dcr12/d00.py": "117455b038a42606e2cc39bd3db0a88bfc5508dfc9bd9d9eae851c66b7a4956f",
+      "tools/dcr12/d02.py": "61a5ff078aad8b25d33c8f7eec00e2393520c91b3c022e9e7af32bf476da97b4",
+      "tools/dcr12/__init__.py": "a618a396dd0da646eaa65acb5962f8918b730ee55b095614a636dc1476e3b83c",
+      "tools/smec12/report.py": "fa7bfa079096522357d08b5e2c0c293fac48bc4495b3615bf3de8395ff9d56ff",
+      "tools/smec12/common.py": "5ee4d632d149d3fd62a3965b430e2c6b9ddb8a9bc41b33955b4150fede6806bf",
+      "tools/smec12/i20.py": "3a898d12df475863560f005ade4cebe1bfe46bc5d2a7d658ab2333f3fedd3e92",
+      "tools/smec12/i25.py": "13f8a4dbe2612d19a7eaa38f7bcbc08e518930eb146802cec3462c2105c2a7a8",
+      "tools/smec12/a00.py": "5c62285581ef7a731b3ca52f2b96a1193e360b1b0e5059cf4d18835d5c8517ef",
+      "tools/smec12/d10.py": "1117669ac80a766438e0bbcdb0627948412358791484f9216cfcb9b5ffc6235c",
+      "tools/smec12/x40.py": "dc00cbf8c0acc60d4d503d6b35a42f041be3bd4036619b57afe6667a5d2ba6f7",
+      "tools/smec12/i23.py": "8425931143405520278c09a93aa64a093b4f9ad4303eb5ba5b100c087d996a5b",
+      "tools/smec12/i24.py": "9b9c7ac799e9a7e3df6ca851ad06afba8865526b67a017fa76a4c2ba6cbe6724",
+      "tools/smec12/__init__.py": "41e059227a0b4ee90439ed31c4867d82f08c00584b35cc209305f2bca3ed223e"
+    },
+    "rr": {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "lpan_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/reduced_examples_h5/test_wv3_multiExm1_pan.h5",
+      "lpan_sha256": "b71b4e383ef6f074b74be9152df1093120da9ba1f36a4ce7549e0906d7792550"
+    },
+    "fr": {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20.h5",
+      "sha256": "8fe579a59594ddf42bce19743a5b65361feab22cbd0c8f433d3173f29b87a4d6",
+      "lpan_path": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/WV3/full_examples_mat20/test_wv3_OrigScale_mat20_pan.h5",
+      "lpan_sha256": "c7e7cd94244d311246290a0b4ed88e3592561a61fc67a902e202d4572f981f60"
+    },
+    "precision": "FP32",
+    "device": "cuda:0",
+    "script_sha": "96024482a626a78dd849c678b888bff5b2085ca491eef71e126301aede47a189"
+  },
+  "description": "same-run A/U crossed checkpoint",
+  "validation": null,
+  "results": {
+    "rr": {
+      "mean": {
+        "ergas": 2.0712330811875117,
+        "sam": 2.8122566881679942,
+        "psnr": 37.8771057524363,
+        "ssim": 0.9751571513659693,
+        "scc": 0.9875816122547463,
+        "q8": 0.9194200316748556
+      },
+      "per_scene": [
+        {
+          "scene": 0,
+          "delta": [
+            -0.016052257269620895,
+            0.11221546679735184
+          ],
+          "ergas": 3.389142380741216,
+          "sam": 1.723452533000594,
+          "psnr": 40.08464815239749,
+          "ssim": 0.9899695890302399,
+          "scc": 0.988836580916331,
+          "q8": 0.6484404269543649
+        },
+        {
+          "scene": 1,
+          "delta": [
+            -0.010305102914571762,
+            0.11490374803543091
+          ],
+          "ergas": 2.368150118336999,
+          "sam": 2.9676456067056103,
+          "psnr": 36.777787176695924,
+          "ssim": 0.9685710697774538,
+          "scc": 0.9851619736699188,
+          "q8": 0.9545677590788089
+        },
+        {
+          "scene": 2,
+          "delta": [
+            -0.0182022787630558,
+            0.11171243339776993
+          ],
+          "ergas": 2.5216564287749565,
+          "sam": 3.0419853426283074,
+          "psnr": 38.84691880332586,
+          "ssim": 0.9792502540217765,
+          "scc": 0.9883656020864686,
+          "q8": 0.9352518972148446
+        },
+        {
+          "scene": 3,
+          "delta": [
+            -0.008954312652349472,
+            0.10015641897916794
+          ],
+          "ergas": 2.067645561404651,
+          "sam": 3.179763674459804,
+          "psnr": 39.63624158366553,
+          "ssim": 0.9792714006547834,
+          "scc": 0.9878950925896018,
+          "q8": 0.9244634628071681
+        },
+        {
+          "scene": 4,
+          "delta": [
+            -0.012793954461812973,
+            0.10328153520822525
+          ],
+          "ergas": 2.4869732216978035,
+          "sam": 3.5237463686441517,
+          "psnr": 36.729842214114875,
+          "ssim": 0.9706958590228583,
+          "scc": 0.9871563912970717,
+          "q8": 0.9724559579816056
+        },
+        {
+          "scene": 5,
+          "delta": [
+            -0.008494887501001358,
+            0.10604124516248703
+          ],
+          "ergas": 2.13681714426167,
+          "sam": 2.481766231286971,
+          "psnr": 39.95890295103286,
+          "ssim": 0.9821055068646625,
+          "scc": 0.9883903250486851,
+          "q8": 0.8988693760384707
+        },
+        {
+          "scene": 6,
+          "delta": [
+            -0.005108211189508438,
+            0.09656155854463577
+          ],
+          "ergas": 1.7049723607968543,
+          "sam": 2.8288447789363533,
+          "psnr": 38.81990413632663,
+          "ssim": 0.968856637438403,
+          "scc": 0.9839874762732882,
+          "q8": 0.9358362810305053
+        },
+        {
+          "scene": 7,
+          "delta": [
+            0.01165611669421196,
+            0.09080273658037186
+          ],
+          "ergas": 2.3181987053911945,
+          "sam": 2.66988971378831,
+          "psnr": 37.272884375015316,
+          "ssim": 0.9683869719135466,
+          "scc": 0.9777017808370823,
+          "q8": 0.8907689375883647
+        },
+        {
+          "scene": 8,
+          "delta": [
+            0.0027537383139133453,
+            0.10434053838253021
+          ],
+          "ergas": 1.8584298605139906,
+          "sam": 3.0935963581795716,
+          "psnr": 40.66949979090648,
+          "ssim": 0.9832475264298315,
+          "scc": 0.9907393894913245,
+          "q8": 0.9200680107570204
+        },
+        {
+          "scene": 9,
+          "delta": [
+            0.017533540725708008,
+            0.11522921174764633
+          ],
+          "ergas": 1.556935933307762,
+          "sam": 2.9552315683385535,
+          "psnr": 39.78869439087971,
+          "ssim": 0.9819646698948657,
+          "scc": 0.990350923593775,
+          "q8": 0.9021563882242115
+        },
+        {
+          "scene": 10,
+          "delta": [
+            -0.02015579864382744,
+            0.12174859642982483
+          ],
+          "ergas": 2.5131045514906476,
+          "sam": 3.6543064763229274,
+          "psnr": 36.34989154792174,
+          "ssim": 0.9758334739336862,
+          "scc": 0.9908530284546367,
+          "q8": 0.9762332215962268
+        },
+        {
+          "scene": 11,
+          "delta": [
+            -0.012566622346639633,
+            0.11727868020534515
+          ],
+          "ergas": 2.0808011498705783,
+          "sam": 3.485123839229103,
+          "psnr": 37.16101822414576,
+          "ssim": 0.9697041134126742,
+          "scc": 0.9870296384555355,
+          "q8": 0.9714201299116164
+        },
+        {
+          "scene": 12,
+          "delta": [
+            -0.04577629640698433,
+            0.09353463351726532
+          ],
+          "ergas": 1.8257196445479191,
+          "sam": 1.4646068018982483,
+          "psnr": 38.36029485563571,
+          "ssim": 0.9779097715046674,
+          "scc": 0.9835781176773977,
+          "q8": 0.756749387713314
+        },
+        {
+          "scene": 13,
+          "delta": [
+            -0.02578120306134224,
+            0.10340354591608047
+          ],
+          "ergas": 2.6236309270959475,
+          "sam": 2.411836814944122,
+          "psnr": 40.17097362688002,
+          "ssim": 0.9842658759238473,
+          "scc": 0.9856878397038872,
+          "q8": 0.838546728159269
+        },
+        {
+          "scene": 14,
+          "delta": [
+            0.17228305339813232,
+            0.018775802105665207
+          ],
+          "ergas": 1.9172484326693913,
+          "sam": 2.987706413980733,
+          "psnr": 34.00677936955376,
+          "ssim": 0.9621019557595499,
+          "scc": 0.9878876399505682,
+          "q8": 0.9735838951959019
+        },
+        {
+          "scene": 15,
+          "delta": [
+            0.15620259940624237,
+            0.019685760140419006
+          ],
+          "ergas": 1.3938592889798371,
+          "sam": 2.740177061352453,
+          "psnr": 36.6356857212638,
+          "ssim": 0.9780351991373973,
+          "scc": 0.9935313551096243,
+          "q8": 0.9874291838370225
+        },
+        {
+          "scene": 16,
+          "delta": [
+            0.14054237306118011,
+            0.0173812173306942
+          ],
+          "ergas": 1.9173420085345751,
+          "sam": 3.2335435801625665,
+          "psnr": 35.08952259701377,
+          "ssim": 0.9741747398306609,
+          "scc": 0.99099557634442,
+          "q8": 0.9851889714982719
+        },
+        {
+          "scene": 17,
+          "delta": [
+            0.1469292938709259,
+            0.021006513386964798
+          ],
+          "ergas": 1.6361479694576093,
+          "sam": 2.9958984295767586,
+          "psnr": 36.06559307729361,
+          "ssim": 0.9772928082296848,
+          "scc": 0.9927714179535801,
+          "q8": 0.985572705141226
+        },
+        {
+          "scene": 18,
+          "delta": [
+            0.15340273082256317,
+            0.02759099379181862
+          ],
+          "ergas": 1.5227858210327019,
+          "sam": 2.482178997781589,
+          "psnr": 37.561972257367,
+          "ssim": 0.9659652563516028,
+          "scc": 0.9882828740032648,
+          "q8": 0.9668450134855443
+        },
+        {
+          "scene": 19,
+          "delta": [
+            0.16960866749286652,
+            0.018511533737182617
+          ],
+          "ergas": 1.5851001148439348,
+          "sam": 2.3238331721431664,
+          "psnr": 37.55506019729033,
+          "ssim": 0.9655403481871927,
+          "scc": 0.9824292216384635,
+          "q8": 0.9639528992833575
+        }
+      ]
+    },
+    "fr": {
+      "mean": {
+        "hqnr": 0.9591475405302846,
+        "d_lambda": 0.02042863198381779,
+        "d_s": 0.02084680112063382
+      },
+      "per_scene": [
+        {
+          "scene": 0,
+          "delta": [
+            0.30945342779159546,
+            -0.2097182273864746
+          ],
+          "hqnr": 0.958720555396106,
+          "d_lambda": 0.025639358322556927,
+          "d_s": 0.01605164003177656
+        },
+        {
+          "scene": 1,
+          "delta": [
+            0.3121801018714905,
+            -0.19002659618854523
+          ],
+          "hqnr": 0.9536526440501373,
+          "d_lambda": 0.030575411458951374,
+          "d_s": 0.016269387714466454
+        },
+        {
+          "scene": 2,
+          "delta": [
+            0.2866249084472656,
+            -0.1758514940738678
+          ],
+          "hqnr": 0.9494122035697427,
+          "d_lambda": 0.024447160102776033,
+          "d_s": 0.026795715473736187
+        },
+        {
+          "scene": 3,
+          "delta": [
+            0.2734338045120239,
+            -0.17176103591918945
+          ],
+          "hqnr": 0.9490934252185296,
+          "d_lambda": 0.032490673219748634,
+          "d_s": 0.01903434008538972
+        },
+        {
+          "scene": 4,
+          "delta": [
+            0.2948759198188782,
+            -0.18040449917316437
+          ],
+          "hqnr": 0.9597994052009252,
+          "d_lambda": 0.018668177789147422,
+          "d_s": 0.021942034816945816
+        },
+        {
+          "scene": 5,
+          "delta": [
+            0.2820665240287781,
+            -0.1756552755832672
+          ],
+          "hqnr": 0.9572116564693167,
+          "d_lambda": 0.02292053167754693,
+          "d_s": 0.02033387508105909
+        },
+        {
+          "scene": 6,
+          "delta": [
+            0.3028392195701599,
+            -0.1833094358444214
+          ],
+          "hqnr": 0.9658866073679986,
+          "d_lambda": 0.016874057312500468,
+          "d_s": 0.01753522572334433
+        },
+        {
+          "scene": 7,
+          "delta": [
+            0.2657327950000763,
+            -0.18131671845912933
+          ],
+          "hqnr": 0.9600324752571147,
+          "d_lambda": 0.023925580986947415,
+          "d_s": 0.016435164618040635
+        },
+        {
+          "scene": 8,
+          "delta": [
+            0.2724478840827942,
+            -0.1896042674779892
+          ],
+          "hqnr": 0.9667502747790652,
+          "d_lambda": 0.014684807035483471,
+          "d_s": 0.018841603497044508
+        },
+        {
+          "scene": 9,
+          "delta": [
+            0.23623380064964294,
+            -0.18292395770549774
+          ],
+          "hqnr": 0.9620284399515371,
+          "d_lambda": 0.019805760249496318,
+          "d_s": 0.018532857123900764
+        },
+        {
+          "scene": 10,
+          "delta": [
+            0.24516545236110687,
+            -0.18773435056209564
+          ],
+          "hqnr": 0.9652574837432031,
+          "d_lambda": 0.016642437390993248,
+          "d_s": 0.018406406330756547
+        },
+        {
+          "scene": 11,
+          "delta": [
+            0.24646179378032684,
+            -0.19423606991767883
+          ],
+          "hqnr": 0.9594713378672903,
+          "d_lambda": 0.01931845324393866,
+          "d_s": 0.02162802895489463
+        },
+        {
+          "scene": 12,
+          "delta": [
+            0.29351428151130676,
+            -0.19927063584327698
+          ],
+          "hqnr": 0.9625744434617383,
+          "d_lambda": 0.016738393928808604,
+          "d_s": 0.021039327155376895
+        },
+        {
+          "scene": 13,
+          "delta": [
+            0.2897813022136688,
+            -0.2093781977891922
+          ],
+          "hqnr": 0.9680674847919987,
+          "d_lambda": 0.010466886429292943,
+          "d_s": 0.02169268363465892
+        },
+        {
+          "scene": 14,
+          "delta": [
+            0.3388538956642151,
+            -0.21720948815345764
+          ],
+          "hqnr": 0.9591783219718487,
+          "d_lambda": 0.015808347779965648,
+          "d_s": 0.0254151010037154
+        },
+        {
+          "scene": 15,
+          "delta": [
+            0.3431652784347534,
+            -0.218889057636261
+          ],
+          "hqnr": 0.9659297429543154,
+          "d_lambda": 0.01079515829173594,
+          "d_s": 0.02352909910323
+        },
+        {
+          "scene": 16,
+          "delta": [
+            0.3504103124141693,
+            -0.1947430670261383
+          ],
+          "hqnr": 0.9535600786770121,
+          "d_lambda": 0.02187987311294448,
+          "d_s": 0.025109439561588218
+        },
+        {
+          "scene": 17,
+          "delta": [
+            0.3808824121952057,
+            -0.21912440657615662
+          ],
+          "hqnr": 0.9676194504351839,
+          "d_lambda": 0.009158506532821464,
+          "d_s": 0.023436688093002027
+        },
+        {
+          "scene": 18,
+          "delta": [
+            0.3116636276245117,
+            -0.18728700280189514
+          ],
+          "hqnr": 0.9338077874159032,
+          "d_lambda": 0.04305533315355892,
+          "d_s": 0.02417786548388865
+        },
+        {
+          "scene": 19,
+          "delta": [
+            0.38697993755340576,
+            -0.21140123903751373
+          ],
+          "hqnr": 0.9648969920267281,
+          "d_lambda": 0.014677731657140924,
+          "d_s": 0.02072953892586106
+        }
+      ]
+    }
+  },
+  "complete": true,
+  "state_unchanged": true,
+  "at": "2026-09-18T13:44:05.061690+09:00",
+  "seconds": 16.262821912765503,
+  "network_disabled": true,
+  "joint_pass": false
+}

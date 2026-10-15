@@ -1,0 +1,169 @@
+{
+ "run": "PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1",
+ "selector": "HQNR9585_ERGAS2040_v2",
+ "selector_order": [
+  "ergas",
+  "scc",
+  "psnr",
+  "sam",
+  "q8",
+  "ssim",
+  "hqnr"
+ ],
+ "threshold": 0.9585,
+ "official": false,
+ "target_status": "proxy",
+ "n_candidates": 50,
+ "n_eligible": 2,
+ "n_official_evaluated": 0,
+ "n_unevaluated": 2,
+ "target_feasible": true,
+ "target": {
+  "step": 31310,
+  "hqnr": 0.9591475525152621,
+  "fscc": 0.8822607225509383,
+  "scc": 0.9908874808489767,
+  "ergas": 2.060728895744664,
+  "sam": 2.80247642347632,
+  "psnr": NaN,
+  "q8": NaN,
+  "ssim": NaN,
+  "rr_pass": {
+   "scc": true,
+   "ergas": false,
+   "psnr": null,
+   "sam": false,
+   "q8": null,
+   "ssim": null
+  },
+  "numeric_pass_all6": false,
+  "display_tie": {
+   "scc": false,
+   "ergas": false,
+   "psnr": null,
+   "sam": false,
+   "q8": null,
+   "ssim": null
+  }
+ },
+ "joint_pass": null,
+ "joint_pass_note": "official RR 이 완료된 target 에서만 판정한다. proxy 값으로는 joint_pass 를 확정하지 않는다 (R2 §2.2)",
+ "proxy_target": {
+  "step": 31310,
+  "hqnr": 0.9591475525152621,
+  "fscc": 0.8822607225509383,
+  "scc": 0.9908874808489767,
+  "ergas": 2.060728895744664,
+  "sam": 2.80247642347632,
+  "psnr": NaN,
+  "q8": NaN,
+  "ssim": NaN,
+  "rr_pass": {
+   "scc": true,
+   "ergas": false,
+   "psnr": null,
+   "sam": false,
+   "q8": null,
+   "ssim": null
+  },
+  "numeric_pass_all6": false,
+  "display_tie": {
+   "scc": false,
+   "ergas": false,
+   "psnr": null,
+   "sam": false,
+   "q8": null,
+   "ssim": null
+  }
+ },
+ "six_pass_best": null,
+ "legacy_best": {
+  "step": 31310,
+  "hqnr": 0.9591475525152621,
+  "fr_mat20_hqnr": 0.9591475525152621
+ },
+ "h_consistency": {
+  "step": 31310,
+  "csv_hqnr": 0.9591475525152621,
+  "fr_mat20_hqnr": 0.9591475525152621,
+  "abs_diff": 0.0
+ },
+ "raw_max": {
+  "step": 31310,
+  "hqnr": 0.9591475525152621
+ },
+ "exact50K": {
+  "step": 50000,
+  "hqnr": 0.9566664324872887,
+  "scc": 0.9911442773166319,
+  "ergas": 2.0426673503040473
+ },
+ "late6": {
+  "steps": [
+   45450,
+   46460,
+   47470,
+   48480,
+   49490,
+   50000
+  ],
+  "n": 6,
+  "hqnr_mean": 0.956700150550888
+ },
+ "eligible_ranked": [
+  {
+   "step": 31310,
+   "hqnr": 0.9591475525152621,
+   "fscc": 0.8822607225509383,
+   "scc": 0.9908874808489767,
+   "ergas": 2.060728895744664,
+   "sam": 2.80247642347632,
+   "psnr": NaN,
+   "q8": NaN,
+   "ssim": NaN
+  },
+  {
+   "step": 25250,
+   "hqnr": 0.9588671017042433,
+   "fscc": 0.8892041329643364,
+   "scc": 0.990662609617171,
+   "ergas": 2.0797771575951964,
+   "sam": 2.8234035681403693,
+   "psnr": NaN,
+   "q8": NaN,
+   "ssim": NaN
+  }
+ ],
+ "eligible_unevaluated": [
+  {
+   "step": 25250,
+   "hqnr": 0.9588671017042433
+  },
+  {
+   "step": 31310,
+   "hqnr": 0.9591475525152621
+  }
+ ],
+ "evaluator": null,
+ "rr_eval_seconds_total": 0.0,
+ "notes": [
+  "proxy 정렬: CSV 의 학습 중 rr_scc/rr_ergas/rr_sam 만 (PSNR/Q8/SSIM 없음; SCC 는 학습 로그 정의) — --official 로 공식 RR 6 지표를 채운다"
+ ],
+ "rr_targets": {
+  "scc": "> 0.988",
+  "ergas": "< 2.04",
+  "psnr": "> 37.956",
+  "sam": "< 2.787",
+  "q8": "> 0.922",
+  "ssim": "> 0.976"
+ },
+ "display_decimals": {
+  "scc": 3,
+  "ergas": 3,
+  "psnr": 3,
+  "sam": 3,
+  "q8": 3,
+  "ssim": 3
+ },
+ "note": "같은 checkpoint 의 raw H(mat20 전체 frame) 하한 통과 뒤 RR 정렬; legacy/raw-max/exact50K/late6 는 보존·병기 (§7.2–§7.3). FR fSCC 와 RR SCC 는 다른 값이다. 공식 RR 는 candidate checkpoint 재추론(hash 로 캐시 검증)."
+}

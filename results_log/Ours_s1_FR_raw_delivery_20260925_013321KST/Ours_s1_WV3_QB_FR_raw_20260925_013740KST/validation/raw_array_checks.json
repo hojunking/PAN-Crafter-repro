@@ -1,0 +1,329 @@
+{
+  "status": "PASS",
+  "required_npy_count": 40,
+  "actual_npy_count": 40,
+  "png_count": 0,
+  "rr_or_gt_count": 0,
+  "per_scene": [
+    {
+      "sensor": "WV3",
+      "index": 0,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 1,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 2,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 3,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 4,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 5,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 6,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 7,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 8,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 9,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 10,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 11,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 12,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 13,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 14,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 15,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 16,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 17,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 18,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "WV3",
+      "index": 19,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 0,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 1,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 2,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 3,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 4,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 5,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 6,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 7,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 8,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 9,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 10,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 11,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 12,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 13,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 14,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 15,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 16,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 17,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 18,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    },
+    {
+      "sensor": "QB",
+      "index": 19,
+      "shape_dtype_finite_range_passed": true,
+      "source_index_matches_export_index": true,
+      "prediction_byte_identical": true,
+      "numeric_roundtrip_exact": true
+    }
+  ]
+}

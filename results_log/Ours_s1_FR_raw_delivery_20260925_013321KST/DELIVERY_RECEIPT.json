@@ -1,0 +1,13 @@
+{
+  "package": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_FR_raw_delivery_20260925_013321KST/Ours_s1_WV3_QB_FR_raw_20260925_013740KST",
+  "zip": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_FR_raw_delivery_20260925_013321KST/Ours_s1_WV3_QB_FR_raw_20260925_013740KST.zip",
+  "bytes": 222467851,
+  "sha256": "c71bbb928f844c6a1924d8e0786222f2e2737fe4f8130f9331036bf3fe29f7a8",
+  "zip_crc_verified": true,
+  "zip_members_sha_verified": true,
+  "actual_npy_count": 40,
+  "png_count": 0,
+  "raw_export_status": "FR_RAW_COMPLETE",
+  "delivery_status": "READY_LOCAL_NOT_DELIVERED",
+  "completed_at": "2026-09-24T16:38:16.173029+00:00"
+}

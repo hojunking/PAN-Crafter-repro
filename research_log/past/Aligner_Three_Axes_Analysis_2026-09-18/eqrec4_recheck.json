@@ -1,0 +1,99 @@
+{
+  "source": "work_dir/_eqrec4_s1_campaign/native_sample_metrics.csv",
+  "source_sha256": "a7cf69385782cc7098761d11589aca374eb6689754dd9054872030e2bce0b2b4",
+  "selected_columns": [
+    "model_key",
+    "scale",
+    "sample_id",
+    "source_group_id",
+    "split_role",
+    "q_A",
+    "e_native_roi",
+    "pan_scharr_energy",
+    "raw_original_hqnr"
+  ],
+  "methods": {
+    "report": "Spearman of residuals after regressing each variable rank on texture rank and intercept",
+    "conventional": "Pearson of those residuals (partial correlation of ranks)"
+  },
+  "native": [
+    {
+      "model_key": "L000_S1234_best_raw",
+      "n": 4096,
+      "source_blocks": 128,
+      "raw_rho": -0.2144655725199633,
+      "report_texture_adjusted_rho": 0.22034537085760736,
+      "conventional_partial_rank_rho": 0.25946025057955535
+    },
+    {
+      "model_key": "L000_S2025_best_raw",
+      "n": 4096,
+      "source_blocks": 128,
+      "raw_rho": -0.2145571122909165,
+      "report_texture_adjusted_rho": 0.20374468444116395,
+      "conventional_partial_rank_rho": 0.24222988606299384
+    },
+    {
+      "model_key": "L000_S7777_best_raw",
+      "n": 4096,
+      "source_blocks": 128,
+      "raw_rho": -0.18165548742480325,
+      "report_texture_adjusted_rho": 0.26645198917521845,
+      "conventional_partial_rank_rho": 0.29952035711767677
+    },
+    {
+      "model_key": "L1E2_S1234_best_raw",
+      "n": 4096,
+      "source_blocks": 128,
+      "raw_rho": 0.1452721412338189,
+      "report_texture_adjusted_rho": 0.32193632218188106,
+      "conventional_partial_rank_rho": 0.3380128075211165
+    },
+    {
+      "model_key": "L1E4_S1234_best_raw",
+      "n": 4096,
+      "source_blocks": 128,
+      "raw_rho": -0.1238332032220758,
+      "report_texture_adjusted_rho": 0.2855059878992692,
+      "conventional_partial_rank_rho": 0.3116882771082809
+    },
+    {
+      "model_key": "L1E4_S2025_best_raw",
+      "n": 4096,
+      "source_blocks": 128,
+      "raw_rho": -0.15676363916216826,
+      "report_texture_adjusted_rho": 0.2456713120084852,
+      "conventional_partial_rank_rho": 0.2762767236022189
+    },
+    {
+      "model_key": "L1E4_S7777_best_raw",
+      "n": 4096,
+      "source_blocks": 128,
+      "raw_rho": -0.1313584469319114,
+      "report_texture_adjusted_rho": 0.3119718972860849,
+      "conventional_partial_rank_rho": 0.33801927771995527
+    }
+  ],
+  "fr": [
+    {
+      "model_key": "L1E4_S1234_best_raw",
+      "n": 20,
+      "rho_q_hqnr": -0.6827067669172932
+    },
+    {
+      "model_key": "L1E4_S2025_best_raw",
+      "n": 20,
+      "rho_q_hqnr": -0.7819548872180451
+    },
+    {
+      "model_key": "L1E4_S7777_best_raw",
+      "n": 20,
+      "rho_q_hqnr": -0.8977443609022555
+    }
+  ],
+  "limitations": [
+    "Descriptive correlations only; no causal inference or independent-patch significance tests",
+    "Native figures use all 4096 patches, unlike original H1 BCD or D-only subsets",
+    "FR texture-adjusted coefficient is not recomputed here"
+  ]
+}

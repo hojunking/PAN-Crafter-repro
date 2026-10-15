@@ -1,0 +1,151 @@
+{
+  "n_selected": 4096,
+  "known_original_source_ids": false,
+  "exact_pan_plus_ms_cross_role_pairs": [],
+  "exact_nonflat_pan_32x32_tile_cross_role_pairs": [],
+  "feature_nearest_neighbor_cross_role_fraction": 0.635498046875,
+  "feature_nearest_neighbor_same_proxy_block_fraction": 0.01025390625,
+  "closest_feature_pairs": [
+    {
+      "sample_id": 4003,
+      "neighbor_id": 3052,
+      "role": "B",
+      "neighbor_role": "C",
+      "descriptor_l2": 1.244787022698092
+    },
+    {
+      "sample_id": 3052,
+      "neighbor_id": 4003,
+      "role": "C",
+      "neighbor_role": "B",
+      "descriptor_l2": 1.244787022698092
+    },
+    {
+      "sample_id": 2428,
+      "neighbor_id": 1288,
+      "role": "D",
+      "neighbor_role": "C",
+      "descriptor_l2": 1.3495221314055859
+    },
+    {
+      "sample_id": 1288,
+      "neighbor_id": 2428,
+      "role": "C",
+      "neighbor_role": "D",
+      "descriptor_l2": 1.3495221314055859
+    },
+    {
+      "sample_id": 5277,
+      "neighbor_id": 1288,
+      "role": "B",
+      "neighbor_role": "C",
+      "descriptor_l2": 1.3831458905089729
+    },
+    {
+      "sample_id": 1613,
+      "neighbor_id": 865,
+      "role": "B",
+      "neighbor_role": "B",
+      "descriptor_l2": 1.435859558313289
+    },
+    {
+      "sample_id": 865,
+      "neighbor_id": 1613,
+      "role": "B",
+      "neighbor_role": "B",
+      "descriptor_l2": 1.435859558313289
+    },
+    {
+      "sample_id": 1269,
+      "neighbor_id": 399,
+      "role": "B",
+      "neighbor_role": "C",
+      "descriptor_l2": 1.4580085308499806
+    },
+    {
+      "sample_id": 399,
+      "neighbor_id": 1269,
+      "role": "C",
+      "neighbor_role": "B",
+      "descriptor_l2": 1.4580085308499806
+    },
+    {
+      "sample_id": 1629,
+      "neighbor_id": 6859,
+      "role": "B",
+      "neighbor_role": "D",
+      "descriptor_l2": 1.6748782030006166
+    },
+    {
+      "sample_id": 6859,
+      "neighbor_id": 1629,
+      "role": "D",
+      "neighbor_role": "B",
+      "descriptor_l2": 1.6748782030006166
+    },
+    {
+      "sample_id": 6860,
+      "neighbor_id": 8552,
+      "role": "D",
+      "neighbor_role": "B",
+      "descriptor_l2": 1.7123128292331145
+    },
+    {
+      "sample_id": 8552,
+      "neighbor_id": 6860,
+      "role": "B",
+      "neighbor_role": "D",
+      "descriptor_l2": 1.7123128292331145
+    },
+    {
+      "sample_id": 4895,
+      "neighbor_id": 6801,
+      "role": "B",
+      "neighbor_role": "B",
+      "descriptor_l2": 2.1559590571087552
+    },
+    {
+      "sample_id": 6801,
+      "neighbor_id": 4895,
+      "role": "B",
+      "neighbor_role": "B",
+      "descriptor_l2": 2.1559590571087552
+    },
+    {
+      "sample_id": 2704,
+      "neighbor_id": 977,
+      "role": "A",
+      "neighbor_role": "B",
+      "descriptor_l2": 2.2243793643356353
+    },
+    {
+      "sample_id": 977,
+      "neighbor_id": 2704,
+      "role": "B",
+      "neighbor_role": "A",
+      "descriptor_l2": 2.2243793643356353
+    },
+    {
+      "sample_id": 6114,
+      "neighbor_id": 7859,
+      "role": "C",
+      "neighbor_role": "B",
+      "descriptor_l2": 2.2490047742799564
+    },
+    {
+      "sample_id": 7859,
+      "neighbor_id": 6114,
+      "role": "B",
+      "neighbor_role": "C",
+      "descriptor_l2": 2.2490047742799564
+    },
+    {
+      "sample_id": 2246,
+      "neighbor_id": 6185,
+      "role": "D",
+      "neighbor_role": "B",
+      "descriptor_l2": 2.2540552151830213
+    }
+  ],
+  "limitation": "A coarse image-feature proximity screen, not geolocation or overlap reconstruction. No independent scene count or scene-level CI can be certified from these checks."
+}

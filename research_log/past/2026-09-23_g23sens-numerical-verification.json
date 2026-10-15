@@ -1,0 +1,47 @@
+{
+  "schema": "G23SENS_IMPLEMENTATION_NUMERICAL_VERIFICATION_v1",
+  "date": "2026-09-23",
+  "campaign_id": "PANDA_G23_SENS_WV3_S45_20260923_v1",
+  "scope": "CPU implementation verification only; not GPU preflight or experiment results",
+  "source_sha256": {
+    "g23sens/model.py": "79aeddfe1c7fded0194fe336ac81d385df7c76a1523996114d201a58b4a4dc73",
+    "g23sens/training.py": "2ee6e1ed5b2f924ce24d18fdbb6561dd6991c6e5dde34c237096eca08ee5833b",
+    "g23sens/diagnostics.py": "dac6299c6e56a8104636ec9a9dcd35832011d11d1bc803e2c2d8bb0e871ec0ae"
+  },
+  "unit_tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 /home/knuvi/miniconda3/envs/pancrafter/bin/python -m unittest g23sens.test_numerics g23sens.test_training -v",
+    "passed": 14,
+    "failed": 0,
+    "coverage": [
+      "Original legacy constructor-order initialization and different-seed U",
+      "Actual checked-in KDVTrainer._qrecon_backward gradient parity",
+      "One-time tau scaling and actual optimizer A rates",
+      "Fixed raw q with changed weights and median weights 1/3, 1/2, 2/3",
+      "Teacher detachment and hard-only A gradient routing",
+      "Diagnostics preserve global RNG, buffers, gradients and training modes",
+      "Independent shared-snapshot copies and strict candidate checksums",
+      "Serialized model/optimizer/scheduler/RNG exact resume",
+      "Real persistence-loop safe pause and cursor resumption using a mocked CUDA device on CPU",
+      "Partially mutated optimizer failure retains the preceding disk checkpoint bytes"
+    ]
+  },
+  "actual_asset_cpu_probe": {
+    "passed": true,
+    "teacher_checkpoint_sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32",
+    "teacher_step": 24240,
+    "sample": "WV3 native training index 0, rotation 0, both legacy flips applied",
+    "cue_validation": "Existing QWeight.load verified actual T0, train H5, feeder and cue identity",
+    "batch_size": 1,
+    "U_parameters": 1903624,
+    "A_parameters": 105330,
+    "L_U": 0.24073971807956696,
+    "L_A": 0.11760392785072327,
+    "correction_dy_dx": [-0.17052853107452393, -0.09646400064229965],
+    "teacher_has_gradient": false,
+    "optimizer_updates": 0,
+    "production_files_written": false
+  },
+  "gpu_smoke_executed": false,
+  "training_started": false,
+  "spreadsheet_written": false
+}

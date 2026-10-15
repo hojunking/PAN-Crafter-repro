@@ -1,0 +1,264 @@
+seed: 82001
+work_dir: work_dir/QG40_QB_S_PLH_W104_D122_TB_C3_TS81002_SS82001_BASE_FRESH50_v1
+trainer: qg40
+phase: train
+num_iter: 50000
+num_warmup: 100
+batch_size: 48
+test_batch_size: 1
+num_worker: 4
+num_bands: 4
+max_pixel: 2047.0
+mixed_precision: 'no'
+learning_rate: 0.0001
+optimizer: AdamW
+weight_decay: 0.01
+betas:
+- 0.9
+- 0.999
+eps: 1.0e-08
+lr_scheduler: cosine
+log_iter: 100
+train_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb_msfix.h5
+  crop: false
+  hflip: true
+  vflip: true
+  rot: true
+  ms_size: 16
+  return_meta: true
+val_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb_msfix.h5
+test_reduced_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5
+test_full_feeder_args:
+  dataroot: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5
+model_args:
+  hidden_size: 104
+  depth:
+  - 1
+  - 2
+  - 2
+  out_channels: 4
+  attn_locations: []
+  mode_modulation: false
+  norm: ln
+  dropout: 0.0
+qg40:
+  run_id: QG40_QB_S_PLH_W104_D122_TB_C3_TS81002_SS82001_BASE_FRESH50_v1
+  server_id: s1
+  sensor: QB
+  role: S
+  reference_id: QB_TB_C3
+  teacher_seed: 81002
+  student_seed: 82001
+  input_layout: PLH
+  width: 104
+  depth:
+  - 1
+  - 2
+  - 2
+  profile: BASE
+  tier: P2_TEACHER_CONDITIONAL
+  block_id: s1_TC3_PACKAGE
+  queue_rank: 45
+  within_block_order: 3
+  branch_condition: TC3_ENABLE_s1
+  dependencies:
+  - LOCAL_READY_s1
+  - QG40_QB_TB_C3_CAL_v1
+  - BRANCH_RECEIPT_s1
+  - TC3_EVIDENCE_s1
+  teacher_run_id: QG40_QB_TB_C3_P0_W112_D123_TS81002_C3_FRESH50_v1
+  updates: 50000
+  baseline_id_preserved: false
+  case_id: QG40-C005
+  sheet_tab: QB-s1
+  seed: 82001
+  teacher_input_layout: P0
+  kind: TRAIN
+  campaign_id: PANDA_QG40_20260920_v1
+  config_path: config/qg40/QG40_QB_S_PLH_W104_D122_TB_C3_TS81002_SS82001_BASE_FRESH50_v1.yaml
+  method_revision: QG40_SYNC_FREQ_C4_v1
+  registry_revision: QG40_REGISTRY_20260920_v2_PREPARATION
+  source_plan: research_log/0920/PAN_QG40_QB_GF2_40H_ExperimentPlan_2026-09-20.md
+  sensor_spec:
+    sensor: QB
+    num_bands: 4
+    max_dn: 2047
+    inverse_scale: 1023.5
+    mtf_sensor: QB
+    hqnr_threshold: 0.92
+    ergas_goal: 3.57
+    ergas_strong_goal: null
+    band_order:
+    - B
+    - G
+    - R
+    - NIR
+    splits:
+      fr:
+        path: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5
+        sha256: bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24
+        source_identity: PanCollection.FullDataMAT.QB.fr1-20.numeric-order.HWC-to-CHW-only
+        lp_path: null
+        lp_sha256: null
+      rr:
+        path: /home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5
+        sha256: 9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35
+        source_identity: PanCollection.CANConv.QB.test_multiExm1.RR20.original-row-order
+        lp_path: null
+        lp_sha256: null
+      train:
+        path: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb_msfix.h5
+        sha256: c7fb3ef0744f3fd21330925003f6bd6eb110f8a181c23ea6d9ce086c81710ba9
+        source_identity: PanCollection.CANConv.QB.train.msfix.genMTF_QB.phase22.interp23tap.built20260908
+        lp_path: null
+        lp_sha256: null
+      val:
+        path: /home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb_msfix.h5
+        sha256: 79f5bb48905876e8b278868a4ca9b266ef52582bd26b9c31b60462b708a411fa
+        source_identity: PanCollection.CANConv.QB.valid.msfix.genMTF_QB.phase22.interp23tap.built20260908
+        lp_path: null
+        lp_sha256: null
+    source_provenance:
+      band_order_evidence: Installed CANConv PanCollection audit 2026-08-10 lines64-70
+        (SHA256 f18b588f71f893bb0d7b48444dfbac90358d05f31ad02fb8a0a0ae4a851a3afc),
+        author canconv/util/log.py C4 RGB[2,1,0] (SHA256 ca4943ade70376228d986aa5d2d9b2ba7617f59c2dfdb3704e1e7bd8982f3d53),
+        DLPan genMTF.m line31 QB Band Order B,G,R,NIR. Source-repository convention,
+        not embedded H5 band metadata or independently measured spectral identity.
+      evidence_document: qg40/SENSOR_SOURCE_EVIDENCE.md
+      msfix_recipe: 'tools/repair_qb_ms.py SHA256 0ed95018fd88afde7194eac8fdd5ae79de7b9056574766e339726dbc0a7c8884:
+        MS=genMTF(QB) replicate-filter(GT)[2::4,2::4]; LMS=interp23tap(MS); GT/PAN
+        unchanged must be verified by local preflight. One HR phase index is HR1px/LR0.25
+        spacing, not a native PAN shift measurement.'
+      mtf_evidence: 'DLPan genMTF.m SHA256 5c96781d777ec6f08fee696ff80dc46972875b764c6f289388bb21614dd14c2d:
+        QB gains[0.34,0.32,0.30,0.22] in B,G,R,NIR order; tools/metrics/eval_fr.py
+        GNYQ_TABLE preserves this evaluation protocol. Algorithmic LP sigma1.98 is
+        separate.'
+      no_data_policy: No no-data sentinel/mask attribute found in inspected H5 metadata;
+        do not infer that zero is missing. Preserve all finite stored values including
+        zeros; report counts; no sample deletion or input masking. P0 source scan
+        rejects nonfinite values. Absence of metadata is not proof of absence of missing
+        observations.
+      raw_train_path: /home/knuvi/Desktop/song/CANConv/data/datasets/qb/train_qb.h5
+      raw_train_sha256: 7d45e191cd03f3df12eb76b5f27624eaba1b464970788eb61723c3574dd14371
+      raw_val_path: /home/knuvi/Desktop/song/CANConv/data/datasets/qb/valid_qb.h5
+      raw_val_sha256: b307bcbb0d69056278a8a0b4970f1cd1b58dfff19bbe949be224e106f1a18470
+      saturation_policy: Preserve nominal-maxDN(2047) values and count them; no input/GT
+        clipping or replacement. P0 requires PAN/GT within[0,2047]; finite MS/LMS
+        ringing outside nominal DN range is preserved/reported. Official prediction
+        clipping is unchanged and separate.
+      split_correspondence_evidence: QB train17139/val1905 msfix H5 record raw filename
+        and genMTF(QB),replicate,[2::4,2::4],interp23tap recipe; required local preflight
+        verifies every raw/fixed GT/PAN and reconstructed MS/LMS pair. RR20 remains
+        original joint GT/MS/LMS/PAN H5 row order. FR20 original MAT SHA and each
+        MS/LMS/PAN array verified exactly against H5 on2026-09-20 in fr1..20 numeric
+        order; provenance.json SHA256 47d592ef4a120d5aa2956817adf2916d93c8576412e9aa18bf3632b24dbe8c65.
+        No claim of train/test geographic disjointness or RR-to-FR scene correspondence.
+      units: DN
+  sensor_spec_path: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/_qg40/s1/sensor_spec.json
+  num_bands: 4
+  max_pixel: 2047
+  batch_size: 48
+  window_path: work_dir/_qg40/campaign_window.json
+  dataset_manifest: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/_qg40/s1/dataset_manifest.json
+  reference_manifest: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/_qg40/s1/references/QB_TB_C3/reference_manifest.json
+  teacher_checkpoint: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/QG40_QB_TB_C3_P0_W112_D123_TS81002_C3_FRESH50_v1/candidates/50000/model.safetensors
+  teacher_sha256: 54626eda7a28180ac4ed3ba4d5c40646834b858401a23a3b26a8491fd248f27d
+  tau_R: 0.010598927736282349
+  q_ref: 0.4542613625526428
+  q_cache: /home/knuvi/Desktop/song/PAN-Crafter/work_dir/_qg40/s1/references/QB_TB_C3/q_cache.npz
+  q_cache_sha256: b52cc6e161fcfbf83f6cb65e6d2c8ed093dbf7e59bac1dacdae802b2c23d8b98
+  teacher_from_scratch: true
+  backbone_from_scratch: true
+  aligner_init: TEACHER_CLONE
+  init_policy: FH12_named_tensor_fresh9_zero_extra_v1
+  init_generalization: Cplus1_native_channels_zero_extra_LH
+  candidate_grid:
+  - 1010
+  - 2020
+  - 3030
+  - 4040
+  - 5050
+  - 6060
+  - 7070
+  - 8080
+  - 9090
+  - 10100
+  - 11110
+  - 12120
+  - 13130
+  - 14140
+  - 15150
+  - 16160
+  - 17170
+  - 18180
+  - 19190
+  - 20200
+  - 21210
+  - 22220
+  - 23230
+  - 24240
+  - 25250
+  - 26260
+  - 27270
+  - 28280
+  - 29290
+  - 30300
+  - 31310
+  - 32320
+  - 33330
+  - 34340
+  - 35350
+  - 36360
+  - 37370
+  - 38380
+  - 39390
+  - 40400
+  - 41410
+  - 42420
+  - 43430
+  - 44440
+  - 45450
+  - 46460
+  - 47470
+  - 48480
+  - 49490
+  - 50000
+  fullstate_steps:
+  - 10000
+  - 24240
+  - 50000
+  teacher_ref_step: 50000
+  no_global_lock: true
+  alpha: 1.0
+  beta: 0.1
+  lambda_E: 0.002
+  lambda_edge: 0.002
+  aligner_lr: 3.0e-06
+  consistency_weight: 0.0
+  offset_weight: 0.0
+  offset_every: 2
+  offset_radius: 0.0
+  view_margin_hr: 4
+  corruption_seed: 182001
+  calibration:
+    n_patches: 3072
+    seed: 1234
+    probe: AXIS16
+    views: FIXED_HV_ROT4
+    subset_scope: SENSOR_SHARED_TRAIN_IDS
+  hqnr_threshold: 0.92
+  ergas_goal: 3.57
+  ergas_strong_goal: null
+  lr_schedule_id: COSINE_W100_BASE_v1
+  a_lr_switch_completed_updates: null
+  a_lr_after_multiplier: 1.0
+  lp:
+    sigma: 1.98
+    kernel_size: 41
+    padding: replicate
+    decimation: 2::4,2::4
+    generation_dtype: float64
+    cache_dtype: float32

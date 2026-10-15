@@ -1,0 +1,687 @@
+{
+  "captured_at": "2026-09-18T11:23:10.579036",
+  "head": "3a99515d4e4ff10525633915de2d353902883b05",
+  "torch_version": "2.4.0",
+  "device": "cpu",
+  "response_refits": [
+    {
+      "name": "N2_legacy",
+      "run": "PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT",
+      "checkpoint": "last",
+      "scale": "native64",
+      "n_samples": 64,
+      "n_rows": 1600,
+      "B_yy": -0.9842380580829091,
+      "B_yx": 0.004248837331330447,
+      "B_xy": -0.0050020340449316615,
+      "B_xx": -0.9870491602447518,
+      "max_fit_difference": 0.0,
+      "fixed_probe_epe": 0.05929440967485099,
+      "fixed_probe_component_mae": 0.03795665825055039,
+      "checkpoint_hash_present": false,
+      "checkpoint_hash_matches": null
+    },
+    {
+      "name": "N2_legacy",
+      "run": "PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT",
+      "checkpoint": "last",
+      "scale": "rr256",
+      "n_samples": 20,
+      "n_rows": 500,
+      "B_yy": -1.0014954134405487,
+      "B_yx": 0.005329980013968731,
+      "B_xy": 0.003404355885207431,
+      "B_xx": -0.9935679770226814,
+      "max_fit_difference": 0.0,
+      "fixed_probe_epe": 0.030218328589666055,
+      "fixed_probe_component_mae": 0.01861298742951476,
+      "checkpoint_hash_present": false,
+      "checkpoint_hash_matches": null
+    },
+    {
+      "name": "N2_legacy",
+      "run": "PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT",
+      "checkpoint": "last",
+      "scale": "fr512",
+      "n_samples": 20,
+      "n_rows": 500,
+      "B_yy": -0.912575040117388,
+      "B_yx": -0.0033252603899866662,
+      "B_xy": -0.03975482149300723,
+      "B_xx": -0.9522810136100962,
+      "max_fit_difference": 0.0,
+      "fixed_probe_epe": 0.09968830608311875,
+      "fixed_probe_component_mae": 0.06442208769731224,
+      "checkpoint_hash_present": false,
+      "checkpoint_hash_matches": null
+    },
+    {
+      "name": "N2_PALSV18",
+      "run": "PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT",
+      "checkpoint": "last",
+      "scale": "native64",
+      "n_samples": 64,
+      "n_rows": 2624,
+      "B_yy": -0.9841775230486954,
+      "B_yx": 0.004942537826181533,
+      "B_xy": -0.002738904214720258,
+      "B_xx": -0.9849765131539054,
+      "max_fit_difference": 0.0,
+      "fixed_probe_epe": 0.0607396194622352,
+      "fixed_probe_component_mae": 0.03941751600639015,
+      "checkpoint_hash_present": true,
+      "checkpoint_hash_matches": true
+    },
+    {
+      "name": "N2_PALSV18",
+      "run": "PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT",
+      "checkpoint": "last",
+      "scale": "rr256",
+      "n_samples": 20,
+      "n_rows": 820,
+      "B_yy": -1.0005011267557147,
+      "B_yx": 0.006041782597195989,
+      "B_xy": 0.005352234361632732,
+      "B_xx": -0.990897884322479,
+      "max_fit_difference": 0.0,
+      "fixed_probe_epe": 0.04251777548302378,
+      "fixed_probe_component_mae": 0.02759916440668957,
+      "checkpoint_hash_present": true,
+      "checkpoint_hash_matches": true
+    },
+    {
+      "name": "N2_PALSV18",
+      "run": "PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT",
+      "checkpoint": "last",
+      "scale": "fr512",
+      "n_samples": 20,
+      "n_rows": 820,
+      "B_yy": -0.9093880479413043,
+      "B_yx": -0.013161484876083283,
+      "B_xy": -0.04643124199583535,
+      "B_xx": -0.9419789072702113,
+      "max_fit_difference": 0.0,
+      "fixed_probe_epe": 0.09289525967521753,
+      "fixed_probe_component_mae": 0.06159309739451796,
+      "checkpoint_hash_present": true,
+      "checkpoint_hash_matches": true
+    },
+    {
+      "name": "T0_PALSV18",
+      "run": "PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1",
+      "checkpoint": "best_hqnr",
+      "scale": "native64",
+      "n_samples": 64,
+      "n_rows": 2624,
+      "B_yy": -0.3273279572978213,
+      "B_yx": -0.027705872777808522,
+      "B_xy": 0.005108913547051111,
+      "B_xx": -0.3773206681357749,
+      "max_fit_difference": 0.0,
+      "fixed_probe_epe": 0.6176573772292924,
+      "fixed_probe_component_mae": 0.3779097850116242,
+      "checkpoint_hash_present": true,
+      "checkpoint_hash_matches": true
+    },
+    {
+      "name": "T0_PALSV18",
+      "run": "PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1",
+      "checkpoint": "best_hqnr",
+      "scale": "rr256",
+      "n_samples": 20,
+      "n_rows": 820,
+      "B_yy": -0.3360588935124715,
+      "B_yx": -0.01792639760469764,
+      "B_xy": 0.00901660837217566,
+      "B_xx": -0.36764294133259134,
+      "max_fit_difference": 0.0,
+      "fixed_probe_epe": 0.614831897003558,
+      "fixed_probe_component_mae": 0.37498645702631545,
+      "checkpoint_hash_present": true,
+      "checkpoint_hash_matches": true
+    },
+    {
+      "name": "T0_PALSV18",
+      "run": "PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1",
+      "checkpoint": "best_hqnr",
+      "scale": "fr512",
+      "n_samples": 20,
+      "n_rows": 820,
+      "B_yy": -0.34280217810118274,
+      "B_yx": -0.025907339947288114,
+      "B_xy": 0.01008732737329395,
+      "B_xx": -0.32420797821716596,
+      "max_fit_difference": 0.0,
+      "fixed_probe_epe": 0.6261933887455532,
+      "fixed_probe_component_mae": 0.3832115542294188,
+      "checkpoint_hash_present": true,
+      "checkpoint_hash_matches": true
+    }
+  ],
+  "n2_best_vs_last": {
+    "native64": {
+      "best_hqnr": [
+        -0.0691703130631898,
+        -0.55951099189149
+      ],
+      "last": [
+        -0.9842380580829091,
+        -0.9870491602447518
+      ]
+    },
+    "rr256": {
+      "best_hqnr": [
+        -0.07117128506448585,
+        -0.4884735262916431
+      ],
+      "last": [
+        -1.0014954134405487,
+        -0.9935679770226814
+      ]
+    },
+    "fr512": {
+      "best_hqnr": [
+        -0.040059641684136754,
+        -0.2804636222709118
+      ],
+      "last": [
+        -0.912575040117388,
+        -0.9522810136100962
+      ]
+    }
+  },
+  "coordinate_checks": [
+    {
+      "H": 64,
+      "W": 64,
+      "input_delta": [
+        0.5,
+        -0.3
+      ],
+      "max_recovered_pixel_error": 7.748603820800781e-07,
+      "integer_delta": [
+        1.0,
+        -2.0
+      ],
+      "observed_peak": [
+        31,
+        34
+      ],
+      "expected_peak": [
+        31,
+        34
+      ],
+      "passed": true
+    },
+    {
+      "H": 128,
+      "W": 128,
+      "input_delta": [
+        0.5,
+        -0.3
+      ],
+      "max_recovered_pixel_error": 3.039836883544922e-06,
+      "integer_delta": [
+        1.0,
+        -2.0
+      ],
+      "observed_peak": [
+        63,
+        66
+      ],
+      "expected_peak": [
+        63,
+        66
+      ],
+      "passed": true
+    },
+    {
+      "H": 256,
+      "W": 256,
+      "input_delta": [
+        0.5,
+        -0.3
+      ],
+      "max_recovered_pixel_error": 3.039836883544922e-06,
+      "integer_delta": [
+        1.0,
+        -2.0
+      ],
+      "observed_peak": [
+        127,
+        130
+      ],
+      "expected_peak": [
+        127,
+        130
+      ],
+      "passed": true
+    },
+    {
+      "H": 512,
+      "W": 512,
+      "input_delta": [
+        0.5,
+        -0.3
+      ],
+      "max_recovered_pixel_error": 1.2218952178955078e-05,
+      "integer_delta": [
+        1.0,
+        -2.0
+      ],
+      "observed_peak": [
+        255,
+        258
+      ],
+      "expected_peak": [
+        255,
+        258
+      ],
+      "passed": true
+    },
+    {
+      "H": 256,
+      "W": 320,
+      "input_delta": [
+        0.5,
+        -0.3
+      ],
+      "max_recovered_pixel_error": 1.8298625946044922e-05,
+      "integer_delta": [
+        1.0,
+        -2.0
+      ],
+      "observed_peak": [
+        127,
+        162
+      ],
+      "expected_peak": [
+        127,
+        162
+      ],
+      "passed": true
+    }
+  ],
+  "shape_checks": [
+    {
+      "model": "N2",
+      "H": 64,
+      "W": 64,
+      "aligner_view": [
+        56,
+        56
+      ],
+      "feature_map": [
+        1,
+        64,
+        14,
+        14
+      ],
+      "gap": [
+        1,
+        64
+      ],
+      "output": [
+        1,
+        2
+      ],
+      "finite": true
+    },
+    {
+      "model": "N2",
+      "H": 128,
+      "W": 128,
+      "aligner_view": [
+        120,
+        120
+      ],
+      "feature_map": [
+        1,
+        64,
+        30,
+        30
+      ],
+      "gap": [
+        1,
+        64
+      ],
+      "output": [
+        1,
+        2
+      ],
+      "finite": true
+    },
+    {
+      "model": "N2",
+      "H": 256,
+      "W": 256,
+      "aligner_view": [
+        248,
+        248
+      ],
+      "feature_map": [
+        1,
+        64,
+        62,
+        62
+      ],
+      "gap": [
+        1,
+        64
+      ],
+      "output": [
+        1,
+        2
+      ],
+      "finite": true
+    },
+    {
+      "model": "N2",
+      "H": 512,
+      "W": 512,
+      "aligner_view": [
+        504,
+        504
+      ],
+      "feature_map": [
+        1,
+        64,
+        126,
+        126
+      ],
+      "gap": [
+        1,
+        64
+      ],
+      "output": [
+        1,
+        2
+      ],
+      "finite": true
+    },
+    {
+      "model": "N2",
+      "H": 256,
+      "W": 320,
+      "aligner_view": [
+        248,
+        312
+      ],
+      "feature_map": [
+        1,
+        64,
+        62,
+        78
+      ],
+      "gap": [
+        1,
+        64
+      ],
+      "output": [
+        1,
+        2
+      ],
+      "finite": true
+    },
+    {
+      "model": "T0",
+      "H": 64,
+      "W": 64,
+      "aligner_view": [
+        56,
+        56
+      ],
+      "feature_map": [
+        1,
+        64,
+        14,
+        14
+      ],
+      "gap": [
+        1,
+        64
+      ],
+      "output": [
+        1,
+        2
+      ],
+      "finite": true
+    },
+    {
+      "model": "T0",
+      "H": 128,
+      "W": 128,
+      "aligner_view": [
+        120,
+        120
+      ],
+      "feature_map": [
+        1,
+        64,
+        30,
+        30
+      ],
+      "gap": [
+        1,
+        64
+      ],
+      "output": [
+        1,
+        2
+      ],
+      "finite": true
+    },
+    {
+      "model": "T0",
+      "H": 256,
+      "W": 256,
+      "aligner_view": [
+        248,
+        248
+      ],
+      "feature_map": [
+        1,
+        64,
+        62,
+        62
+      ],
+      "gap": [
+        1,
+        64
+      ],
+      "output": [
+        1,
+        2
+      ],
+      "finite": true
+    },
+    {
+      "model": "T0",
+      "H": 512,
+      "W": 512,
+      "aligner_view": [
+        504,
+        504
+      ],
+      "feature_map": [
+        1,
+        64,
+        126,
+        126
+      ],
+      "gap": [
+        1,
+        64
+      ],
+      "output": [
+        1,
+        2
+      ],
+      "finite": true
+    },
+    {
+      "model": "T0",
+      "H": 256,
+      "W": 320,
+      "aligner_view": [
+        248,
+        312
+      ],
+      "feature_map": [
+        1,
+        64,
+        62,
+        78
+      ],
+      "gap": [
+        1,
+        64
+      ],
+      "output": [
+        1,
+        2
+      ],
+      "finite": true
+    },
+    {
+      "model": "G23",
+      "H": 64,
+      "W": 64,
+      "aligner_view": [
+        56,
+        56
+      ],
+      "feature_map": [
+        1,
+        64,
+        14,
+        14
+      ],
+      "gap": [
+        1,
+        64
+      ],
+      "output": [
+        1,
+        2
+      ],
+      "finite": true
+    },
+    {
+      "model": "G23",
+      "H": 128,
+      "W": 128,
+      "aligner_view": [
+        120,
+        120
+      ],
+      "feature_map": [
+        1,
+        64,
+        30,
+        30
+      ],
+      "gap": [
+        1,
+        64
+      ],
+      "output": [
+        1,
+        2
+      ],
+      "finite": true
+    },
+    {
+      "model": "G23",
+      "H": 256,
+      "W": 256,
+      "aligner_view": [
+        248,
+        248
+      ],
+      "feature_map": [
+        1,
+        64,
+        62,
+        62
+      ],
+      "gap": [
+        1,
+        64
+      ],
+      "output": [
+        1,
+        2
+      ],
+      "finite": true
+    },
+    {
+      "model": "G23",
+      "H": 512,
+      "W": 512,
+      "aligner_view": [
+        504,
+        504
+      ],
+      "feature_map": [
+        1,
+        64,
+        126,
+        126
+      ],
+      "gap": [
+        1,
+        64
+      ],
+      "output": [
+        1,
+        2
+      ],
+      "finite": true
+    },
+    {
+      "model": "G23",
+      "H": 256,
+      "W": 320,
+      "aligner_view": [
+        248,
+        312
+      ],
+      "feature_map": [
+        1,
+        64,
+        62,
+        78
+      ],
+      "gap": [
+        1,
+        64
+      ],
+      "output": [
+        1,
+        2
+      ],
+      "finite": true
+    }
+  ],
+  "checkpoint_hashes": {
+    "N2": {
+      "path": "work_dir/PO10_N2_OFFSG_W112_D123_WV3_S2025_R200_FRSTAT/last/model.safetensors",
+      "sha256": "9d4cbf218cd8f6743942115e882d87d664d663935a1a1ba295a9903e27f3f816"
+    },
+    "T0": {
+      "path": "work_dir/PALS24_L1E4_W112_D123_WV3_S2025_N2LAST_R200_v1/best_hqnr/model.safetensors",
+      "sha256": "16b5cf78614be121122d3cb28c2e361b9d557b63e974e7083503ef23bdc37b32"
+    },
+    "G23": {
+      "path": "work_dir/PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1/best_hqnr/model.safetensors",
+      "sha256": "b3bb5d615b15c3854ccd09889227fdfaaee4e3554f8a5816ec1192ba595ab09f"
+    }
+  },
+  "limitations": [
+    "Random-input forwards verify shape support only, not absolute alignment accuracy",
+    "Existing 64/256/512 probe samples come from different splits; not a same-scene size-only intervention",
+    "Legacy quoted N2 JSON has no checkpoint hash; later PALSV18 JSON includes a matching hash",
+    "No new real-image probe evaluation or training was performed"
+  ]
+}

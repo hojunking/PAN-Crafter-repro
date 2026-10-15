@@ -1,0 +1,9 @@
+{
+ "server": "s1",
+ "start": "2026-09-14T13:22:31",
+ "wall_hours": 50,
+ "training_finish_target_hour": 46,
+ "final_audit_hours": 4,
+ "budget_kind": "elapsed_wall_hours_parallel_servers",
+ "measured_run_hours": 1.902777777777778
+}

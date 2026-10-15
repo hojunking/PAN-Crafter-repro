@@ -1,0 +1,2382 @@
+[
+  {
+    "sensor": "WV3",
+    "export_index": 0,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg0.npy",
+      "sha256": "680b38b6d6adfd581c41be50020d493e9fa162bc8d498fd0a677e45871170fa4",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg0.npy",
+      "sha256": "be8b5c4c02fb478d2e876eccc0b6f91767cbf5a1758d2c382aa1363b657ab6a7",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 0,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg0.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 1,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg1.npy",
+      "sha256": "b5798d9a6ee5ce794a73ea1c4dcf3b7984ea5ac3343972f8ae3f2569f2038fbd",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg1.npy",
+      "sha256": "5b8a25e8a5be808606fad4acb628d16656e51b5bb22ac5b4860ef7affd46d9eb",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 1,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg1.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 2,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg2.npy",
+      "sha256": "7e586ad4cf19f1df8530e7c113283887591344de6fe34b2b9ff02b1f913c3d8b",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg2.npy",
+      "sha256": "0e2c89d16a51ccbb4d03b62aeb74770b19960fa7ca55339feb3038ac60fb9712",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 2,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg2.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 3,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg3.npy",
+      "sha256": "93ab48e9753d67e038dbf7f39296a876f00d9f6809a9491366bec386eb082d79",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg3.npy",
+      "sha256": "d78fb55978ba34224154d616649d632cc6a536567ed44a8eb33ff6314359c317",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 3,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg3.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 4,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg4.npy",
+      "sha256": "ad7964338b62e1dffe376bea4b19e601ad4e71a7cc409367875e86b6fdab120d",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg4.npy",
+      "sha256": "7bc7e3f6ed6afd55749479177cf781643205ca8e1cfdeab9bf79f49178d88c0a",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 4,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg4.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 5,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg5.npy",
+      "sha256": "428663569f770aeb275a6499a7089b2adeb4b53c7a6ef086b7fb0df54e3ac88d",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 1858.8690185546875
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg5.npy",
+      "sha256": "3b0a0bcb032752663353ec7a84af9c39dc279b39f5a867b14df864421206c572",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 5,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg5.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 6,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg6.npy",
+      "sha256": "8a93eeca697391c6eddf86f88f367159a55cf81fd7031025d19e2b662c94f342",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg6.npy",
+      "sha256": "1eb20a414105b84976b3e1ab1cc2ba3308475286c88813787876042bee49f5fb",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 6,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg6.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 7,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg7.npy",
+      "sha256": "e84252e82acabc74b154a8bc15f6efd3b89cf95ce5e912bb58fa218c38a75058",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg7.npy",
+      "sha256": "0638447a9abb62c0100ea031109cb0c905bd0051953028cbcb5f91012751c59d",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 7,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg7.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 8,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg8.npy",
+      "sha256": "69c8b906d2189b48a149e949a7e7e8d479299ca0ff4d86299ff038ec5004429b",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 1540.5208740234375
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg8.npy",
+      "sha256": "919f3c7f2fba39e6da8aff2174de1f72ffd23d630ea1d1e8c076abd7455560a0",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 1593.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 8,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg8.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 9,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg9.npy",
+      "sha256": "f4590f0c0784f7c0192ad9f20fc6a7a9d1b7ae8ada92f2230aded789d49dcbbf",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 1410.8199462890625
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg9.npy",
+      "sha256": "f506e7f86b1fb34dbc8b2048e710baff2d00aeda6c56fb7b09f723f4c34b9938",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 1442.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 9,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg9.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 10,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg10.npy",
+      "sha256": "47689dc2a06fc538c4fbd92e0f0f91236de2558c6686418eaa060b1fe60e7e3b",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg10.npy",
+      "sha256": "ca71c60ecbc60220a4567a8700317500dbabb8e37423706e7e226c5cd86d8b72",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 10,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg10.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 11,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg11.npy",
+      "sha256": "d30c07132b49a42f1393358659df40a602495731377f9915c4a2e5959d4a9703",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg11.npy",
+      "sha256": "bc03281736f9fa86706da99a0a981c4773028a322396c25b408c364572420770",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 11,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg11.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 12,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg12.npy",
+      "sha256": "9d6765de2050516f1f4b88236dcaf134c302fd1cc65d2aae700a6c85d4a03e95",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg12.npy",
+      "sha256": "1b680962707ebd63ec1a00668c505580745783b2ab426c57a39916a9dae95bf5",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 12,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg12.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 13,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg13.npy",
+      "sha256": "c3ee158086df7741014e4edac9052a7857ae9e2057b79d1e583ba1daa4821577",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2044.3431396484375
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg13.npy",
+      "sha256": "4b09f7fce7af1997828b4fb953a796d403767da6a6e425e5936c36c2d99c464d",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 13,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg13.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 14,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg14.npy",
+      "sha256": "bc209882ffec13685f00fa2aea9d5a6faa0ebf429613e73f206e6d2de1ac2e0a",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 47.051475524902344,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg14.npy",
+      "sha256": "4f1391061dba927312a9105a6c2793bc8cbeb6abe446ff71da378e77e9a66c19",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 14,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg14.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 15,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg15.npy",
+      "sha256": "7e330837a598c96838e150aab99d662aa123f67605719a237bdfb94cd6745487",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 53.59625244140625,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg15.npy",
+      "sha256": "2f8952c48ffd978967da2dd827df31cb5f34caf04cd808b95da9e2b54186d105",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 15,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg15.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 16,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg16.npy",
+      "sha256": "972f55646326c1536e33e3e877403fe5e02c559efbdabf9657575864265104e8",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 43.901100158691406,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg16.npy",
+      "sha256": "6c6b54b026386d6d1253fc9f052e7924dd147cab654880e1fec481bd0653bac4",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 16,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg16.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 17,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg17.npy",
+      "sha256": "63ec2a5064ed0a14bf1ffad9797a0c57fd64585bab4d7c80fbad62522742b219",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 51.4988899230957,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg17.npy",
+      "sha256": "b40b3efd7d5d5262c6022e2ef885aed56701431b4d97085c8f7b3e05ec499652",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 17,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg17.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 18,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg18.npy",
+      "sha256": "de3a4299098fce2dc890e0318365071a27f16caafe66e25442300b1a3e9b7b07",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 58.853389739990234,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg18.npy",
+      "sha256": "471a3f61c8031d118978554017db1b5ac19bfdac285ab1199493d0d870b541e2",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 15.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 18,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg18.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "WV3",
+    "export_index": 19,
+    "pred": {
+      "path": "Ours_raw/WV3/reduced/pred/testimg19.npy",
+      "sha256": "f12760376db1d713a5910e807283f3cb96089bc63b0eacd4dd4d64de460f6811",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 41.28219985961914,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/WV3/reduced/gt/testimg19.npy",
+      "sha256": "f1009ad93d0312c396e375dac621d133bb42bb89df455a6cb0cc7df2c268bfa1",
+      "bytes": 2097280,
+      "shape": [
+        8,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/wv3/test_wv3_multiExm1.h5",
+      "sha256": "00db0d62f63693410935208e287aea21a736d11840d92eedd2d093c99be5314a",
+      "gt_key": "gt",
+      "original_index": 19,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_WV3_raw_20260924_031541KST/Ours_raw/WV3/reduced/pred/testimg19.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "labels": null,
+      "status": "SOURCE_BAND_NAMES_UNCONFIRMED_INDICES_PRESERVED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 0,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg0.npy",
+      "sha256": "2402529b0e8ead2ff60616e9b2933642ac3b5e9958ec28f15a4f33ea151857d8",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 1343.0450439453125
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg0.npy",
+      "sha256": "d1754d758638f90e15ed4889114dd41b3eb966e00af3d8d8bedb7ad8bd7372e7",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 1415.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 0,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg0.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 1,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg1.npy",
+      "sha256": "fb9fd7a665bd943f4cc61dd3b1dfda1c4116c512651be1b60c5ee78f388ac703",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 1220.509765625
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg1.npy",
+      "sha256": "21dca1f93469e396e32357d251620f16e6afcd6df7666d3b01ff24deaa490e3f",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2001.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 1,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg1.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 2,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg2.npy",
+      "sha256": "59cdccf283e58e8791eb48f2bc924adf7746bd8d2cea0219b71808c0d927390f",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 1959.0858154296875
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg2.npy",
+      "sha256": "bb8f6bbf871f71064de0301053a20e9d320421a92dd316baceaccb126342c755",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 2,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg2.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 3,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg3.npy",
+      "sha256": "5eebeca924a4029849fae66b78c2408c2581fc5e6a40bf25209087fc6a64e5c6",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 1998.252197265625
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg3.npy",
+      "sha256": "041356030c176cf3c0f003b7fcc290dd3127407789b2098d35c6b7f0e9a251de",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 3,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg3.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 4,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg4.npy",
+      "sha256": "d0fe201d63ea4b4035c9a3b21d7f4cd93224a34fce4d4b9fe5d46250c45e24b3",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg4.npy",
+      "sha256": "ed98894091ed1d2db66209e435ce55306cefe6347c754c00962ccddec6aff47e",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 4,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg4.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 5,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg5.npy",
+      "sha256": "8b4514f7797291f9ada0b9ee6a3ef8343952c819e4086a0913822cd88402fd01",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg5.npy",
+      "sha256": "4d793e6f98d086d020293c82504e070411d4e8aae543139d1118cbc3595ca83b",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 5,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg5.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 6,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg6.npy",
+      "sha256": "a6d1bceb19e014d35051004b221cc479816f048668742fe6adb730caead5be42",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg6.npy",
+      "sha256": "9727a2af9eac5ed261b609050f7458b08b874d5a9770e4d56424c0ff6e645288",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 6,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg6.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 7,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg7.npy",
+      "sha256": "c5cfb4bbc301a231c076c66689d9c2c194901b8d459f80233752b17f48aad287",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg7.npy",
+      "sha256": "eb6d9835cbd0c23af62bce2f9a54ef872ce6b04e02beb2202c314661b622ca7a",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 7,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg7.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 8,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg8.npy",
+      "sha256": "079ebc8b17400ac842842b5b02a8b62b118cf7e628f0f5a141405e1abe6b5738",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg8.npy",
+      "sha256": "820698348512148a566cebd6af97930b74ee04bc4de60f821ac3dff93951a518",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 8,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg8.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 9,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg9.npy",
+      "sha256": "2b0f1db9a099a9c722fe42451c9561424750162b1857b58a08fa3ce081b43f2b",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg9.npy",
+      "sha256": "6eac4f2cd43f4a21b3287e2fee438684bd0c7ab98274df67496874cf10d879df",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 9,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg9.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 10,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg10.npy",
+      "sha256": "6673c21f564c17b71023089afc473760708c246c6c0a7411721779cd2d0907e3",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg10.npy",
+      "sha256": "a9b8bc10ffd120a485432b5dc662575c5124622eb7a202259db2898ed22587fa",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 10,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg10.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 11,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg11.npy",
+      "sha256": "3c79f9a9a9e7d146188653755b6303bbe31e65a542b3b7e8f61189ff476fcba5",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg11.npy",
+      "sha256": "dbed7dc32150e76a6d6411effbd768b7826adbf91b0daa6ca4ebc49834df387b",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 11,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg11.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 12,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg12.npy",
+      "sha256": "19d12f4e00eaa87d391494f09b39735cddfa14372228eb90f47f2a0219664f5c",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg12.npy",
+      "sha256": "8aba364d0f08119db72a4e18b7a18e9b2d99805228f93e6372b57c7900afeef7",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 12,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg12.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 13,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg13.npy",
+      "sha256": "1b0032f72171bff04c211324c630167079e587396e84c2397526835e7c98c26f",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg13.npy",
+      "sha256": "804eb7dde3a20279bdbc1b8a093079e34b5378bf4276fe09f3ba634cda476320",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 13,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg13.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 14,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg14.npy",
+      "sha256": "966cc064bc2d707404a6aaf75f89866f46c0c5bbb43b0193198f460365f6b8ca",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2029.42919921875
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg14.npy",
+      "sha256": "50eb506d2b37c00c6bce445ef44c9d8f71d65799bdac8723a2f9d9167df1ba9f",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 14,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg14.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 15,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg15.npy",
+      "sha256": "0506afc4cb83fc5dc1099c0833811507a45e99a21810fdb0e30cd961a77d744a",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg15.npy",
+      "sha256": "8f1f608990c074281da5061a72fa7240ccbf6b6fe3dcb33080abed824784583e",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 15,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg15.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 16,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg16.npy",
+      "sha256": "e3a36738b77643e54ce36351cbb615ed50330c9544faa496c38e8431b5e06dff",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg16.npy",
+      "sha256": "bf3be39b6a56830d3f14fa26e7187a910e5f3d479f7555e3902dddc91c2e6c51",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 16,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg16.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 17,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg17.npy",
+      "sha256": "a6fbb20454555229f709f4f9f15905f07e88af0110f381b7d6f71b1ef3f3e7da",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 1969.3533935546875
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg17.npy",
+      "sha256": "5f64d0811ab8fe90f16aa8d95e2fe32a9c8581b5a75f4f5178c2b6a992e7cbd9",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 1850.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 17,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg17.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 18,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg18.npy",
+      "sha256": "1911a094678b4bd4491273547847b356cc37bd0eb81215df3e34922107ee962a",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg18.npy",
+      "sha256": "5f520e5a0e60dcfac63065150d0b9476aa82072a5dc8edc76c074f825228b8db",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 18,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg18.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  },
+  {
+    "sensor": "QB",
+    "export_index": 19,
+    "pred": {
+      "path": "Ours_raw/QB/reduced/pred/testimg19.npy",
+      "sha256": "98d3706d3bcf9b0328b449c8f00ccc2d39224794f3b499b4bf2460ab6d71f963",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 0.0,
+      "maximum": 2047.0
+    },
+    "gt": {
+      "path": "references/QB/reduced/gt/testimg19.npy",
+      "sha256": "1099dce109cd70861b5f70f9c3a6c92ea51dc928e99968037167df2e70cb155b",
+      "bytes": 1048704,
+      "shape": [
+        4,
+        256,
+        256
+      ],
+      "dtype": "float32",
+      "axis_order": "CHW",
+      "units": "DN",
+      "minimum": 1.0,
+      "maximum": 2047.0
+    },
+    "source": {
+      "file": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "gt_key": "gt",
+      "original_index": 19,
+      "pred_source_file": "/home/knuvi/Desktop/song/PAN-Crafter/results_log/Ours_s1_images_20260924_031541KST/Ours_s1_QB_raw_20260924_031541KST/Ours_raw/QB/reduced/pred/testimg19.npy",
+      "source_gt_dtype": "float64"
+    },
+    "band_order": {
+      "source_indices_zero_based": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        "B",
+        "G",
+        "R",
+        "NIR"
+      ],
+      "status": "SOURCE_MANIFEST_VERIFIED",
+      "permutation_applied": false
+    },
+    "pairing": "SOURCE_H5_SHA_AND_ORIGINAL_INDEX_VERIFIED",
+    "cross_method_png_validation": "NOT_CHECKED_BY_SCOPE"
+  }
+]

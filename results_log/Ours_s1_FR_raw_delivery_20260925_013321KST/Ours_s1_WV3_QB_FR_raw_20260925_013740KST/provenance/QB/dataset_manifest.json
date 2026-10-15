@@ -1,0 +1,434 @@
+{
+  "schema": "QG40_DATA_v1",
+  "server": "s1",
+  "sensor": "QB",
+  "num_bands": 4,
+  "max_pixel": 2047,
+  "band_order": [
+    "B",
+    "G",
+    "R",
+    "NIR"
+  ],
+  "mtf_sensor": "QB",
+  "source_provenance": {
+    "band_order_evidence": "Installed CANConv PanCollection audit 2026-08-10 lines64-70 (SHA256 f18b588f71f893bb0d7b48444dfbac90358d05f31ad02fb8a0a0ae4a851a3afc), author canconv/util/log.py C4 RGB[2,1,0] (SHA256 ca4943ade70376228d986aa5d2d9b2ba7617f59c2dfdb3704e1e7bd8982f3d53), DLPan genMTF.m line31 QB Band Order B,G,R,NIR. Source-repository convention, not embedded H5 band metadata or independently measured spectral identity.",
+    "evidence_document": "qg40/SENSOR_SOURCE_EVIDENCE.md",
+    "msfix_recipe": "tools/repair_qb_ms.py SHA256 0ed95018fd88afde7194eac8fdd5ae79de7b9056574766e339726dbc0a7c8884: MS=genMTF(QB) replicate-filter(GT)[2::4,2::4]; LMS=interp23tap(MS); GT/PAN unchanged must be verified by local preflight. One HR phase index is HR1px/LR0.25 spacing, not a native PAN shift measurement.",
+    "mtf_evidence": "DLPan genMTF.m SHA256 5c96781d777ec6f08fee696ff80dc46972875b764c6f289388bb21614dd14c2d: QB gains[0.34,0.32,0.30,0.22] in B,G,R,NIR order; tools/metrics/eval_fr.py GNYQ_TABLE preserves this evaluation protocol. Algorithmic LP sigma1.98 is separate.",
+    "no_data_policy": "No no-data sentinel/mask attribute found in inspected H5 metadata; do not infer that zero is missing. Preserve all finite stored values including zeros; report counts; no sample deletion or input masking. P0 source scan rejects nonfinite values. Absence of metadata is not proof of absence of missing observations.",
+    "raw_train_path": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/train_qb.h5",
+    "raw_train_sha256": "7d45e191cd03f3df12eb76b5f27624eaba1b464970788eb61723c3574dd14371",
+    "raw_val_path": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/valid_qb.h5",
+    "raw_val_sha256": "b307bcbb0d69056278a8a0b4970f1cd1b58dfff19bbe949be224e106f1a18470",
+    "saturation_policy": "Preserve nominal-maxDN(2047) values and count them; no input/GT clipping or replacement. P0 requires PAN/GT within[0,2047]; finite MS/LMS ringing outside nominal DN range is preserved/reported. Official prediction clipping is unchanged and separate.",
+    "split_correspondence_evidence": "QB train17139/val1905 msfix H5 record raw filename and genMTF(QB),replicate,[2::4,2::4],interp23tap recipe; required local preflight verifies every raw/fixed GT/PAN and reconstructed MS/LMS pair. RR20 remains original joint GT/MS/LMS/PAN H5 row order. FR20 original MAT SHA and each MS/LMS/PAN array verified exactly against H5 on2026-09-20 in fr1..20 numeric order; provenance.json SHA256 47d592ef4a120d5aa2956817adf2916d93c8576412e9aa18bf3632b24dbe8c65. No claim of train/test geographic disjointness or RR-to-FR scene correspondence.",
+    "units": "DN"
+  },
+  "splits": {
+    "train": {
+      "dataroot": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/train_qb_msfix.h5",
+      "sha256": "c7fb3ef0744f3fd21330925003f6bd6eb110f8a181c23ea6d9ce086c81710ba9",
+      "source_identity": "PanCollection.CANConv.QB.train.msfix.genMTF_QB.phase22.interp23tap.built20260908",
+      "lpan_path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_qg40/s1/QB/lpan/train_c7fb3ef0744f3fd21330_50a7052c5a4960c6.h5",
+      "lpan_sha256": "a7b2ab458209d41c849f5321269f5606e33feadd36661f505a455b9005d85ee4",
+      "sample_order_sha256": "966bc4ae642910e8b7d1ed4c200b4ccf797b82fa8243a17db443848a856e246c",
+      "lpan_canonical_sha256": "d52906c292a0a63175c9b8795533a77e73144ab2f3387c4f0f47c10948a89e50",
+      "count": 17139,
+      "shapes": {
+        "ms": [
+          17139,
+          4,
+          16,
+          16
+        ],
+        "lms": [
+          17139,
+          4,
+          64,
+          64
+        ],
+        "pan": [
+          17139,
+          1,
+          64,
+          64
+        ],
+        "gt": [
+          17139,
+          4,
+          64,
+          64
+        ]
+      },
+      "statistics": {
+        "ms": {
+          "shape": [
+            17139,
+            4,
+            16,
+            16
+          ],
+          "dtype": "float64",
+          "minimum": -9.935808554507309e-09,
+          "maximum": 1516.6552469939265,
+          "zero_count": 1,
+          "saturation_count": 0
+        },
+        "lms": {
+          "shape": [
+            17139,
+            4,
+            64,
+            64
+          ],
+          "dtype": "float64",
+          "minimum": -99.97230202049401,
+          "maximum": 1675.2889244048667,
+          "zero_count": 1,
+          "saturation_count": 0
+        },
+        "pan": {
+          "shape": [
+            17139,
+            1,
+            64,
+            64
+          ],
+          "dtype": "float64",
+          "minimum": 0.0,
+          "maximum": 1917.2325893393565,
+          "zero_count": 397190,
+          "saturation_count": 0
+        },
+        "gt": {
+          "shape": [
+            17139,
+            4,
+            64,
+            64
+          ],
+          "dtype": "float64",
+          "minimum": 0.0,
+          "maximum": 2047.0,
+          "zero_count": 2066764,
+          "saturation_count": 4704
+        }
+      },
+      "msfix_audit": {
+        "status": "PASS",
+        "raw_sha256": "7d45e191cd03f3df12eb76b5f27624eaba1b464970788eb61723c3574dd14371",
+        "msfix_sha256": "c7fb3ef0744f3fd21330925003f6bd6eb110f8a181c23ea6d9ce086c81710ba9",
+        "gt_unchanged": true,
+        "pan_unchanged": true,
+        "unchanged_array_sha256": {
+          "gt": "b5b8954a99b8243560cf30e9841c43002834b556464dc8d223590f2d594794dc",
+          "pan": "5fb4f022386ec0e2fb4324ee02634004aca2a9259f3e4209aa08f47033fa89b6"
+        },
+        "recipe": "genMTF(QB), replicate, [2::4,2::4], interp23tap",
+        "interp23tap_source_sha256": "c7d076395eec052dd4ed391e6f51e5fa79661a3fc283816a63ccdb100ff5bdbf",
+        "samples_verified": 17139,
+        "test_inputs_regenerated": false
+      }
+    },
+    "val": {
+      "dataroot": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/valid_qb_msfix.h5",
+      "sha256": "79f5bb48905876e8b278868a4ca9b266ef52582bd26b9c31b60462b708a411fa",
+      "source_identity": "PanCollection.CANConv.QB.valid.msfix.genMTF_QB.phase22.interp23tap.built20260908",
+      "lpan_path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_qg40/s1/QB/lpan/val_79f5bb48905876e8b278_50a7052c5a4960c6.h5",
+      "lpan_sha256": "d2096d3f48a7eea9f2cbba1a7cdd71735d2b6c34e7128f68489b6dd0a6e41e8e",
+      "sample_order_sha256": "af4126b93142955bfe450f6267b74cd227b9c548849f575029c875d2415fa383",
+      "lpan_canonical_sha256": "41109ab5de530dcb49fcccaff02f97167ce697331db72f91686e619dd1b4f78d",
+      "count": 1905,
+      "shapes": {
+        "ms": [
+          1905,
+          4,
+          16,
+          16
+        ],
+        "lms": [
+          1905,
+          4,
+          64,
+          64
+        ],
+        "pan": [
+          1905,
+          1,
+          64,
+          64
+        ],
+        "gt": [
+          1905,
+          4,
+          64,
+          64
+        ]
+      },
+      "statistics": {
+        "ms": {
+          "shape": [
+            1905,
+            4,
+            16,
+            16
+          ],
+          "dtype": "float64",
+          "minimum": -6.904000196088106e-09,
+          "maximum": 1472.4503764127962,
+          "zero_count": 0,
+          "saturation_count": 0
+        },
+        "lms": {
+          "shape": [
+            1905,
+            4,
+            64,
+            64
+          ],
+          "dtype": "float64",
+          "minimum": -98.85697415779771,
+          "maximum": 1640.9689969040562,
+          "zero_count": 0,
+          "saturation_count": 0
+        },
+        "pan": {
+          "shape": [
+            1905,
+            1,
+            64,
+            64
+          ],
+          "dtype": "float64",
+          "minimum": 0.0,
+          "maximum": 1889.794570125629,
+          "zero_count": 48598,
+          "saturation_count": 0
+        },
+        "gt": {
+          "shape": [
+            1905,
+            4,
+            64,
+            64
+          ],
+          "dtype": "float64",
+          "minimum": 0.0,
+          "maximum": 2047.0,
+          "zero_count": 253040,
+          "saturation_count": 552
+        }
+      },
+      "msfix_audit": {
+        "status": "PASS",
+        "raw_sha256": "b307bcbb0d69056278a8a0b4970f1cd1b58dfff19bbe949be224e106f1a18470",
+        "msfix_sha256": "79f5bb48905876e8b278868a4ca9b266ef52582bd26b9c31b60462b708a411fa",
+        "gt_unchanged": true,
+        "pan_unchanged": true,
+        "unchanged_array_sha256": {
+          "gt": "d3acfef261ed63c25fa2e1fc6a8556d61936e98598bf6e7f00a87f74bae7606c",
+          "pan": "7dac1cdf961a8622035bc0069a0965f5e10c28f2d393e12be461e8111d6877f5"
+        },
+        "recipe": "genMTF(QB), replicate, [2::4,2::4], interp23tap",
+        "interp23tap_source_sha256": "c7d076395eec052dd4ed391e6f51e5fa79661a3fc283816a63ccdb100ff5bdbf",
+        "samples_verified": 1905,
+        "test_inputs_regenerated": false
+      }
+    },
+    "rr": {
+      "dataroot": "/home/knuvi/Desktop/song/CANConv/data/datasets/qb/test_qb_multiExm1.h5",
+      "sha256": "9842a1232ad2d5b9a61c9fd7fb353e8fc6214eeac6e947d888f221ad6ecdda35",
+      "source_identity": "PanCollection.CANConv.QB.test_multiExm1.RR20.original-row-order",
+      "lpan_path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_qg40/s1/QB/lpan/rr_9842a1232ad2d5b9a61c_50a7052c5a4960c6.h5",
+      "lpan_sha256": "9cbdc5f6393326ec1132fa5b98e4cba2418801aca7035b1fac69a70f5987e015",
+      "sample_order_sha256": "7f493f00fc142a57999988c11b327ee2d190f1c7377536ec4d5d73f58638f07d",
+      "lpan_canonical_sha256": "5ed783c57cb762448d0abd9431aefd91781ca05ccabb062bae65ff1a6e31d67d",
+      "count": 20,
+      "shapes": {
+        "ms": [
+          20,
+          4,
+          64,
+          64
+        ],
+        "lms": [
+          20,
+          4,
+          256,
+          256
+        ],
+        "pan": [
+          20,
+          1,
+          256,
+          256
+        ],
+        "gt": [
+          20,
+          4,
+          256,
+          256
+        ]
+      },
+      "statistics": {
+        "ms": {
+          "shape": [
+            20,
+            4,
+            64,
+            64
+          ],
+          "dtype": "float64",
+          "minimum": 24.025781397001143,
+          "maximum": 1390.1010748662075,
+          "zero_count": 0,
+          "saturation_count": 0
+        },
+        "lms": {
+          "shape": [
+            20,
+            4,
+            256,
+            256
+          ],
+          "dtype": "float64",
+          "minimum": -42.168352894326034,
+          "maximum": 1487.4173129416745,
+          "zero_count": 0,
+          "saturation_count": 0
+        },
+        "pan": {
+          "shape": [
+            20,
+            1,
+            256,
+            256
+          ],
+          "dtype": "float64",
+          "minimum": 54.040407419612485,
+          "maximum": 1878.973613985974,
+          "zero_count": 0,
+          "saturation_count": 0
+        },
+        "gt": {
+          "shape": [
+            20,
+            4,
+            256,
+            256
+          ],
+          "dtype": "float64",
+          "minimum": 1.0,
+          "maximum": 2047.0,
+          "zero_count": 0,
+          "saturation_count": 267
+        }
+      }
+    },
+    "fr": {
+      "dataroot": "/home/knuvi/Desktop/song/PAN-Crafter/data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5",
+      "sha256": "bf6ef5df83d2134d5175c00b38d22a2390345d246d00140d758c796761a5aa24",
+      "source_identity": "PanCollection.FullDataMAT.QB.fr1-20.numeric-order.HWC-to-CHW-only",
+      "lpan_path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/_qg40/s1/QB/lpan/fr_bf6ef5df83d2134d5175_50a7052c5a4960c6.h5",
+      "lpan_sha256": "a822b022e867493cc33b1fb0b03edb7312bfc042eceff74378b83e38cdc1534d",
+      "sample_order_sha256": "a5be1f95c3c0d483a66d440df9a4d35c90d345b8d2e7a313a9d14562fe9bee51",
+      "lpan_canonical_sha256": "857ed9aee0cb76a3df4821ef7b8924189bb6c0338428c9a9ac27b59fc840f6cf",
+      "count": 20,
+      "shapes": {
+        "ms": [
+          20,
+          4,
+          128,
+          128
+        ],
+        "lms": [
+          20,
+          4,
+          512,
+          512
+        ],
+        "pan": [
+          20,
+          1,
+          512,
+          512
+        ]
+      },
+      "statistics": {
+        "ms": {
+          "shape": [
+            20,
+            4,
+            128,
+            128
+          ],
+          "dtype": "float64",
+          "minimum": 1.0,
+          "maximum": 2047.0,
+          "zero_count": 0,
+          "saturation_count": 45
+        },
+        "lms": {
+          "shape": [
+            20,
+            4,
+            512,
+            512
+          ],
+          "dtype": "float64",
+          "minimum": -206.99482859539307,
+          "maximum": 2319.8881522010593,
+          "zero_count": 0,
+          "saturation_count": 45
+        },
+        "pan": {
+          "shape": [
+            20,
+            1,
+            512,
+            512
+          ],
+          "dtype": "float64",
+          "minimum": 1.0,
+          "maximum": 2047.0,
+          "zero_count": 0,
+          "saturation_count": 992
+        }
+      }
+    }
+  },
+  "opencv_version": "4.10.0",
+  "recipe": {
+    "id": "FH12_GAUSS198_K41_REPLICATE_OFFSET2_v1",
+    "sigma": 1.98,
+    "kernel": 41,
+    "padding": "replicate",
+    "decimation": "[2::4,2::4]",
+    "ratio": 4,
+    "calculation_dtype": "float64",
+    "cache_dtype": "float32",
+    "phase_id": "gauss41-offset2-up4-bicubic-align_corners_false",
+    "source_code_sha256": "d93aae9e1fbbe80f250406788c6872e3154bd452792975fe52a24620c5f49bfa"
+  },
+  "augmentation": {
+    "id": "FH12_LEGACY_FIXED_HV_ROT4_v1",
+    "crop": false,
+    "hflip": true,
+    "vflip": true,
+    "rotations": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "order": [
+      "horizontal_flip",
+      "vertical_flip",
+      "np.rot90"
+    ],
+    "integer_index": "base_no_augmentation",
+    "tuple_index": "fixed_HV_then_rot"
+  },
+  "augmentation_sha256": "da89aab427ad38d13cf61051387b53933d7b4d1a79f98d5cd3d06711dfc4b18a"
+}

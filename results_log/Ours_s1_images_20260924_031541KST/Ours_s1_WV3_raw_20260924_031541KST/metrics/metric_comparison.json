@@ -1,0 +1,66 @@
+{
+  "status": "PARITY_REVIEW_REQUIRED",
+  "reason": "CPU export vs original CUDA; no predeclared reproducibility tolerance. Differences reported without claiming bit parity.",
+  "metrics": {
+    "rr.ergas": {
+      "original": 2.056060193721197,
+      "exported": 2.055864339967293,
+      "difference": -0.00019585375390374082
+    },
+    "rr.scc": {
+      "original": 0.9878930864916938,
+      "exported": 0.987894438710328,
+      "difference": 1.3522186341763387e-06
+    },
+    "rr.psnr": {
+      "original": 37.95123548109508,
+      "exported": 37.951929319317976,
+      "difference": 0.0006938382228938167
+    },
+    "rr.sam": {
+      "original": 2.78725977076841,
+      "exported": 2.786867250015931,
+      "difference": -0.00039252075247908635
+    },
+    "rr.q8": {
+      "original": 0.921030341439477,
+      "exported": 0.9210242312640726,
+      "difference": -6.110175404416829e-06
+    },
+    "rr.ssim": {
+      "original": 0.9755018106766457,
+      "exported": 0.9755089708785141,
+      "difference": 7.160201868416927e-06
+    },
+    "rr.n_scenes": {
+      "original": 20,
+      "exported": 20.0,
+      "difference": 0.0
+    },
+    "rr.q_block": {
+      "original": 32,
+      "exported": 32.0,
+      "difference": 0.0
+    },
+    "fr.hqnr": {
+      "original": 0.9587325529698706,
+      "exported": 0.9587353086305834,
+      "difference": 2.7556607128387256e-06
+    },
+    "fr.d_lambda": {
+      "original": 0.01579909375823136,
+      "exported": 0.01579877209564127,
+      "difference": -3.21662590091476e-07
+    },
+    "fr.d_s": {
+      "original": 0.025886448898951097,
+      "exported": 0.02588396207551778,
+      "difference": -2.48682343331752e-06
+    },
+    "fr.n_scenes": {
+      "original": 20,
+      "exported": 20.0,
+      "difference": 0.0
+    }
+  }
+}

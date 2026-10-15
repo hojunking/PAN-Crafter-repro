@@ -1,0 +1,47 @@
+{
+  "status": "PASS",
+  "sensors": {
+    "WV3": {
+      "checkpoint_matches_official": true,
+      "quality_groups": 6,
+      "scenes_per_group": 20,
+      "source_byte_parity_with_official_record": {
+        "pa/aligner.py": true,
+        "pa/warp.py": true,
+        "fh12/model.py": true,
+        "model/pancrafter_paper.py": true,
+        "fh12/evaluation.py": true
+      }
+    },
+    "QB": {
+      "checkpoint_matches_official": true,
+      "quality_groups": 6,
+      "scenes_per_group": 20,
+      "source_byte_parity_with_official_record": {
+        "pa/aligner.py": true,
+        "pa/warp.py": true,
+        "fh12/model.py": true,
+        "qg40/model.py": true,
+        "model/pancrafter_paper.py": true,
+        "fh12/evaluation.py": true,
+        "qg40/evaluation.py": true
+      }
+    },
+    "GF2": {
+      "checkpoint_matches_official": true,
+      "quality_groups": 6,
+      "scenes_per_group": 20,
+      "source_byte_parity_with_official_record": {
+        "pa/aligner.py": true,
+        "pa/warp.py": true,
+        "fh12/model.py": true,
+        "qg40/model.py": true,
+        "model/pancrafter_paper.py": true,
+        "fh12/evaluation.py": true,
+        "qg40/evaluation.py": true
+      }
+    }
+  },
+  "local_report_links": "PASS",
+  "figures": 10
+}

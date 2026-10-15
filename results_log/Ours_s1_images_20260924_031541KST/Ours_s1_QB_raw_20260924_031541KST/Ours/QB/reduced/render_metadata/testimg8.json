@@ -1,0 +1,140 @@
+{
+  "configuration": {
+    "band_order": [
+      "B",
+      "G",
+      "R",
+      "NIR"
+    ],
+    "canconv_renderer_verified": false,
+    "canconv_scene_correspondence_verified": false,
+    "convention_source": "tools/qrc24_qualitative.py shared GT/LMS 1-99% convention; not CANConv comparison renderer",
+    "crop": null,
+    "error_colormap": "linear grayscale",
+    "error_formula": "mean_C(abs(pred_DN-GT_DN))",
+    "error_limits_dn": [
+      0.0,
+      102.35000000000001
+    ],
+    "error_summary_dn": {
+      "max": 489.31402587890625,
+      "mean": 17.804140276739304
+    },
+    "gamma": 1.0,
+    "input_axis": "CHW",
+    "input_unit": "DN",
+    "max_dn": 2047.0,
+    "pan_bounds_dn": [
+      68.61924311456002,
+      773.4200815752722
+    ],
+    "paper_comparison_ready": false,
+    "percentiles": [
+      1.0,
+      99.0
+    ],
+    "reference": "RR GT",
+    "resize": null,
+    "rgb_bounds_dn": [
+      [
+        28.0,
+        774.0
+      ],
+      [
+        94.0,
+        1019.0
+      ],
+      [
+        100.0,
+        637.6500000000015
+      ]
+    ],
+    "rgb_indices_zero_based": [
+      2,
+      1,
+      0
+    ],
+    "rgb_quantization": "clip display [0,1], round-to-nearest uint8 [0,255]",
+    "roi": null,
+    "rr_fr_scene_correspondence": "not asserted; scene indices belong to separate split orders",
+    "scene_index_zero_based": 8,
+    "sensor": "QB",
+    "source_arrays_modified": false,
+    "source_shape_chw": [
+      4,
+      256,
+      256
+    ],
+    "split": "reduced",
+    "standalone_pngs_unannotated_to_preserve_all_pixels": true,
+    "standalone_size_wh": [
+      256,
+      256
+    ],
+    "status": "PREVIEW_ONLY_CANCONV_RENDERER_UNVERIFIED",
+    "stretch": "per-scene reference per-band percentiles, shared across all RGB views",
+    "stretch_denominator_epsilon": 1e-12
+  },
+  "files": [
+    {
+      "bytes": 132912,
+      "mode": "RGB",
+      "path": "output/testimg8.png",
+      "sha256": "b326fd01c18a87e0a0c5887d22d45f3c8f9fe0efbe57c37fd3ec4a53d9a92b3f",
+      "size_wh": [
+        256,
+        256
+      ]
+    },
+    {
+      "bytes": 145587,
+      "mode": "RGB",
+      "path": "reference/testimg8.png",
+      "sha256": "aa5eeeabe4fce70106449fbd2cc77c883603881edf55d6cf50a23c8a161b953a",
+      "size_wh": [
+        256,
+        256
+      ]
+    },
+    {
+      "bytes": 75915,
+      "mode": "RGB",
+      "path": "input_lms/testimg8.png",
+      "sha256": "af357d5db2431aa71c6f8796030487e8e08c205cbf6eb0e5c8debf4fe01c938c",
+      "size_wh": [
+        256,
+        256
+      ]
+    },
+    {
+      "bytes": 78769,
+      "mode": "RGB",
+      "path": "input_pan/testimg8.png",
+      "sha256": "35a146354b60aea34ee73d6961bf3b485846d8e975cad75196cf790071343c19",
+      "size_wh": [
+        256,
+        256
+      ]
+    },
+    {
+      "bytes": 116591,
+      "mode": "RGB",
+      "path": "errormap/testimg8.png",
+      "sha256": "5ef9a17f9425e8dbd85050cd86210079cea1a04a3643a30c86f1912ec35a9d6b",
+      "size_wh": [
+        256,
+        256
+      ]
+    },
+    {
+      "bytes": 609909,
+      "mode": "RGB",
+      "path": "compare_output/testimg8.png",
+      "sha256": "fdf9b865cd9be5d4bf8b5c476d84117df42ba30c1aab684a13b374acd40b5a98",
+      "size_wh": [
+        1280,
+        313
+      ]
+    }
+  ]
+}

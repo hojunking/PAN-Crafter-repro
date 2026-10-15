@@ -1,0 +1,95 @@
+PAN-Crafter s1 / s3 공유 코드 인계 (2026-10-15)
+
+목적
+  두 서버의 코드·설정·연구 기록을 같은 Git 이력으로 공유한다.
+  이번 작업은 로컬 commit까지다. push, s3 접속, 학습 중단/시작, 시트 쓰기는
+  수행하지 않는다. pull만으로 실험이 시작되지 않는다.
+
+공유 범위
+  - donor30: 각 서버에서 donor 2회 학습 → 해당 서버의 donor 선택 → Stage 2.
+  - 기존 미커밋 실험 모듈, 평가 복구, append-only 시트 연결, 테스트, 분석 도구.
+  - research_log / results_log의 MD, CSV, JSON 등 텍스트 기록·스냅샷과
+    문서가 직접 참조하는 로컬 그림. 과거 기록 내용은 새 실험 지침으로 덮어쓰지 않는다.
+  - 원본과 바이트가 같은 이동 항목 183개는 보관본 + 상대 심볼릭 링크로 공유.
+    research_log/past 보관 위치를 유지하고 과거 코드가 읽는 경로도 유지한다.
+  - 저장 위치 색인은 기록일 당시 상태다. 타 서버 경로의 현재 존재를 보장하지 않는다.
+
+공유하지 않는 것
+  data, work_dir, 모델/체크포인트, 학습 상태, 인증키, gspread/server.txt,
+  전체 예측 배열/대량 그림 덤프, Sheet 백업, Git worktree 등록 복구 tar.
+  로컬 파일을 삭제하거나 기존 실험 경로를 옮기지 않았다.
+  새로 추가한 ignore는 기존 tracked 파일을 자동 제거하지 않는다.
+  config/_po10_gate_N3.yaml은 s1의 과거 40-step 임시 smoke 설정이라 제외했다.
+  과거 문서의 외부 파일·모델 링크는 원래 서버의 로컬 자산을 계속 요구한다.
+  문서/코드 공유는 과거 캠페인의 완전한 실행 환경/데이터 배포를 의미하지 않는다.
+
+s1에서 사용자 push
+  git push origin main
+
+s3 담당자에게 전달할 작업
+  1. 현재 체크아웃과 실행 중인 실험의 실제 코드 경로를 확인한다.
+       git status --short
+       git branch --show-current
+       git rev-parse HEAD
+     로컬 변경·미추적 연구 기록을 먼저 검토하고 보존한다.
+     reset --hard, clean, 강제 checkout/pull, 자동 stash/rebase로 지우지 않는다.
+
+  2. 실행 중인 실험이 이 체크아웃을 사용한다면 바로 pull하지 않는다.
+     directshift48/edgeres48는 panda_method/*.py 등의 소스 해시를 고정한다.
+     테스트 파일 추가도 해시를 바꿀 수 있어 이후 검증/재개가 실패할 수 있다.
+     기존 실행 완료 후 동기화하거나, 실행 중 소스는 유지하고 별도 checkout을 쓴다.
+     실험 정지는 사용자의 명시 지시 없이 하지 않는다.
+
+  3. s1 push 후, main의 로컬 변경이 보존되고 fast-forward 가능한 경우:
+       git fetch origin
+       git pull --ff-only origin main
+     다른 branch/분기된 commit/같은 경로의 로컬 변경이 있으면 차이를 보고하고
+     보존·병합한다. 충돌 회피를 위해 서버 고유 코드를 임의로 삭제하지 않는다.
+
+  4. shared code와 환경을 구분해서 검증한다.
+       git rev-parse HEAD
+       python3 tools/repo_sync_audit.py inventory --output work_dir/_repo_sync/s3-after.json
+     출력 경로가 이미 있으면 새 이름을 쓴다(기존 증거 덮어쓰기 금지).
+     s1의 inventory와 함께 한 서버에서:
+       python3 tools/repo_sync_audit.py compare <s1-inventory.json> <s3-inventory.json>
+     same_head 및 same_shared_files, tracking_differs를 확인한다.
+     도구는 코드/텍스트 문서의 내용·실행 모드·추가/누락을 비교한다.
+     symlink는 링크 문자열을 비교하며 대상은 별도 shared 파일일 때 따로 비교한다.
+     인증키/데이터/가중치/실행 상태/비텍스트 자산은 읽거나 비교하지 않는다.
+     같은 commit만으로 로컬 수정까지 동일하다고 단정하지 않는다.
+
+  5. 새 캠페인 CPU smoke(실험 의존성이 설치된 Python 사용):
+       python -m donor30 smoke
+     CPU 합성 테스트이며 학습 데이터/Google 쓰기를 사용하지 않는다.
+     GPU 실제 속도·메모리·데이터와 DLPan 평가 자산은 실행 preflight가 따로 확인한다.
+
+  6. 실행 승인 및 GPU 유휴 확인 후 각 서버에서 한 번만 실행:
+       bash scripts/run_donor30_docker.sh s3
+     s1은 마지막 인자를 s1으로 사용한다.
+     필요하면 PAN_HOST_PYTHON, PANCRAFTER_DLPAN, PAN_DIRECTSHIFT_IMAGE를
+     해당 서버의 기존 환경에 맞춘다. gspread/server.txt와 인증은 로컬 유지.
+     기존 동명 컨테이너/GPU 작업이 있으면 강제로 지우지 않고 중단한다.
+     실행 시 기존 동일 서버의 검증된 시트 publisher만 안전 인계하며,
+     업로드 실패는 로컬 outbox에 남긴다. 학습 프로세스를 자동 종료하지 않는다.
+
+donor30 선택/예산 요약
+  - s1: WV3, DF07(abs=3 / epsilon=0.003), 독립 seed 2회.
+  - s3: GF2 유지, DF01(abs=1 / epsilon=0.0003), 독립 seed 2회.
+  - 두 donor가 완료된 뒤 HQNR 문턱(WV3 0.959 / GF2 0.965)을 통과한
+    저장 후보에서 ERGAS가 가장 좋은 모델을 선택한다.
+  - 둘 다 문턱 미달이면 BEST_HQNR_EXPLORATORY로 명시해 Stage 2 진행:
+    사용자 승인된 탐색 fallback이며 통과 donor로 표시하지 않는다.
+  - 기존 best-HQNR 기록을 유지하면서 문턱 통과 ERGAS 후보도 불변 보존한다.
+  - 동결 Aligner/Teacher, 새 W104D122 Student. 30시간 예산 안에서
+    필수 비교 뒤 조건부 반복을 진행하며 모든 옵션 완료를 보장하지 않는다.
+  - 서로 다른 서버의 donor/데이터/metric 절대값을 섞어 선택하지 않는다.
+    정확한 설정은 config/donor30/s1.json, s3.json과 donor30/plan.py가 기준.
+
+검증 범위/한계
+  CPU 합성 테스트와 clean Git export smoke로 미추적 파일 의존성을 점검한다.
+  이전 실험 패키지도 별도로 회귀 테스트했다. PANPV의 실제 GDAL Brovey
+  테스트는 호스트에 GDAL이 없어 명시 skip이며 전용 panpv/Dockerfile에서
+  추가 검증해야 한다. 가짜 GDAL 대체로 통과 처리하지 않는다.
+  s3 working tree를 직접 읽지 않았으므로 현재 s1-s3 차이 개수는 미확인이다.
+  두 inventory를 받아야 정량 비교할 수 있다. 같은 코드라도 데이터·GPU·
+  라이브러리·외부 DLPan 버전이 같다는 뜻은 아니다.

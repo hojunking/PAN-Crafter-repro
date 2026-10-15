@@ -1,0 +1,8 @@
+{
+  "U_parameter_count": 74,
+  "A_parameter_count": 0,
+  "U_objective": "H+K+.002*wE*E",
+  "A_objective": "wA*H only",
+  "teacher_grad_none": true,
+  "initial_hash": "cefc9d45926fbdef"
+}

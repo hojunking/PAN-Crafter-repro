@@ -1,0 +1,10 @@
+{
+  "torch": "2.4.0",
+  "cuda": "11.8",
+  "gpu": "NVIDIA GeForce RTX 4090",
+  "threads": 4,
+  "mem_fraction": 0.2,
+  "at": "2026-09-18T13:53:43.492678+09:00",
+  "cudnn_benchmark": false,
+  "tf32": true
+}

@@ -1,0 +1,353 @@
+{
+  "schema": "ABLR2_DESIGN_ONLY_v2",
+  "plan_id": "PANDA_ABL_S1WV3_S2QB_ADAPTIVE_LOOP_20260921_v2",
+  "created_date": "2026-09-21",
+  "not_a_launcher": true,
+  "lane_bindings": {
+    "s1": {
+      "sensor": "WV3",
+      "bands": 8,
+      "max_dn": 2047,
+      "teacher_channels": 9,
+      "student_slots": 11,
+      "rr_q": "Q8",
+      "teacher_seed_base": 781000,
+      "student_seed_base": 791000,
+      "nominal_train_n": 9714,
+      "nominal_val_n": 1080,
+      "sheet": "WV3-s1"
+    },
+    "s2": {
+      "sensor": "QB",
+      "bands": 4,
+      "max_dn": 2047,
+      "teacher_channels": 5,
+      "student_slots": 7,
+      "rr_q": "Q4",
+      "teacher_seed_base": 881000,
+      "student_seed_base": 891000,
+      "nominal_train_n": 17139,
+      "nominal_val_n": null,
+      "sheet": "QB-s2"
+    }
+  },
+  "main_cases": [
+    "C00",
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06",
+    "C07",
+    "C08",
+    "C09",
+    "C10",
+    "C11",
+    "C12",
+    "C13",
+    "C14",
+    "C15",
+    "C16"
+  ],
+  "optional_cases": [
+    "F01",
+    "F02",
+    "X00",
+    "X01",
+    "X02",
+    "X03",
+    "X04",
+    "X05",
+    "X06"
+  ],
+  "pilot": {
+    "sweeps_per_sensor": 5,
+    "teacher_policy": "NEW_TPLUS_TZERO_MATCHED_PER_SWEEP",
+    "teacher_runs": 20,
+    "student_runs": 170,
+    "calibration_bundles": 20,
+    "seed_table": [
+      {
+        "server": "s1",
+        "sensor": "WV3",
+        "sweep": "P01",
+        "teacher_seed": 781001,
+        "student_seed": 791001
+      },
+      {
+        "server": "s1",
+        "sensor": "WV3",
+        "sweep": "P02",
+        "teacher_seed": 781002,
+        "student_seed": 791002
+      },
+      {
+        "server": "s1",
+        "sensor": "WV3",
+        "sweep": "P03",
+        "teacher_seed": 781003,
+        "student_seed": 791003
+      },
+      {
+        "server": "s1",
+        "sensor": "WV3",
+        "sweep": "P04",
+        "teacher_seed": 781004,
+        "student_seed": 791004
+      },
+      {
+        "server": "s1",
+        "sensor": "WV3",
+        "sweep": "P05",
+        "teacher_seed": 781005,
+        "student_seed": 791005
+      },
+      {
+        "server": "s2",
+        "sensor": "QB",
+        "sweep": "P01",
+        "teacher_seed": 881001,
+        "student_seed": 891001
+      },
+      {
+        "server": "s2",
+        "sensor": "QB",
+        "sweep": "P02",
+        "teacher_seed": 881002,
+        "student_seed": 891002
+      },
+      {
+        "server": "s2",
+        "sensor": "QB",
+        "sweep": "P03",
+        "teacher_seed": 881003,
+        "student_seed": 891003
+      },
+      {
+        "server": "s2",
+        "sensor": "QB",
+        "sweep": "P04",
+        "teacher_seed": 881004,
+        "student_seed": 891004
+      },
+      {
+        "server": "s2",
+        "sensor": "QB",
+        "sweep": "P05",
+        "teacher_seed": 881005,
+        "student_seed": 891005
+      }
+    ],
+    "order": "ROTATE_BY_4_THEN_REVERSE_EVEN_SWEEP",
+    "recipe": "R00"
+  },
+  "loop": {
+    "service_mode": "UNTIL_OPERATOR_STOP",
+    "max_campaign_cycles": null,
+    "lease_hours": 72,
+    "require_initial_operator_lease": true,
+    "checkpoint_only_not_autolaunch": true,
+    "score_based_early_stop": false,
+    "recheck": {
+      "batch_pairs": 5,
+      "max_batches_per_relation_recipe": 1,
+      "always_run_both_sides": true,
+      "anchor": "C07",
+      "teacher_pool": "CURRENT_RECIPE_LATEST_BALANCED5",
+      "reuse_teacher_pool_round_robin": true
+    },
+    "fitting": {
+      "max_candidates_per_cycle": 2,
+      "screen_blocks": 2,
+      "screen_sweeps": [
+        "P01",
+        "P02"
+      ],
+      "allowed_recipes": [
+        {
+          "id": "R00",
+          "change": "BASE",
+          "value": null
+        },
+        {
+          "id": "R01",
+          "change": "beta",
+          "value": 0.2
+        },
+        {
+          "id": "R02",
+          "change": "lambda_edge",
+          "value": 0.001
+        },
+        {
+          "id": "R03",
+          "change": "alpha",
+          "value": 0.1
+        },
+        {
+          "id": "R04",
+          "change": "lambda_con",
+          "value": 0.0003
+        },
+        {
+          "id": "R05",
+          "change": "student_a_schedule",
+          "value": "BASE_TIMES_1over3_AFTER_24240"
+        }
+      ],
+      "selection": "ABSOLUTE_FULL_RR_VALIDATION_GAIN_WITH_H_GUARD_NOT_ABLATION_GAP"
+    },
+    "refresh": {
+      "full_matrix_sweeps": 5,
+      "new_teacher_per_sweep": true,
+      "after_each_cycle": true,
+      "early_exit_on_nice_shape": false
+    },
+    "verify": {
+      "sweeps": 5,
+      "max_waves_per_exact_recipe": 1,
+      "new_teacher_per_sweep": true,
+      "replace_bad_seed": false
+    },
+    "plateau": "CONTINUE_BALANCED_REFRESH5_AND_REPORT_UNRESOLVED"
+  },
+  "thresholds": {
+    "source": "FIRST_COMPLETE_BOOT5_PER_SENSOR",
+    "scope": "SENSOR_GLOBAL_NOT_EDGE_SPECIFIC",
+    "frozen_after_pilot": true,
+    "eps_h": "clip(0.25*median_edge(MAD_k(delta_h)),1e-5,1e-3)",
+    "eps_re": "clip(0.25*median_edge(MAD_k(relative_ergas_delta)),1e-4,5e-3)",
+    "effect_h": "max(0.001,2*eps_h)",
+    "effect_re": "max(0.003,2*eps_re)",
+    "repeated_support_fraction": 0.8,
+    "statistical_significance": false
+  },
+  "primary_checkpoint": "RR_VALIDATION_ARGMIN_ERGAS_THEN_LOWER_STEP",
+  "secondary_checkpoint": "EXACT50K",
+  "scheduling_hqnr_source": "NATIVE_FR20_TEST_AWARE_DEV_UNLESS_INDEPENDENT_FR_DEV_IS_VERIFIED_BEFORE_PILOT",
+  "result_retention": "ALL_ATTEMPTS_APPEND_ONLY",
+  "active_servers": [
+    "s1",
+    "s2"
+  ],
+  "protected_servers": [
+    "s3",
+    "s4",
+    "s5"
+  ],
+  "comparison_graph": [
+    {
+      "relation_id": "L01",
+      "parent": "C00",
+      "child": "C01",
+      "kind": "LADDER"
+    },
+    {
+      "relation_id": "L02",
+      "parent": "C01",
+      "child": "C02",
+      "kind": "LADDER"
+    },
+    {
+      "relation_id": "L03",
+      "parent": "C02",
+      "child": "C03",
+      "kind": "LADDER"
+    },
+    {
+      "relation_id": "L04",
+      "parent": "C03",
+      "child": "C04",
+      "kind": "LADDER"
+    },
+    {
+      "relation_id": "L05",
+      "parent": "C04",
+      "child": "C05",
+      "kind": "LADDER"
+    },
+    {
+      "relation_id": "L06",
+      "parent": "C05",
+      "child": "C06",
+      "kind": "LADDER"
+    },
+    {
+      "relation_id": "L07",
+      "parent": "C06",
+      "child": "C07",
+      "kind": "LADDER"
+    },
+    {
+      "relation_id": "D08",
+      "parent": "C08",
+      "child": "C07",
+      "kind": "FULL_MINUS"
+    },
+    {
+      "relation_id": "D09",
+      "parent": "C09",
+      "child": "C07",
+      "kind": "FULL_MINUS"
+    },
+    {
+      "relation_id": "D10",
+      "parent": "C10",
+      "child": "C07",
+      "kind": "FULL_MINUS"
+    },
+    {
+      "relation_id": "D11",
+      "parent": "C11",
+      "child": "C07",
+      "kind": "FULL_MINUS"
+    },
+    {
+      "relation_id": "D12",
+      "parent": "C12",
+      "child": "C07",
+      "kind": "FULL_MINUS"
+    },
+    {
+      "relation_id": "D13",
+      "parent": "C13",
+      "child": "C07",
+      "kind": "FULL_MINUS"
+    },
+    {
+      "relation_id": "D14",
+      "parent": "C14",
+      "child": "C07",
+      "kind": "FULL_MINUS"
+    },
+    {
+      "relation_id": "D15",
+      "parent": "C15",
+      "child": "C07",
+      "kind": "FULL_MINUS"
+    },
+    {
+      "relation_id": "D16",
+      "parent": "C16",
+      "child": "C07",
+      "kind": "FULL_MINUS"
+    },
+    {
+      "relation_id": "E00",
+      "parent": "C00",
+      "child": "C07",
+      "kind": "END_TO_END"
+    }
+  ],
+  "inherited_sources": [
+    {
+      "file": "PAN_QB_ABLATION_S12_ComponentPlan_2026-09-21.md",
+      "sha256": "b996e1a94b732e2383ae78e3d9c45186ac1c0668976460e82788ec0a3a05a017"
+    },
+    {
+      "file": "PAN_QB_ABLATION_ComponentCases_2026-09-21.csv",
+      "sha256": "5597c048334804df51f0dc6455d801a0848f0e122b67a5b595b1f655d8aac9f1"
+    }
+  ]
+}

@@ -31,3 +31,22 @@ gspread/server.txt
 
 # UVS teacher cache (0.7 GB, 서버별로 tools/uvs_build_cache.py 로 생성)
 outputs/uvs_cache/*.npz
+
+# Shared code/docs must not accidentally publish server-local model/data/key files.
+# Existing tracked fixtures remain tracked; no local files are removed here.
+*.pt
+*.pth
+*.safetensors
+*.h5
+*.hdf5
+*.onnx
+.env
+.env.local
+*.pem
+*.key
+credentials.json
+token.json
+# Git worktree registration backups are local recovery metadata, not source releases.
+/storage/**/*.git-registration.tar.gz
+# One server-local, generated 40-step PO10 smoke config; not an experiment recipe.
+/config/_po10_gate_N3.yaml

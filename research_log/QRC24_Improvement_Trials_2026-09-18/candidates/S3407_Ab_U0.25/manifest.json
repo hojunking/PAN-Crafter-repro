@@ -1,0 +1,11 @@
+{
+  "seed": 3407,
+  "A": "best_hqnr",
+  "U": "0.75 best_hqnr + 0.25 last@50K",
+  "model_state_hash": "56a79760bab27a44",
+  "file_sha256": "50c2fdb305ee08e3fab03ef9df61283af69bfbff4275d382ea9ff7e7b2fcbd60",
+  "metric_path": "research_log/QRC24_Improvement_Trials_2026-09-18/results/3407/Ab_U0.25/result.json",
+  "deployment": false,
+  "selection_note": "Predeclared t=.25 candidate. Highlighting HQNR eligibility after FR20 is exploratory, not independent validation selection.",
+  "source_config_note": "Architecture reference only; original work_dir/phase are not a runner instruction."
+}

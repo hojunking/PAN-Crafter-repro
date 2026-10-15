@@ -1,0 +1,246 @@
+{
+  "environment": {
+    "torch": "2.4.0",
+    "device": "cpu",
+    "threads": 2
+  },
+  "checks": [
+    {
+      "name": "J0_actual_step_vs_manual",
+      "passed": true,
+      "loss": 0.03812001645565033,
+      "scalar_error": 0.0,
+      "gradient_max_abs_error": 0.0
+    },
+    {
+      "name": "J0_forward_equals_inference",
+      "passed": true,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "J0_offset_ownership",
+      "passed": true
+    },
+    {
+      "name": "JR_actual_step_vs_manual",
+      "passed": true,
+      "loss": 0.0666416734457016,
+      "scalar_error": 0.0,
+      "gradient_max_abs_error": 0.0
+    },
+    {
+      "name": "JR_forward_equals_inference",
+      "passed": true,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "JR_offset_ownership",
+      "passed": true
+    },
+    {
+      "name": "JQ_actual_step_vs_manual",
+      "passed": true,
+      "loss": 0.07211488485336304,
+      "scalar_error": 0.0,
+      "gradient_max_abs_error": 1.4901161193847656e-08
+    },
+    {
+      "name": "JQ_forward_equals_inference",
+      "passed": true,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "JQ_offset_ownership",
+      "passed": true
+    },
+    {
+      "name": "XJ_actual_step_vs_manual",
+      "passed": true,
+      "loss": 0.07203245908021927,
+      "scalar_error": 0.0,
+      "gradient_max_abs_error": 1.257285475730896e-08
+    },
+    {
+      "name": "XJ_forward_equals_inference",
+      "passed": true,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "XJ_offset_ownership",
+      "passed": true
+    },
+    {
+      "name": "F0_actual_step_vs_manual",
+      "passed": true,
+      "loss": 0.03984091430902481,
+      "scalar_error": 0.0,
+      "gradient_max_abs_error": 0.0
+    },
+    {
+      "name": "F0_forward_equals_inference",
+      "passed": true,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "F0_frozen_adamw",
+      "passed": true
+    },
+    {
+      "name": "FR_actual_step_vs_manual",
+      "passed": true,
+      "loss": 0.06960579007863998,
+      "scalar_error": 0.0,
+      "gradient_max_abs_error": 0.0
+    },
+    {
+      "name": "FR_forward_equals_inference",
+      "passed": true,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "FR_frozen_adamw",
+      "passed": true
+    },
+    {
+      "name": "FQ_actual_step_vs_manual",
+      "passed": true,
+      "loss": 0.07558916509151459,
+      "scalar_error": 0.0,
+      "gradient_max_abs_error": 1.3969838619232178e-08
+    },
+    {
+      "name": "FQ_forward_equals_inference",
+      "passed": true,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "FQ_frozen_adamw",
+      "passed": true
+    },
+    {
+      "name": "XF_actual_step_vs_manual",
+      "passed": true,
+      "loss": 0.07545699924230576,
+      "scalar_error": 0.0,
+      "gradient_max_abs_error": 1.3969838619232178e-08
+    },
+    {
+      "name": "XF_forward_equals_inference",
+      "passed": true,
+      "max_abs_error": 0.0
+    },
+    {
+      "name": "XF_frozen_adamw",
+      "passed": true
+    },
+    {
+      "name": "teacher_unchanged_and_inputs_unchanged",
+      "passed": true
+    },
+    {
+      "name": "fixed_diagnostic_rng_weights_grads_unchanged",
+      "passed": true
+    },
+    {
+      "name": "existing_pakd50_gate_with_live_gate_disabled",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "reproduce_stale_local_calibration_after_stage2_copy",
+      "passed": true,
+      "remaining_keys": [
+        "tau_R"
+      ]
+    },
+    {
+      "name": "reproduce_resume_batch_order_divergence",
+      "passed": true,
+      "continuous_next": [
+        53,
+        20,
+        65,
+        67,
+        33,
+        36,
+        41,
+        47
+      ],
+      "resumed_next": [
+        29,
+        18,
+        23,
+        85,
+        39,
+        69,
+        33,
+        82
+      ]
+    },
+    {
+      "name": "stored_FR20_scene_product_means",
+      "passed": true,
+      "checkpoints": 7,
+      "max_abs_error": 2.220446049250313e-16,
+      "steps": [
+        1010,
+        2020,
+        3030,
+        4040,
+        5050,
+        6060,
+        7070
+      ]
+    },
+    {
+      "name": "reproduce_fresh_server_K05_failure_before_bootstrap",
+      "passed": true,
+      "check": "[('K05 τR 고정값이 calibration_resolved.json 에 있고 stage-1 R1 config 에 같은 숫자로 들어간다', None, 'None')]"
+    },
+    {
+      "name": "reproduce_empty_gate_env_reads_live_pakd50_token",
+      "passed": true
+    }
+  ],
+  "fixed_diagnostic_keys": [
+    "cos_psi",
+    "delta_mean",
+    "delta_norm_mean",
+    "fixed_batch",
+    "grad_off_A",
+    "grad_off_A_weighted",
+    "grad_rec_A",
+    "grad_rec_F",
+    "lambda_off",
+    "loss_off_raw",
+    "loss_off_weighted",
+    "loss_rec",
+    "off_unet_grad_absent",
+    "rho_g",
+    "step",
+    "sum_rule_max_abs_err"
+  ],
+  "existing_gate_stdout": "  OK  K01 T0 = PALS24 L1E4 S2025 best_raw: 파일 sha = 자산 manifest, selected update 24240, 기록 raw HQNR 0.956976 s1: 16b5cf78614be121\n  OK  K01 T0 는 A(0.105M, view margin 4)+U(2.6589M) 한 쌍, 같은 checkpoint 의 aligner 가 donor (tensors sha 493aca18…) \n  OK  K01 T0 head 가 재초기화되지 않았고(0 아님) donor 와 Teacher 의 aligner state 가 같다 \n  OK  K02 J*: A-FT + I-AEQ + offset 1e-4 (홀수 update, b=2) · F*: A-FR + I-NATIVE-TRANSFER + offset 0 · AL*: A LR 3e-6 \n  OK  K02 backend: N0=gt(Teacher eval_only) · R1=hard_only(α1, β0) · Q12=adaptive(α1, β0.1)+EDGE-H · X02=hard_only+EDGE-H \n  OK  K02 계수: α 1 · β 0.1 · eps 1e-6 · τR 고정 숫자 · λE 고정 숫자 · r_grad 0.05 · pilot = J0 S1234/last \n  OK  K02 Teacher 는 자기 aligner 로 forward (share_correction 은 A-FR 에서만) · donor = T0 best_hqnr (step 24240, sha 검사) · 고정 참조 view = T0 aligner \n  OK  K02 후보 보존·고정 batch 진단·selector best_hqnr(+best_rr_val,last)·expect_arch W112 D123 \n  OK  K03 β=0 인 adaptive(R3) == hard_only(R1) (X02 정의) · gt 모드 == plain L1 (N0) \n  OK  K03 Q12 = ⟨(1+αd)e_S⟩ + ⟨β(1−d)a k⟩ (수식 그대로; 재정규화 없음) 0.112637 vs 0.112637\n  OK  K03 gate: e_S ≤ e_T 이면 a=0 (soft 0) · Teacher/GT/gate 는 detach, e_S 는 live (gradient 존재) \n  OK  K03 edge: Z=Y → 0 · Scharr /32 · reflect pad · 내부 1px · 0.5(x)+0.5(y) 평균 \n  OK  K04 Teacher 는 자기 aligner 로 forward (Δ_T ≠ Δ_S 가능, y_t no-grad) · Student/Teacher parameter 객체 분리 · forward 뒤 Teacher hash 불변 \n  OK  K04 L_off 단독: A 에만 gradient, U 없음, native ĉ_S target 은 SG \n  OK  K04 native L_rec → A 와 U 양쪽 gradient (P_aligned 를 detach 하지 않음) \n  OK  K04 F: frozen A 는 optimizer 밖·grad None·step 뒤 hash 불변 (WD 미적용) \n  OK  K05 s1 J0 config: eval_epoch 5 → GRID1010_50K_v1 (1010k, k=1..49 + exact 50000 = 50 후보), num_iter 50000, seed 1234, batch 48 \n  OK  K05 큐 s1 stage 1 = J0 → F0 → JR → FR (seed 1234) \n  OK  K05 큐 s2 stage 1 = J0 → F0 → JR → FR (seed 777) \n  OK  K05 큐 s3 stage 1 = J0 → F0 → JR → FR (seed 2026) \n  OK  K05 τR 고정값이 calibration_resolved.json 에 있고 stage-1 R1 config 에 같은 숫자로 들어간다 0.012463942170143127\n  OK  K05 stage 2 (JQ/FQ/XJ) 는 λE 없이는 생성되지 않는다 (fail-fast, §5.3) ', 'patch_manifest_sha256', 'tau_R', 'tau_source', 'tau_computed_at', 'tau_server', 'updated', 'tau_R_local_recomputed']\n  OK  K05 campaign gate 기본 닫힘 \n  OK  K05 trainer: 후보 보존·고정 batch 진단·ledger 잠금·donor expected_step 검사·frozen aligner hash gate(L03) 존재 \n\nALL OK (0 failed)\n",
+  "fresh_server_calibration_check": "[('K05 τR 고정값이 calibration_resolved.json 에 있고 stage-1 R1 config 에 같은 숫자로 들어간다', None, 'None')]",
+  "selector_replay": {
+    "selected_step": 6060,
+    "hqnr": 0.9371339604249164,
+    "max_hqnr": 0.9371339604249164
+  },
+  "runtime_at_snapshot": {
+    "step": 7500,
+    "t_native_s": 0.058663239845862754,
+    "t_corrupt_s": null,
+    "t_forward_s": 0.005504984122056227,
+    "peak_mem_allocated_mb": 5934.673828125,
+    "peak_mem_reserved_mb": 6092.0,
+    "elapsed_hours": 0.2883874083889855,
+    "teacher_forward": false,
+    "share_correction": false,
+    "batch": 48
+  },
+  "test_coefficient_note": "lambda_E=0.3 is a synthetic test value; actual campaign lambda_E remains uncalibrated.",
+  "empty_gate_env_actual_enabled_gates": [
+    "pakd50"
+  ]
+}

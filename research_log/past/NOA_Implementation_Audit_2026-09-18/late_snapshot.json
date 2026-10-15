@@ -1,0 +1,9 @@
+{
+  "captured_at": "2026-09-18T02:13:39.365664",
+  "sha256": {
+    "tools/noa_eval_switch.sh": "bd4a961a5e6e5b5adc4685e725422296cb49a4b2c066a02745ef23540a4601ba",
+    "CLAUDE.md": "c30ae5309e51828bbc6901a7c38077c0303a9cfac729f49fa24338d79a874f08",
+    "research_log/2026-09-18_noa-eval-implementation.md": "74f758e8448eca3a4d00bcb45b107968b7743495ebc95e582c475f54621e503e",
+    "tools/pakd50_unit_tests.py": "5e1bc98d80a6da7a27dc1c5616f9d057f530e4658a96d1a025f2ce4250f6c0f9"
+  }
+}

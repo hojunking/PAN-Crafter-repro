@@ -1,0 +1,15 @@
+{
+  "n_variants": 57,
+  "n_scene_outputs": 2280,
+  "n_finetune": 9,
+  "joint_pass_count": 0,
+  "mean_A_swap_delta_E": -0.00018791775690507606,
+  "mean_U_swap_delta_E": -0.03214130299229545,
+  "candidate_seed1234_t025": {
+    "ergas": 2.0641268403244966,
+    "hqnr": 0.9585407070075981,
+    "delta_ergas": -0.007106240863015145
+  },
+  "mean_LMS_FT_minus_control_E": 0.015390571966667377,
+  "mean_Afreeze_FT_minus_control_E": 4.0325677311603414e-05
+}

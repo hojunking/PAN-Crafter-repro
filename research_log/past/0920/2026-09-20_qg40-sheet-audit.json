@@ -1,0 +1,521 @@
+{
+  "checked_at": "2026-09-20 16:46 KST",
+  "scope": "PANDA_QG40_20260920_v1",
+  "sheet_id": "1_-3KY2DbSk_AOAuExf_ENbe5jAbhFRxzXoyfaDZRoK0",
+  "servers": [
+    {
+      "server": "s1",
+      "at_utc": "2026-09-20T07:45:51.335239+00:00",
+      "dataset": "QB",
+      "status": "RUNNING",
+      "completed": 7,
+      "uploaded_verified": 7,
+      "active": [
+        {
+          "run": "QG40_QB_S_PLH_W104_D122_TB_TS81002_SS82005_BASE_FRESH50_v1",
+          "updates": 25700
+        }
+      ],
+      "latest_receipt": {
+        "row": 18,
+        "gid": 388586387,
+        "worksheet": "QB-s1",
+        "readback_verified": true,
+        "campaign_id": "PANDA_QG40_20260920_v1",
+        "run_id": "QG40_QB_S_PLH_W104_D122_TB_TS81002_SS82004_BASE_FRESH50_v1",
+        "sensor": "QB",
+        "server": "s1",
+        "payload_sha256": "55a08605764393ea1b621f6fe26a43e24613cdc5bd99b38864ff07a342d1443e",
+        "uploaded_at_utc": "2026-09-20T07:01:08.142673+00:00"
+      },
+      "controller_pending": [],
+      "live_sheet_checks": [
+        {
+          "run": "QGBASE_QB_TB_P0_W112_D123_TS81002_FRESH50_v1",
+          "row": 12,
+          "run_match": true,
+          "sensor": "QB",
+          "server": "s1",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9139781541038925,
+          "ergas": 3.5976063469034743
+        },
+        {
+          "run": "QGBASE_QB_S_PLH_W104_D122_TB_TS81002_SS82001_BASE_FRESH50_v1",
+          "row": 13,
+          "run_match": true,
+          "sensor": "QB",
+          "server": "s1",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9333046427362298,
+          "ergas": 3.8041851340405257
+        },
+        {
+          "run": "QGBASE_QB_S_PLH_W104_D122_TB_TS81002_SS82002_BASE_FRESH50_v1",
+          "row": 14,
+          "run_match": true,
+          "sensor": "QB",
+          "server": "s1",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9293083093259875,
+          "ergas": 3.77264514344195
+        },
+        {
+          "run": "QG40_QB_TB_C3_P0_W112_D123_TS81002_C3_FRESH50_v1",
+          "row": 15,
+          "run_match": true,
+          "sensor": "QB",
+          "server": "s1",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9186817334788154,
+          "ergas": 3.566947526680039
+        },
+        {
+          "run": "QG40_QB_S_PLH_W104_D122_TB_C3_TS81002_SS82001_BASE_FRESH50_v1",
+          "row": 16,
+          "run_match": true,
+          "sensor": "QB",
+          "server": "s1",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9395648175894283,
+          "ergas": 3.862601105043616
+        },
+        {
+          "run": "QG40_QB_S_PLH_W104_D122_TB_C3_TS81002_SS82002_BASE_FRESH50_v1",
+          "row": 17,
+          "run_match": true,
+          "sensor": "QB",
+          "server": "s1",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9261762321557214,
+          "ergas": 3.8275237274695244
+        },
+        {
+          "run": "QG40_QB_S_PLH_W104_D122_TB_TS81002_SS82004_BASE_FRESH50_v1",
+          "row": 18,
+          "run_match": true,
+          "sensor": "QB",
+          "server": "s1",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9358591362608278,
+          "ergas": 3.7481724217391443
+        }
+      ]
+    },
+    {
+      "server": "s2",
+      "at_utc": "2026-09-20T07:45:50.030439+00:00",
+      "dataset": "QB",
+      "status": "RUNNING",
+      "completed": 1,
+      "uploaded_verified": 1,
+      "active": [
+        {
+          "run": "QG40_QB_S_PLH_W104_D122_TA_TS81001_SS82006_BASE_FRESH50_v1",
+          "updates": 25500
+        }
+      ],
+      "latest_receipt": {
+        "row": 9,
+        "gid": 678743053,
+        "worksheet": "QB-s2",
+        "readback_verified": true,
+        "campaign_id": "PANDA_QG40_20260920_v1",
+        "run_id": "QGBASE_QB_S_PLH_W104_D122_TA_TS81001_SS82003_BASE_FRESH50_v1",
+        "sensor": "QB",
+        "server": "s2",
+        "payload_sha256": "3567cdadcd3f93097698c8b497a8fc3f31517e78a9211eb9c6d93e09a8f22bd8",
+        "uploaded_at_utc": "2026-09-20T07:44:47.714302+00:00"
+      },
+      "controller_pending": [
+        "QGBASE_QB_S_PLH_W104_D122_TA_TS81001_SS82003_BASE_FRESH50_v1"
+      ],
+      "live_sheet_checks": {
+        "Run": "QGBASE_QB_S_PLH_W104_D122_TA_TS81001_SS82003_BASE_FRESH50_v1",
+        "QG40 run id": "QGBASE_QB_S_PLH_W104_D122_TA_TS81001_SS82003_BASE_FRESH50_v1",
+        "QG40 server": "s2",
+        "QG40 sensor": "QB",
+        "QG40 actual updates": 50000,
+        "QG40 n evaluated": 50,
+        "QG40 upload status": "READBACK_VERIFIED",
+        "ERGAS↓": 3.97240546021252,
+        "HQNR↑": 0.9321191961347608,
+        "row": 9,
+        "header_duplicates": []
+      }
+    },
+    {
+      "server": "s3",
+      "at_utc": "2026-09-20T07:45:49.820449+00:00",
+      "dataset": "GF2",
+      "status": "RUNNING",
+      "completed": 7,
+      "uploaded_verified": 7,
+      "active": [
+        {
+          "run": "QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92010_BASE_FRESH50_v1",
+          "updates": 44900
+        }
+      ],
+      "latest_receipt": {
+        "row": 15,
+        "gid": 1923711501,
+        "worksheet": "GF2-s3(5090)",
+        "readback_verified": true,
+        "campaign_id": "PANDA_QG40_20260920_v1",
+        "run_id": "QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92009_BASE_FRESH50_v1",
+        "sensor": "GF2",
+        "server": "s3",
+        "payload_sha256": "44ea023851e918402ac0d168cdd0a775ef17360684f563b8e81a3c1e19d2d020",
+        "uploaded_at_utc": "2026-09-20T06:50:48.174311+00:00"
+      },
+      "controller_pending": [],
+      "live_sheet_checks": [
+        {
+          "run": "QGBASE_GF2_TA_P0_W112_D123_TS91001_FRESH50_v1",
+          "row": 9,
+          "run_match": true,
+          "sensor": "GF2",
+          "server": "s3",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9452065283397472,
+          "ergas": 0.5730585822834697
+        },
+        {
+          "run": "QGBASE_GF2_S_PLH_W104_D122_TA_TS91001_SS92001_BASE_FRESH50_v1",
+          "row": 10,
+          "run_match": true,
+          "sensor": "GF2",
+          "server": "s3",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9578326435185687,
+          "ergas": 0.5584011583082027
+        },
+        {
+          "run": "QGBASE_GF2_S_PLH_W104_D122_TA_TS91001_SS92002_BASE_FRESH50_v1",
+          "row": 11,
+          "run_match": true,
+          "sensor": "GF2",
+          "server": "s3",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9499055056484229,
+          "ergas": 0.5581172679179369
+        },
+        {
+          "run": "QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92004_BASE_FRESH50_v1",
+          "row": 12,
+          "run_match": true,
+          "sensor": "GF2",
+          "server": "s3",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9474866752687563,
+          "ergas": 0.5596084636485308
+        },
+        {
+          "run": "QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92005_BASE_FRESH50_v1",
+          "row": 13,
+          "run_match": true,
+          "sensor": "GF2",
+          "server": "s3",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9513237600825146,
+          "ergas": 0.5757276173581704
+        },
+        {
+          "run": "QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92008_BASE_FRESH50_v1",
+          "row": 14,
+          "run_match": true,
+          "sensor": "GF2",
+          "server": "s3",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9465358123023766,
+          "ergas": 0.5594653842574118
+        },
+        {
+          "run": "QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92009_BASE_FRESH50_v1",
+          "row": 15,
+          "run_match": true,
+          "sensor": "GF2",
+          "server": "s3",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9520079035792628,
+          "ergas": 0.560236779434119
+        }
+      ]
+    },
+    {
+      "server": "s4",
+      "at_utc": "2026-09-20T07:45:52.001436+00:00",
+      "dataset": "QB",
+      "status": "RUNNING",
+      "completed": 9,
+      "uploaded_verified": 9,
+      "active": [
+        {
+          "run": "QG40_QB_S_PLH_W104_D122_TA_TS81001_SS82016_BASE_FRESH50_v1",
+          "updates": 44100
+        }
+      ],
+      "latest_receipt": {
+        "row": 13,
+        "gid": 2037260904,
+        "worksheet": "QB-s4",
+        "readback_verified": true,
+        "campaign_id": "PANDA_QG40_20260920_v1",
+        "run_id": "QG40_QB_S_PLH_W104_D122_TA_TS81001_SS82011_BASE_FRESH50_v1",
+        "sensor": "QB",
+        "server": "s4",
+        "payload_sha256": "d4b0def508bf7b9de751cc68b0763e0e7e8c6c011878e7bbf4b6e56446e1fee9",
+        "uploaded_at_utc": "2026-09-20T06:48:18.656682+00:00"
+      },
+      "controller_pending": [],
+      "live_sheet_checks": [
+        {
+          "run": "QGBASE_QB_TA_P0_W112_D123_TS81001_FRESH50_v1",
+          "row": 5,
+          "run_match": true,
+          "sensor": "QB",
+          "server": "s4",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.912108150012024,
+          "ergas": 3.594253758322247
+        },
+        {
+          "run": "QGBASE_QB_S_PLH_W104_D122_TA_TS81001_SS82001_BASE_FRESH50_v1",
+          "row": 6,
+          "run_match": true,
+          "sensor": "QB",
+          "server": "s4",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9337032420725647,
+          "ergas": 3.822064478847456
+        },
+        {
+          "run": "QGBASE_QB_S_PLH_W104_D122_TA_TS81001_SS82002_BASE_FRESH50_v1",
+          "row": 7,
+          "run_match": true,
+          "sensor": "QB",
+          "server": "s4",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9296322162832016,
+          "ergas": 3.8072676518042714
+        },
+        {
+          "run": "QG40_QB_S_PLH_W104_D122_TA_TS81001_SS82004_BASE_FRESH50_v1",
+          "row": 8,
+          "run_match": true,
+          "sensor": "QB",
+          "server": "s4",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9363863327253045,
+          "ergas": 3.735182988459828
+        },
+        {
+          "run": "QG40_QB_S_PLH_W104_D122_TA_TS81001_SS82005_BASE_FRESH50_v1",
+          "row": 9,
+          "run_match": true,
+          "sensor": "QB",
+          "server": "s4",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.930673670537421,
+          "ergas": 3.748827779810946
+        },
+        {
+          "run": "QG40_QB_S_PLH_W104_D122_TA_TS81001_SS82008_BASE_FRESH50_v1",
+          "row": 10,
+          "run_match": true,
+          "sensor": "QB",
+          "server": "s4",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9331402629890245,
+          "ergas": 3.6614909795280326
+        },
+        {
+          "run": "QG40_QB_S_PLH_W104_D122_TA_TS81001_SS82009_BASE_FRESH50_v1",
+          "row": 11,
+          "run_match": true,
+          "sensor": "QB",
+          "server": "s4",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9327261372103273,
+          "ergas": 3.7546576215298906
+        },
+        {
+          "run": "QG40_QB_S_PLH_W104_D122_TA_TS81001_SS82010_BASE_FRESH50_v1",
+          "row": 12,
+          "run_match": true,
+          "sensor": "QB",
+          "server": "s4",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9346217876842517,
+          "ergas": 3.7003746405163147
+        },
+        {
+          "run": "QG40_QB_S_PLH_W104_D122_TA_TS81001_SS82011_BASE_FRESH50_v1",
+          "row": 13,
+          "run_match": true,
+          "sensor": "QB",
+          "server": "s4",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9382354240514899,
+          "ergas": 3.668417898332007
+        }
+      ]
+    },
+    {
+      "server": "s5",
+      "at_utc": "2026-09-20T07:45:54.480161+00:00",
+      "dataset": "GF2",
+      "status": "RUNNING",
+      "completed": 6,
+      "uploaded_verified": 6,
+      "active": [
+        {
+          "run": "QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92015_BASE_FRESH50_v1",
+          "updates": 39100
+        }
+      ],
+      "latest_receipt": {
+        "row": 11,
+        "gid": 2037260905,
+        "worksheet": "GF2-s5",
+        "readback_verified": true,
+        "campaign_id": "PANDA_QG40_20260920_v1",
+        "run_id": "QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92014_BASE_FRESH50_v1",
+        "sensor": "GF2",
+        "server": "s5",
+        "payload_sha256": "dd00bc52ac626cca58ac520ad9de7e466c512812b9e7983fe9de62f9a3d42545",
+        "uploaded_at_utc": "2026-09-20T06:57:04.415722+00:00"
+      },
+      "controller_pending": [],
+      "live_sheet_checks": [
+        {
+          "run": "QGBASE_GF2_S_PLH_W104_D122_TA_TS91001_SS92003_BASE_FRESH50_v1",
+          "row": 6,
+          "run_match": true,
+          "sensor": "GF2",
+          "server": "s5",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9484703999867383,
+          "ergas": 0.5615932532416513
+        },
+        {
+          "run": "QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92006_BASE_FRESH50_v1",
+          "row": 7,
+          "run_match": true,
+          "sensor": "GF2",
+          "server": "s5",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9427871290107779,
+          "ergas": 0.5630806348560078
+        },
+        {
+          "run": "QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92007_BASE_FRESH50_v1",
+          "row": 8,
+          "run_match": true,
+          "sensor": "GF2",
+          "server": "s5",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.944797322212884,
+          "ergas": 0.5874775696263421
+        },
+        {
+          "run": "QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92012_BASE_FRESH50_v1",
+          "row": 9,
+          "run_match": true,
+          "sensor": "GF2",
+          "server": "s5",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9540522881208157,
+          "ergas": 0.5627285455136903
+        },
+        {
+          "run": "QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92013_BASE_FRESH50_v1",
+          "row": 10,
+          "run_match": true,
+          "sensor": "GF2",
+          "server": "s5",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9502781769216698,
+          "ergas": 0.561341630004748
+        },
+        {
+          "run": "QG40_GF2_S_PLH_W104_D122_TA_TS91001_SS92014_BASE_FRESH50_v1",
+          "row": 11,
+          "run_match": true,
+          "sensor": "GF2",
+          "server": "s5",
+          "actual_updates": 50000,
+          "n_evaluated": 50,
+          "upload_status": "READBACK_VERIFIED",
+          "hqnr": 0.9438747750795553,
+          "ergas": 0.5621503951745174
+        }
+      ]
+    }
+  ],
+  "s2_repair": {
+    "range": "'QB-s2'!U3",
+    "before": "Notes",
+    "after": "Legacy Notes",
+    "existing_rows_and_format_preserved": true,
+    "official_upload_cli_exit": 0,
+    "live_receipt_verified": true
+  }
+}

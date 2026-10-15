@@ -1,0 +1,417 @@
+{
+  "audit_at": "2026-09-15T00:15:49.451658+09:00",
+  "git_head": "a0bff24ff345a67922e1689482a3fade7a538cdb",
+  "files": [
+    {
+      "path": "tools/eqrec4/d50.py",
+      "sha256": "74bb6daa42afb3d49c40c68fdfc996d5e7784c900a3f3d392f592c32b8aa9621",
+      "bytes": 6965,
+      "mtime": "2026-09-14T23:07:30.240607",
+      "snapshot": true
+    },
+    {
+      "path": "tools/eqrec4/report.py",
+      "sha256": "d3b9aee13db6b5be4db805d2d52e9f256f9d5a1011a8ea075bd2de8d28729c9e",
+      "bytes": 17064,
+      "mtime": "2026-09-14T23:07:30.244607",
+      "snapshot": true
+    },
+    {
+      "path": "tools/eqrec4/common.py",
+      "sha256": "7b69f7a57555a01e73bdd474c16fbd2b9c58310a80337e11b0a0d09b6b90f769",
+      "bytes": 23865,
+      "mtime": "2026-09-15T00:02:58.680512",
+      "snapshot": true
+    },
+    {
+      "path": "tools/eqrec4/d30.py",
+      "sha256": "d26bbc2d274771dc82345df203fac5df3f06fea8fe3cc95d4ef1c56d96cd19aa",
+      "bytes": 19648,
+      "mtime": "2026-09-14T23:07:30.236607",
+      "snapshot": true
+    },
+    {
+      "path": "tools/eqrec4/d10.py",
+      "sha256": "4996f3a8f1d1e92a7eafcb3ada8dbbefa4fb91e359b4953a709b292f621389b9",
+      "bytes": 16216,
+      "mtime": "2026-09-14T23:07:30.232607",
+      "snapshot": true
+    },
+    {
+      "path": "tools/eqrec4/d40.py",
+      "sha256": "ab581380545816143fdbf63db8e910733a46329a2b7be0f20fc5e3c7595290c8",
+      "bytes": 12435,
+      "mtime": "2026-09-14T23:10:15.491287",
+      "snapshot": true
+    },
+    {
+      "path": "tools/eqrec4/g00.py",
+      "sha256": "58ad786e37537a0230f4207395537c9694e0373c78e716b2224cce62d86c7b18",
+      "bytes": 11501,
+      "mtime": "2026-09-15T00:03:01.920557",
+      "snapshot": true
+    },
+    {
+      "path": "tools/eqrec4/d20.py",
+      "sha256": "d7756cbf068a719974cebb33d4935f415d02d9b95d9665e54853b89cbd9802c4",
+      "bytes": 10403,
+      "mtime": "2026-09-14T23:30:43.459912",
+      "snapshot": true
+    },
+    {
+      "path": "tools/eqrec4/k10.py",
+      "sha256": "5694e24e8a44855899c988bbd471fb1146a8be5457b05f8385e5b08b66cb3e29",
+      "bytes": 15990,
+      "mtime": "2026-09-14T23:07:30.240607",
+      "snapshot": true
+    },
+    {
+      "path": "tools/eqrec4/k20.py",
+      "sha256": "b8798fbf8256984cbc4b67b09e484ec4dc1dfb1097468f452980031da0169dfe",
+      "bytes": 11494,
+      "mtime": "2026-09-14T23:07:30.244607",
+      "snapshot": true
+    },
+    {
+      "path": "tools/eqrec4/__init__.py",
+      "sha256": "6e62949628d846e3f783571c7a59bcfe0a5d1aef706feb73af22f0fbc299c153",
+      "bytes": 329,
+      "mtime": "2026-09-14T22:46:02.623780",
+      "snapshot": true
+    },
+    {
+      "path": "tools/eqrec4.py",
+      "sha256": "e3fb080760560c1ba9b2a0afe23cb565311dca81d01fc1af3da73d7d32557685",
+      "bytes": 1698,
+      "mtime": "2026-09-14T23:01:55.563234",
+      "snapshot": true
+    },
+    {
+      "path": "tools/eqrec4_run.sh",
+      "sha256": "2de26ba1d1e3accacbec45659955fdeda5a1513b9be3fe1690bb9adb658d18a1",
+      "bytes": 2177,
+      "mtime": "2026-09-15T00:03:06.336618",
+      "snapshot": true
+    },
+    {
+      "path": "tools/eqrec4_unit_tests.py",
+      "sha256": "91697ed26be116bafbbb784c4b10efd359268d70ae1cff3bccabbd470bd428ce",
+      "bytes": 7144,
+      "mtime": "2026-09-14T23:07:30.256607",
+      "snapshot": true
+    },
+    {
+      "path": "tools/palsv18_validate.py",
+      "sha256": "3fbf2bc3ecff3f040e6a6ebc2c4cdd7cc6778ff8dd8d8093a36823a5958cb307",
+      "bytes": 39344,
+      "mtime": "2026-09-13T20:32:19.476615",
+      "snapshot": true
+    },
+    {
+      "path": "pa/model.py",
+      "sha256": "e162cbc77e0b15af87f27ef7573b101c0b977cd171f679ff902c782f8a87a393",
+      "bytes": 2919,
+      "mtime": "2026-09-10T15:44:25.365872",
+      "snapshot": true
+    },
+    {
+      "path": "pa/aligner.py",
+      "sha256": "ebf6b026b213dc857b5e9d39ba5d3070356a51092b11c32f3ffac0bb861faa2f",
+      "bytes": 2654,
+      "mtime": "2026-09-10T15:40:47.001787",
+      "snapshot": true
+    },
+    {
+      "path": "pa/offset.py",
+      "sha256": "8e70f6999d311eaba9d9ff35fc7e4da05d2f0439fc1735d125a1342eec9b5dba",
+      "bytes": 5104,
+      "mtime": "2026-09-11T00:45:53.168255",
+      "snapshot": true
+    },
+    {
+      "path": "pa/warp.py",
+      "sha256": "b7ea18eb1c09a9462763bfe0146454df2c6593c8dce9107328804a33ed02fcab",
+      "bytes": 3863,
+      "mtime": "2026-09-10T13:06:53.899671",
+      "snapshot": true
+    },
+    {
+      "path": "pa/evalviews.py",
+      "sha256": "9f1c31c11358d807645d0a0824b26885b9ff41a53d974bb59bbae49ea9d0c1b9",
+      "bytes": 9618,
+      "mtime": "2026-09-11T01:47:29.047603",
+      "snapshot": true
+    },
+    {
+      "path": "kdv/forward.py",
+      "sha256": "f29c09446e93fe40d97eb903242c8d306fe3d7d381744a13c46093284996ff52",
+      "bytes": 3540,
+      "mtime": "2026-09-10T15:44:25.365872",
+      "snapshot": true
+    },
+    {
+      "path": "align/estimator.py",
+      "sha256": "3f7d7431adedc13808e795d3033e5082dc6a71aef6b66342193a290a75999781",
+      "bytes": 4579,
+      "mtime": "2026-09-04T21:01:53.011597",
+      "snapshot": true
+    },
+    {
+      "path": "feeders/feeder.py",
+      "sha256": "cd2cc0b2223c833f06513fa51484d60a2e57c8ceeb4a915606ff091b3d29babd",
+      "bytes": 7249,
+      "mtime": "2026-08-14T09:14:51.179565",
+      "snapshot": true
+    },
+    {
+      "path": "research_log/PAN_S1_EQREC4_Alignment_Cue_Hypotheses_20h_2026-09-14.md",
+      "sha256": "2721172d91e498e75f7b0e19b84882e94ddf41c53aaa16d6fa91aa61f02f0e48",
+      "bytes": 81145,
+      "mtime": "2026-09-14T22:38:15.531294",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/g00_gradient_receivers.json",
+      "sha256": "55f4c53708d98de4d69afc73150f12de077e62874e7df47eaa13492dc534ac0f",
+      "bytes": 1498,
+      "mtime": "2026-09-14T23:06:09.819308",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/probe_bank_B.json",
+      "sha256": "0a2d4bce84d7d62b171d43ca201730813ced1c248855256a73ca31bb0a32cb0b",
+      "bytes": 2526,
+      "mtime": "2026-09-14T23:05:41.782856",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/native_proxy_summary_L1E4_S1234_best_raw.json",
+      "sha256": "f6952591d22eec268452db112b19c22c4d47115ef679a6a68a2a40a8f0faf958",
+      "bytes": 1581,
+      "mtime": "2026-09-14T23:32:01.621316",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/calibration_thresholds.json",
+      "sha256": "27e150dd7cb63fb5fdec4427bd9f8e886bcf80885cb8b3427adc32913860a569",
+      "bytes": 12691,
+      "mtime": "2026-09-14T23:27:50.496744",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/probe_bank_A.json",
+      "sha256": "3086a605a83487a5d79dfb3237f8c92a8c661fc3e6b9dd98796130e528530d1b",
+      "bytes": 2148,
+      "mtime": "2026-09-14T23:05:41.782856",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/detail_subsets.json",
+      "sha256": "009dfa649a88cbaeee39411e23bc8894cc514645a41d0642b7bab7c72ee62724",
+      "bytes": 5324,
+      "mtime": "2026-09-14T23:29:55.123036",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/time_ledger.jsonl",
+      "sha256": "830c6dabfd565f15525cae26ac28e230d94b2c52c2336b7e328db52a118b002f",
+      "bytes": 1256,
+      "mtime": "2026-09-14T23:31:45.221023",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/run.log",
+      "sha256": "ad6f3b29e973cbd853acef76333e0e609c7f587ea46daebc87b7cc89f4705184",
+      "bytes": 10814,
+      "mtime": "2026-09-15T00:15:46.915993",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/protocol_changes.md",
+      "sha256": "852380290e34933e58df2ffb1a15e64754bbd303be9cb54e6e31f758b869b4c1",
+      "bytes": 1094,
+      "mtime": "2026-09-14T23:06:09.823308",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/sources_manifest.json",
+      "sha256": "4e97ebcd2baf1b352ff2858e886b9ec4253235e0dec74a830865a6845ac4ba0e",
+      "bytes": 1569,
+      "mtime": "2026-09-14T23:06:09.819308",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/roi_contract.json",
+      "sha256": "f0145c6ee0be9839e7de98357754d3c152c72ac7a821d92c03cc8293c61158b5",
+      "bytes": 348,
+      "mtime": "2026-09-14T23:05:41.782856",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/native_proxy_summary_L1E4_S1234_last.json",
+      "sha256": "1519c328361e3e82d5a48cff4022e74bd5a99d32ac5a5010d1c0a40d79584ee3",
+      "bytes": 1582,
+      "mtime": "2026-09-14T23:40:13.781914",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/data_manifest_meta.json",
+      "sha256": "c1925f3b3a3966d4a4bef1404049ce808dad1300ea461da4c78a94e331ec8c9a",
+      "bytes": 463,
+      "mtime": "2026-09-14T23:03:27.968708",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/g00_reproduction.json",
+      "sha256": "8e88f3393cde878f1fda247c7096e66964fd93a3028928cc59a65e4e14438921",
+      "bytes": 886,
+      "mtime": "2026-09-14T23:06:09.819308",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/g00_unit_checks.json",
+      "sha256": "7ac70267ee1592eb9534259180bb49dc949492130ef4665697d2567719fb2d30",
+      "bytes": 667,
+      "mtime": "2026-09-14T23:06:09.819308",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/protocol_resolved.yaml",
+      "sha256": "8544b95a6c04532a6437af74419c8e3fcd9bc2e69efabb0c543db9d577fab5c6",
+      "bytes": 2802,
+      "mtime": "2026-09-14T23:06:09.823308",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/T0.txt",
+      "sha256": "0f2193a7836b2a6dd62bf8a15b8e1b6321cc9a9bd7f84470b2e375932789370e",
+      "bytes": 26,
+      "mtime": "2026-09-14T23:06:57.260074",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/native_proxy_summary_L1E4_S2025_best_raw.json",
+      "sha256": "d81b4a410e4b1e84266bee85e88382ce26b0b0d549153dff6ec1c672d1569c1a",
+      "bytes": 1582,
+      "mtime": "2026-09-15T00:04:15.685589",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/h1_stats.json",
+      "sha256": "e44320f41cf262de5aaca3d20c3f6233533cd150b77814ce899b26ca79adcb9a",
+      "bytes": 106635,
+      "mtime": "2026-09-14T23:29:55.059035",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/native_proxy_summary_L1E4_S7777_best_raw.json",
+      "sha256": "402cbb63ff5280171157ea29633de4b48142e733b666bdf9913ca534f473069f",
+      "bytes": 1581,
+      "mtime": "2026-09-14T23:48:09.070003",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/native_proxy_summary_L1E4_S7777_last.json",
+      "sha256": "dd6ee56b3e7f5a34c8479a712eda6b1ee638ba5b52e63b763fa789949ced0e28",
+      "bytes": 1582,
+      "mtime": "2026-09-14T23:56:23.646335",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/assets_manifest.csv",
+      "sha256": "d6effa568e7889d968c3e23b2c6f1e6b4ce873a558d0db78d86b20922fb95f2a",
+      "bytes": 6964,
+      "mtime": "2026-09-14T23:05:43.846889",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/data_manifest.csv",
+      "sha256": "8f37175b8c26c73318cc6005398ef05d4297c45205f354ef839c1e81458214a3",
+      "bytes": 396807,
+      "mtime": "2026-09-14T23:03:24.332650",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/quadrant_occupancy.csv",
+      "sha256": "2f63959aa0ad47dcdf5a254d5fac97e2c75111dd14e3a163f388bd86b60ae411",
+      "bytes": 18413,
+      "mtime": "2026-09-14T23:27:50.900752",
+      "snapshot": true
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/native_sample_metrics.csv",
+      "sha256": "a7cf69385782cc7098761d11589aca374eb6689754dd9054872030e2bce0b2b4",
+      "bytes": 81225876,
+      "mtime": "2026-09-14T23:27:13.524054",
+      "snapshot": false
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/offset_probe_records.csv.gz",
+      "sha256": "524cb3c68fb8d9c5692a89213cca207105a2284fadb92a67df0e184c886e2a25",
+      "bytes": 74490756,
+      "mtime": "2026-09-14T23:27:44.552634",
+      "snapshot": false
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/quadrant_assignments.csv",
+      "sha256": "9890106ffe4b3793f88c45983f8832a6bf84c5500c3181c220583eddd50cfd50",
+      "bytes": 6946344,
+      "mtime": "2026-09-14T23:27:50.688748",
+      "snapshot": false
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/geometry_modality.csv",
+      "sha256": "66b6d858348717f5c30c3254a0af86b04c67ae3dbe262df7b3cc7b94c14874ca",
+      "bytes": 3122603,
+      "mtime": "2026-09-14T23:31:40.532939",
+      "snapshot": false
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/geometry_controls.csv",
+      "sha256": "3453f9fb7415f6efcada9482dd5b9aa71eb070a47d0c42427581741e907e69a1",
+      "bytes": 4561034,
+      "mtime": "2026-09-14T23:31:40.840945",
+      "snapshot": false
+    },
+    {
+      "path": "work_dir/_eqrec4_s1_campaign/geometry_cues.csv",
+      "sha256": "692170cbfb3f426e585a511bda67b8301f1880bd1069a000be0ee506cd3b8c06",
+      "bytes": 1550722,
+      "mtime": "2026-09-14T23:31:40.960947",
+      "snapshot": false
+    }
+  ],
+  "mode": "read-only campaign audit; CPU test fixtures isolated; no run/model/optimizer changes",
+  "final_status": {
+    "observed_at": "2026-09-15T00:21:30+09:00",
+    "runner_pid": 2190020,
+    "stage_pid": 2196665,
+    "stage": "D30",
+    "primary_model_seconds": 709,
+    "gpu_memory_mib": 4631,
+    "gpu_utilization_instant_percent": 3,
+    "campaign_modified_by_audit": false
+  },
+  "audit_outputs": [
+    {
+      "path": "research_log/EQREC4_Audit_2026-09-15/verify_readonly.py",
+      "sha256": "82ca8cb09cab2b0670d8e7d20efd81bba96b92b5616ea931ba2f8c7d1b0c8aa6"
+    },
+    {
+      "path": "research_log/EQREC4_Audit_2026-09-15/verification.json",
+      "sha256": "74a1f9fb2f60a2712e0b912241d2dfbc70122ac675747ee1c1e376d0144c9cf8"
+    },
+    {
+      "path": "research_log/EQREC4_Audit_2026-09-15/data_provenance_readonly.py",
+      "sha256": "681f793e23b36de2bc6b1f06df5426b9225f7a12c173e60d2d8ba8e76db46411"
+    },
+    {
+      "path": "research_log/EQREC4_Audit_2026-09-15/data_provenance.json",
+      "sha256": "f600415d1c4e38a2cd8c7b5f2826c67b0140febf094449a7f9d316dbee6c30b7"
+    },
+    {
+      "path": "research_log/PAN_EQREC4_Implementation_Experiment_Audit_2026-09-15.md",
+      "sha256": "b55efd972d59a4fbe26698801d5d28b118026c69fa114c6ebb1c13186d942cc6"
+    }
+  ]
+}

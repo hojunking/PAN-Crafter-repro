@@ -1,0 +1,16 @@
+{
+  "completed_at": "2026-09-15T16:45:05+0900",
+  "head": "433ad67f4ae0da7516e3c1dcaa6845af1ec1e837",
+  "origin_main": "433ad67f4ae0da7516e3c1dcaa6845af1ec1e837",
+  "source_files_checked": 46,
+  "changed_source_files": [],
+  "report_links_checked": 41,
+  "broken_links": [],
+  "conformance_total": 34,
+  "conformance_passed": 34,
+  "defect_scenarios_total": 20,
+  "defect_scenarios_reproduced": 20,
+  "existing_unit_checks": 110,
+  "initial_online_tolerance_failure_retained": true,
+  "tracked_worktree_diff": ""
+}

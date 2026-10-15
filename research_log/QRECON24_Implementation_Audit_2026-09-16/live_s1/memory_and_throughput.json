@@ -1,0 +1,12 @@
+{
+ "step": 1700,
+ "t_native_s": 0.0892069282985869,
+ "t_corrupt_s": null,
+ "t_forward_s": 0.008935372034708658,
+ "peak_mem_allocated_mb": 5311.59765625,
+ "peak_mem_reserved_mb": 5468.0,
+ "elapsed_hours": 0.06792889422840542,
+ "teacher_forward": true,
+ "share_correction": false,
+ "batch": 48
+}

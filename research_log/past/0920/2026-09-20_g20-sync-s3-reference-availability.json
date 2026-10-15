@@ -1,0 +1,249 @@
+{
+  "checked_at_kst": "2026-09-20 21:25",
+  "remote_commit": "e2d838a3f9ea45170fb71052710b38acc9992c61",
+  "scope": "G20 source sync and s3 existing artifact availability only; no activation or retraining",
+  "servers": [
+    {
+      "server": "s1",
+      "head": "e2d838a",
+      "files_checked": 77,
+      "different_files": [],
+      "syntax_ok": true,
+      "g20_window_exists": false
+    },
+    {
+      "server": "s2",
+      "head": "0ec1132",
+      "files_checked": 77,
+      "different_files": [],
+      "syntax_ok": true,
+      "g20_window_exists": false
+    },
+    {
+      "server": "s3",
+      "head": "cccedee",
+      "files_checked": 77,
+      "different_files": [],
+      "syntax_ok": true,
+      "g20_window_exists": false
+    },
+    {
+      "server": "s4",
+      "head": "cccedee",
+      "files_checked": 77,
+      "different_files": [],
+      "syntax_ok": true,
+      "g20_window_exists": false
+    },
+    {
+      "server": "s5",
+      "head": "cccedee",
+      "files_checked": 77,
+      "different_files": [],
+      "syntax_ok": true,
+      "g20_window_exists": false
+    }
+  ],
+  "reference_file_checks": {
+    "all_passed": true,
+    "files": [
+      {
+        "kind": "calibration_path",
+        "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/_qg40/s3/references/GF2_TA/calibration.json",
+        "exists": true,
+        "readable": true,
+        "hash_matches_manifest": true,
+        "bytes": 9733
+      },
+      {
+        "kind": "q_cache_path",
+        "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/_qg40/s3/references/GF2_TA/q_cache.npz",
+        "exists": true,
+        "readable": true,
+        "hash_matches_manifest": true,
+        "bytes": 1949741
+      },
+      {
+        "kind": "q_cache_parity_path",
+        "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/_qg40/s3/references/GF2_TA/q_cache_parity.json",
+        "exists": true,
+        "readable": true,
+        "hash_matches_manifest": true,
+        "bytes": 5969
+      },
+      {
+        "kind": "dataset_manifest_path",
+        "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/_qg40/s3/dataset_manifest.json",
+        "exists": true,
+        "readable": true,
+        "hash_matches_manifest": true,
+        "bytes": 11914
+      },
+      {
+        "kind": "teacher_checkpoint",
+        "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_TA_P0_W112_D123_TS91001_FRESH50_v1/candidates/50000/model.safetensors",
+        "exists": true,
+        "readable": true,
+        "hash_matches_manifest": true,
+        "bytes": 11033672
+      },
+      {
+        "kind": "teacher_checkpoint_identity",
+        "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_TA_P0_W112_D123_TS91001_FRESH50_v1/candidates/50000/identity.json",
+        "exists": true,
+        "readable": true,
+        "hash_matches_manifest": true,
+        "bytes": 6646
+      },
+      {
+        "kind": "teacher_config",
+        "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_TA_P0_W112_D123_TS91001_FRESH50_v1/meta/config.resolved.yaml",
+        "exists": true,
+        "readable": true,
+        "hash_matches_manifest": true,
+        "bytes": 7676
+      },
+      {
+        "kind": "teacher_training_state",
+        "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_TA_P0_W112_D123_TS91001_FRESH50_v1/candidates/50000/training_state.pt",
+        "exists": true,
+        "readable": true,
+        "hash_matches_manifest": true,
+        "bytes": 34190521
+      }
+    ]
+  },
+  "original_runs": {
+    "TA": {
+      "files": {
+        "meta/config.resolved.yaml": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_TA_P0_W112_D123_TS91001_FRESH50_v1/meta/config.resolved.yaml",
+          "exists": true,
+          "readable": true,
+          "bytes": 7676,
+          "sha256": "1d9c45172fa26625e7a70798b670bdacdfa702b24e02be8913efb01767bbeca8"
+        },
+        "meta/training_start_manifest.json": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_TA_P0_W112_D123_TS91001_FRESH50_v1/meta/training_start_manifest.json",
+          "exists": true,
+          "readable": true,
+          "bytes": 6963,
+          "sha256": "a0f8b94a236baa7690cacfd328d5471045dd614ad978c1210ee5ce4ab2caf2bd"
+        },
+        "meta/training_status.json": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_TA_P0_W112_D123_TS91001_FRESH50_v1/meta/training_status.json",
+          "exists": true,
+          "readable": true,
+          "bytes": 1277,
+          "sha256": "dd4b67422ccc1ddf065286fcf5885669d7c786295a9fc275797f596de0409b7a"
+        },
+        "candidates/50000/model.safetensors": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_TA_P0_W112_D123_TS91001_FRESH50_v1/candidates/50000/model.safetensors",
+          "exists": true,
+          "readable": true,
+          "bytes": 11033672,
+          "sha256": "0fb973376f9f00947d295620d96062b621145607aee311e28c889caefb656dab"
+        },
+        "candidates/50000/identity.json": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_TA_P0_W112_D123_TS91001_FRESH50_v1/candidates/50000/identity.json",
+          "exists": true,
+          "readable": true,
+          "bytes": 6646,
+          "sha256": "6d3a8ba61369788c31ec0c9c548cd141347042c941c1cea9a8ae22ccf96b842f"
+        },
+        "last/training_state.pt": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_TA_P0_W112_D123_TS91001_FRESH50_v1/last/training_state.pt",
+          "exists": true,
+          "readable": true,
+          "bytes": 34190457,
+          "sha256": "45b7ebff2dc32940217bb378252086d653419a2627b79b6e94a501730b382629"
+        },
+        "official/exact50k.json": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_TA_P0_W112_D123_TS91001_FRESH50_v1/official/exact50k.json",
+          "exists": true,
+          "readable": true,
+          "bytes": 34652,
+          "sha256": "ac95e687efc56224d31c9a8b1a94930f29cb68ba6ce4cc56403e47fa22b22b21"
+        },
+        "official/postrun_status.json": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_TA_P0_W112_D123_TS91001_FRESH50_v1/official/postrun_status.json",
+          "exists": true,
+          "readable": true,
+          "bytes": 6802,
+          "sha256": "6f087551b66ebc4ce2fe2a926c7b1b1c5d5d78fd12f7ccaefa958f41de782cdd"
+        }
+      },
+      "checkpoint_hash_matches_identity": true,
+      "actual_updates": 50000,
+      "training_complete": true,
+      "official_complete": true,
+      "sheet_uploaded": true
+    },
+    "S92001": {
+      "files": {
+        "meta/config.resolved.yaml": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_S_PLH_W104_D122_TA_TS91001_SS92001_BASE_FRESH50_v1/meta/config.resolved.yaml",
+          "exists": true,
+          "readable": true,
+          "bytes": 8176,
+          "sha256": "48a7dc6d3526865e2d277147a5e79164e5f6c7240d5fa5371420c715819fc02e"
+        },
+        "meta/training_start_manifest.json": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_S_PLH_W104_D122_TA_TS91001_SS92001_BASE_FRESH50_v1/meta/training_start_manifest.json",
+          "exists": true,
+          "readable": true,
+          "bytes": 7041,
+          "sha256": "849e67728264178ea124955e390d9e54284cac2af8d982b643c12f02915ec1a5"
+        },
+        "meta/training_status.json": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_S_PLH_W104_D122_TA_TS91001_SS92001_BASE_FRESH50_v1/meta/training_status.json",
+          "exists": true,
+          "readable": true,
+          "bytes": 1278,
+          "sha256": "b271ad2475a9dc7c2ef22fcd7226c1325b847996006af83dfd18751024883b07"
+        },
+        "candidates/50000/model.safetensors": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_S_PLH_W104_D122_TA_TS91001_SS92001_BASE_FRESH50_v1/candidates/50000/model.safetensors",
+          "exists": true,
+          "readable": true,
+          "bytes": 8802784,
+          "sha256": "e67eab8d499fcde6ee9e48cd1b5b9c17055e26ac79fd1cf2a6dd7bd7c581f75f"
+        },
+        "candidates/50000/identity.json": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_S_PLH_W104_D122_TA_TS91001_SS92001_BASE_FRESH50_v1/candidates/50000/identity.json",
+          "exists": true,
+          "readable": true,
+          "bytes": 6709,
+          "sha256": "e101d0ede8b91f2e8214728a43b1c04ab47482e68e47f559b3539a843c557839"
+        },
+        "last/training_state.pt": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_S_PLH_W104_D122_TA_TS91001_SS92001_BASE_FRESH50_v1/last/training_state.pt",
+          "exists": true,
+          "readable": true,
+          "bytes": 27485657,
+          "sha256": "a652e2746c93a14cbbe82d60d0e0f62884ecb8e5db2175809f38664ca2d75ca2"
+        },
+        "official/exact50k.json": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_S_PLH_W104_D122_TA_TS91001_SS92001_BASE_FRESH50_v1/official/exact50k.json",
+          "exists": true,
+          "readable": true,
+          "bytes": 34739,
+          "sha256": "f565b4d542041cb6fe6ebd1ac5dd646f8ffc846b59da1ca8450374185514febc"
+        },
+        "official/postrun_status.json": {
+          "path": "/home/user/Desktop/song/PAN-Crafter/work_dir/QGBASE_GF2_S_PLH_W104_D122_TA_TS91001_SS92001_BASE_FRESH50_v1/official/postrun_status.json",
+          "exists": true,
+          "readable": true,
+          "bytes": 6819,
+          "sha256": "5b4adc15809f5ab7d1b27c1fe70257ad1400a2e841f9aee21fa8a307beb5ace1"
+        }
+      },
+      "checkpoint_hash_matches_identity": true,
+      "actual_updates": 50000,
+      "training_complete": true,
+      "official_complete": true,
+      "sheet_uploaded": true
+    }
+  },
+  "inventory_status": "DISCOVERED_NOT_VALIDATED"
+}

@@ -1,0 +1,268 @@
+{
+  "head": "ac232452e6b789225edad6817a04627afdbc7bd2",
+  "checks": [
+    {
+      "name": "queue_s3",
+      "passed": true,
+      "kind": "conformance",
+      "n": 15
+    },
+    {
+      "name": "config_PAKD50_J0_W104_D121_WV3_T0_S2026_FRESH50_v2",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_JQ_W104_D121_WV3_T0_S2026_FRESH50_v2",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_QE50_W104_D121_WV3_T0_S2026_FRESH50_v2",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_XJ_W104_D121_WV3_T0_S2026_FRESH50_v2",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_QX50_W104_D121_WV3_T0_S2026_FRESH50_v2",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_J_R3_NOEDGE_W104_D121_WV3_T0_S2026_FRESH50_v2",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_QEC3_W104_D121_WV3_T0_S2026_FRESH50_v2",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_QES_W104_D121_WV3_T0_S2026_FRESH50_v2",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_J_QB005_W104_D121_WV3_T0_S2026_FRESH50_v2",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_QE50_B005_W104_D121_WV3_T0_S2026_FRESH50_v2",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_J0_W104_D121_WV3_T0_S4321_FRESH50_v2",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_JQ_W104_D121_WV3_T0_S4321_FRESH50_v2",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_XJ_W104_D121_WV3_T0_S4321_FRESH50_v2",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_QE50_W104_D121_WV3_T0_S4321_FRESH50_v2",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_QX50_W104_D121_WV3_T0_S4321_FRESH50_v2",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "reservation_s3",
+      "passed": true,
+      "kind": "conformance",
+      "hours": 25.204
+    },
+    {
+      "name": "queue_s4",
+      "passed": true,
+      "kind": "conformance",
+      "n": 14
+    },
+    {
+      "name": "config_PAKD50_QE50_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_LF0_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_LFQ_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_LFQE50_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_LFX_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_JE0_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_QER50_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_QERS_W104_D121_WV3_T0_S1234_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_J0_W104_D121_WV3_T0_S3407_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_JQ_W104_D121_WV3_T0_S3407_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_QE50_W104_D121_WV3_T0_S3407_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_JE0_W104_D121_WV3_T0_S3407_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_QER50_W104_D121_WV3_T0_S3407_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "config_PAKD50_QERS_W104_D121_WV3_T0_S3407_FRESH50_v1",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "reservation_s4",
+      "passed": true,
+      "kind": "conformance",
+      "hours": 26.280333333333335
+    },
+    {
+      "name": "server_alias",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "epoch_25_checkpoint_cannot_resume",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "epoch_start": 4848,
+      "checkpoint_step": 5050,
+      "batches": 202,
+      "error": "exact resume: checkpoint \uc758 epoch \uc0c1\ud0dc(start 4848, n_batches 202) \uc640 global_step 5050/loader 202 \uac00 \ub9de\uc9c0 \uc54a\ub294\ub2e4 \u2014 \ucc98\uc74c\ubd80\ud130 \ub2e4\uc2dc \ub3cc\ub9b0\ub2e4"
+    },
+    {
+      "name": "mid_epoch_resume_4workers",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "verified_complete_accepts_missing_identity_and_duplicate_grid",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "verification": {
+        "run": "PAKD50_JQ_W104_D121_WV3_T0_S1234_FRESH50_v1",
+        "ok": true,
+        "checks": {
+          "results_mats": true,
+          "last_exact_step": true,
+          "candidate_grid": true,
+          "kdv_manifest": true,
+          "teacher_is_T0": null,
+          "train_sha_matches_cue": null,
+          "init_matches_shared_file": null
+        },
+        "notes": [
+          "Teacher \uc5c6\uc74c(no-KD/no-align run)",
+          "dataset_hashes \ub610\ub294 cue \uc790\uc0b0 \uc5c6\uc74c",
+          "\ucd08\uae30\uac12 hash/\ud30c\uc77c \uc5c6\uc74c"
+        ]
+      }
+    },
+    {
+      "name": "switch_dry_s3",
+      "passed": true,
+      "kind": "conformance",
+      "rc": 0,
+      "note": "Diagnostic logs/directories may be written; operational control files unchanged."
+    },
+    {
+      "name": "switch_dry_s4",
+      "passed": true,
+      "kind": "conformance",
+      "rc": 0,
+      "note": "Diagnostic logs/directories may be written; operational control files unchanged."
+    },
+    {
+      "name": "refresh_controls_lost_when_archiving_old_extra",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "rc": 0,
+      "extra": [],
+      "new_mandatory_count": 14,
+      "refresh_tags": [
+        "PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v3",
+        "PAKD50_JQ_W104_D121_WV3_T0_S1234_FRESH50_v3",
+        "PAKD50_XJ_W104_D121_WV3_T0_S1234_FRESH50_v3"
+      ]
+    },
+    {
+      "name": "direct_queue_missing_ce_is_failed_terminal",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "trainer_attempts": 2,
+      "terminal": true,
+      "real_ce_exists": false,
+      "note": "Actual run_case; smoke/run stubs isolate admission. Actual const loader raises FileNotFoundError when c_E3 is absent."
+    },
+    {
+      "name": "new_ledger_measurement_used",
+      "passed": true,
+      "kind": "conformance"
+    }
+  ],
+  "summary": {
+    "conformance": {
+      "total": 38,
+      "passed": 38
+    },
+    "defect_reproduction": {
+      "total": 4,
+      "passed": 4
+    }
+  },
+  "finished_at": "2026-09-15T20:11:33+0900"
+}

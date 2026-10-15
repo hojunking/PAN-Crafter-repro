@@ -1,0 +1,206 @@
+{
+  "at": "2026-09-15T10:52:32+0900",
+  "head": "d616740e4b9188218f93b736394d6224b674534e",
+  "files": [
+    {
+      "path": "CLAUDE.md",
+      "sha256": "e8e6bf1fe7fe504a0a33a077e46c23fd1998aba0382b590b8449b5f561f2e48f",
+      "mtime": 1789436923.7042263
+    },
+    {
+      "path": "assets/pakd50/init_hashes.json",
+      "sha256": "77ca5985416da516f78d9b738a688512fde8a2c4ee1440cb8080e3687074aaeb",
+      "mtime": 1789436461.6197028
+    },
+    {
+      "path": "config/PAKD50_F0_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "9f9949d845dd83c2ff3eb8b9a673300b1758686af91c2f69b635424595dba8e5",
+      "mtime": 1789436669.2835338
+    },
+    {
+      "path": "config/PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "058e513428cf0c9b98bb065dbfa1e199461709b8148aa8bc1ca1eb1c49847a18",
+      "mtime": 1789436669.2275326
+    },
+    {
+      "path": "config/PAKD50_JQ_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "a8cab5088b4c91b16725f3b48dd09077d884cd575b145af1a48d74ccdbec7255",
+      "mtime": 1789436669.247533
+    },
+    {
+      "path": "config/PAKD50_NA0_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "1a84d6b0b822c66d88ebc781257a8f928e7937fd1b5699b4b959cb229380dee2",
+      "mtime": 1789436669.2075324
+    },
+    {
+      "path": "config/PAKD50_XJ_W104_D121_WV3_T0_S1234_FRESH50_v1.yaml",
+      "sha256": "688ea3ff94962a8956d9cb0a8eff48447bb3f98dc4e63170ee28b2b32d500cb2",
+      "mtime": 1789436669.2635334
+    },
+    {
+      "path": "config/queues/dcr12_s1.txt",
+      "sha256": "5aa970000fbbe886768ef6db265fae170bcdbb1263943f46c3a6095c23c7b5d0",
+      "mtime": 1789432252.3165314
+    },
+    {
+      "path": "gspread/gspread_upload.py",
+      "sha256": "9a6fd2ec328e4b0e5a19b30ebe4bc033d84c290ec24277c42730df43e416724d",
+      "mtime": 1789436461.6197028
+    },
+    {
+      "path": "gspread/sheet_categories.py",
+      "sha256": "8a5c788a9368d33fd5f7b801b67a18d9f7a5240a6568304898b4cdcff12d6970",
+      "mtime": 1789436833.8065684
+    },
+    {
+      "path": "kdv/registry.py",
+      "sha256": "c459f690928e660f311580511cfa502ed9363b762004b079dd2c1eded4d8470b",
+      "mtime": 1789373513.2707462
+    },
+    {
+      "path": "kdv/teacher_assets.py",
+      "sha256": "616ee40abd022ada9a072ce0c063fe8e23537aa53e5698c4e5b71801fb144533",
+      "mtime": 1789057373.8792746
+    },
+    {
+      "path": "main.py",
+      "sha256": "16675e5446a038f5372ea3e68cd37d92a8f907b3beca797cf618781c2ec5cbe3",
+      "mtime": 1789019788.247346
+    },
+    {
+      "path": "research_log/2026-09-15_dcr12-implementation.md",
+      "sha256": "e8b81104e387754aca1310ad010e5f41261f50ca9352b52f68d25eb115a3d9e8",
+      "mtime": 1789433035.7153995
+    },
+    {
+      "path": "research_log/2026-09-15_pakd50-s3-additions-implementation.md",
+      "sha256": "dbea231841b8b9bc2303b17362e1a7a9c39d45be6b767d09718a4d5bbba4fd8a",
+      "mtime": 1789435447.76497
+    },
+    {
+      "path": "research_log/2026-09-15_pakd50-s4-w104d121-implementation.md",
+      "sha256": "b5d625c9e820fad33f312137f8e385c30a5da5fb32a5d745a55c987f4acb78b8",
+      "mtime": 1789436923.6922262
+    },
+    {
+      "path": "research_log/PAN_Consistency_Reconstruction_Quadrant_Validation_12H_2026-09-14.md",
+      "sha256": "18d89cb926d518b87d03bd2729d14b6fad15b8c0b00b322a4bb141f5281f54e8",
+      "mtime": 1789431465.0600336
+    },
+    {
+      "path": "research_log/PAN_PAKD50_Latest_Sheet_Analysis_and_S3_Experiments_2026-09-15.md",
+      "sha256": "9bce4964259e8c3b53b55f23e8dc4913d7588ac21a6585cf624f2783f5f14d7a",
+      "mtime": 1789435147.5353978
+    },
+    {
+      "path": "research_log/PAN_PAKD50_S4_W104D121_Architecture_Allocation_2026-09-15.md",
+      "sha256": "819d99e6198f8c42452d8be5d05b4cf92f4c3e076be256d803124e05df9f6947",
+      "mtime": 1789436099.733024
+    },
+    {
+      "path": "tools/_run_cases.sh",
+      "sha256": "868d8ec365565d87820d39e00d75025fb261d64113d8390657b016ceef19b92a",
+      "mtime": 1788535987.5579376
+    },
+    {
+      "path": "tools/_upload.sh",
+      "sha256": "e63e034e73e78baeba9ecddc0976cfd22d1cb0406a0bd3add725f30ef0a908c1",
+      "mtime": 1789363327.0591252
+    },
+    {
+      "path": "tools/campaign_gate.py",
+      "sha256": "2eeb960e8e65286eceb3fc59a89eb94c8bd0c0101f1ac0f8673a662bac66b824",
+      "mtime": 1789402358.220493
+    },
+    {
+      "path": "tools/dcr12.py",
+      "sha256": "ccb83ee1897869bacef7562811e14c94daf80cda0b0962b89f750a68d73ac546",
+      "mtime": 1789432240.112338
+    },
+    {
+      "path": "tools/dcr12/__init__.py",
+      "sha256": "a618a396dd0da646eaa65acb5962f8918b730ee55b095614a636dc1476e3b83c",
+      "mtime": 1789432121.442458
+    },
+    {
+      "path": "tools/dcr12/common.py",
+      "sha256": "7230685d4dcafa3be8c54c0a225b4f14e707654a018f07dc24311eebdcf45831",
+      "mtime": 1789432782.084917
+    },
+    {
+      "path": "tools/dcr12/d00.py",
+      "sha256": "fe7390b41fde6d1e57b1898dbd7e642bf2319b4cd8fffcd9810983080fecf9a2",
+      "mtime": 1789432343.2379713
+    },
+    {
+      "path": "tools/dcr12/d01.py",
+      "sha256": "9b621b8cf253e049e24755f86fb1ebc83abeea7c8e0d40bf74aea048ab940d38",
+      "mtime": 1789432529.752924
+    },
+    {
+      "path": "tools/dcr12/d02.py",
+      "sha256": "61a5ff078aad8b25d33c8f7eec00e2393520c91b3c022e9e7af32bf476da97b4",
+      "mtime": 1789432582.685762
+    },
+    {
+      "path": "tools/dcr12/d03.py",
+      "sha256": "e6de5c5ce79ec152eabd3dd27634449b728ee95dc9aa473aa8969ffe31792074",
+      "mtime": 1789432782.084917
+    },
+    {
+      "path": "tools/dcr12/d04.py",
+      "sha256": "4af8d8de6c0ec3ee68722fce79b5ee1ef92beebae0593de2fdcb22fa0f2ee62c",
+      "mtime": 1789432961.441226
+    },
+    {
+      "path": "tools/dcr12/report.py",
+      "sha256": "ef75c79aad8f7f7b0364fc580842223627312d06c69ccf6702b5abc61c21164f",
+      "mtime": 1789432859.0181344
+    },
+    {
+      "path": "tools/dcr12/results.py",
+      "sha256": "aa9faa181946ee01c9a38a1c2ee8f34a91b6dd4cbad36a01ad2e3d388ff4eb4c",
+      "mtime": 1789432725.4200206
+    },
+    {
+      "path": "tools/dcr12_run.sh",
+      "sha256": "c2b117214b33b280bb17b9ecea753c97419a47af0b9ec16ccaa97faf92c8e4d2",
+      "mtime": 1789432748.6043875
+    },
+    {
+      "path": "tools/dcr12_unit_tests.py",
+      "sha256": "a83ccfa85f86d7b8662a5af49c684f3afe2975542a06006acc421d12999b97c7",
+      "mtime": 1789432936.924482
+    },
+    {
+      "path": "tools/eqrec4/common.py",
+      "sha256": "589e1ce553a0e5a81f2536580f014261ab23fe8b2308b11d98beaaffad17ee3d",
+      "mtime": 1789400745.1038086
+    },
+    {
+      "path": "tools/gen_pakd50_configs.py",
+      "sha256": "02163cfce726d75e2c32b467c6432cc645c18b0718cac16151db9d6b6a1c3ac0",
+      "mtime": 1789436668.1155121
+    },
+    {
+      "path": "tools/pakd50_reallocate.sh",
+      "sha256": "a1f2b88d61761169817258db25dd6c7b5b8d0236766a94ffd4554b14794c8667",
+      "mtime": 1789436596.4701905
+    },
+    {
+      "path": "tools/pakd50_requeue.sh",
+      "sha256": "7c647dae205ed2a4aca25e285cf24f120c1fa75185e4674aaea94d4c5ef2c116",
+      "mtime": 1789402435.6808023
+    },
+    {
+      "path": "tools/pakd50_unit_tests.py",
+      "sha256": "83be2b749b27745beba80e566af382a77db8b86872b82f6a8580430383d7d71a",
+      "mtime": 1789436819.3183012
+    },
+    {
+      "path": "train_kdv.py",
+      "sha256": "4f0c56ca7ff9495d41f300081b551581e9565ced5d34a70ed0bccec901b3390c",
+      "mtime": 1789402331.616415
+    }
+  ]
+}

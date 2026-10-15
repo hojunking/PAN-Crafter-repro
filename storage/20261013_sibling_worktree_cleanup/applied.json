@@ -1,0 +1,59 @@
+{
+  "server": "s1",
+  "started": "2026-10-13T14:58:13.269485+09:00",
+  "removed": [
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter-gf2-release",
+      "kind": "directory",
+      "allocated_bytes": 161869824,
+      "commit": "812c876bdfd0cf7b012c787233b7a03cce5c1499",
+      "retaining_ref": "refs/archive/sibling-cleanup-20261013/PAN-Crafter-gf2-release"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter-ops-qg40-s2-20260920",
+      "kind": "directory",
+      "allocated_bytes": 150228992,
+      "commit": "91d2f5981f66c015604dae7b715672f351ab6af6",
+      "retaining_ref": "refs/archive/sibling-cleanup-20261013/PAN-Crafter-ops-qg40-s2-20260920"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter-runtime-ablr2-s1-6bb78e6d6118",
+      "kind": "link_only",
+      "allocated_bytes": 0,
+      "commit": "6bb78e6d61183a7ed1cd1da992527e7207d48ba3",
+      "retaining_ref": "refs/archive/sibling-cleanup-20261013/PAN-Crafter-runtime-ablr2-s1-6bb78e6d6118"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter-runtime-ablr2x-s1-52184d5578a2",
+      "kind": "link_only",
+      "allocated_bytes": 0,
+      "commit": "52184d5578a2a10721e435f8fbf4a759497768e5",
+      "retaining_ref": "refs/archive/sibling-cleanup-20261013/PAN-Crafter-runtime-ablr2x-s1-52184d5578a2"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter-runtime-g20-s1-20260920",
+      "kind": "link_only",
+      "allocated_bytes": 0,
+      "commit": "8a63d10604901609facfd22b2b195724ea0122f6",
+      "retaining_ref": "refs/archive/sibling-cleanup-20261013/PAN-Crafter-runtime-g20-s1-20260920"
+    },
+    {
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter-runtime-qg40-s1-20260920",
+      "kind": "link_only",
+      "allocated_bytes": 0,
+      "commit": "cccedeeeffd7ed19686e5ea684489ceee23cf313",
+      "retaining_ref": "refs/archive/sibling-cleanup-20261013/PAN-Crafter-runtime-qg40-s1-20260920"
+    }
+  ],
+  "main_head": "77e5cfee3e09e26142a802d5edfa856e677e63eb",
+  "finished": "2026-10-13T14:58:13.532612+09:00",
+  "remaining_worktrees": {
+    "/home/knuvi/Desktop/song/PAN-Crafter": {
+      "worktree": "/home/knuvi/Desktop/song/PAN-Crafter",
+      "HEAD": "77e5cfee3e09e26142a802d5edfa856e677e63eb",
+      "branch": "refs/heads/main"
+    }
+  },
+  "shared_link_targets_unchanged": true,
+  "main_data_workdir_git_identity_unchanged": true
+}

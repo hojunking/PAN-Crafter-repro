@@ -1,0 +1,7 @@
+run_id,time,status,recipe,input_protocol,teacher_id,W_T,W_S,aligner_policy,rec,stat_kind,stat_mode,G_mode,seed,init_id,budget_updates,parent,last_step,elapsed_h,lambda_V,resumed,rec_control,stat_transform,stat_domain,stat_windows,na_protocol,select_primary
+e2e_QER50,2026-09-15T19:31:37,RUNNING,N2_SG,I-AEQ,T0,112,104,A-FT,R3,EDGE,H,G0,1234,3965232db289bf84,40,,0,0.0,0.09075170336956798,0,none,none,final_hrms,5,,best_hqnr
+e2e_QER50,2026-09-15T19:31:56,FINISHED_TRAIN,N2_SG,I-AEQ,T0,112,104,A-FT,R3,EDGE,H,G0,1234,3965232db289bf84,40,,40,0.006,0.09075170336956798,0,none,none,final_hrms,5,,best_hqnr
+e2e_QER50,2026-09-15T19:33:11,EVAL,N2_SG,I-AEQ,T0,112,104,A-FT,R3,EDGE,H,G0,1234,3965232db289bf84,40,,40,0.026,0.09075170336956798,0,none,none,final_hrms,5,,best_hqnr,40,0.942408
+e2e_QER50,2026-09-15T19:36:24,RUNNING,N2_SG,I-AEQ,T0,112,104,A-FT,R3,EDGE,H,G0,1234,3965232db289bf84,40,,0,0.0,0.09075170336956798,0,none,none,final_hrms,5,,best_hqnr
+e2e_QER50,2026-09-15T19:36:45,FINISHED_TRAIN,N2_SG,I-AEQ,T0,112,104,A-FT,R3,EDGE,H,G0,1234,3965232db289bf84,40,,40,0.006,0.09075170336956798,0,none,none,final_hrms,5,,best_hqnr
+e2e_QER50,2026-09-15T19:37:59,EVAL,N2_SG,I-AEQ,T0,112,104,A-FT,R3,EDGE,H,G0,1234,3965232db289bf84,40,,40,0.027,0.09075170336956798,0,none,none,final_hrms,5,,best_hqnr,40,0.942443

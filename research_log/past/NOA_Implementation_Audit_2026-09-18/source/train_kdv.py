@@ -1,0 +1,1702 @@
+"""KDVTrainer — s2 W112·D124: GT-anchored adaptive KD · 출력 통계 variance · aligner 재사용
+(research_log/PAN_S2_W112_KD_Variance_Plan_and_References_2026-09-10/PAN_S2_W112_D124_KD_Variance_Adaptive_Campaign_2026-09-10.md). trainer: kdv.
+
+  L_S = L_R(rec hard/soft, §6) + λ_V·L_V(출력 통계 H/T/FIX/WH/AD, §9) + L_aux(A2 edge / A3 geo / N offset, §10) + λ_GKD·L_G(G1 mean-KD, §11.5)
+  aligner 정책: A-FR(donor frozen, Teacher 와 correction 공유) · A-FT(donor 초기화 후 학습) · A-SC(독립 초기화 학습) · A-ID(aligner·sampler 없음)
+  입력: I-A(native) · I-N(native/corrupt 1:1, W(W(P,ε),c)) · I-NATIVE-TRANSFER
+Teacher(F_T+A_T) 는 frozen·no_grad·optimizer 밖(gate M03: state hash 불변·parameter ID 교집합 없음). calibration(tau_R·tau_V·λ_V) 은 train-only, 캐시.
+평가·선택·산출물은 train_pa.PATrainer(세 view · best_raw=best_hqnr · best_aligned · last) 에 best_rr_val(검증셋 ERGAS) 을 더한다 (§18)."""
+import copy
+import csv
+import hashlib
+import json
+import os
+import shutil
+import sys
+import time
+
+import numpy as np
+import torch
+import torch.nn.functional as F
+import yaml
+from accelerate import Accelerator
+from accelerate.utils import ProjectConfiguration
+from diffusers.optimization import get_scheduler
+from tqdm import tqdm
+
+from kdv.calibration import calibration_batches, calibrate_rec, calibrate_stat, calibrate_lambda, cached, calibrate_covariance, teacher_precision_fn, calibrate_covhead
+from kdv.alignment_kd import CovHead, kd_matrix, mean_kd_loss, gaussian_kl, precision_stats, geo_autograd_grad
+from kdv.tri import (direction_mask, mass_kappa, shuffle_mask, roi_gate, component_weights, masked_l1, masked_l1_componentwise, routing_stats, teacher_fd_jacobian, teacher_eval,
+                     sens_q, sens_risk, diag_risk, lowrank_quad, iso_quad, scalar_quad, sigma_from_precision, sigma_control, linearization_check)
+from kdv.calibration import calibrate_component_tau, calibrate_sens, calibrate_lambda_q
+from kdv.forward import kdv_forward
+from kdv.losses_rec import GTAnchoredReconstructionKD
+from kdv.losses_stat import stat_term, stat_maps, stat_transform, statistic_map, MODE_TO_CRITERION
+from kdv.protocol import prepare_view
+from kdv.registry import resolve, run_name, describe, stat_tag, arch_prefix
+from kdv.teacher_assets import load_donor_aligner, load_run_model, load_state, freeze, state_hash, assert_param_disjoint, sha256_file, tensors_sha
+from pa.aligner import PANGlobalAligner
+from pa.evalviews import PROTOCOL_ID, evaluator_hash, fixed_roi, VIEWS, scene_views
+from pa.losses import output_edge_loss, output_edge_loss_per_sample, direct_geometry_loss, lambda_ramp, geometry_support_margin, scharr
+from kdv.edge_gate import EdgeGate, AffineEdgeWeight
+from kdv.qrecon import QWeight
+from kdv.resume import EpochState, begin_epoch, ExactResumeMismatch
+_PROC_T0 = time.time()                                                     # 프로세스(모듈 import) 시각 — ledger 의 setup_hours 근사 (QRECON24 감사 F05)
+from pa.model import PAModel
+from pa.offset import offset_loss, predict_c, lambda_off, sample_offsets
+from pa.selector import BestSelector
+from pa.warp import support_margin_ok, warp_support_mask, warp_pan
+from train_pa import PATrainer, ROOT, EXIT_SUPPORT_FAIL, sha256_file as sha_cached
+from train_po import RNGState
+from utils import Train_Report, Test_Reduced_Report, reduced_metrics
+
+EXIT_GATE = 4
+MAX_ABS_DELTA_TRAIN = 8.0
+CAMPAIGN_ROOT = os.path.join(ROOT, "work_dir", "_kdv_campaign")
+CALIB_ROOT = os.path.join(ROOT, "work_dir", "_kdv_calibration")
+
+
+def ergas_per_sample(gt_dn, pred_dn, ratio=4):
+    """plain ERGAS (dim_cut 없음) — RR-val 선택 전용, 시트 ERGAS(MATLAB 포팅)와 같은 값이 아니다."""
+    mse = ((gt_dn - pred_dn) ** 2).mean(dim=(2, 3)); mu = gt_dn.mean(dim=(2, 3))
+    return 100.0 / ratio * torch.sqrt((mse / mu.clamp_min(1e-12) ** 2).mean(dim=1))
+
+
+class KDVTrainer(PATrainer):
+    # ------------------------------------------------------------------ 구성
+    def __init__(self, args, data_loader, model):
+        self.args = args
+        self.train_data_loader = data_loader['train']; self.val_data_loader = data_loader['val']
+        self.test_reduced_data_loader = data_loader['test_reduced']; self.test_full_data_loader = data_loader['test_full']
+        assert getattr(args, "mars", "dual") == "ms" and args.res, "KDV 는 단일 HRMS task(mars: ms) · 잔차 base 고정"
+        assert args.model_args.get("in_mode") == "paper" and not args.model_args.get("attn_locations"), "입력 9ch(in_mode paper) · attention 없음"
+        assert args.model_args.get("mode_modulation", True) is False, "MARs γ/β 제거본 위에서만"
+        k = getattr(args, "kdv", {}) or {}
+        self.k = k; self.spec = resolve(k); sp = self.spec
+        self.campaign_id = k.get("campaign_id", "S2_W112_KDV_20260910"); self.run_kind = k.get("run_kind", "CONTROLLED"); self.version = k.get("version", "v01")
+        self.run_id = os.path.basename(args.work_dir.rstrip("/"))
+        self.prefix = arch_prefix(args.model_args); expected = run_name(sp, args.seed, self.version, self.prefix)
+        if k.get("check_run_name", True) and self.run_id != expected:
+            raise ValueError(f"work_dir 이름 {self.run_id} ≠ 규칙 이름 {expected} (§13.1) — kdv.check_run_name: false 로 끌 수 있다")
+        self.case = f"{sp['policy']}/{sp['rec_case']}/{stat_tag(sp)}/{sp['geom']}"
+        ea = sp.get("expect_arch")
+        if ea is not None:                                                    # §20: 캠페인이 강제하는 골격 (손으로 고친 config 가 다른 폭으로 도는 것을 막는다)
+            got = (int(args.model_args["hidden_size"]), list(args.model_args["depth"]), bool(sp["policy"] == "A-ID"))
+            want = (int(ea["width"]), list(ea["depth"]), bool(ea.get("noalign", True)))
+            if got != want:
+                raise ValueError(f"kdv.expect_arch 불일치: config 는 width/depth/noalign {got}, 캠페인 계약은 {want}")
+        hidden = int(args.model_args.get("hidden_size")); depth = "".join(str(d) for d in args.model_args.get("depth"))
+        self.init_dir = os.path.join(ROOT, k.get("init_dir", f"work_dir/_kdv_init_w{hidden}_d{depth}"))
+        self.diag_every = int(k.get("diag_every", 1000)); self.diag_iter = self.diag_every
+        self._fixed_diag_on = bool((k.get("diag") or {}).get("fixed_batch", False)); self._fixed_batch = None     # PALSV18 §11.2 고정 diagnostic batch
+        self.lam_edge, self.lam_geo = sp["edge_weight"], sp["geometry_weight_effective"]
+        self.ramp = sp["aux_ramp_updates"]; self.geo_sigma = sp["geometry_sigma_hr"]; self.geo_margin = sp["geometry_margin_hr"]
+        self.guard_margin = geometry_support_margin(self.geo_sigma, self.geo_margin)
+        self.protocol = sp["protocol"]; self.radius_hr = sp["radius_hr"]
+        st = dict(k.get("stat") or {}); self.stat_ramp = int(st.get("ramp_updates", 0))
+        self._t_run0 = time.time()
+
+        self.accelerator_project_config = ProjectConfiguration(project_dir=args.work_dir)
+        self.accelerator = Accelerator(mixed_precision=args.mixed_precision, project_config=self.accelerator_project_config)
+        if self.accelerator.is_main_process and args.work_dir is not None:
+            os.makedirs(args.work_dir, exist_ok=True)
+        self.weight_dtype = {"fp16": torch.float16, "bf16": torch.bfloat16}.get(self.accelerator.mixed_precision, torch.float32)
+
+        # --- 초기값 (§4.3): U-Net 은 seed 별 저장된 독립 초기값을 모든 Student 가 공유. scratch aligner 는 seed+1000 (PA 와 같은 경로).
+        nb = int(args.num_bands)
+        with torch.random.fork_rng(devices=[]):
+            torch.manual_seed(int(args.seed) + 1000)
+            scratch = PANGlobalAligner(nb)
+        self.init_hashes = self._pair_init(model, scratch)
+        self._check_init_hash(self.init_hashes, sp.get("expect_init") or {})   # s5 보고 #3: 같은 seed 의 서버 간 U 초기값 동일성 (기대 hash 가 config 에 있을 때만)
+        # --- aligner 정책 (§4.2)  [검토 지적 1: 정책 if/elif/else 를 먼저 닫고, 참조 aligner 는 그 뒤에 별도로]
+        pol = sp["policy"]; self.donor_manifest = None
+        if pol in ("A-FR", "A-FT"):
+            d = k["donor"]; aligner, self.donor_manifest = load_donor_aligner(d["source"], nb, d.get("expected_sha256"))
+            margin = int(d.get("view_margin_hr", 0) or 0)
+            self._check_donor_step(d, self.donor_manifest)
+        elif pol == "A-SC":
+            aligner = scratch; margin = int(k.get("aligner_view_margin_hr", 0) or 0)
+        else:
+            aligner = None; margin = 0
+        self.aligner_lr = float(k.get("aligner_lr", args.learning_rate))          # NF16 §2.3: trainable aligner LR 1e-5 (backbone 1e-4), 같은 scheduler 배율
+        # 평가용 고정 참조 aligner (aligned_fixedN2_v64, NF16 §6.1): 학습 donor 복사(A-FR/A-FT) 또는 eval.reference_donor 로 별도 지정(A-ID/A-SC 도 같은 참조로 비교)
+        ev = dict(k.get("eval") or {}); self.ref_aligner = None; self.ref_margin = margin; self.ref_manifest = None
+        if ev.get("reference_donor"):
+            rd = ev["reference_donor"]; self.ref_aligner, self.ref_manifest = load_donor_aligner(rd["source"], nb, rd.get("expected_sha256")); self.ref_margin = int(rd.get("view_margin_hr", 0) or 0)
+            self._check_donor_step(rd, self.ref_manifest); freeze(self.ref_aligner)
+        elif ev.get("fixed_reference_from_donor"):
+            if self.donor_manifest is None:                                  # A-ID(aligner 없음)·A-SC(scratch) 둘 다 donor 가 없다
+                raise ValueError("fixed_reference_from_donor 는 donor 가 있는 정책(A-FR/A-FT)에서만; A-ID/A-SC 는 eval.reference_donor 로 참조를 지정한다")
+            self.ref_aligner = copy.deepcopy(aligner); freeze(self.ref_aligner); self.ref_manifest = dict(self.donor_manifest, copied_from="training_donor")
+        self.aligner_view_margin = margin; self.aligner_trainable = sp["aligner_trainable"]
+        # s5 timing/routing (배정 §4–§6): A 동결 일정(D: 앞 / LF: 뒤) 과 A 가 직접 받는 항의 계수 qA=(qD,qK,qE). 기본(None, (1,1,1)) 이면 기존 J 와 완전히 같다.
+        self.freeze_until, self.freeze_from = sp.get("aligner_freeze_until"), sp.get("aligner_freeze_from")
+        self.route_A = tuple(float(q) for q in (sp.get("route_A") or (1.0, 1.0, 1.0))); self._routed = any(q != 1.0 for q in self.route_A); self._sched_last = None
+        self.edge_route = None; self._edge_routed = bool(sp.get("edge_route"))          # QEGX §4.5: U all-edge / A gated edge — 자산은 _calibrate_and_build_inner 에서 싣는다
+        self.edge_schedule = sp.get("edge_schedule"); self.edge_weight = None; self._edge_sched_last = None     # EDGEBAL §3.3/§3.4: GT edge 계수 w(t) / w_i(cue) — 자산은 _calibrate_and_build_inner
+        self.qrecon = None                                                                # QRECON24 §2: 연속 q 가중 + U/A 목적함수 분리 — 자산은 _calibrate_and_build_inner
+        if pol == "A-FR":
+            freeze(aligner)
+        self.model = PAModel(model, aligner, aligner_margin=margin, sampler=(pol != "A-ID"))
+        if sp["geom"] == "G5":
+            with torch.random.fork_rng(devices=[]):
+                torch.manual_seed(int(args.seed) + 3000); self.model.cov_head = CovHead()      # Student covariance head (§11.6) — 전역 RNG 미소비
+        self.aligner_hash0 = state_hash(aligner) if aligner is not None else None
+        # --- Teacher (§3.1): 같은 저장소 run 의 checkpoint 를 그 run 의 config 대로 strict 로드 → frozen
+        self.teacher = None; self.teacher_manifest = None; self.teacher_id = sp["teacher_id"]
+        if sp["has_teacher"]:
+            t = k["teacher"]
+            self.teacher, self.teacher_manifest = load_run_model(t["run"], t.get("tag", "best_hqnr"), type(model), t.get("expected_sha256"))
+            freeze(self.teacher)
+            if int(self.teacher_manifest["width"]) != hidden and not bool(t.get("bridge", False)):
+                raise ValueError(f"Teacher width {self.teacher_manifest['width']} ≠ Student {hidden}: bridge cohort 는 kdv.teacher.bridge: true 로 명시 (§3.2-3)")
+        self.share_correction = (pol == "A-FR" and (self.teacher is None or (self.teacher.aligner is not None and self.teacher.sampler
+                                 and self.teacher.aligner_margin == margin and state_hash(self.teacher.aligner) == self.aligner_hash0)))
+        # --- optimizer: backbone (+ trainable aligner, 같은 LR §17.2)
+        groups = [dict(params=[p for p in self.model.backbone.parameters() if p.requires_grad], name="backbone")]
+        if self.aligner_trainable:
+            groups.append(dict(params=list(self.model.aligner.parameters()) + (list(self.model.cov_head.parameters()) if self.model.cov_head is not None else []), name="aligner", lr=self.aligner_lr))
+        self.optimizer = torch.optim.AdamW(groups, lr=args.learning_rate, weight_decay=args.weight_decay)
+        self.lr_scheduler = get_scheduler(args.lr_scheduler, optimizer=self.optimizer, num_warmup_steps=args.num_warmup, num_training_steps=args.num_iter)
+        self.model, self.optimizer, self.lr_scheduler = self.accelerator.prepare(self.model, self.optimizer, self.lr_scheduler)
+        if self.ref_aligner is not None:
+            self.ref_aligner.to(self.accelerator.device); self.ref_aligner_hash0 = state_hash(self.ref_aligner)
+        if self.teacher is not None:
+            self.teacher.to(self.accelerator.device); assert_param_disjoint(self.optimizer, self.teacher)
+            if self.M.cov_head is not None:
+                assert all(id(p) in {id(q) for g in self.optimizer.param_groups for q in g["params"]} for p in self.M.cov_head.parameters()), "Student cov head 가 optimizer 에 없다"
+            self.teacher_hash0 = state_hash(self.teacher)
+        if pol == "A-FR":
+            assert_param_disjoint(self.optimizer, self.M.aligner)
+        # --- I-N corruption RNG (checkpoint 에 포함)
+        self.corr_seed = int(args.seed) + int((k.get("corruption") or {}).get("corruption_seed_offset", 2000))
+        self.gen = torch.Generator(device="cpu"); self.gen.manual_seed(self.corr_seed)
+        self.accelerator.register_for_checkpointing(RNGState(self.gen))
+        self.tri_gen = torch.Generator(device="cpu"); self.tri_gen.manual_seed(int((k.get("tri") or {}).get("shuffle_seed", 4321)))
+        self.accelerator.register_for_checkpointing(RNGState(self.tri_gen))    # SHUFFLE/MASS 대조군이 재개 후에도 같은 열을 쓰게
+        # exact resume (QEDGE9 감사 F04, kdv/resume.py): epoch 시작 전역 RNG + 시작 step 을 checkpoint 에 — 재개 시 같은 permutation·worker seed 로 소비한 batch 를 건너뛴다. 옛 run 과 checkpoint 규격이 다르므로 opt-in
+        self.exact_resume = bool(k.get("exact_resume", False)); self._epoch_state = EpochState() if self.exact_resume else None; self._resume_pending = bool(getattr(args, "resume", None))
+        if self.exact_resume:
+            self.accelerator.register_for_checkpointing(self._epoch_state)
+        self._meta_log = bool(int(os.environ.get("KDV_LOG_BATCH_META", "0") or 0))     # 검증용: batch 별 (index, rot) 앞 8 개를 batch_meta.jsonl 에 (exact resume 대조)
+        # --- 평가 참조·선택기 (PATrainer)
+        self.last_reduced_metrics, self.last_full_metrics, self.last_val_metrics = {}, {}, {}
+        self.last_fscc_official = float("nan"); self.raw_is_best = False
+        self._ema = {}; self._global_step = 0; self.step_records = {}; self.start_step = 0
+        self.resumed_from = getattr(args, "resume", None)
+        self.cand_dir = os.path.join(args.work_dir, "candidates")
+        self.fr_h5 = args.test_full_feeder_args["dataroot"]; self.fr_h5_sha = sha_cached(self.fr_h5, self.init_dir)
+        import h5py
+        with h5py.File(self.fr_h5) as f:
+            self._fr_lms = np.asarray(f["lms"], dtype=np.float64); self._fr_pan = np.asarray(f["pan"], dtype=np.float64)[:, 0]
+        self._roi = None; self._rr_val_last = float("nan"); self._rr_val_fit = {}
+        self._init_selectors()
+        # --- calibration → criteria
+        self._calib = {}; self.edge_gate = None; self._calibrate_and_build()
+        if self.accelerator.is_main_process:
+            json.dump(self.init_hashes, open(os.path.join(args.work_dir, "initialization_hashes.json"), "w"), indent=1)
+            self._write_manifests(); self._write_kdv_manifests()
+        if k.get("phase"):
+            self._warm_start(k["phase"])
+        self.budget = dict(k.get("budget") or {})
+        if self.budget and self.accelerator.is_main_process:
+            self._budget_gate()
+
+    @staticmethod
+    def _check_donor_step(d, man):
+        """donor 가 <run>/<tag> 폴더면 <tag>_meta.json 의 정확한 update 를 읽어 expected_step 과 대조 (NF16 G0: 이름만 last 인 파일을 믿지 않는다)."""
+        src = d["source"] if os.path.isabs(d["source"]) else os.path.join(ROOT, d["source"])
+        if os.path.isdir(src):
+            mp = os.path.join(os.path.dirname(src.rstrip("/")), f"{os.path.basename(src.rstrip('/'))}_meta.json")
+            man["donor_step"] = (json.load(open(mp)).get("step") if os.path.exists(mp) else None)
+        if d.get("expected_step") is not None and man.get("donor_step") != int(d["expected_step"]):
+            raise ValueError(f"donor step {man.get('donor_step')} ≠ 기대 {d['expected_step']} ({d['source']})")
+
+    # ------------------------------------------------------------------ 예산 ledger (NF16 §10: used + 1.2·proj(남은 필수 + pair) + reserve ≤ total)
+    def _ledger(self):
+        p = self.budget.get("ledger", "work_dir/_kdv_budget/ledger.json"); p = p if os.path.isabs(p) else os.path.join(ROOT, p)
+        d = json.load(open(p)) if os.path.exists(p) else dict(total_gpu_hours=float(self.budget.get("total_gpu_hours", 16.0)), entries={})
+        return p, d
+
+    class _LedgerLock:
+        """ledger 읽기-수정-쓰기 구간 잠금 (fcntl.flock on <ledger>.lock) — trainer·_upload.sh·palsv18_validate.sh 가 같은 파일을 갱신한다 (리뷰 P2-6)."""
+        def __init__(self, path):
+            self.path = path + ".lock"
+        def __enter__(self):
+            import fcntl
+            os.makedirs(os.path.dirname(self.path), exist_ok=True); self.f = open(self.path, "w"); fcntl.flock(self.f, fcntl.LOCK_EX); return self
+        def __exit__(self, *a):
+            import fcntl
+            fcntl.flock(self.f, fcntl.LOCK_UN); self.f.close()
+
+    @staticmethod
+    def budget_decision(used, proj_this, proj_remaining, reserve, total, required, proj_pair=0.0, margin=1.2):
+        """순수 판정 (테스트 가능): projected = used + margin·(proj_this + Σ proj_remaining + proj_pair) + reserve. required 면 경고만, 아니면 초과 시 DEFERRED.
+        margin: NF16 1.2 (기본) · PALS24 1.1 (계획 §11.6 '실측 추정치에 10% 여유', config kdv.budget.margin)."""
+        need = float(margin) * (float(proj_this) + float(sum(proj_remaining)) + float(proj_pair))
+        projected = float(used) + need + float(reserve)
+        ok = np.isfinite(projected) and projected <= float(total)
+        return dict(projected_total_hours=projected, needed_hours=need, ok=bool(ok), decision=("RUN" if (ok or required) else "DEFERRED_BUDGET"), warn=bool(required and not ok))
+
+    def _projection(self, d, run_id=None):
+        """run 당 예상 GPU 시간: (이 run) config projected_hours → budget.projected_map[run] (명세 §10 case 별 예약) → 완료 run 평균 → prepare 의 smoke 예상(throughput) → nan.
+        지정 run 이 이미 FINISHED 면 0 — 그 실비는 used 에 들어 있다 (pair/remaining 이중 계상 금지)."""
+        rid = run_id or self.run_id
+        e = d["entries"].get(rid) or {}
+        if run_id is not None and str(e.get("status", "")).startswith("FINISHED") and (e.get("hours_total") or e.get("hours")):
+            return 0.0
+        if run_id is None and self.budget.get("projected_hours"):
+            return float(self.budget["projected_hours"])
+        pf = self._projection_file_hours(rid)                               # PAKD50 재배정 §3: 서버 로컬 run 별 예약(gate 가 씀) — config 의 보수값보다 우선
+        if pf is not None:
+            return pf
+        if (self.budget.get("projected_map") or {}).get(rid):
+            return float(self.budget["projected_map"][rid])
+        done = [float(e["hours_total"] if e.get("hours_total") else e["hours"]) for e in d["entries"].values() if e.get("kind") == "run" and str(e.get("status", "")).startswith("FINISHED") and e.get("hours")]
+        if done:
+            return float(np.mean(done))
+        th = (d.get("throughput") or {}).get("projected_run_hours_50k")
+        return float(th) if th else float("nan")
+
+    def _projection_file_hours(self, rid):
+        """`budget.projection_file`(서버 로컬 JSON: {"runs": {run: {"gate_hours": h, ...}}}) 의 run 별 예상 시간 — 없거나 항목이 없으면 None.
+        PAKD50 재배정(2026-09-15) 의 예약식 reservation_h = 1.10×ref + 10/60 을 gate_hours = reservation_h / budget.margin 으로 적어, 이 gate 가 margin 을 곱하면 예약값 그대로가 된다."""
+        f = self.budget.get("projection_file")
+        if not f:
+            return None
+        p = f if os.path.isabs(f) else os.path.join(ROOT, f)
+        if not os.path.exists(p):
+            return None
+        try:
+            e = (json.load(open(p)).get("runs") or {}).get(rid) or {}
+            return float(e["gate_hours"]) if e.get("gate_hours") else None
+        except Exception:
+            return None
+
+    def _crashed_hours(self, prev):
+        """죽은 시도의 GPU 시간: trainer 가 주기적으로 쓴 memory_and_throughput.json 의 elapsed_hours → 없으면 started→now 벽시계."""
+        p = os.path.join(self.args.work_dir, "memory_and_throughput.json")
+        if os.path.exists(p):
+            try:
+                h = float(json.load(open(p)).get("elapsed_hours") or 0.0)
+                if h > 0:
+                    return h
+            except Exception:
+                pass
+        try:
+            t0 = time.mktime(time.strptime(prev["started"], "%Y-%m-%dT%H:%M:%S")); return max(0.0, (time.time() - t0) / 3600.0)
+        except Exception:
+            return 0.0
+
+    @staticmethod
+    def _check_init_hash(init_hashes, expect):
+        """s5 보고 #3: config `kdv.expect_init{unet_sha256_16, aligner_sha256_16}` 가 있으면 _pair_init 의 저장 초기값 hash 와 대조해 즉시 실패."""
+        for name in ("unet", "aligner"):
+            want = (expect or {}).get(f"{name}_sha256_16")
+            if want and init_hashes.get(f"{name}_init_sha256_16") != want:
+                raise ValueError(f"INIT_HASH_MISMATCH: {name} 초기값 hash {init_hashes.get(f'{name}_init_sha256_16')} ≠ 기대 {want} "
+                                 f"(파일 {init_hashes.get(f'{name}_init_file')}) — 같은 seed 라도 서버 초기값이 다르다: 원본 서버의 init 파일을 복사하거나 assets/pakd50/init_hashes.json 을 확인")
+
+    def _remaining_mandatory(self):
+        """예산 gate 가 예약할 필수 run 목록. `budget.remaining_mandatory_file`(서버 로컬 파일, 한 줄 하나, # 주석) 이 있으면 그것이 우선 —
+        같은 seed 를 쓰는 서버(s1/s4, s3/s5) 가 같은 이름의 config 를 공유하므로 서버별 묶음을 config 에 박지 않는다 (PAKD50 s5 보고 #2). 자기 자신은 뺀다."""
+        f = self.budget.get("remaining_mandatory_file")
+        if f:
+            p = f if os.path.isabs(f) else os.path.join(ROOT, f)
+            if os.path.exists(p):
+                ids = [l.strip() for l in open(p) if l.strip() and not l.startswith("#")]
+                return [r for r in ids if r != self.run_id]
+        return [r for r in (self.budget.get("remaining_mandatory") or []) if r != self.run_id]
+
+    def _budget_gate(self):
+        p0 = self.budget.get("ledger", "work_dir/_kdv_budget/ledger.json"); p0 = p0 if os.path.isabs(p0) else os.path.join(ROOT, p0)
+        with self._LedgerLock(p0):
+            self._budget_gate_locked()
+
+    def _budget_gate_locked(self):
+        p, d = self._ledger(); reserve = float(self.budget.get("reserve_hours", 1.0)); required = bool(self.budget.get("required", True))
+        prev = d["entries"].get(self.run_id)
+        if prev:                                                            # 재시작: 이전 시도의 비용을 보존 (used 에 포함)
+            n = 1 + sum(1 for kk in d["entries"] if kk.startswith(self.run_id + "#"))
+            if prev.get("status") != "RUNNING":
+                d["entries"][f"{self.run_id}#{n}"] = dict(prev, status=f"PREV_{prev.get('status')}")
+            else:                                                           # OOM/SIGKILL/재부팅으로 _finish_ledger 가 못 돈 시도 — 실제 소요를 추정해 남긴다 (검토 지적)
+                d["entries"][f"{self.run_id}#{n}"] = dict(prev, status="PREV_CRASHED", hours=self._crashed_hours(prev), hours_estimated=True)
+
+        used = sum(float(e.get("hours_total") or e.get("hours") or 0.0) for kk, e in d["entries"].items() if kk != self.run_id)
+        proj = self._projection(d); rem_ids = self._remaining_mandatory(); rem = [self._projection(d, r) for r in rem_ids]
+        pair = self._projection(d, self.budget["pair_with"]) if self.budget.get("pair_with") else 0.0
+        margin = float(self.budget.get("margin", 1.2))
+        dec = self.budget_decision(used, proj, rem, reserve, float(d.get("total_gpu_hours", self.budget.get("total_gpu_hours", 16.0))), required, pair, margin)
+        dl = self.budget.get("training_deadline")                          # 공통 절대 마감 (PAKD50 감사 F05): 이 run 의 예상 종료가 마감을 넘기면 시작하지 않는다
+        if dl and np.isfinite(proj):
+            end = time.time() + margin * float(proj) * 3600.0; dl_s = time.mktime(time.strptime(str(dl)[:19], "%Y-%m-%dT%H:%M:%S"))
+            dec.update(training_deadline=str(dl), projected_end=time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(end)), deadline_ok=bool(end <= dl_s))
+            if end > dl_s:
+                dec.update(decision=("RUN" if required else "DEFERRED_BUDGET"), warn=bool(required), ok=False)
+        rec = dict(started=time.strftime("%Y-%m-%dT%H:%M:%S"), required=required, case=self.case, kind="run", status="RUNNING", used_hours_before=used, projected_hours=proj, margin=margin,
+                   time_policy=self.budget.get("time_policy"),                          # QEDGE9 §9.3: soft target 만 (절대 마감·50h 상속 없음) — 기록용
+                   remaining_mandatory=rem_ids, remaining_mandatory_source=("file" if self.budget.get("remaining_mandatory_file") else "config"), pair_with=self.budget.get("pair_with"), **dec)
+        d["entries"][self.run_id] = rec if dec["decision"] == "RUN" else dict(rec, status="DEFERRED_BUDGET")
+        os.makedirs(os.path.dirname(p), exist_ok=True); json.dump(d, open(p, "w"), indent=1); json.dump(d["entries"][self.run_id], open(os.path.join(self.args.work_dir, "budget_status.json"), "w"), indent=1)
+        if not dec.get("deadline_ok", True):
+            print(f"[kdv] 마감 검사: 예상 종료 {dec['projected_end']} > training_deadline {dl}" + (" (필수 run 이라 진행)" if required else ""))
+        if dec["decision"] != "RUN":
+            print(f"[kdv] DEFERRED_BUDGET: used {used:.2f}h + {margin}×(this {proj:.2f} + remaining {sum(rem):.2f} + pair {pair:.2f})h + reserve {reserve}h = {dec['projected_total_hours']:.2f} > {d['total_gpu_hours']}h"); sys.exit(EXIT_GATE)
+        if dec["warn"]:
+            print(f"[kdv] 예산 경고 (필수 run 이라 진행): 예상 총 {dec['projected_total_hours']:.2f}h > {d['total_gpu_hours']}h")
+
+    def _finish_ledger(self, status, total=False):
+        if not self.budget:
+            return
+        p0 = self.budget.get("ledger", "work_dir/_kdv_budget/ledger.json"); p0 = p0 if os.path.isabs(p0) else os.path.join(ROOT, p0)
+        with self._LedgerLock(p0):
+            p, d = self._ledger(); e = d["entries"].get(self.run_id, {}); hrs = (time.time() - self._t_run0) / 3600.0
+            e.update(status=status, finished=time.strftime("%Y-%m-%dT%H:%M:%S"), **({"hours_total": hrs} if total else {"hours": hrs}))
+            e.setdefault("setup_hours", max(0.0, (self._t_run0 - _PROC_T0) / 3600.0))          # QRECON24 감사 F05: 시간 구분 — setup(프로세스 시작→학습 시작) · train(hours) · postprocess(hours_total − hours)
+            if total and e.get("hours") is not None:
+                e["train_hours"] = float(e["hours"]); e["postprocess_hours"] = max(0.0, float(hrs) - float(e["hours"]))
+            e["hours_note"] = "hours = 학습 종료(마지막 update) 까지 · hours_total = 평가/export/manifest 까지 · setup_hours = 프로세스 시작→학습 시작 (24h 최소 운영구간 집계는 train_hours 만; §8.3)"
+            d["entries"][self.run_id] = e; json.dump(d, open(p, "w"), indent=1); json.dump(e, open(os.path.join(self.args.work_dir, "budget_status.json"), "w"), indent=1)
+
+    # ------------------------------------------------------------------ selectors (+ rr_val)
+    def _init_selectors(self):
+        super()._init_selectors()
+        self.sel_rrval = BestSelector("rr_val", tol_hqnr=1e-4, tol_fscc=1.0)
+        p = os.path.join(self.args.work_dir, "selector_state_rr_val.json")
+        if getattr(self.args, "resume", None) and os.path.exists(p):
+            loaded = BestSelector.load(p, expect=dict(protocol_id=PROTOCOL_ID))
+            self.sel_rrval.max_hqnr, self.sel_rrval.cands, self.sel_rrval.best, self.sel_rrval.history = loaded.max_hqnr, loaded.cands, loaded.best, loaded.history
+
+    # ------------------------------------------------------------------ calibration (§6.4, §9.2, §9.3)
+    def _batches(self):
+        if "batches" not in self._calib:
+            c = self.k.get("calibration") or {}
+            b, man = calibration_batches(self.args, int(c.get("n_patches", 3072)), int(c.get("seed", 1234)), int(self.args.batch_size))
+            self._calib["batches"] = b; self._calib["set_manifest"] = man
+        return self._calib["batches"]
+
+    def _calibrate_and_build(self):
+        """calibration 전 구간을 RNG 격리 안에서 수행한다 — 캐시 적중/미적중이 학습 배치 순서를 바꾸면
+        같은 seed 의 대조군끼리 데이터 순서가 달라져 비교가 성립하지 않는다 (사용자 검토 2026-09-11)."""
+        dev0 = self.accelerator.device
+        with torch.random.fork_rng(devices=([dev0] if dev0.type == "cuda" else [])):
+            self._calibrate_and_build_inner()
+
+    def _calibrate_and_build_inner(self):
+        sp = self.spec; dev = self.accelerator.device; k = self.k
+        rec = dict(k.get("rec") or {}); st = dict(k.get("stat") or {})
+        tid = self.teacher_id or "no_teacher"; croot = os.path.join(CALIB_ROOT, tid)
+        tkey = dict(teacher_sha=(self.teacher_manifest or {}).get("tensors_sha256_16"), evaluator=evaluator_hash())
+        self.rec_crit = None; self.stat_crit = None; self.lam_V = 0.0; self.calibration = dict(teacher_id=tid)
+        if self.teacher is not None:
+            tau = rec.get("tau", "calibrate")
+            if tau == "calibrate":
+                key = dict(tkey, set=self._calib_set_key(), kind="rec")
+                r, hit = cached(os.path.join(croot, "rec.json"), key, lambda: calibrate_rec(self.teacher, self._batches(), dev, float(rec.get("eps_scale", 1e-6))))
+                tau = r["tau_R"]; self.calibration["rec"] = dict(r, from_cache=hit, source="calibrate")
+            else:
+                self.calibration["rec"] = dict(tau_R=float(tau), source="config")
+            tau_used = float(tau) * sp["rec_tau_scale"]                      # CTL-TAU: calibration 값은 그대로 두고 배율만 (cache 는 공유)
+            self.calibration["rec"] = dict(self.calibration["rec"], tau_scale=sp["rec_tau_scale"], tau_R_used=tau_used)
+            self.rec_crit = GTAnchoredReconstructionKD(tau_used, alpha=float(rec.get("alpha", 1.0)), kd_weight=float(rec.get("kd_weight", 0.1)),
+                                                       eps=float(rec.get("eps", 1e-6)), mode=sp["rec_mode"]).to(dev)
+        self.stat_crits = {}
+        if sp["stat_enabled"]:
+            kind, mode = sp["stat_kind"], sp["stat_mode"]; ws = sp["stat_windows"]; w = ws[0]
+            tf, tfe, dom = sp["stat_transform"], sp["stat_transform_eps"], sp["stat_domain"]
+            rep = f"{kind}_w{'-'.join(str(x) for x in ws)}" + ("" if tf == "none" else f"_{tf}") + ("" if dom == "final_hrms" else "_res")
+            sid = rep
+            if self.teacher is not None:
+                tv = st.get("tau", "calibrate"); percal = {}
+                for wi in ws:                                                # 표현(창·변환·도메인) 마다 τ_V 를 따로 (REP-MULTI357 은 창별 loss 의 평균)
+                    if tv == "calibrate":
+                        key = dict(tkey, set=self._calib_set_key(), kind=kind, window=wi, transform=tf, transform_eps=tfe, domain=dom)
+                        r, hit = cached(os.path.join(croot, f"stat_{kind}_w{wi}{'' if tf == 'none' else '_' + tf}{'' if dom == 'final_hrms' else '_res'}.json"), key,
+                                        lambda wi=wi: calibrate_stat(self.teacher, self._batches(), kind, wi, dev, transform=tf, transform_eps=tfe, domain=dom))
+                        if r.get("degenerate"):
+                            self._gate_fail("CALIBRATION_DEGENERATE", dict(stage="tau_V", window=wi, result=r))
+                        percal[wi] = dict(r, from_cache=hit, source="calibrate")
+                    else:
+                        percal[wi] = dict(tau_V=float(tv), eps_V=float(st.get("eps", 1e-6)), source="config", window=wi)
+                    if mode in MODE_TO_CRITERION:
+                        self.stat_crits[wi] = GTAnchoredReconstructionKD(percal[wi]["tau_V"], alpha=float(st.get("alpha", 1.0)), kd_weight=float(st.get("kd_weight", 0.1)),
+                                                                         eps=percal[wi]["eps_V"], mode=MODE_TO_CRITERION[mode]).to(dev)
+                self.calibration["stat"] = dict(percal[w], windows=ws, transform=tf, transform_eps=tfe, domain=dom, per_window={str(x): percal[x] for x in ws})
+                self.stat_crit = self.stat_crits.get(w)
+            lam = st.get("outer_weight", "calibrate")
+            if sp.get("stat_lambda_from_run"):                                          # 20H CF01: 다른 run 이 실제로 쓴 λ_V 를 그대로 (재calibration 금지) — 출처 종류/창/변환·유한 양수·hash 검증 (리뷰 P2-4)
+                from kdv.calibration import load_lambda_from_run
+                try:
+                    lam_src, linfo = load_lambda_from_run(sp["stat_lambda_from_run"], kind, w, tf, dom)
+                except ValueError as ex:
+                    self._gate_fail("CALIBRATION_SOURCE_INVALID", dict(stage="lambda_V", lambda_from_run=sp["stat_lambda_from_run"], reason=str(ex)))
+                self.lam_V = float(lam_src) * sp["stat_lambda_scale"]
+                self.calibration["lambda"] = dict(lambda_V=self.lam_V, source="from_run", lambda_scale=sp["stat_lambda_scale"], lambda_V_used=self.lam_V, kind=kind, window=w, **linfo)
+                lam = None
+            if lam == "calibrate":
+                pilot = st.get("lambda_pilot")
+                if not pilot:
+                    raise ValueError("stat.outer_weight: calibrate 는 stat.lambda_pilot(<run>/<tag> 또는 init) 이 필요하다 (§9.3)")
+                r_grad = float(st.get("r_grad", 0.05))
+                if pilot == "init":
+                    pm, pkey = self.M, dict(pilot="init", init=self.init_hashes.get("unet_init_sha256_16"))
+                else:
+                    prun, ptag = pilot.rsplit("/", 1)
+                    pm, pman = load_run_model(os.path.join("work_dir", prun), ptag, type(self.M.backbone)); freeze(pm); pm.to(dev)
+                    pkey = dict(pilot=pilot, sha=pman["tensors_sha256_16"])
+                key = dict(pkey, set=self._calib_set_key(), kind=kind, window=w, windows=ws, transform=tf, transform_eps=tfe, domain=dom, r_grad=r_grad)
+                was_training = self.M.training; self.M.eval()
+                r, hit = cached(os.path.join(croot, f"lambda_{sid}_{pkey['pilot'].replace('/', '_')}.json"), key,
+                                lambda: calibrate_lambda(pm, self._batches(), kind, w, r_grad, dev, windows=ws, transform=tf, transform_eps=tfe, domain=dom))
+                self.M.train(was_training)
+                if pilot != "init":
+                    del pm
+                if r.get("degenerate"):
+                    self._gate_fail("CALIBRATION_DEGENERATE", dict(stage="lambda_V", result=r))
+                self.lam_V = float(r["lambda_V"]) * sp["stat_lambda_scale"]                 # CTL-LAMBDA-V: ×0.3/1/3
+                self.calibration["lambda"] = dict(r, from_cache=hit, source="calibrate", pilot=pilot, lambda_scale=sp["stat_lambda_scale"], lambda_V_used=self.lam_V)
+            elif lam is not None:
+                self.lam_V = float(lam) * sp["stat_lambda_scale"]; self.calibration["lambda"] = dict(lambda_V=self.lam_V, source="config", lambda_scale=sp["stat_lambda_scale"])
+        # 보조 통계 항 (§11.4 GV+SC): 항마다 τ_V·λ_V 를 따로 calibration 한다 (결합 전용 재calibration 금지)
+        self.stat_extra = []
+        for i, e in enumerate(sp["stat_extra"]):
+            ekind, ews, etf, etfe, edom = e["kind"], e["windows"], e["transform"], e["transform_eps"], e["domain"]
+            crits = {}; ecal = {}
+            if self.teacher is not None and e["mode"] in MODE_TO_CRITERION:
+                for wi in ews:
+                    if e["tau"] == "calibrate":
+                        key = dict(tkey, set=self._calib_set_key(), kind=ekind, window=wi, transform=etf, transform_eps=etfe, domain=edom)
+                        r, hit = cached(os.path.join(croot, f"stat_{ekind}_w{wi}{'' if etf == 'none' else '_' + etf}{'' if edom == 'final_hrms' else '_res'}.json"), key,
+                                        lambda wi=wi: calibrate_stat(self.teacher, self._batches(), ekind, wi, dev, transform=etf, transform_eps=etfe, domain=edom))
+                        if r.get("degenerate"):
+                            self._gate_fail("CALIBRATION_DEGENERATE", dict(stage=f"tau_V_extra{i}", window=wi, result=r))
+                        ecal[wi] = dict(r, from_cache=hit)
+                    else:
+                        ecal[wi] = dict(tau_V=float(e["tau"]), eps_V=float(e["eps"] or 1e-6), source="config")
+                    crits[wi] = GTAnchoredReconstructionKD(ecal[wi]["tau_V"], alpha=e["alpha"], kd_weight=e["kd_weight"], eps=ecal[wi]["eps_V"], mode=MODE_TO_CRITERION[e["mode"]]).to(dev)
+            lam_e_ = e["outer_weight"]
+            if lam_e_ == "calibrate":
+                pilot = e["lambda_pilot"] or (k.get("stat") or {}).get("lambda_pilot")
+                if not pilot:
+                    raise ValueError(f"stat.extra[{i}].outer_weight: calibrate 는 lambda_pilot 이 필요하다")
+                if pilot == "init":
+                    pm, pkey = self.M, dict(pilot="init", init=self.init_hashes.get("unet_init_sha256_16"))
+                else:
+                    prun, ptag = pilot.rsplit("/", 1); pm, pman = load_run_model(os.path.join("work_dir", prun), ptag, type(self.M.backbone)); freeze(pm); pm.to(dev); pkey = dict(pilot=pilot, sha=pman["tensors_sha256_16"])
+                key = dict(pkey, set=self._calib_set_key(), kind=ekind, window=ews[0], windows=ews, transform=etf, transform_eps=etfe, domain=edom, r_grad=e["r_grad"])
+                was_training = self.M.training; self.M.eval()
+                r, hit = cached(os.path.join(croot, f"lambda_{ekind}_w{'-'.join(str(x) for x in ews)}{'' if etf == 'none' else '_' + etf}{'' if edom == 'final_hrms' else '_res'}_{pkey['pilot'].replace('/', '_')}.json"), key,
+                                lambda: calibrate_lambda(pm, self._batches(), ekind, ews[0], e["r_grad"], dev, windows=ews, transform=etf, transform_eps=etfe, domain=edom))
+                self.M.train(was_training)
+                if pilot != "init":
+                    del pm
+                if r.get("degenerate"):
+                    self._gate_fail("CALIBRATION_DEGENERATE", dict(stage=f"lambda_V_extra{i}", result=r))
+                lam_i = float(r["lambda_V"]) * e["lambda_scale"]; ecal["lambda"] = dict(r, from_cache=hit, pilot=pilot, lambda_scale=e["lambda_scale"], lambda_V_used=lam_i)
+            else:
+                lam_i = float(lam_e_) * e["lambda_scale"]; ecal["lambda"] = dict(lambda_V=lam_i, source="config", lambda_scale=e["lambda_scale"])
+            self.stat_extra.append(dict(spec=e, crits=crits, lam=lam_i))
+            self.calibration[f"stat_extra_{i}"] = dict(key=e["key"], mode=e["mode"], windows=ews, transform=etf, domain=edom, lambda_V=lam_i,
+                                                       per_window={str(x): ecal[x] for x in ews if x in ecal}, **{kk: v for kk, v in ecal.items() if kk == "lambda"})
+        # 이동량 covariance KD (§11): Π_T 출처 calibration → k0·임계·G5 는 Teacher cov head
+        self.prec_fn = None; self.cov = None; self.lam_gkd = 0.0; self.k0 = None; self.cov_head_t = None; self.cov_head_t_hash = None
+        if sp["geom"] != "G0":
+            g = dict(k.get("geom_kd") or {}); src = sp["cov_source"]
+            key = dict(tkey, set=self._calib_set_key(), source=src, probes=sp["probes"], geo=sp["geo"], eq_sigma_min=sp["eq_sigma_min"], geometry=dict(sigma=self.geo_sigma, margin=self.geo_margin))
+            was_training = self.M.training; self.M.eval()
+            cov, hit = cached(os.path.join(croot, f"cov_{src}.json"), key, lambda: calibrate_covariance(self.teacher, self._batches(), sp, dev, self.geo_sigma, self.geo_margin))
+            if cov.get("status") != "OK":
+                self._gate_fail(cov.get("status", "COV_FAIL"), dict(stage="covariance", result={kk: v for kk, v in cov.items() if not isinstance(v, (list, dict)) or kk in ("fd_vs_autograd_rel_err", "h_consistency_rel")}))
+            self.cov = dict(cov, from_cache=hit); self.k0 = float(sp["geom_k0"]) if sp["geom_k0"] is not None else float(cov["k0"])
+            self.lam_gkd = float(sp["geom_outer_weight"]) if sp["geom_outer_weight"] is not None else float(sp["geom_r_gkd"]) / (1.0 if src == "struct" else self.k0)
+            self.prec_fn = teacher_precision_fn(self.teacher, sp, cov, self.geo_sigma, self.geo_margin)
+            self.calibration["cov"] = dict(self.cov, k0_used=self.k0, lambda_GKD=self.lam_gkd, lambda_rule=("config" if sp["geom_outer_weight"] is not None else "r_gkd/k0"), r_gkd=sp["geom_r_gkd"])
+            if sp["geom"] == "G5":
+                hkey = dict(key, covhead_epochs=sp["covhead_epochs"], covhead_lr=1e-2)            # 검토 지적: epochs/lr 도 key 에
+                hp = os.path.join(croot, f"covhead_{src}.pt"); hj = hp.replace(".pt", ".json")
+                if not (os.path.exists(hp) and os.path.exists(hj) and json.load(open(hj)).get("key") == hkey):
+                    sd, hman = calibrate_covhead(self.teacher, self._batches(), sp, cov, dev, epochs=sp["covhead_epochs"], geo_sigma=self.geo_sigma, geo_margin=self.geo_margin)
+                    torch.save(sd, hp); json.dump(dict(key=hkey, head=hman, computed_at=time.strftime("%Y-%m-%dT%H:%M:%S")), open(hj, "w"), indent=1)
+                self.cov_head_t = CovHead(); self.cov_head_t.load_state_dict(torch.load(hp, map_location="cpu")); freeze(self.cov_head_t); self.cov_head_t.to(dev)
+                self.cov_head_t_hash = state_hash(self.cov_head_t); self.calibration["covhead"] = dict(json.load(open(hj))["head"], teacher_head_sha256_16=self.cov_head_t_hash)
+                if self.spec["policy"] == "A-FT" and not self.k.get("phase"):                                        # A-FT = Teacher 복사 → cov head 도 Teacher head 에서 시작 (검토 지적)
+                    self.M.cov_head.load_state_dict(self.cov_head_t.state_dict()); self.calibration["covhead"]["student_init"] = "copied_from_teacher_head"
+                else:
+                    self.calibration["covhead"]["student_init"] = "identity_sigma"
+            self.M.train(was_training)
+        # TRI-A/B/C (addendum §10): 성분별 τ · s_sens · λ_Q · C 의 covariance 출처
+        tri = sp["tri"]; self.tri = tri; self.tri_state = {}
+        if tri["enabled"]:
+            was_training = self.M.training; self.M.eval(); cal = {}
+            kind, w = sp["stat_kind"], sp["stat_window"]; sid = (f"{kind}_w{w}" + ("" if sp["stat_transform"] == "none" else f"_{sp['stat_transform']}") + ("" if sp["stat_domain"] == "final_hrms" else "_res")) if kind else None
+            if tri["a_mode"] == "band_adv":
+                r, hit = cached(os.path.join(croot, "rec_components.json"), dict(tkey, set=self._calib_set_key(), kind="rec_components"), lambda: calibrate_component_tau(self.teacher, self._batches(), dev, kind=None))
+                self.tri_state["tau_R_c"] = torch.tensor(r["tau"], dtype=torch.float64, device=dev) * sp["rec_tau_scale"]      # CTL-TAU 는 성분별 τ 에도 같은 배율
+                cal["rec_components"] = dict(r, from_cache=hit, tau_scale=sp["rec_tau_scale"])
+            if tri["b_mode"] == "comp_adv":
+                r, hit = cached(os.path.join(croot, f"stat_components_{sid}.json"), dict(tkey, set=self._calib_set_key(), kind=kind, window=w, transform=sp["stat_transform"], domain=sp["stat_domain"]),
+                                lambda: calibrate_component_tau(self.teacher, self._batches(), dev, kind=kind, window=w, transform=sp["stat_transform"], transform_eps=sp["stat_transform_eps"], domain=sp["stat_domain"]))
+                self.tri_state["tau_V_j"] = torch.tensor(r["tau"], dtype=torch.float64, device=dev); self.tri_state["eps_V_j"] = torch.tensor(r["eps"], dtype=torch.float64, device=dev); cal["stat_components"] = dict(r, from_cache=hit)
+            if tri["c_mode"] != "off":
+                phi = tri["c_phi"]; ck = dict(tkey, set=self._calib_set_key(), h=tri["c_h"], phi=phi, kind=(kind if phi == "stat" else None), window=(w if phi == "stat" else None), roi_margin=tri["c_roi_margin"])
+                sens, hit = cached(os.path.join(croot, f"sens_{phi}{'_' + sid if phi == 'stat' else ''}_roi{tri['c_roi_margin']}.json"), ck,
+                                   lambda: calibrate_sens(self.teacher, self._batches(), dev, h=tri["c_h"], phi=phi, stat_kind=(kind if phi == "stat" else None), window=w or 5, roi_margin=tri["c_roi_margin"]))
+                cal["sens"] = dict(sens, from_cache=hit)
+                if sens["status"] == "SOURCE_UNRESPONSIVE":
+                    # 계획 §9.2: 양의 q 가 전혀 없으면 이 추가 감쇠를 적용하지 않고 원래 soft 로 되돌리며 비율을 기록한다 (중단하지 않는다)
+                    cal["sens"]["fallback"] = "no positive q → r = 1 (원래 soft 유지)"
+                    print(f"[kdv] TRI-C: Teacher 가 입력 변위에 무반응 (positive_fraction {sens.get('positive_fraction')}) — 감쇠 없이 진행한다")
+                elif sens["status"] != "OK":
+                    self._gate_fail(sens["status"], dict(stage="tri_c_fd", result={kk: v for kk, v in sens.items() if kk != "fd_checks"}, fd_checks=sens["fd_checks"]))
+                self.tri_state["s_sens"] = float(sens["s_sens"])
+                sc = tri["c_s_c"]
+                self.tri_state["s_c"] = float(sc) if sc != "tau" else float(self.calibration["stat"]["tau_V"] if phi == "stat" else self.calibration["rec"]["tau_R"])
+                if tri["c_mode"] in ("diag", "full", "qscalar"):
+                    src = tri["c_src"]; key = dict(tkey, set=self._calib_set_key(), source=src, probes=sp["probes"], geo=sp["geo"], eq_sigma_min=sp["eq_sigma_min"], geometry=dict(sigma=self.geo_sigma, margin=self.geo_margin))
+                    spec_c = dict(sp, cov_source=src)
+                    cov, hit = cached(os.path.join(croot, f"cov_{src}.json"), key, lambda: calibrate_covariance(self.teacher, self._batches(), spec_c, dev, self.geo_sigma, self.geo_margin))
+                    if cov.get("status") != "OK":
+                        self._gate_fail("BLOCKED_COVARIANCE", dict(stage="tri_c_covariance", status=cov.get("status")))
+                    self.tri_state["prec_fn"] = teacher_precision_fn(self.teacher, spec_c, cov, self.geo_sigma, self.geo_margin); cal["cov"] = dict(cov, from_cache=hit)
+                if tri["c_mode"] in ("full", "qiso", "qscalar"):
+                    lq = tri["c_lambda_q"]
+                    if lq == "calibrate":
+                        pilot = (k.get("stat") or {}).get("lambda_pilot") or (k.get("tri") or {}).get("lambda_pilot") or "init"
+                        if pilot == "init":
+                            pm, pkey = self.M, dict(pilot="init", init=self.init_hashes.get("unet_init_sha256_16"))
+                        else:
+                            prun, ptag = pilot.rsplit("/", 1); pm, pman = load_run_model(os.path.join("work_dir", prun), ptag, type(self.M.backbone)); freeze(pm); pm.to(dev); pkey = dict(pilot=pilot, sha=pman["tensors_sha256_16"])
+                        r, hit = cached(os.path.join(croot, f"lambda_q_{pkey['pilot'].replace('/', '_')}.json"), dict(pkey, set=self._calib_set_key(), s_c=self.tri_state["s_c"], tau_R=self.calibration["rec"]["tau_R"]),
+                                        lambda: calibrate_lambda_q(pm, self.teacher, self._batches(), dev, self.rec_crit, s_c=self.tri_state["s_c"]))
+                        if r.get("degenerate"):
+                            self._gate_fail("CALIBRATION_DEGENERATE", dict(stage="lambda_q", result=r))
+                        self.tri_state["lambda_q"] = float(r["lambda_q"]); cal["lambda_q"] = dict(r, from_cache=hit, pilot=pilot)
+                    else:
+                        self.tri_state["lambda_q"] = float(lq); cal["lambda_q"] = dict(lambda_q=float(lq), source="config")
+            self.calibration["tri"] = dict(cal, state={kk: (v.tolist() if torch.is_tensor(v) else v) for kk, v in self.tri_state.items() if kk != "prec_fn"})
+            self.M.train(was_training)
+        # QEDGE9 (2026-09-15 §3·§7·§8.2): q-gated GT edge — cue 자산(고정 T0 q·θq·gate) 을 Teacher aligner hash·train h5 sha·feeder 계약과 대조해 싣는다. 자산/θq/c_E 가 없으면 여기서 멈춘다(placeholder 금지).
+        self.edge_gate = None
+        if sp.get("edge_gate"):
+            fa = dict(self.args.train_feeder_args)
+            prev_p = os.path.join(self.args.work_dir, "kdv_config_resolved.json"); prev = None
+            if getattr(self.args, "resume", None) and os.path.exists(prev_p):                    # 재개: 이 run 이 전에 쓴 cue asset_id / c_E 와 대조 (감사 F03·§8.2)
+                prev = (json.load(open(prev_p)).get("edge_gate") or {}) or {}
+            self.edge_gate = EdgeGate.load(sp["edge_gate"], teacher=self.teacher, train_h5=fa["dataroot"], feeder_args=fa, sha_fn=lambda p_: sha_cached(p_, self.init_dir), previous=prev)
+            if self.edge_gate.needs_meta and not bool(fa.get("return_meta", False)):
+                raise ValueError("edge_gate low_q/shuffle 는 train_feeder_args.return_meta: true (sample index·augmentation state) 가 필요하다 — RNG 를 더 소비하지 않는 feeder meta")
+            self.calibration["edge_gate"] = self.edge_gate.summary()
+            print(f"[kdv] edge_gate {self.edge_gate.mode}: θq {self.edge_gate.theta_q} · c_E {self.edge_gate.c_E} · 자산 {self.edge_gate.asset}")
+        # QEGX (2026-09-15 §4.5): edge_route — 같은 cue 자산(gate 표) 을 EdgeGate 로 싣되 total 에는 쓰지 않고 A 의 .grad 보정에만 쓴다 (_apply_edge_route). 자산·Teacher·데이터·feeder 대조는 edge_gate 와 같다.
+        self.edge_route = None
+        if sp.get("edge_route"):
+            fa = dict(self.args.train_feeder_args)
+            prev_p = os.path.join(self.args.work_dir, "kdv_config_resolved.json"); prev = None
+            if getattr(self.args, "resume", None) and os.path.exists(prev_p):
+                prev = (json.load(open(prev_p)).get("edge_route") or {}) or {}
+            self.edge_route = EdgeGate.load(sp["edge_route"], teacher=self.teacher, train_h5=fa["dataroot"], feeder_args=fa, sha_fn=lambda p_: sha_cached(p_, self.init_dir), previous=prev)
+            if not bool(fa.get("return_meta", False)):
+                raise ValueError("edge_route 는 train_feeder_args.return_meta: true (sample index·augmentation state) 가 필요하다")
+            self.calibration["edge_route"] = dict(self.edge_route.summary(), edge_U=1.0, edge_A=sp["edge_route"]["edge_A"])
+            print(f"[kdv] edge_route {self.edge_route.mode}: U all-edge / A gated (θq {self.edge_route.theta_q}) · 자산 {self.edge_route.asset}")
+        # EDGEBAL (2026-09-16 §3.4): edge_weight — 기존 cue 자산의 0/1 표(low_q / shuffle) 위에 affine 계수 w = high + (low−high)·g (kdv/edge_gate.AffineEdgeWeight; 표 자체는 불변). 자산·Teacher·데이터·feeder 대조는 edge_gate 와 같다.
+        self.edge_weight = None
+        if sp.get("edge_cue_weight"):                                                     # config 키 kdv.edge_weight → spec 키 edge_cue_weight (edge_weight 는 aux λ_edge)
+            fa = dict(self.args.train_feeder_args)
+            prev_p = os.path.join(self.args.work_dir, "kdv_config_resolved.json"); prev = None
+            if getattr(self.args, "resume", None) and os.path.exists(prev_p):
+                prev = (json.load(open(prev_p)).get("edge_cue_weight") or {}) or {}
+            self.edge_weight = AffineEdgeWeight.load(sp["edge_cue_weight"], teacher=self.teacher, train_h5=fa["dataroot"], feeder_args=fa, sha_fn=lambda p_: sha_cached(p_, self.init_dir), previous=prev)
+            if not bool(fa.get("return_meta", False)):
+                raise ValueError("edge_weight 는 train_feeder_args.return_meta: true (sample index·augmentation state) 가 필요하다")
+            self.calibration["edge_cue_weight"] = self.edge_weight.summary()
+            print(f"[kdv] edge_weight {self.edge_weight.mode}: w = {self.edge_weight.high} + ({self.edge_weight.low} − {self.edge_weight.high})·g (θq {self.edge_weight.theta_q}) · 자산 {sp['edge_cue_weight']['asset']}")
+        if self.edge_schedule:
+            print(f"[kdv] edge_schedule: GT edge 계수 {self.edge_schedule['before']}×λE (update < {self.edge_schedule['switch']}) → {self.edge_schedule['after']}×λE (A 는 계속 학습; 재시작 없음)")
+        # QRECON24 (2026-09-16 §2.3·§4.2·§6): raw q → w = qref/(qref+q) 표(+stratum 셔플 표; 분자 2 없음 — 09-16 저녁 결정). 자산·Teacher·데이터·feeder·재개 대조는 EdgeGate.load 와 같다.
+        self.qrecon = None
+        if sp.get("qrecon"):
+            fa = dict(self.args.train_feeder_args)
+            prev_p = os.path.join(self.args.work_dir, "kdv_config_resolved.json"); prev = None
+            if getattr(self.args, "resume", None) and os.path.exists(prev_p):
+                prev = (json.load(open(prev_p)).get("qrecon") or {}) or {}
+            self.qrecon = QWeight.load(sp["qrecon"], teacher=self.teacher, train_h5=fa["dataroot"], feeder_args=fa, sha_fn=lambda p_: sha_cached(p_, self.init_dir), previous=prev)
+            if not bool(fa.get("return_meta", False)):
+                raise ValueError("qrecon 은 train_feeder_args.return_meta: true (sample index·augmentation state) 가 필요하다")
+            if getattr(self.accelerator, "scaler", None) is not None:
+                raise NotImplementedError("qrecon: AMP scaler 경로(두 gradient 의 scale/unscale) 는 검증되지 않았다 — mixed_precision 없이 돈다 (§6.1)")
+            self.calibration["qrecon"] = self.qrecon.summary()
+            st_ = self.qrecon.stats
+            print(f"[kdv] qrecon continuous_v1: qref {self.qrecon.qref} · w 범위 {st_.get('w_min'):.4f}–{st_.get('w_max'):.4f} 평균 {st_.get('w_mean_all'):.4f} · A weight {self.qrecon.a_mode} / edge weight {self.qrecon.e_mode} · λE(절대) {self.lam_V:g} · A {'trainable(hard-only)' if self.aligner_trainable else 'frozen'}")
+        self._calib.pop("batches", None)
+        if self.accelerator.is_main_process:
+            json.dump(dict(self.calibration, calibration_set=self._calib.get("set_manifest")), open(os.path.join(self.args.work_dir, "calibration_resolved.json"), "w"), indent=1)
+
+    def _calib_set_key(self):
+        c = self.k.get("calibration") or {}
+        return dict(dataroot=self.args.train_feeder_args["dataroot"], n=int(c.get("n_patches", 3072)), seed=int(c.get("seed", 1234)), batch=int(self.args.batch_size))
+
+    def _gate_fail(self, status, info):
+        json.dump(dict(status=status, **info), open(os.path.join(self.args.work_dir, "gate_fail.json"), "w"), indent=1)
+        print(f"[kdv] {status}: {json.dumps(info)[:400]}"); sys.exit(EXIT_GATE)
+
+    # ------------------------------------------------------------------ manifests (§2.2, §21)
+    def _write_manifests(self):
+        a = self.args; wd = a.work_dir; ds = {}
+        for kk in ("train_feeder_args", "val_feeder_args", "test_reduced_feeder_args", "test_full_feeder_args"):
+            p = getattr(a, kk)["dataroot"]; ds[kk] = dict(path=p, sha256=sha_cached(p, self.init_dir))
+            pp = p.replace(".h5", "_pan.h5")
+            if os.path.exists(pp):
+                ds[kk + "_pan"] = dict(path=pp, sha256=sha_cached(pp, self.init_dir))
+        json.dump(ds, open(os.path.join(wd, "dataset_hashes.json"), "w"), indent=1)
+        spec0 = dict(self.spec); spec0.update(recipe="NOALIGN", policy="A-ID", rec_case="N0", rec_control="none", stat_enabled=False, stat_key="OFF", geom="G0")
+        b0 = self.k.get("baseline_run") or run_name(spec0, a.seed, self.version, self.prefix); b0d = os.path.join(ROOT, "work_dir", b0)
+        json.dump(dict(baseline_run_id=b0, baseline_exists=os.path.isdir(b0d), baseline_finished=os.path.exists(os.path.join(b0d, "finished_at.txt")), init_hashes=self.init_hashes,
+                       selection_scene_ids=list(range(20)), report_scene_ids=list(range(20)), fr_h5=self.fr_h5, fr_h5_sha256=self.fr_h5_sha, protocol_id=PROTOCOL_ID),
+                  open(os.path.join(wd, "baseline_manifest.json"), "w"), indent=1)
+
+    def _architecture_manifest(self):
+        M = self.M; bb = M.backbone; ma = self.args.model_args
+        gn = [(n, m.num_groups, m.num_channels) for n, m in bb.named_modules() if isinstance(m, torch.nn.GroupNorm)]
+        norms = {}
+        for n, m in bb.named_modules():
+            norms[type(m).__name__] = norms.get(type(m).__name__, 0) + (1 if isinstance(m, (torch.nn.LayerNorm, torch.nn.GroupNorm, torch.nn.BatchNorm2d)) else 0)
+        convs = [(n, m.in_channels, m.out_channels) for n, m in bb.named_modules() if isinstance(m, torch.nn.Conv2d)]
+        widths = sorted({c for _, _, c in convs})
+        n_all = sum(p.numel() for p in M.parameters()); n_tr = sum(p.numel() for p in M.parameters() if p.requires_grad)
+        return dict(backbone_class=f"{type(bb).__module__}.{type(bb).__name__}", source_file=os.path.relpath(sys.modules[type(bb).__module__].__file__, ROOT),
+                    width=ma.get("hidden_size"), depth=ma.get("depth"), in_channels_effective=(1 + int(self.args.num_bands)), out_channels=ma.get("out_channels"),
+                    ms_base="added exactly once in forward (y = bicubic↑MS + backbone residual)", normalization=ma.get("norm"), norm_layer_counts={k: v for k, v in norms.items() if v},
+                    groupnorm_layers_backbone=gn[:8], groupnorm_divisibility_ok=all(c % g == 0 for _, g, c in gn), conv_out_widths=widths, n_conv=len(convs),
+                    mode_modulation=ma.get("mode_modulation"), attention=ma.get("attn_locations"), pan_auxiliary_forward_count=0,
+                    aligner=(None if M.aligner is None else dict(cls=type(M.aligner).__name__, params=sum(p.numel() for p in M.aligner.parameters()), view_margin_hr=self.aligner_view_margin,
+                                                                trainable=self.aligner_trainable, source=("donor" if self.donor_manifest else "scratch"),
+                                                                schedule=dict(freeze_until=self.freeze_until, freeze_from=self.freeze_from), route_A=list(self.route_A),
+                                                                edge_route=((self.spec.get("edge_route") or {}).get("edge_A") if getattr(self, "edge_route", None) is not None else None))),
+                    sampler=M.sampler, params_total=n_all, params_trainable=n_tr, params_frozen=n_all - n_tr, backbone_params=sum(p.numel() for p in bb.parameters()),
+                    teacher=(None if self.teacher is None else dict(params=sum(p.numel() for p in self.teacher.parameters()), width=self.teacher_manifest["width"], depth=self.teacher_manifest["depth"])))
+
+    def _optimizer_manifest(self):
+        opt = self.optimizer; o = getattr(opt, "optimizer", opt)                                       # accelerate wrapper 안의 torch optimizer
+        groups = []
+        for g in o.param_groups:
+            names = [n for n, p_ in self.M.named_parameters() if any(p_ is q for q in g["params"])]
+            groups.append(dict(name=g.get("name"), n_params=len(g["params"]), n_elements=int(sum(p_.numel() for p_ in g["params"])), initial_lr=float(g.get("initial_lr", g["lr"])), lr_now=float(g["lr"]), weight_decay=float(g.get("weight_decay", 0.0)),
+                               betas=[float(b) for b in g.get("betas", (0.9, 0.999))], eps=float(g.get("eps", 1e-8)), amsgrad=bool(g.get("amsgrad", False)), first_names=names[:3]))
+        return dict(optimizer_class=type(o).__name__, param_groups=groups, weight_decay_exclusions="none (all parameters incl. norm/bias decay 0.01)", scheduler_detail=dict(kind=str(self.args.lr_scheduler), source="diffusers.optimization.get_scheduler", num_warmup_steps=int(self.args.num_warmup), num_training_steps=int(self.args.num_iter), min_lr=0.0, per_group_multiplier="same LambdaLR factor for every group (A/U ratio constant)"),
+                    gradient_accumulation_steps=int(getattr(self.accelerator, "gradient_accumulation_steps", 1) or 1), grad_clip=None, mixed_precision=str(self.accelerator.mixed_precision), scaler=(getattr(self.accelerator, "scaler", None) is not None),
+                    tf32=dict(matmul=bool(torch.backends.cuda.matmul.allow_tf32) if torch.cuda.is_available() else None, cudnn=bool(torch.backends.cudnn.allow_tf32) if torch.cuda.is_available() else None, cudnn_benchmark=bool(torch.backends.cudnn.benchmark), cudnn_deterministic=bool(torch.backends.cudnn.deterministic)),
+                    torch=torch.__version__)
+
+    def _write_kdv_manifests(self):
+        wd = self.args.work_dir; sp = self.spec
+        json.dump(self._architecture_manifest(), open(os.path.join(wd, "architecture_manifest.json"), "w"), indent=1)
+        json.dump(dict(init_hashes=self.init_hashes, donor=self.donor_manifest, teacher=self.teacher_manifest, aligner_hash0=self.aligner_hash0, reference_aligner=self.ref_manifest, reference_view_margin=self.ref_margin,
+                       teacher_hash0=getattr(self, "teacher_hash0", None), share_correction=self.share_correction),
+                  open(os.path.join(wd, "init_and_teacher_hashes.json"), "w"), indent=1)
+        json.dump(dict(campaign_id=self.campaign_id, run_id=self.run_id, run_kind=self.run_kind, version=self.version, spec=sp, description=describe(sp), case=self.case,
+                       selection=dict(primary=sp.get("select_primary", "best_hqnr"), secondary=sp.get("select_secondary") or [],
+                                      others=[t for t in self.export_tags() if t != sp.get("select_primary", "best_hqnr")],
+                                      aligned_selector=sp.get("aligned_selector", True), keep_exact_final_n=True, fr_test_used_for_selection=True,
+                                      note=("판정·시트·Teacher·진단이 모두 같은 checkpoint 를 쓴다 (저장소 확정 지시: 무조건 HQNR→SCC). "
+                                            "best_hqnr(=best_raw) 는 FR test 로 매 평가 고르므로 test-adaptive 다 — 독립 hold-out 이 아니라는 점은 그대로 기록한다. "
+                                            "계획 §14.2 의 독립 RR-validation 선택(best_rr_val, valid_wv3.h5 plain ERGAS) 은 **보조**로 함께 저장·평가한다.")),
+                       na_protocol=sp.get("na_protocol"), rec_control=sp.get("rec_control"), resumed=bool(self.resumed_from), resumed_nonexact=bool(self.resumed_from) and not getattr(self, "exact_resume", False), exact_resume=getattr(self, "exact_resume", False), resumed_from=(str(self.resumed_from) if self.resumed_from else None), stat_axes=dict(windows=sp.get("stat_windows"), transform=sp.get("stat_transform"), domain=sp.get("stat_domain"),
+                                                                                                            transform_eps=sp.get("stat_transform_eps"), lambda_scale=sp.get("stat_lambda_scale"), tau_scale=sp.get("rec_tau_scale")),
+                       lambda_V=self.lam_V, stat_ramp_updates=self.stat_ramp, lambda_GKD=self.lam_gkd, k0=self.k0, cov_source=sp["cov_source"], cov_status=(self.cov or {}).get("status"),
+                       edge_gate=(self.edge_gate.summary() if getattr(self, "edge_gate", None) is not None else None),
+                       edge_route=(dict(self.edge_route.summary(), edge_U=1.0, edge_A=sp["edge_route"]["edge_A"]) if getattr(self, "edge_route", None) is not None else None),
+                       edge_schedule=(dict(self.edge_schedule) if getattr(self, "edge_schedule", None) else None), edge_cue_weight=(self.edge_weight.summary() if getattr(self, "edge_weight", None) is not None else None),
+                       qrc24=(dict(self.k["qrc24"]) if isinstance(self.k.get("qrc24"), dict) else None),     # QRECON24 편성 metadata(profile·λE·rA·α/β·queue_revision·block_2x2; ADJ-R1 §11.2) — 학습 정의가 아니라 출처 기록
+                       qrecon=(self.qrecon.summary() if getattr(self, "qrecon", None) is not None else None),
+                       tri=sp["tri"], tri_state={kk: (v.tolist() if torch.is_tensor(v) else v) for kk, v in self.tri_state.items() if kk != "prec_fn"},
+                       aligner_view_margin=self.aligner_view_margin, guard_margin_hr=self.guard_margin,
+                       corruption_seed=self.corr_seed, evaluator_hash=evaluator_hash(), protocol_id=PROTOCOL_ID,
+                       training=dict(optimizer="AdamW", lr=self.args.learning_rate, weight_decay=self.args.weight_decay, scheduler=self.args.lr_scheduler, warmup=self.args.num_warmup,
+                                     batch=self.args.batch_size, updates=self.args.num_iter, amp=str(self.accelerator.mixed_precision), seed=self.args.seed,
+                                     # QRECON24 감사 F10: 계획 §3·§6.4 의 명시 고정 — optimizer betas/eps · param group 별 이름/개수/LR/WD · decay 제외 없음 · cosine 최저 0(diffusers get_scheduler) · accumulation/clip · TF32/cudnn
+                                     **self._optimizer_manifest())),
+                  open(os.path.join(wd, "kdv_config_resolved.json"), "w"), indent=1)
+        json.dump(dict(case=self.case, lambda_edge=self.lam_edge, lambda_geo=self.lam_geo, ramp_steps=self.ramp, geometry_sigma_hr=self.geo_sigma, geometry_margin_hr=self.geo_margin,
+                       support_guard_margin_hr=self.guard_margin, warp="bicubic/border/align_corners=False, no zero bypass" if self.M.sampler else "none (A-ID)",
+                       loss_domain="L_rec full frame", aligner_params=(sum(p.numel() for p in self.M.aligner.parameters()) if self.M.aligner is not None else 0), evaluator_hash=evaluator_hash()),
+                  open(os.path.join(wd, "pa_config_resolved.json"), "w"), indent=1)
+        if not self.k.get("phase"):
+            yaml.safe_dump(dict(run_kind=self.run_kind, start="from_init", parent_run=None, parent_step=0, inherited_cost_hours=0.0, teacher_id=self.teacher_id), open(os.path.join(wd, "parent_and_phase.yaml"), "w"))
+        if self.resumed_from:
+            # 재개는 optimizer/scheduler/scaler/RNG 를 복원하지만 **data sampler 순서는 복원하지 않는다** (main.py C-1 주석).
+            # 즉 재개한 run 은 중단 없는 대응 run 과 배치 열이 다르다 — 엄밀 대조에서는 제외하거나 처음부터 다시 돌린다.
+            if getattr(self, "exact_resume", False):                                   # kdv.exact_resume: epoch 시작 RNG + skip 으로 같은 batch 열 (train() 이 exact 이벤트를 따로 남긴다)
+                self._jsonl("resume_events.jsonl", dict(time=time.strftime("%Y-%m-%dT%H:%M:%S"), resume_from=str(self.resumed_from), resumed_nonexact=False, exact_resume_requested=True,
+                                                        restored="optimizer·scheduler·scaler·RNG(corruption/TRI)·epoch 시작 전역 RNG(sampler permutation·worker seed)", note="train() 의 exact 이벤트가 skip 수를 기록한다"))
+                print(f"[kdv] 재개: {self.resumed_from} — exact resume (같은 batch 열; resume_events.jsonl)")
+            else:
+                self._jsonl("resume_events.jsonl", dict(time=time.strftime("%Y-%m-%dT%H:%M:%S"), resume_from=str(self.resumed_from), resumed_nonexact=True,
+                                                        restored="optimizer·scheduler·scaler·RNG(corruption/TRI)", not_restored="data sampler 배치 순서",
+                                                        consequence="중단 없는 run 과 배치 열이 다르다 — 통제 비교에서 표시하거나 재실행"))
+                print(f"[kdv] 재개: {self.resumed_from} — 배치 순서는 복원되지 않는다 (resume_events.jsonl 에 기록)")
+        # §12.2 결과 key — 이름이 같아도 서버가 다르면 다른 결과다. 시트·분석에서 덮어쓰지 않도록 식별자를 한곳에 모은다
+        try:
+            _srv = open(os.path.join(ROOT, "gspread", "server.txt")).read().strip()
+        except Exception:
+            _srv = "unknown"
+        _ds = json.load(open(os.path.join(wd, "dataset_hashes.json"))) if os.path.exists(os.path.join(wd, "dataset_hashes.json")) else {}
+        _cal = hashlib.sha256(json.dumps(self.calibration, sort_keys=True, default=str).encode()).hexdigest()[:16]
+        json.dump(dict(server_id=_srv, campaign_id=self.campaign_id, run_id=self.run_id, version=self.version, student_seed=self.args.seed,
+                       teacher_id=self.teacher_id, teacher_run=(self.teacher_manifest or {}).get("run"), teacher_tag=(self.teacher_manifest or {}).get("tag"),
+                       teacher_checkpoint_sha=(self.teacher_manifest or {}).get("file_sha256"), teacher_tensors_sha16=(self.teacher_manifest or {}).get("tensors_sha256_16"),
+                       init_sha=self.init_hashes.get("unet_init_sha256_16"), calibration_sha=_cal,
+                       selection_policy_id=f"{sp.get('select_primary')}+secondary({'·'.join(sp.get('select_secondary') or [])})",
+                       evaluator_hash=evaluator_hash(), protocol_id=PROTOCOL_ID, view="raw_original", fr_dataset_sha256=self.fr_h5_sha,
+                       train_dataset_sha256=((_ds.get("train_feeder_args") or {}).get("sha256")), grid_id="per-run eval schedule (공통 격자는 분석 도구가 별도로 만든다)",
+                       note="같은 run_id 라도 server_id·teacher_checkpoint_sha 가 다르면 다른 결과다 — 시트·분석에서 서로 덮어쓰지 않는다 (§12.2)"),
+                  open(os.path.join(wd, "run_key.json"), "w"), indent=1, ensure_ascii=False)
+        os.makedirs(os.path.join(CAMPAIGN_ROOT, self.campaign_id), exist_ok=True)
+        reg_p = os.path.join(CAMPAIGN_ROOT, self.campaign_id, "teacher_registry.json")
+        reg = json.load(open(reg_p)) if os.path.exists(reg_p) else {}
+        if self.teacher_manifest:
+            _tm = self.teacher_manifest.get("tag_meta") or {}; _tstep = _tm.get("step")
+            if _tstep is not None and self.args.num_iter and int(_tstep) < 0.2 * int(self.args.num_iter):
+                print(f"[kdv] 주의: Teacher checkpoint 가 이른 step({_tstep}) 에서 선택됐다 — 품질이 아니라 초기 변동으로 뽑혔을 수 있다 (§3.2 확인 항목)")
+            reg[self.teacher_id] = dict(run=self.teacher_manifest["run"], tag=self.teacher_manifest["tag"], selected_step=_tstep, file_sha256=self.teacher_manifest["file_sha256"], width=self.teacher_manifest["width"],
+                                       depth=self.teacher_manifest["depth"], recipe=((self.teacher_manifest.get("kdv") or {}).get("recipe")), seed=self.teacher_manifest.get("seed"),
+                                       used_by=sorted(set((reg.get(self.teacher_id, {}).get("used_by") or []) + [self.run_id])),
+                                       # 분담 분모는 **학습에 실제로 Teacher 를 쓴 run** 만 — 평가 bin 전용 arm 이 KD 준비비 분담액을 낮추면 안 된다
+                                       used_by_training=sorted(set((reg.get(self.teacher_id, {}).get("used_by_training") or []) + ([self.run_id] if not self.spec.get("teacher_eval_only") else []))))
+            json.dump(reg, open(reg_p, "w"), indent=1)
+        self._runs_csv(status="RUNNING")
+
+    def _write_cost(self, status):
+        """§13.4 학습시간 공정성: Teacher 준비비(cost_teacher)·Student 온라인 비용(cost_student)·총계를 분리해 남긴다. 공유 Teacher 는 amortized 도 같이 적되 최초 준비비를 숨기지 않는다."""
+        if not self.accelerator.is_main_process:
+            return
+        th, tsrc = None, None
+        if self.teacher_manifest:
+            for cand, key in ((os.path.join(self.teacher_manifest["run_dir"], "cost_manifest.json"), "cost_student_hours"),      # Teacher run 의 최종 실비(학습+평가+export)
+                              (os.path.join(self.teacher_manifest["run_dir"], "memory_and_throughput.json"), "elapsed_hours")):  # 없으면 학습 중 마지막 기록
+                if th is None and os.path.exists(cand):
+                    try:
+                        th = float(json.load(open(cand)).get(key) or 0.0) or None; tsrc = os.path.relpath(cand, ROOT)
+                    except Exception:
+                        th = None
+        reg_p = os.path.join(CAMPAIGN_ROOT, self.campaign_id, "teacher_registry.json"); shared = 1
+        if self.teacher_id and os.path.exists(reg_p):
+            try:
+                _e = json.load(open(reg_p)).get(self.teacher_id, {}) or {}
+                shared = max(1, len(_e.get("used_by_training") or []))          # 학습에 쓴 run 수 (평가 전용 제외)
+            except Exception:
+                shared = 1
+        cs = (time.time() - self._t_run0) / 3600.0
+        cal = {kk: v.get("from_cache") for kk, v in self.calibration.items() if isinstance(v, dict) and "from_cache" in v}
+        role = "none" if not self.teacher_manifest else ("eval_only" if self.spec.get("teacher_eval_only") else "training")
+        # 학습에 Teacher 를 쓰지 않는 arm(GT-only) 은 KD 준비비를 총계에 넣지 않는다 — 대신 평가 bin 용으로 쓴 사실과 시간을 그대로 남긴다
+        total = cs + (th if (th and role == "training") else 0.0)
+        json.dump(dict(run_id=self.run_id, status=status, updates_done=int(self._global_step), updates_budget=int(self.args.num_iter),
+                       cost_student_hours=cs, cost_teacher_hours=th, cost_teacher_source=tsrc, cost_teacher_role=role, cost_total_hours=total,
+                       teacher_id=self.teacher_id, teacher_run=(self.teacher_manifest or {}).get("run"), teacher_shared_by_training_runs=shared,
+                       cost_teacher_amortized_hours=(th / shared if (th and role == "training") else None), calibration_from_cache=cal,
+                       note=("cost_teacher 는 Teacher 학습 run 의 실측 시간이다. 여러 Student 가 공유해도 최초 준비비는 숨기지 않는다 (§13.4). "
+                             "role=eval_only 이면 학습 loss 에는 Teacher 를 쓰지 않았고(평가 bin 전용) 총계에서 제외한다.")),
+                  open(os.path.join(self.args.work_dir, "cost_manifest.json"), "w"), indent=1)
+
+    def _runs_csv(self, status, extra=None):
+        p = os.path.join(CAMPAIGN_ROOT, self.campaign_id, "runs.csv"); sp = self.spec
+        row = dict(run_id=self.run_id, time=time.strftime("%Y-%m-%dT%H:%M:%S"), status=status, recipe=sp["recipe"], input_protocol=sp["protocol"], teacher_id=self.teacher_id or "",
+                   W_T=(self.teacher_manifest or {}).get("width", ""), W_S=self.args.model_args.get("hidden_size"), aligner_policy=sp["policy"], rec=sp["rec_case"], stat_kind=sp["stat_key"],
+                   stat_mode=sp["stat_mode"] or "", G_mode=sp["geom"], seed=self.args.seed, init_id=self.init_hashes.get("unet_init_sha256_16"), budget_updates=self.args.num_iter,
+                   parent=(self.k.get("phase") or {}).get("parent_run", ""), last_step=int(self._global_step), elapsed_h=round((time.time() - self._t_run0) / 3600, 3), lambda_V=self.lam_V,
+                   resumed=int(bool(self.resumed_from)), rec_control=sp.get("rec_control", "none"), stat_transform=sp.get("stat_transform", "none"), stat_domain=sp.get("stat_domain", "final_hrms"),
+                   stat_windows="-".join(str(x) for x in (sp.get("stat_windows") or [])), na_protocol=sp.get("na_protocol") or "", select_primary=sp.get("select_primary", "best_raw"), **(extra or {}))
+        new = not os.path.exists(p)
+        with open(p, "a", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=list(row.keys()))
+            if new:
+                w.writeheader()
+            w.writerow(row)
+
+    # ------------------------------------------------------------------ warm start / phase change (§15)
+    def _warm_start(self, ph):
+        parent, tag, step = ph["parent_run"], ph.get("parent_tag", "last"), int(ph["parent_step"])
+        sd, p = load_state(os.path.join("work_dir", parent, tag)); M = self.M
+        M.backbone.load_state_dict({kk[len("backbone."):]: v for kk, v in sd.items() if kk.startswith("backbone.")}, strict=True)
+        apol = ph.get("aligner_state", "inherit_if_present")
+        if M.aligner is not None and apol == "inherit_if_present" and any(kk.startswith("aligner.") for kk in sd):
+            M.aligner.load_state_dict({kk[len("aligner."):]: v for kk, v in sd.items() if kk.startswith("aligner.")}, strict=True)
+        if M.cov_head is not None and any(kk.startswith("cov_head.") for kk in sd):
+            M.cov_head.load_state_dict({kk[len("cov_head."):]: v for kk, v in sd.items() if kk.startswith("cov_head.")}, strict=True)
+        opol = ph.get("optimizer_state_policy", "preserve_existing_add_aligner_fresh"); loaded = 0
+        op = os.path.join(ROOT, "work_dir", parent, tag, "optimizer.bin")
+        if opol != "fresh" and os.path.exists(op):
+            osd = torch.load(op, map_location="cpu"); cur = self.optimizer.state_dict()
+            nb = len(cur["param_groups"][0]["params"])
+            state = {i: s for i, s in osd["state"].items() if int(i) < nb}          # backbone group 은 위치 대응 (같은 module 순서)
+            cur["state"] = state; self.optimizer.load_state_dict(cur); loaded = len(state)
+        for _ in range(step):
+            self.lr_scheduler.step()
+        self.start_step = step; self._global_step = step
+        pcfg = yaml.safe_load(open(os.path.join(ROOT, "work_dir", parent, "meta", "config.yaml")))
+        diff = {kk: dict(old=pcfg.get("kdv", {}).get(kk), new=self.k.get(kk)) for kk in set(pcfg.get("kdv", {})) | set(self.k) if pcfg.get("kdv", {}).get(kk) != self.k.get(kk) and kk != "phase"}
+        pcost = os.path.join(ROOT, "work_dir", parent, "memory_and_throughput.json")
+        pmeta = os.path.join(ROOT, "work_dir", parent, f"{tag}_meta.json")
+        parent_trained = (json.load(open(pmeta)).get("step") if os.path.exists(pmeta) else None)      # parent 가 실제로 학습한 update (schedule 시작점 parent_step 과 다르다)
+        yaml.safe_dump(dict(run_kind="ADAPTIVE_PATH", start="warm_start", parent_run=parent, parent_tag=tag,
+                            parent_step=step, parent_step_meaning="이 run 의 schedule 시작 global step (0 = 새 tail/fresh optimizer)",
+                            parent_trained_updates=parent_trained, parent_trained_meaning=f"parent checkpoint({tag}) 가 실제로 학습한 update — 누적 학습량 = 이 값 + 이 run 의 update",
+                            parent_checkpoint_sha256=sha256_file(p),
+                            config_diff=diff, optimizer_state_policy=opol, optimizer_states_loaded=loaded, scheduler_policy="inherit_full_N_global_step",
+                            teacher_id_before=pcfg.get("kdv", {}).get("teacher", {}).get("id"), teacher_id_after=self.teacher_id, reason=ph.get("reason", "REQUIRED_OBSERVATION"),
+                            matched_continuation=ph.get("matched_continuation", "REQUIRED_CONTROL_ID"), formal_one_factor_ablation=(len(diff) == 1),
+                            inherited_cost_hours=(json.load(open(pcost)).get("elapsed_hours") if os.path.exists(pcost) else None)),
+                       open(os.path.join(self.args.work_dir, "parent_and_phase.yaml"), "w"))
+
+    # ------------------------------------------------------------------ 한 update 의 loss (§12)
+    def _step(self, gt, ms, lpan, pan, step, meta=None):
+        sp = self.spec; M = self.M; dev = gt.device; act = self.aligner_active(step)
+        pan_view, eps, corrupted = prepare_view(pan, self.protocol, step, self.radius_hr, self.gen)
+        t0 = time.time()
+        o = kdv_forward(M, self.teacher, pan_view, ms, lpan, share_correction=self.share_correction, teacher_needed=sp["needs_teacher"], aligner_live=act, features=(sp["geom"] == "G5"))
+        y, y_t, delta = o["y"], o["y_t"], o["delta"]
+        info = dict(corrupt=corrupted, eps=eps, delta=delta, delta_t=o["delta_t"], pan_aligned=o["pan_aligned"], pan_view=pan_view, y=y, y_t=y_t, t_forward=time.time() - t0, _gt=gt, feat_t=o["feat_t"], _ms=ms, _lpan=lpan)
+        info["aligner_active"] = float(act)
+        # reconstruction (§6) — TRI-A/C (addendum §4·§6·§7): parent 의 w_H/w_K 그대로, soft 에 band gate m_A · risk r_C 만 곱한다
+        tri = self.tri; tri_rec = tri["enabled"] and (tri["a_mode"] != "off" or (tri["c_mode"] != "off" and tri["c_phi"] == "identity"))
+        ctl_rec = sp["rec_control"] != "none"                                  # §12 CTL-HSCALE / CTL-RSHUFFLE — soft·hard 계수만 바꾸는 인과 대조
+        if y_t is not None and self.rec_crit is not None and (tri_rec or ctl_rec):
+            with torch.autocast(device_type=dev.type, enabled=False):
+                r = self.rec_crit(y.float(), y_t.float(), gt.float(), return_maps=True); w_h, w_k = r.maps["hard_weight"], r.maps["soft_weight"]
+                if sp["rec_control"] == "hscale":                               # 공간 지도 없이 batch 평균 배율만 (어려운 위치 지도 vs 단순 loss scale)
+                    w_h = w_h.mean().expand_as(w_h); info["ctl_hard_weight_scalar"] = float(w_h.flatten()[0])
+                elif sp["rec_control"] == "rshuffle":                           # d_T·a_T 를 **함께** 공간 permutation (w_H, w_K 는 그 pointwise 함수다)
+                    _wc = shuffle_mask(torch.cat((w_h, w_k), dim=1), self.tri_gen); w_h, w_k = _wc[:, :1], _wc[:, 1:]
+                    info["ctl_shuffled_pairs"] = 1.0
+                yd, ytf, gf = y.detach().float(), y_t.float(), gt.float(); mask = None; risk = None; wk_band = None; J = None
+                if tri["a_mode"] in ("sign", "sign_cap", "cosine"):
+                    mask = direction_mask(yd, ytf, gf, mode=tri["a_mode"], eps=tri["a_eps"])
+                elif tri["a_mode"] == "mass":
+                    m0 = direction_mask(yd, ytf, gf, mode="sign", eps=tri["a_eps"]); mask = mass_kappa(w_k, m0).expand_as(m0); info["tri_a_kappa"] = float(mask.flatten()[0])
+                elif tri["a_mode"] == "shuffle":
+                    mask = shuffle_mask(direction_mask(yd, ytf, gf, mode="sign", eps=tri["a_eps"]), self.tri_gen)
+                elif tri["a_mode"] == "band_adv":
+                    wk_band = component_weights(yd, ytf, gf, self.tri_state["tau_R_c"], alpha=self.rec_crit.alpha, kd_weight=self.rec_crit.kd_weight, eps=self.rec_crit.eps)
+                if tri["c_mode"] != "off" and tri["c_phi"] == "identity":
+                    tj = time.time(); J = teacher_fd_jacobian(self.teacher, pan_view, ms, lpan, o["delta_t"], h=tri["c_h"], phi="identity"); info["t_probe"] = time.time() - tj
+                    info["_J"] = J
+                    if tri["c_mode"] == "sens":
+                        risk = sens_risk(sens_q(J), self.tri_state["s_sens"]); info["tri_c_valid_frac"] = 1.0
+                    elif tri["c_mode"] in ("diag", "full", "qscalar"):
+                        Pi, valid_p, pinfo = self.tri_state["prec_fn"](pan_view, o["ms_base"], gt, o["delta_t"]); Sig, valid_s = sigma_from_precision(Pi, pinfo); valid = valid_p & valid_s
+                        Sig = sigma_control(Sig, tri["c_sigma_control"], self.tri_gen); info["_Sig"] = Sig; info["_valid"] = valid; info["tri_c_valid_frac"] = float(valid.double().mean())
+                        if tri["c_mode"] == "diag":
+                            dr = diag_risk(J, Sig, valid, s_c=self.tri_state["s_c"]); risk = dr["risk"]; info["_q_report"] = dr["q_report"]
+                    if risk is not None:
+                        risk = roi_gate(risk, tri["c_roi_margin"])              # §9.2: 경계 margin 에서는 감쇠 없음 (r=1)
+                        info["tri_c_roi_margin"] = float(tri["c_roi_margin"])
+                        if tri["c_control"] == "mass":                          # CTL-CMASS: 민감도 정보 없이 같은 soft 총계수만 (감쇠량 대조)
+                            risk = mass_kappa(w_k, risk).expand_as(risk); info["tri_c_kappa"] = float(risk.flatten()[0])
+                        info["tri_c_risk_mean"] = float(risk.mean())
+                        if not tri["c_apply"]:                                  # CS00: 학습은 parent(Q04) 와 동일 — 진단만 남긴다
+                            info["tri_c_applied"] = 0.0; risk = None
+                if tri["c_mode"] in ("full", "qiso", "qscalar") and tri["c_phi"] == "identity":
+                    d = y.float() - ytf; s_c = self.tri_state["s_c"]
+                    if tri["c_mode"] == "qiso":
+                        lq = iso_quad(d, s_c=s_c)
+                    elif tri["c_mode"] == "full":
+                        lq = lowrank_quad(d, J, Sig, s_c=s_c); lq = torch.where(valid[:, None, None, None], lq, iso_quad(d, s_c=s_c))
+                    else:
+                        lq = scalar_quad(d, J, Sig, s_c=s_c); lq = torch.where(valid[:, None, None, None], lq, iso_quad(d, s_c=s_c))
+                    soft = self.tri_state["lambda_q"] * (w_k * lq).mean(); loss_rec = r.hard + soft
+                    info.update(rec_hard=float(r.hard), rec_soft=float(soft), rec_soft_original=float(r.soft), tri_gate_mean=1.0)
+                    info["_rec_hard_t"], info["_rec_soft_t"] = r.hard, soft
+                elif wk_band is not None:
+                    res = masked_l1_componentwise(y.float(), ytf, gf, w_h, wk_band, risk=risk); loss_rec = res["loss"]
+                    info.update(rec_hard=float(res["hard"]), rec_soft=float(res["soft"]), rec_soft_original=float(r.soft), tri_gate_mean=float(res["gate_mean"]))
+                    info["_rec_hard_t"], info["_rec_soft_t"] = res["hard"], res["soft"]
+                else:
+                    res = masked_l1(y.float(), ytf, gf, w_h, w_k, mask=mask, risk=risk); loss_rec = res["loss"]
+                    info.update(rec_hard=float(res["hard"]), rec_soft=float(res["soft"]), rec_soft_original=float(r.soft), tri_gate_mean=float(res["gate_mean"]))
+                    info["_rec_hard_t"], info["_rec_soft_t"] = res["hard"], res["soft"]
+                info.update(**{f"rec_{kk}": float(v) for kk, v in r.stats.items()}); info["_tri_rec"] = (yd, ytf, gf, mask, risk, w_k); info["rec_control"] = sp["rec_control"]; info["_rec_maps"] = r.maps
+        elif y_t is not None and self.rec_crit is not None:
+            r = self.rec_crit(y, y_t, gt, return_maps=self.is_diag_step(step)); loss_rec = r.loss
+            info.update(rec_hard=float(r.hard), rec_soft=float(r.soft), **{f"rec_{kk}": float(v) for kk, v in r.stats.items()})
+            info["_rec_hard_t"], info["_rec_soft_t"], info["_rec_maps"] = r.hard, r.soft, r.maps
+            info["_l0_t"] = (y.float() - gt.float()).abs().mean()                  # L_0 (plain L1) — s5 routing/진단의 L_D = hard − L_0
+        else:
+            loss_rec = (y - gt).abs().mean(); info.update(rec_hard=float(loss_rec), rec_soft=0.0, rec_plain_gt_l1=float(loss_rec)); info["_l0_t"] = loss_rec
+        # output statistics (§9)
+        loss_stat_raw = torch.zeros((), device=dev); lam_v = 0.0
+        if sp["stat_enabled"]:
+            with torch.autocast(device_type=dev.type, enabled=False):
+                tf, tfe = sp["stat_transform"], sp["stat_transform_eps"]
+                # 통계 도메인 (§5.3 REP-RESIDUAL): 같은 M 을 세 tensor 에서 뺀다 — 픽셀 L1 과 달리 분산은 cross term 때문에 같지 않다
+                _res = sp["stat_domain"] == "residual"; _mb = o["ms_base"].float()
+                ys = (y.float() - _mb) if _res else y.float()
+                yts = ((y_t.float() - _mb) if _res else y_t.float()) if y_t is not None else None
+                gts = (gt.float() - _mb) if _res else gt.float()
+                if sp["stat_kind"] == "edge":
+                    eg = getattr(self, "edge_gate", None)
+                    if eg is not None and eg.mode in ("low_q", "shuffle"):          # QEDGE9 §3.2: λE·(1/B)Σ g_i E_i — Q12 edge 항 교체, active 수로 재정규화 없음; g 는 sg(cue)
+                        edge_i = output_edge_loss_per_sample(y.float(), gt.float()); g_i = eg.gate_for(meta, dev).detach()
+                        loss_stat_raw = (g_i * edge_i).mean(); ga = g_i.sum()
+                        info.update(stat_hard=float(loss_stat_raw), stat_edge_gate_frac=float(g_i.mean()), stat_edge_i_mean=float(edge_i.detach().mean()),
+                                    stat_edge_i_active=float((g_i * edge_i.detach()).sum() / ga) if float(ga) > 0 else 0.0, stat_edge_ungated=float(edge_i.detach().mean()))
+                    elif eg is not None and eg.mode == "const":                       # QEC §6.1: λE·c_E·mean_i E_i
+                        _le = output_edge_loss(y.float(), gt.float()); loss_stat_raw = float(eg.c_E) * _le
+                        info.update(stat_hard=float(loss_stat_raw), stat_edge_c_E=float(eg.c_E), stat_edge_ungated=float(_le))
+                    elif getattr(self, "edge_weight", None) is not None:                # EDGEBAL §3.4 FLOOR/SHUF/REVERSE: λE·(1/B)Σ w_i E_i, w_i = high + (low−high)·g_i (sg; active 수·weight 합으로 재정규화 없음)
+                        edge_i = output_edge_loss_per_sample(y.float(), gt.float()); w_i = self.edge_weight.weight_for(meta, dev); g_i = self.edge_weight.gate.gate_for(meta, dev).detach(); ga = g_i.sum(); gb = (1.0 - g_i).sum()
+                        loss_stat_raw = (w_i * edge_i).mean(); Ed = edge_i.detach()
+                        info.update(stat_hard=float(loss_stat_raw), stat_edge_w_mean=float(w_i.mean()), stat_edge_gate_frac=float(g_i.mean()), stat_edge_raw=float(Ed.mean()), stat_edge_eff=float(loss_stat_raw), stat_edge_ungated=float(Ed.mean()),
+                                    stat_edge_E_qlow=(float((g_i * Ed).sum() / ga) if float(ga) > 0 else 0.0), stat_edge_E_qhigh=(float(((1.0 - g_i) * Ed).sum() / gb) if float(gb) > 0 else 0.0), stat_edge_sched=1.0)
+                    elif getattr(self, "edge_schedule", None):                           # EDGEBAL §3.3 DOWN/UP: λE·w(t)·mean_i E_i, w(t) 는 0-based update 만의 순수 함수(재개 동일) — 1.0 이면 JQ 와 bitwise 같은 식
+                        _le = output_edge_loss(y.float(), gt.float()); r_t = self.edge_schedule_factor(step); loss_stat_raw = (_le if r_t == 1.0 else r_t * _le)
+                        info.update(stat_hard=float(loss_stat_raw), stat_edge_sched=float(r_t), stat_edge_raw=float(_le), stat_edge_eff=float(loss_stat_raw), stat_edge_ungated=float(_le), stat_edge_w_mean=float(r_t))
+                    elif getattr(self, "edge_route", None) is not None:                 # QEGX §4.5 QER50/QERS: total 은 all-edge(JQ 와 같은 식) — A 가 받지 않을 몫 λE·mean((1−g)E_i) 는 backward 뒤 A .grad 에서 뺀다
+                        loss_stat_raw = output_edge_loss(y.float(), gt.float())
+                        edge_i = output_edge_loss_per_sample(y.float(), gt.float()); g_i = self.edge_route.gate_for(meta, dev).detach(); ga = g_i.sum()
+                        info["_edge_route_hi_t"] = ((1.0 - g_i) * edge_i).mean()          # λ 는 아래 lam_v 로 (info["_edge_route_hi_w_t"])
+                        info.update(stat_hard=float(loss_stat_raw), stat_edge_gate_frac=float(g_i.mean()), stat_edge_i_mean=float(edge_i.detach().mean()),
+                                    stat_edge_i_active=float((g_i * edge_i.detach()).sum() / ga) if float(ga) > 0 else 0.0, stat_edge_A_gated=float((g_i * edge_i.detach()).mean()), stat_edge_ungated=float(edge_i.detach().mean()))
+                    else:
+                        loss_stat_raw = output_edge_loss(y.float(), gt.float()); info["stat_hard"] = float(loss_stat_raw)
+                elif tri["enabled"] and (tri["b_mode"] != "off" or (tri["c_mode"] != "off" and tri["c_phi"] == "stat")):
+                    kind, w = sp["stat_kind"], sp["stat_window"]
+                    v_s, v_t, v_g = stat_maps(ys, yts, gts, kind=kind, window=w, transform=tf, transform_eps=tfe)
+                    if sp["stat_mode"] in ("T", "TMATCH"):                       # T: 계수 1 · TMATCH(X08): 계수 β_V (FIX 와 같은 강도)
+                        _coef = 1.0 if sp["stat_mode"] == "T" else float((self.k.get("stat") or {}).get("kd_weight", 0.1))
+                        w_hV = torch.zeros(v_s.shape[0], 1, *v_s.shape[-2:], device=dev); w_kV = torch.full_like(w_hV, _coef); s_orig = _coef * (v_s.detach() - v_t).abs().mean()
+                    else:
+                        sr = self.stat_crit(v_s.detach(), v_t, v_g, return_maps=True); w_hV, w_kV = sr.maps["hard_weight"], sr.maps["soft_weight"]; s_orig = sr.soft
+                        info.update(**{f"stat_{kk}": float(v) for kk, v in sr.stats.items()})
+                    vsd = v_s.detach(); mask_b = None; risk_v = None; wk_comp = None
+                    if tri["b_mode"] in ("sign", "sign_cap"):
+                        mask_b = direction_mask(vsd, v_t, v_g, mode=tri["b_mode"], eps=float(self.calibration["stat"]["eps_V"]))
+                    elif tri["b_mode"] == "mass":
+                        m0 = direction_mask(vsd, v_t, v_g, mode="sign", eps=float(self.calibration["stat"]["eps_V"])); mask_b = mass_kappa(w_kV, m0).expand_as(m0); info["tri_b_kappa"] = float(mask_b.flatten()[0])
+                    elif tri["b_mode"] == "shuffle":
+                        mask_b = shuffle_mask(direction_mask(vsd, v_t, v_g, mode="sign", eps=float(self.calibration["stat"]["eps_V"])), self.tri_gen)
+                    elif tri["b_mode"] == "comp_adv":
+                        wk_comp = component_weights(vsd, v_t, v_g, self.tri_state["tau_V_j"], alpha=self.stat_crit.alpha, kd_weight=self.stat_crit.kd_weight, eps=self.tri_state["eps_V_j"])
+                    if tri["c_mode"] != "off" and tri["c_phi"] == "stat":
+                        tj = time.time(); JV = teacher_fd_jacobian(self.teacher, pan_view, ms, lpan, o["delta_t"], h=tri["c_h"], phi="stat", stat_kind=kind, window=w); info["t_probe"] = time.time() - tj; info["_JV"] = JV
+                        if tri["c_mode"] == "sens":
+                            risk_v = sens_risk(sens_q(JV), self.tri_state["s_sens"]); info["tri_c_valid_frac"] = 1.0
+                        elif tri["c_mode"] == "diag":
+                            Pi, valid_p, pinfo = self.tri_state["prec_fn"](pan_view, o["ms_base"], gt, o["delta_t"]); Sig, valid_s = sigma_from_precision(Pi, pinfo); valid = valid_p & valid_s
+                            Sig = sigma_control(Sig, tri["c_sigma_control"], self.tri_gen); dr = diag_risk(JV, Sig, valid, s_c=self.tri_state["s_c"]); risk_v = dr["risk"]; info["tri_c_valid_frac"] = float(valid.double().mean()); info["_Sig"] = Sig
+                        if risk_v is not None:
+                            risk_v = roi_gate(risk_v, tri["c_roi_margin"]); info["tri_c_roi_margin"] = float(tri["c_roi_margin"])
+                            if tri["c_control"] == "mass":
+                                risk_v = mass_kappa(w_kV, risk_v).expand_as(risk_v); info["tri_c_kappa"] = float(risk_v.flatten()[0])
+                            info["tri_c_risk_mean"] = float(risk_v.mean())
+                            if not tri["c_apply"]:
+                                info["tri_c_applied"] = 0.0; risk_v = None
+                        else:
+                            raise NotImplementedError("통계 표현의 quadratic C(full/qiso/qscalar) 는 첫 구현 범위 밖 (addendum §6.7: B 결합은 r_C^V 곱)")
+                    if wk_comp is not None:
+                        res = masked_l1_componentwise(v_s, v_t, v_g, w_hV, wk_comp, risk=risk_v)
+                    else:
+                        res = masked_l1(v_s, v_t, v_g, w_hV, w_kV, mask=mask_b, risk=risk_v)
+                    loss_stat_raw = res["loss"]; info.update(stat_hard=float(res["hard"]), stat_soft=float(res["soft"]), stat_soft_original=float(s_orig), tri_b_gate_mean=float(res["gate_mean"]))
+                    info["_stat_hard_t"], info["_stat_soft_t"] = res["hard"], res["soft"]
+                    info["_tri_stat"] = (vsd, v_t, v_g, mask_b, risk_v, w_kV)
+                else:
+                    parts = [stat_term(ys, yts, gts, kind=sp["stat_kind"], window=wi, mode=sp["stat_mode"], criterion=self.stat_crits.get(wi), transform=tf, transform_eps=tfe,
+                                       kd_weight=float((self.k.get("stat") or {}).get("kd_weight", 0.1)))
+                             for wi in sp["stat_windows"]]                       # REP-MULTI357: 창별 loss 를 평균 (창마다 τ_V 를 따로 calibration 했다)
+                    loss_stat_raw = sum(pp.loss for pp in parts) / len(parts)
+                    info["_stat_hard_t"] = sum(pp.hard for pp in parts) / len(parts); info["_stat_soft_t"] = sum(pp.soft for pp in parts) / len(parts)
+                    info.update(stat_hard=float(sum(float(pp.hard) for pp in parts) / len(parts)), stat_soft=float(sum(float(pp.soft) for pp in parts) / len(parts)),
+                                **{f"stat_{kk}": float(v) for kk, v in parts[0].stats.items()})
+                    if len(parts) > 1:
+                        info.update(**{f"stat_w{wi}": float(pp.loss) for wi, pp in zip(sp["stat_windows"], parts)})
+            lam_v = self.lam_V * (min(1.0, (step + 1) / float(self.stat_ramp)) if self.stat_ramp > 0 else 1.0)
+        loss_stat_extra = torch.zeros((), device=dev)
+        if self.stat_extra and y is not None:
+            ramp = (min(1.0, (step + 1) / float(self.stat_ramp)) if self.stat_ramp > 0 else 1.0)
+            with torch.autocast(device_type=dev.type, enabled=False):
+                for i, ex in enumerate(self.stat_extra):
+                    e = ex["spec"]; _r = e["domain"] == "residual"; _mb = o["ms_base"].float()
+                    ysi = (y.float() - _mb) if _r else y.float()
+                    ytsi = ((y_t.float() - _mb) if _r else y_t.float()) if y_t is not None else None
+                    gtsi = (gt.float() - _mb) if _r else gt.float()
+                    if e["kind"] == "edge":
+                        li = output_edge_loss(y.float(), gt.float())
+                    else:
+                        pl = [stat_term(ysi, ytsi, gtsi, kind=e["kind"], window=wi, mode=e["mode"], criterion=ex["crits"].get(wi), transform=e["transform"], transform_eps=e["transform_eps"], kd_weight=e["kd_weight"]) for wi in e["windows"]]
+                        li = sum(pp.loss for pp in pl) / len(pl)
+                    loss_stat_extra = loss_stat_extra + ex["lam"] * ramp * li
+                    info[f"stat_extra{i}_raw"] = float(li); info[f"stat_extra{i}_lam"] = ex["lam"] * ramp
+        # inherited auxiliary (§10)
+        lam_e, lam_g = lambda_ramp(self.lam_edge, step, self.ramp), lambda_ramp(self.lam_geo, step, self.ramp)
+        loss_edge = output_edge_loss(y, gt) if self.lam_edge > 0 else torch.zeros((), device=dev)
+        loss_geo = torch.zeros((), device=dev); geo_info = None
+        if self.lam_geo > 0:
+            H, W = pan.shape[-2:]; ok = support_margin_ok(H, W, delta.detach(), self.guard_margin)
+            if not bool(ok.all()):
+                self._support_fail(step, float(delta.detach().abs().max()), f"geometry support(margin {self.guard_margin})")
+            with torch.autocast(device_type=dev.type, enabled=False):
+                loss_geo, geo_info = direct_geometry_loss(o["pan_aligned"], pan_view, gt, self.geo_sigma, self.geo_margin)
+        loss_off = torch.zeros((), device=dev); lam_off = 0.0
+        if self.protocol == "I-AEQ" and sp["offset_weight_effective"] > 0 and step % 2 == 1:
+            # NF16 §4.2: 홀수 update 에 P_ε 를 **aligner 에만** 넣어 |ĉε + ε − sg(ĉ0)|. ĉ0 는 native forward 의 값 재사용(target 만 detach). U-Net 은 native P̃0 만 본다.
+            eps = sample_offsets(pan.shape[0], self.radius_hr, self.gen).to(dev)     # ε 는 A 가 동결된 update 에도 같은 순서로 소비한다 (s5 §7.1: 해제 뒤 ε 열이 J 와 같다)
+            if act:
+                with torch.no_grad(), torch.autocast(device_type=dev.type, enabled=False):
+                    p_eps = warp_pan(pan.float(), eps)
+                c_eps = predict_c(M.aligner, p_eps, o["ms_base"], self.aligner_view_margin)
+                loss_off = offset_loss(c_eps, delta, eps, stop_reference=True); lam_off = lambda_off(step, sp["offset_weight_effective"], sp["offset_ramp_updates"])
+                info["closure"] = float((c_eps.detach() + eps - delta.detach()).norm(dim=1).mean()); info["eps"] = eps; info["eq_exercise"] = 1.0; info["_c_eps"] = c_eps
+            else:                                                                    # 동결 구간: jittered-A forward/backward 만 생략 (LO 없음)
+                info["eq_exercise"] = 0.0; info["off_skipped_frozen"] = 1.0
+        elif corrupted and sp["offset_weight_effective"] > 0:
+            if sp["offset_stop_reference"]:
+                with torch.no_grad():
+                    c0 = predict_c(M.aligner, pan, o["ms_base"], self.aligner_view_margin)
+            else:
+                c0 = predict_c(M.aligner, pan, o["ms_base"], self.aligner_view_margin)
+            loss_off = offset_loss(delta, c0, eps, stop_reference=sp["offset_stop_reference"]); lam_off = lambda_off(step, sp["offset_weight_effective"], sp["offset_ramp_updates"])
+            info["closure"] = float((delta.detach() + eps - c0.detach()).norm(dim=1).mean())
+        # alignment KD G1–G5 / G-STRUCT (§11.5–11.7, native step · trainable aligner 만; Π_T 는 frozen Teacher 에서 no_grad)
+        loss_gkd = torch.zeros((), device=dev); lam_gkd = 0.0; gk = {}
+        if sp["geom"] != "G0" and y_t is not None and not corrupted:
+            with torch.no_grad():
+                Pi, valid, pinfo = self.prec_fn(pan_view, o["ms_base"], gt, o["delta_t"])
+            if sp["geom"] == "G5":
+                Sig_s = M.cov_head(o["feat"])
+                with torch.no_grad():
+                    Sig_t = self.cov_head_t(o["feat_t"])
+                    valid = valid & (pinfo["rank"] >= 2) if "rank" in pinfo else valid       # §11.3-3: rank 부족 sample 은 분포 KD 제외 (비율 기록)
+                kl = gaussian_kl(delta, Sig_s, o["delta_t"], Sig_t) * valid.double()
+                loss_gkd = (kl.sum() / kl.shape[0]).float(); q = kl.detach()
+                gk.update(gkd_logdet_s=float(torch.logdet(Sig_s.detach()).mean()), gkd_logdet_t=float(torch.logdet(Sig_t).mean()), gkd_rank_excluded_frac=(float((pinfo["rank"] < 2).double().mean()) if "rank" in pinfo else 0.0))
+            else:
+                loss_gkd_d, q = mean_kd_loss(delta, o["delta_t"], kd_matrix(Pi, sp["geom"], self.k0 or 1.0), valid); loss_gkd = loss_gkd_d.float()
+            lam_gkd = self.lam_gkd
+            gk.update(gkd_q_mean=float(q.mean()), gkd_valid_frac=float(valid.double().mean()), gkd_pi_trace_median=float((Pi.diagonal(dim1=1, dim2=2).sum(1) / 2).median()),
+                      gkd_rank_deficient_frac=(float((pinfo["rank"] < 2).double().mean()) if "rank" in pinfo else 0.0), gkd_cap_frac=(float(pinfo["cap_hit"].double().mean()) if "cap_hit" in pinfo else 0.0))
+            if "closure_norm" in pinfo:
+                gk["gkd_teacher_closure"] = float(pinfo["closure_norm"].mean())
+            info["_Pi"] = Pi; info["_pinfo"] = pinfo; info["_valid"] = valid
+        if sp["geom"] != "G0":
+            gk["gkd_applied"] = float((y_t is not None) and (not corrupted))                     # §12: native-only 적용 빈도 (EMA) — 2× 보상 없음
+        loss_aux = lam_e * loss_edge + lam_g * loss_geo + lam_off * loss_off + lam_gkd * loss_gkd + loss_stat_extra
+        info.update(gk)
+        total = loss_rec + lam_v * loss_stat_raw + loss_aux
+        info["_edge_w_t"] = (lam_v * loss_stat_raw) if (sp["stat_enabled"] and sp["stat_kind"] == "edge") else None     # λE·L_E (s5 routing/진단)
+        info["_edge_route_hi_w_t"] = (lam_v * info["_edge_route_hi_t"]) if info.get("_edge_route_hi_t") is not None else None   # QEGX: λE·mean((1−g)E_i) — A 에서 빼는 몫
+        if info.get("stat_edge_w_mean") is not None:                                                                            # EDGEBAL §10.4: effective λ = λE × mean w (loss ratio 지 gradient ratio 가 아니다)
+            info["stat_edge_lambda_eff"] = float(lam_v) * float(info["stat_edge_w_mean"])
+        if getattr(self, "qrecon", None) is not None:                                        # QRECON24 §2.5: per-sample H_i/K_i/E_i (sample 축소 전에 w 를 곱한다; 재정규화 없음) → L_U(U 만) · L_A(A 만)
+            with torch.autocast(device_type=dev.type, enabled=False):
+                yf, gf, ytf = y.float(), gt.float(), y_t.float()
+                r2 = self.rec_crit(yf, ytf, gf, return_maps=True)                              # 같은 α·τR·β·d_T·a_T (detach 된 가중 지도) — loss_rec 와 같은 정의
+                e_gt = (yf - gf).abs().mean(dim=1, keepdim=True); k_st = (yf - ytf.detach()).abs().mean(dim=1, keepdim=True)
+                H_i = (r2.maps["hard_weight"] * e_gt).mean(dim=(1, 2, 3)); K_i = (r2.maps["soft_weight"] * k_st).mean(dim=(1, 2, 3)); E_i = output_edge_loss_per_sample(yf, gf)
+                w_a, w_e = self.qrecon.weights(meta, dev)
+                L_U = (H_i + K_i + lam_v * w_e * E_i).mean(); L_A = (w_a * H_i).mean()
+            Ed, Hd, Kd = E_i.detach(), H_i.detach(), K_i.detach(); loss_stat_raw = (w_e * E_i).mean()
+            info.update(_L_U_t=L_U, _L_A_t=L_A, qrc_w_a_mean=float(w_a.mean()), qrc_w_e_mean=float(w_e.mean()), qrc_w_a_min=float(w_a.min()), qrc_w_a_max=float(w_a.max()), qrc_H_mean=float(Hd.mean()), qrc_K_mean=float(Kd.mean()),
+                        qrc_E_mean=float(Ed.mean()), qrc_wE_mean=float((w_e * Ed).mean()), qrc_wH_A_mean=float((w_a * Hd).mean()), qrc_lambda_E=float(lam_v), qrc_lambda_wE=float(lam_v) * float((w_e * Ed).mean()),
+                        qrc_L_U=float(L_U), qrc_L_A=float(L_A), stat_hard=float(loss_stat_raw), stat_edge_ungated=float(Ed.mean()))
+            info["_edge_w_t"] = lam_v * loss_stat_raw; total = L_U                                  # total = L_U (U 의 목적함수; 기록·NaN 검사용) — A 는 L_A 로만 (train loop _qrecon_backward)
+        info.update(loss_rec=loss_rec, loss_stat_raw=loss_stat_raw, lam_v=lam_v, loss_edge=float(loss_edge), loss_geo=float(loss_geo), _loss_geo=loss_geo, loss_off=loss_off, loss_gkd=float(loss_gkd),
+                    lam_e=lam_e, lam_g=lam_g, lam_off=lam_off, lam_gkd=lam_gkd, loss_aux=loss_aux, geo_info=geo_info)
+        return total, info
+
+    # ------------------------------------------------------------------ s5 timing / routing (배정 §4.2·§5·§10.2–10.3)
+    def aligner_active(self, step):
+        """이 update(0-based) 에서 A 가 gradient 를 받는가 — step 만의 순수 함수라 재개에 안전하다. D: step ≥ freeze_until · LF: step < freeze_from."""
+        fu, ff = getattr(self, "freeze_until", None), getattr(self, "freeze_from", None)          # 옛 stub(감사 스크립트 등) 호환: 속성이 없으면 일정 없음
+        return bool(self.aligner_trainable and (fu is None or step >= int(fu)) and (ff is None or step < int(ff)))
+
+    def _apply_routing(self, info, M):
+        """routing qA=(qD,qK,qE): backward 가 남긴 A 의 .grad 에서 A 가 받지 않을 항 (1−q)·∂L/∂φ 를 뺀다 (g_A = ∇φ(L0 + qD L_D + qK L_K + qE λE L_E + LO)).
+        U 의 .grad 는 그대로(전체 L_Q). optimizer step 은 기존처럼 한 번(§10.3). AMP scaler·accumulation 배율은 backward 와 같게 맞춘다. aligned PAN 을 detach 하지 않는다."""
+        qD, qK, qE = self.route_A; ap = [p for p in M.aligner.parameters() if p.requires_grad]
+        terms = []
+        if qD != 1.0 and info.get("_rec_hard_t") is not None and info.get("_l0_t") is not None:
+            terms.append((1.0 - qD) * (info["_rec_hard_t"] - info["_l0_t"]))              # L_D = ⟨(1+αd)e_S⟩ − ⟨e_S⟩
+        if qK != 1.0 and info.get("_rec_soft_t") is not None:
+            terms.append((1.0 - qK) * info["_rec_soft_t"])                                  # L_K (β 포함)
+        if qE != 1.0 and info.get("_edge_w_t") is not None:
+            terms.append((1.0 - qE) * info["_edge_w_t"])                                     # λE·L_E
+        if not terms or not ap:
+            return 0
+        extra = sum(terms)
+        if not (torch.is_tensor(extra) and extra.requires_grad):
+            return 0
+        scale = 1.0 / float(getattr(self.accelerator, "gradient_accumulation_steps", 1) or 1)
+        sc = getattr(self.accelerator, "scaler", None)
+        if sc is not None:
+            scale *= float(sc.get_scale())
+        g = torch.autograd.grad(extra * scale, ap, retain_graph=False, allow_unused=True)
+        n = 0
+        with torch.no_grad():
+            for p, gi in zip(ap, g):
+                if gi is not None and p.grad is not None:
+                    p.grad.sub_(gi.to(p.grad.dtype)); n += 1
+        return n
+
+    def _qrecon_backward(self, info, M, active):
+        """QRECON24 §2.5·§6.1: 같은 forward 에서 G_U = ∇θ L_U (U 만), G_A = ∇φ L_A (A 만; U 의 입력 Jacobian 은 통과하되 U parameter 에는 누적하지 않는다) 를 autograd.grad 로 따로 얻어 .grad 에 놓는다.
+        단일 scalar backward 가 아니다. optimizer step 은 한 번(train loop). scaler(AMP) 는 거부(적재 시 검사). 반환 (U param 수, A param 수)."""
+        bp = [p for p in M.backbone.parameters() if p.requires_grad]; ap = ([p for p in M.aligner.parameters() if p.requires_grad] if (M.aligner is not None and active) else [])
+        scale = 1.0 / float(getattr(self.accelerator, "gradient_accumulation_steps", 1) or 1)
+        L_U, L_A = info["_L_U_t"], info["_L_A_t"]
+        gU = torch.autograd.grad(L_U * scale, bp, retain_graph=bool(ap), allow_unused=True); nU = 0
+        for p, g in zip(bp, gU):
+            if g is not None:
+                p.grad = (g if p.grad is None else p.grad + g); nU += 1
+        nA = 0
+        if ap:
+            gA = torch.autograd.grad(L_A * scale, ap, retain_graph=False, allow_unused=True)
+            for p, g in zip(ap, gA):
+                if g is not None:
+                    p.grad = (g if p.grad is None else p.grad + g); nA += 1
+        return nU, nA
+
+    def edge_schedule_factor(self, step):
+        """EDGEBAL §3.3: GT edge 계수 w(t) — 0-based optimizer update 만의 순수 함수(before if t < switch else after) 라 재개에 안전하다. 일정이 없으면 1.0."""
+        es = getattr(self, "edge_schedule", None)
+        if not es:
+            return 1.0
+        return float(es["before"]) if int(step) < int(es["switch"]) else float(es["after"])
+
+    def _apply_edge_route(self, info, M):
+        """QEGX §4.5 edge_route: backward(total = … + λE·E(1)) 가 남긴 A 의 .grad 에서 λE·mean((1−g_i)E_i) 의 A gradient 를 뺀다 → g_A = ∇φ(L_H + L_K + λE·E(g) + L_O), g_U = ∇θ(전체) 그대로.
+        _apply_routing 과 같은 보정 방식(AMP scaler·accumulation 배율 동일, optimizer step 은 한 번). g 는 cue 표(sg) 라 gradient 가 없다."""
+        ap = [p for p in M.aligner.parameters() if p.requires_grad]; extra = info.get("_edge_route_hi_w_t")
+        if not ap or not (torch.is_tensor(extra) and extra.requires_grad):
+            return 0
+        scale = 1.0 / float(getattr(self.accelerator, "gradient_accumulation_steps", 1) or 1)
+        sc = getattr(self.accelerator, "scaler", None)
+        if sc is not None:
+            scale *= float(sc.get_scale())
+        g = torch.autograd.grad(extra * scale, ap, retain_graph=False, allow_unused=True)
+        n = 0
+        with torch.no_grad():
+            for p, gi in zip(ap, g):
+                if gi is not None and p.grad is not None:
+                    p.grad.sub_(gi.to(p.grad.dtype)); n += 1
+        return n
+
+    def _support_fail(self, step, mx, why):
+        self.train_log_ref.write(f'[SUPPORT_FAIL] step {step}: |Δ| max {mx:.2f} px — {why}')
+        json.dump(dict(status="SUPPORT_FAIL", step=int(step), max_abs_delta=mx, why=why), open(os.path.join(self.args.work_dir, "support_fail.json"), "w"))
+        self._runs_csv("SUPPORT_FAIL"); self._finish_ledger("SUPPORT_FAIL"); sys.exit(EXIT_SUPPORT_FAIL)
+
+    # ------------------------------------------------------------------ gradient 진단 (§16.6, §21.2)
+    def is_diag_step(self, step):
+        """진단 step: diag_every 배수 + (I-AEQ 면 그 다음 홀수 step 도 — offset 연습 gradient 를 기록, 검토 지적 5)."""
+        n_iter = getattr(getattr(self, "args", None), "num_iter", None)          # gate 의 stub 객체(args 없음) 도 받는다
+        return step % self.diag_every == 0 or (self.protocol == "I-AEQ" and (step % self.diag_every == 1 or (n_iter is not None and step == int(n_iter) - 1)))
+
+    def _gnorm(self, loss, params):
+        if not params or not loss.requires_grad:
+            return None, 0.0
+        g = torch.autograd.grad(loss, params, retain_graph=True, allow_unused=True)
+        v = torch.cat([x.float().flatten() if x is not None else torch.zeros_like(p).flatten() for x, p in zip(g, params)])
+        return v, float(v.norm())
+
+    def _diagnose(self, step, info, M):
+        bp = [p for p in M.backbone.parameters() if p.requires_grad]; ap = list(M.aligner.parameters()) if self.aligner_active(step) else []
+        out = dict(step=int(step), corrupt=bool(info["corrupt"]), aligner_active=bool(ap), route_A=list(getattr(self, "route_A", (1.0, 1.0, 1.0))))
+        if getattr(self, "qrecon", None) is not None:                                      # QRECON24 §9.3·§10.1: w 통계·H/K/E·λE·두 목적함수 값 + gradient 규모(A 가 실제 받는 ∇φL_A vs 제외된 ∇φL_U, U 의 ∇θL_U; 검증용 ∇θL_A)
+            out.update({kk: v for kk, v in info.items() if kk.startswith("qrc_")}); out["qrc_grad_params_A"] = self._ema.get("qrc_grad_params_A")
+            _, out["grad_LU_U"] = self._gnorm(info["_L_U_t"], bp); _, out["grad_LA_U_excluded"] = self._gnorm(info["_L_A_t"], bp)
+            if ap:
+                _, out["grad_LA_A"] = self._gnorm(info["_L_A_t"], ap); _, out["grad_LU_A_excluded"] = self._gnorm(info["_L_U_t"], ap)
+        if getattr(self, "edge_weight", None) is not None or getattr(self, "edge_schedule", None):     # EDGEBAL §10.4: w 평균·λ_eff·q-low/high E·schedule 계수 (loss ratio; gradient 는 고정 진단)
+            out.update({kk: info.get(kk) for kk in ("stat_edge_w_mean", "stat_edge_lambda_eff", "stat_edge_sched", "stat_edge_raw", "stat_edge_eff", "stat_edge_gate_frac", "stat_edge_E_qlow", "stat_edge_E_qhigh") if info.get(kk) is not None})
+        if getattr(self, "edge_route", None) is not None:                                  # QEGX §13: gate 활성 비율 · gated/ungated edge · 직전 update 의 A 보정 param 수 · A 가 받는 all-edge vs routed-edge gradient 규모
+            out.update(edge_route=(self.spec.get("edge_route") or {}).get("edge_A"), edge_route_params_adjusted=self._ema.get("edge_route_params_adjusted"),
+                       stat_edge_gate_frac=info.get("stat_edge_gate_frac"), stat_edge_ungated=info.get("stat_edge_ungated"), stat_edge_A_gated=info.get("stat_edge_A_gated"))
+            if ap and torch.is_tensor(info.get("_edge_w_t")) and info["_edge_w_t"].requires_grad and torch.is_tensor(info.get("_edge_route_hi_w_t")):
+                _, out["grad_edge_A_all"] = self._gnorm(info["_edge_w_t"], ap); _, out["grad_edge_A_routed"] = self._gnorm(info["_edge_w_t"] - info["_edge_route_hi_w_t"], ap)
+        v_rec, out["grad_rec_F"] = self._gnorm(info["loss_rec"], bp)
+        if self.spec["stat_enabled"]:
+            v_st, n_st = self._gnorm(info["loss_stat_raw"], bp); out["grad_stat_F_raw"] = n_st; out["grad_stat_F_weighted"] = n_st * info["lam_v"]
+            out["cos_rec_stat_F"] = (float((v_rec * v_st).sum() / (v_rec.norm() * v_st.norm())) if v_rec is not None and v_st is not None and n_st > 0 and out["grad_rec_F"] > 0 else None)
+        if ap:
+            v_ra, out["grad_rec_A"] = self._gnorm(info["loss_rec"], ap)
+            if info.get("eq_exercise"):
+                has_off = torch.is_tensor(info.get("loss_off")) and info["loss_off"].requires_grad
+                v_oa, out["grad_off_A"] = self._gnorm(info["loss_off"], ap) if has_off else (None, 0.0)
+                # PALS24 §9.3: λ 가 실제로 전달된 양 — ρ_g = λ‖g_off‖/(‖g_rec‖+1e-12), cos ψ = ⟨g_rec, λ g_off⟩/(‖g_rec‖·‖λ g_off‖+1e-12); norm 0 이면 undefined(None)
+                lam = float(info.get("lam_off", 0.0)); out["lambda_off"] = lam
+                out["loss_off_raw"] = float(info["loss_off"]) if torch.is_tensor(info.get("loss_off")) else None
+                out["loss_off_weighted"] = (lam * out["loss_off_raw"]) if out["loss_off_raw"] is not None else None
+                out["grad_off_A_weighted"] = lam * out["grad_off_A"]
+                out["rho_g"] = lam * out["grad_off_A"] / (out["grad_rec_A"] + 1e-12)
+                out["cos_psi"] = (float((v_ra * v_oa).sum() / (v_ra.norm() * v_oa.norm() + 1e-12)) if v_ra is not None and v_oa is not None and out["grad_rec_A"] > 0 and lam * out["grad_off_A"] > 0 else None)
+                if has_off and bp:                                          # §9.4: L_off 는 aligner 전용 — U-Net θ 로의 직접 gradient 가 없어야 한다
+                    gb = torch.autograd.grad(info["loss_off"], bp, retain_graph=True, allow_unused=True)
+                    out["off_unet_grad_absent"] = bool(all(x is None or float(x.abs().sum()) == 0.0 for x in gb))
+            if self.lam_geo > 0 and torch.is_tensor(info.get("_loss_geo")):
+                _, out["grad_geo_A"] = self._gnorm(info["_loss_geo"], ap); _, out["grad_geo_F"] = self._gnorm(info["_loss_geo"], bp)
+            if self.spec["stat_enabled"]:
+                _, out["grad_stat_A_raw"] = self._gnorm(info["loss_stat_raw"], ap)
+            if info["loss_aux"].requires_grad:
+                _, out["grad_aux_A"] = self._gnorm(info["loss_aux"], ap)
+            if info["delta"].requires_grad:
+                g = torch.autograd.grad(info["loss_rec"], info["delta"], retain_graph=True, allow_unused=True)[0]
+                out["dLrec_dDelta_rms"] = (float(g.norm(dim=1).pow(2).mean().sqrt()) if g is not None else 0.0)
+        if "_tri_rec" in info or "_tri_stat" in info:
+            rc = dict(step=int(step), corrupt=bool(info["corrupt"]))
+            for name, key in (("A", "_tri_rec"), ("B", "_tri_stat")):
+                if key in info:
+                    sd_, td_, gd_, mask_, risk_, wk_ = info[key]
+                    m_ = mask_ if mask_ is not None else torch.ones_like(sd_)
+                    rc[name] = routing_stats(sd_, td_, gd_, m_, wk_)
+                    rc[name]["soft_zero_due_to_aT"] = float((wk_ <= 0).double().mean()); rc[name]["soft_zero_due_to_mask"] = float(((wk_ > 0) & (m_ <= 0).all(1, keepdim=True)).double().mean())
+                    if risk_ is not None:
+                        q = risk_.detach(); rc[name]["risk_mean"] = float(q.mean()); rc[name]["risk_p10"] = float(torch.quantile(q.flatten()[:2_000_000], 0.1)); rc[name]["risk_p50"] = float(torch.quantile(q.flatten()[:2_000_000], 0.5))
+            rc["rec_soft_original"] = info.get("rec_soft_original"); rc["rec_soft_masked"] = info.get("rec_soft"); rc["stat_soft_original"] = info.get("stat_soft_original"); rc["stat_soft_masked"] = info.get("stat_soft")
+            self._jsonl("routing_components.jsonl", rc)
+        J_ = info.get("_J", info.get("_JV"))
+        if J_ is not None:
+            tri = self.tri; phi = tri["c_phi"]; kind, w = self.spec["stat_kind"], self.spec["stat_window"]
+            ev = lambda d: teacher_eval(self.teacher, info["pan_view"], info["_ms"], info["_lpan"], d, phi=phi, stat_kind=(kind if phi == "stat" else None), window=w or 5)
+            J2 = teacher_fd_jacobian(self.teacher, info["pan_view"], info["_ms"], info["_lpan"], info["delta_t"], h=tri["c_h"] / 2, phi=phi, stat_kind=(kind if phi == "stat" else None), window=w or 5)
+            lin = linearization_check(ev, info["delta_t"], J_, torch.tensor([[0.1, -0.05]], device=J_.device).expand(J_.shape[0], 2))
+            fd = dict(step=int(step), h=tri["c_h"], J_rms=float(J_.pow(2).mean().sqrt()), J_rms_dy=float(J_[:, :, 0].pow(2).mean().sqrt()), J_rms_dx=float(J_[:, :, 1].pow(2).mean().sqrt()),
+                      rel_half=float((J2 - J_).norm() / (J_.norm() + 1e-30)), finite=bool(torch.isfinite(J_).all()), t_probe_s=info.get("t_probe"), valid_fraction=info.get("tri_c_valid_frac"), **lin)
+            if "_q_report" in info:
+                q = info["_q_report"]; q = q[torch.isfinite(q)]
+                if q.numel():
+                    fd.update(q_p50=float(torch.quantile(q.flatten()[:2_000_000], 0.5)), q_p90=float(torch.quantile(q.flatten()[:2_000_000], 0.9)), s_c=self.tri_state.get("s_c"))
+            if "_Sig" in info:
+                ev_ = torch.linalg.eigvalsh(info["_Sig"]); fd.update(sigma_eval_min_median=float(ev_[:, 0].median()), sigma_eval_max_median=float(ev_[:, 1].median()))
+            self._jsonl("fd_and_linearity_checks.jsonl", fd)
+        if "_Pi" in info:
+            cd = dict(step=int(step), source=self.spec["cov_source"], mode=self.spec["geom"], **precision_stats(info["_Pi"], info["_pinfo"]), valid_fraction=float(info["_valid"].double().mean()),
+                      q_mean=info.get("gkd_q_mean"), lambda_GKD=self.lam_gkd, k0=self.k0, delta_drift=float((info["delta"].detach() - info["delta_t"]).norm(dim=1).mean()))
+            if self.spec["cov_source"] == "geo_curvature":                # C01 을 학습 중에도 한 번씩: FD Jᵀr ↔ autograd
+                ga = geo_autograd_grad(info["pan_view"], info.get("_gt"), info["delta_t"], self.geo_sigma, self.geo_margin) if info.get("_gt") is not None else None
+                if ga is not None:
+                    cd["fd_vs_autograd_rel_err"] = float((info["_pinfo"]["g_fd"] - ga).norm() / (ga.norm() + 1e-30))
+            if self.spec["cov_source"] == "eq_closure":
+                cd["teacher_closure_norm_mean"] = float(info["_pinfo"]["closure_norm"].mean()); cd["teacher_bias_norm_mean"] = float(info["_pinfo"]["bias"].norm(dim=1).mean())
+            if self.spec["geom"] == "G5":
+                with torch.no_grad():
+                    Sig_t = self.cov_head_t(info["feat_t"]); Sig_src = torch.linalg.inv(info["_Pi"] + 1e-9 * torch.eye(2, dtype=torch.float64, device=info["_Pi"].device))
+                    cd["kl_teacher_head_vs_source"] = float((gaussian_kl(info["delta_t"], Sig_t, info["delta_t"], Sig_src) * info["_valid"].double()).sum() / max(1, int(info["_valid"].sum())))
+                    cd["logdet_sigma_s_mean"] = info.get("gkd_logdet_s"); cd["logdet_sigma_t_mean"] = info.get("gkd_logdet_t")
+            self._jsonl("covariance_diagnostics.jsonl", cd)
+        # ---- 2026-09-11 조정 §10.3: **계수비·loss비·gradient비는 서로 다른 수다.** 집계 정의를 필드에 적는다.
+        def _q(t, ks=(0.1, 0.5, 0.9, 0.99)):
+            f = t.detach().flatten().float()
+            f = f[:2_000_000]
+            return {f"p{int(k * 100)}": float(torch.quantile(f, k)) for k in ks}
+
+        lh, lk = info.get("_rec_hard_t"), info.get("_rec_soft_t")
+        if lh is not None and lk is not None:
+            v_h, n_h = self._gnorm(lh, bp); v_k, n_k = self._gnorm(lk, bp)
+            out.update(rec_L_hard=float(lh), rec_L_soft=float(lk), rec_grad_hard_F=n_h, rec_grad_soft_F=n_k,
+                       r_coef=(info.get("rec_soft_weight_mean", 0.0) / (info.get("rec_hard_weight_mean", 1.0) + 1e-12)),
+                       r_loss=float(lk) / (float(lh) + 1e-12), r_grad=(n_k / (n_h + 1e-12)) if n_h > 0 else None,
+                       cos_hard_soft=(float((v_h * v_k).sum() / (v_h.norm() * v_k.norm())) if (v_h is not None and v_k is not None and n_h > 0 and n_k > 0) else None),
+                       ratio_definition="ratio of batch means (mean-of-ratios 아님) · 분모는 hard 항 · gradient 는 Student backbone 파라미터 기준 (AdamW 실제 update 기여율이 아니다)")
+        sh, sk = info.get("_stat_hard_t"), info.get("_stat_soft_t")
+        if sh is not None:
+            _, n_sh = self._gnorm(sh, bp); _, n_sk = self._gnorm(sk, bp) if sk is not None else (None, 0.0)
+            out.update(stat_L_hard_weighted=float(sh) * info["lam_v"], stat_L_soft_weighted=(float(sk) * info["lam_v"] if sk is not None else 0.0),
+                       stat_grad_hard_F=n_sh * info["lam_v"], stat_grad_soft_F=n_sk * info["lam_v"], lambda_V=info["lam_v"])
+        # ---- §10.5: d·a 는 평균만으로 보지 않는다. 분위·표준편차와 Teacher/Student 우세 마진을 따로 남긴다.
+        m = info.get("_rec_maps")
+        if m:
+            eT, eS = m["teacher_error"], m["student_error"]
+            out.update(difficulty=dict(_q(m["difficulty"]), mean=float(m["difficulty"].mean()), std=float(m["difficulty"].std())),
+                       advantage=dict(_q(m["advantage"]), mean=float(m["advantage"].mean()), std=float(m["advantage"].std())),
+                       soft_weight=dict(_q(m["soft_weight"]), mean=float(m["soft_weight"].mean())),
+                       A_T=float((eS - eT).clamp_min(0).mean()), A_S=float((eT - eS).clamp_min(0).mean()),
+                       teacher_better_fraction=float((eT < eS).double().mean()),
+                       margin_note="A_T=mean[(e_S−e_T)_+], A_S=mean[(e_T−e_S)_+] — 우세 비율과 우세 마진은 다른 수다. 학습 신호 진단이며 HQNR 성능의 대체 판정식이 아니다.")
+        out["diag_version"] = "2026-09-11 (HQNR 조정 §10.3·§10.5 계측 추가; 학습 경로·loss 는 불변, 진단은 diag step 에서만 autograd.grad 로 계산하고 optimizer step 을 하지 않는다)"
+        out["delta_mean"] = info["delta"].detach().mean(0).tolist(); out["delta_std"] = info["delta"].detach().std(0).tolist()
+        if info["delta_t"] is not None:
+            out["delta_teacher_mean"] = info["delta_t"].mean(0).tolist(); out["delta_drift_vs_teacher"] = float((info["delta"].detach() - info["delta_t"]).norm(dim=1).mean())
+        self._jsonl("gradient_diagnostics.jsonl", out); self._ema["diag_last"] = step
+
+    def _diagnose_fixed(self, step, M):
+        """고정 diagnostic batch 의 §9.3 분해 (PALSV18 §11.2). 별도 forward graph; ε 는 전용 generator(corr_seed+777, 매번 같은 열); 전역 RNG 는 fork_rng 로 격리;
+        self.gen(학습 ε 열)·EMA 통계·optimizer·.grad 를 건드리지 않는다. 기록 gradient_diagnostics_fixed.jsonl."""
+        gt, ms, lpan, pan = self._fixed_batch[:4]; meta_f = (self._fixed_batch[4] if len(self._fixed_batch) > 4 else None); dev = gt.device
+        gen_train, ema0 = self.gen, dict(self._ema); rr0 = self._rr_val_last
+        g = torch.Generator(device="cpu"); g.manual_seed(int(self.corr_seed) + 777); self.gen = g
+        try:
+            with torch.random.fork_rng(devices=([dev] if dev.type == "cuda" else [])):
+                total, info = self._step(gt, ms, lpan, pan, step, meta=meta_f)
+                bp = [p for p in M.backbone.parameters() if p.requires_grad]; ap = list(M.aligner.parameters()) if self.aligner_active(step) else []
+                out = dict(step=int(step), fixed_batch=True, aligner_active=bool(ap), route_A=list(getattr(self, "route_A", (1.0, 1.0, 1.0))), loss_rec=float(info["loss_rec"]), delta_mean=info["delta"].detach().mean(0).tolist(), delta_norm_mean=float(info["delta"].detach().norm(dim=1).mean()))
+                v_rf, out["grad_rec_F"] = self._gnorm(info["loss_rec"], bp)
+                if ap:
+                    v_ra, out["grad_rec_A"] = self._gnorm(info["loss_rec"], ap)
+                    if info.get("eq_exercise") and torch.is_tensor(info.get("loss_off")) and info["loss_off"].requires_grad:
+                        v_oa, out["grad_off_A"] = self._gnorm(info["loss_off"], ap); lam = float(info.get("lam_off", 0.0))
+                        out.update(lambda_off=lam, loss_off_raw=float(info["loss_off"]), loss_off_weighted=lam * float(info["loss_off"]), grad_off_A_weighted=lam * out["grad_off_A"], rho_g=lam * out["grad_off_A"] / (out["grad_rec_A"] + 1e-12),
+                                   cos_psi=(float((v_ra * v_oa).sum() / (v_ra.norm() * v_oa.norm() + 1e-12)) if v_ra is not None and v_oa is not None and out["grad_rec_A"] > 0 and lam * out["grad_off_A"] > 0 else None))
+                        gb = torch.autograd.grad(info["loss_off"], bp, retain_graph=True, allow_unused=True); out["off_unet_grad_absent"] = bool(all(x is None or float(x.abs().sum()) == 0.0 for x in gb))
+                        v_tot = torch.autograd.grad(info["loss_rec"] + lam * info["loss_off"], ap, retain_graph=True, allow_unused=True)   # graph 는 아래 loss 별 분해가 더 쓴다 (s5 보고 #1); `del total, info` 에서 해제
+                        vt = torch.cat([x.float().flatten() if x is not None else torch.zeros_like(p).flatten() for x, p in zip(v_tot, ap)])
+                        out["sum_rule_max_abs_err"] = float((vt - (v_ra + lam * v_oa)).abs().max()) if v_ra is not None and v_oa is not None else None   # ∇(L_rec+λL_off) = g_rec + λ g_off
+                    else:
+                        out["eq_exercise"] = False
+                # s5 §7.1 / 감사 F08: loss 별 A/U gradient 분해 — L0 · L_D(hard−L0) · L_K · λE·L_E · λ_off·L_O 의 norm 과 native L0 와의 cosine (norm 0 이면 undefined).
+                # routing 전의 원 gradient 다 (autograd.grad 만; optimizer·.grad 를 건드리지 않는다).
+                lo_w = (float(info.get("lam_off", 0.0)) * info["loss_off"]) if (info.get("eq_exercise") and torch.is_tensor(info.get("loss_off")) and info["loss_off"].requires_grad) else None
+                terms = dict(L0=info.get("_l0_t"), LD=((info["_rec_hard_t"] - info["_l0_t"]) if (info.get("_rec_hard_t") is not None and info.get("_l0_t") is not None) else None),
+                             LK=info.get("_rec_soft_t"), LEw=info.get("_edge_w_t"), LOw=lo_w)
+                if info.get("_edge_route_hi_w_t") is not None:                                # QEGX §13: A 가 실제로 받는 routed edge λE·E(g) = LEw − λE·mean((1−g)E_i) 를 따로 (U 는 LEw 전체)
+                    terms["LEwA"] = info["_edge_w_t"] - info["_edge_route_hi_w_t"]
+                if info.get("_L_A_t") is not None:                                            # QRECON24: A 의 실제 목적함수 L_A = mean(w^A H_i) 와 U 의 L_U 를 따로 (LA_U 는 훈련에서 제외되는 몫)
+                    terms["LA"] = info["_L_A_t"]; terms["LU"] = info["_L_U_t"]
+                dec = {}
+                for mod, params in (("A", ap), ("U", bp)):
+                    if not params:
+                        continue
+                    v0, n0 = self._gnorm(terms["L0"], params) if torch.is_tensor(terms["L0"]) else (None, 0.0)
+                    for nm, t in terms.items():
+                        if not torch.is_tensor(t) or not t.requires_grad:
+                            continue
+                        v, n = self._gnorm(t, params); dec[f"{nm}_{mod}_norm"] = n
+                        if nm != "L0":
+                            dec[f"{nm}_{mod}_cos_L0"] = (float((v * v0).sum() / (v.norm() * v0.norm())) if (v is not None and v0 is not None and n > 0 and n0 > 0) else None)
+                out["per_term"] = dec; out["per_term_note"] = "norm = ‖∂L/∂param‖ (A: aligner, U: backbone) on the fixed batch, before routing; LD = hard − L0"
+                self._jsonl("gradient_diagnostics_fixed.jsonl", out)
+                del total, info
+        finally:
+            self.gen = gen_train; self._ema.clear(); self._ema.update(ema0); self._rr_val_last = rr0
+
+    # ------------------------------------------------------------------ train
+    def train(self, train_log, global_step):
+        self.train_log_ref = train_log
+        self.model.train(); self.M.backbone.requires_grad_(True)
+        if self.M.aligner is not None:
+            self.M.aligner.requires_grad_(self.aligner_active(global_step))
+        if self.M.cov_head is not None:
+            self.M.cov_head.requires_grad_(True)                          # 검토 지적: eval 의 requires_grad_(False) 뒤 재활성 (G5)
+        if global_step >= self.args.num_iter:
+            return global_step
+        report = Train_Report(); start = time.time()
+        B = self.args.batch_size; dev, dt = self.accelerator.device, self.weight_dtype; M = self.M
+        times = dict(native=[], corrupt=[], forward=[])
+        try:
+            it, skip, rinfo = begin_epoch(self.train_data_loader, self._epoch_state, global_step, self._resume_pending and self.exact_resume)
+        except ExactResumeMismatch as ex:                                  # 감사 F01: 재개 불일치는 exit 4 (runner 가 같은 id 로 fresh 재실행하지 않는다; 사람이 판단)
+            train_log.write(f'[abort] exact resume 불일치: {ex}'); self._jsonl("resume_events.jsonl", dict(time=time.strftime("%Y-%m-%dT%H:%M:%S"), exact=False, error=str(ex), action="exit 4 — no automatic fresh restart"))
+            self._runs_csv("RESUME_MISMATCH"); self._finish_ledger("RESUME_MISMATCH"); sys.exit(4)
+        self._resume_pending = False
+        if rinfo["exact"] and self.accelerator.is_main_process:
+            self._jsonl("resume_events.jsonl", dict(time=time.strftime("%Y-%m-%dT%H:%M:%S"), exact=True, resumed_at_step=int(global_step), epoch_start_step=rinfo["epoch_start_step"], skipped_batches=rinfo["skipped"], epoch_boundary=bool(rinfo.get("boundary")),
+                                                    restored="epoch 시작 전역 RNG → 같은 permutation·worker seed, 소비 batch skip; optimizer·scheduler·scaler·RNG(corruption/TRI)", note="연속 실행과 같은 batch 열 (kdv.exact_resume)"))
+            print(f"[kdv] exact resume: epoch 시작 step {rinfo['epoch_start_step']} 부터 {rinfo['skipped']} batch 건너뜀 → step {global_step} 에서 이어간다")
+        for idx, batch in enumerate(it, start=skip):
+            gt, lms, ms, lpan, pan = batch[:5]; meta = (batch[5] if len(batch) > 5 else None)     # feeder return_meta (QEDGE9): (index, rot, hflip, vflip) — 없으면 None
+            if self._meta_log and meta is not None and self.accelerator.is_main_process:
+                self._jsonl("batch_meta.jsonl", dict(step=int(global_step), index=meta[:8, 0].tolist(), rot=meta[:8, 1].tolist()))
+            t0 = time.time()
+            with self.accelerator.accumulate(self.model):
+                gt, ms, lpan, pan = (t.to(dev, dtype=dt) for t in (gt, ms, lpan, pan))
+                if M.aligner is not None and self.aligner_trainable:                   # s5 timing: 동결 구간에는 requires_grad False → grad None → AdamW 가 moment·WD 를 건드리지 않는다
+                    act = self.aligner_active(global_step); M.aligner.requires_grad_(act)
+                    if self.accelerator.is_main_process and act != self._sched_last:   # 경계 기록 (S5-G03): 0-based next update index, A hash, 그 시점 A LR
+                        self._jsonl("aligner_schedule_events.jsonl", dict(step=int(global_step), aligner_active=act, aligner_hash=state_hash(M.aligner), lr_aligner=float(self.optimizer.param_groups[-1]["lr"]),
+                                                                          freeze_until=self.freeze_until, freeze_from=self.freeze_from, route_A=list(self.route_A))); self._sched_last = act
+                if self.edge_schedule and self.accelerator.is_main_process:                # EDGEBAL §3.3 경계 기록: 계수가 바뀌는 update (0-based) 와 그 시점 λ_eff·A LR — A 는 계속 학습
+                    r_ = self.edge_schedule_factor(global_step)
+                    if r_ != self._edge_sched_last:
+                        self._jsonl("edge_schedule_events.jsonl", dict(step=int(global_step), factor=r_, lambda_eff=float(self.lam_V) * r_, switch=int(self.edge_schedule["switch"]), aligner_active=bool(self.aligner_active(global_step)),
+                                                                     lr_aligner=(float(self.optimizer.param_groups[-1]["lr"]) if M.aligner is not None else None))); self._edge_sched_last = r_
+                total, info = self._step(gt, ms, lpan, pan, global_step, meta=meta)
+                if info.get("_L_A_t") is not None and not torch.isfinite(info["_L_A_t"]):
+                    train_log.write(f'[abort] non-finite L_A at step {global_step}: {info["_L_A_t"].item()}'); self._runs_csv("NAN"); self._finish_ledger("NAN"); sys.exit(3)
+                if not torch.isfinite(total):
+                    train_log.write(f'[abort] non-finite loss at step {global_step}: {total.item()}'); self._runs_csv("NAN"); self._finish_ledger("NAN"); sys.exit(3)
+                dmax = float(info["delta"].detach().abs().max())
+                if dmax > MAX_ABS_DELTA_TRAIN:
+                    self._support_fail(global_step, dmax, f"|Δ| > {MAX_ABS_DELTA_TRAIN} (학습 patch 에서 정의 불가능한 보정)")
+                if self.accelerator.is_main_process and self.is_diag_step(global_step):
+                    self._diagnose(global_step, info, M)
+                    if self._fixed_diag_on:
+                        if self._fixed_batch is None:
+                            self._fixed_batch = tuple(t.detach().clone() for t in (gt, ms, lpan, pan)) + ((meta.detach().clone(),) if meta is not None else ())
+                        self._diagnose_fixed(global_step, M)
+                routed_now = (self._routed or self._edge_routed) and self.aligner_active(global_step)
+                if getattr(self, "qrecon", None) is not None:                              # QRECON24 §2.5: L_U → U, L_A → A 를 같은 forward 에서 따로 (단일 total backward 금지)
+                    nU_, nA_ = self._qrecon_backward(info, M, self.aligner_active(global_step)); self._ema["qrc_grad_params_U"] = float(nU_); self._ema["qrc_grad_params_A"] = float(nA_)
+                else:
+                    self.accelerator.backward(total, retain_graph=routed_now)
+                if routed_now and self._routed:                                            # s5 routing: A 의 .grad 만 보정, U 는 전체 L_Q, step 은 한 번
+                    self._ema["routing_params_adjusted"] = float(self._apply_routing(info, M))
+                if routed_now and self._edge_routed:                                       # QEGX edge_route: A 의 .grad 에서 λE·mean((1−g)E_i) 를 뺀다 (registry 가 routing 과의 결합을 막는다)
+                    self._ema["edge_route_params_adjusted"] = float(self._apply_edge_route(info, M))
+                if M.aligner is not None and self.aligner_trainable and not self.aligner_active(global_step):
+                    for p in M.aligner.parameters():
+                        p.grad = None                                                      # 동결 구간 방어: 어떤 경로로도 A 가 update 되지 않게
+                if self.accelerator.is_main_process and self.is_diag_step(global_step):
+                    self._ema["backbone_grad_norm"] = float(torch.sqrt(sum((p.grad.float() ** 2).sum() for p in M.backbone.parameters() if p.grad is not None)))
+                    self._ema["aligner_grad_norm"] = (float(torch.sqrt(sum((p.grad.float() ** 2).sum() for p in M.aligner.parameters() if p.grad is not None))) if (self.aligner_active(global_step) and any(p.grad is not None for p in M.aligner.parameters())) else 0.0)
+                self.optimizer.step(); self.lr_scheduler.step(); self.optimizer.zero_grad()
+                if self.accelerator.is_main_process:
+                    report.update(B, total.item(), float(info["loss_rec"]), float(info["lam_v"] * float(info["loss_stat_raw"]) + float(info["loss_aux"])))
+                    with torch.no_grad():
+                        d = info["delta"].detach().float(); key = "corrupt" if info["corrupt"] else "native"
+                        vals = dict(loss_rec=float(info["loss_rec"]), stat_raw=float(info["loss_stat_raw"]), lam_v=info["lam_v"],
+                                    loss_edge=info["loss_edge"], loss_geo=info["loss_geo"], loss_off=float(info["loss_off"]), loss_gkd=info["loss_gkd"], lam_e=info["lam_e"], lam_g=info["lam_g"], eq_exercise=float(info.get("eq_exercise", 0.0)),
+                                    lam_off=info["lam_off"], lam_gkd=info["lam_gkd"], aux_ratio=float(info["loss_aux"]) / (float(info["loss_rec"]) + 1e-12),
+                                    **{f"{key}_dy": d[:, 0].mean().item(), f"{key}_dx": d[:, 1].mean().item(), f"{key}_dnorm_p50": d.norm(dim=1).median().item(), "abs_max": d.abs().max().item()},
+                                    **{kk: v for kk, v in info.items() if kk.startswith(("rec_", "stat_", "gkd_", "tri_", "ctl_")) and isinstance(v, float)}, t_probe=float(info.get("t_probe", 0.0)))
+                        if info["delta_t"] is not None:
+                            vals["delta_drift"] = float((d - info["delta_t"].float()).norm(dim=1).mean())
+                        if "closure" in info:
+                            vals["closure"] = info["closure"]
+                        for kk, v in vals.items():
+                            self._ema_update(kk, v)
+                        if global_step % 50 == 0 and M.sampler:
+                            H, W = pan.shape[-2:]
+                            self._ema_update("valid_frac", warp_support_mask(H, W, d).float().mean().item(), 0.9)
+                        if info["geo_info"] is not None:
+                            self._ema_update("geo_wsum", info["geo_info"]["weight_sum"])
+            times["corrupt" if info["corrupt"] else "native"].append(time.time() - t0); times["forward"].append(info["t_forward"])
+            global_step += 1; self._global_step = global_step
+            if global_step % self.args.log_iter == 0 or idx == len(self.train_data_loader) - 1:
+                lr = self.optimizer.state_dict()['param_groups'][0]['lr']; e = self._ema
+                extra = (f"\t[{self.case}] rec {e.get('loss_rec', 0):.5f} (hard {e.get('rec_hard', 0):.5f} soft {e.get('rec_soft', 0):.5f}) d {e.get('rec_difficulty_mean', 0):.3f} a {e.get('rec_advantage_mean', 0):.3f} "
+                         f"win {e.get('rec_student_better_fraction', 0):.3f} softpos {e.get('rec_soft_positive_fraction', 0):.3f}"
+                         f"\tstat {e.get('stat_raw', 0):.4g}×λ{e.get('lam_v', 0):.3g} (d {e.get('stat_difficulty_mean', 0):.3f} win {e.get('stat_student_better_fraction', 0):.3f})"
+                         f"\taux edge {e.get('loss_edge', 0):.4f} geo {e.get('loss_geo', 0):.4f} off {e.get('loss_off', 0):.4f} gkd {e.get('loss_gkd', 0):.4g}×λ{self.lam_gkd:.3g} (q {e.get('gkd_q_mean', 0):.3g} valid {e.get('gkd_valid_frac', 0):.2f} trΠ/2 {e.get('gkd_pi_trace_median', 0):.3g}) aux/rec {e.get('aux_ratio', 0):.3f}"
+                         f"\tΔ nat ({e.get('native_dy', 0):+.3f},{e.get('native_dx', 0):+.3f}) |Δ| {e.get('native_dnorm_p50', 0):.3f} max {e.get('abs_max', 0):.3f} drift {e.get('delta_drift', 0):.3f}"
+                         + (f"\tTRI gateA {e.get('tri_gate_mean', 0):.3f} gateB {e.get('tri_b_gate_mean', 0):.3f} soft {e.get('rec_soft_original', 0):.2e}→{e.get('rec_soft', 0):.2e} Cvalid {e.get('tri_c_valid_frac', 0):.2f} probe {e.get('t_probe', 0):.3f}s" if self.tri["enabled"] else "")
+                         + f"\tgrad bb {e.get('backbone_grad_norm', 0):.3g} al {e.get('aligner_grad_norm', 0):.3g}"
+                         f"\tt nat {np.mean(times['native'][-50:]) if times['native'] else 0:.3f}s cor {np.mean(times['corrupt'][-50:]) if times['corrupt'] else 0:.3f}s")
+                train_log.write(f'Iter[{global_step}/{self.args.num_iter}]\t' + report.result_str(lr, time.time() - start) + extra)
+                self._jsonl("train_log.jsonl", dict(step=int(global_step), lr=lr, **{kk: (float(v) if isinstance(v, (int, float)) else v) for kk, v in e.items() if not kk.startswith("_")},
+                                                     t_native_s=(float(np.mean(times["native"][-200:])) if times["native"] else None), t_corrupt_s=(float(np.mean(times["corrupt"][-200:])) if times["corrupt"] else None),
+                                                     t_forward_s=float(np.mean(times["forward"][-200:])), peak_mem_mb=(torch.cuda.max_memory_allocated() / 2 ** 20 if torch.cuda.is_available() else None)))
+                if self.accelerator.is_main_process:
+                    json.dump(dict(step=int(global_step), t_native_s=(float(np.mean(times["native"][-200:])) if times["native"] else None), t_corrupt_s=(float(np.mean(times["corrupt"][-200:])) if times["corrupt"] else None),
+                                   t_forward_s=float(np.mean(times["forward"][-200:])), peak_mem_allocated_mb=(torch.cuda.max_memory_allocated() / 2 ** 20 if torch.cuda.is_available() else None),
+                                   peak_mem_reserved_mb=(torch.cuda.max_memory_reserved() / 2 ** 20 if torch.cuda.is_available() else None), elapsed_hours=(time.time() - self._t_run0) / 3600.0,
+                                   teacher_forward=bool(self.spec["needs_teacher"]), share_correction=self.share_correction, batch=B),
+                              open(os.path.join(self.args.work_dir, "memory_and_throughput.json"), "w"), indent=1)
+                start = time.time(); report.__init__()
+            if global_step % self.args.save_iter == 0:
+                self.accelerator.save_state(os.path.join(self.args.work_dir, f'checkpoint-{global_step}'))
+            if global_step >= self.args.num_iter:
+                if report.num_examples > 0:
+                    lr = self.optimizer.state_dict()['param_groups'][0]['lr']
+                    train_log.write(f'Iter[{global_step}/{self.args.num_iter}]\t' + report.result_str(lr, time.time() - start))
+                self.accelerator.save_state(os.path.join(self.args.work_dir, 'last'))
+                json.dump(dict(step=int(global_step), kind="last"), open(os.path.join(self.args.work_dir, "last_meta.json"), "w"))
+                if self.accelerator.is_main_process:
+                    self._runs_csv("FINISHED_TRAIN"); self._finish_ledger("FINISHED_TRAIN"); self._write_cost("FINISHED_TRAIN")
+                self.accelerator.end_training()
+                return global_step
+        return global_step
+
+    # ------------------------------------------------------------------ eval: RR + fitting bins (§19.2) + RR-val (§18.1)
+    def _check_fixed(self):
+        if self.teacher is not None and state_hash(self.teacher) != self.teacher_hash0:
+            raise RuntimeError("Teacher state 가 바뀌었다 (gate M03)")
+        if self.spec["policy"] == "A-FR" and state_hash(self.M.aligner) != self.aligner_hash0:
+            raise RuntimeError("frozen aligner(A-FR) state 가 바뀌었다 (gate L03)")
+        if self.cov_head_t is not None and state_hash(self.cov_head_t) != self.cov_head_t_hash:
+            raise RuntimeError("Teacher covariance head 가 바뀌었다 (gate M03)")
+        if self.ref_aligner is not None and state_hash(self.ref_aligner) != self.ref_aligner_hash0:
+            raise RuntimeError("고정 참조 aligner(donor) 가 바뀌었다")
+
+    def test_reduced(self, test_log, epoch):
+        self._check_fixed()
+        report = Test_Reduced_Report(); rep_v = Test_Reduced_Report(); self.model.eval(); self.model.requires_grad_(False)
+        ds, eT, eS = [], [], []
+        sp = self.spec; reps = self._stat_reps(); V = {lb: ([], []) for lb, *_ in reps}
+        for idx, (gt, lms, ms, lpan, pan) in tqdm(enumerate(self.test_reduced_data_loader)):
+            o = self._infer(pan, lpan, ms)
+            gt = gt.to(self.accelerator.device, dtype=self.weight_dtype)
+            self.save_test_reduced(o["pan"], gt, o["y"], o["ms_base"], idx)
+            report.update(self.args.test_batch_size, reduced_metrics(x_true=gt, x_pred=o["y"], max_pixel=self.args.max_pixel))
+            H, W = gt.shape[-2:]
+            if H > 2 * fixed_roi(512, 512)[0]:
+                y0, y1, x0, x1 = fixed_roi(H, W)
+                rep_v.update(self.args.test_batch_size, reduced_metrics(x_true=gt[..., y0:y1, x0:x1], x_pred=o["y"][..., y0:y1, x0:x1], max_pixel=self.args.max_pixel))
+            ds.append(o["delta"][0].float().cpu().numpy())
+            if self.teacher is not None:
+                with torch.no_grad():
+                    y_t = self.teacher(o["pan"], o["ms"], lpan.to(self.accelerator.device, dtype=self.weight_dtype))["y"]
+                    eT.append((y_t - gt).abs().mean(1).flatten().float().cpu()); eS.append((o["y"] - gt).abs().mean(1).flatten().float().cpu())
+                    # 통계 fitting bin: 학습에서 쓰는 표현 **전부**(다중 창·보조 항 포함) + 모든 arm 공통 기준 GV w5 (§15.2 교차 비교)
+                    _mb = o["ms_base"].float()
+                    for lb, kd, wi, tf, dom in reps:
+                        _S = lambda x: stat_transform(statistic_map((x.float() - _mb) if dom == "residual" else x.float(), kd, wi), tf, sp["stat_transform_eps"])
+                        vg = _S(gt)
+                        V[lb][0].append((_S(y_t) - vg).abs().mean(1).flatten().cpu()); V[lb][1].append((_S(o["y"]) - vg).abs().mean(1).flatten().cpu())
+        d = np.array(ds)
+        rr_val = self._rr_val()
+        test_log.write(f'Epoch[{epoch}]\t' + report.result_str() + f'\tRR Δ median ({np.median(d[:, 0]):+.3f},{np.median(d[:, 1]):+.3f}) |Δ| median {np.median(np.linalg.norm(d, axis=1)):.3f}'
+                       + (f'\t[RR-valid] ' + rep_v.result_str() if rep_v.num_examples else '')
+                       + f'\t[RR-val] ERGAS(plain) {rr_val:.4f} MAE {self._rr_val_fit["rr_val_mae"]:.5f} edge {self._rr_val_fit["rr_val_edge_l1"]:.5f}'
+                       + (f' stat({self._rr_val_fit["rr_val_stat_kind"]}) {self._rr_val_fit["rr_val_stat_l1"]:.4g}' if self._rr_val_fit.get("rr_val_stat_l1") is not None else ''))
+        self.last_reduced_metrics = report.as_dict()
+        self.last_reduced_metrics.update(rr_dy_median=float(np.median(d[:, 0])), rr_dx_median=float(np.median(d[:, 1])), rr_val_ergas=rr_val, **{kk: v for kk, v in getattr(self, "_rr_val_fit", {}).items() if kk.startswith("rr_val_") and isinstance(v, float)})
+        if rep_v.num_examples:
+            self.last_reduced_metrics.update({f"valid_{kk}": v for kk, v in rep_v.as_dict().items()})
+        if eT and self.accelerator.is_main_process:
+            self._fitting_bins(self._global_step, epoch, torch.cat(eT), torch.cat(eS), "pixel")
+            for lb, *_ in reps:
+                if V[lb][0]:
+                    self._fitting_bins(self._global_step, epoch, torch.cat(V[lb][0]), torch.cat(V[lb][1]), f"stat_{lb}")
+        return report.ergas
+
+    def _stat_reps(self):
+        """fitting bin 을 남길 통계 표현 목록 (label, kind, window, transform, domain).
+        label 은 **표현으로만** 정해진다(mode 는 run 의 속성) — 서로 다른 arm 의 같은 표현을 한 자로 비교하기 위해서다.
+        모든 arm 이 기준 GV w5 를 남기고(통계 항이 꺼진 N0 arm 포함), 그 run 이 실제로 쓰는 표현(다중 창·보조 항)도 각각 남긴다."""
+        sp = self.spec; out, seen = [], set()
+
+        def add(kd, wi, tf, dom):
+            if kd is None or kd == "edge":
+                return
+            key = (kd, int(wi), tf, dom)
+            if key in seen:
+                return
+            seen.add(key)
+            out.append((f"{kd}_w{int(wi)}" + ("" if tf == "none" else f"_{tf}") + ("" if dom == "final_hrms" else "_res"), kd, int(wi), tf, dom))
+
+        if sp["stat_enabled"]:
+            for wi in sp["stat_windows"]:
+                add(sp["stat_kind"], wi, sp["stat_transform"], sp["stat_domain"])
+        for e in sp["stat_extra"]:
+            for wi in e["windows"]:
+                add(e["kind"], wi, e["transform"], e["domain"])
+        add("grad_var", 5, "none", "final_hrms")                     # 공통 기준 표현
+        return out
+
+    def _fitting_bins(self, step, epoch, e_t, e_s, kind):
+        """고정 Teacher 오차 구간별 기록 (§15.2). **delta_e_T_minus_S = e_Teacher − e_Student** 이며,
+        계획의 Δe(q) = e_control − e_candidate (두 Student 의 비교) 는 같은 bin 정의 아래 run 끼리 e_S_mean 을 빼서 분석 시점에 계산한다."""
+        q50, q90 = torch.quantile(e_t, torch.tensor([0.5, 0.9])).tolist()
+        rows = []
+        for name, m in (("Q0-50", e_t <= q50), ("Q50-90", (e_t > q50) & (e_t <= q90)), ("Q90-100", e_t > q90), ("ALL", torch.ones_like(e_t, dtype=torch.bool))):
+            a, b = e_t[m], e_s[m]
+            rows.append(dict(step=int(step), epoch=int(epoch), kind=kind, bin=name, n=int(m.sum()), e_T_mean=float(a.mean()), e_S_mean=float(b.mean()),
+                             delta_e_T_minus_S=float((a - b).mean()), win_rate_vs_teacher=float((b < a).float().mean()), q50=q50, q90=q90,
+                             bin_source="fixed teacher error (같은 Teacher·같은 평가셋 → run 간 bin 경계 동일)"))
+        self._csv_append("fitting_bins.csv", rows)
+
+    @torch.no_grad()
+    def _rr_val(self):
+        """검증셋(valid_*.h5): best_rr_val 선택용 plain ERGAS + fitting 지표 (§14.3 — 가중치 없는 MAE, GT 통계 오차, signed edge 오차)."""
+        tot, n = 0.0, 0; dev, dt = self.accelerator.device, self.weight_dtype; mp = float(self.args.max_pixel)
+        mae, edge, stat_e, nb = 0.0, 0.0, 0.0, 0
+        sp = self.spec
+        # 통계 항이 꺼져 있어도 **기준 표현(GV w5)** 의 GT 통계 오차는 남긴다 — 모든 arm 을 같은 자로 비교해야 한다 (§14.3)
+        kind = sp["stat_kind"] if (sp["stat_enabled"] and sp["stat_kind"] != "edge") else "grad_var"
+        kw = sp["stat_window"] if (sp["stat_enabled"] and sp["stat_kind"] != "edge") else 5
+        ktf = sp["stat_transform"] if (sp["stat_enabled"] and sp["stat_kind"] != "edge") else "none"
+        kdom = sp["stat_domain"] if (sp["stat_enabled"] and sp["stat_kind"] != "edge") else "final_hrms"
+        for gt, lms, ms, lpan, pan in self.val_data_loader:
+            o = self._infer(pan, lpan, ms); gt = gt.to(dev)
+            pred = ((o["y"].clip(-1, 1).double() + 1) / 2 * mp); g = ((gt.double() + 1) / 2 * mp)
+            e = ergas_per_sample(g, pred); tot += float(e.sum()); n += int(e.numel())
+            with torch.autocast(device_type=dev.type, enabled=False):
+                y_f, g_f = o["y"].float(), gt.float()
+                mae += float((y_f - g_f).abs().mean()) * y_f.shape[0]                       # 가중치 없는 검증 MAE (학습 loss 의 w_H·w_K 와 무관)
+                edge += float(output_edge_loss(y_f, g_f)) * y_f.shape[0]                     # signed Scharr edge 오차
+                if kind:
+                    _mb = o["ms_base"].float(); _r = kdom == "residual"
+                    _S = lambda x: stat_transform(statistic_map((x - _mb) if _r else x, kind, kw), ktf, sp["stat_transform_eps"])
+                    stat_e += float((_S(y_f) - _S(g_f)).abs().mean()) * y_f.shape[0]         # GT 통계 오차 (학습과 같은 표현, 통계 OFF 면 기준 GV w5)
+                nb += y_f.shape[0]
+        self._rr_val_last = tot / max(1, n)
+        self._rr_val_fit = dict(rr_val_mae=mae / max(1, nb), rr_val_edge_l1=edge / max(1, nb),
+                                rr_val_stat_l1=(stat_e / max(1, nb) if kind else None),
+                                rr_val_stat_kind=(f"{kind} w{kw}" + ("" if ktf == "none" else f" {ktf}") + ("" if kdom == "final_hrms" else " residual")
+                                                  + ("" if sp["stat_enabled"] and sp["stat_kind"] != "edge" else " (기준 표현 — 이 run 의 loss 항은 아니다)")), n=nb)
+        return self._rr_val_last
+
+    def test_full(self, test_log, epoch):
+        self._check_fixed()
+        return super().test_full(test_log, epoch)
+
+    def extra_view_names(self):
+        return ["aligned_fixed_v64"] if self.ref_aligner is not None else []
+
+    @torch.no_grad()
+    def _extra_views(self, idx, sr, lm, p, o, sensor, wald):
+        """NF16 §6.1 aligned_fixedN2_v64: 참조 = W(P_raw, c_D), c_D = 고정 donor aligner 의 native 예측 (모든 case 동일 참조, 같은 V64)."""
+        if self.ref_aligner is None:
+            return {}
+        with torch.autocast(device_type=o["pan"].device.type, enabled=False):
+            from pa.offset import valid_view
+            c_d = self.ref_aligner(valid_view(o["pan"].float(), self.ref_margin), valid_view(o["ms_base"].float(), self.ref_margin))[0].double().cpu().numpy()
+        pa_fixed = warp_pan(torch.from_numpy(p)[None, None], torch.from_numpy(c_d)[None])[0, 0].numpy()
+        v, ok, reason = scene_views(sr, lm, p, pa_fixed, sensor, wald, c_d, 4, float(self.args.max_pixel))
+        return {"aligned_fixed_v64": dict(v["aligned_valid"], eligible=bool(ok), reason=reason, ref_dy=float(c_d[0]), ref_dx=float(c_d[1]))}
+
+    def _record(self, step, epoch, rows, agg, D, all_ok, n_bad, bad_reasons):
+        self._csv_append("scene_metrics.csv", rows)
+        rec = dict(step=step, epoch=epoch)
+        for v in list(VIEWS) + [x for x in agg if x not in VIEWS]:
+            for kk in ("hqnr", "d_lambda", "d_s", "fscc"):
+                rec[f"{v}.{kk}"] = agg[v].get(kk)
+        rec.update(dy_median=float(np.median(D[:, 0])), dx_median=float(np.median(D[:, 1])), delta_norm_median=float(np.median(np.linalg.norm(D, axis=1))),
+                   delta_abs_max=float(np.abs(D).max()), aligned_eligible=int(all_ok), n_invalid_scenes=n_bad, invalid_reasons="|".join(bad_reasons),
+                   region_effect=agg["raw_valid"]["hqnr"] - agg["raw_original"]["hqnr"], reference_effect=agg["aligned_valid"]["hqnr"] - agg["raw_valid"]["hqnr"],
+                   rr_ergas=self.last_reduced_metrics.get("ergas"), rr_scc=self.last_reduced_metrics.get("scc"), rr_sam=self.last_reduced_metrics.get("sam"),
+                   rr_valid_ergas=self.last_reduced_metrics.get("valid_ergas"), rr_valid_scc=self.last_reduced_metrics.get("valid_scc"), rr_val_ergas=self._rr_val_last,
+                   rr_val_mae=self.last_reduced_metrics.get("rr_val_mae"), rr_val_edge_l1=self.last_reduced_metrics.get("rr_val_edge_l1"), rr_val_stat_l1=self.last_reduced_metrics.get("rr_val_stat_l1"),
+                   train_mae_ema=self._ema.get("rec_plain_gt_l1"),
+                   lambda_V=self.lam_V, rec_difficulty_ema=self._ema.get("rec_difficulty_mean"), rec_student_win_ema=self._ema.get("rec_student_better_fraction"))
+        self._csv_append("checkpoint_metrics.csv", [rec])
+        self._csv_append("delta_predictions.csv", [dict(step=step, scene=i, dy_hr=float(D[i, 0]), dx_hr=float(D[i, 1])) for i in range(len(D))])
+
+    def _select(self, step, epoch, agg, all_ok, n_bad, bad_reasons, test_log):
+        cand = os.path.join(self.cand_dir, f"step-{step}")
+        self.accelerator.save_state(cand)
+        use_al = self.spec.get("aligned_selector", True)
+        r_raw = self.sel_raw.update(step, epoch, agg["raw_original"]["hqnr"], agg["raw_original"]["fscc"], True, cand)
+        r_al = (self.sel_aligned.update(step, epoch, agg["aligned_valid"]["hqnr"], agg["aligned_valid"]["fscc"], all_ok, cand, reason=("" if all_ok else f"{n_bad} scenes: {bad_reasons}"))
+                if use_al else dict(changed=False, pruned=[]))
+        r_rr = self.sel_rrval.update(step, epoch, -self._rr_val_last, 0.0, bool(np.isfinite(self._rr_val_last)), cand)
+        keep = {c["path"] for s in ((self.sel_raw, self.sel_aligned, self.sel_rrval) if use_al else (self.sel_raw, self.sel_rrval)) for c in s.cands}
+        retain = bool((self.k.get("select") or {}).get("retain_all_candidates", False))   # PALSV18 §6.3: 평가한 native checkpoint 전부 보존 (공통 격자 재선택·같은 checkpoint 진단 재현용)
+        for p in set(r_raw["pruned"]) | set(r_al["pruned"]) | set(r_rr["pruned"]) | ({cand} if cand not in keep else set()):
+            if p not in keep and os.path.isdir(p) and not retain:
+                shutil.rmtree(p, ignore_errors=True)
+        self.raw_is_best = r_raw["changed"]
+        if r_al["changed"]:
+            self._materialize(self.sel_aligned.best, "best_aligned", "aligned_valid")
+        if r_rr["changed"]:
+            self._materialize(self.sel_rrval.best, "best_rr_val", "rr_val")
+        extra = dict(protocol_id=PROTOCOL_ID, roi_hash=(self._roi or {}).get("roi_hash"), evaluator_hash=evaluator_hash(), fr_h5_sha256=self.fr_h5_sha, n_scenes=len(self._fr_pan))
+        self.sel_raw.save(os.path.join(self.args.work_dir, "selector_state_raw.json"), extra)
+        if use_al:
+            self.sel_aligned.save(os.path.join(self.args.work_dir, "selector_state_aligned.json"), extra)
+        else:
+            # 표식은 **다른 파일명**으로 남긴다: selector_state_aligned.json 은 재개 시 BestSelector 로 로드되므로 만들지 않는다
+            json.dump(dict(status="not_applicable", why="aligner 없음 — aligned_valid 는 같은 ROI 의 raw_valid 와 동일 (§14.1)", primary=self.spec.get("select_primary")),
+                      open(os.path.join(self.args.work_dir, "aligned_selector_not_applicable.json"), "w"), indent=1)
+        self.sel_rrval.save(os.path.join(self.args.work_dir, "selector_state_rr_val.json"), dict(protocol_id=PROTOCOL_ID, metric="-ERGAS(plain, valid h5)"))
+        if use_al and self.sel_aligned.best is None:
+            json.dump(dict(status="no_valid_candidate", history=self.sel_aligned.history[-5:]), open(os.path.join(self.args.work_dir, "best_aligned_meta.json"), "w"), indent=1)
+        b = self.sel_raw.best; a = self.sel_aligned.best if use_al else None; r = self.sel_rrval.best
+        prim = self.spec.get("select_primary", "best_hqnr")
+        test_log.write(f'[select] (주 selector {prim}) best_raw step {b["step"]} (HQNR {b["hqnr"]:.6f} fSCC {b["fscc"]:.4f}, anchor {self.sel_raw.max_hqnr:.6f}, band {len(self.sel_raw.cands)})'
+                       + ((f' | best_aligned step {a["step"]} (HQNR_al {a["hqnr"]:.6f})' if a else ' | best_aligned: no valid candidate') if use_al else ' | best_aligned: N/A(aligner 없음)')
+                       + (f' | best_rr_val step {r["step"]} (ERGAS_val {-r["hqnr"]:.4f})' if r else ''))
+        if self.accelerator.is_main_process:
+            self._runs_csv("EVAL", dict(best_raw_step=b["step"], best_raw_hqnr=round(b["hqnr"], 6)))
+
+    def export_tags(self):
+        return ["best_hqnr", "best_rr_val", "last"] if not self.spec.get("aligned_selector", True) else ["best_hqnr", "best_aligned", "best_rr_val", "last"]
+
+    def test_full_save(self, tag='best_hqnr'):
+        super().test_full_save(tag=tag)
+        if self.accelerator.is_main_process:
+            self._write_cost("FINISHED_EXPORT")
+        if self.accelerator.is_main_process and self.budget:
+            self._finish_ledger("FINISHED_EXPORT", total=True)              # 학습 + 평가 + export 까지의 GPU 시간 (진단은 _upload.sh 가 diag_<run> 으로 더한다)

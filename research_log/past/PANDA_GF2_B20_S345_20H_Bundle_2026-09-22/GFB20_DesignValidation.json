@@ -1,0 +1,19 @@
+{
+  "status": "LOCAL_DESIGN_CHECKS_PASSED_NOT_RUNTIME_VALIDATION",
+  "core_training_count": 18,
+  "all_registered_training_count": 36,
+  "teacher_training_count": 0,
+  "counts_per_server": {
+    "s3": 16,
+    "s4": 10,
+    "s5": 10
+  },
+  "core_added_updates": 360000,
+  "unique_run_ids": true,
+  "core_parent_seed_pairing": true,
+  "architecture_fields_fixed": true,
+  "reserved_budget_under20": true,
+  "remote_assets_verified": false,
+  "training_launched": false,
+  "implementation_validated": false
+}

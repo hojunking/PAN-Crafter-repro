@@ -1,0 +1,240 @@
+{
+  "head": "d616740e4b9188218f93b736394d6224b674534e",
+  "started_at": "2026-09-15T10:56:20+0900",
+  "device": "cpu",
+  "checks": [
+    {
+      "name": "W104_config_NA0",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "W104_config_J0",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "W104_config_JQ",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "W104_config_XJ",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "W104_config_F0",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "W104_core_order_and_7p7523h",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "W104_confirmation_JQ",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "W104_confirmation_XJ",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "W104_confirmation_F0",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "W104_params_T0_A_strict_copy",
+      "passed": true,
+      "kind": "conformance",
+      "params": 1903624,
+      "A_hash": "493aca181f93ae68"
+    },
+    {
+      "name": "W104_forward_64_residual_once",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "W104_forward_256_residual_once",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "W104_forward_512_residual_once",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "W104_J0_actual_gradient_ownership",
+      "passed": true,
+      "kind": "conformance",
+      "U_grad_l1": 49.47126273440256,
+      "A_grad_l1": 0.1159953976257384,
+      "offset": 1.0633341073989868
+    },
+    {
+      "name": "W104_JQ_actual_gradient_ownership",
+      "passed": true,
+      "kind": "conformance",
+      "U_grad_l1": 98.04794149221698,
+      "A_grad_l1": 0.1205189897427772,
+      "offset": 1.0633341073989868
+    },
+    {
+      "name": "W104_XJ_actual_gradient_ownership",
+      "passed": true,
+      "kind": "conformance",
+      "U_grad_l1": 98.04768742370356,
+      "A_grad_l1": 0.12051660600809555,
+      "offset": 1.0633341073989868
+    },
+    {
+      "name": "W104_F0_actual_gradient_ownership",
+      "passed": true,
+      "kind": "conformance",
+      "U_grad_l1": 49.47126273440256,
+      "A_grad_l1": 0,
+      "offset": 0.0
+    },
+    {
+      "name": "W104_NA0_actual_gradient_ownership",
+      "passed": true,
+      "kind": "conformance",
+      "U_grad_l1": 49.38639811223891,
+      "A_grad_l1": 0,
+      "offset": 0.0
+    },
+    {
+      "name": "NA0_original_PAN_no_sampler_no_Teacher_loss",
+      "passed": true,
+      "kind": "conformance"
+    },
+    {
+      "name": "W104_Q_beta0_equals_X",
+      "passed": true,
+      "kind": "conformance",
+      "difference": 0.0
+    },
+    {
+      "name": "W104_vs_W112_same_seed_different_training_order",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "seed": 3407,
+      "first_batches": {
+        "W104_D121": [
+          450,
+          11,
+          422,
+          775,
+          572,
+          27,
+          57,
+          912,
+          361,
+          454,
+          914,
+          481,
+          178,
+          243,
+          53,
+          727
+        ],
+        "W112_D123": [
+          307,
+          928,
+          724,
+          681,
+          638,
+          926,
+          589,
+          94,
+          722,
+          870,
+          875,
+          723,
+          376,
+          447,
+          867,
+          147
+        ]
+      },
+      "post_model_RNG": {
+        "W104_D121": "41c0109631c58bf2",
+        "W112_D123": "feefc541cb4ab9aa"
+      },
+      "note": "actual main.load_data/load_model; integer dataset replaces file I/O only"
+    },
+    {
+      "name": "W104_init_namespace_does_not_validate_full_architecture",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "changed_argument": "dropout 0 -> 0.2",
+      "loaded_from_file": true,
+      "same_parameter_count": true,
+      "note": "same-width/depth tensor-compatible model change is silently accepted; no full signature is checked"
+    },
+    {
+      "name": "W104_all_generated_configs_lack_expected_U_init_hash",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "asset_pin": null
+    },
+    {
+      "name": "W104_shell_fixture",
+      "passed": true,
+      "kind": "conformance",
+      "rc": 0
+    },
+    {
+      "name": "W104_old_confirmation_not_replaced_and_new_not_mandatory",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "extra": [
+        "PAKD50_RCQ_W112_D123_WV3_T0_S3407_FRESH50_v1",
+        "PAKD50_RC0_W112_D123_WV3_T0_S3407_FRESH50_v1",
+        "PAKD50_F0_W112_D123_WV3_T0_S3407_FRESH50_v1",
+        "PAKD50_J0_W104_D121_WV3_T0_S3407_FRESH50_v1",
+        "PAKD50_JQ_W104_D121_WV3_T0_S3407_FRESH50_v1",
+        "PAKD50_J0_W112_D123_WV3_T0_S3407_FRESH50_v1",
+        "PAKD50_JQ_W112_D123_WV3_T0_S3407_FRESH50_v1"
+      ],
+      "mandatory": [
+        "# s4 기본 묶음 (예산 gate 예약; 완료된 run 은 trainer 가 0 으로 센다) — gen_pakd50_configs.write_mandatory_file",
+        "PAKD50_NA0_W104_D121_WV3_T0_S1234_FRESH50_v1",
+        "PAKD50_J0_W104_D121_WV3_T0_S1234_FRESH50_v1",
+        "PAKD50_JQ_W104_D121_WV3_T0_S1234_FRESH50_v1",
+        "PAKD50_XJ_W104_D121_WV3_T0_S1234_FRESH50_v1",
+        "PAKD50_F0_W104_D121_WV3_T0_S1234_FRESH50_v1"
+      ]
+    },
+    {
+      "name": "W104_dry_run_already_registers_confirmation",
+      "passed": true,
+      "kind": "defect_reproduction",
+      "n_extra": 7
+    },
+    {
+      "name": "final_frozen_source_unchanged",
+      "passed": true,
+      "kind": "conformance",
+      "changed": []
+    }
+  ],
+  "finished_at": "2026-09-15T10:56:42+0900",
+  "summary": {
+    "conformance": {
+      "total": 22,
+      "passed": 22
+    },
+    "defect_reproduction": {
+      "total": 5,
+      "passed": 5
+    }
+  }
+}

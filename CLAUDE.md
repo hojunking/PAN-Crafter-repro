@@ -1,3 +1,6 @@
+<!-- PAN_STORAGE_LOCATIONS_20260928 -->
+> **2026-09-28 보관·runtime 정책:** [STORAGE_LOCATIONS.md](STORAGE_LOCATIONS.md), [RUNTIME_LAYOUT.md](RUNTIME_LAYOUT.md), [보관 색인](storage/ARCHIVE_INDEX.json), [runtime 색인](storage/RUNTIME_INDEX.json)을 먼저 확인한다. NAS는 모든 서버의 보관 선택지에서 제외한다. 데이터와 중요한 결과(후보 checkpoint·재개 상태·MAT 포함)는 메인에 유지한다. 그 외 보관용 run은 외장 이관 후 원래 경로에 심볼릭 링크와 위치 기록을 남긴다. s3·s4는 외장 연결 전 보관 위치를 유지한다.
+
 # PAN-Crafter 재현 + 경량화 연구
 
 PAN-Crafter (ICCV 2025) 저자 배포 코드를 재현하고, **경량화(골격 축소)와 정합 aligner 재사용·GT-anchored KD 로

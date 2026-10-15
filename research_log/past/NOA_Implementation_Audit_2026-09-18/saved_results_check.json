@@ -1,0 +1,65 @@
+{
+  "A_ON": {
+    "rr": {
+      "ergas": 2.0712336831455342,
+      "sam": 2.812256638030454,
+      "psnr": 37.87710393438536,
+      "ssim": 0.975157148117112,
+      "scc": 0.9875815873754069,
+      "q8": 0.919420015489718,
+      "rmse": 26.710280835294412,
+      "cc": 0.9909178639098283,
+      "ergas_sd": 0.48684919883077776,
+      "sam_sd": 0.5556430544264291,
+      "q8_sd": 0.08553003538600473,
+      "dataset": "wv3",
+      "n": 20
+    },
+    "fr_n": 20,
+    "fr_hqnr": 0.9591475525152621,
+    "fr_mean_scene_product": 0.959147552515262,
+    "mean_product_error": 1.1102230246251565e-16,
+    "per_scene_lengths": [
+      20,
+      20,
+      20
+    ],
+    "per_scene_rr_exists": false,
+    "aux_note": "V64/fSCC 생략: ValueError('too many values to unpack (expected 2)')"
+  },
+  "A_BYPASS_RAW": {
+    "rr": {
+      "ergas": 2.143477163897772,
+      "sam": 2.8507723329805845,
+      "psnr": 37.56155714134044,
+      "ssim": 0.9734082433566795,
+      "scc": 0.986414758988259,
+      "q8": 0.9178162165848628,
+      "rmse": 27.811519106059897,
+      "cc": 0.9901923272336125,
+      "ergas_sd": 0.48308222645365667,
+      "sam_sd": 0.5605350906614938,
+      "q8_sd": 0.08490063826699282,
+      "dataset": "wv3",
+      "n": 20
+    },
+    "fr_n": 20,
+    "fr_hqnr": 0.9541956405517693,
+    "fr_mean_scene_product": 0.9541956405517695,
+    "mean_product_error": 2.220446049250313e-16,
+    "per_scene_lengths": [
+      20,
+      20,
+      20
+    ],
+    "per_scene_rr_exists": false,
+    "aux_note": "V64/fSCC 생략: ValueError('too many values to unpack (expected 2)')"
+  },
+  "live_phase_files": [
+    "sanity_PAKD50_QRC24_S1_G23_W104_D121_WV3_T0_S1234_FRESH50_v1.json",
+    "records",
+    "gate_k51.log",
+    "cohort.json"
+  ],
+  "record_count": 1
+}
