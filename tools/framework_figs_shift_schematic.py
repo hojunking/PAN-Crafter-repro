@@ -15,6 +15,7 @@
 사용:
   python tools/framework_figs_shift_schematic.py --only 3_city
   python tools/framework_figs_shift_schematic.py --only 3_city --exaggerate 6 --vec eps
+  python tools/framework_figs_shift_schematic.py --only 3_city --exaggerate 1 --view zoom --no-label
 """
 import argparse
 import csv
@@ -72,16 +73,17 @@ def draw(ax, p_bg, cs, dy, dx, lw, arrows=0, bg_alpha=.35):
     ax.set_facecolor("black")
 
 
-def panel(path, p_bg, cs, dy, dx, real_mag, k, lw, arrows, size, note):
+def panel(path, p_bg, cs, dy, dx, real_mag, k, lw, arrows, size, note, show_label=True):
     fig = plt.figure(figsize=(size, size), dpi=150)
     ax = fig.add_axes([0, 0, 1, 1])
     draw(ax, p_bg, cs, dy, dx, lw, arrows)
     ax.set_xlim(-.5, p_bg.shape[1] - .5); ax.set_ylim(p_bg.shape[0] - .5, -.5)
-    txt = (f"shift {real_mag:.2f} px" if k == 1 else
-           f"shift {real_mag:.2f} px  (drawn {k}x)")
-    ax.text(.5, .022, txt + ("" if not note else f"  ·  {note}"), transform=ax.transAxes,
-            ha="center", fontsize=8.6, color="w",
-            bbox=dict(boxstyle="round,pad=.28", fc="black", ec="w", lw=.7, alpha=.8))
+    if show_label:
+        txt = (f"shift {real_mag:.2f} px" if k == 1 else
+               f"shift {real_mag:.2f} px  (drawn {k}x)")
+        ax.text(.5, .022, txt + ("" if not note else f"  ·  {note}"), transform=ax.transAxes,
+                ha="center", fontsize=8.6, color="w",
+                bbox=dict(boxstyle="round,pad=.28", fc="black", ec="w", lw=.7, alpha=.8))
     fig.savefig(path, facecolor="black")
     plt.close(fig)
 
@@ -94,6 +96,10 @@ def main():
                     help="어느 이동을 그릴 것인가 (기본 eps = 학습에 주입하는 2.0 px)")
     ap.add_argument("--exaggerate", type=float, nargs="+", default=[1, 3, 6],
                     help="그릴 배율들 (1 = 실제값)")
+    ap.add_argument("--view", choices=("all", "wide", "zoom"), default="all",
+                    help="출력할 판만 선택 (다른 판은 수정하지 않음)")
+    ap.add_argument("--no-label", action="store_true",
+                    help="하단 라벨/테두리만 생략 (이동량/배율은 논문 캡션에 명시)")
     a = ap.parse_args()
 
     if not os.path.exists(SRC):
@@ -127,10 +133,14 @@ def main():
         for k in a.exaggerate:
             ks = f"{k:g}".replace(".", "p")
             dy, dx = float(v[0] * k), float(v[1] * k)
-            panel(os.path.join(d, f"SHIFT_schem_wide_{a.vec}_x{ks}.png"), pan, cs_w, dy, dx,
-                  mag, k, lw=1.7, arrows=0, size=3.4, note=f"{a.vec}")
-            panel(os.path.join(d, f"SHIFT_schem_zoom_{a.vec}_x{ks}.png"), pz, cs_z, dy, dx,
-                  mag, k, lw=3.0, arrows=2, size=3.4, note=f"{a.vec}")
+            if a.view in ("all", "wide"):
+                panel(os.path.join(d, f"SHIFT_schem_wide_{a.vec}_x{ks}.png"), pan, cs_w, dy, dx,
+                      mag, k, lw=1.7, arrows=0, size=3.4, note=f"{a.vec}",
+                      show_label=not a.no_label)
+            if a.view in ("all", "zoom"):
+                panel(os.path.join(d, f"SHIFT_schem_zoom_{a.vec}_x{ks}.png"), pz, cs_z, dy, dx,
+                      mag, k, lw=3.0, arrows=2, size=3.4, note=f"{a.vec}",
+                      show_label=not a.no_label)
         print(f"{name:12} {a.vec} |v|={mag:.3f} px  contours wide {len(cs_w)} / zoom {len(cs_z)} "
               f"@({zi},{zj})  배율 {a.exaggerate}")
 
