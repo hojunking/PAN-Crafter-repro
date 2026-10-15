@@ -37,8 +37,12 @@ def execute(root, server, spec_path, deadline_utc, device='cuda'):
     from qg40.phase_audit import phase_coordinate_checks
     atomic_json(directory / 'phase_coordinates.json', phase_coordinate_checks())
     if previous:
-        if previous.get('source_identity') != release or previous.get('sensor_spec_sha256') != object_sha(bound):
+        if previous.get('sensor_spec_sha256') != object_sha(bound):
             raise ValueError('Existing local preflight source/sensor binding changed')
+        if previous.get('source_identity') != release:
+            from g20.migration import archive_preflight_for_amendment
+            archive_preflight_for_amendment(root, server, previous, release)
+            previous = {}  # New source must execute every local readiness check.
         if previous.get('complete'):
             # Reader preparation revalidates source/cache bytes; this is not a bypass.
             prepared = prepare_data(root, server, SensorSpec.from_dict(bound), deadline_utc=deadline_utc)

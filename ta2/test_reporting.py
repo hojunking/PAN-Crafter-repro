@@ -115,7 +115,26 @@ class FakeBook:
             self.rows[first][left]=request['values'][0][0]
 
     def batch_update(self, body):
-        self.format_calls.append(copy.deepcopy(body))
+        for request in body.get('requests', []):
+            if 'appendCells' not in request:
+                self.format_calls.append(copy.deepcopy(body))
+                continue
+            append = request['appendCells']
+            assert append['sheetId'] == SHEET_ID
+            assert append['fields'] == 'userEnteredValue,userEnteredFormat'
+            self.append_calls.append(copy.deepcopy(body))
+            if self.concurrent:
+                self.rows[max(self.rows)+1] = ['STATUS']+['']*151
+                self.concurrent = False
+            first = max(self.rows)+1
+            for offset, row in enumerate(append['rows']):
+                assert len(row['values']) == 152
+                self.rows[first+offset] = [next(iter(cell['userEnteredValue'].values())) for cell in row['values']]
+            self.count = max(self.count, max(self.rows))
+            if self.timeout_after_append:
+                self.timeout_after_append = False
+                raise TimeoutError('Unknown successful appendCells')
+        return {'replies': [{} for _ in body.get('requests', [])]}
 
 
 class RecordsTest(unittest.TestCase):
@@ -493,7 +512,7 @@ class BatchOutboxTest(unittest.TestCase):
                     state=out.publish(adapter,50)
             self.assertEqual(state['verified_records'],50)
             self.assertEqual(len(book.append_calls),1)
-            self.assertEqual(len(book.append_calls[0][2]['values']),50)
+            self.assertEqual(len(book.append_calls[0]['requests'][0]['appendCells']['rows']),50)
             self.assertEqual(len(book.marker_calls),1)
             self.assertLessEqual(metadata.call_count,8)
             self.assertLessEqual(read.call_count,6)

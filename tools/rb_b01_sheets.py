@@ -162,6 +162,11 @@ def main(argv=None):
             record = dict(at_utc=stamp(), command=args.command, attempt_id=attempt_id,
                           state=state, details=details or {})
             write(output / 'history' / (args.command + '_' + attempt_id + '_' + state + '.json'), record)
+            if state in ('BEFORE_SNAPSHOT', 'AFTER_SNAPSHOT'):
+                write(output / (state.lower() + '.json'), details)
+            if state in ('PLACEMENT_PLANNED', 'ABLATIONS_BLOCK_WRITTEN'):
+                placement = details.get('placement', details)
+                write(output / 'placement_manifest.json', placement)
             with event_file.open('a', encoding='utf-8') as stream:
                 stream.write(json.dumps(record, ensure_ascii=False, allow_nan=False) + '\n')
                 stream.flush()
@@ -176,7 +181,8 @@ def main(argv=None):
                 result = prepare(args.evidence_root)
                 destination = output / 'prepared.json'
             else:
-                from reporting_bridge.rb_b01_sheets import GoogleSheetsAdapter, SheetsBridge
+                from reporting_bridge.rb_b01_sheets import GoogleSheetsAdapter
+                from reporting_bridge.rb_b01_append import AppendOnlySheetsBridge as SheetsBridge
                 bridge = SheetsBridge(GoogleSheetsAdapter(args.spreadsheet_id, root=args.root))
                 bridge.progress_callback = progress
                 if args.command == 'inspect':

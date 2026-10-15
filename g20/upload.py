@@ -177,6 +177,16 @@ def row_values(run, root=ROOT):
               'G20 primary selections': 'Exact50K and RR_VAL_SELECTED',
               'G20 selected step': main['step'], 'G20 A/U checkpoint SHA256': main['checkpoint_sha256'],
               'Notes': 'Main=Exact50K; co-primary=RR_VAL_SELECTED; raw-original mean-per-scene HQNR, same-step A/U. RAW_MAX, TARGET and E_MIN are test-aware. Signed Ds uses actual native Qhigh/Qlow, not NCC. JQM is SRF-substitute; unmeasured values remain empty.'}
+    exception = ref.get('consumer_parity_exception')
+    if exception:
+        metric = exception.get('evaluator_parity', {})
+        metric_note = ('metric replay strict FAILED, ACCEPTED_WITH_METRIC_EXCEPTION; metric receipt SHA256='
+                       + metric['receipt_sha256'] + '; '
+                       if metric.get('status') == 'ACCEPTED_WITH_METRIC_EXCEPTION'
+                       else 'unchanged metric replay PASS; ')
+        values['Notes'] += (' R0 ACCEPTED_WITH_PARITY_EXCEPTION: historical RTX5090/RTX4090 '
+            'tensor parity FAILED; ' + metric_note + 'local replay verified; authorization SHA256='
+            + exception['authorization_sha256'] + '; receipt SHA256=' + exception['receipt_sha256'] + '.')
     metadata = metadata_values(wd, cfg, case, training, status, 'Exact50K')
     values.update(metadata)
     values['Notes'] = augment_notes(metadata, values['Notes'])

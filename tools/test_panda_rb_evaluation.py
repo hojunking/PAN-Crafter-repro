@@ -1,6 +1,7 @@
 """CPU-only protocol, geometry and hostile-artifact tests; no real inference run."""
 from pathlib import Path
 import copy
+import csv
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -279,6 +280,41 @@ class ContextTests(unittest.TestCase):
 
 
 class NativeIntegrationTests(unittest.TestCase):
+    def test_native_row_loop_identity_overrides_supplemental_reserved_fields(self):
+        with tempfile.TemporaryDirectory() as temp:
+            wd = Path(temp)
+            ctx = dict(wd=wd, data={'splits': {}},
+                       context=dict(source_identity=dict(tf32_matmul=False, tf32_cudnn=True)))
+            for split in ('rr', 'fr'):
+                ctx['data']['splits'][split] = dict(dataroot='native.h5', sha256='native',
+                    lpan_path='lp.h5', lpan_sha256='lp', sample_order_sha256='ordered')
+            class Dataset:
+                arrays = {'ms': None, 'pan': None}
+            pred = np.zeros((20, 8, 2, 2), dtype=np.float32)
+            correction = np.tile([.25, -.5], (20, 1))
+            normal = dict(per_scene=[{} for _ in range(20)])
+            extra = dict(per_scene=[dict(scene_index=i + 100, source_h5_row=-1,
+                correction_dy=999., correction_dx=999., rmse=1.) for i in range(20)])
+            primary, _ = ev.selected_checkpoints(selection_manifest())
+            with patch.object(ev, '_model', return_value=None), \
+                 patch.object(ev, 'infer', return_value=(pred, correction)), \
+                 patch.object(ev, '_raw_checks'), \
+                 patch.object(ev, 'native_gt', return_value=None), \
+                 patch.object(ev, 'rr_metrics', return_value=normal), \
+                 patch.object(ev, 'rr_extra', return_value=extra), \
+                 patch.object(ev, 'fr_extra', return_value=extra):
+                result = ev._native_selection(ctx, primary, wd / 'native',
+                    {'rr': Dataset(), 'fr': Dataset()}, 'cpu', lambda _: normal)
+            self.assertEqual(result['supplemental_rr'], extra)
+            self.assertEqual(result['supplemental_fr'], extra)
+            with (wd / 'native/per_scene.csv').open(newline='') as stream:
+                rows = list(csv.DictReader(stream))
+            for index, row in enumerate(rows):
+                self.assertEqual(int(row['scene_index']), index % 20)
+                self.assertEqual(int(row['source_h5_row']), index % 20)
+                self.assertEqual(float(row['correction_dy']), .25)
+                self.assertEqual(float(row['correction_dx']), -.5)
+
     def test_native_same_sha_alias_writes40_ordered_raw_files_and_reuses_verified_cache(self):
         with tempfile.TemporaryDirectory() as temp:
             wd = Path(temp); primary, secondary = ev.selected_checkpoints(selection_manifest())
@@ -293,20 +329,38 @@ class NativeIntegrationTests(unittest.TestCase):
             fr = np.broadcast_to(np.float32(100), (20, 8, 512, 512))
             normal_rr = dict(ergas=2., scc=.9, per_scene=[dict(ergas=2., scc=.9)] * 20)
             normal_fr = dict(hqnr=.95, per_scene=[dict(hqnr=.95)] * 20)
-            extra = dict(per_scene=[dict(rmse=1., cc=.9)] * 20)
+            # Match the real supplemental evaluators: both include scene_index;
+            # FR additionally retains non-scalar SRF provenance in its report.
+            extra_rr = dict(per_scene=[dict(scene_index=i, rmse=1., cc=.9) for i in range(20)])
+            extra_fr = dict(per_scene=[dict(scene_index=i, jqm=.8, qlr=.85, qhr=.75,
+                w=[.125] * 8, w_source='NNLS-normalized') for i in range(20)])
             with patch.object(ev, '_context', return_value=ctx), \
                  patch.object(ev, 'build_dataset', return_value=Dataset()), \
                  patch.object(ev, '_model', return_value=None), \
                  patch.object(ev, 'infer', side_effect=[(rr, np.zeros((20, 2))), (fr, np.zeros((20, 2)))]) as infer, \
                  patch.object(ev, 'native_gt', return_value=None), \
                  patch.object(ev, 'rr_metrics', return_value=normal_rr), \
-                 patch.object(ev, 'rr_extra', return_value=extra), \
-                 patch.object(ev, 'fr_extra', return_value=extra), \
+                 patch.object(ev, 'rr_extra', return_value=extra_rr), \
+                 patch.object(ev, 'fr_extra', return_value=extra_fr), \
                  patch.object(ev, 'FRMetrics', return_value=lambda x: normal_fr):
                 report = ev.evaluate_native('test', '/tmp/binding', root=wd, device='cpu')
                 self.assertEqual(infer.call_count, 2)
                 self.assertEqual(report['n_unique_checkpoints'], 1)
                 self.assertEqual(report['selections']['RR_VAL_ERGAS_MIN']['alias_of'], 'EXACT_50000')
+                selected = report['selections']['EXACT_50000']
+                self.assertEqual(selected['supplemental_rr'], extra_rr)
+                self.assertEqual(selected['supplemental_fr'], extra_fr)
+                with (wd / 'native/per_scene.csv').open(newline='') as stream:
+                    rows = list(csv.DictReader(stream))
+                self.assertEqual(len(rows), 40)
+                for split in ('rr', 'fr'):
+                    subset = [row for row in rows if row['split'] == split]
+                    self.assertEqual([int(row['scene_index']) for row in subset], list(range(20)))
+                    self.assertEqual([int(row['source_h5_row']) for row in subset], list(range(20)))
+                    metrics = (('rmse', 1.), ('cc', .9)) if split == 'rr' else (('jqm', .8), ('qlr', .85), ('qhr', .75))
+                    for row in subset:
+                        for key, value in metrics:
+                            self.assertEqual(float(row[key]), value)
                 files = list((wd / 'native/Ours_raw').rglob('testimg*.npy'))
                 self.assertEqual(len(files), 40)
                 for split, expected in (('reduced', (8, 256, 256)), ('full', (8, 512, 512))):

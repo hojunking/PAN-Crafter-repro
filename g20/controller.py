@@ -206,7 +206,12 @@ def start(root, server, *, spec_path=None, window_path=None, dry_run=False, devi
                         registry_sha256=registry_sha256(), source_identity=source_identity(root))
         existing = read(folder / 'registration.json')
         if existing and existing.get('identity') != expected:
-            raise ValueError('Existing registration differs; exact-resume identity cannot be rewritten')
+            if ({k: v for k, v in existing.get('identity', {}).items() if k != 'source_identity'}
+                    != {k: v for k, v in expected.items() if k != 'source_identity'}):
+                raise ValueError('Existing registration differs; exact-resume identity cannot be rewritten')
+            from g20.migration import validate_amendment
+            if not validate_amendment(root, server, existing, expected['source_identity']):
+                raise ValueError('Existing registration differs; exact-resume identity cannot be rewritten')
         if not existing:
             existing = dict(identity=expected, registered_at_utc=utcnow(), original_wv3_hold=original_hold)
             atomic_json(folder / 'registration.json', existing)
@@ -230,10 +235,14 @@ def verify_registration(root, server):
     identity = registration['identity']
     if (identity['campaign_id'] != CAMPAIGN_ID or identity['server_id'] != server
             or identity['registry_sha256'] != registry_sha256()
-            or identity['source_identity'] != source_identity(root)
             or identity['window'] != shared_window(root).to_dict()
             or identity['sensor_spec_sha256'] != object_sha(read_json(camp(root, server) / 'sensor_spec.json'))):
         raise ValueError('G20 registration/source/data/window changed')
+    current = source_identity(root)
+    if identity['source_identity'] != current:
+        from g20.migration import validate_amendment
+        if not validate_amendment(root, server, registration, current):
+            raise ValueError('G20 registration/source/data/window changed')
     return registration
 
 
@@ -338,11 +347,19 @@ def ensure_reference(root, server, reference_id, state, window):
         validate_reference(reference_id, server, root)
         if reference_id == 'R0':
             from g20.parity import verify_r0_parity
-            receipt = verify_r0_parity(root, server, 'cuda', window.deadline_utc.isoformat())
-            if receipt.get('status') != 'PASS':
+            from g20.metric_exception import authorization_path, accept_or_validate
+            if authorization_path(root, server).is_file():
+                receipt = accept_or_validate(root, server, deadline=window.deadline_utc.isoformat())
+                accepted = (receipt.get('status') == 'ACCEPTED_WITH_METRIC_EXCEPTION'
+                            and receipt.get('accepted') is True and receipt.get('passed') is False)
+            else:
+                receipt = verify_r0_parity(root, server, 'cuda', window.deadline_utc.isoformat())
+                accepted = receipt.get('status') == 'PASS'
+            if not accepted:
                 state.update(status='WAIT_REFERENCE_PARITY', parity=receipt)
                 _write_state(root, server, state)
                 return False
+            state['parity'] = receipt
         return True
     if reference_id == 'R0':
         from g20.plan import R0_PINS

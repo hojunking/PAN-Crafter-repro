@@ -512,7 +512,27 @@ class AnalysisSheet:
         return dict(rows=int(props['rowCount']), columns=152, allocated_cells=total,
                     conservatively_available_rows=max(0, (self.max_cells-total)//152))
 
-    def _native(self, row):
+    @staticmethod
+    def _check_native_cells(cells, row, *, preserved_boundary=False):
+        """Keep the reviewed admission-row ID formula in its untouched row.
+
+        The append writes after this boundary. It must not copy the lane ID
+        formula into measurement rows or relax checks on rows being written.
+        Other formulas (including spill formulas), chips and validation still
+        require a separate native-row implementation.
+        """
+        admission = (len(cells) > 1
+            and cells[0].get('userEnteredValue', {}).get('stringValue') == 'STATUS'
+            and cells[1].get('userEnteredValue', {}).get('stringValue') == 'ADMISSION_V2')
+        for column, cell in enumerate(cells):
+            formula = cell.get('userEnteredValue', {}).get('formulaValue')
+            reviewed_formula = (preserved_boundary and admission
+                and column == INDEX['Record_ID'] and formula == f'="LANE:"&C{row}')
+            if (cell.get('dataValidation') or cell.get('chipRuns')
+                    or (formula and not reviewed_formula)):
+                raise PublicationConflict('Validation/chips/formulas require reviewed native-row workflow')
+
+    def _native(self, row, *, preserved_boundary=False):
         metadata = self.book.fetch_sheet_metadata(params={'includeGridData': True,
             'ranges': [f"'{SHEET}'!A{row}:EV{row}"],
             'fields': 'sheets(properties(sheetId,title),data(startRow,startColumn,rowData(values(userEnteredValue,effectiveValue,dataValidation,chipRuns))))'})
@@ -521,8 +541,7 @@ class AnalysisSheet:
             raise PublicationConflict('Native metadata read targeted different sheet')
         data = sheets[0].get('data', [{}])[0].get('rowData', [{}])
         cells = data[0].get('values', []) if data else []
-        if any(c.get('dataValidation') or c.get('chipRuns') or c.get('userEnteredValue', {}).get('formulaValue') for c in cells):
-            raise PublicationConflict('Validation/chips/formulas require reviewed native-row workflow')
+        self._check_native_cells(cells, row, preserved_boundary=preserved_boundary)
         return cells
 
     def locate(self, record_id, capacity):
@@ -553,20 +572,10 @@ class AnalysisSheet:
         if appended:
             self.preflight(extra_rows=1)
             self._native(HEADER_ROW)
-            self._native(last)
+            self._native(last, preserved_boundary=True)
             if last + 1 <= capacity['rows']:
                 self._native(last + 1)
-            # The server-side append resolves an occupied tail atomically. We
-            # never call values.update at a racy computed empty-row address.
-            anchor = min(last + 1, capacity['rows'])
-            response = self.book.values_append(f"'{SHEET}'!A{anchor}:EV{anchor}",
-                params={'valueInputOption': 'RAW', 'insertDataOption': 'INSERT_ROWS',
-                        'includeValuesInResponse': False}, body={'values': [[record[k] for k in COLUMNS]]})
-            span = response.get('updates', {}).get('updatedRange', '')
-            match = re.fullmatch(r"(?:'analysis'|analysis)!A(\d+):EV(\d+)", span)
-            if not match or match[1] != match[2] or int(match[1]) <= last:
-                raise PublicationConflict('Unexpected atomic append range; preserve receipt and investigate')
-            existing = int(match[1])
+            existing = self._append_records([record], last)[record['Record_ID']]
         actual = self.values(f'A{existing}:EV{existing}')
         if len(actual) != 1 or not _matches(actual[0], record):
             raise PublicationConflict('Same Record_ID has different scientific values; never overwrite')
@@ -602,6 +611,32 @@ class AnalysisSheet:
         return dict(receipt, receipt_sha256=receipt_sha, appended=appended,
                     visual_render_verified=False, native_structure_readback_verified=True)
 
+    def _append_records(self, records, last):
+        """Atomic column-A append, without values.append table inference.
+
+        Sparse scientific rows contain empty columns. values.append can infer a
+        separate right-hand table and shift an entire row. appendCells targets
+        the numeric sheet ID and always starts at column A. Locate immutable
+        IDs after the atomic append, also recovering concurrent server writes.
+        """
+        rows = []
+        for record in records:
+            cells = []
+            for key in COLUMNS:
+                value = record[key]
+                kind = ('boolValue' if isinstance(value, bool) else
+                        'numberValue' if isinstance(value, (int, float)) else 'stringValue')
+                cells.append(dict(userEnteredValue={kind: value}, userEnteredFormat={
+                    'verticalAlignment': 'MIDDLE', 'wrapStrategy': 'CLIP',
+                    'textFormat': {'fontFamily': 'Arial', 'fontSize': 10}}))
+            rows.append(dict(values=cells))
+        self.book.batch_update({'requests': [{'appendCells': {
+            'sheetId': SHEET_ID, 'rows': rows, 'fields': 'userEnteredValue,userEnteredFormat'}}]})
+        positions, _ = self._locate_many([r['Record_ID'] for r in records], self.preflight(extra_rows=0))
+        if len(positions) != len(records) or any(row <= last for row in positions.values()):
+            raise PublicationConflict('Atomic append ID readback missing or before preserved boundary')
+        return positions
+
     def _values_many(self, areas):
         if not areas:
             return []
@@ -633,7 +668,7 @@ class AnalysisSheet:
                 result[row] = block[row-first] if row-first < len(block) else []
         return result
 
-    def _native_many(self, rows):
+    def _native_many(self, rows, *, preserved_boundaries=()):
         spans = self._row_spans(rows)
         if not spans:
             return
@@ -644,10 +679,10 @@ class AnalysisSheet:
         if len(sheets) != 1 or sheets[0]['properties'].get('title') != SHEET:
             raise PublicationConflict('Native batch metadata targeted different sheet')
         for block in sheets[0].get('data', []):
-            for row in block.get('rowData', []):
-                if any(cell.get('dataValidation') or cell.get('chipRuns') or
-                       cell.get('userEnteredValue', {}).get('formulaValue') for cell in row.get('values', [])):
-                    raise PublicationConflict('Validation/chips/formulas in batch require reviewed native-row workflow')
+            for offset, row in enumerate(block.get('rowData', [])):
+                number = block.get('startRow', 0) + offset + 1
+                self._check_native_cells(row.get('values', []), number,
+                    preserved_boundary=number in preserved_boundaries)
 
     def _locate_many(self, record_ids, capacity):
         """One bounded multi-range request, not two full scans per record."""
@@ -702,17 +737,9 @@ class AnalysisSheet:
             except CapacityBlocked as exc:
                 exc.missing_record_ids = [record['Record_ID'] for record in missing]
                 raise
-            self._native_many([HEADER_ROW, last] + ([last+1] if last+1 <= capacity['rows'] else []))
-            anchor = min(last+1, capacity['rows'])
-            response = self.book.values_append(f"'{SHEET}'!A{anchor}:EV{anchor}",
-                params={'valueInputOption': 'RAW', 'insertDataOption': 'INSERT_ROWS',
-                        'includeValuesInResponse': False},
-                body={'values': [[record[key] for key in COLUMNS] for record in missing]})
-            span = response.get('updates', {}).get('updatedRange', '')
-            match = re.fullmatch(r"(?:'analysis'|analysis)!A(\d+):EV(\d+)", span)
-            if not match or int(match[1]) <= last or int(match[2])-int(match[1])+1 != len(missing):
-                raise PublicationConflict('Unexpected atomic batch append range; recover by exact IDs')
-            positions.update({record['Record_ID']: int(match[1])+i for i, record in enumerate(missing)})
+            self._native_many([HEADER_ROW, last] + ([last+1] if last+1 <= capacity['rows'] else []),
+                              preserved_boundaries=(last,))
+            positions.update(self._append_records(missing, last))
         actual = self._read_rows(positions.values())
         for record in records:
             if not _matches(actual[positions[record['Record_ID']]], record):
@@ -802,6 +829,79 @@ class Outbox:
             return 2 if record['Metric_name'].endswith('/mean') else 3
         return 4 if kind in ('ASSET', 'UNIT') else 5
 
+    # Transport scheduling only: record values, identities and destinations do
+    # not change. Reserve 70% of a full cycle for the four diagnostic families;
+    # unused slots are immediately available to other due records.
+    DELIVERY_POLICY = 'diagnostic_fair_v1'
+    DELIVERY_WHEEL = (0, 1, 2, 3, 4, 5, 2, 3, 4, 5, 2, 3, 4, 5, 6, 7, 8, 9, 3, 5)
+    DELIVERY_CLASSES = ('summary', 'terminal_status', 'correction', 'gain',
+                        'alignment_proxy', 'gradient', 'other_diagnostics',
+                        'aggregate', 'asset_unit', 'progress_status')
+
+    @staticmethod
+    def _delivery_class(record):
+        kind = record['Record_type']
+        present = lambda key: record.get(key) not in ('', None)
+        if kind == 'SUMMARY': return 0
+        if kind == 'STATUS':
+            return 9 if record.get('Status') == 'RUNNING' and record.get('Step') != 1 else 1
+        if kind == 'GRAD': return 5
+        if kind == 'RESPONSE':
+            if present('Native_c_dy'): return 2
+            if present('Residual_proxy_px') or present('Shift_estimator'): return 4
+            if present('Gain') or present('Gain_den'): return 3
+        if kind in ('SEED_AGG', 'PAIRED'): return 7
+        if kind in ('ASSET', 'UNIT'): return 8
+        return 6
+
+    def _classify_pending(self, max_records=5000):
+        """Bounded, resumable metadata migration, including older producers.
+
+        Old frozen training code still inserts rows without delivery_class.
+        Its durable JSON/envelope is inspected once; never rewrite payloads,
+        failure history, backoff or receipts, and never scan verified history.
+        Caller holds the publication lock; no network/producer lock is held.
+        """
+        db = self._db()
+        try:
+            rows = db.execute("SELECT * FROM records WHERE state='pending' AND delivery_class IS NULL ORDER BY sequence LIMIT ?",
+                              (max_records,)).fetchall()
+            updates = []
+            for row in rows:
+                try:
+                    category = self._delivery_class(self._load_indexed(row)['record'])
+                except Exception:
+                    # A damaged row must reach normal per-row validation and
+                    # backoff without blocking every other queue entry.
+                    category = 6
+                updates.append((category, row['sequence']))
+            db.executemany("UPDATE records SET delivery_class=? WHERE sequence=? AND state='pending' AND delivery_class IS NULL", updates)
+            db.commit()
+            return len(rows)
+        finally:
+            db.close()
+
+    def _due_rows(self, max_records, checked_time):
+        """Weighted round robin with a durable cursor, including one-row calls."""
+        from collections import deque
+        self._classify_pending()
+        db = self._db()
+        try:
+            queues = [deque(db.execute("SELECT * FROM records WHERE state='pending' AND delivery_class=? AND next_attempt<=? ORDER BY next_attempt,sequence LIMIT ?",
+                (category, checked_time, max_records)).fetchall()) for category in range(len(self.DELIVERY_CLASSES))]
+            cursor_row = db.execute("SELECT value FROM counters WHERE name='diagnostic_fair_cursor_v1'").fetchone()
+            cursor = cursor_row[0] if cursor_row else 0
+            rows = []
+            while len(rows) < max_records and any(queues):
+                category = self.DELIVERY_WHEEL[cursor % len(self.DELIVERY_WHEEL)]
+                cursor = (cursor + 1) % len(self.DELIVERY_WHEEL)
+                if queues[category]: rows.append(queues[category].popleft())
+            db.execute("INSERT OR REPLACE INTO counters(name,value) VALUES ('diagnostic_fair_cursor_v1',?)", (cursor,))
+            db.commit()
+            return rows
+        finally:
+            db.close()
+
     @staticmethod
     def _csv(record):
         buffer = io.StringIO(newline='')
@@ -856,10 +956,10 @@ class Outbox:
         import json
         record = entry['record']
         result = db.execute('''INSERT OR IGNORE INTO records
-            (filename, record_id, scientific_sha, csv_sha, state, priority, envelope)
-            VALUES (?,?,?,?,?,?,?)''', (name, record['Record_ID'], entry['scientific_sha256'],
+            (filename, record_id, scientific_sha, csv_sha, state, priority, envelope, delivery_class)
+            VALUES (?,?,?,?,?,?,?,?)''', (name, record['Record_ID'], entry['scientific_sha256'],
             entry['csv_sha256'], state, self._priority(record),
-            json.dumps(entry, ensure_ascii=False, sort_keys=True, allow_nan=False)))
+            json.dumps(entry, ensure_ascii=False, sort_keys=True, allow_nan=False), self._delivery_class(record)))
         if result.rowcount:
             db.execute("UPDATE counters SET value=value+1 WHERE name='total'")
             if state == 'verified':
@@ -893,6 +993,11 @@ class Outbox:
                     INSERT OR IGNORE INTO counters VALUES ('verified',0);
                     INSERT OR IGNORE INTO counters VALUES ('migration_complete',0);
                 ''')
+                if 'delivery_class' not in {row[1] for row in db.execute('PRAGMA table_info(records)')}:
+                    db.execute('ALTER TABLE records ADD COLUMN delivery_class INTEGER')
+                db.execute('CREATE INDEX IF NOT EXISTS delivery_due ON records(state,delivery_class,next_attempt,sequence)')
+                db.execute("CREATE INDEX IF NOT EXISTS delivery_unclassified ON records(sequence) WHERE state='pending' AND delivery_class IS NULL")
+                db.commit()
                 if db.execute("SELECT value FROM counters WHERE name='migration_complete'").fetchone()[0]:
                     return
                 # Streaming enumeration once; no sort/materialization of all
@@ -1063,27 +1168,21 @@ class Outbox:
         finally:
             db.close()
 
-    def publish(self, adapter=None, max_records=100):
+    def publish(self, adapter=None, max_records=100, *, publisher_lock=None):
         import time
+        from contextlib import nullcontext
         if not isinstance(max_records, int) or max_records < 1:
             raise ValueError('Positive bounded publication count required')
         errors, attempted, remote_batches = [], 0, 0
-        with (self.root / '.publish.lock').open('a+') as lock:
+        lock_path = self.root / '.publish.lock'
+        if publisher_lock is not None:
+            if (os.fstat(publisher_lock.fileno()).st_ino != lock_path.stat().st_ino
+                    or os.fstat(publisher_lock.fileno()).st_dev != lock_path.stat().st_dev):
+                raise ValueError('Publication lock must belong to this outbox')
+        with (lock_path.open('a+') if publisher_lock is None else nullcontext(publisher_lock)) as lock:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             self._cleanup_verified(max_records)
-            db = self._db()
-            try:
-                rows = []
-                checked_time = time.time()
-                # Six indexed due-time range reads avoid scanning an arbitrarily
-                # large deferred queue when every destination is in backoff.
-                for priority in range(6):
-                    rows.extend(db.execute("SELECT * FROM records WHERE state='pending' AND priority=? AND next_attempt<=? ORDER BY next_attempt,sequence LIMIT ?",
-                        (priority, checked_time, max_records-len(rows))).fetchall())
-                    if len(rows) >= max_records:
-                        break
-            finally:
-                db.close()
+            rows = self._due_rows(max_records, time.time())
             def failed(group, exc):
                 # Backoff only still-pending rows. A local disk failure after
                 # remote batch success may already have durably committed some.
@@ -1160,6 +1259,9 @@ class Outbox:
                          verified_records=counts['verified'], pending_records=counts['pending'], errors=errors,
                          total_records=counts['total'], attempted_this_batch=attempted,
                          remote_batches_this_call=remote_batches,
+                         delivery_policy=self.DELIVERY_POLICY,
+                         selected_by_class={name:sum(row['delivery_class'] == category for row in rows)
+                                            for category,name in enumerate(self.DELIVERY_CLASSES)},
                          checked_utc=now(), experiment_complete=False,
                          index='durable_sqlite_priority_queue; cached_verified_count; bounded_pending_read',
                          reason='Upload status is separate from registered experiment completion; cached receipts are not a fresh remote re-audit')

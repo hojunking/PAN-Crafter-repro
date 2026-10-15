@@ -204,7 +204,7 @@ def _native_selection(ctx, selection, directory, datasets, device, engine):
                 raw[split].append(metadata)
                 metrics = {k: v for k, v in {**normal['per_scene'][i], **extra['per_scene'][i]}.items()
                            if isinstance(v, (float, int))}
-                per_scene.append(dict(split=split, scene_index=i, source_h5_row=i, **metrics,
+                per_scene.append(dict(metrics, split=split, scene_index=i, source_h5_row=i,
                                       correction_dy=float(correction[i, 0]), correction_dx=float(correction[i, 1]),
                                       prediction_digest=metadata['prediction_digest']))
         # Same source raw H5 holds native GT/PAN/MS; do not duplicate gigabytes.

@@ -168,7 +168,11 @@ def verify_data_equivalence(origin, local, *, r0=False, deadline=None,
 def _origin(path):
     doc = read_json(path)
     if doc.get('schema') == 'G20_REFERENCE_BRIDGE_v1':
-        if not doc.get('complete') or not doc.get('output_parity', {}).get('passed'):
+        exception = doc.get('parity_exception')
+        accepted = (exception and doc.get('acceptance_status') == 'ACCEPTED_WITH_PARITY_EXCEPTION'
+                    and exception.get('status') == 'ACCEPTED_WITH_PARITY_EXCEPTION'
+                    and exception.get('passed') is False and exception.get('accepted') is True)
+        if not doc.get('complete') or not (doc.get('output_parity', {}).get('passed') or accepted):
             raise ValueError('G20 reference readback is incomplete')
         return doc['origin_reference'], doc['resolved_artifacts'], doc
     if doc.get('schema') == 'QG40_REFERENCE_BRIDGE_v1':
@@ -285,6 +289,29 @@ def _validate_payload(reference_id, origin, paths, root):
     return q, cfg, source_data
 
 
+def _exception_evaluator(root, server, deadline=None):
+    """Tensor approval alone never waives metrics; a second approval is explicit."""
+    from g20.common import camp
+    from g20.parity import verify_r0_parity
+    from g20.metric_exception import authorization_path, accept_or_validate
+    if authorization_path(root, server).is_file():
+        return accept_or_validate(root, server, deadline=deadline)
+    path = camp(root, server) / 'diagnostics/r0_evaluator_parity.json'
+    if not path.is_file() or not path.with_suffix('.seal.json').is_file():
+        raise ValueError('GPU exception requires fresh sealed TA/S92001 evaluator parity')
+    receipt = verify_r0_parity(root, server, device='cuda', deadline=deadline)
+    if receipt.get('status') != 'PASS' or receipt.get('passed') is not True:
+        raise ValueError('GPU exception cannot waive TA/S92001 evaluator parity')
+    return dict(path=str(path), sha256=sha256(path))
+
+
+def _exception_summaries(exception):
+    historical = exception['historical_comparison']
+    return historical['q'], dict(passed=historical['output']['passed'] and historical['delta']['passed'],
+        max_abs_error={key: historical[key]['max_abs_error'] for key in ('output', 'delta')},
+        atol=ATOL, rtol=RTOL, probe_origin='original checksummed portable probe')
+
+
 def validate_reference(reference_id, server, root=ROOT, *, manifest_path=None, dataset_manifest=None):
     from g20.common import source_identity
     if reference_id not in REFERENCE_SPECS:
@@ -307,8 +334,19 @@ def validate_reference(reference_id, server, root=ROOT, *, manifest_path=None, d
                          origin_tensor_receipt=bridge.get('origin_tensor_identity'), origin_authenticated=True)
         if bridge.get('data_equality') != receipt:
             raise ValueError('Reference bridge data proof changed')
-        validate_receipt(bridge['q_cache_online_parity'], reference_identity=identity_for(origin),
-                         data_identity=object_sha(data_signature(local)), q=q)
+        exception = bridge.get('parity_exception')
+        if exception:
+            if reference_id != 'R0' or server != 's1' or bridge.get('acceptance_status') != 'ACCEPTED_WITH_PARITY_EXCEPTION':
+                raise ValueError('GPU exception is restricted to approved s1/R0')
+            from g20.gpu_exception import validate
+            validate(exception, q, origin, local, root, server)
+            expected_q, expected_output = _exception_summaries(exception)
+            if (bridge['q_cache_online_parity'] != expected_q or bridge['output_parity'] != expected_output
+                    or bridge.get('evaluator_parity') != _exception_evaluator(root, server)):
+                raise ValueError('GPU exception raw comparisons/evaluator binding changed')
+        else:
+            validate_receipt(bridge['q_cache_online_parity'], reference_identity=identity_for(origin),
+                             data_identity=object_sha(data_signature(local)), q=q)
         parity = bridge['output_parity']
         if (parity.get('atol') != ATOL or parity.get('rtol') != RTOL
                 or set(parity.get('max_abs_error', {})) != {'output', 'delta'}
@@ -316,8 +354,19 @@ def validate_reference(reference_id, server, root=ROOT, *, manifest_path=None, d
             raise ValueError('Output/c parity receipt invalid')
         if sha256(bridge['output_probe_path']) != bridge['output_probe_sha256']:
             raise ValueError('Reference output/c probe changed')
+        if exception:
+            # Bind the retained original probe, not a substituted local PASS.
+            with np.load(bridge['output_probe_path'], allow_pickle=False) as saved:
+                from g20.gpu_exception import verify_probe_binding
+                verify_probe_binding(exception, saved)
     result = dict(origin, g20_reference_id=reference_id,
                   calibration_id=origin.get('calibration_id', object_sha(origin)))
+    if bridge and bridge.get('parity_exception'):
+        exception = bridge['parity_exception']
+        result['consumer_parity_exception'] = dict(status='ACCEPTED_WITH_PARITY_EXCEPTION',
+            authorization_sha256=exception['authorization_sha256'],
+            receipt_sha256=object_sha(exception), historical_parity_passed=False,
+            evaluator_parity=bridge['evaluator_parity'])
     return result, q, cfg, paths
 
 
@@ -357,7 +406,20 @@ def _publish_bridge(origin, paths, reference_id, server, root, local, device, de
     equality = verify_data_equivalence(source_data, local, r0=reference_id == 'R0',
                 deadline=deadline, origin_tensor_receipt=origin_tensors, origin_authenticated=True)
     model = _model(cfg, paths, device)
-    dataset, parity = _online(model, origin, q, local, device, deadline)
+    from g20.gpu_exception import authorization, measure
+    auth = authorization(root, server, origin, device) if reference_id == 'R0' and server == 's1' else None
+    exception = evaluator = None
+    if auth:
+        if probe is None:
+            raise ValueError('Approved GPU exception requires original portable probe; no local substitute')
+        from g20.data import build_dataset
+        dataset = build_dataset(local, 'train')
+        evaluator = _exception_evaluator(root, server, deadline)
+        exception, _local_probe = measure(model, dataset, q, probe, origin, local,
+                                          root, server, device, deadline)
+        parity, output = _exception_summaries(exception)
+    else:
+        dataset, parity = _online(model, origin, q, local, device, deadline)
     check_deadline(deadline)
     if probe is None:
         # In-process local readback compares the unchanged original model path
@@ -367,8 +429,9 @@ def _publish_bridge(origin, paths, reference_id, server, root, local, device, de
         probe_origin = 'local immutable numerical-core readback; not historical-runtime replay'
     else:
         probe_origin = 'original checksummed portable probe'
-    output = _check_probe(model, probe, device)
-    output['probe_origin'] = probe_origin
+    if not exception:
+        output = _check_probe(model, probe, device)
+        output['probe_origin'] = probe_origin
     from fh12.calibration import _write_npz_immutable
     probe_path = reference_path(reference_id, server, root).parent / 'output_probe.npz'
     _write_npz_immutable(probe_path, probe)
@@ -378,6 +441,9 @@ def _publish_bridge(origin, paths, reference_id, server, root, local, device, de
         data_equality=equality, origin_tensor_identity=origin_tensors,
         output_parity=output, output_probe_path=str(probe_path), output_probe_sha256=sha256(probe_path),
         q_cache_online_parity=parity)
+    if exception:
+        bridge.update(acceptance_status='ACCEPTED_WITH_PARITY_EXCEPTION',
+                      parity_exception=exception, evaluator_parity=evaluator)
     path = reference_path(reference_id, server, root)
     if path.exists():
         validate_reference(reference_id, server, root, dataset_manifest=local)
@@ -401,9 +467,17 @@ def load_reference(reference_id, server, root=ROOT, device='cuda', *, manifest_p
     manifest, q, cfg, paths = validate_reference(reference_id, server, root,
                             manifest_path=manifest_path, dataset_manifest=dataset_manifest)
     model = _model(cfg, paths, device)
-    _, receipt = _online(model, manifest, q, _data(dataset_manifest, root, server), device, deadline)
-    _, _, bridge = _origin(manifest_path or reference_path(reference_id, server, root))
-    if bridge:
+    origin, _, bridge = _origin(manifest_path or reference_path(reference_id, server, root))
+    if bridge and bridge.get('parity_exception'):
+        from g20.data import build_dataset
+        from g20.gpu_exception import verify_local
+        local = _data(dataset_manifest, root, server)
+        with np.load(bridge['output_probe_path'], allow_pickle=False) as probe:
+            receipt = verify_local(model, build_dataset(local, 'train'), q, probe,
+                bridge['parity_exception'], origin, local, root, server, device, deadline)
+    else:
+        _, receipt = _online(model, manifest, q, _data(dataset_manifest, root, server), device, deadline)
+    if bridge and not bridge.get('parity_exception'):
         with np.load(bridge['output_probe_path'], allow_pickle=False) as probe:
             _check_probe(model, probe, device)
     model.q_cache_parity_receipt = receipt

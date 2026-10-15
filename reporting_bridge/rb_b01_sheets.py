@@ -94,7 +94,7 @@ def _without_layout(grid):
                 for j, cell in enumerate(row.get('values', [])):
                     # effective/formatted values are not user edits and can be volatile.
                     value = {k: cell[k] for k in ('userEnteredValue', 'userEnteredFormat',
-                                                 'note', 'dataValidation', 'textFormatRuns') if k in cell}
+                                                 'note', 'dataValidation', 'textFormatRuns', 'chipRuns') if k in cell}
                     if value:
                         data[f"{block.get('startRow',0)+i}:{block.get('startColumn',0)+j}"] = value
         result[str(sid)] = {'cells': data, 'merges': sheet.get('merges', [])}
@@ -165,12 +165,12 @@ class GoogleSheetsAdapter:
         return self._book
 
     def metadata(self):
-        self._metadata_cache=self._read(lambda:self.book.fetch_sheet_metadata(params={'fields': 'spreadsheetId,properties,sheets(properties,merges,protectedRanges)'}))
+        self._metadata_cache=self._read(lambda:self.book.fetch_sheet_metadata(params={'fields': 'spreadsheetId,properties,namedRanges,sheets(properties,merges,protectedRanges,basicFilter,tables)'}))
         return self._metadata_cache
 
     def grid(self, ranges):
         return self._read(lambda:self.book.fetch_sheet_metadata(params={'includeGridData': True, 'ranges': [self._bounded(r) for r in ranges],
-            'fields': 'sheets(properties(sheetId,title),merges,data(startRow,startColumn,rowData(values(userEnteredValue,userEnteredFormat,note,dataValidation,textFormatRuns))))'}))
+            'fields': 'sheets(properties(sheetId,title),merges,data(startRow,startColumn,rowData(values(userEnteredValue,effectiveValue,formattedValue,userEnteredFormat,note,dataValidation,textFormatRuns,chipRuns,pivotTable,dataSourceFormula))))'}))
 
     def values(self, range_name):
         return self._read(lambda:self.book.values_get(self._bounded(range_name), params={'valueRenderOption': 'UNFORMATTED_VALUE',
@@ -187,6 +187,19 @@ class GoogleSheetsAdapter:
                 time.sleep(2**attempt)
 
     def batch_update(self, requests):
+        # v2 network boundary: retired v1 setup cannot create tabs or change A2.
+        for request in requests:
+            if len(request) != 1:
+                raise BridgeError('OUTPUT_POLICY: one request type required')
+            kind, body = next(iter(request.items()))
+            if kind not in ('updateCells', 'appendDimension'):
+                raise BridgeError('OUTPUT_POLICY: forbidden structural/public write ' + kind)
+            target = body.get('range', body.get('start', body))
+            sid = target.get('sheetId')
+            if sid not in set(range(269300000, 269300005)) | {FIXED_IDS['ablations']}:
+                raise BridgeError('OUTPUT_POLICY: target is not a source or ablations')
+            if kind == 'appendDimension' and (sid != FIXED_IDS['ablations'] or body.get('dimension') != 'ROWS'):
+                raise BridgeError('OUTPUT_POLICY: only bottom row growth of ablations allowed')
         result=self.book.batch_update({'requests': requests})
         if any(any(k in request for k in ('addSheet','appendDimension','updateSheetProperties')) for request in requests):
             self._metadata_cache=None
@@ -194,6 +207,10 @@ class GoogleSheetsAdapter:
 
     def write_raw(self, entries):
         if entries:
+            for name, _ in entries:
+                title = name.split('!', 1)[0].strip("'")
+                if title not in (*NATIVE_TABS, '_rb02_points', '_rb_b01_status'):
+                    raise BridgeError('OUTPUT_POLICY: RAW writes only to existing sources')
             return self.book.values_batch_update({'valueInputOption': 'RAW',
                 'data': [{'range': name, 'values': values} for name, values in entries]})
 
