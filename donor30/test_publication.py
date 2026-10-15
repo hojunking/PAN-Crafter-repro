@@ -14,6 +14,26 @@ from .test_reporting import config, evaluation, persist
 
 
 class PublicationTests(unittest.TestCase):
+    def test_previous_unmasked_donors_remain_in_combined_projection(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            new, old = root / 'masked', root / 'unmasked'
+            cfg = config()
+            persist(new, cfg)
+            legacy = deepcopy(cfg)
+            campaign, revision = next(iter(R.LEGACY_CAMPAIGNS.items()))
+            legacy.update(campaign_id=campaign, method_revision=revision)
+            legacy.pop('loss_mask_policy')
+            persist(old, legacy)
+            with patch('experiment_cost.publication.lookup_profile', return_value=None):
+                result = P.project(new, 's1', [old], require_cost=False)
+            self.assertFalse(result['conflicts'])
+            self.assertEqual(len(result['rows']), 2)
+            self.assertEqual(len({row[P.INDEX['Campaign_ID']] for row in result['rows']}), 2)
+            self.assertEqual(sum('MASK2' in row[P.INDEX['Experiment']] for row in result['rows']), 1)
+            # Old immutable records must rebuild byte-for-byte under new code.
+            self.assertFalse(P.scan_campaign(old)['conflicts'])
+
     def test_import_has_no_torch_or_google_side_effect(self):
         subprocess.run([sys.executable, "-c", "import sys; import donor30.publication; "
             "assert not any(x in sys.modules for x in ('torch', 'numpy', 'google.auth'))"], check=True)

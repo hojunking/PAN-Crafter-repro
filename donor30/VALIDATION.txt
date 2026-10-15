@@ -1,5 +1,8 @@
 DONOR30 implementation verification — 2026-10-15
 
+Latest MASK2 verification is at the end. Earlier entries are historical and
+their no-launch/unmasked-loss scope does not describe the new authorized run.
+
 Scope: additive donor30 package, config/donor30 lanes, run_donor30 launchers.
 
 2026-10-15 s1 launch correction (before any official donor run)
@@ -64,3 +67,39 @@ Important limits:
   same-server disposable timing/full native evaluation and measured admission.
   Real data/environment/credentials/GPU capacity remain runtime dependencies.
   HQNR-based choice is test-aware; no claim of independent held-out selection.
+
+MASK2 amendment validation (2026-10-15, supersedes v1 training loss above)
+
+  donor30 CPU suite: 119 tests PASS.
+  Unmodified directshift48 CPU regression: 144 tests PASS.
+  Real Docker torch2.4.0-cu118 / RTX4090 synthetic production-architecture smoke:
+    WV3 W112d123 donor -> calibrated W104d122 EQ Student: PASS.
+    GF2 W112d123 donor -> calibrated W104d122 EQ Student: PASS.
+    Each used64x64, effective batch48=12x4, FP32 forward/backward/optimizer.
+    Both measured valid fraction0.908447265625 and exactly zero Student output
+    loss gradient outside support. Calibration counts on12 samples:
+      e=44652 valid pixels, q=27648 fixedROI8 pixels.
+    Synthetic smoke is NOT a quality result or an s3 hardware measurement.
+
+  New numerical contracts:
+    independent four-tap geometry for zero/fractional/positive/negative shifts;
+    per-image valid-count normalization and microbatch equivalence;
+    empty/malformed masks fail rather than silently discard a sample;
+    donor and all Student modes have zero invalid-output-pixel gradient;
+    changing excluded output/GT pixels does not change the fitting objective;
+    excluded Teacher errors do not enter calibration medians;
+    native RR/FR predictions bit-identical to old inference at equal weights;
+    old unmasked checkpoint/calibration rejected by masked training;
+    old immutable v1 sheet records remain valid and combined with MASK2 rows.
+
+  Actual s1 historical projection (offline, no cloud writes):17 rows,
+  17 cost bindings, zero conflicts; both v1 donor runs retained alongside
+  DirectShift48/EdgeRes48 history. Evaluation implementation files unchanged.
+
+  User-requested old-run stop: v1 R1 completed50000; R2 stopped at9516 with
+  reason STOP_REQUESTED and no resume-save error. The old controller's final
+  status is FAILED because its complete-two-donors prerequisite was interrupted,
+  NOT because masked-loss code ran in the old process. Original logs/models
+  remain in v1; container preserved as panda-donor30-s1-unmasked-v1.
+  New MASK2 launch performs fresh local data/evaluation/calibration/timing checks
+  and starts R1 from initialization, then R2 and Stage2. Remote s3 not launched.

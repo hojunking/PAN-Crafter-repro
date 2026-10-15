@@ -1,6 +1,7 @@
 {
-  "campaign_id": "PANDA_DONOR_STAGE2_S13_30H_20261015_v1",
-  "method_revision": "DirectShift-Scharr-Donor-Stage2-v1",
+  "campaign_id": "PANDA_DONOR_STAGE2_S13_30H_20261015_v2_MASK",
+  "method_revision": "DirectShift-Scharr-Donor-Stage2-v2-MaskedLoss",
+  "loss_mask_policy": "DETACHED_BICUBIC4_SUPPORT_PER_SAMPLE_MEAN_V1",
   "server": "s1",
   "dataset": "WV3",
   "baseline_path": "config/directshift48/s1.baseline.json",

@@ -9,7 +9,9 @@ import unittest
 import numpy as np
 import torch
 
-from directshift48.test_method import batch, model
+from directshift48.test_method import batch, model as unmasked_model
+from pa.warp import warp_support_mask
+from .masking import MaskedDonorStage1, masked_mean
 from panda_method.calibration import canonical_sha256, state_dict_sha256
 from panda_method.reconstruction import ReconstructionSpec, build_reconstructor
 from .method import (DirectStage2, DirectCalibrationScales, ExactDirectCalibrator,
@@ -17,6 +19,10 @@ from .method import (DirectStage2, DirectCalibrationScales, ExactDirectCalibrato
 
 
 torch.set_num_threads(1)
+
+
+def model(sensor="GF2", **kwargs):
+    return MaskedDonorStage1.from_fresh_stage(unmasked_model(sensor, **kwargs))
 
 
 def setup(mode="eq", sensor="GF2"):
@@ -36,9 +42,10 @@ class CalibrationTests(unittest.TestCase):
                 out = donor.native_prediction(rr)
                 e, q = reference_maps(donor.spatial, out["y"], rr.gt, out["pan_aligned"])
             scales = calibrate_training(donor, [rr], expected_sample_ids=rr.lineage.sample_ids)
-            self.assertAlmostEqual(scales.tau_e, float(np.median(e.numpy().astype(np.float64))), places=15)
+            mask = warp_support_mask(*rr.pan.shape[-2:], out["u"])
+            self.assertAlmostEqual(scales.tau_e, float(np.median(e[mask].numpy().astype(np.float64))), places=15)
             self.assertAlmostEqual(scales.tau_q, float(np.median(q[..., 8:-8, 8:-8].numpy().astype(np.float64))), places=15)
-            self.assertEqual((scales.n_e, scales.n_q, scales.n_samples), (2*32*32, 2*16*16, 2))
+            self.assertEqual((scales.n_e, scales.n_q, scales.n_samples), (2*29*29, 2*16*16, 2))
             self.assertEqual(scales, DirectCalibrationScales.from_dict(scales.to_dict()))
             self.assertTrue(donor.training)
 
@@ -62,7 +69,8 @@ class CalibrationTests(unittest.TestCase):
         collector = ExactDirectCalibrator(calibration_binding(donor), donor.spatial,
             expected_sample_ids=rr.lineage.sample_ids, max_host_bytes=16)
         with self.assertRaises(MemoryError):
-            collector.update(torch.zeros_like(rr.gt), rr.gt, rr.pan, split="train", sample_ids=rr.lineage.sample_ids)
+            collector.update(torch.zeros_like(rr.gt), rr.gt, rr.pan, split="train", sample_ids=rr.lineage.sample_ids,
+                             valid_mask=warp_support_mask(32, 32, torch.zeros(2, 2)))
         self.assertEqual(collector.seen, set())
         chunks = [np.array([1., 4., 2., 3.], dtype=np.float32)]
         self.assertEqual(collector._median(chunks), (2.5, 4))
@@ -85,10 +93,11 @@ class ObjectiveTests(unittest.TestCase):
         y = torch.zeros_like(rr.gt)
         s = rr.gt.clone().requires_grad_()
         p = rr.pan
-        out = loss_terms(stage.spatial, s, t, y, p, mode="eq", calibration=scales)
+        mask = warp_support_mask(32, 32, torch.zeros(2, 2))
+        out = loss_terms(stage.spatial, s, t, y, p, mode="eq", calibration=scales, valid_mask=mask)
         e, q = reference_maps(stage.spatial, t, y, p)
         we, wq = e/(e+scales.tau_e), q/(q+scales.tau_q)
-        fit = ((1-we)*(s-t).abs().mean(1, keepdim=True)+we*s.abs().mean(1, keepdim=True)).mean()
+        fit = masked_mean((1-we)*(s-t).abs().mean(1, keepdim=True)+we*s.abs().mean(1, keepdim=True), mask)
         edge = stage.spatial.descriptor(stage.spatial.rgb_luminance(s)).abs().mean(1, keepdim=True)
         spatial = (wq*edge)[..., 8:-8, 8:-8].mean()
         torch.testing.assert_close(out["fit"], fit)
@@ -102,9 +111,10 @@ class ObjectiveTests(unittest.TestCase):
         s = rr.gt.clone().requires_grad_()
         t = rr.gt + .2
         args = (stage.spatial, s, t, rr.gt*.2, rr.pan)
-        e = loss_terms(*args, mode="e", calibration=scales)
-        uniform = loss_terms(*args, mode="uniform", calibration=scales)
-        eq = loss_terms(*args, mode="eq", calibration=scales)
+        mask = warp_support_mask(32, 32, torch.zeros(2, 2))
+        e = loss_terms(*args, mode="e", calibration=scales, valid_mask=mask)
+        uniform = loss_terms(*args, mode="uniform", calibration=scales, valid_mask=mask)
+        eq = loss_terms(*args, mode="eq", calibration=scales, valid_mask=mask)
         torch.testing.assert_close(e["fit"], uniform["fit"])
         torch.testing.assert_close(e["fit"], eq["fit"])
         self.assertEqual(float(e["spatial"]), 0.)
@@ -117,7 +127,7 @@ class ObjectiveTests(unittest.TestCase):
         stage = DirectStage2(donor, student, mode="gt")
         with patch.object(stage.teacher, "forward", side_effect=AssertionError("Teacher called")):
             out = stage(rr)
-        torch.testing.assert_close(out["loss"], (out["student"]["y"]-rr.gt).abs().mean())
+        torch.testing.assert_close(out["loss"], masked_mean((out["student"]["y"]-rr.gt).abs(), out["loss_mask"]))
 
     def test_shared_frozen_A_T_student_only_gradient_and_train_mode(self):
         for mode in ("gt", "e", "eq", "uniform"):

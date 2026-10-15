@@ -11,14 +11,13 @@ import numpy as np
 import torch
 
 from directshift48.test_evaluation import SyntheticSources, metrics
-from directshift48.test_method import model
 from directshift48.training import DirectStage1Trainer
 from panda_method.calibration import canonical_sha256, state_dict_sha256
 from ta2.evaluation import digest
 from . import plan
 from .evaluation import (model_identity, model_state_hash, official_evaluate,
                          paused_model, qualify_evaluation, expected_ids)
-from .test_method import setup
+from .test_method import setup, model
 from .training import StudentTrainer
 
 

@@ -1,5 +1,23 @@
 PAN-Crafter s1 / s3 공유 코드 인계 (2026-10-15)
 
+최신 추가 지시: MASK2 재시작 (아래 과거 동기화 기록보다 우선)
+  사용자가 기존 실험 중단 및 masked loss로 donor부터 재시작을 승인했다.
+  s3는 기존 동일 체크아웃의 donor30 학습을 정상 종료하여 마지막 상태를
+  보존한 뒤 pull한다. 소스 검증 중인 실행에 먼저 pull하지 않는다.
+  기존 컨테이너/결과 폴더는 삭제하지 않는다. 이전 가중치를 이어 쓰지 않는다.
+  새 캠페인: PANDA_DONOR_STAGE2_S13_30H_20261015_v2_MASK
+  새 run: D30_M2_..., 새 컨테이너: panda-donor30-mask2-s3
+  s1 push 후 로컬 변경 보존 및 fast-forward 확인:
+    git pull --ff-only origin main
+    bash scripts/run_donor30_docker.sh s3
+  launcher가 자동으로 preflight -> 새 donor R1/R2 -> 선택/보정 -> Stage2를 수행.
+  s3는 GF2 유지, 입력은 aligned PAN + bicubic MS(P0), LPAN/HPAN 없음.
+  GT/KD fitting은 detached bicubic 유효 픽셀만 사용. 공식 평가는 변경 없음.
+  시트 기존 v1 결과를 보존하고 새 실험은 MASK2로 구분한다.
+  상세 수식/검증: donor30/EXPERIMENT_PLAN.txt, donor30/VALIDATION.txt.
+
+이하: 최초 동기화 당시 기록 (MASK2 실행 승인 이전).
+
 목적
   두 서버의 코드·설정·연구 기록을 같은 Git 이력으로 공유한다.
   이번 작업은 로컬 commit까지다. push, s3 접속, 학습 중단/시작, 시트 쓰기는

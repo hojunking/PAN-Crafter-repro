@@ -23,6 +23,20 @@ def donor(server="s1"):
 
 
 class PlanTests(unittest.TestCase):
+    def test_mask_policy_and_new_run_namespace_are_mandatory(self):
+        for server in plan.LANES:
+            cfg = plan.default_config(server)
+            case = plan.resolve_donor_case(cfg)
+            self.assertTrue(case['run_id'].startswith('D30_M2_'))
+            self.assertEqual(case['loss_mask_policy'], plan.LOSS_MASK_POLICY)
+            bad = deepcopy(cfg)
+            bad.pop('loss_mask_policy')
+            with self.assertRaises(ValueError):
+                plan.validate_config(bad)
+            case['loss_mask_policy'] = 'ALL_PIXELS'
+            with self.assertRaises(ValueError):
+                plan.validate_case(case, config=cfg)
+
     def test_both_lanes_load(self):
         self.assertEqual(set(plan.LANES), {"s1", "s3"})
         for server in plan.LANES:

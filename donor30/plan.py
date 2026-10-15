@@ -17,8 +17,10 @@ from typing import Mapping, Sequence
 from directshift48 import plan as direct_plan
 
 ROOT = Path(__file__).resolve().parents[1]
-CAMPAIGN_ID = "PANDA_DONOR_STAGE2_S13_30H_20261015_v1"
-METHOD_REVISION = "DirectShift-Scharr-Donor-Stage2-v1"
+LEGACY_CAMPAIGNS = {"PANDA_DONOR_STAGE2_S13_30H_20261015_v1": "DirectShift-Scharr-Donor-Stage2-v1"}
+CAMPAIGN_ID = "PANDA_DONOR_STAGE2_S13_30H_20261015_v2_MASK"
+METHOD_REVISION = "DirectShift-Scharr-Donor-Stage2-v2-MaskedLoss"
+LOSS_MASK_POLICY = "DETACHED_BICUBIC4_SUPPORT_PER_SAMPLE_MEAN_V1"
 PLAN_RELATIVE_PATH = "donor30/EXPERIMENT_PLAN.txt"
 LANES = {
     "s1": {"dataset": "WV3", "donor_loss_case": "DF07", "hqnr_min": .959,
@@ -78,6 +80,8 @@ def load_config(path):
 def validate_config(c):
     if c.get("campaign_id") != CAMPAIGN_ID or c.get("method_revision") != METHOD_REVISION:
         raise ValueError("Donor30 campaign/method identity required")
+    if c.get("loss_mask_policy") != LOSS_MASK_POLICY:
+        raise ValueError("Explicit v2 training support mask required")
     server = c.get("server")
     lane = LANES.get(server)
     if not lane or c.get("dataset") != lane["dataset"]:
@@ -136,7 +140,8 @@ def _case_base(config, *, phase, replica, attempt, seed, case):
             "parent_method_sha256": direct_plan.METHOD_SHA256,
             "server": config["server"], "dataset": config["dataset"], "phase": phase,
             "case": case, "loss_case": case, "replica": replica, "attempt": attempt, "seed": seed,
-            "run_id": f"D30_{config['dataset']}_{config['server'].upper()}_{phase.upper()}_{case}_H50_{replica}_S{seed}",
+            "run_id": f"D30_M2_{config['dataset']}_{config['server'].upper()}_{phase.upper()}_{case}_H50_{replica}_S{seed}",
+            "loss_mask_policy": LOSS_MASK_POLICY,
             "schedule": "H50", "planned_horizon": HORIZON, "evaluation_steps": list(evaluation_steps()),
             "baseline_resolved": deepcopy(b), "stream_seeds": stream_seeds(seed),
             "stream_seed_protocol": SEED_PROTOCOL, "lr_U": b["lr_U0"], "lr_A": b["lr_A0"],
@@ -279,6 +284,8 @@ def validate_case(c, *, config):
     phase = c.get("phase")
     if phase not in ("donor", "stage2") or c.get("campaign_id") != CAMPAIGN_ID or c.get("method_revision") != METHOD_REVISION:
         raise ValueError("New campaign and explicit phase required")
+    if c.get("loss_mask_policy") != LOSS_MASK_POLICY:
+        raise ValueError("Case must use the masked-loss contract")
     for key in ("server", "dataset", "baseline_resolved"):
         if c.get(key) != config[key]:
             raise ValueError("Case changed pinned " + key)
@@ -293,7 +300,7 @@ def validate_case(c, *, config):
     if (c.get("seed") != seed or c.get("stream_seeds") != stream_seeds(seed)
             or c.get("stream_seed_protocol") != SEED_PROTOCOL):
         raise ValueError("RNG streams differ from registered paired seed")
-    expected_run = f"D30_{config['dataset']}_{config['server'].upper()}_{phase.upper()}_{c['case']}_H50_{replica}_S{seed}"
+    expected_run = f"D30_M2_{config['dataset']}_{config['server'].upper()}_{phase.upper()}_{c['case']}_H50_{replica}_S{seed}"
     if c.get("run_id") != expected_run or c.get("stage2") is not (phase == "stage2"):
         raise ValueError("Run identity/phase mismatch")
     b = config["baseline_resolved"]

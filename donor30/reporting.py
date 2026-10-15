@@ -16,7 +16,7 @@ import re
 
 from directshift48.reporting import (HEADERS, INDEX, METRICS, atomic_json,
     append_jsonl, canonical_json, destination, serialize_row, utc_now)
-from .plan import CAMPAIGN_ID, METHOD_REVISION
+from .plan import CAMPAIGN_ID, METHOD_REVISION, LEGACY_CAMPAIGNS, LOSS_MASK_POLICY
 
 RECORD_NAMESPACE = "PAN_FIXED64_V1:2026-10-15:DONOR_STAGE2_30H"
 RECORD_PREFIX = "D30-"
@@ -56,8 +56,11 @@ def cost_config(cfg):
 def _config(cfg):
     destination(cfg["server"], cfg["dataset"])
     phase(cfg)
-    if cfg.get("campaign_id") != CAMPAIGN_ID or cfg.get("method_revision") != METHOD_REVISION:
+    accepted = {**LEGACY_CAMPAIGNS, CAMPAIGN_ID: METHOD_REVISION}
+    if accepted.get(cfg.get("campaign_id")) != cfg.get("method_revision") or cfg.get("campaign_id") not in accepted:
         raise ReportingError("Wrong donor30 campaign or method revision")
+    if cfg["campaign_id"] == CAMPAIGN_ID and cfg.get("loss_mask_policy") != LOSS_MASK_POLICY:
+        raise ReportingError("Masked campaign requires explicit loss support policy")
     for key in ("run_id", "case", "campaign_id"):
         if not isinstance(cfg.get(key), str) or not cfg[key]:
             raise ReportingError("Missing identity: " + key)

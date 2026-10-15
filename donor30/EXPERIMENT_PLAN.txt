@@ -1,5 +1,32 @@
 PANDA DONOR -> STAGE 2 / S1 WV3 + S3 GF2 / 30 HOURS EACH
-Version: PANDA_DONOR_STAGE2_S13_30H_20261015_v1
+Version: PANDA_DONOR_STAGE2_S13_30H_20261015_v2_MASK
+
+2026-10-15 MASK2 amendment (explicit user decision)
+Restart from TWO FRESH DONORS; do not continue the unmasked weights/optimizer.
+Retain original seeds, architecture, schedules, queues and official evaluation.
+Old v1 evidence remains under its original campaign; new run IDs use D30_M2_.
+This is a new 30h campaign, not an extension/reset of v1's original clock.
+
+All donor reconstruction L1 and Stage2 GT/Teacher fitting losses now use the
+detached boolean bicubic4 support of the native predicted shift. A pixel is
+valid only if all original-PAN taps floor(q)-1 through floor(q)+2 are in bounds.
+Zero-weight taps at integer locations still count conservatively. No content
+threshold, adaptive interpolation, reflected validity or metric mask is used.
+Reduction: average channels, sum valid pixels / valid count PER SAMPLE, then
+average samples. This keeps batch48=12x4 equivalent even when counts differ.
+Empty support in ANY sample raises before update; never silently skip/zero it.
+The mask/count is detached: gradients flow through valid reconstruction values
+and the original warp, not through changes to the selected area/denominator.
+Scharr loss remains fixed ROI8 with its existing full-stencil support guard.
+Epsilon consistency is a vector loss on a clean Aligner input view, unchanged.
+Calibration tau_e uses only valid train pixels; tau_q uses guarded ROI8 as before.
+Calibration protocol/pipeline binding changes; unmasked donors/scales are rejected.
+Log loss_mask_policy and loss_valid_fraction alongside existing shift/support logs.
+Inference retains full size/border extension. Official FR full512 unmasked and
+RR all20 dim_cut21 remain unchanged, as do HQNR/SCC/ERGAS and checkpoint rules.
+This masks output supervision, NOT every convolutional dependency: replicated
+PAN input may still influence interior predictions. No claim of eliminating
+all boundary influence or of a guaranteed quality gain.
 
 1. Scope and isolation
 This additive donor30 namespace does not change or stop a running DirectShift48
@@ -102,9 +129,10 @@ attempt for an unfinished case under the ORIGINAL deadline; stored full-state
 resume payloads are not silently spliced into an existing log or auto-resumed.
 
 7. Reporting and infrastructure
-Use distinct D30_<dataset>_<server>_<phase>_<case>_H50_Rn_S<seed> run IDs and
+Use distinct D30_M2_<dataset>_<server>_<phase>_<case>_H50_Rn_S<seed> run IDs and
 work_dir/donor30/<campaign>/<server>/<dataset>. Preserve existing sheet tabs,
 row naming/qualified-steps-or-best rules, append-only local audit and outbox;
+display new rows with MASK2 while retaining v1 donor history in the same writer;
 do not rewrite historical DirectShift48/EdgeRes48 cases. Donor lineage, exact
 checkpoint SHA, qualification status, seed, stage mode and selected step must
 remain observable. A full-sheet write cannot silently drop prior campaigns.

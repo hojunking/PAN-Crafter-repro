@@ -7,14 +7,14 @@ import tempfile
 import unittest
 
 from . import reporting as R
-from .plan import CAMPAIGN_ID, METHOD_REVISION
+from .plan import CAMPAIGN_ID, METHOD_REVISION, LOSS_MASK_POLICY
 from directshift48.test_reporting import config as old_config
 
 
 def config(server="s1", phase="donor"):
     cfg = old_config(server)
     cfg.update(run_id="D30_" + cfg["run_id"], campaign_id=CAMPAIGN_ID,
-               phase=phase, method_revision=METHOD_REVISION)
+               phase=phase, method_revision=METHOD_REVISION, loss_mask_policy=LOSS_MASK_POLICY)
     if phase == "stage2":
         cfg["student_architecture"] = {"bands": 8 if server == "s1" else 4, "width": 104, "depth": [1, 2, 2]}
     return cfg

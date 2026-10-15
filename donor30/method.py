@@ -15,14 +15,15 @@ import torch
 from torch import nn
 
 from directshift48.method import DirectShiftStage1, ScharrAbsolute
-from pa.warp import warp_pan
+from pa.warp import warp_pan, warp_support_mask
 from panda_method.calibration import canonical_sha256, state_dict_sha256
 from panda_method.losses import reliability_weight, teacher_error
 from panda_method.reconstruction import Reconstructor
+from .masking import MaskedDonorStage1, LOSS_MASK_POLICY, masked_mean, validate_mask, mask_manifest
 
 
-METHOD_VERSION = "DONOR30_DIRECT_SCHARR_STAGE2_V1"
-CALIBRATION_PROTOCOL = "unaugmented_all_train_pixels_v1"
+METHOD_VERSION = "DONOR30_DIRECT_SCHARR_STAGE2_MASKED_V2"
+CALIBRATION_PROTOCOL = "unaugmented_bicubic_valid_train_pixels_v2"
 MODES = ("gt", "e", "eq", "uniform")
 
 
@@ -48,15 +49,19 @@ def reference_maps(spatial, teacher, gt, aligned_pan):
 
 
 def loss_terms(spatial, student, teacher, gt, aligned_pan, *, mode, calibration,
-               lambda_spatial=1.):
-    """Fitting uses all pixels, spatial uses ROI8 pixel count, not weight sum."""
+               valid_mask, lambda_spatial=1.):
+    """Fitting uses detached PAN support; spatial retains guarded fixed ROI8."""
     if mode not in MODES or not math.isfinite(lambda_spatial) or lambda_spatial < 0:
         raise ValueError("Explicit Stage 2 mode and finite nonnegative spatial coefficient required")
     if student.shape != gt.shape or student.device != gt.device:
         raise ValueError("Student and GT must share shape and device")
+    valid_mask, _ = validate_mask(student, valid_mask)
+    # Spatial descriptors at ROI8 require their complete 3x3 stencil in support.
+    if not bool(valid_mask[..., 7:-7, 7:-7].all()):
+        raise ValueError("SUPPORT_VIOLATION: fixed Scharr ROI/stencil is not valid")
     gt = gt.detach().float()
     hard_px = (student.float() - gt).abs().mean(1, keepdim=True)
-    hard = hard_px.mean()
+    hard = masked_mean(hard_px, valid_mask)
     zero = student.new_zeros(())
     if mode == "gt":
         return {"loss": hard, "fit": hard, "hard": hard, "soft": zero,
@@ -67,12 +72,12 @@ def loss_terms(spatial, student, teacher, gt, aligned_pan, *, mode, calibration,
     w_e = reliability_weight(e, calibration.tau_e)
     w_q = reliability_weight(q, calibration.tau_q)
     soft_px = (student.float() - teacher.detach().float()).abs().mean(1, keepdim=True)
-    fit = ((1 - w_e) * soft_px + w_e * hard_px).mean()
+    fit = masked_mean((1 - w_e) * soft_px + w_e * hard_px, valid_mask)
     edge = discrepancy(spatial, spatial.rgb_luminance(student.float()), spatial.rgb_luminance(gt))
     spatial_loss = (_roi(w_q * edge).mean() if mode == "eq" else
                     _roi(edge).mean() if mode == "uniform" else zero)
     weighted = lambda_spatial * spatial_loss
-    return {"loss": fit + weighted, "fit": fit, "hard": hard, "soft": soft_px.mean(),
+    return {"loss": fit + weighted, "fit": fit, "hard": hard, "soft": masked_mean(soft_px, valid_mask),
             "spatial": spatial_loss, "weighted_spatial": weighted,
             "e": e, "q": q, "w_e": w_e, "w_q": w_q, "edge_px": edge}
 
@@ -133,15 +138,16 @@ class DirectCalibrationScales:
 def calibration_pipeline(stage):
     return {"donor_pipeline": stage.pipeline_manifest(),
             "protocol": CALIBRATION_PROTOCOL,
-            "e": "all_band_mean_absolute_teacher_vs_GT_all_pixels",
+            "e": "all_band_mean_absolute_teacher_vs_GT_bicubic_valid_pixels",
+            "loss_mask": mask_manifest(),
             "q": "two_axis_mean_absolute_Scharr_alignedPAN_vs_GT_RGB_ROI8",
             "radiometry": "same_FP32_training_input_units_no_clipping",
             "median": "midpoint_even_global_pixels"}
 
 
 def calibration_binding(stage):
-    if not isinstance(stage, DirectShiftStage1):
-        raise TypeError("A DirectShift Stage 1 donor is required")
+    if not isinstance(stage, MaskedDonorStage1):
+        raise TypeError("A fresh masked-loss Stage 1 donor is required")
     return DirectCalibrationBinding(
         state_dict_sha256(stage.aligner), state_dict_sha256(stage.teacher),
         canonical_sha256(calibration_pipeline(stage)), stage.sources.rr_manifest_sha256,
@@ -168,7 +174,7 @@ class ExactDirectCalibrator:
         self.e, self.q, self.bytes = [], [], 0
         self.max_host_bytes, self.closed = max_host_bytes, False
 
-    def update(self, teacher, gt, aligned_pan, *, split, sample_ids):
+    def update(self, teacher, gt, aligned_pan, *, split, sample_ids, valid_mask):
         if self.closed:
             raise RuntimeError("Calibration already finalized")
         ids = list(sample_ids)
@@ -181,12 +187,15 @@ class ExactDirectCalibrator:
         if teacher.dtype != torch.float32 or gt.dtype != torch.float32 or aligned_pan.dtype != torch.float32:
             raise ValueError("Calibration requires the actual FP32 training radiometry")
         e, q = reference_maps(self.spatial, teacher, gt, aligned_pan)
-        projected = self.bytes + 4 * (e.numel() + _roi(q).numel())
+        valid_mask, counts = validate_mask(e, valid_mask)
+        if not bool(valid_mask[..., 7:-7, 7:-7].all()):
+            raise ValueError("SUPPORT_VIOLATION: calibration ROI/stencil is not valid")
+        projected = self.bytes + 4 * (int(counts.sum()) + _roi(q).numel())
         # At finalization only one concatenated population coexists with chunks.
         # Two times all retained bytes is a conservative bound, plus small maps.
         if 2 * projected > self.max_host_bytes:
             raise MemoryError("Exact calibration exceeds declared host memory budget; no approximation allowed")
-        self.e.append(e.detach().cpu().contiguous().reshape(-1).numpy().copy())
+        self.e.append(e.detach()[valid_mask].cpu().contiguous().numpy().copy())
         self.q.append(_roi(q).detach().cpu().contiguous().reshape(-1).numpy().copy())
         self.bytes = projected
         self.seen.update(ids)
@@ -231,7 +240,8 @@ def calibrate_training(stage1, batches, *, expected_sample_ids,
             out = stage1.native_prediction(batch)
             stage1._native_support(batch.pan, out["u"])
             collector.update(out["y"], batch.gt, out["pan_aligned"], split=batch.lineage.split,
-                             sample_ids=batch.lineage.sample_ids)
+                             sample_ids=batch.lineage.sample_ids,
+                             valid_mask=warp_support_mask(*batch.pan.shape[-2:], out["u"].detach()))
         if calibration_binding(stage1) != binding:
             raise ValueError("Donor changed during calibration")
         return collector.finalize()
@@ -244,8 +254,8 @@ class DirectStage2(nn.Module):
     """Prior-free shared frozen A/T and a fresh trainable P0 Student."""
     def __init__(self, stage1, student, *, mode="eq", calibration=None, lambda_spatial=1.):
         super().__init__()
-        if not isinstance(stage1, DirectShiftStage1) or not isinstance(student, Reconstructor):
-            raise TypeError("DirectShift donor and existing Reconstructor required")
+        if not isinstance(stage1, MaskedDonorStage1) or not isinstance(student, Reconstructor):
+            raise TypeError("Masked-loss donor and existing Reconstructor required")
         if mode not in MODES or type(lambda_spatial) not in (int, float) or not math.isfinite(lambda_spatial) or lambda_spatial < 0:
             raise ValueError("Valid Stage 2 mode and spatial coefficient required")
         if student.spec.bands != stage1.teacher.spec.bands or student.spec.input_layout != "P0" or student.spec.base_reference != "BICUBIC_MS":
@@ -307,7 +317,8 @@ class DirectStage2(nn.Module):
         return {"method": METHOD_VERSION, "mode": self.mode, "donor": self._donor_pipeline,
                 "student": self.student.spec.manifest(), "lambda_spatial": self.lambda_spatial,
                 "frozen": ["aligner", "teacher"], "inference": "Aligner+Student_only",
-                "fit_reduction": "all_pixels_mean", "spatial_reduction": "ROI8_pixel_mean_not_weight_sum",
+                "fit_reduction": LOSS_MASK_POLICY, "loss_mask": mask_manifest(),
+                "spatial_reduction": "ROI8_pixel_mean_not_weight_sum",
                 "spatial": self.spatial.manifest()}
 
     def get_extra_state(self):
@@ -376,17 +387,18 @@ class DirectStage2(nn.Module):
             u = self.aligner(rr.pan.float(), rr.native_lms.float())
             pan = warp_pan(rr.pan.float(), u)
             support = self._native_support(rr.pan, u)
+            valid_mask = warp_support_mask(*rr.pan.shape[-2:], u.detach())
             teacher = None if self.mode == "gt" else self.teacher(pan, rr.ms, rr.native_lms)
         with torch.autocast(device_type=rr.pan.device.type, enabled=False):
             student = self.student(pan, rr.ms, rr.native_lms)
             terms = loss_terms(self.spatial, student["y"], None if teacher is None else teacher["y"],
                                rr.gt, pan, mode=self.mode, calibration=self.calibration,
-                               lambda_spatial=self.lambda_spatial)
+                               valid_mask=valid_mask, lambda_spatial=self.lambda_spatial)
         if not bool(torch.isfinite(terms["loss"])):
             raise FloatingPointError("Nonfinite Stage 2 objective")
         return {**terms, "teacher": teacher, "student": student,
                 "native": {**student, "u": u, "correction": u}, "correction": u,
-                "pan_aligned": pan, **support}
+                "pan_aligned": pan, "loss_mask": valid_mask, **support}
 
     def inference_model(self):
         return StudentInference(self.aligner, self.student, self.sources.sensor)

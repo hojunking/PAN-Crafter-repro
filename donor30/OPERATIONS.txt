@@ -1,4 +1,14 @@
-DONOR30 local-server operation
+DONOR30 MASK2 local-server operation
+
+MASK2 replaces the training loss only. After stopping the old same-checkout
+donor30 run cleanly, pull the committed code and use the SAME launch command.
+No old checkpoint is reused. A new campaign ID and D30_M2_ run namespace start
+two fresh donors, then the original Stage2 queue. The old directory/container
+must be kept as evidence; no rm/reset/overwrite is necessary. GPU-idle checks
+remain mandatory; launchers do not stop any training automatically.
+New container names are panda-donor30-mask2-s1 / panda-donor30-mask2-s3, avoiding
+collision with preserved old containers. A second masked launch still refuses
+an existing same-named container. Inspect it rather than deleting it blindly.
 
 Implementation is additive. No currently running experiment is stopped by
 installation, CPU smoke tests, catalog display, or these launchers.
@@ -23,11 +33,11 @@ are read-only Docker mounts; only work_dir is writable. Docker --pid=host is
 used solely for truthful nvidia-smi PID ownership checks by cost measurement.
 
 Track execution:
-  docker logs -f panda-donor30-s1
-  docker logs -f panda-donor30-s3
+  docker logs -f panda-donor30-mask2-s1
+  docker logs -f panda-donor30-mask2-s3
 
 Output:
-  work_dir/donor30/PANDA_DONOR_STAGE2_S13_30H_20261015_v1/<server>/<dataset>/
+  work_dir/donor30/PANDA_DONOR_STAGE2_S13_30H_20261015_v2_MASK/<server>/<dataset>/
   campaign_state.json           start/deadline, attempts, measured timings
   preflight.json                explicitly disposable performance check
   decisions.jsonl              full-run admission/skip evidence
@@ -50,7 +60,8 @@ raw prediction hashes must match. No mixing A and T from different steps.
 Sheet writer:
   Existing qualified-steps-or-best-HQNR DISPLAY rules remain unchanged.
   The research donor gate (WV3 .959, GF2 .965) does not relabel joint target pass.
-  A single combined writer preserves existing DirectShift48/EdgeRes48 evidence.
+  A single combined writer preserves existing DirectShift48/EdgeRes48 AND
+  previous v1 unmasked donor30 evidence; new experiment labels include MASK2.
   At explicit launch, after preflight, only verified same-repo/same-server sheet
   publishers may be handed over. No training process is signalled. Unknown
   writer/ownership conflicts fail closed; durable local results remain queued.

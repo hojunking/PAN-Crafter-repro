@@ -9,7 +9,7 @@ fi
 donor_server="$1"
 donor_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 donor_image="${PAN_DIRECTSHIFT_IMAGE:-hojunqueen/pancrafter-env:torch2.4.0-cu118}"
-donor_name="panda-donor30-${donor_server}"
+donor_name="panda-donor30-mask2-${donor_server}"
 donor_python="${PAN_HOST_PYTHON:-python}"
 cd "$donor_root"
 export PYTHONDONTWRITEBYTECODE=1

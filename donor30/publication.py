@@ -177,6 +177,8 @@ def project_campaign(root, server):
                 "protocol": candidate["protocol"], "slot": candidate["step"] if passed else "FALLBACK"})
             row[INDEX["Selector"]], row[INDEX["Readback"]] = mode, "VERIFIED"
             row[INDEX["Experiment"]] = f"{cfg['case']} · {R.phase(cfg)} · {cfg.get('replica', 'R1')}"
+            if cfg.get("loss_mask_policy") == R.LOSS_MASK_POLICY:
+                row[INDEX["Experiment"]] += " · MASK2"
             row[INDEX["Selection@Step"]] = ("충족" if passed else "대표(미달)") + f" · {candidate['step']:,}"
             row[INDEX["Status"]] = last_status
             try:
@@ -210,11 +212,15 @@ def _history_roots(server):
     dataset = LANES[server][0]
     candidates = [ROOT / "work_dir/edgeres48" / edge_campaign / server / dataset,
                   ROOT / "work_dir/directshift48" / legacy_direct.CAMPAIGN_ID / server / dataset]
+    candidates.extend(ROOT / "work_dir/donor30" / campaign / server / dataset
+                      for campaign in R.LEGACY_CAMPAIGNS)
     return [p for p in candidates if p.is_dir()]
 
 
 def _history_project(root, server):
     from sheet_publish_v2.selection import project_campaign as edge_project
+    if list((root / "outbox").glob(R.RECORD_PREFIX + "*.json")):
+        return project_campaign(root, server)
     if list((root / "outbox").glob("DS3-*.json")):
         return legacy_direct.project_campaign(root, server)
     # Identify ledger-only sources too, not only their optional outbox replicas.
@@ -222,8 +228,12 @@ def _history_project(root, server):
     if ledger.exists():
         with ledger.open() as stream:
             first = stream.readline()
-        if first and json.loads(first).get("record_id", "").startswith("DS3-"):
-            return legacy_direct.project_campaign(root, server)
+        if first:
+            prefix = json.loads(first).get("record_id", "")
+            if prefix.startswith(R.RECORD_PREFIX):
+                return project_campaign(root, server)
+            if prefix.startswith("DS3-"):
+                return legacy_direct.project_campaign(root, server)
     return edge_project(root, server)
 
 
@@ -311,7 +321,7 @@ def _attach_cost(projected, root, server, histories, cost_roots, require_cost):
 def project(root, server, legacy_roots=None, cost_roots=None, *, require_cost=True):
     """Complete authenticated tab projection; missing remote-only history blocks at transport."""
     current = Path(root).resolve(strict=True)
-    histories = _history_roots(server) if legacy_roots is None else legacy_roots
+    histories = [p for p in _history_roots(server) if p.resolve() != current] if legacy_roots is None else legacy_roots
     if isinstance(histories, (str, Path)):
         histories = [histories]
     histories = [Path(p).resolve(strict=True) for p in histories]

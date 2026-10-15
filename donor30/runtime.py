@@ -19,7 +19,7 @@ import h5py
 import numpy as np
 import torch
 
-from directshift48.training import build_direct_stage1, DirectStage1Trainer
+from directshift48.training import DirectStage1Trainer
 from directshift48.runtime import code_pin as parent_code_pin, environment_manifest
 from directshift48.reporting import atomic_json, append_jsonl, utc_now
 from edgeres48.stream import RRStream, set_learning_rates
@@ -29,6 +29,7 @@ from ta2.evaluation import digest, evaluator_identity, file_sha
 from . import plan
 from .method import DirectStage2, DirectCalibrationScales, calibrate_training
 from .training import StudentTrainer
+from .masking import build_masked_stage1, LOSS_MASK_POLICY
 from .reporting import emit_evaluation, emit_status
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,11 +55,13 @@ def load_local_payload(path, expected_sha=None):
 
 def build_trainer(cfg, sources, *, device='cpu', donor_stage=None, calibration=None):
     """Strict fresh construction; no old campaign run-ID validator involved."""
+    if cfg.get('loss_mask_policy') != LOSS_MASK_POLICY:
+        raise ValueError('Explicit masked-loss v2 config required; never resume an unmasked donor')
     b, seeds = cfg['baseline_resolved'], cfg['stream_seeds']
     common = dict(gradient_log_interval=b['gradient_log_interval'],
                   effective_batch_size=b['effective_batch_RR'], microbatch_size=b['microbatch_RR'])
     if cfg['phase'] == 'donor':
-        stage = build_direct_stage1(sources,
+        stage = build_masked_stage1(sources,
             teacher_spec=ReconstructionSpec(**b['teacher_architecture'], input_layout='P0', base_reference='BICUBIC_MS'),
             teacher_seed=seeds['T_init'], aligner_seed=seeds['A_init'], epsilon_seed=seeds['rr_epsilon'],
             aligner_view_margin=b['aligner_architecture']['view_margin'], roi_margin=b['absolute_roi_margin'],
@@ -207,6 +210,8 @@ class Campaign:
         if trainer.config['phase'] == 'stage2':
             lr = {'S': lr['T'], 'A': 0., 'T_frozen': 0.}
         result = trainer.step_accumulated(stream.next_update())
+        result['loss_mask_policy'] = LOSS_MASK_POLICY
+        result['loss_valid_fraction'] = result['support']['warp_support_fraction']
         self.sync()
         seconds = time.monotonic() - started
         if directory:
