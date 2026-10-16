@@ -45,6 +45,6 @@ docker run --detach --init --gpus all --pid=host --shm-size=8g \
   --mount "type=bind,src=$donor24_dlpan,dst=/opt/pancrafter-eval/DLPan-Toolbox,readonly" \
   "${donor24_mounts[@]}" --workdir /workspace "$donor24_image" \
   bash scripts/run_donor24.sh "$donor24_server"
-nohup setsid "$donor24_python" -u -m donor24 publish-auto --server "$donor24_server" --apply \
+nohup setsid "$donor24_python" -u -m donor24_upload publish-auto --server "$donor24_server" --apply \
   >> "$donor24_root/work_dir/donor24/publisher-bootstrap-${donor24_server}.log" 2>&1 < /dev/null &
 echo "Started $donor24_name (WV3); publisher PID=$!. Monitor: docker logs -f $donor24_name"
