@@ -1,0 +1,15 @@
+server,dataset,order,case,replica,seed,lambda_abs,lambda_epsilon,lr_A,lr_T,radius,horizon,mask,run_display,question
+s1,WV3,1,A0,R1,261016101,3.0,0.003,1e-05,0.0001,3,50000,MASK2,A0 a3 eps0.003 lrA1e-05 R3 M2 R1,MASK2 DF07 shared anchor
+s1,WV3,2,A1,R1,261016101,2.0,0.003,1e-05,0.0001,3,50000,MASK2,A1 a2 eps0.003 lrA1e-05 R3 M2 R1,weaker absolute edge; shared bridge
+s1,WV3,3,A3,R1,261016101,3.0,0.0015,1e-05,0.0001,3,50000,MASK2,A3 a3 eps0.0015 lrA1e-05 R3 M2 R1,half epsilon pressure
+s1,WV3,4,A2,R1,261016101,4.0,0.003,1e-05,0.0001,3,50000,MASK2,A2 a4 eps0.003 lrA1e-05 R3 M2 R1,stronger absolute edge local bracket
+s1,WV3,5,A4,R1,261016101,3.0,0.006,1e-05,0.0001,3,50000,MASK2,A4 a3 eps0.006 lrA1e-05 R3 M2 R1,double epsilon pressure
+s1,WV3,6,A5,R1,261016101,2.0,0.0015,1e-05,0.0001,3,50000,MASK2,A5 a2 eps0.0015 lrA1e-05 R3 M2 R1,weaker absolute x epsilon interaction
+s1,WV3,7,LOCAL_WINNER,R2,261016102,inherit,inherit,inherit,0.0001,3,50000,MASK2,selected recipe R2,reserve confirmation before admitting search
+s3,WV3,1,A0,R1,261016101,3.0,0.003,1e-05,0.0001,3,50000,MASK2,A0 a3 eps0.003 lrA1e-05 R3 M2 R1,MASK2 DF07 shared anchor
+s3,WV3,2,A1,R1,261016101,2.0,0.003,1e-05,0.0001,3,50000,MASK2,A1 a2 eps0.003 lrA1e-05 R3 M2 R1,weaker absolute edge; shared bridge
+s3,WV3,3,B1,R1,261016101,1.0,0.0003,1e-05,0.0001,3,50000,MASK2,B1 a1 eps0.0003 lrA1e-05 R3 M2 R1,masked DF01 RR-friendly reference
+s3,WV3,4,B2,R1,261016101,0.3,0.001,1e-05,0.0001,3,50000,MASK2,B2 a0.3 eps0.001 lrA1e-05 R3 M2 R1,masked DF04 low-absolute reference
+s3,WV3,5,B3,R1,261016101,1.5,0.001,1e-05,0.0001,3,50000,MASK2,B3 a1.5 eps0.001 lrA1e-05 R3 M2 R1,intermediate absolute/epsilon compromise
+s3,WV3,6,B4,R1,261016101,3.0,0.003,5e-06,0.0001,3,50000,MASK2,B4 a3 eps0.003 lrA5e-06 R3 M2 R1,half aligner LR; same DF07 objective
+s3,WV3,7,LOCAL_WINNER,R2,261016102,inherit,inherit,inherit,0.0001,3,50000,MASK2,selected recipe R2,reserve confirmation before admitting search

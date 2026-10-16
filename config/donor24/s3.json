@@ -1,0 +1,368 @@
+{
+  "campaign_id": "PANDA_WV3_DONOR_S13_24H_20261016_v1",
+  "method_revision": "DirectShift-Scharr-MASK2-DonorSearch24-v1",
+  "server": "s3",
+  "dataset": "WV3",
+  "baseline_resolved": {
+    "method_revision": "S1-DirectShift-Scharr-EpsilonR3-v1.0",
+    "method_sha256": "4cec02617bda760155439e1dc51e7389d366a9944b1cd42577e04ef4f5de051f",
+    "experiment_plan_sha256": "cabd6942be56646491ddde9c8465956aabb10bb2fd6796cb7936aba5d0cfa3b9",
+    "server": "s3",
+    "dataset": "WV3",
+    "baseline_status": "EXPLICIT_DIRECTSHIFT_OPERATIONAL_PROPOSAL_PINNED_NOT_MEASURED",
+    "teacher_architecture": {
+      "bands": 8,
+      "width": 112,
+      "depth": [
+        1,
+        2,
+        3
+      ]
+    },
+    "aligner_architecture": {
+      "name": "DirectPANAligner",
+      "view_margin": 8
+    },
+    "teacher_input_layout": "P0",
+    "teacher_base": "BICUBIC_MS",
+    "optimizer": "AdamW",
+    "optimizer_betas": [
+      0.9,
+      0.999
+    ],
+    "optimizer_eps": 1e-08,
+    "lr_U0": 0.0001,
+    "lr_A0": 1e-05,
+    "weight_decay0": 0.01,
+    "warmup_updates0": 100,
+    "min_lr": 0,
+    "scheduler_family": "warmup_cosine",
+    "scheduler_indexing": "ONE_BASED_WARMUP_LINEAR_PEAK_THEN_COSINE_EXACT_ENDPOINT_MIN",
+    "effective_batch_RR": 48,
+    "microbatch_RR": 12,
+    "accumulation_RR": 4,
+    "RR_train_HW": [
+      64,
+      64
+    ],
+    "precision": "fp32",
+    "amp": false,
+    "tf32": false,
+    "augmentation": {
+      "hflip_probability": 1,
+      "vflip_probability": 1,
+      "rot90": true
+    },
+    "absolute_roi_margin": 8,
+    "boundary_policy": "require_spatial_support",
+    "gradient_log_interval": 100,
+    "pruning": {
+      "stagnation_window": 3,
+      "tolerance": 0,
+      "units": "relative_target_gap",
+      "rationale": "Conservative explicit operational proposal: no lexicographic target-gap improvement over latest three valid evaluations; no positive tolerance or statistical significance claim."
+    },
+    "requires_fr_train": false,
+    "requires_source_scene_map": false,
+    "source_registry": "ablr2/sensor_sources.json",
+    "source_registry_sha256": "3231245a12069a7a2b61e75f621008d5ad09883b6e559fc2326a355987c6d0c6",
+    "lms_override_path": null,
+    "lms_override_sha256": null,
+    "qual_export": {
+      "rgb_indices": [
+        4,
+        2,
+        1
+      ],
+      "display_range_DN": [
+        0,
+        2047
+      ],
+      "roi": "FULL_SCENE",
+      "error_gain": 1,
+      "edge_gain": 1
+    },
+    "probes": {
+      "rows": {
+        "train": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "val": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "rr": [
+          0,
+          1
+        ],
+        "fr": [
+          0,
+          1
+        ]
+      },
+      "gradient_rows": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        [
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95
+        ]
+      ],
+      "gradient_microbatch": 12,
+      "probe_seed": 261014900,
+      "response_radii": [
+        0.25,
+        0.5,
+        1,
+        2,
+        3
+      ],
+      "max_wall_seconds": 1800
+    },
+    "artifact_reserve_seconds": 300,
+    "probe_reserve_seconds": 300,
+    "spreadsheet_id": "1_ANKPQjQzMZrw9fUc1OI3B9xF4K3sxNa_fybg1kjBXE",
+    "spreadsheet_tab": "WV3-ablations",
+    "spreadsheet_gid": 261001010,
+    "protocol_decisions": {
+      "recipe": "Preserve previous explicit W112d123/P0 optimizer, batch, precision and paired augmentation. New prior-free shift, R3 and derived boundary contract require disposable smoke and measured timing before official admission.",
+      "architecture": "DirectPANAligner raw-intensity dualstem GN4/GN8 with common LN ResBlock64, FC64->32->2 total dy/dx zero-init. No prior/prewarp/matching/checkpoint donor.",
+      "augmentation": "Preserve prior always-Hflip/always-Vflip and uniform rot90 for the same PAN/MS/LMS/GT tensors; epsilon sampled afterward from independent stream.",
+      "geometry": "Uniform-area diskR3. Bicubic support2 => uncontaminated input margin>=5, rounded to stride4-aligned8; crop BEFORE spatial statistics. ConvRF25(radius12), GN/znorm have global support. Absolute ROI8 full Scharr support, fail invalid warp support beforeupdate.",
+      "diagnostics": "Fixed train4/val4/RR2/FR2, radii.25/.5/1/2/3, no diagnostics optimizer updates; initial layer gradients at1/2/10/100. Time measured locally and reserved within48h.",
+      "timing": "Initial artifact/probe300s reserves are explicitly unmeasured conservative placeholders. Disposable preflight and actual calls replace applicable times; p90 and1.2 safety+two confirmations+2hcloseout gate every admission.",
+      "sources": "Existing pinned ablr2 sensor sources and provided LMS, unchanged RR/FR scene sets; no reconstructed LMS replacement.",
+      "display": "Fixed full DN range and recorded RGB channels; visualization-only gains1, no scene-adaptive stretching.",
+      "sheet": "PAN_PASSED_STEPS_OR_BEST_HQNR_V1 fixed64; separate thresholds from STRICT_TARGET_ONLY artifacts. Preserve other campaigns.",
+      "priority": "All valid official same-state candidates ranked HQNR descending then ERGAS ascending; no target-gap override. SCC still printed/measured."
+    },
+    "support_policy": {
+      "epsilon_max_radius_pan_px": 3,
+      "bicubic_conservative_tap_margin": 2,
+      "minimum_clean_input_margin": 5,
+      "joint_output_stride": 4,
+      "aligner_view_margin": 8,
+      "aligner_view_rule": "4*ceil((3+2)/4)=8_before_any_spatial_statistics",
+      "local_convolution_receptive_field": 25,
+      "local_convolution_rf_radius": 12,
+      "local_rf_progression": [
+        3,
+        5,
+        9,
+        17,
+        25
+      ],
+      "rf_limitation": "znorm_and_GroupNorm_have_global_spatial_support",
+      "support_strategy": "remove_all_synthetic_warp_extrapolation_before_znorm_stems_GN",
+      "cnn_padding": "unchanged_reflection_stems_joints_and_zero_common_ResBlock",
+      "pooling": "GAP_all_features_of_same_clean_native_epsilon_LMS_view",
+      "same_view_RR_FR": true,
+      "absolute_roi_margin": 8,
+      "absolute_stencil_support_margin": 7,
+      "absolute_denominator": "fixed_pixels_times_2_directions_times_batch",
+      "prediction_dependent_mask": false,
+      "invalid_support_action": "raise_before_optimizer_update_no_clamp"
+    },
+    "alignment_protocol": {
+      "method": "S1-DirectShift-Scharr-EpsilonR3-v1.0",
+      "prediction": "prior_free_direct_total_dy_dx",
+      "aligner_input": [
+        "original_intensity_PAN",
+        "provided_stored_LMS"
+      ],
+      "head_dims": [
+        64,
+        32,
+        2
+      ],
+      "aligner_resblock": "common_UNet_preLN_dropout0",
+      "native_warp": "single_original_PAN_bicubic_border_align_corners_false_FP32",
+      "units": "current_PAN_px_no_x4_RR_or_FR",
+      "spatial": {
+        "operator": "Scharr_absolute_xy",
+        "sensor": "WV3",
+        "rgb_indices_R_G_B": [
+          4,
+          2,
+          1
+        ],
+        "rgb_mean_before_gradient": true,
+        "kernel_x_numerator": [
+          [
+            -3,
+            0,
+            3
+          ],
+          [
+            -10,
+            0,
+            10
+          ],
+          [
+            -3,
+            0,
+            3
+          ]
+        ],
+        "kernel_y": "transpose_x",
+        "kernel_denominator": 32,
+        "padding": "reflect1",
+        "normalization": "none",
+        "reduction": "mean_two_axes"
+      },
+      "boundary": {
+        "epsilon_max_radius_pan_px": 3,
+        "bicubic_conservative_tap_margin": 2,
+        "minimum_clean_input_margin": 5,
+        "joint_output_stride": 4,
+        "aligner_view_margin": 8,
+        "aligner_view_rule": "4*ceil((3+2)/4)=8_before_any_spatial_statistics",
+        "local_convolution_receptive_field": 25,
+        "local_convolution_rf_radius": 12,
+        "local_rf_progression": [
+          3,
+          5,
+          9,
+          17,
+          25
+        ],
+        "rf_limitation": "znorm_and_GroupNorm_have_global_spatial_support",
+        "support_strategy": "remove_all_synthetic_warp_extrapolation_before_znorm_stems_GN",
+        "cnn_padding": "unchanged_reflection_stems_joints_and_zero_common_ResBlock",
+        "pooling": "GAP_all_features_of_same_clean_native_epsilon_LMS_view",
+        "same_view_RR_FR": true,
+        "absolute_roi_margin": 8,
+        "absolute_stencil_support_margin": 7,
+        "absolute_denominator": "fixed_pixels_times_2_directions_times_batch",
+        "prediction_dependent_mask": false,
+        "invalid_support_action": "raise_before_optimizer_update_no_clamp"
+      },
+      "epsilon": {
+        "radius": 3,
+        "distribution": "area_uniform_disk_r_equals_R_sqrt_uniform",
+        "PAN_only": true,
+        "native_anchor": "stop_gradient",
+        "train_split": "RR_only"
+      }
+    }
+  },
+  "loss_mask_policy": "DETACHED_BICUBIC4_SUPPORT_PER_SAMPLE_MEAN_V1",
+  "budget": {
+    "total_seconds": 86400,
+    "closeout_seconds": 3600,
+    "safety_factor": 1.2
+  },
+  "search_order": [
+    "A0",
+    "A1",
+    "B1",
+    "B2",
+    "B3",
+    "B4"
+  ],
+  "confirmation": "LOCAL_WINNER_R2",
+  "donor": {
+    "hqnr_min": 0.959,
+    "allow_exploratory_fallback": true
+  },
+  "stage2": "DISABLED_SHARED_DONOR_NOT_YET_SELECTED"
+}

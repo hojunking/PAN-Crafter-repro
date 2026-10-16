@@ -1,0 +1,50 @@
+2026-10-16 implementation verification (no production launch)
+
+Environment used: local pancrafter Python / Torch 2.4.0, CPU only,
+CUDA_VISIBLE_DEVICES='', OMP_NUM_THREADS=1, MKL_NUM_THREADS=1.
+
+New donor24 smoke suite: 23 tests PASS.
+  - s1/s3 WV3, eight bands, same A0/A1 RNG streams and unique run IDs.
+  - committed-plan JSON/CSV parity, strict recipe validation, 50K schedule.
+  - reserved R2, fixed24h deadline across restart, fresh interrupted attempts.
+  - 7-case controller order, budget skip before model allocation, explicit failure.
+  - production W112/d123/P0 MASK2 s3 model construction and LR configuration.
+  - real tiny-WV3 CPU forward, full20+20 TEST-metric evaluation, original PAN
+    references, Q8 rather than Q4, correct s3/WV3 thresholds/state identity.
+  - actual checkpoint serialization and strict independent CPU reload.
+  - sheet projection same original WV3 qualified-steps-or-best-HQNR rule.
+  - short hyperparameter labels, exact configuration and scene-mean evidence.
+  - missing cost, corrupt config/scene population and duplicate IDs fail closed.
+  - row-scoped updates preserve other server/old campaign; unknown local evidence
+    blocks removal; obsolete own fallback clearing never deletes/moves rows.
+  - simulated committed append with lost response retries by readback without
+    duplicating the appended result.
+  - CLI catalog and Docker mount selection use WV3; launchers parse in bash.
+
+Reused component regression: 53 tests PASS.
+  donor30.test_masking, donor30.test_artifacts, donor30.test_plan,
+  donor30.test_evaluation, donor30.test_cost.
+
+Source isolation: all87 source-file hashes pinned by active MASK2 donor30
+admission were unchanged. Existing tracked files were not edited.
+All changes are additive donor24/, config/donor24/, two new launch scripts.
+Local WV3 Docker mount targets resolved to existing files.
+
+Not claimed / not performed:
+  No production 50K run, GPU benchmark or GPU preflight in this turn.
+  nvidia-smi in this execution environment could not access the NVIDIA driver.
+  This does not establish the state of host/container training outside it.
+  No remote s3 filesystem/environment/data verification.
+  No live Google Sheets read/write or publisher handoff.
+  No stop/restart of existing experiments; no commit or push.
+  No final shared donor selection, transfer or Stage2 launch.
+  Synthetic metrics validate plumbing, not model quality or metric numerical parity.
+
+Each actual server launch must complete its automated local GPU/data/evaluator/
+cost/120-update/full40 preflight. It runs inside the24h budget.
+Shared WV3 upload assumes no manual row insertion/deletion/sorting while the
+two row-scoped publishers are active. They append/update/clear own cells only;
+they cannot provide an atomic compare-and-swap against arbitrary human edits.
+
+API basis for server-side append (no guessed destination row):
+https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/request#appendcellsrequest
