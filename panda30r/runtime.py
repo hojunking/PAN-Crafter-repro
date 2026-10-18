@@ -166,7 +166,7 @@ class Campaign:
             on_scene=lambda *a,**kw:self.check(reserve=False))
 
     def load_donor(self,label,*,include_teacher=True,device='cpu'):
-        from panda_stage2_condq.donor import load_donor
+        from .source_donor import load_donor
         from .engine import load_mature_donor
         row=self.state['donors'][label]
         importer=load_mature_donor if row.get('mature') else load_donor

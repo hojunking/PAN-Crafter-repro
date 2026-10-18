@@ -26,7 +26,8 @@ from panda_method.calibration import canonical_sha256, state_dict_sha256
 from panda_method.data import require_sha256
 from panda_method.edge_data import EdgeDataSources
 from panda_method.reconstruction import Reconstructor, build_reconstructor
-from panda_stage2_condq.donor import LoadedDonor, load_donor, _role_state
+from panda_stage2_condq.donor import LoadedDonor, _role_state
+from .source_donor import load_donor
 from panda_stage2_condq.method import ConditionalQStage2, native_support
 from panda_stage2_condq.sources import RegisteredRRTrain, validate_training_batch
 from panda_stage2_condq.spec import Stage2Spec, MASK2_POLICY
