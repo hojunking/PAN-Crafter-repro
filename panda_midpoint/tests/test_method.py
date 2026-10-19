@@ -10,6 +10,8 @@ from torch.nn import functional as F
 from directshift48.method import ScharrAbsolute
 from pa.warp import warp_pan, warp_support_mask, two_stage_support_mask
 from panda_method.calibration import state_dict_sha256
+from panda_method.edge_data import augment_edge_batch
+from align.resample import interp23tap
 from panda_stage2_condq.calibration import CalibrationBuilder
 from panda_stage2_condq.donor import LoadedDonor
 from panda_stage2_condq.losses import compute_loss, reference_maps
@@ -18,6 +20,8 @@ from panda_midpoint.calibration import bind_donor
 from panda_midpoint.method import (MidpointStage2, frozen_midpoint_predictions,
                                    midpoint_support, reconstruct_midpoint)
 from panda_midpoint.spec import MidpointSpec, geometry_manifest
+from panda_midpoint.contract import UPSAMPLING
+from panda_midpoint.resampling import upsample_lrms_after_augmentation, UPSAMPLER_VERSION
 
 
 def fixture(*, shift=(1., -.5), beta=.05):
@@ -78,6 +82,8 @@ class GeometryTests(unittest.TestCase):
         torch.testing.assert_close(t_args[0][0], warp_pan(rr.pan, u))
         self.assertIs(t_args[0][1], rr.ms)
         self.assertIs(t_args[0][2], rr.native_lms)
+        torch.testing.assert_close(out['teacher']['ms_base'],
+            F.interpolate(rr.ms, scale_factor=4, mode='bicubic', align_corners=False), atol=0, rtol=0)
         torch.testing.assert_close(out['teacher_y'], warp_pan(out['teacher']['y'], -u/2))
         with torch.no_grad():
             wrong = stage.teacher(out['pan_aligned'], rr.ms, rr.native_lms)['y']
@@ -90,7 +96,7 @@ class GeometryTests(unittest.TestCase):
             torch.manual_seed(24)
             stage.student.backbone.output[-1].weight.normal_(0., .003)
         f = stage.frozen_predictions(rr)
-        base = F.interpolate(rr.ms, scale_factor=4, mode='bicubic', align_corners=False)
+        base = interp23tap(rr.ms, 4)
         expected_base = warp_pan(base, -f['u']/2)
         seen = []
         hook = stage.student.backbone.input.register_forward_pre_hook(lambda m, args: seen.append(args[0]))
@@ -139,13 +145,48 @@ class GeometryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'SUPPORT_VIOLATION'):
             midpoint_support(64, 64, torch.tensor([[20., 0.]]), include_teacher=True)
 
-    def test_zero_shift_recovers_original_forward_with_nonzero_output(self):
+    def test_zero_shift_recovers_interp23_forward_not_legacy_bicubic(self):
         stage, rr = fixture(shift=(0., 0.)), batch()
         with torch.no_grad():
             stage.student.backbone.output[-1].weight.copy_(stage.teacher.backbone.output[-1].weight)
-            original = stage.student(rr.pan, rr.ms, rr.native_lms)['y']
+            base = interp23tap(rr.ms, 4)
+            residual = stage.student.backbone(rr.pan, None, rr.ms, rr.pan.new_ones(1),
+                                              x_in=torch.cat((rr.pan, base), 1))
+            self.assertGreater(float(residual.abs().max()), .01)
+            expected = base + residual
+            legacy = stage.student(rr.pan, rr.ms, rr.native_lms)['y']
             midpoint = stage.inference_model()(rr)['y']
-        torch.testing.assert_close(midpoint, original, atol=1e-6, rtol=1e-6)
+        torch.testing.assert_close(midpoint, expected, atol=1e-6, rtol=1e-6)
+        self.assertGreater(float((midpoint-legacy).abs().max()), .01)
+
+    def test_post_augmentation_base_shared_by_training_and_inference(self):
+        stage, original = fixture(), batch()
+        with torch.no_grad():
+            stage.student.backbone.output[-1].weight.copy_(stage.teacher.backbone.output[-1].weight)
+        original_base = interp23tap(original.ms, 4)
+        for rot in range(4):
+            rr = augment_edge_batch(original, hflip=True, vflip=True, rot90=rot)
+            expected_base = torch.rot90(original_base.flip(-1).flip(-2), rot, (-2, -1))
+            with patch('panda_midpoint.method.upsample_lrms_after_augmentation',
+                       wraps=upsample_lrms_after_augmentation) as up:
+                train = stage(rr)
+                inferred = stage.inference_model()(rr)
+            self.assertEqual(up.call_count, 2)
+            self.assertIs(up.call_args_list[0].args[0], rr.ms)
+            self.assertEqual(up.call_args_list[0].args[1], rr.lineage.augmentations)
+            torch.testing.assert_close(train['ms_base_midpoint'],
+                warp_pan(expected_base, -train['u']/2), atol=2e-6, rtol=2e-6)
+            torch.testing.assert_close(train['student']['y'], inferred['y'], atol=0, rtol=0)
+
+    def test_effective_student_base_and_legacy_teacher_are_separately_pinned(self):
+        stage = fixture()
+        manifest = stage.pipeline_manifest()
+        self.assertEqual(manifest['student']['base_reference'], UPSAMPLING['base_reference'])
+        self.assertEqual(manifest['student_upsampling']['schema'], UPSAMPLER_VERSION)
+        self.assertEqual(manifest['student_constructor_spec']['base_reference'], 'BICUBIC_MS')
+        self.assertEqual(manifest['teacher']['base_reference'], 'BICUBIC_MS')
+        self.assertIn('bicubic_border', manifest['warp'])
+        self.assertEqual(manifest['student']['base_execution'], 'external_base_x_in_and_residual_addition')
 
     def test_inference_two_warps_no_teacher_gt_cdf_or_output_return(self):
         stage, rr = fixture(), batch(split='test')
@@ -175,6 +216,25 @@ class GeometryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Strict same-contract'):
             stage.load_state_dict(state)
         stage.assert_frozen_binding()
+
+    def test_v1_bicubic_midpoint_binding_and_weights_rejected(self):
+        stage = fixture()
+        old = stage.donor_binding
+        old['midpoint_geometry']['schema'] = 'FROZEN_A_PAN_PLUS_HALF_MS_GT_MINUS_HALF_V1'
+        old['midpoint_geometry']['ms_base'] = 'bicubic_LRMS_x4_align_corners_false_then_one_warp'
+        old['midpoint_geometry'].pop('student_upsampling')
+        before = state_dict_sha256(stage.student)
+        with self.assertRaises(ValueError):
+            stage.stats.validate_binding(old)
+        with self.assertRaisesRegex(ValueError, 'geometry'):
+            MidpointStage2(stage.spec, stage.aligner, stage.teacher,
+                          donor_binding=old, stats=stage.stats)
+        saved = deepcopy(stage.state_dict())
+        saved['_extra_state']['method_version'] = 'PANDA_STAGE2_MIDPOINT_TRANSPORT_V1'
+        saved['_extra_state']['donor_binding'] = old
+        with self.assertRaisesRegex(ValueError, 'Strict same-contract'):
+            stage.load_state_dict(saved)
+        self.assertEqual(state_dict_sha256(stage.student), before)
 
     def test_actual_rr256_fr512_shapes_no_hidden_scale_factor(self):
         stage = fixture()

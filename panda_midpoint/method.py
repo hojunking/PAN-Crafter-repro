@@ -1,19 +1,20 @@
 """Frozen original Stage 1 A/T with a midpoint-coordinate fresh Student.
 
-No backbone weights, layer shapes, loss formula, evaluator, or upsampler change.
+No backbone weights, layer shapes, loss formula, evaluator, or shift-warp change.
+Student LRMS uses phase-corrected interp23tap after paired LR augmentation.
 Teacher is evaluated on its ORIGINAL inputs, then its prediction is transported.
 """
 from dataclasses import replace
 
 import torch
 from torch import nn
-from torch.nn import functional as F
 
 from pa.warp import warp_pan, warp_support_mask, two_stage_support_mask
 from panda_stage2_condq.method import ConditionalQStage2, native_support
 from panda_stage2_condq.losses import compute_loss
 from panda_stage2_condq.sources import validate_training_batch
 from .spec import MidpointSpec, geometry_manifest
+from .resampling import upsample_lrms_after_augmentation
 
 
 def validate_midpoint_binding(binding):
@@ -44,7 +45,9 @@ def reconstruct_midpoint(reconstructor, pan_midpoint, ms_base_midpoint, ms):
     """Reuse exactly the existing P0 backbone with an explicitly warped base.
 
     Calling the ordinary Reconstructor.forward would silently regenerate an
-    UNWARPED bicubic base. Both x_in and the residual addition must use this base.
+    UNWARPED bicubic base. Both x_in and the residual addition must use this
+    supplied interp23tap base. The legacy spec is only the backbone constructor;
+    the effective Student forward is separately pinned in MidpointSpec.manifest.
     """
     b, _, h, w = pan_midpoint.shape
     spec = reconstructor.spec
@@ -52,7 +55,7 @@ def reconstruct_midpoint(reconstructor, pan_midpoint, ms_base_midpoint, ms):
             or pan_midpoint.shape != (b, 1, h, w)
             or ms_base_midpoint.shape != (b, spec.bands, h, w)
             or ms.shape != (b, spec.bands, h // 4, w // 4) or h % 4 or w % 4):
-        raise ValueError("Unchanged P0/BICUBIC_MS backbone and matching midpoint grids required")
+        raise ValueError("Legacy P0 backbone constructor and matching external-base midpoint grids required")
     with torch.autocast(device_type=pan_midpoint.device.type, enabled=False):
         p, base = pan_midpoint.float(), ms_base_midpoint.float()
         x_in = torch.cat((p, base), dim=1)
@@ -85,7 +88,7 @@ def frozen_midpoint_predictions(aligner, teacher, batch, *, sensor):
         support = midpoint_support(*batch.pan.shape[-2:], correction,
                                    include_teacher=teacher is not None)
         pan_midpoint = warp_pan(batch.pan, correction * .5)
-        base = F.interpolate(batch.ms, scale_factor=4, mode="bicubic", align_corners=False)
+        base = upsample_lrms_after_augmentation(batch.ms, batch.lineage.augmentations)
         # One shared sampling grid for all MS bands and HRMS target bands.
         moved = warp_pan(torch.cat((base, batch.gt), dim=1), correction * -.5)
         base_midpoint, gt_midpoint = moved.split(8, dim=1)
@@ -138,7 +141,7 @@ class MidpointStage2(ConditionalQStage2):
 
 
 class MidpointInference(nn.Module):
-    """A+S only; one PAN half-warp and one bicubic-MS opposite half-warp."""
+    """A+S only; interp23tap MS base, two unchanged bicubic half-shift warps."""
     def __init__(self, aligner, student, sensor):
         super().__init__()
         self.aligner, self.student, self.sensor = aligner, student, sensor
@@ -164,7 +167,7 @@ class MidpointInference(nn.Module):
         with torch.autocast(device_type=batch.pan.device.type, enabled=False):
             correction = self.aligner(batch.pan, batch.native_lms)
             pan_midpoint = warp_pan(batch.pan, correction * .5)
-            base = F.interpolate(batch.ms, scale_factor=4, mode="bicubic", align_corners=False)
+            base = upsample_lrms_after_augmentation(batch.ms, batch.lineage.augmentations)
             base_midpoint = warp_pan(base, correction * -.5)
             out = reconstruct_midpoint(self.student, pan_midpoint, base_midpoint, batch.ms)
         # No deployment mask, GT, Teacher, q/CDF, reference shift, or output backwarp.

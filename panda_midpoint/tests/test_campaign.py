@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from unittest.mock import patch
 
@@ -45,6 +46,20 @@ class PlanTests(unittest.TestCase):
         self.assertNotIn('budget', cfg)
         self.assertFalse(cfg['allow_fresh_donor_fallback'])
         self.assertFalse(cfg['allow_cross_server_donor'])
+
+    def test_interp23_version_identity_and_source_pins(self):
+        from panda_midpoint import calibration, runtime
+        from panda_midpoint.contract import UPSAMPLING
+        from panda_midpoint.resampling import UPSAMPLER_VERSION
+        cfg = config()
+        self.assertTrue(cfg['campaign_id'].endswith('_v2'))
+        self.assertTrue(cfg['run_id'].startswith('PMID_U23_'))
+        self.assertIn('U23', cfg['run_display'])
+        self.assertEqual(cfg['geometry']['student_upsampling'], UPSAMPLING)
+        self.assertEqual(UPSAMPLING['schema'], UPSAMPLER_VERSION)
+        for pins in (runtime.code_pin(), calibration.code_pin()):
+            self.assertIn('align/resample.py', pins)
+            self.assertIn('panda_midpoint/resampling.py', pins)
 
     def test_coefficients_are_only_loss_difference(self):
         cases = [plan.resolve_case('s3', name) for name in plan.CASES]
@@ -212,6 +227,9 @@ class CostTests(unittest.TestCase):
             self.assertEqual(base,cost.signature(plan.resolve_case('s3',case,'R2',replicas=('R1','R2'))))
         self.assertIn('geometry',base)
         self.assertIn('panda_midpoint/method.py',base['source_sha256'])
+        self.assertIn('align/resample.py',base['source_sha256'])
+        self.assertIn('panda_midpoint/resampling.py',base['source_sha256'])
+        self.assertEqual(base['base'], 'INTERP23_MS_POST_AUG_PHASE_CORRECTED')
         self.assertEqual(base['reconstructor'],{'bands':8,'width':112,'depth':[1,2,3]})
 
     def test_deployment_has_no_kd_teacher_and_runs_two_warps(self):
@@ -229,9 +247,14 @@ class CostTests(unittest.TestCase):
             for p in graph.teacher.parameters():
                 if not bool(torch.any(p)): p.normal_(std=.001)
         batch=rr_batch()
-        with patch.object(method,'warp_pan',wraps=method.warp_pan) as warp:
+        with (patch.object(method,'warp_pan',wraps=method.warp_pan) as warp,
+              patch.object(method, 'upsample_lrms_after_augmentation',
+                           wraps=method.upsample_lrms_after_augmentation) as up):
             result=graph.native_prediction(batch)
         self.assertEqual(warp.call_count,2)
+        self.assertEqual(up.call_count,1)
+        expected_base = method.upsample_lrms_after_augmentation(batch.ms, batch.lineage.augmentations)
+        torch.testing.assert_close(result['ms_base'], method.warp_pan(expected_base, result['u']*-.5))
         torch.testing.assert_close(warp.call_args_list[0].args[1],result['u']*.5)
         torch.testing.assert_close(warp.call_args_list[1].args[1],result['u']*-.5)
 
@@ -251,12 +274,15 @@ class ShellLaunchTests(unittest.TestCase):
         self.env={**os.environ,'PATH':str(self.bin)+':'+os.environ['PATH'],
             'MID_CAPTURE':str(self.capture),'MID_MOUNT':str(self.data),'MID_BUSY':'0',
             'MID_EXISTS':'0','MID_PREFLIGHT_FAIL':'0','MID_START_FAIL':'0',
+            'MID_CONTRACT_BAD':'0',
             'PAN_MIDPOINT_IMAGE':'local:s3-unchanged','PANCRAFTER_DLPAN':str(dlpan)}
         self.executable('python-stub','''import json,os,sys
 args=sys.argv[1:]
 with open(os.environ['MID_CAPTURE'],'a') as f: f.write(json.dumps(['python']+args)+'\\n')
 if args[:3]==['-m','panda_midpoint','mounts']: print(os.environ['MID_MOUNT'])
 if args and args[0]=='-c' and 'require_idle_gpu' in args[1]: sys.exit(int(os.environ['MID_BUSY']))
+if args and args[0]=='-c' and 'from panda_midpoint.contract import CAMPAIGN_ID' in args[1]:
+    print('' if os.environ['MID_CONTRACT_BAD']=='1' else 'PANDA_S3_MIDPOINT_STAGE2_20261019_v2')
 ''')
         self.env['PAN_HOST_PYTHON']=self.env['PAN_PYTHON']=str(self.bin/'python-stub')
         self.executable('docker','''import json,os,sys
@@ -282,21 +308,30 @@ with open(os.environ['MID_CAPTURE'],'a') as f: f.write(json.dumps(['nohup']+sys.
 
     def test_exact_image_mounts_and_preflight_before_training(self):
         result=self.launch();self.assertEqual(result.returncode,0,result.stderr)
+        # The launcher intentionally detaches the publisher. Wait for the stub's
+        # receipt rather than racing its process startup against shell exit.
+        for _ in range(100):
+            if any(c[0] == 'nohup' for c in self.calls()):
+                break
+            time.sleep(.01)
         calls=self.calls();runs=[c for c in calls if c[:2]==['docker','run']]
         self.assertEqual(len(runs),2)
         preflight,launch=runs
         self.assertIn('--rm',preflight);self.assertNotIn('--gpus',preflight)
         self.assertIn('--detach',launch);self.assertIn('--gpus',launch)
         self.assertIn('local:s3-unchanged',launch)
-        self.assertIn('panda-midpoint-wv3-s3',launch)
+        self.assertIn('panda-midpoint-wv3-s3-v2',launch)
         self.assertIn(f'type=bind,src={self.root},dst=/workspace,readonly',launch)
         self.assertIn(f'type=bind,src={self.root}/work_dir,dst=/workspace/work_dir',launch)
         self.assertEqual(launch[-3:],['bash','scripts/run_panda_midpoint.sh','s3'])
+        publisher = next(c for c in calls if c[0] == 'nohup')
+        self.assertEqual(publisher[publisher.index('--root')+1],
+            str(self.root/'work_dir/panda_midpoint'/plan.CAMPAIGN_ID/'s3/WV3'))
         gpu=next(i for i,c in enumerate(calls) if 'require_idle_gpu' in str(c))
         self.assertLess(calls.index(preflight),gpu);self.assertLess(gpu,calls.index(launch))
 
     def test_existing_or_busy_or_failed_preflight_never_interrupts_or_starts(self):
-        for key in ('MID_EXISTS','MID_BUSY','MID_PREFLIGHT_FAIL'):
+        for key in ('MID_EXISTS','MID_BUSY','MID_PREFLIGHT_FAIL','MID_CONTRACT_BAD'):
             self.env[key]='1';before=len(self.calls());result=self.launch()
             self.assertNotEqual(result.returncode,0,key)
             self.assertFalse(any(c[:3]==['docker','run','--detach'] for c in self.calls()[before:]))

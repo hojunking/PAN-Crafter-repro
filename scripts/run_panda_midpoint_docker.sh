@@ -8,7 +8,7 @@ fi
 panda_midpoint_server="$1"
 panda_midpoint_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 panda_midpoint_image="${PAN_MIDPOINT_IMAGE:-${PAN_DIRECTSHIFT_IMAGE:-}}"
-panda_midpoint_name="panda-midpoint-wv3-${panda_midpoint_server}"
+panda_midpoint_name="panda-midpoint-wv3-${panda_midpoint_server}-v2"
 panda_midpoint_python="${PAN_HOST_PYTHON:-}"
 cd "$panda_midpoint_root"
 export PYTHONDONTWRITEBYTECODE=1
@@ -87,7 +87,12 @@ panda_midpoint_common=(--user "$(id -u):$(id -g)" --env PYTHONDONTWRITEBYTECODE=
 docker run --rm "${panda_midpoint_common[@]}" "$panda_midpoint_image" \
   python -m panda_midpoint check --server "$panda_midpoint_server"
 "$panda_midpoint_python" -c 'from directshift48.__main__ import require_idle_gpu; require_idle_gpu("cuda")'
-panda_midpoint_campaign_root="$panda_midpoint_root/work_dir/panda_midpoint/PANDA_S3_MIDPOINT_STAGE2_20261019_v1/$panda_midpoint_server/WV3"
+panda_midpoint_campaign_id="$("$panda_midpoint_python" -c 'from panda_midpoint.contract import CAMPAIGN_ID; print(CAMPAIGN_ID)')"
+if [[ ! "$panda_midpoint_campaign_id" =~ ^PANDA_S3_MIDPOINT_STAGE2_[0-9]{8}_v2$ ]]; then
+  echo 'Invalid v2 campaign identity; nothing started.' >&2
+  exit 1
+fi
+panda_midpoint_campaign_root="$panda_midpoint_root/work_dir/panda_midpoint/$panda_midpoint_campaign_id/$panda_midpoint_server/WV3"
 mkdir -p "$panda_midpoint_campaign_root"
 docker run --detach --init --gpus all --pid=host --shm-size=8g \
   --name "$panda_midpoint_name" --env PYTHONUNBUFFERED=1 "${panda_midpoint_common[@]}" \
@@ -95,5 +100,5 @@ docker run --detach --init --gpus all --pid=host --shm-size=8g \
   "$panda_midpoint_image" bash scripts/run_panda_midpoint.sh "$panda_midpoint_server"
 nohup setsid "$panda_midpoint_python" -u -m panda_midpoint.publication --root "$panda_midpoint_campaign_root" \
   --server "$panda_midpoint_server" --apply --watch --poll-seconds 60 \
-  >> "$panda_midpoint_root/work_dir/panda_midpoint/publisher-${panda_midpoint_server}.log" 2>&1 < /dev/null &
+  >> "$panda_midpoint_root/work_dir/panda_midpoint/publisher-${panda_midpoint_server}-v2.log" 2>&1 < /dev/null &
 echo "Started $panda_midpoint_name (WV3, three cases; R1 only); publisher PID=$!. Monitor: docker logs -f $panda_midpoint_name"

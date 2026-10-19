@@ -155,8 +155,14 @@ def configured_pipeline(trainer, sources):
     if ((actual.bands, actual.width, list(actual.depth)) !=
             (expected["bands"], expected["width"], list(expected["depth"])) or
             actual.input_layout != "P0" or actual.base_reference != "BICUBIC_MS"):
-        raise ValueError("Unchanged W112/D123/P0/BICUBIC_MS architecture required")
-    return stage.pipeline_manifest()
+        raise ValueError("Unchanged W112/D123/P0 backbone constructor required")
+    from .contract import UPSAMPLING
+    pipeline = stage.pipeline_manifest()
+    if (pipeline["student"]["base_reference"] != UPSAMPLING["base_reference"]
+            or pipeline.get("student_upsampling") != UPSAMPLING
+            or pipeline["teacher"]["base_reference"] != "BICUBIC_MS"):
+        raise ValueError("interp23tap Student / original bicubic Teacher execution contract required")
+    return pipeline
 
 def model_identity(trainer, sources, *, evaluator_revision=None, evaluator_pin=None):
     c = trainer.config

@@ -1,8 +1,10 @@
 """Three preregistered loss settings for the s3 symmetric-shift intervention.
 
 The architecture, RR stream, optimizer and conditional-q objective are unchanged.
-Only the Stage 2 coordinate policy changes. All cases share the same local mature
-Teacher and frozen early Aligner; this queue never creates another Stage 1 donor.
+Version 2 uses phase-corrected post-augmentation interp23tap for the Student base;
+the midpoint coordinates and the frozen donor's original bicubic path are retained.
+All cases share the same local mature Teacher and frozen early Aligner; this queue
+never creates another Stage 1 donor.
 """
 from copy import deepcopy
 from dataclasses import asdict
@@ -79,8 +81,8 @@ def resolve_case(server, case, replica='R1', *, attempt=1, replicas=DEFAULT_REPL
     return {'campaign_id': CAMPAIGN_ID, 'method_revision': METHOD_REVISION,
         'server': server, 'dataset': 'WV3', 'case': case, 'loss_case': case,
         'replica': replica, 'attempt': attempt, 'seed': seed,
-        'run_id': f'PMID_WV3_S3_{case}_{replica}_S{seed}',
-        'run_display': f'MID50 {case} DM Af a{a:g} b{b:g} q{g:g} M2 {replica}',
+        'run_id': f'PMID_U23_WV3_S3_{case}_{replica}_S{seed}',
+        'run_display': f'MID50 U23 {case} DM Af a{a:g} b{b:g} q{g:g} M2 {replica}',
         'stream_seeds': seeds, 'stream_seed_protocol': SEED_PROTOCOL,
         'baseline_resolved': deepcopy(baseline_cfg), 'geometry': deepcopy(GEOMETRY),
         'schedule': 'H50', 'start_update': 0, 'planned_horizon': HORIZON,

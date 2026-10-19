@@ -35,8 +35,9 @@ def bind_donor(donor):
 def code_pin():
     from panda_stage2_condq.runtime import code_pin as inherited
     root = Path(__file__).resolve().parents[1]
-    return {**inherited(), **{str(p.relative_to(root)): file_sha(p)
-                             for p in (root / "panda_midpoint").glob("*.py")}}
+    files = list((root / "panda_midpoint").glob("*.py"))
+    files += [root / "align/__init__.py", root / "align/resample.py"]
+    return {**inherited(), **{str(p.relative_to(root)): file_sha(p) for p in files}}
 
 
 def calibrate(donor, registered, *, output, k, batch_size, memory_budget_bytes,

@@ -18,8 +18,8 @@ from directshift48.reporting import (HEADERS, INDEX, METRICS, atomic_json,
     append_jsonl, canonical_json, serialize_row, utc_now)
 from .contract import CAMPAIGN_ID, METHOD_REVISION, GEOMETRY
 
-RECORD_NAMESPACE = "PAN_FIXED64_V1:2026-10-19:PANDA_MIDPOINT"
-RECORD_PREFIX = "PMID-"
+RECORD_NAMESPACE = "PAN_FIXED64_V1:2026-10-19:PANDA_MIDPOINT_U23_V2"
+RECORD_PREFIX = "PMID-U23-"
 
 
 class ReportingError(ValueError):
@@ -77,8 +77,8 @@ def _config(cfg):
             raise ReportingError("Missing identity: " + key)
     if Path(cfg["run_id"]).name != cfg["run_id"] or cfg["run_id"] in (".", ".."):
         raise ReportingError("Run identity must be a safe path component")
-    if not cfg["run_id"].startswith("PMID_"):
-        raise ReportingError("Distinct PMID_ run namespace required")
+    if not cfg["run_id"].startswith("PMID_U23_"):
+        raise ReportingError("Distinct PMID_U23_ run namespace required")
     for key, minimum in (("attempt", 1), ("seed", 0), ("planned_horizon", 1)):
         if type(cfg.get(key)) is not int or cfg[key] < minimum:
             raise ReportingError("Invalid integer config: " + key)
@@ -151,8 +151,9 @@ def build_record(cfg, *, scope, selector, step, metrics=None, identity=None,
         "method_revision": cfg.get("method_revision"),
         "retention_is_not_joint_quality_pass": True,
         "output_coordinate_system": GEOMETRY["inference_coordinates"],
-        "official_references_unchanged": True}
-    fields = {"Experiment": cfg["run_display"], "Approach": "PANDA-MIDPOINT / PAN+u/2 MS-GT-u/2 / " + cfg["loss_mask_policy"],
+        "official_references_unchanged": True,
+        "student_upsampling": deepcopy(GEOMETRY["student_upsampling"])}
+    fields = {"Experiment": cfg["run_display"], "Approach": "PANDA-MIDPOINT U23 / PAN+u/2 MS-GT-u/2 / " + cfg["loss_mask_policy"],
         "Role": "Student+FrozenAligner",
         "Server": cfg["server"], "Dataset": cfg["dataset"], "Bucket": "ablations",
         "Campaign_ID": cfg["campaign_id"], "Run_ID": cfg["run_id"], "Case_ID": cfg["case"],

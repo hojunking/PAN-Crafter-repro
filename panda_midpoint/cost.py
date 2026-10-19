@@ -11,6 +11,7 @@ from pathlib import Path
 import time
 
 from .reporting import atomic_json, canonical_json, digest, utc_now, _config
+from .contract import UPSAMPLING
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -25,12 +26,16 @@ def signature(cfg):
              'panda_method/stages.py', 'pa/warp.py', 'model/pancrafter_paper.py',
              'model/pancrafter.py', 'fh12/model.py']
     if cfg['phase'] == 'stage2':
-        paths += ['panda_stage2_condq/method.py', 'panda_midpoint/method.py', 'panda_midpoint/spec.py']
-    return {'schema': 'PANDA_MIDPOINT_NATIVE_COST_SIGNATURE_V1', 'server': cfg['server'],
+        paths += ['panda_stage2_condq/method.py', 'panda_midpoint/method.py', 'panda_midpoint/spec.py',
+                  'panda_midpoint/resampling.py', 'panda_midpoint/contract.py',
+                  'align/__init__.py', 'align/resample.py']
+    return {'schema': 'PANDA_MIDPOINT_NATIVE_COST_SIGNATURE_V2', 'server': cfg['server'],
         'dataset': cfg['dataset'], 'phase': cfg['phase'],
         'aligner': 'DirectPANAligner',
         'aligner_architecture': deepcopy(b['aligner_architecture']),
-        'reconstructor': deepcopy(architecture), 'layout': 'P0', 'base': 'BICUBIC_MS',
+        'reconstructor': deepcopy(architecture), 'layout': 'P0',
+        'base': UPSAMPLING['base_reference'] if cfg['phase'] == 'stage2' else 'BICUBIC_MS',
+        'student_upsampling': deepcopy(UPSAMPLING) if cfg['phase'] == 'stage2' else None,
         'view_margin': b['aligner_architecture']['view_margin'],
         'input_shapes': {'rr': [1, 1, 256, 256], 'fr': [1, 1, 512, 512]},
         'source_registry_sha256': b.get('source_registry_sha256'),

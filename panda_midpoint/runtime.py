@@ -44,6 +44,7 @@ def code_pin():
     files = list((plan.ROOT / 'panda_midpoint').glob('*.py'))
     files += list((plan.ROOT / 'panda30r').glob('*.py'))
     files += list((plan.ROOT / 'scripts').glob('run_panda_midpoint*.sh'))
+    files += [plan.ROOT / 'align/__init__.py', plan.ROOT / 'align/resample.py']
     return {**shared(), **{str(p.relative_to(plan.ROOT)): file_sha(p) for p in sorted(files)}}
 
 
