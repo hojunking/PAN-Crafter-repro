@@ -1,0 +1,225 @@
+"""Band30 deployment profiles: actual Direct A+T or A+S, never KD Teacher.
+
+The existing native GPU profiler and MAC convention are reused unchanged. The
+signature/store are separate from earlier s1/s3/s4 campaigns. This
+module can be imported by the CPU-only sheet watcher without importing Torch.
+"""
+from copy import deepcopy
+import hashlib
+import json
+from pathlib import Path
+import time
+
+from .reporting import atomic_json, canonical_json, digest, utc_now, _config
+from .contract import METHOD_REVISION
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def signature(cfg):
+    _config(cfg)
+    b = cfg['baseline_resolved']
+    architecture = cfg['student_architecture'] if cfg['phase'] == 'stage2' else b['teacher_architecture']
+    paths = ['panda_band30/cost.py', 'panda_band30/stage1.py', 'panda_band30/aligner.py',
+             'panda_band30/spec.py', 'panda_warp30/reconstruction.py', 'experiment_cost/measurement.py',
+             'directshift48/method.py', 'directshift48/training.py',
+             'panda_method/reconstruction.py', 'panda_method/edge_data.py',
+             'panda_method/stages.py', 'pa/warp.py', 'model/pancrafter_paper.py',
+             'model/pancrafter.py', 'fh12/model.py', 'panda_band30/reconstruction.py',
+             'panda_midpoint/resampling.py', 'panda_midpoint/contract.py',
+             'panda_band30/contract.py', 'align/__init__.py', 'align/resample.py']
+    if cfg['phase'] == 'stage2':
+        paths += ['panda_stage2_condq/method.py', 'panda_band30/method.py', 'panda_band30/spec.py']
+    return {'schema': 'PANDA_BAND30_NATIVE_COST_SIGNATURE_V1', 'server': cfg['server'],
+        'method_revision': METHOD_REVISION,
+        'dataset': cfg['dataset'], 'phase': cfg['phase'],
+        'aligner': 'BandPANAligner',
+        'aligner_architecture': {**deepcopy(b['aligner_architecture']),
+            'name': 'BandPANAligner', 'head_dims': [64,32,cfg['aligner_outputs']]},
+        'reconstructor': {**deepcopy(architecture), 'pan_channels': cfg['pan_channels'],
+            'input_channels': 8+cfg['pan_channels']}, 'layout': 'P0',
+        'aligner_outputs': cfg['aligner_outputs'], 'pan_channels': cfg['pan_channels'],
+        'alignment_target': cfg['alignment_target'],
+        'base': cfg['upsampler'], 'frame': cfg['frame'], 'shift_scale': cfg['shift_scale'],
+        'view_margin': b['aligner_architecture']['view_margin'],
+        'input_shapes': {'rr': [1, 1, 256, 256], 'fr': [1, 1, 512, 512]},
+        'source_registry_sha256': b.get('source_registry_sha256'),
+        'lms_override_sha256': b.get('lms_override_sha256'),
+        'batch': 1, 'precision': 'FP32', 'amp': False, 'tf32': False,
+        'geometry': deepcopy(cfg['geometry']),
+        'source_sha256': {p: hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in paths}}
+
+
+def find_profile(cfg, root):
+    key_sig = signature(cfg)
+    key = digest(key_sig)
+    path = Path(root)/'cost_profiles'/(key+'.json')
+    if not path.exists():
+        return None
+    value = json.loads(path.read_text())
+    proof = value.pop('profile_sha256')
+    if (digest(value) != proof or value['signature'] != key_sig or
+            value['architecture_key'] != key or value['schema'] != 'PANDA_BAND30_COST_V1'):
+        raise ValueError('Band30 cost profile integrity or architecture mismatch')
+    from experiment_cost.store import _validate_measurement
+    _validate_measurement(value['measurement'], key_sig)
+    return {**value, 'profile_sha256': proof, 'path': str(path.resolve())}
+
+
+def build_deployment(cfg, sources):
+    from panda_method.reconstruction import ReconstructionSpec
+    _config(cfg)
+    if cfg['phase'] == 'donor':
+        from .stage1 import build_stage1
+        return build_stage1(cfg, sources).stage
+    seeds = cfg['stream_seeds']
+    spec = deepcopy(cfg['student_architecture'])
+    spec.update(input_layout='P0', base_reference='BICUBIC_MS')
+    import torch
+    from .aligner import BandPANAligner
+    from .reconstruction import build_reconstructor
+    with torch.random.fork_rng(devices=[]):
+        torch.random.default_generator.manual_seed(seeds['A_init'])
+        aligner = BandPANAligner(cfg['aligner_outputs'])
+    student = build_reconstructor(ReconstructionSpec(**spec), seed=seeds['S_init'],
+                                  role='S', pan_channels=cfg['pan_channels'])
+    # Use the exact new Student deployment path, not the historical Stage 1
+    # wrapper with different admission/bookkeeping. Attribute 'teacher' is
+    # solely the legacy profiler's component name; no donor Teacher is loaded.
+    from torch import nn
+    from .method import BandInference
+    from .spec import BandSpec
+    class StudentDeployment(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.aligner, self.teacher = aligner, student
+            self.aligner.requires_grad_(False).eval()
+            self.spec = BandSpec(**cfg['stage2_spec'])
+
+        def native_prediction(self, batch):
+            return BandInference(self.aligner, self.teacher, self.spec)(batch)
+    return StudentDeployment()
+
+
+def ensure_cost(cfg, sources, *, retained_trainer, device, deadline_unix,
+                own_gpu_pid=None, cost_root=None):
+    """Measure before trainer GPU allocation; return immutable profile envelope.
+
+    cost_root MUST be the campaign root used by publication. CUDA and an idle
+    GPU are required; failures leave no invented numeric costs or COMPLETE file.
+    """
+    if cost_root is None:
+        raise ValueError('Explicit campaign cost_root required')
+    found = find_profile(cfg, cost_root)
+    if found is not None:
+        return found
+    source_signature = signature(cfg)
+    if deadline_unix is None:
+        deadline_unix = time.time() + 600
+    if deadline_unix-time.time() < 120:
+        raise TimeoutError('Not enough time for complete cost measurement')
+    import gc
+    import os
+    import torch
+    from donor30.cost import _assert_retained_cpu, _require_empty_cuda, _gpu_pids, _stage2_labels
+    from experiment_cost.measurement import profile_stage
+    from experiment_cost.store import _validate_measurement
+    target = torch.device(device)
+    if target.type != 'cuda' or not torch.cuda.is_available():
+        raise ValueError('Only isolated GPU measurements can fill production cost columns')
+    _assert_retained_cpu(retained_trainer)
+    _require_empty_cuda(target)
+    pid = os.getpid() if own_gpu_pid is None else own_gpu_pid
+    if type(pid) is not int or pid < 1:
+        raise ValueError('Verified host PID required (Docker --pid=host)')
+    def isolation():
+        other = _gpu_pids()-{pid}
+        if other:
+            raise RuntimeError('Cost profiling refused concurrent CUDA jobs: '+str(sorted(other)))
+    isolation()
+    graph = None
+    try:
+        graph = build_deployment(cfg, sources).to(target)
+        measured = profile_stage(graph, sources, device=str(target), deadline_unix=deadline_unix,
+            gpu_isolation_assertion={'server': cfg['server'], 'other_compute_pids': [],
+                'training_state_retained_in_memory': True, 'retained_train_device': 'cpu',
+                'retained_optimizer_updates': retained_trainer.updates, 'profiler_host_pid': pid,
+                'mode': 'FRESH_DEPLOYMENT_RETAINED_TRAINER_CPU', 'cuda_allocated_before_graph': 0})
+        isolation()
+        _assert_retained_cpu(retained_trainer)
+        measured['deployment_binding'] = {'phase': cfg['phase'],
+            'inference_graph': 'A+T' if cfg['phase'] == 'donor' else 'A+S',
+            'geometry': deepcopy(cfg['geometry']),
+            'upsampler': cfg['upsampler'], 'frame': cfg['frame'], 'shift_scale': cfg['shift_scale'],
+            'aligner_class': type(graph.aligner).__name__,
+            'aligner_outputs': cfg['aligner_outputs'], 'pan_channels': cfg['pan_channels'],
+            'actual_reconstruction_input_channels': graph.teacher.backbone.input.in_channels,
+            'training_teacher_included': cfg['phase'] == 'donor',
+            'excludes': ['training loss', 'KD calibration', 'training integrity bookkeeping'],
+            'fresh_weights_not_selected_checkpoint': True}
+        if cfg['phase'] == 'stage2':
+            _stage2_labels(measured)
+        for split in ('rr', 'fr'):
+            fields = measured['observations'][split]['sheet_fields']
+            fields['Cost_scope'] = fields['Cost_scope'].replace(
+                'direct-CNN', type(graph.aligner).__name__)
+            fields['Cost_scope'] += ('; Band30 actual upsampler=' + cfg['upsampler']
+                + ', frame=' + cfg['frame'] + ', shift_scale=' + str(cfg['shift_scale'])
+                + '; includes executed upsampling and input/output warps')
+        sig = signature(cfg)
+        if sig != source_signature:
+            raise ValueError('Band30 deployment source changed during cost measurement')
+        _validate_measurement(measured, sig)
+        value = {'schema': 'PANDA_BAND30_COST_V1', 'signature': sig,
+                 'architecture_key': digest(sig), 'measurement': measured, 'created_at': utc_now()}
+        value['profile_sha256'] = digest(value)
+        path = Path(cost_root)/'cost_profiles'/(value['architecture_key']+'.json')
+        atomic_json(path, value)
+        return find_profile(cfg, cost_root)
+    finally:
+        del graph
+        gc.collect()
+        torch.cuda.empty_cache()
+
+
+def attach_cost(projected, root, *, require_cost=True):
+    """Fill only verified deployment cost; preserve missing timing as missing."""
+    from .reporting import INDEX
+    from experiment_cost.publication import _validated_fields
+    from experiment_cost.timing import timing_for_config
+    missing, attached = [], []
+    for i, row in enumerate(projected['rows']):
+        try:
+            note = json.loads(row[INDEX['Original description / notes']])
+            cfg = note['extra_parameters']['configuration']
+            profile = find_profile(cfg, root)
+            if profile is None:
+                missing.append({'run_id': cfg['run_id'], 'reason': 'NO_VERIFIED_PANDA_BAND30_COST'})
+                continue
+            split, fields = _validated_fields(profile['measurement'])
+            for name, value in fields.items():
+                row[INDEX[name]] = value
+            timing = timing_for_config(cfg, row[INDEX['Selected_step']], root,
+                                       history_roots=[], cost_root=root)
+            for name, value in timing['sheet_fields'].items():
+                row[INDEX[name]] = value
+            evidence = {'profile_sha256': profile['profile_sha256'],
+                'architecture_key': profile['architecture_key'], 'profile_path': profile['path'],
+                'sheet_fields': fields, 'default_sheet_split': split,
+                'all_domains': {s: profile['measurement']['observations'][s]['sheet_fields'] for s in ('rr', 'fr')},
+                'deployment_binding': profile['measurement']['deployment_binding'],
+                'observed_timing': timing, 'same_graph_not_same_weights': True}
+            note['cost_measurement'] = evidence
+            short = json.loads(projected['notes'][i]); short['cost_measurement'] = evidence
+            row[INDEX['Original description / notes']] = canonical_json(note)
+            projected['notes'][i] = canonical_json(short)
+            if max(len(row[INDEX['Original description / notes']]), len(projected['notes'][i])) >= 45000:
+                raise ValueError('COST_NOTE_TOO_LARGE')
+            attached.append({'result_id': row[INDEX['Result_ID']], **evidence})
+        except (ValueError, OSError, KeyError, TypeError) as exc:
+            projected['conflicts'].append({'reason': 'PANDA_BAND30_COST_FAILED:'+str(exc),
+                                         'result_id': row[INDEX['Result_ID']]})
+    if require_cost:
+        projected['conflicts'].extend(missing)
+    projected['cost'] = {'bound_count': len(attached), 'bindings': attached,
+                         'missing': missing, 'require_cost': require_cost}

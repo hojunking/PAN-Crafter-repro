@@ -1,0 +1,385 @@
+"""Isolated RR-only all-band and bandwise Stage1, exact auxiliary RNG resume."""
+from __future__ import annotations
+
+from copy import deepcopy
+import math
+from pathlib import Path
+
+import torch
+
+from directshift48.method import DirectTrainingSources, sample_epsilon
+from directshift48.training import DirectStage1Trainer
+from donor30.artifacts import _cpu, _same, _save_immutable, capture_rng, restore_rng
+from donor30.evaluation import model_state_hash
+from donor30.masking import MaskedDonorStage1, masked_mean
+from panda40.stage1 import (
+    Stage1Stream, advance_stage1, _check_evaluation, _identity, _optimizer_contract,
+    _pins, _scheduler, _stream_progress, _validate_config as _validate_shared_config,
+)
+from panda_method.data import require_sha256
+from panda_method.reconstruction import ReconstructionSpec
+from pa.warp import warp_pan, warp_support_mask
+from ta2.evaluation import file_sha
+
+from .contract import CAMPAIGN_ID, METHOD_REVISION, file_identity
+from .aligner import (BandPANAligner, AllBandScharr, GLOBAL_TARGET, BAND_TARGET,
+                      aligned_pan_views, bandwise_warp, support_for_shifts)
+from .reconstruction import (base_from_batch, reconstruct_with_base,
+                             upsampler_manifest, build_reconstructor)
+
+CHECKPOINT_SCHEMA = "PANDA_BAND30_STAGE1_CHECKPOINT_V1"
+RESUME_SCHEMA = "PANDA_BAND30_STAGE1_COMPLETE_RESUME_V1"
+AUX_POLICY = "HR_LMS_GT_ALIGNER_AUX_C1P5_R0P5"
+
+
+def teacher_binding(cfg):
+    upsampler_manifest(cfg["upsampler"])
+    return {key: cfg[key] for key in
+            ("campaign_id", "upsampler", "aligner_outputs", "alignment_target", "pan_channels")}
+
+
+def sample_band_delta(batch, generator):
+    """Sample-major draws keep full48 and micro12x4 exactly stream-equivalent."""
+    if type(batch) is not int or batch < 1 or generator.device.type != "cpu":
+        raise ValueError("Positive batch and dedicated CPU generator required")
+    draws = torch.rand(batch, 9, 2, generator=generator, dtype=torch.float32)
+    radii = draws[..., 0].sqrt()
+    angles = 2 * math.pi * draws[..., 1]
+    vectors = torch.stack((radii * angles.sin(), radii * angles.cos()), dim=-1)
+    return 1.5 * vectors[:, :1] + .5 * vectors[:, 1:]
+
+
+def band_ms_equivariance(augmented, native, delta):
+    if augmented.shape != native.shape or delta.shape != native.shape or native.shape[1:] != (8, 2):
+        raise ValueError("Matched B82 MS-equivariance tensors required")
+    return (augmented - delta - native.detach()).abs().mean()
+
+
+class BandStage1(MaskedDonorStage1):
+    def __init__(self, aligner, teacher, *, upsampler, band_augmentation_seed, **kwargs):
+        upsampler_manifest(upsampler)
+        if not isinstance(aligner, BandPANAligner) or teacher.pan_channels != aligner.outputs // 2:
+            raise ValueError("Matched campaign Aligner/output/PAN stem required")
+        if type(band_augmentation_seed) is not int:
+            raise ValueError("Explicit independent auxiliary RNG seed required")
+        super().__init__(aligner, teacher, **kwargs)
+        self._upsampler = upsampler
+        self.spatial = AllBandScharr(aligner.outputs)
+        self.band_augmentation_seed = band_augmentation_seed
+        self._band_rng = torch.Generator(device="cpu").manual_seed(band_augmentation_seed)
+        self._auxiliary_records = []
+
+    @property
+    def upsampler(self):
+        return self._upsampler
+
+    @property
+    def bandwise(self):
+        return self.aligner.outputs == 16
+
+    def teacher_binding(self):
+        return {"campaign_id": CAMPAIGN_ID, "upsampler": self.upsampler,
+                "aligner_outputs": self.aligner.outputs, "pan_channels": self.teacher.pan_channels,
+                "alignment_target": BAND_TARGET if self.bandwise else GLOBAL_TARGET}
+
+    def pipeline_manifest(self):
+        result = super().pipeline_manifest()
+        result.update(revision=METHOD_REVISION, band30_teacher=self.teacher_binding(),
+                      alignment=("prior_free_eight_band_matched_translations" if self.bandwise else
+                                 "prior_free_direct_total_global_translation"),
+                      effective_reconstruction_base=upsampler_manifest(self.upsampler),
+                      teacher=self.teacher.spec.manifest(),
+                      reconstruction_warp="one_original_PAN_warp_per_declared_PAN_view",
+                      loss_mask_intersection="all_8_PAN_supports" if self.bandwise else "single_PAN",
+                      auxiliary=self.auxiliary_manifest())
+        return result
+
+    def auxiliary_manifest(self):
+        return ({"policy": AUX_POLICY, "scope": "HR_LMS_GT_ALIGNER_ONLY_NO_U_OR_LRMS",
+                 "distribution": "area_uniform_common_R1.5_plus_independent_band_R0.5",
+                 "grid": "after_shared_flip_rot_current_PAN_pixels",
+                 "rng": "dedicated_serialized_CPU_sample_major",
+                 "absolute": "mean_native_and_MSaux", "epsilon": "mean_PANeps_and_MSeq",
+                 "ms_equivariance": "u_MSaug_minus_delta_minus_stopgrad_u_native",
+                 "support": "LMS_crop8_GT_stencil7_each_predicted_PAN_stencil7"}
+                if self.bandwise else {"policy": "NONE"})
+
+    def alignment_manifest(self):
+        return {**super().alignment_manifest(), "method": METHOD_REVISION,
+                "prediction": ("prior_free_eight_band_total_dy_dx" if self.bandwise else
+                               "prior_free_direct_total_dy_dx"),
+                "head_dims": [64, 32, self.aligner.outputs],
+                "native_warp": "one_original_PAN_warp_per_declared_PAN_view",
+                "band30_teacher": self.teacher_binding(),
+                "auxiliary": self.auxiliary_manifest(),
+                "effective_reconstruction_base": upsampler_manifest(self.upsampler)}
+
+    def get_extra_state(self):
+        return {**super().get_extra_state(), "band_augmentation_seed": self.band_augmentation_seed,
+                "band_augmentation_rng": self._band_rng.get_state().clone()}
+
+    def _check_checkpoint(self, state):
+        super()._check_checkpoint(state)
+        if (state.get("epsilon_seed") != self.epsilon_seed
+                or state.get("band_augmentation_seed") != self.band_augmentation_seed
+                or not isinstance(state.get("band_augmentation_rng"), torch.Tensor)):
+            raise ValueError("Complete pinned auxiliary RNG metadata required")
+        torch.Generator(device="cpu").set_state(state["band_augmentation_rng"].cpu())
+
+    def set_extra_state(self, state):
+        super().set_extra_state(state)
+        self._band_rng.set_state(state["band_augmentation_rng"].cpu())
+
+    def native_prediction(self, batch, *, return_aligner_details=False):
+        self._check_observation(batch)
+        training_rr = batch.lineage.resolution == "RR" and batch.lineage.split == "train"
+        with torch.set_grad_enabled(torch.is_grad_enabled() and training_rr), \
+                torch.autocast(device_type=batch.pan.device.type, enabled=False):
+            shift = self.predict_shift(batch.pan, batch.native_lms,
+                resolution=batch.lineage.resolution, return_aligner_details=return_aligner_details)
+            corrected = aligned_pan_views(batch.pan.float(), shift["u"])
+            predicted = reconstruct_with_base(self.teacher, corrected,
+                                              base_from_batch(batch, self.upsampler), batch.ms)
+        return {**predicted, **shift}
+
+    def _native_support(self, pan, correction):
+        support = support_for_shifts(*pan.shape[-2:], correction)
+        good = support[..., 7:-7, 7:-7].flatten(1).all(1)
+        if min(pan.shape[-2:]) <= 16 or not bool(good.all()):
+            raise ValueError("SUPPORT_VIOLATION: every predicted PAN view must support fixed ROI8/stencil7")
+        return {"warp_support_fraction": support.float().mean(), "spatial_support_ok": good}
+
+    def forward(self, rr):
+        rr.validate(8, training=True, require_gt=True)
+        self.sources.check(rr)
+        if not all(p.requires_grad for m in (self.aligner, self.teacher) for p in m.parameters()):
+            raise ValueError("Stage1 jointly trains every A/T parameter")
+        epsilon_before, aux_before = self._epsilon_rng.get_state(), self._band_rng.get_state()
+        try:
+            with torch.autocast(device_type=rr.pan.device.type, enabled=False):
+                native = self.native_prediction(rr)
+                support = self._native_support(rr.pan, native["u"])
+                mask = support_for_shifts(*rr.pan.shape[-2:], native["u"])
+                rec = masked_mean((native["y"] - rr.gt.detach()).abs(), mask)
+                abs_native = self.spatial.absolute_loss(native["pan_aligned"], rr.gt.detach())
+                with torch.no_grad():
+                    eps = sample_epsilon(len(rr.pan), self._epsilon_rng).to(rr.pan.device)
+                    pan_eps = warp_pan(rr.pan, eps)
+                    eps_support = warp_support_mask(*rr.pan.shape[-2:], eps)
+                shifted = self.predict_shift(pan_eps, rr.native_lms, resolution="RR",
+                                             pan_valid_mask=eps_support)
+                broadcast_eps = eps[:, None, :] if self.bandwise else eps
+                eps_pan = (shifted["u"] + broadcast_eps - native["u"].detach()).abs().mean()
+                absolute, equivariance = abs_native, eps_pan
+                aux = None
+                if self.bandwise:
+                    with torch.no_grad():
+                        delta = sample_band_delta(len(rr.pan), self._band_rng).to(rr.pan.device)
+                        delta_support = support_for_shifts(*rr.pan.shape[-2:], delta, intersection=False)
+                        if (not bool(delta_support[..., 8:-8, 8:-8].all())
+                                or not bool(delta_support[..., 7:-7, 7:-7].all())):
+                            raise ValueError("SUPPORT_VIOLATION: auxiliary LMS/GT crop/stencil")
+                        lms_aux = bandwise_warp(rr.native_lms, delta)
+                        gt_aux = bandwise_warp(rr.gt.detach(), delta)
+                    aux = self.predict_shift(rr.pan, lms_aux, resolution="RR")
+                    self._native_support(rr.pan, aux["u"])
+                    pan_aux = aligned_pan_views(rr.pan, aux["u"])
+                    abs_aux = self.spatial.absolute_loss(pan_aux, gt_aux)
+                    eq_ms = band_ms_equivariance(aux["u"], native["u"], delta)
+                    absolute = .5 * (abs_native + abs_aux)
+                    equivariance = .5 * (eps_pan + eq_ms)
+                loss = rec + self.lambda_abs * absolute + self.lambda_eps * equivariance
+                if not bool(torch.isfinite(loss)):
+                    raise FloatingPointError("Nonfinite band30 Stage1 loss")
+                fraction = eps_support[..., 8:-8, 8:-8].float().mean()
+        except Exception:
+            self._epsilon_rng.set_state(epsilon_before)
+            self._band_rng.set_state(aux_before)
+            raise
+        call = self.forward_calls
+        self.forward_calls += 1
+        if aux is not None:
+            self._auxiliary_records.append({"delta": delta.detach().cpu().tolist(),
+                "u_ms_aux": aux["u"].detach().cpu().tolist(),
+                "abs_native": float(abs_native.detach()), "abs_ms_aux": float(abs_aux.detach()),
+                "eps_pan": float(eps_pan.detach()), "eq_ms": float(eq_ms.detach())})
+        return {"loss": loss, "rec": rec, "abs_rr": absolute, "eps_rr": equivariance,
+                "weighted_abs": self.lambda_abs * absolute,
+                "weighted_eps_rr": self.lambda_eps * equivariance, "native": native,
+                "shifted": shifted, "epsilon_rr": eps, "forward_index": call,
+                "epsilon_rr_view_support_fraction": fraction, "loss_mask": mask, **support}
+
+
+class BandStage1Trainer(DirectStage1Trainer):
+    """Restore auxiliary RNG together with parent epsilon on pre-step failures."""
+    def step_accumulated(self, microbatches, *, expected_effective_batch=None):
+        before = self.stage._band_rng.get_state().clone()
+        self.stage._auxiliary_records = []
+        try:
+            result = super().step_accumulated(microbatches,
+                                            expected_effective_batch=expected_effective_batch)
+        except Exception:
+            if not self.poisoned:
+                self.stage._band_rng.set_state(before)
+            self.stage._auxiliary_records = []
+            raise
+        result["band_augmentation"] = self.stage._auxiliary_records
+        self.stage._auxiliary_records = []
+        return result
+
+
+def validate_config(cfg, sources):
+    _validate_shared_config(cfg, sources)
+    if (cfg.get("campaign_id") != CAMPAIGN_ID or cfg.get("method_revision") != METHOD_REVISION
+            or cfg.get("server") != "s1" or cfg.get("dataset") != "WV3"
+            or cfg.get("aligner_kind") != "direct"
+            or cfg.get("lambda_abs") != 2. or cfg.get("lambda_epsilon") != .003
+            or cfg.get("lr_A") != 1e-5 or cfg.get("lr_U") != 1e-4
+            or cfg.get("initialization") != "FRESH" or cfg.get("start_update", 0) != 0):
+        raise ValueError("Fresh s1/WV3 band30 matched donor configuration required")
+    upsampler_manifest(cfg.get("upsampler"))
+    expected = {2: (1, GLOBAL_TARGET, "NONE"), 16: (8, BAND_TARGET, AUX_POLICY)}
+    if cfg.get("aligner_outputs") not in expected:
+        raise ValueError("Explicit global2/band16 configuration required")
+    if (cfg.get("pan_channels"), cfg.get("alignment_target"), cfg.get("band_augmentation")) != expected[cfg["aligner_outputs"]]:
+        raise ValueError("Aligner head/stem/objective/augmentation mismatch")
+    if type(cfg["stream_seeds"].get("rr_band_augmentation")) is not int:
+        raise ValueError("Explicit auxiliary RNG seed required")
+    if cfg["aligner_outputs"] == 16 and cfg["upsampler"] != "interp23":
+        raise ValueError("Approved bandwise branch uses interp23 only")
+
+
+def build_stage1(cfg, sources, *, device="cpu"):
+    validate_config(cfg, sources)
+    b, seeds = cfg["baseline_resolved"], cfg["stream_seeds"]
+    with torch.random.fork_rng(devices=[]):
+        torch.random.default_generator.manual_seed(seeds["A_init"])
+        aligner = BandPANAligner(cfg["aligner_outputs"])
+    teacher = build_reconstructor(ReconstructionSpec(**b["teacher_architecture"],
+        input_layout="P0", base_reference="BICUBIC_MS"), seed=seeds["T_init"], role="T",
+        pan_channels=cfg["pan_channels"])
+    stage = BandStage1(aligner, teacher, upsampler=cfg["upsampler"],
+        sources=DirectTrainingSources(sources.sensor, sources.manifest_sha("train")),
+        epsilon_seed=seeds["rr_epsilon"], band_augmentation_seed=seeds["rr_band_augmentation"],
+        roi_margin=8, boundary_policy="require_spatial_support",
+        lambda_abs=cfg["lambda_abs"], lambda_eps=cfg["lambda_epsilon"]).to(device)
+    optimizer = torch.optim.AdamW([
+        {"params": stage.aligner.parameters(), "lr": cfg["lr_A"], "role": "A"},
+        {"params": stage.teacher.parameters(), "lr": cfg["lr_U"], "role": "T"}],
+        betas=tuple(b["optimizer_betas"]), eps=b["optimizer_eps"], weight_decay=cfg["weight_decay"])
+    trainer = BandStage1Trainer(stage, optimizer,
+        gradient_log_interval=b["gradient_log_interval"], effective_batch_size=b["effective_batch_RR"],
+        microbatch_size=b["microbatch_RR"])
+    trainer.config = deepcopy(cfg)
+    trainer._band30_sources = sources
+    return trainer
+
+
+def save_stage1(path, trainer, stream, *, code_pin, evaluator_pin, evaluation=None):
+    """Immutable complete checkpoint; independently strict-reloaded before save."""
+    if (not isinstance(stream, Stage1Stream) or not isinstance(trainer, BandStage1Trainer)
+            or not isinstance(trainer.stage, BandStage1)):
+        raise TypeError("Band30 Stage 1 trainer and complete RR stream required")
+    cfg = trainer.config
+    validate_config(cfg, stream.sources)
+    if not _same(cfg, stream.config) or trainer.stage.upsampler != cfg["upsampler"]:
+        raise ValueError("Effective upsampler/trainer/stream configuration mismatch")
+    if trainer.poisoned or not 0 <= trainer.updates <= cfg["planned_horizon"]:
+        raise ValueError("Cannot checkpoint a failed or out-of-schedule trainer")
+    pins = _pins(code_pin, evaluator_pin)
+    destination = Path(path).absolute()
+    if destination.exists() or destination.is_symlink():
+        raise FileExistsError("Immutable Stage 1 checkpoint already exists")
+    if destination.parent.is_symlink():
+        raise ValueError("Checkpoint directory may not be a symlink")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    rng = capture_rng()
+    try:
+        state_hash = model_state_hash(trainer.stage)
+        identity = _identity(cfg, trainer.updates, state_hash)
+        _check_evaluation(evaluation, identity)
+        state = _cpu(trainer.state_dict())
+        _optimizer_contract(state, cfg, trainer.updates)
+        _stream_progress(stream.state_dict(), state, cfg)
+        payload = {"schema": CHECKPOINT_SCHEMA, "campaign_resume_schema": RESUME_SCHEMA,
+            "campaign_resume_complete": True, "config": deepcopy(cfg), "identity": identity,
+            "state_hash": state_hash, "model_state_sha256": state_hash,
+            "trainer": state, "stream": _cpu(stream.state_dict()), "stream_protocol": stream.protocol(),
+            "rng": _cpu(rng), "scheduler": _scheduler(cfg, trainer.updates), "pins": pins,
+            "evaluation": deepcopy(evaluation), "resume_only": evaluation is None,
+            "band30_teacher": teacher_binding(cfg),
+            "selection_rule": "CALLER_MAX_HQNR_THEN_MIN_ERGAS_NO_SCC"}
+        reloaded = build_stage1(cfg, stream.sources)
+        reloaded.load_state_dict(state)
+        restored_stream = Stage1Stream(stream.sources, cfg, device="cpu")
+        restored_stream.load_state_dict(payload["stream"])
+        if (model_state_hash(reloaded.stage) != state_hash
+                or not _same(_cpu(reloaded.state_dict()), state)
+                or not _same(restored_stream.state_dict(), payload["stream"])):
+            raise ValueError("Fresh model/optimizer/sampler strict reload differs")
+        _save_immutable(destination, payload)
+        saved = torch.load(destination, map_location="cpu", weights_only=False)
+        if (not _same(saved, payload) or model_state_hash(trainer.stage) != state_hash
+                or not _same(stream.state_dict(), payload["stream"])
+                or not _same(_cpu(trainer.state_dict()), state)):
+            raise ValueError("Serialized or paused live trainer changed during checkpoint save")
+        return {"checkpoint_path": str(destination), "file_sha256": file_sha(destination),
+            "model_state_sha256": state_hash, "state_hash": state_hash, "identity": identity,
+            "completed_update": trainer.updates, "weights_saved": True, "checkpoint_verified": True,
+            "predictions_reverified": False, "resume_only": evaluation is None,
+            "campaign_resume_complete": True,
+            "verification": "STRICT_CPU_RELOAD_MODEL_OPTIMIZER_STREAM_AND_FILE_ROUNDTRIP"}
+    finally:
+        restore_rng(rng)
+
+
+def load_stage1(path, expected_sha256, cfg, sources, *, device="cpu", code_pin,
+                evaluator_pin, restore_global_rng=True):
+    """Resume the identical run/upsampler/source/code/evaluator only."""
+    require_sha256(expected_sha256, "explicit local Stage 1 checkpoint SHA256")
+    validate_config(cfg, sources)
+    pins = _pins(code_pin, evaluator_pin)
+    checkpoint = Path(path).resolve(strict=True)
+    if not checkpoint.is_file() or file_sha(checkpoint) != expected_sha256:
+        raise ValueError("Stage 1 checkpoint SHA mismatch")
+    before_stat = file_identity(checkpoint)
+    payload = torch.load(checkpoint, map_location="cpu", weights_only=False)
+    if file_identity(checkpoint) != before_stat or file_sha(checkpoint) != expected_sha256:
+        raise ValueError("Checkpoint file changed while loading")
+    if (not isinstance(payload, dict) or payload.get("schema") != CHECKPOINT_SCHEMA
+            or payload.get("campaign_resume_schema") != RESUME_SCHEMA
+            or payload.get("campaign_resume_complete") is not True
+            or not _same(payload.get("config"), cfg) or payload.get("pins") != pins
+            or payload.get("band30_teacher") != teacher_binding(cfg)):
+        raise ValueError("Band30 checkpoint/config/code/evaluator/upsampler resume mismatch")
+    update = payload.get("trainer", {}).get("updates")
+    if (type(update) is not int or not 0 <= update <= cfg["planned_horizon"]
+            or payload.get("scheduler") != _scheduler(cfg, update)):
+        raise ValueError("Checkpoint completed update/scheduler contract mismatch")
+    _optimizer_contract(payload["trainer"], cfg, update)
+    identity = _identity(cfg, update, payload.get("state_hash"))
+    if (payload.get("identity") != identity
+            or payload.get("model_state_sha256") != payload.get("state_hash")
+            or payload.get("resume_only") != (payload.get("evaluation") is None)):
+        raise ValueError("Checkpoint model/evaluation identity mismatch")
+    require_sha256(payload.get("state_hash"), "checkpoint A/T state SHA256")
+    _check_evaluation(payload.get("evaluation"), identity)
+    rng, success = capture_rng(), False
+    try:
+        stream = Stage1Stream(sources, cfg, device=device)
+        if stream.protocol() != payload.get("stream_protocol"):
+            raise ValueError("Training source/sampler protocol changed since checkpoint")
+        stream.load_state_dict(payload["stream"])
+        _stream_progress(payload["stream"], payload["trainer"], cfg)
+        trainer = build_stage1(cfg, sources, device=device)
+        trainer.load_state_dict(payload["trainer"])
+        if (model_state_hash(trainer.stage) != payload["state_hash"]
+                or not _same(_cpu(trainer.state_dict()), payload["trainer"])):
+            raise ValueError("Loaded model/optimizer tensor state differs from checkpoint")
+        restore_rng(payload["rng"])
+        success = True
+        return trainer, stream, payload
+    finally:
+        if not success or not restore_global_rng:
+            restore_rng(rng)
+
