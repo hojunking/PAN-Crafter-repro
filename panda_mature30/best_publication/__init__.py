@@ -1,0 +1,172 @@
+"""HQNR-best-only Sheet view, independent of pinned running training sources.
+
+The legacy publisher remains an immutable evidence validator and migration
+reader. It is not the active writer after switching to this entry point.
+Stage1 RRE selection and all raw evaluations/checkpoints remain unchanged.
+"""
+from collections import defaultdict
+from copy import deepcopy
+import json
+from pathlib import Path
+
+from panda_mature30 import publication as legacy
+from panda_mature30 import reporting as R
+
+INDEX = R.INDEX
+POLICY = "PANDA_MATURE30_RRE_STAGE2_RUNNING_BEST_HQNR_V2"
+
+
+def project(root, server, *, require_cost=False):
+    # Reuse complete same-state RR/FR, source, deployment and artifact checks.
+    value = legacy.project_campaign(root, server)
+    value["legacy_policy"] = value["policy"]
+    value["policy"] = POLICY
+    if value["conflicts"]:
+        return value
+    stage1 = [(r, n, s) for r, n, s in zip(
+        value["rows"], value["notes"], value["selected"])
+        if r[INDEX["Selector"]] == "BEST_VAL_RRE"]
+    value["rows"] = [r for r, _, _ in stage1]
+    value["notes"] = [n for _, n, _ in stage1]
+    value["selected"] = [s for _, _, s in stage1]
+    groups = defaultdict(list)
+    for source in value["source_evidence"].values():
+        note = json.loads(source["row"][INDEX["Original description / notes"]])
+        if note["extra_parameters"]["configuration"]["phase"] == "stage2":
+            groups[tuple(source["candidate"]["key"])].append(source)
+    runs = {tuple(r["run_key"]): r for r in value["runs"]}
+    for key, sources in sorted(groups.items()):
+        source = min(sources, key=lambda s: (
+            -s["candidate"]["hqnr"], s["candidate"]["ergas"],
+            s["candidate"]["step"], s["candidate"]["source_result_id"]))
+        candidate = source["candidate"]
+        row = list(source["row"])
+        note = json.loads(row[INDEX["Original description / notes"]])
+        extra = note["extra_parameters"]
+        cfg = extra["configuration"]
+        try:
+            artifact = legacy._artifact({
+                **candidate, "record": {"source": {"extra": extra}}}, root)
+        except (ValueError, KeyError, OSError) as exc:
+            value["conflicts"].append({
+                "source_result_id": candidate["source_result_id"], "reason": str(exc)})
+            continue
+        run = runs[key]
+        run.update(kept_count=1, selection="BEST_HQNR")
+        publication = {
+            "policy": POLICY, "selection": "BEST_HQNR",
+            "checkpoint_selection": "HQNR_DESC_ERGAS_ASC_STEP_ASC",
+            "candidate_count": len(sources), "passed_count": run["pass_count"],
+            "hqnr_primary_rank_best": True,
+            "hqnr_min": cfg["hqnr_min"], "ergas_max": cfg["ergas_max"],
+            "target_thresholds_are_annotations_only": True,
+            "final50k": candidate["step"] == 50000,
+            "separate_final_row": False, "fixed_step": None,
+            "source_result_id": candidate["source_result_id"],
+            "evaluation_step": candidate["step"],
+            "evaluation_evidence": source["evaluation_evidence"], "artifact": artifact,
+            "last_logged_status": run["last_logged_status"],
+            "last_observed_at": run["last_observed_at"], "live_process_verified": False,
+        }
+        row[INDEX["Result_ID"]] = legacy.display_id(
+            POLICY, key, candidate["protocol"], "BEST_HQNR")
+        row[INDEX["Selector"]] = "BEST_HQNR"
+        row[INDEX["Selection@Step"]] = f"HQNR 최고 · {candidate['step']:,}"
+        row[INDEX["Checkpoint_SHA"]] = artifact.get("file_sha256") or ""
+        row[INDEX["Readback"]] = "VERIFIED"
+        row[INDEX["Status"]] = run["last_logged_status"]
+        note["publication"] = publication
+        note["publication_policy"] = POLICY
+        row[INDEX["Original description / notes"]] = R.canonical_json(note)
+        short = R.canonical_json({"configuration": cfg, "publication": publication})
+        if max(len(row[INDEX["Original description / notes"]]), len(short)) >= 45000:
+            raise ValueError("Best-HQNR publication note exceeds safe cell size")
+        value["rows"].append(row)
+        value["notes"].append(short)
+        value["selected"].append(candidate)
+    from panda_mature30.cost import attach_cost
+    attach_cost(value, Path(root), require_cost=require_cost)
+    value["view_hash"] = R.digest({"rows": value["rows"], "notes": value["notes"]})
+    return value
+
+
+def verify_owned(row, value):
+    """Allow migration only from fully verified legacy or current own rows."""
+    publication = json.loads(row[INDEX["Original description / notes"]])["publication"]
+    if publication.get("policy") != POLICY:
+        return legacy._verify_owned(row, value)
+    source = value["source_evidence"].get(publication.get("source_result_id"))
+    if source is None or publication.get("selection") != "BEST_HQNR":
+        raise ValueError("Unknown best-HQNR row/source; never erase it")
+    candidate = source["candidate"]
+    if row[INDEX["Result_ID"]] != legacy.display_id(
+            POLICY, candidate["key"], candidate["protocol"], "BEST_HQNR"):
+        raise ValueError("Best-HQNR display identity mismatch")
+    raw = json.loads(source["row"][INDEX["Original description / notes"]])
+    if raw["extra_parameters"]["configuration"]["phase"] != "stage2":
+        raise ValueError("Best-HQNR row must be Stage2")
+    # Normalize only a temporary migration envelope to reuse the strict legacy
+    # identity/metric/evaluation-proof validator. No source or cloud data changes.
+    checked = deepcopy(row)
+    note = json.loads(checked[INDEX["Original description / notes"]])
+    note["publication"].update(policy=legacy.POLICY, selection="BEST_HQNR_FALLBACK")
+    checked[INDEX["Original description / notes"]] = R.canonical_json(note)
+    checked[INDEX["Result_ID"]] = legacy.display_id(
+        legacy.POLICY, candidate["key"], candidate["protocol"], "FALLBACK")
+    legacy._verify_owned(checked, value)
+
+
+def row_requests(snapshot, value, server):
+    """Migrate own rows in place; backup/clear surplus, never shift other rows."""
+    from sheet_publish_v2.transport import _typed, _matrix_equal
+    if value["conflicts"]:
+        raise ValueError("Local evidence conflicts; cloud untouched")
+    own, keys = {}, {tuple(k) for k in value["owned_run_keys"]}
+    for number, row in enumerate(snapshot["rows"], 5):
+        if row[INDEX["Campaign_ID"]] != R.CAMPAIGN_ID or row[INDEX["Server"]] != server:
+            continue
+        if (row[INDEX["Dataset"]] != "WV3"
+                or not str(row[INDEX["Run_ID"]]).startswith("PM30_")
+                or legacy._key(row) not in keys):
+            raise ValueError("Unknown own run; never erase it")
+        verify_owned(row, value)
+        rid = row[INDEX["Result_ID"]]
+        if rid in own:
+            raise ValueError("Duplicate owned display ID; no overwrite")
+        own[rid] = (number, row, snapshot["notes"][number - 5])
+    expected = {r[INDEX["Result_ID"]]: (r, n)
+                for r, n in zip(value["rows"], value["notes"])}
+    if len(expected) != len(value["rows"]) or len(value["rows"]) != len(value["notes"]):
+        raise ValueError("Duplicate desired IDs or mismatched notes")
+    stale = {rid: item for rid, item in own.items() if rid not in expected}
+
+    def cells(row, note):
+        return {"values": [{"userEnteredValue": _typed(v), "note": note if j == 0 else ""}
+                           for j, v in enumerate(row)]}
+
+    def update(number, payload):
+        return {"updateCells": {"range": {
+            "sheetId": value["destination"]["sheet_id"], "startRowIndex": number,
+            "endRowIndex": number + 1, "startColumnIndex": 0, "endColumnIndex": 64},
+            "rows": [payload], "fields": "userEnteredValue,note"}}
+
+    requests, additions = [], []
+    for rid, (row, note) in expected.items():
+        existing = own.get(rid)
+        if existing is None:
+            reusable = next((key for key, item in stale.items()
+                             if legacy._key(item[1]) == legacy._key(row)), None)
+            if reusable is None:
+                additions.append(cells(row, note))
+                continue
+            existing = stale.pop(reusable)
+        number, old, old_note = existing
+        if not _matrix_equal([old], [row]) or old_note != note:
+            requests.append(update(number, cells(row, note)))
+    for number, _, _ in stale.values():
+        requests.append(update(number, {"values": [{} for _ in range(64)]}))
+    if additions:
+        requests.append({"appendCells": {
+            "sheetId": value["destination"]["sheet_id"],
+            "rows": additions, "fields": "userEnteredValue,note"}})
+    return requests

@@ -56,14 +56,17 @@ Soft loss/gradient 계산을 생략한다. Teacher는 `e_T/d_e`와 calibration�
 
 - 기존 새 workbook의 `WV3-ablations`, server=`s3`.
 - Stage1: RRE로 선정된 모델의 공식 평가 결과 1행.
-- Stage2: HQNR ≥ 0.960 및 ERGAS ≤ 2.045 동시 충족 step을 게시.
-  충족이 없으면 HQNR-best 대표 행을 갱신한다. 최종 50K도 게시하고 중복은 제거한다.
+- Stage2 (**2026-10-21 사용자 변경**): run/seed/attempt별 **현재까지 HQNR 최고
+  checkpoint 1행만 갱신**한다. 목표치 통과 여부는 선택에 영향을 주지 않는다.
+  동점은 ERGAS가 낮은 순, 이어서 빠른 step 순이다. FINAL50K 별도 행은 게시하지 않는다.
+  5K 고정이 아니며, 뒤의 평가에서 HQNR 최고값을 경신하면 모든 지표·cost를
+  그 checkpoint 기준으로 함께 교체한다.
 - **매 1,000 step 전체를 Sheet에 누적하지 않는다.** 평가 주기와 게시 조건은 별개다.
 - RMSE·CC·JQM을 포함한 전체 평가 결과와 원래 정밀도는 로컬에 보존한다.
 - run 이름은 `NOSOFT`, Approach는 `NO-SOFT`, beta 열은 `0`으로 구분한다.
 - 결과 경로:
   `work_dir/panda_mature30/PANDA_S13_MATURE_ALIGN_HARDONLY_30H_20261020_v2/s3/WV3`
-- publisher 로그: `work_dir/panda_mature30/publisher-s3-hardonly-v2.log`.
+- publisher 로그: `work_dir/panda_mature30/publisher-s3-best-hqnr-v2.log`.
 
 ## 동봉 수정·검증
 
@@ -106,3 +109,26 @@ Soft loss/gradient 계산을 생략한다. Teacher는 `e_T/d_e`와 calibration�
 - 파라미터/학습 결과/optimizer를 변경하지 않는 sidecar다.
   기존 7개 cost 열을 채우고, 성능 지표와 선별 규칙은 그대로 유지한다.
 - 후속 재검증: cost 테스트 포함 Mature30 **65개 통과**.
+
+## 후속 변경: Stage2 HQNR-best 단일 행 (2026-10-21)
+
+이미 같은 v2 학습이 진행 중이면, **이 후속 변경을 받은 뒤** 업로더만 교체한다.
+
+```bash
+bash scripts/start_panda_mature30_best_publisher.sh s3
+```
+
+- 별도 호스트 진입점은 `python -m panda_mature30.best_publication`이다.
+  기존 `panda_mature30.publication`은 진행 중 학습의 소스 해시를 보존하기 위해
+  수정하지 않았다. 구 진입점을 실행하면 구 게시 정책이므로 사용하지 않는다.
+- 스크립트는 같은 서버·캠페인·명령행의 구 Sheet watcher만 확인 후 교체한다.
+  trainer/container, optimizer, seed, budget, checkpoint에는 손대지 않는다.
+- 신규 `start_panda_mature30_costed.sh`는 학습 기동 후 새 업로더로 전환한다.
+- 기존 조건 통과/FINAL50K 추가 행은 원본 평가와 SHA가 확인된 **해당 서버의 행만**
+  백업 후 정리한다. 행 삭제·정렬 없이 초과 셀만 비우므로 다른 서버 행 위치는 보존된다.
+- Stage1 RRE 선택/표시는 그대로다. 모든 step별 원본 기록과 weight도 보존한다.
+- source-pin 대상은 이 변경에서 수정하지 않지만, 다른 미적용 커밋까지 함께 pull할
+  경우는 별개다. s3 세션에서 실행 중 admission의 소스 해시와 대조해야 한다.
+- 검증: Mature30 **76개 테스트 통과**. 새 최고값의 동일 행 갱신, 목표치와 독립된
+  선택, 5K 고정 없음, FINAL50K 추가 없음, Stage1 불변, 이전 행 안전 전환,
+  다른 서버 보존, 비용의 selected-step 연결, Python 3.9 업로더 교체를 포함한다.

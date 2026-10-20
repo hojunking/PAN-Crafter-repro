@@ -118,3 +118,28 @@ Stage2 공동 통과 step 또는 HQNR-best 및 FINAL50K 등 기존 게시 조건
 - 마지막 확인에서 33,167 step까지 진행, `resumed_from_step=31505`,
   trainer source pin 변경 0건이었다. 21:37 KST Sheet 재확인에서도 2행 모두
   `OWN_ROWS_VERIFIED`이며 다른 캠페인의 행은 변경하지 않았다.
+# 2026-10-21 후속: Stage2 Sheet는 HQNR-best 1행만
+
+- 사용자 결정: Stage2는 run/seed/attempt별 **현재까지 HQNR 최고 checkpoint
+  한 행을 갱신**한다. 5K 고정이 아니며 평가마다 최고값을 다시 선택한다.
+  HQNR 동점 시 ERGAS, 이어서 빠른 step 순이다.
+- 목표치 동시 통과 step 전체 게시와 별도 FINAL50K 게시를 폐기했다.
+  Stage1 RRE 선택, 원본 step별 로컬 기록·weight, 학습/평가 코드는 유지했다.
+- 실행 중 source pin을 보존하기 위해 `panda_mature30.best_publication`을 별도
+  업로더로 추가했다. admission과 `runtime.code_pin()`의 **225개 전체 일치** 확인.
+- 2026-10-21 02:13:50 KST에 구 publisher PID 3092328만 종료하고
+  새 publisher PID 3833529로 교체했다. trainer/container는 중단하지 않았다.
+- 02:13:58 KST readback: 새 정책
+  `PANDA_MATURE30_RRE_STAGE2_RUNNING_BEST_HQNR_V2`,
+  `OWN_ROWS_VERIFIED`, s1 행 **127/128/132**, 3행.
+- s1 FULL의 추가 FINAL50K 행(131)은 셀 값/메모만 비웠다. 전체 행 삭제·이동은 없다.
+  복구용 이전 시트 snapshot:
+  `work_dir/panda_mature30/PANDA_S13_MATURE_ALIGN_HARDONLY_30H_20261020_v2/s1/WV3/sheet_publish_panda_mature30/cloud_backup_1792516435481075620.json`.
+  원본 50K 평가·checkpoint는 그대로다.
+- 실제 Google API 재조회: FULL `HQNR 최고 · 4,000`, HALF `HQNR 최고 · 5,000`.
+  HALF 5K의 HQNR 0.9560188099가 현재 실제 최고라 유지되는 것이며 고정 step이 아니다.
+  새 최고값이 나오면 동일 Result_ID의 지표 12개·cost를 같은 checkpoint로 교체한다.
+- s1 cost 7개와 기존 소수점 표시 유지, s3 행 129/130/133/134는 변경 전후 동일.
+  s3는 코드 전달 후 `bash scripts/start_panda_mature30_best_publisher.sh s3`로
+  **업로더만** 교체해야 한다.
+- 최종 회귀 테스트: Mature30 **76개 통과**. shell 문법 검사와 diff 공백 검사 통과.
