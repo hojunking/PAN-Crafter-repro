@@ -85,7 +85,8 @@ def compute_loss(student_y, teacher_y, gt, aligned_pan, *, spec, scharr=None,
             e_t = (t - y).abs().mean(1, keepdim=True)
             tau = e_t.new_tensor(tau_e)
             d_e = e_t / (e_t + tau).clamp_min(torch.finfo(torch.float32).tiny)
-            advantage = (e_s.detach() - e_t).clamp_min(0) / (e_s.detach() + spec.delta)
+            if spec.beta > 0:
+                advantage = (e_s.detach() - e_t).clamp_min(0) / (e_s.detach() + spec.delta)
             if spec.variant == "panda_condq":
                 if scharr is None or scharr.sensor != spec.sensor:
                     raise ValueError("Sensor-bound Stage 1 Scharr operator required")
@@ -98,10 +99,15 @@ def compute_loss(student_y, teacher_y, gt, aligned_pan, *, spec, scharr=None,
                     raise ValueError("Conditional ranks must be detached finite FP32 ROI maps in [0,1]")
                 r_q_bar[sl] = ranks
             w_h = 1 + spec.alpha * d_e + spec.gamma * d_e * r_q_bar
-        delta_ts = (s - t).abs().mean(1, keepdim=True)
-        soft = reduce((1 - d_e) * advantage * delta_ts)
+        if spec.beta > 0:
+            delta_ts = (s - t).abs().mean(1, keepdim=True)
+            soft = reduce((1 - d_e) * advantage * delta_ts)
+        else:
+            # No S->T graph or advantage gate in hard-only experiments.
+            # T is still needed for e_T/d_e and its calibration.
+            soft = zero
     hard = reduce(w_h * e_s)
-    loss = hard + spec.beta * soft
+    loss = hard if spec.beta == 0 else hard + spec.beta * soft
     output = {"loss": loss, "hard_weighted": hard, "soft_unscaled": soft,
               "soft_weighted": spec.beta * soft, "gt_raw": reduce(e_s),
               "e_extra_raw": reduce(d_e * e_s),

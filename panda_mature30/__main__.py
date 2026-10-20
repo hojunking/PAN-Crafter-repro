@@ -41,9 +41,12 @@ def main(argv=None):
         registered=RegisteredRRTrain.from_catalog(args.sources,root=plan.ROOT,sensor='WV3')
         for split in ('val','rr','fr'): registered.sources.raw(split,[0])
         if args.server == 's1':
-            from .donor import complete_history
+            from .donor import complete_history, checkpoint_evidence
             directory = plan.ROOT / plan.LEGACY_SOURCE
-            complete_history(sorted((directory/'models').glob('step_*.pt')), server='s1')
+            checkpoints = sorted((directory/'models').glob('step_*.pt'))
+            complete_history(checkpoints, server='s1')
+            for checkpoint in checkpoints:
+                checkpoint_evidence(checkpoint, server='s1')
         code_pin(); evaluator_identity()
         print(json.dumps({'status':'READ_ONLY_CHECK_OK','server':args.server,'dataset':'WV3',
                           'train_count':len(registered.sample_ids),'stage1':cfg['donor_policy'],

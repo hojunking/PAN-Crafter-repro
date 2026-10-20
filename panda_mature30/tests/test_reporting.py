@@ -17,6 +17,7 @@ def config(server="s1", phase="stage2", policy="FULL"):
                run_id="PM30_WV3_" + server.upper() + "_" + phase.upper() + "_" + policy,
                run_display="Mature " + phase + " " + policy, case=policy,
                phase=phase, policy_id=policy, engine_kind="mature_" + phase)
+    cfg.setdefault("stage2_spec", {})["beta"] = 0.
     return cfg
 
 
@@ -75,6 +76,12 @@ def reused_receipt(root, server="s1", source_config=None):
 
 
 class ReportingTests(unittest.TestCase):
+    def test_soft_enabled_cannot_be_mislabelled_as_hard_only(self):
+        cfg = config()
+        cfg["stage2_spec"]["beta"] = .05
+        with self.assertRaisesRegex(ValueError, "Hard-only"):
+            R.make_record(cfg, evaluation(cfg))
+
     def test_every_metric_and_raw_precision_preserved_both_servers(self):
         for server in ("s1", "s3"):
             cfg = config(server)

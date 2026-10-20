@@ -23,6 +23,11 @@ class TransitionPlanTests(unittest.TestCase):
                     self.assertEqual(cfg["upsampler"], "interp23")
                     self.assertEqual(cfg["frame"], "pan")
                     self.assertEqual(cfg["aligner_outputs"], 2)
+                    self.assertEqual(cfg["stage2_spec"]["beta"], 0.)
+                    self.assertEqual(cfg["stage2_spec"]["alpha"], .25)
+                    self.assertEqual(cfg["stage2_spec"]["gamma"], .5)
+                    self.assertIn("NOSOFT", cfg["run_id"])
+                    self.assertIn("HARDONLY", cfg["campaign_id"])
 
     def test_requires_complete_current_case_and_same_final_evaluation(self):
         with tempfile.TemporaryDirectory() as temp:

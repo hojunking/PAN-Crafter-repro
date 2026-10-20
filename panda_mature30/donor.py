@@ -63,10 +63,14 @@ def checkpoint_evidence(path, *, server):
     evaluation = payload.get("evaluation")
     if (payload.get("resume_only") is not False or not isinstance(evaluation, dict)
             or not evaluation_path.is_file()
-            or json.loads(evaluation_path.read_text()) != evaluation):
+            or json.loads(evaluation_path.read_text()) !=
+            json.loads(json.dumps(evaluation, allow_nan=False))):
+        # JSON encodes architecture tuples as arrays. Compare identical JSON
+        # values, not Python tuple/list types; every metric/state remains checked.
         raise ValueError("Original checkpoint/external official evaluation mismatch")
     config_path = run_dir / "config.json"
-    if not config_path.is_file() or json.loads(config_path.read_text()) != cfg:
+    if (not config_path.is_file() or json.loads(config_path.read_text()) !=
+            json.loads(json.dumps(cfg, allow_nan=False))):
         raise ValueError("Original run/checkpoint configuration mismatch")
     identity = _identity(cfg, step, payload.get("state_hash"))
     _check_evaluation(evaluation, identity)

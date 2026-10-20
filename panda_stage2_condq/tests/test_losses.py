@@ -109,6 +109,27 @@ class LossTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             compute_loss(s, t, gt, pan, spec=config(), stats=FixedRanks(), valid_mask=torch.zeros_like(pan).bool())
 
+    def test_hard_only_has_no_soft_graph_gate_or_teacher_gradient(self):
+        s, t, gt, pan = images()
+        t.requires_grad_()
+        out = compute_loss(s, t, gt, pan, spec=config(beta=0.),
+                           scharr=ScharrAbsolute("WV3"), stats=FixedRanks(), return_maps=True)
+        self.assertIs(out["loss"], out["hard_weighted"])
+        for field in ("soft_unscaled", "soft_weighted"):
+            self.assertEqual(float(out[field]), 0.)
+            self.assertFalse(out[field].requires_grad)
+        for field in ("a_T", "delta_ts"):
+            self.assertEqual(int(torch.count_nonzero(out["maps"][field])), 0)
+            self.assertFalse(out["maps"][field].requires_grad)
+        # Both e and q hard weighting remain active and unchanged.
+        maps = out["maps"]
+        expected = ((1 + maps["d_e"] + .5*maps["d_e"]*maps["r_q_bar"]) * maps["e_s"]).mean()
+        torch.testing.assert_close(out["loss"], expected)
+        actual_grad = torch.autograd.grad(out["loss"], s, retain_graph=True)[0]
+        reference_grad = torch.autograd.grad(expected, s)[0]
+        torch.testing.assert_close(actual_grad, reference_grad)
+        self.assertIsNone(t.grad)
+
     def test_gate_zero_ties_and_zero_median(self):
         s, t, gt, pan = images()
         t = (gt + 1.).detach()

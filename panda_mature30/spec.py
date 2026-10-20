@@ -6,7 +6,7 @@ from panda_stage2_condq.spec import Stage2Spec, MASK2_POLICY
 from panda_band30.reconstruction import BandReconstructionSpec, upsampler_manifest
 from panda_midpoint.contract import UPSAMPLING
 
-METHOD_VERSION = "PANDA_MATURE30_STAGE2_V1"
+METHOD_VERSION = "PANDA_MATURE30_HARDONLY_STAGE2_V2"
 HORIZON = 50000
 POLICY_IDS = ("FULL", "HALF", "DOWN", "LOW", "CAP085")
 _GEOMETRIES = {
@@ -89,8 +89,8 @@ class MatureSpec(Stage2Spec):
         super().__post_init__()
         if (self.sensor != "WV3" or self.variant != "panda_condq"
                 or self.mask_policy != MASK2_POLICY
-                or (self.alpha, self.beta, self.gamma, self.delta) != (.25, .05, .5, 1e-6)):
-            raise ValueError("Mature30 preserves WV3 conditional-q .25/.05/.5/1e-6 MASK2")
+                or (self.alpha, self.beta, self.gamma, self.delta) != (.25, 0., .5, 1e-6)):
+            raise ValueError("Mature30 hard-only requires WV3 conditional-q .25/0/.5/1e-6 MASK2")
         if (self.upsampler != "interp23" or self.frame != "pan"
                 or type(self.aligner_outputs) is not int or self.aligner_outputs != 2
                 or type(self.pan_channels) is not int or self.pan_channels != 1
@@ -120,6 +120,10 @@ class MatureSpec(Stage2Spec):
     def method_version(self):
         return METHOD_VERSION
 
+    @property
+    def loss_schema(self):
+        return "PANDA_GT_HARD_ONLY_E_CONDQ_MASK2_V2"
+
     def manifest(self):
         result = super().manifest()
         result["student_constructor_spec"] = deepcopy(result["student"])
@@ -129,4 +133,7 @@ class MatureSpec(Stage2Spec):
         return {**result, "student_upsampling": upsampler_manifest("interp23"),
                 "mature30_policy": policy_manifest(self),
                 "teacher_forward": "ORIGINAL_STAGE1_FULL_U",
+                "teacher_usage": "FROZEN_ERROR_MAP_ONLY_NO_SOFT_DISTILLATION",
+                "teacher_gate": "DISABLED",
+                "soft_loss": "ABSENT_NO_STUDENT_TEACHER_GRADIENT",
                 "q_target": "RGB_MEAN_4_2_1_UNCHANGED"}

@@ -16,10 +16,9 @@ import re
 
 from directshift48.reporting import (HEADERS, INDEX, METRICS, atomic_json,
     append_jsonl, canonical_json, serialize_row, utc_now)
-CAMPAIGN_ID = "PANDA_S13_MATURE_ALIGN_SCHEDULE_30H_20261020_v1"
-METHOD_REVISION = "PANDA-MATURE30-v1"
+from .contract import CAMPAIGN_ID, METHOD_REVISION
 
-RECORD_NAMESPACE = "PAN_FIXED64_V1:2026-10-20:PANDA_MATURE30_V1"
+RECORD_NAMESPACE = "PAN_FIXED64_V1:2026-10-20:PANDA_MATURE30_HARDONLY_V2"
 RECORD_PREFIX = "PM30-"
 
 
@@ -116,6 +115,8 @@ def _config(cfg):
         raise ReportingError("Mature30 requires two Aligner outputs and one PAN")
     if cfg.get("alignment_target") != "SCHARR_OF_MEAN8_GT":
         raise ReportingError("Mature30 requires the G8 alignment target")
+    if phase(cfg) == "stage2" and cfg.get("stage2_spec", {}).get("beta") != 0:
+        raise ReportingError("Hard-only campaign forbids nonzero Soft distillation")
     for key in ("run_id", "case", "engine_kind", "run_display"):
         if not isinstance(cfg.get(key), str) or not cfg[key]:
             raise ReportingError("Missing identity: " + key)
@@ -242,7 +243,7 @@ def build_record(cfg, *, scope, selector, step, metrics=None, identity=None,
         "imported_source_not_new_training": reused,
         "date_semantics": "original_evaluation_time" if imported else "evaluation_time"}
     fields = {"Experiment": cfg["run_display"],
-        "Approach": "PANDA-MATURE30 / interp23 / PAN-only / " + cfg["policy_id"],
+        "Approach": "PANDA-MATURE30 / NO-SOFT / interp23 / PAN-only / " + cfg["policy_id"],
         "Role": ("Reused Teacher+Aligner (RRE selection)" if reused else
                  "Teacher+Aligner" if phase(cfg) == "donor" else "Student+FrozenAligner"),
         "Server": cfg["server"], "Dataset": cfg["dataset"], "Bucket": "ablations",

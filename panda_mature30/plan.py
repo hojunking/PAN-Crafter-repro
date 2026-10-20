@@ -60,7 +60,8 @@ def default_config(server):
         "stage1_selection": deepcopy(STAGE1_SELECTION),
         "sheet_selection": "STAGE1_RRE_SELECTED_STAGE2_JOINT_PASS_OR_BEST_PLUS_FINAL50K",
         "evaluation": "ORIGINAL_UNSHIFTED_UNMASKED_RR20_FR20",
-        "fixed_loss": {"alpha": .25, "beta": .05, "gamma": .5},
+        "fixed_loss": {"alpha": .25, "beta": 0., "gamma": .5},
+        "soft_distillation": "REMOVED_USER_DECISION_20261020",
         "optional_policy": "MEASURED_WHOLE_GROUP_ADMISSION",
         "time_prior_hours": {"stage1": 2.606 if server == "s1" else 4.,
                              "stage2": 3.610 if server == "s1" else 2.1},
@@ -89,15 +90,15 @@ def resolve_case(server, case, replica="R1", *, attempt=1):
     seeds = stream_seeds(seed)
     seeds["rr_band_augmentation"] = 1 + int.from_bytes(hashlib.sha256(
         f"donor30:{seed}:rr_band_augmentation".encode()).digest()[:8], "big") % (2**63 - 1)
-    spec = MatureSpec("WV3", "panda_condq", seeds["S_init"], .25, .05, .5, 1e-6,
+    spec = MatureSpec("WV3", "panda_condq", seeds["S_init"], .25, 0., .5, 1e-6,
                       mask_policy=LOSS_MASK_POLICY, policy_id="FULL" if donor else case)
     b = campaign["baseline_resolved"]
     return {
         "campaign_id": CAMPAIGN_ID, "method_revision": METHOD_REVISION,
         "server": server, "dataset": "WV3", "case": case, "loss_case": case,
         "replica": replica, "attempt": attempt, "seed": seed,
-        "run_id": f"PM30_WV3_{server.upper()}_{case}_{replica}_S{seed}",
-        "run_display": f"MATURE30 {case} {replica}",
+        "run_id": f"PM30_WV3_{server.upper()}_{case}_NOSOFT_{replica}_S{seed}",
+        "run_display": f"MATURE30 NOSOFT {case} {replica}",
         "stream_seeds": seeds, "stream_seed_protocol": SEED_PROTOCOL + "+rr_band_augmentation",
         "baseline_resolved": deepcopy(b), "schedule": "H50", "start_update": 0,
         "planned_horizon": HORIZON, "evaluation_steps": list(evaluation_steps()),
@@ -123,7 +124,8 @@ def resolve_case(server, case, replica="R1", *, attempt=1):
         "training_spec": asdict(TrainingSpec(lr=1e-4, total_updates=HORIZON,
                                            warmup_updates=100, full_audit_interval=100)),
         "donor_version": DONORS[0],
-        "question": "Mature all-band donor; identical loss, PAN-only applied-geometry control",
+        "soft_distillation": "REMOVED; Teacher retained for e_T/d_e only",
+        "question": "Mature all-band donor; hard-only e+q, PAN-only applied-geometry control",
     }
 
 

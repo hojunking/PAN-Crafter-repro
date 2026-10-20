@@ -32,7 +32,7 @@ from panda_mature30.engine import (
 
 
 def make_spec(policy="DOWN"):
-    return MatureSpec("WV3", "panda_condq", 345, .25, .05, .5, 1e-6, policy_id=policy)
+    return MatureSpec("WV3", "panda_condq", 345, .25, 0., .5, 1e-6, policy_id=policy)
 
 
 def make_fixture(policy="DOWN", shift=(1., -.5)):
@@ -149,16 +149,22 @@ class ScheduleCoreTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "SUPPORT_VIOLATION"):
             warp_support(64, 64, torch.tensor([[20., 0.]]), "cap085")
 
-    def test_fixed_half_numerically_matches_existing_band30_loss(self):
+    def test_fixed_half_keeps_band30_hard_and_removes_only_soft(self):
         new, _, _ = make_fixture("HALF")
         old = old_fixture("pan", .5)
         rr = batch()
         first, second = new(rr, return_maps=True), old(rr, return_maps=True)
-        for name in ("loss", "loss_mask", "teacher_y", "gt_loss", "pan_loss"):
+        for name in ("hard_weighted", "loss_mask", "teacher_y", "gt_loss", "pan_loss"):
             torch.testing.assert_close(first[name], second[name], atol=0, rtol=0)
+        torch.testing.assert_close(first["loss"], second["hard_weighted"], atol=0, rtol=0)
+        self.assertEqual(float(first["soft_weighted"]), 0.)
+        self.assertGreater(float(second["soft_weighted"]), 0.)
         torch.testing.assert_close(first["student"]["y"], second["student"]["y"], atol=0, rtol=0)
         for name in first["maps"]:
-            torch.testing.assert_close(first["maps"][name], second["maps"][name], atol=0, rtol=0)
+            if name in ("a_T", "delta_ts"):
+                self.assertEqual(int(torch.count_nonzero(first["maps"][name])), 0)
+            else:
+                torch.testing.assert_close(first["maps"][name], second["maps"][name], atol=0, rtol=0)
 
     def test_forward_uses_next_phase_but_inference_uses_completed_phase(self):
         stage, _, _ = make_fixture()

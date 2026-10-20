@@ -8,7 +8,7 @@ fi
 panda_mature30_server="$1"
 panda_mature30_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 panda_mature30_image="${PAN_MATURE30_IMAGE:-${PAN_DIRECTSHIFT_IMAGE:-}}"
-panda_mature30_name="panda-mature30-wv3-${panda_mature30_server}-v1"
+panda_mature30_name="panda-mature30-hardonly-wv3-${panda_mature30_server}-v2"
 panda_mature30_python="${PAN_HOST_PYTHON:-}"
 cd "$panda_mature30_root"
 export PYTHONDONTWRITEBYTECODE=1
@@ -88,7 +88,7 @@ docker run --rm "${panda_mature30_common[@]}" "$panda_mature30_image" \
   python -m panda_mature30 check --server "$panda_mature30_server"
 "$panda_mature30_python" -c 'from directshift48.__main__ import require_idle_gpu; require_idle_gpu("cuda")'
 panda_mature30_campaign_id="$("$panda_mature30_python" -c 'from panda_mature30.contract import CAMPAIGN_ID; print(CAMPAIGN_ID)')"
-if [[ ! "$panda_mature30_campaign_id" =~ ^PANDA_S13_MATURE_ALIGN_SCHEDULE_30H_[0-9]{8}_v1$ ]]; then
+if [[ ! "$panda_mature30_campaign_id" =~ ^PANDA_S13_MATURE_ALIGN_HARDONLY_30H_[0-9]{8}_v2$ ]]; then
   echo 'Invalid mature30 campaign identity; nothing started.' >&2
   exit 1
 fi
@@ -100,6 +100,6 @@ docker run --detach --init --gpus all --pid=host --shm-size=8g \
   "$panda_mature30_image" bash scripts/run_panda_mature30.sh "$panda_mature30_server"
 nohup setsid "$panda_mature30_python" -u -m panda_mature30.publication --root "$panda_mature30_campaign_root" \
   --server "$panda_mature30_server" --apply --watch --poll-seconds 60 \
-  >> "$panda_mature30_root/work_dir/panda_mature30/publisher-${panda_mature30_server}-v1.log" 2>&1 < /dev/null &
-echo "Started $panda_mature30_name (WV3, mature Stage1 + scheduled Stage2, 30h); publisher PID=$!. Monitor: docker logs -f $panda_mature30_name"
+  >> "$panda_mature30_root/work_dir/panda_mature30/publisher-${panda_mature30_server}-hardonly-v2.log" 2>&1 < /dev/null &
+echo "Started $panda_mature30_name (WV3, mature Stage1 + hard-only Stage2, 30h); publisher PID=$!. Monitor: docker logs -f $panda_mature30_name"
 

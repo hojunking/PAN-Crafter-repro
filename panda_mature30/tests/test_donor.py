@@ -1,5 +1,6 @@
 """Same-state import and fail-closed cross-server/source identity."""
 from copy import deepcopy
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -10,7 +11,7 @@ from panda_stage2_condq.tests.test_donor_sources import synthetic_sources
 from panda_warp30.tests.test_stage1 import PINS, evaluation
 from panda_mature30.tests.test_stage1 import config
 from panda_mature30.stage1 import build_stage1, save_stage1, Stage1Stream, advance_stage1
-from panda_mature30.donor import load_donor, _check_source_config, LEGACY_CAMPAIGN
+from panda_mature30.donor import load_donor, checkpoint_evidence, _check_source_config, LEGACY_CAMPAIGN
 from panda_method.calibration import state_dict_sha256
 from donor30.artifacts import _same, capture_rng
 from ta2.evaluation import file_sha
@@ -67,6 +68,33 @@ class DonorTests(unittest.TestCase):
                 _check_source_config(bad, "s1")
         with self.assertRaises(ValueError):
             _check_source_config(cfg, "s3")
+
+    def test_checkpoint_evidence_accepts_json_tuple_encoding_not_metric_changes(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            registered = synthetic_sources(root)
+            cfg = config()
+            trainer = build_stage1(cfg, registered.sources)
+            stream = Stage1Stream(registered.sources, cfg, device="cpu")
+            advance_stage1(trainer, stream)
+            run = root / "runs" / cfg["run_id"] / "attempt_01"
+            (run / "models").mkdir(parents=True)
+            path = run / "models/step_0000001.pt"
+            ev = evaluation(trainer)
+            ev["inference_pipeline"] = {"teacher": {"depth": (1, 2, 3)}}
+            save_stage1(path, trainer, stream, evaluation=ev, **PINS)
+            payload = torch.load(path, map_location="cpu", weights_only=False)
+            external = json.loads(json.dumps(payload["evaluation"]))
+            (run / "config.json").write_text(json.dumps(cfg))
+            ep = run / "evaluation_0000001.json"
+            ep.write_text(json.dumps(external))
+            evidence = checkpoint_evidence(path, server="s3")
+            self.assertEqual(evidence["file_sha256"], file_sha(path))
+            self.assertIsInstance(payload["evaluation"]["inference_pipeline"]["teacher"]["depth"], tuple)
+            external["fr"]["metrics"]["HQNR"] += .001
+            ep.write_text(json.dumps(external))
+            with self.assertRaisesRegex(ValueError, "evaluation mismatch"):
+                checkpoint_evidence(path, server="s3")
 
 
 if __name__ == "__main__":
