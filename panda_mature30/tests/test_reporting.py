@@ -12,12 +12,14 @@ from panda_mature30 import reporting as R
 
 
 def config(server="s1", phase="stage2", policy="FULL"):
+    from panda_mature30.spec import policy_manifest
     cfg = old_config("G8_S1_U23" if phase == "donor" else "G8_PAN_U23")
     cfg.update(server=server, campaign_id=R.CAMPAIGN_ID, method_revision=R.METHOD_REVISION,
                run_id="PM30_WV3_" + server.upper() + "_" + phase.upper() + "_" + policy,
                run_display="Mature " + phase + " " + policy, case=policy,
                phase=phase, policy_id=policy, engine_kind="mature_" + phase)
     cfg.setdefault("stage2_spec", {})["beta"] = 0.
+    cfg["geometry"] = policy_manifest(policy)
     return cfg
 
 

@@ -10,14 +10,14 @@
 
 ```bash
 git pull --ff-only origin main
-bash scripts/run_panda_mature30_docker.sh s3
+bash scripts/start_panda_mature30_costed.sh s3
 ```
 
 - 먼저 s1의 이 커밋을 원격에 push해야 s3에서 받을 수 있다.
 - **실행 중인 공유 작업 디렉터리에 바로 pull하지 않는다.** 코드 SHA 고정 검증으로
   구 실행이 중단될 수 있다. s3 세션에서 현재 case 완료와 구 controller 종료를 확인한다.
-- 위 실행 명령 하나가 기존 로컬 Docker 이미지로 preflight, 학습, 호스트 Sheet
-  publisher를 시작한다. 별도 smoke/승인 마커를 수동 생성할 필요는 없다.
+- 위 실행 명령 하나가 기존 로컬 Docker 이미지로 독립 cost 측정, preflight, 학습,
+  호스트 Sheet publisher를 시작한다. 별도 smoke/승인 마커를 수동 생성할 필요는 없다.
 - `gspread/server.txt`는 `s3`여야 하며, 기존 s3 데이터·평가 도구·Sheet 인증을 사용한다.
 - 기존 warp30 Docker 이미지가 있으면 재사용한다. 자동 탐색 가능한 컨테이너가 없다면
   `PAN_MATURE30_IMAGE`로 s3에서 이미 사용하던 로컬 이미지를 지정한다.
@@ -79,3 +79,30 @@ Soft loss/gradient 계산을 생략한다. Teacher는 `e_T/d_e`와 calibration�
 
 관련 s1 실행 기록:
 [Hard-only 전환 WIP](../results_log/2026-10-20_WIP_s1_mature30-hardonly.md)
+
+## 후속 수정: cost 열 누락
+
+초기 Mature30은 `publication.project()`에 cost 연결용 hook만 있었고 측정·연결
+모듈이 없어 cost 열이 비었다. `panda_mature30.cost` 패키지로 hook을 구현했다.
+이 후속 수정은 위 Hard-only 최초 커밋과 별도이며, 새 코드를 전달받아야 사용할 수 있다.
+
+- 신규 실행은 위의 **`start_panda_mature30_costed.sh`**를 사용한다.
+  기존 `run_panda_mature30_docker.sh`만 실행하면 cost를 새로 생성하지 않는다.
+  신규 캠페인의 30h 시작 시각은 cost 준비 시작 때 기록하고 재실행해도 리셋하지 않는다.
+- 이미 같은 캠페인이 있는 경우 cost만 준비하는 명령은
+  `bash scripts/prepare_panda_mature30_costs.sh s3`다.
+  실행 중인 trainer를 자동 종료하지 않으며, 다른 GPU 작업이 있으면 측정을 거부한다.
+  현재 case/큐의 종료·재개는 해당 서버 세션에서 처리한다.
+- Stage1 A+T와 Stage2 A+S를 각각 측정한다. Stage2 학습용 Teacher는 cost에서 제외한다.
+  DOWN의 0.5/0.375/0.25 및 CAP085까지 모든 실제 추론 경로를 사전 측정한다.
+- 서버별 GPU 독립 측정이며 다른 서버의 latency·memory를 복사하지 않는다.
+- Sheet 기본 cost는 **RR 256×256, batch 1, FP32**. FR 512×512도 측정하고
+  로컬 profile/Sheet provenance에 함께 남긴다.
+- `FLOPs(G)`는 기존 시트와 동일한 **부분 MAC-equivalent 규모**다.
+  완전한 arithmetic FLOPs가 아니며 계수/제외 연산은 `Cost_scope`에 명시한다.
+  `Mem(MB)` 역시 기존 규약대로 PyTorch peak allocated **MiB**다.
+- Train/Eval/Wall은 선택된 step까지의 실측이다. 재사용 donor는 **원본 run**의
+  학습·평가·wall 기록을 표시하며 신규 캠페인의 추가 학습 시간으로 이중 청구하지 않는다.
+- 파라미터/학습 결과/optimizer를 변경하지 않는 sidecar다.
+  기존 7개 cost 열을 채우고, 성능 지표와 선별 규칙은 그대로 유지한다.
+- 후속 재검증: cost 테스트 포함 Mature30 **65개 통과**.

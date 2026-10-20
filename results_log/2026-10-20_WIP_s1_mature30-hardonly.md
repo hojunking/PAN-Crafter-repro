@@ -80,3 +80,41 @@ Stage2 공동 통과 step 또는 HQNR-best 및 FINAL50K 등 기존 게시 조건
 - 이후 사용자의 커밋 요청에 따라 s1/s3 공용 Hard-only 변경과 검증을 커밋 대상으로
   묶는다. s3 원격 실행이나 push는 하지 않고, 실행은 s3 세션에 위임한다.
 - [s3 실행·주의사항](../research_log/PANDA_Mature30_HardOnly_S3_Handoff_2026-10-20.md).
+
+## cost 누락 수정 및 기존 행 보완
+
+- 사용자가 cost 누락을 지적해 실제 셀을 재확인했다. 초기 업로더는 성능 지표는
+  게시했지만 cost hook의 구현이 없어 P:V 7개 열은 비어 있었다.
+  앞선 업로드 검증은 이 누락을 놓쳤다.
+- `panda_mature30.cost`를 별도 sidecar 패키지로 구현했다.
+  기존 trainer의 225개 source pin과 실험 설정은 변경하지 않았다.
+- 정확한 GPU cost를 위해 **31,505 step**에서 SIGTERM 안전 checkpoint를 저장하고
+  파일 SHA를 검증한 후, 학습이 GPU를 사용하지 않는 동안 동일 Docker 이미지에서
+  Stage1 및 Stage2 5개 geometry를 측정했다. 기존 컨테이너를 다시 시작해
+  같은 checkpoint에서 재개했고 31,693 step 이후의 실제 학습 진행을 확인했다.
+  optimizer·stream·RNG를 포함한 전체 resume 경로를 사용했다.
+- Sheet writer를 새 모듈이 로드되도록 재기동했다. 현재 publisher PID는
+  `3092328`이며, 2026-10-20 21:32 KST receipt에서 기존 127/128행
+  `OWN_ROWS_VERIFIED`, `readback_verified=true`를 확인했다.
+- 현재 보이는 행의 실측 cost:
+
+| 행 / 모델 | Infer ms | Mem MiB | Params M | FLOPs 열: MAC-eq G | Train h | Eval h | Wall h |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 127 / RRE-selected Stage1 50K | 15.6888 | 291.4194 | 2.7643 | 63.5038 | 2.3505 | 0.1938 | 2.6063 |
+| 128 / FULL Stage2 HQNR-best 4K | 14.8818 | 291.4209 | 2.7643 | 63.5038 | 0.2775 | 0.0171 | 0.3074 |
+
+- cost는 RR256×256 / batch1 / FP32 / 전체 native A+warp+T 또는 A+warp+S,
+  새로운 동일 구조 weight로 측정한 architecture-level 값이다.
+  실제 선택 checkpoint 자체의 latency 측정이라고 주장하지 않는다.
+  FR512×512 실측도 각 profile에 별도로 보존한다.
+- Wall은 run 시작부터 선택 평가 완료 시점까지이며 중간 저장·설정·정지 시간을
+  포함할 수 있다. Train+Eval을 임의로 더해 Wall로 쓰지 않았다.
+- 현재 두 행의 cost 표시만 소수점 4자리로 지정했고 원래 셀 값/로컬 JSON 정밀도는 유지했다.
+- 6개 GPU profile 및 시간 근거는 캠페인 `cost_profiles/`에 저장한다.
+  긴 35회 평가 근거는 `timing_evidence/`로 분리해 Sheet 셀 길이 한도를 지킨다.
+- 기존 게시 규칙 및 성능 지표는 변경하지 않았다. 별도 cost 테스트를 포함해
+  Mature30 **65개 테스트 통과**. 이후 신규 실행은 cost를 먼저 측정하는
+  `scripts/start_panda_mature30_costed.sh`를 사용한다.
+- 마지막 확인에서 33,167 step까지 진행, `resumed_from_step=31505`,
+  trainer source pin 변경 0건이었다. 21:37 KST Sheet 재확인에서도 2행 모두
+  `OWN_ROWS_VERIFIED`이며 다른 캠페인의 행은 변경하지 않았다.
