@@ -1,0 +1,7 @@
+order,server,case,replica,seed,views,lambda_cons,updates,optional
+1,s3,ZERO,R1,261018101,1,0.0,50000,False
+2,s3,ZERO,R2,261018102,1,0.0,50000,False
+3,s3,PAIR0,R1,261018101,2,0.0,50000,False
+4,s3,ROTCONS,R1,261018101,2,0.05,50000,False
+5,s3,PAIR0,R2,261018102,2,0.0,50000,True
+6,s3,ROTCONS,R2,261018102,2,0.05,50000,True
