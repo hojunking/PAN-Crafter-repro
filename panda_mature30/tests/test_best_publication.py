@@ -162,7 +162,10 @@ class BestPublicationTests(unittest.TestCase):
                     rows = kwargs["json"]["values"]
                     self.data["rows"].extend(rows)
                     self.data["notes"].extend([""] * len(rows))
-                    return {"updates": {"updatedRange": "WV3-ablations!A9:BL9"}}
+                    last = 5 + len(self.data["rows"])
+                    return {"updates": {"updatedRange": f"WV3-ablations!A{last}:BL{last}",
+                                        "updatedRows": len(rows), "updatedColumns": 64,
+                                        "updatedCells": 64 * len(rows)}}
                 for req in kwargs["json"]["requests"]:
                     update = req["updateCells"]
                     index = update["range"]["startRowIndex"] - 5
@@ -178,7 +181,7 @@ class BestPublicationTests(unittest.TestCase):
             old, new = P.project(root, "s1"), B.project(root, "s1")
             foreign = [""] * 64
             foreign[0], foreign[R.INDEX["Server"]] = "other server", "s3"
-            adapter = Adapter({"rows": [foreign, *old["rows"]],
+            adapter = Adapter({"grid_row_count": 10000, "rows": [foreign, *old["rows"]],
                                "notes": ["foreign", *old["notes"]]})
             state = Path(root) / "transport"
             state.mkdir()

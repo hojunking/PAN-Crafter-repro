@@ -132,3 +132,42 @@ bash scripts/start_panda_mature30_best_publisher.sh s3
 - 검증: Mature30 **76개 테스트 통과**. 새 최고값의 동일 행 갱신, 목표치와 독립된
   선택, 5K 고정 없음, FINAL50K 추가 없음, Stage1 불변, 이전 행 안전 전환,
   다른 서버 보존, 비용의 selected-step 연결, Python 3.9 업로더 교체를 포함한다.
+
+## 후속 수정: 잘못된 열에 append되는 오류 (2026-10-21)
+
+넓은 `A5:BL` 범위로 `values.append`하면 Google이 끝부분의 다른 부분 표를
+선택할 수 있다. s1의 저장된 응답에서 `tableRange=T134:V134`,
+`updatedRange=T135:CE135`를 확인했다. 이 때문에 64열 결과가 오른쪽으로 밀리고
+시트가 83열이 된 뒤, 기존 Fixed64 검증이 후속 업로드를 모두 거부했다.
+사용자가 추가 열을 만들었다고 단정할 수 있는 상황이 아니었다.
+
+- append 탐색을 **A열만(`A5:A<grid_row_count>`)** 사용하도록 변경했다.
+  모든 점유 행에 A열 anchor가 있는지 사전 검사하고, Google 응답이 A:BL의
+  정확한 행·열·셀 수인지 검증한다. 서버 사이 행 배정은 Google append가 수행한다.
+- 기존 A:BL의 헤더·소유권·수식·보호·병합 검증은 유지하고, BL 오른쪽에
+  열이 있다는 사실만으로 거부하지 않는다. 열 축소/행 삽입/전체 시트 재작성은 없다.
+- s1에서 증거가 일치한 오배치 행은 백업 후 복구했다. 다른 서버의 결과는
+  이 복구 대상이 아니며, s3의 누락 결과는 s3 로컬 원본으로 재게시한다.
+- 아래 명령은 **이미 새 best-HQNR 업로더가 실행 중이어도 재시작**하여 수정 코드를
+  로드한다. 학습 컨테이너를 재시작하거나 GPU cost를 다시 측정할 필요는 없다.
+
+```bash
+# s1의 commit을 push한 뒤 s3에서 새 commit을 받은 상태에서 실행
+bash scripts/start_panda_mature30_best_publisher.sh s3 --restart
+```
+
+- `--restart`가 없으면 이미 실행 중인 새 업로더를 유지한다. 따라서 단순 pull만으로는
+  실행 중 Python 프로세스에 이 수정이 반영되지 않는다.
+- 교체 전 로컬 원본/인증/실제 시트 구조를 먼저 읽어 검증한다. 실패하면 기존
+  업로더를 종료하지 않는다. 다른 서버 watcher와 trainer는 교체 대상으로 선택하지 않는다.
+- 이번 수정 파일은 실행 중 학습의 source pin 대상 밖이다. 다만 다른 미적용
+  커밋까지 함께 받는 경우에는 해당 서버의 admission과 대조해야 한다.
+- 확인할 로그: `work_dir/panda_mature30/publisher-s3-best-hqnr-v2.log`와
+  캠페인 `sheet_publish_panda_mature30/last_poll.json`의 최신
+  `OWN_ROWS_VERIFIED`, `readback_verified=true`.
+  과거 `last_error.json`은 감사 기록으로 남으므로 **시각을 비교**한다.
+- 회귀 테스트: Mature30 **83개 통과**. 64/65/83/200열 허용, 헤더 변경·보호·수식
+  거부, A열 한정 append, 잘못된 응답 범위/셀 수 거부, 다른 서버/오른쪽 열 보존,
+  명시적 watcher 재시작과 잘못된 사전검증 시 프로세스 보존을 포함한다.
+
+관련 API 동작: [Google 공식 append 설명](https://developers.google.com/workspace/sheets/api/guides/values#append_values).

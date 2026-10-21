@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Switch Sheet watcher only; no GPU use and no trainer stop/restart.
 set -euo pipefail
-if [[ $# -ne 1 || ! "$1" =~ ^s[13]$ ]]; then
-  echo 'Usage: bash scripts/start_panda_mature30_best_publisher.sh s1|s3' >&2
+if [[ $# -lt 1 || $# -gt 2 || ! "$1" =~ ^s[13]$ || ( $# -eq 2 && "$2" != '--restart' ) ]]; then
+  echo 'Usage: bash scripts/start_panda_mature30_best_publisher.sh s1|s3 [--restart]' >&2
   exit 2
 fi
 panda_best_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -23,4 +23,8 @@ if [[ -z "$panda_best_python" ]]; then
   exit 1
 fi
 export PYTHONDONTWRITEBYTECODE=1
-exec "$panda_best_python" -m panda_mature30.best_publication.restart --server "$1"
+panda_best_args=(--server "$1")
+if [[ $# -eq 2 ]]; then
+  panda_best_args+=(--restart)
+fi
+exec "$panda_best_python" -m panda_mature30.best_publication.restart "${panda_best_args[@]}"

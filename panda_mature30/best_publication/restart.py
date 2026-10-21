@@ -43,8 +43,25 @@ def stop_writer(pid, argv, root, server):
             os.close(fd)
 
 
-def restart(server):
+def find_writers(root, server):
+    found = []
+    for path in Path("/proc").iterdir():
+        if not path.name.isdigit():
+            continue
+        try:
+            if path.stat().st_uid != os.getuid():
+                continue
+            argv = (path / "cmdline").read_bytes().decode().rstrip("\0").split("\0")
+        except (OSError, UnicodeError):
+            continue
+        if matches_writer(argv, root, server):
+            found.append((int(path.name), argv))
+    return found
+
+
+def restart(server, *, replace_running=False):
     from sheet_publish_v2.transport import GoogleSheets
+    from .transport import prepare
     repo = legacy.ROOT
     if (repo / "gspread/server.txt").read_text().strip() != server:
         raise ValueError("Local server marker mismatch; no process changed")
@@ -53,26 +70,18 @@ def restart(server):
     value = project(root, server)
     if value["conflicts"]:
         raise ValueError("Projection conflicts; existing watcher untouched")
-    GoogleSheets(str(repo / "gspread/account.json"))
+    adapter = GoogleSheets(str(repo / "gspread/account.json"))
+    # Read-only native schema/ownership preflight. A bad header/credential must
+    # not stop the existing writer. Also verifies the expanded-column fix.
+    prepare(adapter.snapshot(value["destination"]), value, server)
     state = root / "sheet_publish_panda_mature30"
     state.mkdir(exist_ok=True)
     with (state / "publisher_switch.lock").open("a+") as switch:
         fcntl.flock(switch, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        found = []
-        for path in Path("/proc").iterdir():
-            if not path.name.isdigit():
-                continue
-            try:
-                if path.stat().st_uid != os.getuid():
-                    continue
-                argv = (path / "cmdline").read_bytes().decode().rstrip("\0").split("\0")
-            except (OSError, UnicodeError):
-                continue
-            if matches_writer(argv, root, server):
-                found.append((int(path.name), argv))
+        found = find_writers(root, server)
         if len(found) > 1:
             raise ValueError("Multiple matching writers; inspect before replacing")
-        if found and MODULE in found[0][1]:
+        if found and MODULE in found[0][1] and not replace_running:
             print(R.canonical_json({"action": "BEST_WRITER_ALREADY_RUNNING", "pid": found[0][0]}))
             return 0
         for pid, argv in found:
@@ -97,7 +106,7 @@ def restart(server):
         R.atomic_json(state / "publisher_switch.json", {
             "at": R.utc_now(), "policy": POLICY, "pid": child.pid,
             "previous_pids": [p for p, _ in found], "log": str(log),
-            "training_untouched": True})
+            "training_untouched": True, "replace_running": replace_running})
         print(R.canonical_json({"action": "BEST_WRITER_STARTED", "pid": child.pid, "log": str(log)}))
         return 0
 
@@ -105,4 +114,7 @@ def restart(server):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--server", required=True, choices=("s1", "s3"))
-    raise SystemExit(restart(parser.parse_args().server))
+    parser.add_argument("--restart", action="store_true", dest="replace_running",
+                        help="Reload an already-running matching Sheet watcher only")
+    args = parser.parse_args()
+    raise SystemExit(restart(args.server, replace_running=args.replace_running))

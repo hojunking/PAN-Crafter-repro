@@ -143,3 +143,61 @@ Stage2 공동 통과 step 또는 HQNR-best 및 FINAL50K 등 기존 게시 조건
   s3는 코드 전달 후 `bash scripts/start_panda_mature30_best_publisher.sh s3`로
   **업로더만** 교체해야 한다.
 - 최종 회귀 테스트: Mature30 **76개 통과**. shell 문법 검사와 diff 공백 검사 통과.
+
+## 2026-10-21 11:40 KST — 업로드 중단 원인 수정·누락 복구
+
+### 실제 원인
+
+- 마지막 정상 receipt는 02:28:10 KST였다. 다음 s1 DOWN 1K를 붙일 때 Google
+  `values.append`가 넓은 `A5:BL` 탐색 범위의 마지막 부분 표 `T134:V134`를 골랐다.
+- 저장된 `append_response_1792517353579224318.json`의 실제 기록 위치는
+  **`T135:CE135`**였다. 정상 A:BL 대신 오른쪽 19열로 밀린 64개 셀이 기록되면서
+  시트가 83열로 늘었다. 이후 `Fixed64 column count changed`가 반복됐다.
+- 처음에는 추가 열 자체의 문제로 보였지만, 원본 응답을 추적한 결과 **업로더의
+  자동 표 탐색 범위가 원인**임을 확인했다. 외부 수동 변경으로 단정하지 않는다.
+
+### 수정 및 복구 범위
+
+- 새 업로더는 append 검색을 **A열만**으로 제한한다. A열 anchor 없는 점유 행이
+  있으면 여전히 거부한다. 응답의 시작/종료 열 A:BL, 행 수·셀 수·기존 행 침범
+  여부를 검증하며, 예외 시 원본 intent/response를 남긴다.
+- BL 오른쪽 열의 존재는 허용하지만 기존 64개 헤더와 순서는 정확히 검사한다.
+  기존 workbook allowlist, 행 소유권, 보호·병합·수식·validation/chip 검사는 유지했다.
+- T135:CE135의 **64개 값 전체가 로컬 append intent와 일치**, 같은 run의 원본
+  평가/SHA 검증도 통과했다. native 셀을 별도 백업하고, 해당 행만 A135:BL135로
+  복구하면서 현재 최고인 DOWN 17K로 갱신했다. 오배치 잔여 BM135:CE135는 비웠다.
+  복구 가능한 백업은 캠페인 아래
+  `sheet_publish_panda_mature30/shifted_append_repair_20261021.json`이다.
+- 83열은 축소하지 않았다. 다른 오른쪽 셀과 다른 서버 행을 삭제/이동하지 않았다.
+  DOWN 행의 T:V 시간 표시만 기존 규약인 소수점 4자리로 맞췄다. 실제 수치는 보존했다.
+- 업로더 PID **3833529 → 1121327** 교체. trainer/container를 중단하지 않았다.
+  이번 수정은 학습 source pin 밖의 패키지·실행 스크립트로 제한했다.
+
+### 실제 Sheet 재조회
+
+| 행 | run | 선택 step | HQNR | ERGAS |
+|---|---|---:|---:|---:|
+| 127 | Stage1 RRE donor | 50,000 | 0.920739 | 2.040115 |
+| 128 | FULL R1 | 4,000 | 0.925751 | 2.398500 |
+| 132 | HALF R1 | 5,000 | 0.956019 | 2.260720 |
+| 135 | DOWN R1 — 복구 | 17,000 | 0.960393 | 2.084150 |
+| 136 | HALF R2 — 신규 복구 | 5,000 | 0.957786 | 2.295046 |
+| 137 | LOW R1 — 신규 복구 | 19,000 | 0.959363 | 2.086688 |
+
+- 11:38:36 및 11:39:43 KST **연속 2회** `OWN_ROWS_VERIFIED`, 6행 readback 통과.
+  실제 append 응답도 `A136:BL137`로 확인했다.
+- 로컬 177개 raw record에서 생성한 6행을 실제 Google 셀과 대조했다.
+  run별 중복 0건, 선택 step·지표 12개·cost 7개 모두 일치, cost conflict 0건.
+- 기존 s3 행 129/130/133/134의 읽은 값/서식과 원래 헤더가 동일했다.
+  BM6:CE200도 증거 기반으로 복구한 135행 외에는 이전 native 셀과 동일했다.
+- Stage1은 RRE 기준 유지. Stage2는 목표치 통과와 무관하게 run별 현재까지의
+  HQNR 최고 1행만 갱신하며 모든 step의 원본 기록은 로컬에 유지한다.
+- Mature30 **83개 테스트 통과**:
+  `python -m unittest discover -s panda_mature30/tests -t . -q`.
+  상대 import를 사용하는 테스트이므로 discovery 시 `-t .`가 필요하다.
+  `bash -n`과 `git diff --check` 통과, 학습 pin **225개 완전 일치**.
+- s3에는 코드 전달 후 `bash scripts/start_panda_mature30_best_publisher.sh s3 --restart`로
+  업로더만 재기동해야 한다. s3 로컬 평가 로그/프로세스는 여기서 접근하지 않았으므로
+  s3의 최신 결과까지 복구 완료했다고 주장하지 않는다.
+
+API 근거: [Google values.append의 표 탐색 규칙](https://developers.google.com/workspace/sheets/api/guides/values#append_values).
