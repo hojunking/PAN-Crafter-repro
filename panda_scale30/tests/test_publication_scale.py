@@ -1,4 +1,4 @@
-"""Offline same-state best-HQNR, isolated cost, and anchored readback tests."""
+"""Offline qualified minimum-ERGAS, isolated cost, and anchored readback tests."""
 from copy import deepcopy
 import json
 from pathlib import Path
@@ -20,7 +20,7 @@ from sheet_publish_v2.transport import TransportError
 from experiment_cost.test_store import measurement
 
 
-def persist(root, case="S020BASE", *, server="s1", replica="R1", step=1000, h=.95, e=2.1):
+def persist(root, case="S020BASE", *, server="s1", replica="R1", step=1000, h=.989, e=2.03):
     cfg = plan.resolve_case(server, case, replica)
     ev = original_evaluation(cfg, step, h, e)
     key = cfg["policy_id"].lower()
@@ -48,23 +48,23 @@ def snapshot(value, rows=None, notes=None):
 
 
 class PublicationTests(unittest.TestCase):
-    def test_all_policies_servers_and_metrics_single_best_not_target_or_final(self):
+    def test_all_cases_servers_choose_one_qualified_minimum_ergas(self):
         for server in ("s1", "s3"):
             with tempfile.TemporaryDirectory() as root:
                 runs = [run for group in plan.groups(server) for run in group["runs"]]
                 for case, replica in runs:
-                    persist(root, case, server=server, replica=replica, step=1000, h=.965, e=2.2)
-                    persist(root, case, server=server, replica=replica, step=2000, h=.960, e=2.04)
-                    persist(root, case, server=server, replica=replica, step=50000, h=.961, e=2.03)
+                    persist(root, case, server=server, replica=replica, step=1000, h=.995, e=2.039)
+                    persist(root, case, server=server, replica=replica, step=2000, h=.9885, e=2.030)
+                    persist(root, case, server=server, replica=replica, step=50000, h=.9884, e=2.0)
                 view = B.project(root, server)
                 self.assertFalse(view["conflicts"], view["conflicts"])
                 self.assertEqual(len(view["rows"]), len(runs))
                 self.assertEqual(view["summary_count"], 3 * len(runs))
                 for row in view["rows"]:
-                    self.assertEqual(row[R.INDEX["Selected_step"]], 1000)
-                    self.assertEqual(row[R.INDEX["Selector"]], "BEST_HQNR")
-                    self.assertEqual(row[R.INDEX["HQNR↑"]], .965)
-                    self.assertEqual(row[R.INDEX["ERGAS↓"]], 2.2)
+                    self.assertEqual(row[R.INDEX["Selected_step"]], 2000)
+                    self.assertEqual(row[R.INDEX["Selector"]], B.SELECTOR)
+                    self.assertEqual(row[R.INDEX["HQNR↑"]], .9885)
+                    self.assertEqual(row[R.INDEX["ERGAS↓"]], 2.030)
                     for metric in ("RMSE↓", "CC↑", "JQM↑", "Q4/Q8↑"):
                         self.assertIsInstance(row[R.INDEX[metric]], (int, float))
                     B.verify_owned(row, view)
@@ -122,11 +122,11 @@ class PublicationTests(unittest.TestCase):
 
     def test_running_best_same_id_all_metrics_and_cost_from_selected_step(self):
         with tempfile.TemporaryDirectory() as root:
-            persist(root, step=5000, h=.956, e=2.2)
+            persist(root, step=5000, h=.995, e=2.04)
             old = B.project(root, "s1")
-            persist(root, step=6000, h=.955, e=2.0)
-            record = persist(root, step=7000, h=.957, e=2.3)
-            persist(root, step=50000, h=.954, e=2.03)
+            persist(root, step=6000, h=.9884, e=2.0)
+            record = persist(root, step=7000, h=.9885, e=2.03)
+            persist(root, step=50000, h=.999, e=2.035)
             def attach(view, root, **kwargs):
                 self.assertEqual([s["step"] for s in view["selected"]], [7000])
                 view["rows"][0][R.INDEX["Infer(ms)"]] = 12.3
@@ -137,12 +137,57 @@ class PublicationTests(unittest.TestCase):
             self.assertEqual(new["rows"][0][3:15], record["row"][3:15])
             self.assertEqual(new["rows"][0][R.INDEX["Infer(ms)"]], 12.3)
 
-    def test_ties_ergas_then_earlier_step(self):
+    def test_ergas_ties_choose_higher_hqnr_then_earlier_step(self):
         with tempfile.TemporaryDirectory() as root:
-            persist(root, step=1000, h=.95, e=2.2)
-            persist(root, step=2000, h=.95, e=2.1)
-            persist(root, step=5000, h=.95, e=2.1)
+            persist(root, step=1000, h=.9885, e=2.03)
+            persist(root, step=2000, h=.989, e=2.03)
+            persist(root, step=5000, h=.989, e=2.03)
             self.assertEqual(B.project(root, "s1")["selected"][0]["step"], 2000)
+
+    def test_exact_inclusive_thresholds_no_rounding_or_unqualified_fallback(self):
+        for h, e, count in ((.9885, 2.040, 1), (.9885 - 1e-9, 2.040, 0),
+                            (.9885, 2.040 + 1e-9, 0), (.96, 2.03, 0)):
+            with self.subTest(h=h, e=e), tempfile.TemporaryDirectory() as root:
+                persist(root, h=h, e=e)
+                before = {str(p): p.read_bytes() for p in Path(root).rglob("*.json")}
+                view = B.project(root, "s1")
+                self.assertFalse(view["conflicts"], view["conflicts"])
+                self.assertEqual(len(view["rows"]), count)
+                self.assertEqual(view["runs"][0]["pass_count"], count)
+                self.assertEqual(view["runs"][0]["kept_count"], count)
+                self.assertEqual(view["runs"][0]["hqnr_min"], .9885)
+                for path, content in before.items():
+                    self.assertEqual(Path(path).read_bytes(), content)
+                if count:
+                    note = json.loads(view["rows"][0][R.INDEX["Original description / notes"]])
+                    self.assertFalse(note["publication"]["target_thresholds_are_annotations_only"])
+                    self.assertEqual(note["publication"]["ergas_max"], 2.040)
+                    # Historical source config remains truthful and immutable.
+                    self.assertEqual(note["extra_parameters"]["configuration"]["hqnr_min"], .959)
+
+    def test_migrate_previous_policy_clear_only_verified_unqualified_own_row(self):
+        with tempfile.TemporaryDirectory() as root:
+            persist(root, h=.96, e=2.03)
+            old = P.project_campaign(root, "s1")
+            row, note = old["rows"][0], json.loads(old["rows"][0][R.INDEX["Original description / notes"]])
+            candidate = old["selected"][0]
+            note["publication"].update(policy=B.PREVIOUS_POLICY, selection="BEST_HQNR")
+            row[R.INDEX["Original description / notes"]] = R.canonical_json(note)
+            row[R.INDEX["Selector"]] = "BEST_HQNR"
+            row[R.INDEX["Result_ID"]] = P.display_id(
+                B.PREVIOUS_POLICY, candidate["key"], candidate["protocol"], "BEST_HQNR")
+            view = B.project(root, "s1")
+            self.assertFalse(view["rows"])
+            foreign = [""] * 64
+            foreign[0], foreign[R.INDEX["Server"]] = "foreign", "s3"
+            requests = B.row_requests(snapshot(view, rows=[foreign, row], notes=["foreign", "old"]), view, "s1")
+            self.assertEqual(len(requests), 1)
+            self.assertEqual(requests[0]["updateCells"]["range"]["startRowIndex"], 6)
+            self.assertEqual(requests[0]["updateCells"]["rows"], [{"values": [{} for _ in range(64)]}])
+            bad = deepcopy(row)
+            bad[R.INDEX["HQNR↑"]] = .999
+            with self.assertRaisesRegex(ValueError, "metrics/identity"):
+                B.row_requests(snapshot(view, rows=[bad], notes=[""]), view, "s1")
 
     def test_cost_signature_binds_actual_scale_but_not_training_knobs(self):
         cfg = plan.resolve_case("s1", "S020BASE")
@@ -251,7 +296,7 @@ class PublicationTests(unittest.TestCase):
             state.mkdir()
             got = T.reconcile_rows(adapter, first, state, "s1", apply=True)
             self.assertTrue(got["readback_verified"])
-            persist(root, step=2000, h=.96)
+            persist(root, step=2000, h=.9885, e=2.02)
             persist(root, "S010BASE", step=1000)
             view = B.project(root, "s1")
             got = T.reconcile_rows(adapter, view, state, "s1", apply=True)

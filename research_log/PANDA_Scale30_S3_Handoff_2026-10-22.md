@@ -3,7 +3,20 @@
 사용자 요청에 따라 Git으로 전달하는 실행 인계다. 이 문서 작성 세션에서는
 s3에 원격 접속하거나 실험을 시작하지 않았다. s3 에이전트가 로컬 상태를 확인하고
 아래 30시간 큐를 시작한다. [전체 계획](PANDA_Scale30_HardTune_S13_2026-10-22.md)이
-case·seed·평가·시트 규칙의 기준이다.
+case·seed·평가의 기준이다. **Sheet 게시 규칙은 2026-10-23 사용자 지시로 아래와 같이 변경됐다.**
+
+## 실행 중인 s3 게시기만 갱신할 때
+
+Git 변경을 받은 뒤 다음 명령을 실행한다. 학습 컨테이너를 재시작하지 않는다.
+
+```bash
+bash scripts/start_panda_scale30_best_publisher.sh s3 --restart
+```
+
+새 정책은 `PANDA_SCALE30_RRE_STAGE2_H9885_E2040_MIN_ERGAS_V3`다.
+`sheet_publish_panda_scale30/last_poll.json`의 `publication_policy`와
+`readback_verified=true`를 확인한다. 상세 조건과 검증 절차는
+[게시 규칙 변경 인계](gspread_rules/SCALE30_H9885_E2040_UPLOAD_2026-10-23.md)를 따른다.
 
 ## 로컬 준비
 
@@ -53,8 +66,11 @@ Campaign root는 `work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v
 train step, `sheet_publish_panda_scale30/last_poll.json`의 readback을 확인한다.
 게시 로그는 `work_dir/panda_scale30/publisher-s3-best-hqnr-v1.log`다.
 
-시트는 `WV3-ablations`의 run/seed/attempt별 HQNR 최고 한 행만 갱신한다.
-선정은 HQNR → ERGAS → 이른 step이며, .959/2.045 공동 목표는 통과 주석이다.
+시트는 `WV3-ablations`의 run/seed/attempt별로 최대 한 행만 갱신한다.
+HQNR ≥ **0.9885**인 평가 중 ERGAS 최소를 선택하고, 그 ERGAS가 **2.040 이하**일 때만 게시한다.
+ERGAS 동률이면 HQNR 높은 결과 → 이른 step → source ID 순이다. 조건 미달 fallback은 없다.
+Stage1 donor의 Val-RRE 선정·게시 규칙은 유지한다. 원본 config의 .959/2.045는
+당시 기록으로 보존하며, 게시 판정은 새 기준으로 별도 계산한다.
 동일 checkpoint의 모든 metric과 cost identity를 묶는다. 기존 다른 서버 행을
 삭제·수정하거나 final50K 전용 행을 추가하지 않는다.
 

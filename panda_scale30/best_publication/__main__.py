@@ -1,4 +1,4 @@
-"""Stage1 RRE + Stage2 running HQNR-best, one row per run/attempt."""
+"""Stage1 RRE + qualified minimum-ERGAS Stage2, at most one row per run/attempt."""
 import argparse
 import fcntl
 import math
@@ -50,7 +50,7 @@ def publish(root, server, *, credentials="gspread/account.json", apply=False,
                 terminal_seen = None
                 R.atomic_json(state / "last_error.json", {
                     "error": repr(exc), "at": R.utc_now(), "training_untouched": True})
-                print("[Scale30 best-HQNR publisher] " + repr(exc), flush=True)
+                print("[Scale30 qualified-ERGAS publisher] " + repr(exc), flush=True)
                 if not watch:
                     return 1
             if not watch:

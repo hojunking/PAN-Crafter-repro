@@ -1,4 +1,4 @@
-"""HQNR-best-only Sheet view, independent of pinned running training sources.
+"""Threshold-qualified minimum-ERGAS view, separate from pinned training sources.
 
 The legacy publisher remains an immutable evidence validator and migration
 reader. It is not the active writer after switching to this entry point.
@@ -13,7 +13,11 @@ from panda_scale30 import publication as legacy
 from panda_scale30 import reporting as R
 
 INDEX = R.INDEX
-POLICY = "PANDA_SCALE30_RRE_STAGE2_RUNNING_BEST_HQNR_V2"
+PREVIOUS_POLICY = "PANDA_SCALE30_RRE_STAGE2_RUNNING_BEST_HQNR_V2"
+POLICY = "PANDA_SCALE30_RRE_STAGE2_H9885_E2040_MIN_ERGAS_V3"
+HQNR_MIN, ERGAS_MAX = .9885, 2.040
+SELECTOR = "HQNR_QUALIFIED_MIN_ERGAS"
+RANKING = "HQNR_GE_0.9885_THEN_ERGAS_ASC_HQNR_DESC_STEP_ASC"
 
 
 def project(root, server, *, require_cost=False):
@@ -21,6 +25,9 @@ def project(root, server, *, require_cost=False):
     value = legacy.project_campaign(root, server)
     value["legacy_policy"] = value["policy"]
     value["policy"] = POLICY
+    value["publication_thresholds"] = {"hqnr_min": HQNR_MIN, "ergas_max": ERGAS_MAX,
+        "inclusive": True, "checkpoint_selection": RANKING,
+        "no_unqualified_fallback": True, "scope": "STAGE2_PER_RUN_SEED_ATTEMPT"}
     if value["conflicts"]:
         return value
     stage1 = [(r, n, s) for r, n, s in zip(
@@ -36,8 +43,20 @@ def project(root, server, *, require_cost=False):
             groups[tuple(source["candidate"]["key"])].append(source)
     runs = {tuple(r["run_key"]): r for r in value["runs"]}
     for key, sources in sorted(groups.items()):
-        source = min(sources, key=lambda s: (
-            -s["candidate"]["hqnr"], s["candidate"]["ergas"],
+        # Publication thresholds override historical config annotations only.
+        # Always use original full-precision, same-checkpoint RR/FR metrics.
+        qualified = [s for s in sources if s["candidate"]["hqnr"] >= HQNR_MIN]
+        passed = [s for s in qualified if s["candidate"]["ergas"] <= ERGAS_MAX]
+        run = runs[key]
+        run.update(pass_count=len(passed), hqnr_qualified_count=len(qualified),
+                   kept_count=0, selection="NO_QUALIFYING_CHECKPOINT",
+                   hqnr_min=HQNR_MIN, ergas_max=ERGAS_MAX)
+        if not passed:
+            run["skip_reason"] = ("HQNR_BELOW_MINIMUM" if not qualified
+                                  else "MIN_ERGAS_ABOVE_MAXIMUM")
+            continue
+        source = min(qualified, key=lambda s: (
+            s["candidate"]["ergas"], -s["candidate"]["hqnr"],
             s["candidate"]["step"], s["candidate"]["source_result_id"]))
         candidate = source["candidate"]
         row = list(source["row"])
@@ -51,15 +70,16 @@ def project(root, server, *, require_cost=False):
             value["conflicts"].append({
                 "source_result_id": candidate["source_result_id"], "reason": str(exc)})
             continue
-        run = runs[key]
-        run.update(kept_count=1, selection="BEST_HQNR")
+        run.update(kept_count=1, selection=SELECTOR)
         publication = {
-            "policy": POLICY, "selection": "BEST_HQNR",
-            "checkpoint_selection": "HQNR_DESC_ERGAS_ASC_STEP_ASC",
+            "policy": POLICY, "selection": SELECTOR,
+            "checkpoint_selection": RANKING,
             "candidate_count": len(sources), "passed_count": run["pass_count"],
-            "hqnr_primary_rank_best": True,
-            "hqnr_min": cfg["hqnr_min"], "ergas_max": cfg["ergas_max"],
-            "target_thresholds_are_annotations_only": True,
+            "hqnr_qualified_count": len(qualified),
+            "hqnr_min": HQNR_MIN, "ergas_max": ERGAS_MAX,
+            "publication_joint_pass": True,
+            "target_thresholds_are_annotations_only": False,
+            "no_unqualified_fallback": True,
             "final50k": candidate["step"] == 50000,
             "separate_final_row": False, "fixed_step": None,
             "source_result_id": candidate["source_result_id"],
@@ -69,18 +89,19 @@ def project(root, server, *, require_cost=False):
             "last_observed_at": run["last_observed_at"], "live_process_verified": False,
         }
         row[INDEX["Result_ID"]] = legacy.display_id(
-            POLICY, key, candidate["protocol"], "BEST_HQNR")
-        row[INDEX["Selector"]] = "BEST_HQNR"
-        row[INDEX["Selection@Step"]] = f"HQNR 최고 · {candidate['step']:,}"
+            POLICY, key, candidate["protocol"], SELECTOR)
+        row[INDEX["Selector"]] = SELECTOR
+        row[INDEX["Selection@Step"]] = f"조건 충족 · ERGAS 최소 · {candidate['step']:,}"
         row[INDEX["Checkpoint_SHA"]] = artifact.get("file_sha256") or ""
         row[INDEX["Readback"]] = "VERIFIED"
         row[INDEX["Status"]] = run["last_logged_status"]
         note["publication"] = publication
         note["publication_policy"] = POLICY
+        note["checkpoint_selection"] = RANKING
         row[INDEX["Original description / notes"]] = R.canonical_json(note)
         short = R.canonical_json({"configuration": cfg, "publication": publication})
         if max(len(row[INDEX["Original description / notes"]]), len(short)) >= 45000:
-            raise ValueError("Best-HQNR publication note exceeds safe cell size")
+            raise ValueError("Qualified publication note exceeds safe cell size")
         value["rows"].append(row)
         value["notes"].append(short)
         value["selected"].append(candidate)
@@ -93,18 +114,23 @@ def project(root, server, *, require_cost=False):
 def verify_owned(row, value):
     """Allow migration only from fully verified legacy or current own rows."""
     publication = json.loads(row[INDEX["Original description / notes"]])["publication"]
-    if publication.get("policy") != POLICY:
+    policy = publication.get("policy")
+    if policy not in (PREVIOUS_POLICY, POLICY):
         return legacy._verify_owned(row, value)
+    selector = "BEST_HQNR" if policy == PREVIOUS_POLICY else SELECTOR
     source = value["source_evidence"].get(publication.get("source_result_id"))
-    if source is None or publication.get("selection") != "BEST_HQNR":
-        raise ValueError("Unknown best-HQNR row/source; never erase it")
+    if source is None or publication.get("selection") != selector:
+        raise ValueError("Unknown representative row/source; never erase it")
     candidate = source["candidate"]
     if row[INDEX["Result_ID"]] != legacy.display_id(
-            POLICY, candidate["key"], candidate["protocol"], "BEST_HQNR"):
-        raise ValueError("Best-HQNR display identity mismatch")
+            policy, candidate["key"], candidate["protocol"], selector):
+        raise ValueError("Representative display identity mismatch")
+    if policy == POLICY and not (candidate["hqnr"] >= HQNR_MIN
+                                 and candidate["ergas"] <= ERGAS_MAX):
+        raise ValueError("Qualified row does not meet publication thresholds")
     raw = json.loads(source["row"][INDEX["Original description / notes"]])
     if raw["extra_parameters"]["configuration"]["phase"] != "stage2":
-        raise ValueError("Best-HQNR row must be Stage2")
+        raise ValueError("Stage2 representative row required")
     # Normalize only a temporary migration envelope to reuse the strict legacy
     # identity/metric/evaluation-proof validator. No source or cloud data changes.
     checked = deepcopy(row)
