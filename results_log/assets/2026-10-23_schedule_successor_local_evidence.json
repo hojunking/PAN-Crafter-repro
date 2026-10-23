@@ -1,0 +1,396 @@
+{
+  "server": "s1",
+  "target": {
+    "HQNR_min": 0.9585,
+    "ERGAS_max": 2.04
+  },
+  "source": "Original same-state official RR20/FR20 evaluation files",
+  "runs": [
+    {
+      "case": "S020LR075",
+      "replica": "R1",
+      "training": {
+        "adam_eps": 1e-08,
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "effective_batch_size": 48,
+        "full_audit_interval": 100,
+        "gradient_log_interval": 100,
+        "lr": 7.5e-05,
+        "microbatch_size": 12,
+        "min_lr": 0.0,
+        "total_updates": 50000,
+        "warmup_updates": 100,
+        "weight_decay": 0.01
+      },
+      "stage2_spec": {
+        "aligner_outputs": 2,
+        "alignment_target": "SCHARR_OF_MEAN8_GT",
+        "alpha": 0.25,
+        "beta": 0.0,
+        "delta": 1e-06,
+        "frame": "pan",
+        "gamma": 0.5,
+        "mask_policy": "DETACHED_BICUBIC4_SUPPORT_PER_SAMPLE_MEAN_V1",
+        "pan_channels": 1,
+        "policy_id": "S020",
+        "seed": 6445957059257307984,
+        "sensor": "WV3",
+        "upsampler": "interp23",
+        "variant": "panda_condq"
+      },
+      "representative": {
+        "step": 19000,
+        "H": 0.9588684735692568,
+        "E": 2.102338506873264,
+        "Ds": 0.02765223784466313,
+        "Dl": 0.013870009266132771,
+        "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S020LR075_NOSOFT_R1_S261018101/attempt_01/evaluation_0019000.json"
+      },
+      "joint_pass_count": 0,
+      "trajectory_excerpt": [
+        {
+          "step": 19000,
+          "H": 0.9588684735692568,
+          "E": 2.102338506873264,
+          "Ds": 0.02765223784466313,
+          "Dl": 0.013870009266132771,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S020LR075_NOSOFT_R1_S261018101/attempt_01/evaluation_0019000.json",
+          "file_sha256": "e96b556bc7348ceb9a280f839ebc392a31d5f4ecde51387ed19dab0aae15e8cb"
+        },
+        {
+          "step": 20000,
+          "H": 0.9582458076364512,
+          "E": 2.1009570973252294,
+          "Ds": 0.028528316788762265,
+          "Dl": 0.013623558140086828,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S020LR075_NOSOFT_R1_S261018101/attempt_01/evaluation_0020000.json",
+          "file_sha256": "c2eea362bf396c1aa4dbec23be44eb58c2ad9d9a5594b5eadfe392b67c89ba36"
+        },
+        {
+          "step": 25000,
+          "H": 0.9563914040656971,
+          "E": 2.0749579707143733,
+          "Ds": 0.030779803025470058,
+          "Dl": 0.013239488446625097,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S020LR075_NOSOFT_R1_S261018101/attempt_01/evaluation_0025000.json",
+          "file_sha256": "64e3f4a11d84f9fb7efa817f5ebb88ef6d5de958c66797113e0ce08e2a5a666c"
+        },
+        {
+          "step": 30000,
+          "H": 0.9549812117545793,
+          "E": 2.0803309445026974,
+          "Ds": 0.0333014107026887,
+          "Dl": 0.012129485509277227,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S020LR075_NOSOFT_R1_S261018101/attempt_01/evaluation_0030000.json",
+          "file_sha256": "cee3da3539164aaff1c13284f87b1a4c27ca5bb11eefcfe339a4f6503f477367"
+        },
+        {
+          "step": 40000,
+          "H": 0.9527649830847974,
+          "E": 2.0502786505531407,
+          "Ds": 0.03527042814074165,
+          "Dl": 0.01240989952235999,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S020LR075_NOSOFT_R1_S261018101/attempt_01/evaluation_0040000.json",
+          "file_sha256": "8ca88ca46615be6ffd139f5b2665c6a7668ed6d81ed8e834bd3e41feea0e1959"
+        },
+        {
+          "step": 50000,
+          "H": 0.952684795091414,
+          "E": 2.048770984477514,
+          "Ds": 0.03558335731817085,
+          "Dl": 0.01217371257502523,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S020LR075_NOSOFT_R1_S261018101/attempt_01/evaluation_0050000.json",
+          "file_sha256": "4a62da9697f59de8ef95c7cee19318739d1695bdd50a8e6c29432a51a07c6c5f"
+        }
+      ]
+    },
+    {
+      "case": "S030BASE",
+      "replica": "R1",
+      "training": {
+        "adam_eps": 1e-08,
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "effective_batch_size": 48,
+        "full_audit_interval": 100,
+        "gradient_log_interval": 100,
+        "lr": 0.0001,
+        "microbatch_size": 12,
+        "min_lr": 0.0,
+        "total_updates": 50000,
+        "warmup_updates": 100,
+        "weight_decay": 0.01
+      },
+      "stage2_spec": {
+        "aligner_outputs": 2,
+        "alignment_target": "SCHARR_OF_MEAN8_GT",
+        "alpha": 0.25,
+        "beta": 0.0,
+        "delta": 1e-06,
+        "frame": "pan",
+        "gamma": 0.5,
+        "mask_policy": "DETACHED_BICUBIC4_SUPPORT_PER_SAMPLE_MEAN_V1",
+        "pan_channels": 1,
+        "policy_id": "S030",
+        "seed": 6445957059257307984,
+        "sensor": "WV3",
+        "upsampler": "interp23",
+        "variant": "panda_condq"
+      },
+      "representative": {
+        "step": 14000,
+        "H": 0.958406376687727,
+        "E": 2.131191749120721,
+        "Ds": 0.027861165798949872,
+        "Dl": 0.014134396832847507,
+        "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S030BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0014000.json"
+      },
+      "joint_pass_count": 0,
+      "trajectory_excerpt": [
+        {
+          "step": 14000,
+          "H": 0.958406376687727,
+          "E": 2.131191749120721,
+          "Ds": 0.027861165798949872,
+          "Dl": 0.014134396832847507,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S030BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0014000.json",
+          "file_sha256": "500675a78f31e803cd86c19fcae8b660f93b72e1437efd70eb7d8dd5d529b9e4"
+        },
+        {
+          "step": 20000,
+          "H": 0.9579507187454984,
+          "E": 2.0919308370661414,
+          "Ds": 0.03005495628416168,
+          "Dl": 0.012372536597905914,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S030BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0020000.json",
+          "file_sha256": "a2947d92eac34ba1431b967adfdc75abbd2534d1c164d20f3cb9885ef8206ef9"
+        },
+        {
+          "step": 25000,
+          "H": 0.9563646741174079,
+          "E": 2.0622820730064095,
+          "Ds": 0.0320170996131172,
+          "Dl": 0.012009615609275737,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S030BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0025000.json",
+          "file_sha256": "70c1f6e9533f0b0166e191d1a0957e8527200d411457640022999f9152be2688"
+        },
+        {
+          "step": 30000,
+          "H": 0.9546538014989489,
+          "E": 2.0610535790663795,
+          "Ds": 0.033959073985770624,
+          "Dl": 0.011794684768160956,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S030BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0030000.json",
+          "file_sha256": "447f92f7c35e362bcb538f47db12250f55cda7361ae4656ad2cfb39215462b68"
+        },
+        {
+          "step": 40000,
+          "H": 0.9520654099408192,
+          "E": 2.0422077152549347,
+          "Ds": 0.03652115942016595,
+          "Dl": 0.01185517939015034,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S030BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0040000.json",
+          "file_sha256": "76d89649541379ccc0bfde91288f39d6b8a7dec33f8f24aef47151f4a6adc90b"
+        },
+        {
+          "step": 50000,
+          "H": 0.9518047328145149,
+          "E": 2.0422521018546624,
+          "Ds": 0.03694513310963771,
+          "Dl": 0.01169138166924712,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S030BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0050000.json",
+          "file_sha256": "49cd9db019a95c8d8bb1d85787166ea107d9c59ba38d6481edb7cec9cc656912"
+        }
+      ]
+    },
+    {
+      "case": "S010BASE",
+      "replica": "R1",
+      "training": {
+        "adam_eps": 1e-08,
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "effective_batch_size": 48,
+        "full_audit_interval": 100,
+        "gradient_log_interval": 100,
+        "lr": 0.0001,
+        "microbatch_size": 12,
+        "min_lr": 0.0,
+        "total_updates": 50000,
+        "warmup_updates": 100,
+        "weight_decay": 0.01
+      },
+      "stage2_spec": {
+        "aligner_outputs": 2,
+        "alignment_target": "SCHARR_OF_MEAN8_GT",
+        "alpha": 0.25,
+        "beta": 0.0,
+        "delta": 1e-06,
+        "frame": "pan",
+        "gamma": 0.5,
+        "mask_policy": "DETACHED_BICUBIC4_SUPPORT_PER_SAMPLE_MEAN_V1",
+        "pan_channels": 1,
+        "policy_id": "S010",
+        "seed": 6445957059257307984,
+        "sensor": "WV3",
+        "upsampler": "interp23",
+        "variant": "panda_condq"
+      },
+      "representative": {
+        "step": 25000,
+        "H": 0.9598125587777158,
+        "E": 2.069166611873497,
+        "Ds": 0.02782892951830827,
+        "Dl": 0.01271941271504296,
+        "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S010BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0025000.json"
+      },
+      "joint_pass_count": 0,
+      "trajectory_excerpt": [
+        {
+          "step": 20000,
+          "H": 0.957539744742081,
+          "E": 2.0932863710316574,
+          "Ds": 0.030023201205725075,
+          "Dl": 0.012831053668730696,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S010BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0020000.json",
+          "file_sha256": "47d0bd24ff53f5f3e8267f17a9c7331abca6890617d8e5377ad11209ffd4c906"
+        },
+        {
+          "step": 25000,
+          "H": 0.9598125587777158,
+          "E": 2.069166611873497,
+          "Ds": 0.02782892951830827,
+          "Dl": 0.01271941271504296,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S010BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0025000.json",
+          "file_sha256": "b820261bbfdc543a537eef122472933b312fe0863d1c924ed0b67117d88343af"
+        },
+        {
+          "step": 30000,
+          "H": 0.9569524031745061,
+          "E": 2.073408427035582,
+          "Ds": 0.03125887875533607,
+          "Dl": 0.01217317621529001,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S010BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0030000.json",
+          "file_sha256": "e77798c43a616a99c0e37019910a25ea8d9ecede04e0e3eb58a605ec108bcb2e"
+        },
+        {
+          "step": 40000,
+          "H": 0.9557345194421127,
+          "E": 2.044332004925472,
+          "Ds": 0.0327112130218304,
+          "Dl": 0.011950609462764938,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S010BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0040000.json",
+          "file_sha256": "72612585907f294224c51b2a738459b151947e50cdce2fdd24a2b0b88c6d6982"
+        },
+        {
+          "step": 50000,
+          "H": 0.9551422685159944,
+          "E": 2.042447546169144,
+          "Ds": 0.03331880960788959,
+          "Dl": 0.011942337210438674,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S010BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0050000.json",
+          "file_sha256": "51a94d78f532cb4fa655f0d313035ffb8c715ec4c29aec804e61e22a0e9652ce"
+        }
+      ]
+    },
+    {
+      "case": "S020BASE",
+      "replica": "R1",
+      "training": {
+        "adam_eps": 1e-08,
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "effective_batch_size": 48,
+        "full_audit_interval": 100,
+        "gradient_log_interval": 100,
+        "lr": 0.0001,
+        "microbatch_size": 12,
+        "min_lr": 0.0,
+        "total_updates": 50000,
+        "warmup_updates": 100,
+        "weight_decay": 0.01
+      },
+      "stage2_spec": {
+        "aligner_outputs": 2,
+        "alignment_target": "SCHARR_OF_MEAN8_GT",
+        "alpha": 0.25,
+        "beta": 0.0,
+        "delta": 1e-06,
+        "frame": "pan",
+        "gamma": 0.5,
+        "mask_policy": "DETACHED_BICUBIC4_SUPPORT_PER_SAMPLE_MEAN_V1",
+        "pan_channels": 1,
+        "policy_id": "S020",
+        "seed": 6445957059257307984,
+        "sensor": "WV3",
+        "upsampler": "interp23",
+        "variant": "panda_condq"
+      },
+      "representative": {
+        "step": 25000,
+        "H": 0.9593927382701499,
+        "E": 2.065970157838465,
+        "Ds": 0.028828660071357377,
+        "Dl": 0.012134038558137212,
+        "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S020BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0025000.json"
+      },
+      "joint_pass_count": 0,
+      "trajectory_excerpt": [
+        {
+          "step": 20000,
+          "H": 0.9582699262712483,
+          "E": 2.087362149487021,
+          "Ds": 0.029189932854047262,
+          "Dl": 0.012925232816734456,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S020BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0020000.json",
+          "file_sha256": "849d8d3b8cf2a76eeb9804d9a986638223a6622ddd36a7476108f061642039e7"
+        },
+        {
+          "step": 25000,
+          "H": 0.9593927382701499,
+          "E": 2.065970157838465,
+          "Ds": 0.028828660071357377,
+          "Dl": 0.012134038558137212,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S020BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0025000.json",
+          "file_sha256": "495accd5be14d15495a005ee1afde8978b303d9d4fbbc11a94fdc2f48b1a4cb4"
+        },
+        {
+          "step": 30000,
+          "H": 0.9576122829621021,
+          "E": 2.06244769661135,
+          "Ds": 0.030909393474211823,
+          "Dl": 0.011849426623264747,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S020BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0030000.json",
+          "file_sha256": "cfdbdc9ae6c6ff7bb51adf220b51ca06f5b061ea44b3c326ca5418c96b442b29"
+        },
+        {
+          "step": 40000,
+          "H": 0.9552901292791391,
+          "E": 2.0439541162057338,
+          "Ds": 0.03341531859605602,
+          "Dl": 0.011691085331621043,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S020BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0040000.json",
+          "file_sha256": "53ee8b2aab09d6495aaccdbd9bfd12aca1c2c635d8cb25f1e930fd9649093025"
+        },
+        {
+          "step": 50000,
+          "H": 0.9548296310660881,
+          "E": 2.0422810778906677,
+          "Ds": 0.03409641040127463,
+          "Dl": 0.011471034876111924,
+          "path": "work_dir/panda_scale30/PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1/s1/WV3/runs/PS30_WV3_S1_S020BASE_NOSOFT_R1_S261018101/attempt_01/evaluation_0050000.json",
+          "file_sha256": "aba23623c9113cb502334a497b073e684f16657c912ee11dc251267c91b59ea8"
+        }
+      ]
+    }
+  ]
+}
