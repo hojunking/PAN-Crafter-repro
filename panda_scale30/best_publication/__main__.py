@@ -1,4 +1,4 @@
-"""Stage1 RRE + qualified minimum-ERGAS Stage2, at most one row per run/attempt."""
+"""Stage1 RRE + all joint passes and one HQNR-qualified Stage2 representative."""
 import argparse
 import fcntl
 import math

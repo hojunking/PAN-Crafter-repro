@@ -48,7 +48,7 @@ def snapshot(value, rows=None, notes=None):
 
 
 class PublicationTests(unittest.TestCase):
-    def test_all_cases_servers_choose_one_qualified_minimum_ergas(self):
+    def test_all_cases_servers_publish_all_passes_and_one_representative(self):
         for server in ("s1", "s3"):
             with tempfile.TemporaryDirectory() as root:
                 runs = [run for group in plan.groups(server) for run in group["runs"]]
@@ -58,16 +58,23 @@ class PublicationTests(unittest.TestCase):
                     persist(root, case, server=server, replica=replica, step=50000, h=.9884, e=2.0)
                 view = B.project(root, server)
                 self.assertFalse(view["conflicts"], view["conflicts"])
-                self.assertEqual(len(view["rows"]), len(runs))
+                self.assertEqual(len(view["rows"]), 2 * len(runs))
                 self.assertEqual(view["summary_count"], 3 * len(runs))
+                representatives = []
                 for row in view["rows"]:
-                    self.assertEqual(row[R.INDEX["Selected_step"]], 2000)
-                    self.assertEqual(row[R.INDEX["Selector"]], B.SELECTOR)
-                    self.assertEqual(row[R.INDEX["HQNR↑"]], .9885)
-                    self.assertEqual(row[R.INDEX["ERGAS↓"]], 2.030)
+                    if row[R.INDEX["Selector"]] == B.SELECTOR:
+                        representatives.append(row)
+                        self.assertEqual(row[R.INDEX["Selected_step"]], 2000)
+                        self.assertEqual(row[R.INDEX["HQNR↑"]], .9885)
+                        self.assertEqual(row[R.INDEX["ERGAS↓"]], 2.030)
+                    else:
+                        self.assertEqual(row[R.INDEX["Selector"]], B.PASS_SELECTOR)
+                        self.assertEqual(row[R.INDEX["Selected_step"]], 1000)
                     for metric in ("RMSE↓", "CC↑", "JQM↑", "Q4/Q8↑"):
                         self.assertIsInstance(row[R.INDEX[metric]], (int, float))
                     B.verify_owned(row, view)
+                self.assertEqual(len(representatives), len(runs))
+                self.assertTrue(all(r["pass_count"] == r["kept_count"] == 2 for r in view["runs"]))
 
     def test_reused_donor_original_receipt_and_metrics_remain_unchanged(self):
         with tempfile.TemporaryDirectory() as root:
@@ -122,11 +129,11 @@ class PublicationTests(unittest.TestCase):
 
     def test_running_best_same_id_all_metrics_and_cost_from_selected_step(self):
         with tempfile.TemporaryDirectory() as root:
-            persist(root, step=5000, h=.995, e=2.04)
+            persist(root, step=5000, h=.995, e=2.2)
             old = B.project(root, "s1")
             persist(root, step=6000, h=.9884, e=2.0)
             record = persist(root, step=7000, h=.9885, e=2.03)
-            persist(root, step=50000, h=.999, e=2.035)
+            persist(root, step=50000, h=.999, e=2.3)
             def attach(view, root, **kwargs):
                 self.assertEqual([s["step"] for s in view["selected"]], [7000])
                 view["rows"][0][R.INDEX["Infer(ms)"]] = 12.3
@@ -145,15 +152,15 @@ class PublicationTests(unittest.TestCase):
             self.assertEqual(B.project(root, "s1")["selected"][0]["step"], 2000)
 
     def test_exact_inclusive_thresholds_no_rounding_or_unqualified_fallback(self):
-        for h, e, count in ((.9885, 2.040, 1), (.9885 - 1e-9, 2.040, 0),
-                            (.9885, 2.040 + 1e-9, 0), (.96, 2.03, 0)):
+        for h, e, count, passed in ((.9885, 2.040, 1, 1), (.9885 - 1e-9, 2.040, 0, 0),
+                                    (.9885, 2.040 + 1e-9, 1, 0), (.96, 2.03, 0, 0)):
             with self.subTest(h=h, e=e), tempfile.TemporaryDirectory() as root:
                 persist(root, h=h, e=e)
                 before = {str(p): p.read_bytes() for p in Path(root).rglob("*.json")}
                 view = B.project(root, "s1")
                 self.assertFalse(view["conflicts"], view["conflicts"])
                 self.assertEqual(len(view["rows"]), count)
-                self.assertEqual(view["runs"][0]["pass_count"], count)
+                self.assertEqual(view["runs"][0]["pass_count"], passed)
                 self.assertEqual(view["runs"][0]["kept_count"], count)
                 self.assertEqual(view["runs"][0]["hqnr_min"], .9885)
                 for path, content in before.items():
@@ -161,9 +168,68 @@ class PublicationTests(unittest.TestCase):
                 if count:
                     note = json.loads(view["rows"][0][R.INDEX["Original description / notes"]])
                     self.assertFalse(note["publication"]["target_thresholds_are_annotations_only"])
+                    self.assertEqual(note["publication"]["publication_joint_pass"], bool(passed))
+                    self.assertTrue(note["publication"]["is_case_representative"])
+                    self.assertFalse(note["publication"]["representative_requires_ergas_max"])
                     self.assertEqual(note["publication"]["ergas_max"], 2.040)
                     # Historical source config remains truthful and immutable.
                     self.assertEqual(note["extra_parameters"]["configuration"]["hqnr_min"], .959)
+
+    def test_representative_above_ergas_limit_is_kept_and_not_labelled_as_pass(self):
+        with tempfile.TemporaryDirectory() as root:
+            persist(root, step=1000, h=.999, e=2.1)
+            persist(root, step=2000, h=.9885, e=2.05)
+            persist(root, step=3000, h=.990, e=2.08)
+            view = B.project(root, "s1")
+            self.assertFalse(view["conflicts"], view["conflicts"])
+            self.assertEqual([c["step"] for c in view["selected"]], [2000])
+            self.assertEqual(view["runs"][0]["pass_count"], 0)
+            row = view["rows"][0]
+            self.assertIn("ERGAS 미달", row[R.INDEX["Selection@Step"]])
+            B.verify_owned(row, view)
+            bad = deepcopy(row)
+            note = json.loads(bad[R.INDEX["Original description / notes"]])
+            note["publication"]["selection"] = B.PASS_SELECTOR
+            bad[R.INDEX["Selector"]] = B.PASS_SELECTOR
+            bad[R.INDEX["Original description / notes"]] = R.canonical_json(note)
+            c = view["selected"][0]
+            bad[R.INDEX["Result_ID"]] = P.display_id(B.POLICY, c["key"], c["protocol"], c["step"])
+            with self.assertRaisesRegex(ValueError, "thresholds"):
+                B.verify_owned(bad, view)
+
+    def test_new_representative_retains_previous_pass_without_duplicates(self):
+        with tempfile.TemporaryDirectory() as root:
+            persist(root, step=1000, h=.989, e=2.1)
+            first = B.project(root, "s1")
+            representative_id = first["rows"][0][R.INDEX["Result_ID"]]
+            persist(root, step=2000, h=.990, e=2.04)
+            second = B.project(root, "s1")
+            self.assertEqual(len(second["rows"]), 1)
+            self.assertEqual(second["rows"][0][R.INDEX["Result_ID"]], representative_id)
+            persist(root, step=3000, h=.9885, e=2.03)
+            persist(root, step=4000, h=.999, e=2.2)
+            third = B.project(root, "s1")
+            self.assertEqual([c["step"] for c in third["selected"]], [3000, 2000])
+            ids = [r[R.INDEX["Result_ID"]] for r in third["rows"]]
+            self.assertEqual(ids[0], representative_id)
+            self.assertEqual(len(set(ids)), 2)
+            self.assertEqual([r[R.INDEX["Selector"]] for r in third["rows"]], [B.SELECTOR, B.PASS_SELECTOR])
+            for row in third["rows"]:
+                B.verify_owned(row, third)
+
+    def test_joint_only_v3_row_migrates_in_place(self):
+        with tempfile.TemporaryDirectory() as root:
+            persist(root)
+            view = B.project(root, "s1")
+            row = deepcopy(view["rows"][0])
+            note = json.loads(row[R.INDEX["Original description / notes"]])
+            note["publication"]["policy"] = B.JOINT_ONLY_POLICY
+            row[R.INDEX["Original description / notes"]] = R.canonical_json(note)
+            c = view["selected"][0]
+            row[R.INDEX["Result_ID"]] = P.display_id(B.JOINT_ONLY_POLICY, c["key"], c["protocol"], B.SELECTOR)
+            requests = B.row_requests(snapshot(view, rows=[row], notes=["v3"]), view, "s1")
+            self.assertEqual(len(requests), 1)
+            self.assertEqual(requests[0]["updateCells"]["range"]["startRowIndex"], 5)
 
     def test_migrate_previous_policy_clear_only_verified_unqualified_own_row(self):
         with tempfile.TemporaryDirectory() as root:
@@ -300,7 +366,7 @@ class PublicationTests(unittest.TestCase):
             persist(root, "S010BASE", step=1000)
             view = B.project(root, "s1")
             got = T.reconcile_rows(adapter, view, state, "s1", apply=True)
-            self.assertEqual(got["row_count"], 2)
+            self.assertEqual(got["row_count"], 3)
             self.assertEqual(adapter.data["rows"][0], foreign)
             self.assertEqual(adapter.data["notes"][0], "foreign note")
             before = len(adapter.writes)

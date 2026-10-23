@@ -1,4 +1,4 @@
-"""Threshold-qualified minimum-ERGAS view, separate from pinned training sources.
+"""All joint passes plus one HQNR-qualified minimum-ERGAS representative.
 
 The legacy publisher remains an immutable evidence validator and migration
 reader. It is not the active writer after switching to this entry point.
@@ -14,9 +14,11 @@ from panda_scale30 import reporting as R
 
 INDEX = R.INDEX
 PREVIOUS_POLICY = "PANDA_SCALE30_RRE_STAGE2_RUNNING_BEST_HQNR_V2"
-POLICY = "PANDA_SCALE30_RRE_STAGE2_H9885_E2040_MIN_ERGAS_V3"
+JOINT_ONLY_POLICY = "PANDA_SCALE30_RRE_STAGE2_H9885_E2040_MIN_ERGAS_V3"
+POLICY = "PANDA_SCALE30_RRE_STAGE2_H9885_PASS_ALL_OR_REPRESENTATIVE_V4"
 HQNR_MIN, ERGAS_MAX = .9885, 2.040
 SELECTOR = "HQNR_QUALIFIED_MIN_ERGAS"
+PASS_SELECTOR = "PASS_ALL_STEPS"
 RANKING = "HQNR_GE_0.9885_THEN_ERGAS_ASC_HQNR_DESC_STEP_ASC"
 
 
@@ -27,7 +29,9 @@ def project(root, server, *, require_cost=False):
     value["policy"] = POLICY
     value["publication_thresholds"] = {"hqnr_min": HQNR_MIN, "ergas_max": ERGAS_MAX,
         "inclusive": True, "checkpoint_selection": RANKING,
-        "no_unqualified_fallback": True, "scope": "STAGE2_PER_RUN_SEED_ATTEMPT"}
+        "publish_all_joint_passes": True, "representative_requires_ergas_max": False,
+        "deduplicate_representative_and_pass": True,
+        "no_below_hqnr_fallback": True, "scope": "STAGE2_PER_RUN_SEED_ATTEMPT"}
     if value["conflicts"]:
         return value
     stage1 = [(r, n, s) for r, n, s in zip(
@@ -51,60 +55,74 @@ def project(root, server, *, require_cost=False):
         run.update(pass_count=len(passed), hqnr_qualified_count=len(qualified),
                    kept_count=0, selection="NO_QUALIFYING_CHECKPOINT",
                    hqnr_min=HQNR_MIN, ergas_max=ERGAS_MAX)
-        if not passed:
-            run["skip_reason"] = ("HQNR_BELOW_MINIMUM" if not qualified
-                                  else "MIN_ERGAS_ABOVE_MAXIMUM")
+        if not qualified:
+            run["skip_reason"] = "HQNR_BELOW_MINIMUM"
             continue
-        source = min(qualified, key=lambda s: (
+        representative = min(qualified, key=lambda s: (
             s["candidate"]["ergas"], -s["candidate"]["hqnr"],
             s["candidate"]["step"], s["candidate"]["source_result_id"]))
-        candidate = source["candidate"]
-        row = list(source["row"])
-        note = json.loads(row[INDEX["Original description / notes"]])
-        extra = note["extra_parameters"]
-        cfg = extra["configuration"]
-        try:
-            artifact = legacy._artifact({
-                **candidate, "record": {"source": {"extra": extra}}}, root)
-        except (ValueError, KeyError, OSError) as exc:
-            value["conflicts"].append({
-                "source_result_id": candidate["source_result_id"], "reason": str(exc)})
-            continue
-        run.update(kept_count=1, selection=SELECTOR)
-        publication = {
-            "policy": POLICY, "selection": SELECTOR,
-            "checkpoint_selection": RANKING,
-            "candidate_count": len(sources), "passed_count": run["pass_count"],
-            "hqnr_qualified_count": len(qualified),
-            "hqnr_min": HQNR_MIN, "ergas_max": ERGAS_MAX,
-            "publication_joint_pass": True,
-            "target_thresholds_are_annotations_only": False,
-            "no_unqualified_fallback": True,
-            "final50k": candidate["step"] == 50000,
-            "separate_final_row": False, "fixed_step": None,
-            "source_result_id": candidate["source_result_id"],
-            "evaluation_step": candidate["step"],
-            "evaluation_evidence": source["evaluation_evidence"], "artifact": artifact,
-            "last_logged_status": run["last_logged_status"],
-            "last_observed_at": run["last_observed_at"], "live_process_verified": False,
-        }
-        row[INDEX["Result_ID"]] = legacy.display_id(
-            POLICY, key, candidate["protocol"], SELECTOR)
-        row[INDEX["Selector"]] = SELECTOR
-        row[INDEX["Selection@Step"]] = f"조건 충족 · ERGAS 최소 · {candidate['step']:,}"
-        row[INDEX["Checkpoint_SHA"]] = artifact.get("file_sha256") or ""
-        row[INDEX["Readback"]] = "VERIFIED"
-        row[INDEX["Status"]] = run["last_logged_status"]
-        note["publication"] = publication
-        note["publication_policy"] = POLICY
-        note["checkpoint_selection"] = RANKING
-        row[INDEX["Original description / notes"]] = R.canonical_json(note)
-        short = R.canonical_json({"configuration": cfg, "publication": publication})
-        if max(len(row[INDEX["Original description / notes"]]), len(short)) >= 45000:
-            raise ValueError("Qualified publication note exceeds safe cell size")
-        value["rows"].append(row)
-        value["notes"].append(short)
-        value["selected"].append(candidate)
+        # If any joint pass exists, the minimum-ERGAS representative is one of
+        # them. Publish that checkpoint once, with its representative role.
+        kept = [representative] + sorted(
+            (s for s in passed if s is not representative),
+            key=lambda s: (s["candidate"]["step"], s["candidate"]["source_result_id"]))
+        run.update(kept_count=len(kept), selection="PASS_ALL_WITH_REPRESENTATIVE" if passed else SELECTOR,
+                   representative_source_result_id=representative["candidate"]["source_result_id"])
+        for source in kept:
+            candidate = source["candidate"]
+            is_representative = source is representative
+            joint_pass = candidate["hqnr"] >= HQNR_MIN and candidate["ergas"] <= ERGAS_MAX
+            selector = SELECTOR if is_representative else PASS_SELECTOR
+            row = list(source["row"])
+            note = json.loads(row[INDEX["Original description / notes"]])
+            extra = note["extra_parameters"]
+            cfg = extra["configuration"]
+            try:
+                artifact = legacy._artifact({
+                    **candidate, "record": {"source": {"extra": extra}}}, root)
+            except (ValueError, KeyError, OSError) as exc:
+                value["conflicts"].append({
+                    "source_result_id": candidate["source_result_id"], "reason": str(exc)})
+                continue
+            publication = {
+                "policy": POLICY, "selection": selector,
+                "checkpoint_selection": RANKING if is_representative else PASS_SELECTOR,
+                "candidate_count": len(sources), "passed_count": run["pass_count"],
+                "hqnr_qualified_count": len(qualified),
+                "hqnr_min": HQNR_MIN, "ergas_max": ERGAS_MAX,
+                "publication_joint_pass": joint_pass, "is_case_representative": is_representative,
+                "representative_requires_ergas_max": False,
+                "publish_all_joint_passes": True,
+                "target_thresholds_are_annotations_only": False,
+                "no_below_hqnr_fallback": True,
+                "final50k": candidate["step"] == 50000,
+                "separate_final_row": False, "fixed_step": None,
+                "source_result_id": candidate["source_result_id"],
+                "evaluation_step": candidate["step"],
+                "evaluation_evidence": source["evaluation_evidence"], "artifact": artifact,
+                "last_logged_status": run["last_logged_status"],
+                "last_observed_at": run["last_observed_at"], "live_process_verified": False,
+            }
+            row[INDEX["Result_ID"]] = legacy.display_id(
+                POLICY, key, candidate["protocol"], SELECTOR if is_representative else candidate["step"])
+            row[INDEX["Selector"]] = selector
+            label = ("대표 · ERGAS 최소" if is_representative else "조건 충족")
+            if is_representative:
+                label += " · 조건 충족" if joint_pass else " · ERGAS 미달"
+            row[INDEX["Selection@Step"]] = f"{label} · {candidate['step']:,}"
+            row[INDEX["Checkpoint_SHA"]] = artifact.get("file_sha256") or ""
+            row[INDEX["Readback"]] = "VERIFIED"
+            row[INDEX["Status"]] = run["last_logged_status"]
+            note["publication"] = publication
+            note["publication_policy"] = POLICY
+            note["checkpoint_selection"] = publication["checkpoint_selection"]
+            row[INDEX["Original description / notes"]] = R.canonical_json(note)
+            short = R.canonical_json({"configuration": cfg, "publication": publication})
+            if max(len(row[INDEX["Original description / notes"]]), len(short)) >= 45000:
+                raise ValueError("Qualified publication note exceeds safe cell size")
+            value["rows"].append(row)
+            value["notes"].append(short)
+            value["selected"].append(candidate)
     from panda_scale30.cost import attach_cost
     attach_cost(value, Path(root), require_cost=require_cost)
     value["view_hash"] = R.digest({"rows": value["rows"], "notes": value["notes"]})
@@ -115,18 +133,22 @@ def verify_owned(row, value):
     """Allow migration only from fully verified legacy or current own rows."""
     publication = json.loads(row[INDEX["Original description / notes"]])["publication"]
     policy = publication.get("policy")
-    if policy not in (PREVIOUS_POLICY, POLICY):
+    if policy not in (PREVIOUS_POLICY, JOINT_ONLY_POLICY, POLICY):
         return legacy._verify_owned(row, value)
-    selector = "BEST_HQNR" if policy == PREVIOUS_POLICY else SELECTOR
+    selector = publication.get("selection")
+    allowed = ("BEST_HQNR",) if policy == PREVIOUS_POLICY else (
+        (SELECTOR,) if policy == JOINT_ONLY_POLICY else (SELECTOR, PASS_SELECTOR))
     source = value["source_evidence"].get(publication.get("source_result_id"))
-    if source is None or publication.get("selection") != selector:
+    if source is None or selector not in allowed or row[INDEX["Selector"]] != selector:
         raise ValueError("Unknown representative row/source; never erase it")
     candidate = source["candidate"]
+    slot = candidate["step"] if selector == PASS_SELECTOR else selector
     if row[INDEX["Result_ID"]] != legacy.display_id(
-            policy, candidate["key"], candidate["protocol"], selector):
+            policy, candidate["key"], candidate["protocol"], slot):
         raise ValueError("Representative display identity mismatch")
-    if policy == POLICY and not (candidate["hqnr"] >= HQNR_MIN
-                                 and candidate["ergas"] <= ERGAS_MAX):
+    if policy != PREVIOUS_POLICY and (candidate["hqnr"] < HQNR_MIN or (
+            (policy == JOINT_ONLY_POLICY or selector == PASS_SELECTOR)
+            and candidate["ergas"] > ERGAS_MAX)):
         raise ValueError("Qualified row does not meet publication thresholds")
     raw = json.loads(source["row"][INDEX["Original description / notes"]])
     if raw["extra_parameters"]["configuration"]["phase"] != "stage2":
