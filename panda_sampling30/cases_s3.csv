@@ -1,0 +1,7 @@
+order,server,case,replica,seed,scale,alpha,beta,gamma,sampling_variant,lr_S,min_lr,views,lambda_cons,updates,inherited_updates,new_updates,optional
+1,s3,DAVG,R1,261018101,0.2,0.25,0.0,0.5,DAVG,0.0001,0.0,1,0.0,30000,0,30000,False
+2,s3,UBIL,R1,261018101,0.2,0.25,0.0,0.5,UBIL,0.0001,0.0,1,0.0,30000,0,30000,False
+3,s3,DAVG_UBIL,R1,261018101,0.2,0.25,0.0,0.5,DAVG_UBIL,0.0001,0.0,1,0.0,30000,0,30000,False
+4,s3,DAVG,R2,261018102,0.2,0.25,0.0,0.5,DAVG,0.0001,0.0,1,0.0,30000,0,30000,False
+5,s3,UBIL,R2,261018102,0.2,0.25,0.0,0.5,UBIL,0.0001,0.0,1,0.0,30000,0,30000,False
+6,s3,DAVG_UBIL,R2,261018102,0.2,0.25,0.0,0.5,DAVG_UBIL,0.0001,0.0,1,0.0,30000,0,30000,False

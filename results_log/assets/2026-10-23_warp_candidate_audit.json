@@ -1,0 +1,386 @@
+{
+  "schema": "PANDA_WARP_CANDIDATE_CPU_AUDIT_V1",
+  "device": "cpu",
+  "dtype": "float64",
+  "scope": "Synthetic operator diagnostics; no new PAN RR/FR model result and no training change.",
+  "environment": {
+    "torch": "2.4.0",
+    "numpy": "1.26.4",
+    "scipy": "1.13.1"
+  },
+  "source_sha256": {
+    "tools/warp_candidate_audit.py": "282eafcbeb97b4bc786a881474121823a8691c005d99b096c59a7b1f173359ed",
+    "panda_warp_candidates/ops.py": "04a4dadf431e36fda4c17af7ecfa56717d56ffa08711de84ffa6edede72ffbb2",
+    "pa/warp.py": "b7ea18eb1c09a9462763bfe0146454df2c6593c8dce9107328804a33ed02fcab"
+  },
+  "candidate_manifests": {
+    "fft": {
+      "schema": "PANDA_WARP_CANDIDATE_V1",
+      "method": "fft",
+      "experimental_only": true,
+      "connected_to_training": false,
+      "convention": "output[y,x]=input[y+dy,x+dx]",
+      "delta_shape": "B,2",
+      "image_shape": "B,C,H,W",
+      "dtype": "preserve_float32_or_float64",
+      "boundary": "whole_sample_reflection",
+      "shift_autograd": true,
+      "padding": 32,
+      "support": "global",
+      "finite_observed_support_mask": false,
+      "real_projection": true,
+      "nyquist_information_loss_possible": true,
+      "nyquist_policy": "joint_2d_phase_then_real_projection",
+      "c4_equivariance_guaranteed": false,
+      "pad_crop_roundtrip_guaranteed_lossless": false
+    },
+    "lanczos4": {
+      "schema": "PANDA_WARP_CANDIDATE_V1",
+      "method": "lanczos4",
+      "experimental_only": true,
+      "connected_to_training": false,
+      "convention": "output[y,x]=input[y+dy,x+dx]",
+      "delta_shape": "B,2",
+      "image_shape": "B,C,H,W",
+      "dtype": "preserve_float32_or_float64",
+      "boundary": "whole_sample_reflection",
+      "shift_autograd": true,
+      "support": "finite",
+      "radius": 4,
+      "taps_per_axis": 8,
+      "window": "lanczos",
+      "beta": null,
+      "coefficient_normalization": "sum_to_one_per_axis"
+    },
+    "lanczos6": {
+      "schema": "PANDA_WARP_CANDIDATE_V1",
+      "method": "lanczos6",
+      "experimental_only": true,
+      "connected_to_training": false,
+      "convention": "output[y,x]=input[y+dy,x+dx]",
+      "delta_shape": "B,2",
+      "image_shape": "B,C,H,W",
+      "dtype": "preserve_float32_or_float64",
+      "boundary": "whole_sample_reflection",
+      "shift_autograd": true,
+      "support": "finite",
+      "radius": 6,
+      "taps_per_axis": 12,
+      "window": "lanczos",
+      "beta": null,
+      "coefficient_normalization": "sum_to_one_per_axis"
+    },
+    "kaiser12_beta6": {
+      "schema": "PANDA_WARP_CANDIDATE_V1",
+      "method": "kaiser12_beta6",
+      "experimental_only": true,
+      "connected_to_training": false,
+      "convention": "output[y,x]=input[y+dy,x+dx]",
+      "delta_shape": "B,2",
+      "image_shape": "B,C,H,W",
+      "dtype": "preserve_float32_or_float64",
+      "boundary": "whole_sample_reflection",
+      "shift_autograd": true,
+      "support": "finite",
+      "radius": 6,
+      "taps_per_axis": 12,
+      "window": "kaiser",
+      "beta": 6.0,
+      "coefficient_normalization": "sum_to_one_per_axis"
+    }
+  },
+  "single_half_pixel_amplitude_response": {
+    "bicubic": {
+      "0.05": 1.005816181171407,
+      "0.1": 1.0191698782956562,
+      "0.15": 1.0287387852786434,
+      "0.25": 0.9722718241315028,
+      "0.375": 0.6276639882794104,
+      "0.45": 0.27088914593643926
+    },
+    "lanczos4": {
+      "0.05": 0.9997328664937484,
+      "0.1": 0.9968643852815667,
+      "0.15": 0.9913379664169104,
+      "0.25": 1.0076194488902632,
+      "0.375": 0.9005136154248057,
+      "0.45": 0.4513889637914238
+    },
+    "lanczos6": {
+      "0.05": 0.9996754016904934,
+      "0.1": 0.9976813807877171,
+      "0.15": 0.9988699846358887,
+      "0.25": 0.9962455363419853,
+      "0.375": 1.018413157660541,
+      "0.45": 0.6404183192853209
+    },
+    "kaiser6_beta4": {
+      "0.05": 0.9968858904299632,
+      "0.1": 0.991752683379824,
+      "0.15": 0.9926280843275247,
+      "0.25": 1.0016235823132904,
+      "0.375": 0.7646716011906048,
+      "0.45": 0.35261131201801177
+    },
+    "kaiser8_beta4": {
+      "0.05": 1.004359045750572,
+      "0.1": 1.009838500649799,
+      "0.15": 1.006054794496046,
+      "0.25": 1.0039837127486393,
+      "0.375": 0.9095609313010767,
+      "0.45": 0.4632905234013579
+    },
+    "kaiser8_beta6": {
+      "0.05": 0.9999241900131958,
+      "0.1": 0.9993629364663931,
+      "0.15": 0.9989169858625754,
+      "0.25": 1.0000676296941646,
+      "0.375": 0.8065440448080559,
+      "0.45": 0.38607981129575286
+    },
+    "kaiser12_beta4": {
+      "0.05": 1.0057859843379287,
+      "0.1": 1.0066960687224413,
+      "0.15": 0.9996056315489008,
+      "0.25": 1.007902651063755,
+      "0.375": 1.0119721908850556,
+      "0.45": 0.6530458443760211
+    },
+    "kaiser12_beta6": {
+      "0.05": 1.0005367962803313,
+      "0.1": 1.0003458572472474,
+      "0.15": 0.9999751679902655,
+      "0.25": 0.9997527552754638,
+      "0.375": 0.9628520328365504,
+      "0.45": 0.5539910366100333
+    },
+    "spline3_prefiltered": {
+      "0.05": 0.9999740020022785,
+      "0.1": 0.9995527426525591,
+      "0.15": 0.9974545078209056,
+      "0.25": 0.9722718241315017,
+      "0.375": 0.7616483033219511,
+      "0.45": 0.3746629638568818
+    },
+    "spline5_prefiltered": {
+      "0.05": 0.9999999340781269,
+      "0.1": 0.9999951017919345,
+      "0.15": 0.9999296804517355,
+      "0.25": 0.9971310469075915,
+      "0.375": 0.9100911928767801,
+      "0.45": 0.5376084283965665
+    }
+  },
+  "synthetic_checks": {
+    "oneway_sines": {
+      "f0.125_bicubic_pad32": {
+        "oneway_full_rmse": 0.018202779549838306,
+        "oneway_interior16_rmse": 0.017927844820095663,
+        "roundtrip_interior16_rmse": 0.03631022865529347
+      },
+      "f0.125_fft_pad16": {
+        "oneway_full_rmse": 0.018880845954504094,
+        "oneway_interior16_rmse": 0.0006414354523305844,
+        "roundtrip_interior16_rmse": 0.0045513840522551615
+      },
+      "f0.125_fft_pad32": {
+        "oneway_full_rmse": 0.019035910079178455,
+        "oneway_interior16_rmse": 0.0008609003106701829,
+        "roundtrip_interior16_rmse": 0.0044580542363328104
+      },
+      "f0.125_fft_pad64": {
+        "oneway_full_rmse": 0.01912264435859192,
+        "oneway_interior16_rmse": 0.0010619073278619348,
+        "roundtrip_interior16_rmse": 0.004267092150212544
+      },
+      "f0.125_lanczos4_pad32": {
+        "oneway_full_rmse": 0.019722197394316413,
+        "oneway_interior16_rmse": 0.004191166202032252,
+        "roundtrip_interior16_rmse": 0.008357490506631746
+      },
+      "f0.125_lanczos6_pad32": {
+        "oneway_full_rmse": 0.019154066139613832,
+        "oneway_interior16_rmse": 0.0018405630346506132,
+        "roundtrip_interior16_rmse": 0.0036763351772127685
+      },
+      "f0.125_kaiser12_beta6_pad32": {
+        "oneway_full_rmse": 0.019007686797959507,
+        "oneway_interior16_rmse": 2.357495981033019e-05,
+        "roundtrip_interior16_rmse": 4.714913363198625e-05
+      },
+      "f0.125_spline5_prefiltered_pad32": {
+        "oneway_full_rmse": 0.019026871457503477,
+        "oneway_interior16_rmse": 1.4698394882723033e-05,
+        "roundtrip_interior16_rmse": 2.940561057544325e-05
+      },
+      "f0.45_bicubic_pad32": {
+        "oneway_full_rmse": 0.5139771409356234,
+        "oneway_interior16_rmse": 0.5165569255965814,
+        "roundtrip_interior16_rmse": 0.6526720884102227
+      },
+      "f0.45_fft_pad16": {
+        "oneway_full_rmse": 0.1110968431754793,
+        "oneway_interior16_rmse": 0.027985585838151656,
+        "roundtrip_interior16_rmse": 0.09226988105035171
+      },
+      "f0.45_fft_pad32": {
+        "oneway_full_rmse": 0.11624370051131476,
+        "oneway_interior16_rmse": 0.03340532617006544,
+        "roundtrip_interior16_rmse": 0.09769050924601846
+      },
+      "f0.45_fft_pad64": {
+        "oneway_full_rmse": 0.10979675539808582,
+        "oneway_interior16_rmse": 0.0276293880482675,
+        "roundtrip_interior16_rmse": 0.06760995656677111
+      },
+      "f0.45_lanczos4_pad32": {
+        "oneway_full_rmse": 0.3944603585742094,
+        "oneway_interior16_rmse": 0.38867728910198374,
+        "roundtrip_interior16_rmse": 0.560844109225971
+      },
+      "f0.45_lanczos6_pad32": {
+        "oneway_full_rmse": 0.2676370015090263,
+        "oneway_interior16_rmse": 0.25475468710363436,
+        "roundtrip_interior16_rmse": 0.4154760317192634
+      },
+      "f0.45_kaiser12_beta6_pad32": {
+        "oneway_full_rmse": 0.32508911594394824,
+        "oneway_interior16_rmse": 0.31598626962307563,
+        "roundtrip_interior16_rmse": 0.4881866540289749
+      },
+      "f0.45_spline5_prefiltered_pad32": {
+        "oneway_full_rmse": 0.33611855082008196,
+        "oneway_interior16_rmse": 0.32759294699153413,
+        "roundtrip_interior16_rmse": 0.5007828393276685
+      }
+    },
+    "step_overshoot": {
+      "bicubic": {
+        "min": -0.09375,
+        "max": 1.09375
+      },
+      "fft": {
+        "min": -0.13662999902116238,
+        "max": 1.1366299990211624
+      },
+      "lanczos4": {
+        "min": -0.11887742409502168,
+        "max": 1.118877424095022
+      },
+      "lanczos6": {
+        "min": -0.1289141345573107,
+        "max": 1.1289141345573108
+      },
+      "kaiser12_beta6": {
+        "min": -0.1248120509731775,
+        "max": 1.1248120509731776
+      },
+      "spline5_prefiltered": {
+        "min": -0.11987946550489964,
+        "max": 1.1198794655048996
+      }
+    },
+    "real_fft_nyquist_counterexample": {
+      "source_rms": 1.0,
+      "half_shift_output_rms": 7.558999933807134e-17,
+      "roundtrip_rmse": 1.0,
+      "interpretation": "Discarding the quadrature component at a half-pixel Nyquist shift loses information."
+    },
+    "joint_2d_nyquist_rotation_counterexample": {
+      "input": "unit-amplitude Nyquist checkerboard",
+      "shift": [
+        0.25,
+        0.25
+      ],
+      "rotation_commutation_rmse": 1.0,
+      "interpretation": "The joint .real projection gives cos(pi*(dy+dx)) at the Nyquist corner, not the separable cos(pi*dy)*cos(pi*dx).",
+      "future_policy_candidate": "Axis-wise real-compatible Nyquist coefficients, explicitly tested against this probe policy."
+    }
+  },
+  "supplied_probe_audit": {
+    "available": true,
+    "source": "results_log/assets/2026-10-23_s1_warp_error_probe.json",
+    "sha256": "99c49fb9122786a7b47bff01ea617fcd84ce97b45d23514da7f05ddc509b68c5",
+    "baseline_ERGAS": 2.048222432507088,
+    "percent_ERGAS_increase": {
+      "bicubic": {
+        "0.0": 0.0,
+        "0.5": 12.761803239635405,
+        "1.0": 8.685356980523418,
+        "1.5": 0.06417942782817043,
+        "2.0": 16.067498951044467
+      },
+      "lanczos4": {
+        "0.0": 0.0,
+        "0.5": 2.2965787830048656,
+        "1.0": 1.4574652858240444,
+        "1.5": 0.007170724678018381,
+        "2.0": 3.0344531729905366
+      },
+      "spline3": {
+        "0.0": 0.0,
+        "0.5": 6.694935551310133,
+        "1.0": 4.502515778941185,
+        "1.5": 0.031504895768263985,
+        "2.0": 8.501613249401174
+      },
+      "fft": {
+        "0.0": 0.0,
+        "0.5": 0.05866111495607118,
+        "1.0": 0.059861484715661994,
+        "1.5": 0.005189671369398852,
+        "2.0": 0.08333793788743993
+      }
+    },
+    "diagonal_displacements": {
+      "0.5": {
+        "axis_magnitude": 0.35355339059327373,
+        "distance_to_nearest_axis_integer": 0.35355339059327373
+      },
+      "1.0": {
+        "axis_magnitude": 0.7071067811865475,
+        "distance_to_nearest_axis_integer": 0.29289321881345254
+      },
+      "1.5": {
+        "axis_magnitude": 1.0606601717798212,
+        "distance_to_nearest_axis_integer": 0.06066017177982119
+      },
+      "2.0": {
+        "axis_magnitude": 1.414213562373095,
+        "distance_to_nearest_axis_integer": 0.4142135623730949
+      }
+    },
+    "fft_FR_roundtrip_relative_RMSE_at_axis_half_pixel": 0.0025826439785305412,
+    "notes": [
+      "Reported 2px is diagonal vector magnitude; both axes are 1.4142px, not integers.",
+      "Reported 1.5px diagonal has .06066 axis fractional distance; bicubic error is small, not zero.",
+      "The source hf_energy_retained computes a norm ratio, not squared energy ratio.",
+      "Inference-only FFT swaps cannot separate geometric effects from train/inference distribution mismatch."
+    ]
+  },
+  "primary_sources": [
+    {
+      "title": "Quantitative comparison of sinc-approximating kernels for medical image interpolation",
+      "url": "https://research.tue.nl/en/publications/quantitative-comparison-of-sinc-approximating-kernels-for-medical/"
+    },
+    {
+      "title": "Mastering Windows: Improving Reconstruction",
+      "url": "https://www.cg.tuwien.ac.at/research/vis/vismed/Windows/"
+    },
+    {
+      "title": "Boundary effect free and adaptive discrete signal sinc-interpolation algorithms for signal and image resampling",
+      "url": "https://opg.optica.org/ao/abstract.cfm?uri=ao-42-20-4166"
+    },
+    {
+      "title": "SciPy ndimage.shift: spline interpolation and boundary conventions",
+      "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.shift.html"
+    }
+  ],
+  "limitations": [
+    "FFT exact phase magnitude applies to the complex periodic transform, not cropped real-valued reflect-padded images.",
+    "A round trip is not a ground-truth test of one-way interpolation or physical sensor registration.",
+    "Negative lobes can cause ringing/overshoot; sharper spectra alone do not establish better model metrics.",
+    "Spline5 is an offline SciPy reference, not a differentiable production operator.",
+    "Candidate methods are isolated and not imported by active training/evaluation campaigns."
+  ]
+}
