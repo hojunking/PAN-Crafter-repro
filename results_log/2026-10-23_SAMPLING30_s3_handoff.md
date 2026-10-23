@@ -1,5 +1,7 @@
 # 2026-10-23 Sampling30 s3 실행 인계
 
+> 미시작 큐는 [NEXT30 s3 인계](2026-10-23_NEXT30_s3_handoff.md)로 대체했다. 새 등록에는 NEXT30을 사용한다.
+
 사용자가 Student 다운·업샘플 구조 실험을 승인했다. **밴드 가중 loss는 제외한다.** 새 캠페인은 `PANDA_S13_SAMPLING_HARDONLY_20261023_v1`, prefix는 `PSA30`이다. 현재 `panda_schedule30` 전체 큐가 정상 완료될 때까지 기다렸다가 후속 실험을 실행한다. 기존 실험의 중단·skip·deadline 초기화는 이번 인계에 포함하지 않는다.
 
 ## s3 등록 큐

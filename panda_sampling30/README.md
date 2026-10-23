@@ -1,5 +1,7 @@
 # Sampling30: Student 다운·업샘플 구조 비교
 
+> 후속 사용자 결정으로 미시작 구조 큐는 [NEXT30](../panda_next30/README.md)으로 통합했다. 아래는 이전 bicubic 계획의 기록이다.
+
 캠페인은 `PANDA_S13_SAMPLING_HARDONLY_20261023_v1`이며 run prefix는 `PSA30`이다. 현재 Schedule30 큐가 정상 완료된 뒤, 양의 PAN Aligner 보정을 유지하면서 Student의 다운·업샘플 연산만 비교한다. **서버별 6개 유한 큐이며 총 시간 제한은 없다.** 기존 실행을 중단하거나 skip하지 않고, 현재 캠페인의 코드·설정·기록도 변경하지 않는다.
 
 ## 고정 조건과 큐
