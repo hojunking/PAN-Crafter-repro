@@ -13,10 +13,10 @@ Git 변경을 받은 뒤 다음 명령을 실행한다. 학습 컨테이너를 �
 bash scripts/start_panda_scale30_best_publisher.sh s3 --restart
 ```
 
-새 정책은 `PANDA_SCALE30_RRE_STAGE2_H9885_PASS_ALL_OR_REPRESENTATIVE_V4`다.
+새 정책은 `PANDA_SCALE30_RRE_STAGE2_H9585_PASS_ALL_OR_BEST_FALLBACK_V5`다.
 `sheet_publish_panda_scale30/last_poll.json`의 `publication_policy`와
 `readback_verified=true`를 확인한다. 상세 조건과 검증 절차는
-[게시 규칙 변경 인계](gspread_rules/SCALE30_H9885_E2040_UPLOAD_2026-10-23.md)를 따른다.
+[게시 규칙 변경 인계](gspread_rules/SCALE30_H9585_E2040_UPLOAD_2026-10-23.md)를 따른다.
 
 ## 로컬 준비
 
@@ -67,11 +67,12 @@ train step, `sheet_publish_panda_scale30/last_poll.json`의 readback을 확인�
 게시 로그는 `work_dir/panda_scale30/publisher-s3-best-hqnr-v1.log`다.
 
 시트는 `WV3-ablations`의 run/seed/attempt별로 두 게시 규칙을 적용한다.
-HQNR ≥ **0.9885**, ERGAS ≤ **2.040**인 결과는 모두 게시한다.
-HQNR ≥ **0.9885**인 평가 중 ERGAS 최소 1개는 **ERGAS 상한과 관계없이 대표로 유지**한다.
+HQNR ≥ **0.9585**, ERGAS ≤ **2.040**인 결과는 모두 게시한다.
+HQNR ≥ **0.9585**인 평가 중 ERGAS 최소 1개는 **ERGAS 상한과 관계없이 대표로 유지**한다.
 대표가 공동 조건도 만족하면 한 행으로 합쳐 중복 게시하지 않는다.
 ERGAS 동률이면 HQNR 높은 결과 → 이른 step → source ID 순이다.
-HQNR 하한을 만족하는 후보가 없으면 대표도 없다. V3의 대표 ERGAS gate는 사용자 확인에 따라 정정됐다.
+HQNR 하한을 만족하는 후보가 없으면 **HQNR 최고 → ERGAS 최소 → 이른 step** 순으로 대표 1개를 게시한다.
+공식 평가가 없는 run에는 수치를 만들지 않는다. 이전 .9885는 사용자 확인에 따라 .9585로 정정됐다.
 Stage1 donor의 Val-RRE 선정·게시 규칙은 유지한다. 원본 config의 .959/2.045는
 당시 기록으로 보존하며, 게시 판정은 새 기준으로 별도 계산한다.
 동일 checkpoint의 모든 metric과 cost identity를 묶는다. 기존 다른 서버 행을

@@ -1,4 +1,4 @@
-"""Stage1 RRE + all joint passes and one HQNR-qualified Stage2 representative."""
+"""Stage1 RRE + all joint passes and a representative for every evaluated run."""
 import argparse
 import fcntl
 import math
