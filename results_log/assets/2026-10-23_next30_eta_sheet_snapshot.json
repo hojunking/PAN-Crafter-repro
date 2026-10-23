@@ -1,0 +1,794 @@
+{
+  "observed_at": "2026-10-23 08:43:41 UTC",
+  "spreadsheet_url": "https://docs.google.com/spreadsheets/d/1_ANKPQjQzMZrw9fUc1OI3B9xF4K3sxNa_fybg1kjBXE/edit",
+  "sheet": "WV3-ablations",
+  "value_render_option": "UNFORMATTED_VALUE",
+  "ranges": {
+    "A159:C190": {
+      "range": "'WV3-ablations'!A159:C190",
+      "majorDimension": "ROWS",
+      "values": [
+        [
+          "SCALE30 NOSOFT G8_MATURE_U23 R1",
+          "s1",
+          "정합최적 · 50,000"
+        ],
+        [],
+        [
+          "SCALE30 NOSOFT G8_MATURE_U23 R1",
+          "s3",
+          "정합최적 · 36,000"
+        ],
+        [
+          "SCALE30 NOSOFT S020BASE R1",
+          "s3",
+          "대표 · ERGAS 최소 · ERGAS 미달 · 19,000"
+        ],
+        [
+          "SCALE30 NOSOFT S020H050 R1",
+          "s3",
+          "대표 · ERGAS 최소 · ERGAS 미달 · 26,000"
+        ],
+        [],
+        [
+          "SCALE30 NOSOFT S020LR150 R1",
+          "s3",
+          "대표 · ERGAS 최소 · ERGAS 미달 · 17,000"
+        ],
+        [
+          "SCALE30 NOSOFT S020H200 R1",
+          "s3",
+          "대표 · ERGAS 최소 · ERGAS 미달 · 24,000"
+        ],
+        [],
+        [
+          "SCALE30 NOSOFT S020LR150H050 R1",
+          "s3",
+          "대표 · ERGAS 최소 · ERGAS 미달 · 18,000"
+        ],
+        [
+          "SCALE30 NOSOFT S010LR150H050 R1",
+          "s3",
+          "대표 · ERGAS 최소 · ERGAS 미달 · 26,000"
+        ],
+        [],
+        [
+          "SCALE30 NOSOFT S020BASE R2",
+          "s3",
+          "대표 · ERGAS 최소 · ERGAS 미달 · 26,000"
+        ],
+        [
+          "SCALE30 NOSOFT S010BASE R1",
+          "s1",
+          "대표 · ERGAS 최소 · ERGAS 미달 · 25,000"
+        ],
+        [
+          "SCALE30 NOSOFT S020BASE R1",
+          "s1",
+          "대표 · ERGAS 최소 · ERGAS 미달 · 25,000"
+        ],
+        [
+          "SCALE30 NOSOFT S020LR075 R1",
+          "s1",
+          "대표 · ERGAS 최소 · ERGAS 미달 · 19,000"
+        ],
+        [
+          "SCALE30 NOSOFT S030BASE R1",
+          "s1",
+          "대표 · HQNR 최고 · HQNR 미달 · 14,000"
+        ],
+        [
+          "SCALE30 NOSOFT S020LR150H050 R2",
+          "s3",
+          "대표 · ERGAS 최소 · ERGAS 미달 · 5,000"
+        ],
+        [
+          "SCALE30 NOSOFT S040BASE R1",
+          "s1",
+          "대표 · HQNR 최고 · HQNR 미달 · 2,000"
+        ],
+        [
+          "SCHEDULE30 NOSOFT G8_MATURE_U23 R1",
+          "s1",
+          "정합최적 · 50,000"
+        ],
+        [
+          "SCHEDULE30 NOSOFT S020F25C35 R1",
+          "s1",
+          "대표 · HQNR 최고 · HQNR 미달 · 29,000"
+        ],
+        [
+          "SCHEDULE30 NOSOFT G8_MATURE_U23 R1",
+          "s3",
+          "정합최적 · 36,000"
+        ],
+        [
+          "SCHEDULE30 NOSOFT S020F25C35 R1",
+          "s3",
+          "대표 · HQNR 최고 · HQNR 미달 · 29,000"
+        ],
+        [
+          "SCHEDULE30 NOSOFT S010F25C35 R1",
+          "s1",
+          "대표 · HQNR 최고 · HQNR 미달 · 29,000"
+        ],
+        [
+          "SCHEDULE30 NOSOFT S020C30 R1",
+          "s3",
+          "대표 · HQNR 최고 · HQNR 미달 · 16,000"
+        ],
+        [
+          "NEXT30 L4 G8_MATURE_U23 R1",
+          "s1",
+          "정합최적 · 50,000"
+        ],
+        [
+          "NEXT30 L4 S020C30 R1",
+          "s1",
+          "대표 · HQNR 최고 · HQNR 미달 · 2,000"
+        ]
+      ]
+    },
+    "T159:V190": {
+      "range": "'WV3-ablations'!T159:V190",
+      "majorDimension": "ROWS",
+      "values": [
+        [
+          2.350514976312439,
+          0.1937512444319307,
+          2.6062759525000003
+        ],
+        [],
+        [
+          1.1227438380285941,
+          0.07227283178130164,
+          1.3036010394444444
+        ],
+        [
+          0.8587199643234877,
+          0.046673421301982466,
+          0.9577917836111111
+        ],
+        [
+          1.1765156529805003,
+          0.05932971812681191,
+          1.3075258075
+        ],
+        [],
+        [
+          0.7677476702692608,
+          0.04155381338075838,
+          0.8536297658333333
+        ],
+        [
+          1.08491582488072,
+          0.05493442962489401,
+          1.2028425297222223
+        ],
+        [],
+        [
+          0.8150234975427804,
+          0.04418953294296645,
+          0.9080183630555555
+        ],
+        [
+          1.1504485982141663,
+          0.059592975000850854,
+          1.2755554347222222
+        ],
+        [],
+        [
+          1.093389676058044,
+          0.05959476621174771,
+          1.218881214722222
+        ],
+        [
+          2.999465219555746,
+          0.25596515224082395,
+          3.3384908766666666
+        ],
+        [
+          1.7231979222536513,
+          0.13529165133914728,
+          1.8981689805555557
+        ],
+        [
+          1.2850349365879083,
+          0.10609115903779942,
+          1.4205783163888888
+        ],
+        [
+          1.2882015708687766,
+          0.1134140433355545,
+          1.4393682302777777
+        ],
+        [
+          0.21055016711638827,
+          0.010294577720730254,
+          0.23458313972222225
+        ],
+        [
+          0.14937940921003853,
+          0.012974866281664516,
+          0.16760967138888888
+        ],
+        [
+          2.350514976312439,
+          0.1937512444319307,
+          2.6062759525000003
+        ],
+        [
+          0.27096803905313005,
+          0.023714386974461377,
+          0.3032609525
+        ],
+        [
+          1.1227438380285941,
+          0.07227283178130164,
+          1.3036010394444444
+        ],
+        [
+          0.16906876779678795,
+          0.010377115636236138,
+          0.18887533444444443
+        ],
+        [
+          0.26292338806531107,
+          0.022433904043896797,
+          0.2920516802777778
+        ],
+        [
+          0.6749320157079233,
+          0.03852911561494693,
+          0.7605558433333334
+        ],
+        [
+          2.350514976312439,
+          0.1937512444319307,
+          2.6062759525000003
+        ],
+        [
+          0.1343143031634261,
+          0.011211359307797264,
+          0.1485800602777778
+        ]
+      ]
+    },
+    "AC159:AO190": {
+      "range": "'WV3-ablations'!AC159:AO190",
+      "majorDimension": "ROWS",
+      "values": [
+        [
+          "PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1",
+          "PS30_WV3_S1_G8_MATURE_U23_NOSOFT_R1_S261016101",
+          "G8_MATURE_U23",
+          1,
+          261016101,
+          1,
+          "Reused Teacher+Aligner (RRE selection)",
+          null,
+          null,
+          "PB30_WV3_S1_G8_S1_U23_R1_S261016101",
+          0,
+          50000,
+          50000
+        ],
+        [],
+        [
+          "PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1",
+          "PS30_WV3_S3_G8_MATURE_U23_NOSOFT_R1_S261016101",
+          "G8_MATURE_U23",
+          1,
+          261016101,
+          1,
+          "Reused Teacher+Aligner (RRE selection)",
+          null,
+          null,
+          "PM30_WV3_S3_G8_MATURE_U23_NOSOFT_R1_S261016101",
+          0,
+          36000,
+          36000
+        ],
+        [
+          "PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1",
+          "PS30_WV3_S3_S020BASE_NOSOFT_R1_S261018101",
+          "S020BASE",
+          1,
+          261018101,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PM30_WV3_S3_G8_MATURE_U23_NOSOFT_R1_S261016101",
+          19000,
+          19000,
+          19000
+        ],
+        [
+          "PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1",
+          "PS30_WV3_S3_S020H050_NOSOFT_R1_S261018101",
+          "S020H050",
+          1,
+          261018101,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PM30_WV3_S3_G8_MATURE_U23_NOSOFT_R1_S261016101",
+          26000,
+          26000,
+          26000
+        ],
+        [],
+        [
+          "PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1",
+          "PS30_WV3_S3_S020LR150_NOSOFT_R1_S261018101",
+          "S020LR150",
+          1,
+          261018101,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PM30_WV3_S3_G8_MATURE_U23_NOSOFT_R1_S261016101",
+          17000,
+          17000,
+          17000
+        ],
+        [
+          "PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1",
+          "PS30_WV3_S3_S020H200_NOSOFT_R1_S261018101",
+          "S020H200",
+          1,
+          261018101,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PM30_WV3_S3_G8_MATURE_U23_NOSOFT_R1_S261016101",
+          24000,
+          24000,
+          24000
+        ],
+        [],
+        [
+          "PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1",
+          "PS30_WV3_S3_S020LR150H050_NOSOFT_R1_S261018101",
+          "S020LR150H050",
+          1,
+          261018101,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PM30_WV3_S3_G8_MATURE_U23_NOSOFT_R1_S261016101",
+          18000,
+          18000,
+          18000
+        ],
+        [
+          "PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1",
+          "PS30_WV3_S3_S010LR150H050_NOSOFT_R1_S261018101",
+          "S010LR150H050",
+          1,
+          261018101,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PM30_WV3_S3_G8_MATURE_U23_NOSOFT_R1_S261016101",
+          26000,
+          26000,
+          26000
+        ],
+        [],
+        [
+          "PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1",
+          "PS30_WV3_S3_S020BASE_NOSOFT_R2_S261018102",
+          "S020BASE",
+          2,
+          261018102,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PM30_WV3_S3_G8_MATURE_U23_NOSOFT_R1_S261016101",
+          26000,
+          26000,
+          26000
+        ],
+        [
+          "PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1",
+          "PS30_WV3_S1_S010BASE_NOSOFT_R1_S261018101",
+          "S010BASE",
+          1,
+          261018101,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PB30_WV3_S1_G8_S1_U23_R1_S261016101",
+          25000,
+          25000,
+          25000
+        ],
+        [
+          "PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1",
+          "PS30_WV3_S1_S020BASE_NOSOFT_R1_S261018101",
+          "S020BASE",
+          1,
+          261018101,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PB30_WV3_S1_G8_S1_U23_R1_S261016101",
+          25000,
+          25000,
+          25000
+        ],
+        [
+          "PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1",
+          "PS30_WV3_S1_S020LR075_NOSOFT_R1_S261018101",
+          "S020LR075",
+          1,
+          261018101,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PB30_WV3_S1_G8_S1_U23_R1_S261016101",
+          19000,
+          19000,
+          19000
+        ],
+        [
+          "PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1",
+          "PS30_WV3_S1_S030BASE_NOSOFT_R1_S261018101",
+          "S030BASE",
+          1,
+          261018101,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PB30_WV3_S1_G8_S1_U23_R1_S261016101",
+          14000,
+          14000,
+          14000
+        ],
+        [
+          "PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1",
+          "PS30_WV3_S3_S020LR150H050_NOSOFT_R2_S261018102",
+          "S020LR150H050",
+          2,
+          261018102,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PM30_WV3_S3_G8_MATURE_U23_NOSOFT_R1_S261016101",
+          5000,
+          5000,
+          5000
+        ],
+        [
+          "PANDA_S13_SCALE_HARDTUNE_30H_20261022_v1",
+          "PS30_WV3_S1_S040BASE_NOSOFT_R1_S261018101",
+          "S040BASE",
+          1,
+          261018101,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PB30_WV3_S1_G8_S1_U23_R1_S261016101",
+          2000,
+          2000,
+          2000
+        ],
+        [
+          "PANDA_S13_SCHEDULE_HARDONLY_20261023_v1",
+          "PSC30_WV3_S1_G8_MATURE_U23_NOSOFT_R1_S261016101",
+          "G8_MATURE_U23",
+          1,
+          261016101,
+          1,
+          "Reused Teacher+Aligner (RRE selection)",
+          null,
+          null,
+          "PB30_WV3_S1_G8_S1_U23_R1_S261016101",
+          0,
+          50000,
+          50000
+        ],
+        [
+          "PANDA_S13_SCHEDULE_HARDONLY_20261023_v1",
+          "PSC30_WV3_S1_S020F25C35_NOSOFT_R1_S261018101",
+          "S020F25C35",
+          1,
+          261018101,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PS30_WV3_S1_S020BASE_NOSOFT_R1_S261018101",
+          4000,
+          29000,
+          29000
+        ],
+        [
+          "PANDA_S13_SCHEDULE_HARDONLY_20261023_v1",
+          "PSC30_WV3_S3_G8_MATURE_U23_NOSOFT_R1_S261016101",
+          "G8_MATURE_U23",
+          1,
+          261016101,
+          1,
+          "Reused Teacher+Aligner (RRE selection)",
+          null,
+          null,
+          "PM30_WV3_S3_G8_MATURE_U23_NOSOFT_R1_S261016101",
+          0,
+          36000,
+          36000
+        ],
+        [
+          "PANDA_S13_SCHEDULE_HARDONLY_20261023_v1",
+          "PSC30_WV3_S3_S020F25C35_NOSOFT_R1_S261018101",
+          "S020F25C35",
+          1,
+          261018101,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PS30_WV3_S3_S020BASE_NOSOFT_R1_S261018101",
+          4000,
+          29000,
+          29000
+        ],
+        [
+          "PANDA_S13_SCHEDULE_HARDONLY_20261023_v1",
+          "PSC30_WV3_S1_S010F25C35_NOSOFT_R1_S261018101",
+          "S010F25C35",
+          1,
+          261018101,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PS30_WV3_S1_S010BASE_NOSOFT_R1_S261018101",
+          4000,
+          29000,
+          29000
+        ],
+        [
+          "PANDA_S13_SCHEDULE_HARDONLY_20261023_v1",
+          "PSC30_WV3_S3_S020C30_NOSOFT_R1_S261018101",
+          "S020C30",
+          1,
+          261018101,
+          1,
+          "Student+FrozenAligner",
+          null,
+          null,
+          "PM30_WV3_S3_G8_MATURE_U23_NOSOFT_R1_S261016101",
+          16000,
+          16000,
+          16000
+        ],
+        [
+          "PANDA_S13_NEXT_HARDONLY_20261023_v1",
+          "PNX30_WV3_S1_G8_MATURE_U23_NOSOFT_R1_S261016101",
+          "G8_MATURE_U23",
+          1,
+          261016101,
+          1,
+          "Reused Teacher+Aligner (RRE selection)",
+          "W112D123 BASE; [bicubic(PAN,+u), MS base]; frozen reused Teacher",
+          null,
+          "PB30_WV3_S1_G8_S1_U23_R1_S261016101",
+          0,
+          50000,
+          50000
+        ],
+        [
+          "PANDA_S13_NEXT_HARDONLY_20261023_v1",
+          "PNX30_WV3_S1_S020C30_NOSOFT_R1_S261018101",
+          "S020C30",
+          1,
+          261018101,
+          1,
+          "Student+FrozenAligner",
+          "W112D123 BASE; [PANc, MS base]; 8-band HRMS; PANc=Lanczos4(PAN,+scale*u)",
+          null,
+          "PB30_WV3_S1_G8_S1_U23_R1_S261016101",
+          2000,
+          2000,
+          2000
+        ]
+      ]
+    },
+    "AY159:AZ190": {
+      "range": "'WV3-ablations'!AY159:AZ190",
+      "majorDimension": "ROWS",
+      "values": [
+        [
+          "OBSERVED",
+          "VERIFIED"
+        ],
+        [],
+        [
+          "OBSERVED",
+          "VERIFIED"
+        ],
+        [
+          "COMPLETED",
+          "VERIFIED"
+        ],
+        [
+          "COMPLETED",
+          "VERIFIED"
+        ],
+        [],
+        [
+          "COMPLETED",
+          "VERIFIED"
+        ],
+        [
+          "COMPLETED",
+          "VERIFIED"
+        ],
+        [],
+        [
+          "COMPLETED",
+          "VERIFIED"
+        ],
+        [
+          "COMPLETED",
+          "VERIFIED"
+        ],
+        [],
+        [
+          "COMPLETED",
+          "VERIFIED"
+        ],
+        [
+          "COMPLETED",
+          "VERIFIED"
+        ],
+        [
+          "COMPLETED",
+          "VERIFIED"
+        ],
+        [
+          "COMPLETED",
+          "VERIFIED"
+        ],
+        [
+          "COMPLETED",
+          "VERIFIED"
+        ],
+        [
+          "STOPPED",
+          "VERIFIED"
+        ],
+        [
+          "STOPPED",
+          "VERIFIED"
+        ],
+        [
+          "OBSERVED",
+          "VERIFIED"
+        ],
+        [
+          "COMPLETED",
+          "VERIFIED"
+        ],
+        [
+          "OBSERVED",
+          "VERIFIED"
+        ],
+        [
+          "COMPLETED",
+          "VERIFIED"
+        ],
+        [
+          "COMPLETED",
+          "VERIFIED"
+        ],
+        [
+          "OBSERVED",
+          "VERIFIED"
+        ],
+        [
+          "OBSERVED",
+          "VERIFIED"
+        ],
+        [
+          "OBSERVED",
+          "VERIFIED"
+        ]
+      ]
+    },
+    "BL159:BL190": {
+      "range": "'WV3-ablations'!BL159:BL190",
+      "majorDimension": "ROWS",
+      "values": [
+        [
+          "2026-10-19T09:51:12.328977+00:00"
+        ],
+        [],
+        [
+          "2026-10-20T12:34:47.621426+00:00"
+        ],
+        [
+          "2026-10-22T13:34:43.628028+00:00"
+        ],
+        [
+          "2026-10-22T16:24:57.638237+00:00"
+        ],
+        [],
+        [
+          "2026-10-22T18:27:16.047661+00:00"
+        ],
+        [
+          "2026-10-22T21:17:27.998806+00:00"
+        ],
+        [],
+        [
+          "2026-10-22T23:29:02.032365+00:00"
+        ],
+        [
+          "2026-10-23T02:20:38.268734+00:00"
+        ],
+        [],
+        [
+          "2026-10-23T04:40:01.368104+00:00"
+        ],
+        [
+          "2026-10-22T19:52:20.698192+00:00"
+        ],
+        [
+          "2026-10-22T14:19:11.057974+00:00"
+        ],
+        [
+          "2026-10-22T23:44:46.751059+00:00"
+        ],
+        [
+          "2026-10-23T03:22:34.636497+00:00"
+        ],
+        [
+          "2026-10-23T06:00:21.007269+00:00"
+        ],
+        [
+          "2026-10-23T06:23:35.002625+00:00"
+        ],
+        [
+          "2026-10-19T09:51:12.328977+00:00"
+        ],
+        [
+          "2026-10-23T07:13:47.498091+00:00"
+        ],
+        [
+          "2026-10-20T12:34:47.621426+00:00"
+        ],
+        [
+          "2026-10-23T07:32:42.299261+00:00"
+        ],
+        [
+          "2026-10-23T07:59:22.606932+00:00"
+        ],
+        [
+          "2026-10-23T08:35:27.043128+00:00"
+        ],
+        [
+          "2026-10-19T09:51:12.328977+00:00"
+        ],
+        [
+          "2026-10-23T08:37:15.836926+00:00"
+        ]
+      ]
+    }
+  }
+}

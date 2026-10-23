@@ -4,9 +4,11 @@
 
 새 캠페인은 `PANDA_S13_NEXT_HARDONLY_20261023_v1`, prefix `PNX30`이다. [현재·후속 전체표](2026-10-23_NEXT30_current_and_queue.md), [방법/실행 README](../panda_next30/README.md), [s3 CSV](../panda_next30/cases_s3.csv)를 함께 본다.
 
+**구현 commit: `fa1e85b` — Apply Lanczos4 to next queued runs and add full-shift PAN difference inputs.** 이 commit을 포함하는 본 인계 문서의 최신 commit까지 받는다. 선행 schedule/sampling 구현도 이 commit의 조상에 포함된다.
+
 ## 실행
 
-이 문서의 Git commit을 받아 기존 미커밋 파일·credential·work_dir를 보존한다. 현재 trainer의 pin 대상 소스를 수정하지 않는다. root가 확인한 Sheet에서는2026-10-23 08:03:56 UTC에 S020C30 R1 대표5K가 게시돼 있었으며 실제 진행 상태는 s3 현지 파일로 확인해야 한다.
+이 문서의 Git commit을 받아 기존 미커밋 파일·credential·work_dir를 보존한다. 현재 trainer의 pin 대상 소스를 수정하지 않는다. root가 2026-10-23 08:43:41 UTC에 읽은 Sheet에는 S020C30 R1 대표16K(게시 시각 08:35:27 UTC)가 있었으며 실제 진행 상태는 s3 현지 파일로 확인해야 한다.
 
 ```bash
 python -m panda_next30 catalog --server s3 --csv
@@ -31,3 +33,9 @@ bash scripts/start_panda_next30_transition.sh s3
 Approach/Model에 L4,scale,sampler,9/10ch,Hard계수,LR,horizon을 표시한다. 기존 HQNR≥.9585·ERGAS≤2.040통과전체+대표/fallback규칙을 유지한다. 기존결과와Stage1RRE행을보존한다.
 
 전환기록은 `work_dir/panda_next30_launchers/s3/transition_receipt.json`이다. 실행후 campaign state의 `migration_effective_queue`, `preflight/passed.json`, 첫trainupdate, Sheet`readback_verified`를 확인해 보고한다. 사용commit과실제미시작/완료case목록도남긴다. 중단·source/donor/state불일치는 증거를덮어쓰지않고원인을확인한다.
+
+## 예상 시간과 s1 검증 상태
+
+s3 전체 17개는 535,000 update, 공식 평가 511회다. 기존 s3 실측 약 0.152초/update를 바탕으로 새 warp 비용을 소폭 더하면 기준 약 24.6시간이며, 준비·I/O·구조별 속도 차이를 포함해 **25–30시간**을 계획한다. 현재 bicubic case 마무리와 인계 지연은 별도다. 기존 대응 case 진행에 따른 중복 생략이 있으면 실제 새 큐는 더 짧아질 수 있다.
+
+s1은 2026-10-23 17:28 KST에 실제 CUDA preflight를 통과하고 NEXT30을 시작했다. 17:50 KST 전후 상태 파일은 첫 L4 S020C30 R1의 4K checkpoint를 기록했다. s1 18개 전체는 약 43–50시간이며 두 서버를 병행하면 전체 약 2일이다. s1 검증이 s3 현지 검증을 대신하지 않는다. [계산·측정 근거](2026-10-23_NEXT30_runtime_estimate.md)를 참조한다.

@@ -2,6 +2,8 @@
 
 기록 시점: 2026-10-23 17:20 KST. s1은 현지 campaign state, s3는 Sheet 게시 기록으로 구분해 적었다.
 
+**17:50 KST 전후 업데이트:** 아래 현재 run 표는 17:20 기록이다. 이후 s1 S010F25C35도 35K 완료됐고, 17:28에 CUDA preflight를 통과해 NEXT30을 시작했다. 첫 Lanczos4 S020C30 R1은 상태 파일 4K까지 진행됐다. s3는 17:43 Sheet 읽기에서 기존 S020C30 R1 대표16K(17:35 게시)가 확인됐다. s3 live 진행 상황은 현지 확인이 필요하다. 전체 새 큐 예상은 **s1 43–50시간 / s3 25–30시간**, 병행 약 2일이다. [시간 계산과 근거](2026-10-23_NEXT30_runtime_estimate.md).
+
 **결정:** 다음 미시작 실험부터 Lanczos-4 하나를 사용한다. 현재 bicubic run은 완료하고, 미시작 schedule 및 구조 실험은 NEXT30으로 이관한다. 기존 학습 checkpoint에 추론 warp만 교체하지 않는다. 새 full-u 차영상 입력을 추가하고, 밴드 가중 loss·rotation loss는 제외한다.
 
 ## 현재/이미 시작한 run
@@ -71,7 +73,7 @@ DAVG는 두 down을 평균 pooling2+conv3로, UBIL은 두 up을 bilinear×2+conv
 
 ## 검증과 게시
 
-s1 실제 donor로 전체 RR-train9,714개를 CPU 검사한 결과 full-u Lanczos4 support 위반은0개였다. raw dy[-1.2754,1.4048], dx[-1.0367,.8842]px였고,64표본×4기존 C4 view도 통과했다. [검증 JSON](assets/2026-10-23_next30_support_cpu.json). 새 CUDA calibration/update/resume/native inference는 현재 run 완료 후 자동 검사한다. 아직 새 방식의 HQNR/ERGAS 학습 결과는 없다.
+s1 실제 donor로 전체 RR-train9,714개를 CPU 검사한 결과 full-u Lanczos4 support 위반은0개였다. raw dy[-1.2754,1.4048], dx[-1.0367,.8842]px였고,64표본×4기존 C4 view도 통과했다. [검증 JSON](assets/2026-10-23_next30_support_cpu.json). 새 CUDA calibration/update/resume/native inference 검증도 17:28에 통과했다. 첫 L4 학습의 초반 평가가 생성되고 있으며 완주 결과는 아직 없다.
 
 새 Sheet Approach에는 `L4 | scale/full-u | BASE/DAVG/UBIL | 9/10ch | Hard α/γ | LR | cosine horizon`을 표시하고 Model/inputs에도 입력 구성을 적는다. 원래 bicubic 행을 L4로 바꾸어 표시하지 않는다. 실제 검증된 배포 비용도 입력·구조별로 분리한다.
 
