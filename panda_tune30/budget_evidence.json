@@ -1,0 +1,96 @@
+{
+  "sources": {
+    "s1": "work_dir/panda_follow30/PANDA_S13_FOLLOW_HARDONLY_20261024_v1/s1/WV3/campaign_state.json",
+    "s3": "results_log/assets/2026-10-25_follow30_uploaded_sheet.json"
+  },
+  "measurements": {
+    "s1": [
+      {
+        "case": "S100DIFFUBILC30",
+        "replica": "R1",
+        "started_at": "2026-10-25T01:30:12.188571+00:00",
+        "completed_at": "2026-10-25T03:56:57.168228+00:00",
+        "updates": 30000,
+        "seconds": 8804.979657,
+        "seconds_per_update": 0.2934993219
+      },
+      {
+        "case": "S100DIFFUBILC30",
+        "replica": "R2",
+        "started_at": "2026-10-25T03:56:57.383714+00:00",
+        "completed_at": "2026-10-25T06:24:59.735884+00:00",
+        "updates": 30000,
+        "seconds": 8882.35217,
+        "seconds_per_update": 0.29607840566666666
+      }
+    ],
+    "s3": [
+      {
+        "case": "S100DIFFUBILC30",
+        "replica": 1,
+        "previous_completed_at": "2026-10-25T03:04:37.505890+00:00",
+        "completed_at": "2026-10-25T04:40:25.396809+00:00",
+        "updates": 30000,
+        "seconds": 5747.890919,
+        "seconds_per_update": 0.19159636396666668,
+        "measurement": "SEQUENTIAL_COMPLETION_INTERVAL_INCLUDES_SMALL_BETWEEN_RUN_OVERHEAD"
+      },
+      {
+        "case": "S100DIFFUBILC30",
+        "replica": 2,
+        "previous_completed_at": "2026-10-25T04:40:25.396809+00:00",
+        "completed_at": "2026-10-25T06:16:32.710825+00:00",
+        "updates": 30000,
+        "seconds": 5767.314016,
+        "seconds_per_update": 0.19224380053333334,
+        "measurement": "SEQUENTIAL_COMPLETION_INTERVAL_INCLUDES_SMALL_BETWEEN_RUN_OVERHEAD"
+      }
+    ]
+  },
+  "mean_allin_seconds_per_update": {
+    "s1": 0.29478886378333335,
+    "s3": 0.19192008225
+  },
+  "assumptions": [
+    "W128 runtime multiplier 1.30 is a planning assumption motivated by parameter increase, NOT a measured GPU speed ratio.",
+    "The new 30-hour clock starts only after FOLLOW30 completes and includes TUNE30 cost profiling/preflight; predecessor remaining time is excluded.",
+    "W112 per-update rates are full-run wall rates including evaluation and saving. Shared calibration is not charged again as a 600-second per-run measured cost.",
+    "Nominal totals exclude new-launch preparation overhead. The 8% safety margin and 1800-second closeout reserve are budget safeguards, not measurements.",
+    "Fixed queue; no performance-based automatic retuning. A final pair may be omitted explicitly when remaining time is insufficient; admission estimates do not guarantee completion within 30 hours.",
+    "s1 and s3 use different frozen donors; results are not interchangeable seed repeats."
+  ],
+  "campaign_id": "PANDA_S13_TUNE_HARDONLY_30H_20261025_v1",
+  "planning_date": "2026-10-25",
+  "budget": {
+    "total_seconds_per_server": 108000,
+    "safety_factor": 1.08,
+    "closeout_seconds": 1800,
+    "includes": [
+      "cost profiling",
+      "CUDA preflight",
+      "calibration",
+      "training",
+      "checkpoint saving",
+      "official evaluation",
+      "publication closeout"
+    ],
+    "starts": "TUNE30 launcher preparation after FOLLOW30 completion; excludes predecessor remaining time",
+    "restart": "preserve original elapsed time and completed state"
+  },
+  "selected_plans": {
+    "s1": {
+      "runs": 11,
+      "updates": 320000,
+      "width128_updates": 0,
+      "nominal_hours": 26.203454558518523,
+      "with_8percent_and_30min_reserve_hours": 28.799730923200006
+    },
+    "s3": {
+      "runs": 15,
+      "updates": 450000,
+      "width128_updates": 60000,
+      "nominal_hours": 24.949610692500002,
+      "with_8percent_and_30min_reserve_hours": 27.445579547900003
+    }
+  }
+}
