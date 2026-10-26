@@ -1,0 +1,7 @@
+order,server,dataset,phase,case,replica,seed,updates,lr_A,lr_U,alpha,beta,gamma,scale,input_channels,HQNR_min,ERGAS_max
+0,s1,QB,donor,G4_MATURE_U23,R1,261016101,50000,1e-05,0.0001,,0,,1,5,0.9315,3.5
+1,s1,QB,stage2,QB_BASE,R1,261018101,30000,0.0,0.0001,0.25,0,0.5,1,6,0.9315,3.5
+2,s1,QB,stage2,QB_LR050,R1,261018101,30000,0.0,5e-05,0.25,0,0.5,1,6,0.9315,3.5
+3,s1,QB,stage2,QB_LR200,R1,261018101,30000,0.0,0.0002,0.25,0,0.5,1,6,0.9315,3.5
+4,s1,QB,stage2,QB_LONG,R1,261018101,50000,0.0,0.0001,0.25,0,0.5,1,6,0.9315,3.5
+5,s1,QB,stage2,QB_HARD4,R1,261018101,30000,0.0,0.0001,1.0,0,2.0,1,6,0.9315,3.5
