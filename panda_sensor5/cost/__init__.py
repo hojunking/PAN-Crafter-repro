@@ -51,8 +51,7 @@ def signature(cfg, step):
         "schema": SCHEMA, "server": cfg["server"], "dataset": cfg["dataset"],
         "phase": cfg["phase"], "geometry_key": key,
         "pan_shift_scale": 1. if cfg["phase"] == "donor" else cfg["shift_scale"],
-        "pan_execution": ("LANCZOS4_WARP_PAN_PREDICTED_GLOBAL2_TIMES_SCALE" if cfg["phase"] == "stage2"
-                          else "BICUBIC_WARP_PAN_PREDICTED_GLOBAL2_TIMES_SCALE"),
+        "pan_execution": "LANCZOS4_WARP_PAN_PREDICTED_GLOBAL2_TIMES_SCALE",
         "student_input": deepcopy(cfg["student_input"]) if cfg["phase"] == "stage2" else None,
         "student_warp": deepcopy(cfg["student_warp"]) if cfg["phase"] == "stage2" else None,
         "reconstructor_input": deepcopy(cfg["student_input"]) if cfg["phase"] == "stage2"

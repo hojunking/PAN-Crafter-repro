@@ -20,8 +20,8 @@ from .contract import (CAMPAIGN_ID, METHOD_REVISION, CASES, SCALE_POLICIES,
     sampling_manifest, input_manifest, WARP_MANIFEST, SOURCE_FIELDS,
     TRAINING_SCHEDULE_FIELDS)
 
-RECORD_NAMESPACE = "PAN_FIXED64_V1:2026-10-26:PANDA_SENSOR5_HARDONLY_V1"
-RECORD_PREFIX = "PSN5-"
+RECORD_NAMESPACE = "PAN_FIXED64_V1:2026-10-26:PANDA_SENSOR5_RGB_L4_HARDONLY_V2"
+RECORD_PREFIX = "PSN5R2-"
 
 
 class ReportingError(ValueError):
@@ -127,8 +127,8 @@ def _config(cfg):
         raise ReportingError("Sensor5 requires interp23 and original MS output coordinates")
     if cfg.get("aligner_outputs") != 2 or cfg.get("pan_channels") != 1:
         raise ReportingError("Sensor5 requires two Aligner outputs and one PAN")
-    if cfg.get("alignment_target") != "SCHARR_OF_MEAN4_GT":
-        raise ReportingError("Sensor5 requires the G4 alignment target")
+    if cfg.get("alignment_target") != "SCHARR_OF_RGB_MEAN_GT":
+        raise ReportingError("Sensor5 requires the RGB alignment target")
     if phase(cfg) == "donor":
         if cfg.get("policy_id") != "S100":
             raise ReportingError("Fresh Stage1 requires its registered full-u policy")
@@ -138,8 +138,8 @@ def _config(cfg):
         if not isinstance(cfg.get(key), str) or not cfg[key]:
             raise ReportingError("Missing identity: " + key)
     run = cfg["run_id"]
-    if Path(run).name != run or not run.startswith("PSN5_" + cfg["dataset"] + "_" + cfg["server"].upper() + "_"):
-        raise ReportingError("Distinct server-bound PSN5 run namespace required")
+    if Path(run).name != run or not run.startswith("PSN5R2_" + cfg["dataset"] + "_" + cfg["server"].upper() + "_"):
+        raise ReportingError("Distinct server-bound PSN5R2 run namespace required")
     validate_raw_model(cfg)
     for key, minimum in (("attempt", 1), ("seed", 0), ("planned_horizon", 1)):
         if type(cfg.get(key)) is not int or cfg[key] < minimum:
@@ -251,7 +251,7 @@ def _stage2_config(cfg):
             ("shift_unit", "CURRENT_PAN_PIXEL_NO_X4"),
             ("pan_execution", "LANCZOS4_WITH_POSITIVE_SCALE_TIMES_FROZEN_ALIGNER_U"),
             ("student_warp", WARP_MANIFEST),
-            ("loss_support", "STUDENT_LANCZOS4_AND_FIXED_FULL_U_TEACHER_BICUBIC_INTERSECTION"),
+            ("loss_support", "STUDENT_AND_FIXED_FULL_U_TEACHER_LANCZOS4_INTERSECTION"),
             ("teacher_policy", "FIXED_STAGE1_FORWARD_PAN_PLUS_FULL_U"),
             ("evaluation_references", "ORIGINAL_UNSHIFTED_UNMASKED_RR20_FR20")):
         if geometry.get(field) != expected:
@@ -298,7 +298,7 @@ def update_lineage(cfg, step):
 def approach_description(cfg):
     """Readable spreadsheet summary; full immutable configuration stays in notes."""
     if phase(cfg) == "donor":
-        return "SENSOR5 fresh Stage1 | G4 | bicubic full-u | 5ch->4band | interp23 | 50K"
+        return "SENSOR5 v2 fresh Stage1 | RGB ref | L4 full-u | 5ch->4band | interp23 | 50K"
     knobs = CASES[cfg["case"]]
     scale = "full-u (scale=1)" if knobs["scale"] == 1. else f"scale={knobs['scale']:g}"
     inputs = "PANc+delta+Ilrms (6ch)" if cfg["input_variant"] == "CORRECTED_DIFF" else "PANc+Ilrms (5ch)"
@@ -309,14 +309,14 @@ def approach_description(cfg):
         rate += f" fork@{inherited//1000}K->{cfg['planned_horizon']//1000}K floor={knobs['min_lr']:g}"
     else:
         rate += f"={cfg['planned_horizon']//1000}K"
-    return (f"L4 warp | {scale} | W{knobs['student_width']}D123 {cfg['sampling_variant']} | {inputs} | "
+    return (f"L4 warp A/T/S | RGB ref S1/S2 | {scale} | W{knobs['student_width']}D123 {cfg['sampling_variant']} | {inputs} | "
             f"Hard alpha={knobs['alpha']:g} gamma={knobs['gamma']:g} beta=0 | "
             f"{rate} | interp23 | individual checkpoint")
 
 
 def model_description(cfg):
     if phase(cfg) == "donor":
-        return "W112D123 BASE; [bicubic(PAN,+u), Ilrms]; fresh 4-band Stage1 Teacher"
+        return "W112D123 BASE; [Lanczos4(PAN,+u), Ilrms]; fresh 4-band Stage1 Teacher"
     inputs = "[PANc, PANc-PAN, Ilrms]" if cfg["input_variant"] == "CORRECTED_DIFF" else "[PANc, Ilrms]"
     return f"W{cfg['student_architecture']['width']}D123 {cfg['sampling_variant']}; {inputs}; 4-band HRMS; PANc=Lanczos4(PAN,+scale*u); individual checkpoint"
 

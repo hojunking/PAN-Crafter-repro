@@ -16,8 +16,9 @@ import numpy as np
 import torch
 
 from directshift48.reporting import atomic_json
+from directshift48.method import RGB_INDICES
 from panda_method.calibration import canonical_sha256, state_dict_sha256
-from pa.warp import warp_pan, warp_support_mask
+from .warp import warp_pan, warp_support_mask
 from panda_sensor5.base_reconstruction import base_from_batch, reconstruct_with_base
 from ta2.evaluation import file_sha
 from ta2.registration import _features, register_band
@@ -25,12 +26,13 @@ from ta2.registration import _features, register_band
 from .contract import CAMPAIGN_ID, LANES
 
 SELECTOR = "BEST_VAL_RRE"
-SCHEMA = "PANDA_SENSOR5_RRE_SELECTION_V1"
+SCHEMA = "PANDA_SENSOR5_RGB_L4_RRE_SELECTION_V2"
 PROTOCOL = {
-    "schema": "PANDA_SENSOR5_VAL_RRE_V1",
+    "schema": "PANDA_SENSOR5_RGB_L4_VAL_RRE_V2",
     "split": "registered_RR_validation_only",
     "population": "all_registered_sensor_validation_patches",
-    "target": "Scharr_of_mean4_GT",
+    "target": "RGB_mean_GT",
+    "target_bands_R_G_B": [2, 1, 0],
     "reference_unit": "stored_DN_div_sensor_peak_GF2_1023_QB_2047",
     "shift_unit": "current_RR_PAN_pixel",
     "pan_policy": "full_uncapped_predicted_u",
@@ -38,10 +40,12 @@ PROTOCOL = {
     "sigma_p": .8,
     "sigma_r": .8,
     "bound": 8,
-    "margin": 16,
+    "margin": 20,
     "target_rms_threshold": 1e-4,
     "eligibility": "GT_only_centered_gradient_RMS_at_fixed_ROI",
-    "source_support_margin": 4,
+    "source_support_margin": 8,
+    "source_support_derivation": "20_ROI_minus_8_search_minus_3_Gaussian_minus_1_Scharr",
+    "warp": "lanczos4_whole_sample_reflection",
     "invalid_registration_penalty_px": 12.,
     "quantile_method": "numpy_linear",
     "rank": ["RRE50_ASC", "RRE90_ASC", "VAL_ERGAS_ASC", "UPDATE_ASC"],
@@ -58,7 +62,8 @@ PROTOCOL = {
 
 def target_eligibility(reference):
     feature = _features(np.asarray(reference, np.float32), .8, "gradient")
-    roi = feature[16:-16, 16:-16]
+    margin = PROTOCOL['margin']
+    roi = feature[margin:-margin, margin:-margin]
     centered = roi - roi.mean(axis=(0, 1), keepdims=True)
     rms = float(np.sqrt(np.mean(np.square(centered, dtype=np.float64))))
     return rms >= PROTOCOL["target_rms_threshold"], rms
@@ -77,7 +82,7 @@ def validation_inventory(sources):
             gt = np.asarray(handle["gt"][index], np.float32)
             if gt.shape != (4, 64, 64) or not np.isfinite(gt).all():
                 raise ValueError("Fixed 4x64x64 finite validation GT required")
-            ok, rms = target_eligibility(gt.mean(axis=0) / sources.peak)
+            ok, rms = target_eligibility(gt[list(RGB_INDICES[sources.sensor])].mean(axis=0) / sources.peak)
             eligible.append(bool(ok))
             target_rms.append(rms)
     if not any(eligible):
@@ -170,7 +175,7 @@ def collect_validation(value, sources, *, teacher=None, inventory=None,
     validate_inventory(inventory, sources)
     aligner, teacher = _modules(value, teacher)
     if getattr(aligner, "outputs", None) != 2:
-        raise ValueError("Mean4 global2 Aligner required, not bandwise head")
+        raise ValueError("RGB-reference global2 Aligner required, not bandwise head")
     if include_ergas and teacher is None:
         raise ValueError("Validation ERGAS requires exact paired Teacher")
     modules = [aligner] + ([teacher] if teacher is not None else [])
@@ -188,9 +193,10 @@ def collect_validation(value, sources, *, teacher=None, inventory=None,
                 raise ValueError("Unaugmented registered RR validation required")
             u = aligner(batch.pan, batch.native_lms)
             shifted = warp_pan(batch.pan, u)
-            support = warp_support_mask(64, 64, u)[..., 4:-4, 4:-4].flatten(1).all(1)
+            margin = PROTOCOL['source_support_margin']
+            support = warp_support_mask(64, 64, u)[..., margin:-margin, margin:-margin].flatten(1).all(1)
             pans = ((shifted[:, 0] + 1) / 2).cpu().numpy()
-            references = ((batch.gt.mean(1) + 1) / 2).cpu().numpy()
+            references = ((batch.gt[:, RGB_INDICES[sources.sensor]].mean(1) + 1) / 2).cpu().numpy()
             for local, index in enumerate(indexes):
                 eligible = inventory["eligible"][index]
                 entry = {"sample_id": inventory["sample_ids"][index], "eligible": eligible,
@@ -203,7 +209,7 @@ def collect_validation(value, sources, *, teacher=None, inventory=None,
                     else:
                         record = register_band(pans[local], references[local],
                             descriptor="gradient", sigma_p=.8, sigma_r=.8,
-                            bound=8, margin=16, target_rms_threshold=1e-4)
+                            bound=PROTOCOL['bound'], margin=PROTOCOL['margin'], target_rms_threshold=1e-4)
                         entry["valid"] = bool(record["valid"])
                         entry["failure_reason"] = record["fallback_reason"]
                     entry["registration"] = record

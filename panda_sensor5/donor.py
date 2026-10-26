@@ -37,9 +37,9 @@ def _check_source_config(cfg, server):
         raise ValueError("Cross-server donor import forbidden")
     if (cfg.get("dataset") not in ("QB", "GF2") or cfg.get("upsampler") != "interp23"
             or cfg.get("aligner_outputs") != 2 or cfg.get("pan_channels") != 1
-            or cfg.get("alignment_target") != "SCHARR_OF_MEAN4_GT"
+            or cfg.get("alignment_target") != "SCHARR_OF_RGB_MEAN_GT"
             or cfg.get("phase") != "donor" or cfg.get("planned_horizon") != 50000):
-        raise ValueError("Local mean4 global2 interp23 H50 Stage1 donor required")
+        raise ValueError("Local RGB-reference global2 interp23 H50 Stage1 donor required")
     if cfg.get("campaign_id") != CAMPAIGN_ID or cfg.get("dataset") != LANES[server]["dataset"]:
         raise ValueError("Only the registered same-sensor, same-server fresh Stage1 is allowed")
 
@@ -196,7 +196,7 @@ def load_donor(path, expected_sha256, registered, *, server="s1", device="cpu",
             "input_layout": "P0", "base_reference": "BICUBIC_MS"},
         "scharr": {"kernel": "absolute_xy_/32", "padding": "reflect1",
             "rgb_indices": [2, 1, 0], "roi_margin": 8},
-        "warp": "bicubic_border_FP32_align_corners_false_current_pan_px",
+        "warp": "lanczos4_reflect_FP32_current_pan_px",
         "band30_teacher": teacher_binding(cfg),
         "band30_reconstruction_spec": fresh.stage.teacher.spec.manifest()}
     metadata = {"checkpoint_path": str(path), "checkpoint_sha256": sha,

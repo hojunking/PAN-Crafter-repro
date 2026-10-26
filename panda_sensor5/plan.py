@@ -9,17 +9,29 @@ from pathlib import Path
 
 from panda_mature30 import plan as previous
 from donor30.plan import canonical_sha256, stream_seeds, LOSS_MASK_POLICY, SEED_PROTOCOL
-from directshift48.plan import alignment_protocol_digest, alignment_protocol_manifest
+from directshift48.plan import alignment_protocol_manifest as original_alignment_protocol
 from .contract import (CAMPAIGN_ID,METHOD_REVISION,RUN_PREFIX,LANES,BUDGET,POLICY,
     STAGE1_SELECTION,CASES,WARP_MANIFEST,SOURCE_FIELDS,input_manifest,sampling_manifest)
 
 ROOT = Path(__file__).resolve().parents[1]
 PLAN_PATH = Path(__file__).resolve()
 DATASETS = {s:v['dataset'] for s,v in LANES.items()}
-DONORS = ('G4_MATURE_U23',)
+DONORS = ('RGB_MATURE_U23',)
 SOURCE_SEED = 261016101
 SEEDS = {'R1':261018101}
 HORIZON = 60000
+
+def alignment_protocol_manifest(baseline):
+    from .warp import boundary_manifest
+    value = original_alignment_protocol(baseline)
+    value.update(method=METHOD_REVISION,
+                 native_warp='single_original_PAN_lanczos4_whole_sample_reflection_FP32',
+                 warp=deepcopy(WARP_MANIFEST), boundary=boundary_manifest())
+    value['epsilon']['warp'] = deepcopy(WARP_MANIFEST)
+    return value
+
+def alignment_protocol_digest(baseline):
+    return canonical_sha256(alignment_protocol_manifest(baseline))
 
 def dataset_for_server(server):
     if server not in DATASETS:
@@ -45,7 +57,9 @@ def baseline(server):
         lms_override_sha256=hashlib.sha256((ROOT/'config/bglobal_rr/qb_original_lms.json').read_bytes()).hexdigest() if sensor=='QB' else None)
     b['qual_export'].update(display_range_DN=[0,LANES[server]['peak']],rgb_indices=[2,1,0])
     b['alignment_protocol'] = alignment_protocol_manifest(b)
-    b['protocol_decisions']['sensor5'] = 'Four-band mean-GT Stage1, sensor-specific sources and validation; no old donor reuse'
+    b['support_policy'] = deepcopy(b['alignment_protocol']['boundary'])
+    b['protocol_decisions']['geometry'] = 'R3 epsilon and native correction use Lanczos4; support radius4 plus R3 fits view_margin8, fixed ROI8/stencil7'
+    b['protocol_decisions']['sensor5'] = 'RGB-mean reference Stage1 with all four input/output bands and unified Lanczos4, sensor-specific sources and validation; no old donor reuse'
     return b
 
 def groups(server):
@@ -66,7 +80,7 @@ def default_config(server):
         'budget':deepcopy(BUDGET),'donors':list(DONORS),'groups':groups(server),
         'cases':{k:deepcopy(v) for k,v in CASES.items() if v['sensor']==sensor},
         'seeds':deepcopy(SEEDS),'stage1_seed':SOURCE_SEED,
-        'donor_policy':'FRESH_LOCAL_MEAN4_INTERP23_COMPLETE_50K_VAL_RRE_SELECTION',
+        'donor_policy':'FRESH_LOCAL_RGB_L4_INTERP23_COMPLETE_50K_VAL_RRE_SELECTION',
         'allow_cross_server_donor':False,'stage1_selection':deepcopy(STAGE1_SELECTION),
         'checkpoint_selection':POLICY.manifest(),
         'sheet_selection':'ALL_JOINT_PASSES_PLUS_HQNR_QUALIFIED_MIN_ERGAS_ELSE_BEST_HQNR',
@@ -113,7 +127,7 @@ def resolve_case(server,case,replica='R1',*,attempt=1):
         'stage2':not donor,'engine_kind':'stage1_mature' if donor else 'stage2_mature',
         'initialization':'FRESH','aligner_kind':'direct','upsampler':'interp23',
         'frame':'pan','shift_scale':1.,'aligner_outputs':2,'pan_channels':1,
-        'alignment_target':'SCHARR_OF_MEAN4_GT','policy_id':'S100',
+        'alignment_target':'SCHARR_OF_RGB_MEAN_GT','policy_id':'S100',
         'band_augmentation':'NONE','band_augmentation_spec':None,
         'lr_U':1e-4,'lr_A':1e-5 if donor else 0.,'weight_decay':.01,
         'lambda_rec':1.,'lambda_abs':2. if donor else 0.,
@@ -122,6 +136,8 @@ def resolve_case(server,case,replica='R1',*,attempt=1):
         'hqnr_min':lane['hqnr_min'],'ergas_max':lane['ergas_max'],
         'checkpoint_selection':deepcopy(STAGE1_SELECTION) if donor else POLICY.manifest(),
         'loss_mask_policy':LOSS_MASK_POLICY,'mask_policy':'MASK2',
+        'loss_mask_policy_compatibility':'LEGACY_ENUM_FOR_SHARED_MASKED_REDUCTION_ONLY',
+        'effective_warp_support':'LANCZOS4_FLOOR_MINUS3_THROUGH_PLUS4',
         'baseline_alignment_protocol_digest':alignment_protocol_digest(b),
         'config_digest':canonical_sha256(default_config(server)),
         'evidence_level':'EXPLORATORY_TEST_AWARE_PAIRED_SCREEN_NOT_CONFIRMATORY',
@@ -135,9 +151,9 @@ def resolve_case(server,case,replica='R1',*,attempt=1):
         **{key:None for key in SOURCE_FIELDS}}
     if donor:
         cfg['geometry'] = {'schema':'PANDA_SENSOR5_STAGE1_GEOMETRY_V1','shift_scale':1.,
-            'frame':'pan','aligner_outputs':2,'alignment_target':'SCHARR_OF_MEAN4_GT',
+            'frame':'pan','aligner_outputs':2,'alignment_target':'SCHARR_OF_RGB_MEAN_GT',
             'upsampler':'interp23','student_warp':'NOT_APPLICABLE_STAGE1',
-            'teacher_warp':'bicubic_border','output_coordinates':'MS','loss_coordinates':'MS'}
+            'teacher_warp':'lanczos4_reflection','output_coordinates':'MS','loss_coordinates':'MS'}
         return cfg
     p = deepcopy(CASES[case])
     spec = MatureSpec(sensor,'panda_condq',seeds['S_init'],p['alpha'],0.,p['gamma'],1e-6,

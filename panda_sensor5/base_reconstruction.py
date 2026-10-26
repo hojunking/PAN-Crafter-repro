@@ -9,7 +9,15 @@ from torch import nn
 from directshift48.method import _digest
 from panda_method.reconstruction import (ReconstructionSpec, Reconstructor,
                                          build_reconstructor as _build_original)
-from panda_warp30.reconstruction import base_from_batch, upsampler_manifest
+from panda_warp30.reconstruction import base_from_batch, upsampler_manifest as _upsampler_manifest
+
+
+def upsampler_manifest(kind):
+    value = _upsampler_manifest(kind)
+    # The shared description was authored for an older bicubic PAN campaign.
+    # MS interp23 execution is unchanged; PAN execution is local and explicit.
+    value['actual_shift_warp'] = 'lanczos4_whole_sample_reflection_FP32'
+    return value
 
 
 @dataclass(frozen=True)

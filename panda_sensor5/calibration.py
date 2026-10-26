@@ -10,7 +10,7 @@ import time
 
 from directshift48.method import ScharrAbsolute
 from panda_sensor5.base_reconstruction import BandReconstructionSpec, upsampler_manifest
-from panda_stage2_condq.calibration import CalibrationBuilder, CalibrationStats, validate_binding
+from .calibration_core import CalibrationBuilder, CalibrationStats, validate_binding
 from panda_stage2_condq.donor import LoadedDonor
 from panda_stage2_condq.losses import reference_maps
 from panda_stage2_condq.sources import validate_training_batch
@@ -19,7 +19,7 @@ from panda_stage2_condq.training import configure_precision
 from panda_method.calibration import canonical_sha256
 from ta2.evaluation import file_sha
 from .spec import MatureSpec, geometry_manifest
-from .contract import WARP_MANIFEST
+from .contract import CAMPAIGN_ID, WARP_MANIFEST
 
 # The inherited exact collector estimates 3.344 GiB for GF2's 19,809 RR
 # patches. Four GiB admits that complete population without approximation.
@@ -30,7 +30,7 @@ def base_protocol():
     return {
         "schema": "PANDA_NEXT30_BASE_BINDING_V1",
         "student_warp": deepcopy(WARP_MANIFEST),
-        "teacher_warp": "ORIGINAL_STAGE1_BICUBIC_BORDER_FULL_U",
+        "teacher_warp": "STAGE1_LANCZOS4_REFLECT_FULL_U",
         "teacher_policy": "FIXED_STAGE1_FULL_U_SAME_CHECKPOINT_A_T",
         "geometry_unit": "CURRENT_PAN_PIXEL_NO_X4",
         "base": upsampler_manifest("interp23"),
@@ -38,6 +38,9 @@ def base_protocol():
         "q_target": "ORIGINAL_RGB_MEAN_2_1_0",
         "q_pan": "ACTUAL_STUDENT_GEOMETRY",
         "loss_mask_policy": MASK2_POLICY,
+        "loss_mask_policy_token": "LEGACY_REDUCTION_COMPATIBILITY_ID",
+        "actual_support_operator": "TEACHER_STUDENT_LANCZOS4_INTERSECTION",
+        "alignment_target": "SCHARR_OF_RGB_MEAN_GT",
     }
 
 
@@ -48,15 +51,15 @@ def validate_base_binding(binding, spec=None):
     if value["sensor"] not in ("QB", "GF2") or (spec is not None and value["sensor"] != spec.sensor):
         raise ValueError("Matched four-band donor/sensor required")
     teacher = value.get("band30_teacher")
-    expected = {"upsampler": "interp23", "aligner_outputs": 2,
-                "alignment_target": "SCHARR_OF_MEAN4_GT", "pan_channels": 1}
+    expected = {"campaign_id": CAMPAIGN_ID, "upsampler": "interp23", "aligner_outputs": 2,
+                "alignment_target": "SCHARR_OF_RGB_MEAN_GT", "pan_channels": 1}
     if (not isinstance(teacher, dict)
             or any(teacher.get(k) != v for k, v in expected.items())
             or not isinstance(teacher.get("campaign_id"), str) or not teacher["campaign_id"]):
-        raise ValueError("Actual-source G4/interp23/global2 donor binding required")
+        raise ValueError("Actual-source same-campaign RGB/Lanczos-4/interp23/global2 donor required")
     recon = BandReconstructionSpec(4, 112, (1, 2, 3), "P0", "BICUBIC_MS", 1).manifest()
     if canonical_sha256(value.get("band30_reconstruction_spec")) != canonical_sha256(recon):
-        raise ValueError("Truthful G4 W112/D123/PAN1 reconstruction binding required")
+        raise ValueError("Truthful four-band W112/D123/PAN1 reconstruction binding required")
     if any(key in value for key in ("band30_geometry", "band30_q_reference", "mature30_geometry")):
         raise ValueError("Unbound donor required; cannot relabel pre-bound applied geometry")
     if "mature30_base" in value and value["mature30_base"] != base_protocol():

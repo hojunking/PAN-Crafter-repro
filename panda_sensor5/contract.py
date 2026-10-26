@@ -3,9 +3,9 @@ from copy import deepcopy
 from panda_mature30.contract import file_identity, STAGE1_SELECTION
 from panda_band30.contract import HQNRPolicy
 
-CAMPAIGN_ID = 'PANDA_S13_SENSOR5_STAGE12_20261026_v1'
-METHOD_REVISION = 'PANDA-SENSOR5-MEAN4-DIFFUBIL-HARDONLY-v1'
-RUN_PREFIX = 'PSN5'
+CAMPAIGN_ID = 'PANDA_S13_SENSOR5_RGB_L4_STAGE12_20261026_v2'
+METHOD_REVISION = 'PANDA-SENSOR5-RGB-L4-DIFFUBIL-HARDONLY-v2'
+RUN_PREFIX = 'PSN5R2'
 NEXT_CAMPAIGN_ID = CAMPAIGN_ID
 LANES = {
     's1': {'dataset':'QB', 'hqnr_min':.9315, 'ergas_max':3.5,
@@ -33,11 +33,11 @@ SCALE_POLICIES = {'S100':1.}
 SAMPLING_VARIANTS = ('BASE','DAVG','UBIL','DAVG_UBIL')
 INPUT_VARIANTS = ('CORRECTED','CORRECTED_DIFF')
 WARP_MANIFEST = {
-    'schema':'PANDA_SENSOR5_STUDENT_WARP_V1', 'method':'lanczos4',
+    'schema':'PANDA_SENSOR5_UNIFIED_WARP_V2', 'method':'lanczos4',
     'radius':4, 'taps_per_axis':8, 'normalization':'SUM_TO_ONE',
     'boundary':'WHOLE_SAMPLE_REFLECTION',
     'convention':'OUTPUT_YX_READ_Y_PLUS_DY_X_PLUS_DX', 'dtype':'FP32',
-    'teacher_warp':'ORIGINAL_BICUBIC_BORDER', 'shift_unit':'CURRENT_PAN_PIXEL',
+    'teacher_warp':'SAME_LANCZOS4_REFLECTION', 'epsilon_warp':'SAME_LANCZOS4_REFLECTION', 'shift_unit':'CURRENT_PAN_PIXEL',
 }
 
 def input_manifest(variant, width=112, bands=4):

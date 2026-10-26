@@ -1,4 +1,4 @@
-"""Frozen G4 A/T, actual positive-scale PAN warping and the original single-view Hard loss."""
+"""Frozen RGB/L4 A/T, actual positive-scale PAN warping and the original single-view Hard loss."""
 from copy import deepcopy
 from dataclasses import replace
 import json
@@ -7,7 +7,7 @@ import torch
 from torch import nn
 
 from directshift48.method import ScharrAbsolute
-from pa.warp import warp_pan as teacher_warp_pan, warp_support_mask as teacher_support_mask
+from .warp import warp_pan as teacher_warp_pan, warp_support_mask as teacher_support_mask
 from .warp import warp_pan, warp_support_mask, warp_manifest
 from panda_sensor5.aligner import BandPANAligner
 from .reconstruction import (
@@ -61,7 +61,7 @@ def warp_support(height, width, u, geometry_key, *, include_teacher=True):
         mask &= teacher_support_mask(height, width, u.detach())
     good = mask[..., 7:-7, 7:-7].flatten(1).all(1)
     if not bool(good.all()):
-        raise ValueError('SUPPORT_VIOLATION: Lanczos4 Student / bicubic Teacher violates fixed ROI8; '
+        raise ValueError('SUPPORT_VIOLATION: Lanczos4 Student / Lanczos4 Teacher violates fixed ROI8; '
                          + json.dumps({'geometry_key': geometry_key,
                              'raw_u': u.detach().cpu().tolist(),
                              'student_applied_u': applied.cpu().tolist(),
@@ -104,7 +104,7 @@ class MatureStage2(ConditionalQStage2):
         if (not isinstance(aligner, BandPANAligner) or aligner.outputs != 2
                 or not isinstance(teacher, BandReconstructor)
                 or teacher.spec != spec.teacher_reconstruction_spec):
-            raise ValueError("G4 global2 Aligner and same-capacity interp23 Teacher required")
+            raise ValueError("RGB-reference global2 Aligner and same-capacity interp23 Teacher required")
         assert_sampling_contract(teacher, "BASE", role="T")
         self.spec, self.aligner, self.teacher = spec, aligner, teacher
         self._donor_binding = validate_base_binding(donor_binding, spec)
@@ -160,7 +160,7 @@ class MatureStage2(ConditionalQStage2):
             mature30_policy=policy_manifest(self.spec),
             warp=warp_manifest(), student_warp=warp_manifest(),
             student_input=input_manifest(self.spec.input_variant,self.spec.student_width),
-            teacher_warp='ORIGINAL_STAGE1_BICUBIC_BORDER_FULL_U',
+            teacher_warp='STAGE1_LANCZOS4_REFLECT_FULL_U',
 
         )
         return result

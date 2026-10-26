@@ -96,7 +96,7 @@ def restart(server, *, replace_running=False):
                     if time.monotonic() >= deadline:
                         raise ValueError("Writer lock still held; nothing else started")
                     time.sleep(.2)
-        log = repo / "work_dir/panda_sensor5" / f"publisher-{server}-best-hqnr-v1.log"
+        log = repo / "work_dir/panda_sensor5" / f"publisher-{server}-best-hqnr-v2.log"
         args = [sys.executable, "-u", "-m", MODULE, "--root", str(root), "--server", server,
                 "--apply", "--watch", "--poll-seconds", "60"]
         env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")

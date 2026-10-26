@@ -1,4 +1,4 @@
-"""Isolated mature30 mean4 Stage1; unchanged G4 learning and complete resume."""
+"""Fresh RGB-reference Stage1 with unified Lanczos4 and complete resume."""
 from __future__ import annotations
 
 from copy import deepcopy
@@ -17,11 +17,11 @@ from panda40.stage1 import (
 )
 from panda_method.data import require_sha256
 from panda_method.reconstruction import ReconstructionSpec
-from pa.warp import warp_pan, warp_support_mask
+from .warp import warp_pan, warp_support_mask, warp_manifest, boundary_manifest, mask_manifest
 from ta2.evaluation import file_sha
 
 from .contract import CAMPAIGN_ID, METHOD_REVISION, file_identity, LANES
-from panda_sensor5.aligner import (BandPANAligner, AllBandScharr, GLOBAL_TARGET,
+from panda_sensor5.aligner import (BandPANAligner, RGBScharr, GLOBAL_TARGET,
                       aligned_pan_views, support_for_shifts)
 from .base_reconstruction import (base_from_batch, reconstruct_with_base,
                              upsampler_manifest, build_reconstructor)
@@ -46,7 +46,7 @@ class BandStage1(MaskedDonorStage1):
             raise ValueError("Explicit independent auxiliary RNG seed required")
         super().__init__(aligner, teacher, **kwargs)
         self._upsampler = upsampler
-        self.spatial = AllBandScharr(aligner.outputs, sensor=self.sources.sensor)
+        self.spatial = RGBScharr(aligner.outputs, sensor=self.sources.sensor)
         self.band_augmentation_seed = band_augmentation_seed
         self._band_rng = torch.Generator(device="cpu").manual_seed(band_augmentation_seed)
         self._auxiliary_records = []
@@ -73,6 +73,11 @@ class BandStage1(MaskedDonorStage1):
                       reconstruction_warp="one_original_PAN_warp_per_declared_PAN_view",
                       loss_mask_intersection="single_PAN",
                       auxiliary=self.auxiliary_manifest())
+        result.update(warp=warp_manifest(), boundary=boundary_manifest(),
+                      rec_reduction=mask_manifest()['policy'], loss_mask=mask_manifest())
+        result['boundary'].update(prediction_dependent_mask=True,
+            prediction_dependent_mask_scope='reconstruction_only_spatial_ROI8_unchanged')
+        result['eps']['warp'] = warp_manifest()
         return result
 
     def auxiliary_manifest(self):
@@ -85,7 +90,8 @@ class BandStage1(MaskedDonorStage1):
                 "native_warp": "one_original_PAN_warp_per_declared_PAN_view",
                 "mature30_teacher": self.teacher_binding(),
                 "auxiliary": self.auxiliary_manifest(),
-                "effective_reconstruction_base": upsampler_manifest(self.upsampler)}
+                "effective_reconstruction_base": upsampler_manifest(self.upsampler),
+                "warp": warp_manifest(), "boundary": boundary_manifest()}
 
     def get_extra_state(self):
         return {**super().get_extra_state(), "band_augmentation_seed": self.band_augmentation_seed,
@@ -187,7 +193,7 @@ def validate_config(cfg, sources):
             or cfg.get("lambda_abs") != 2. or cfg.get("lambda_epsilon") != .003
             or cfg.get("lr_A") != 1e-5 or cfg.get("lr_U") != 1e-4
             or cfg.get("initialization") != "FRESH" or cfg.get("start_update", 0) != 0):
-        raise ValueError("Fresh local s1/s3 QB/GF2 mature30 mean4 donor configuration required")
+        raise ValueError("Fresh local s1/s3 QB/GF2 mature30 RGB-reference donor configuration required")
     if cfg["dataset"] != LANES[cfg["server"]]["dataset"]:
         raise ValueError("Stage1 sensor/server mismatch")
     upsampler_manifest(cfg.get("upsampler"))

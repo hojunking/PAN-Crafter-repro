@@ -28,14 +28,14 @@ def geometry_manifest(geometry_key, sensor=None):
         "scale": _GEOMETRIES[geometry_key], "cap_px": None, "cap_formula": None,
         "upsampler": "interp23", "frame": "pan",
         "aligner_outputs": 2, "pan_channels": 1,
-        "alignment_target": "SCHARR_OF_MEAN4_GT",
+        "alignment_target": "SCHARR_OF_RGB_MEAN_GT",
         "shift_unit": "CURRENT_PAN_PIXEL_NO_X4",
         "ms_shift_factor": 0., "output_shift_factor": 0.,
         "output_coordinates": "MS", "loss_coordinates": "MS",
         "teacher_policy": "FIXED_STAGE1_FORWARD_PAN_PLUS_FULL_U",
         "training_target_policy": "ORIGINAL_GT_UNSHIFTED",
         "q_reference": "STUDENT_ACTUAL_SHIFTED_PAN_VS_ORIGINAL_RGB_GT",
-        "loss_support": "STUDENT_LANCZOS4_AND_FIXED_FULL_U_TEACHER_BICUBIC_INTERSECTION",
+        "loss_support": "STUDENT_AND_FIXED_FULL_U_TEACHER_LANCZOS4_INTERSECTION",
         "evaluation_references": "ORIGINAL_UNSHIFTED_UNMASKED_RR20_FR20",
         "pan_execution": "LANCZOS4_WITH_POSITIVE_SCALE_TIMES_FROZEN_ALIGNER_U",
         "inference_aligner_usage": "REQUIRED_FROZEN_ALIGNER_APPLIED_POSITIVE_SCALED_CORRECTION",
@@ -95,7 +95,7 @@ class MatureSpec(Stage2Spec):
     upsampler: str = "interp23"
     frame: str = "pan"
     aligner_outputs: int = 2
-    alignment_target: str = "SCHARR_OF_MEAN4_GT"
+    alignment_target: str = "SCHARR_OF_RGB_MEAN_GT"
     pan_channels: int = 1
     total_updates: int = 30000
     sampling_variant: str = "UBIL"
@@ -113,8 +113,8 @@ class MatureSpec(Stage2Spec):
         if (self.upsampler != "interp23" or self.frame != "pan"
                 or type(self.aligner_outputs) is not int or self.aligner_outputs != 2
                 or type(self.pan_channels) is not int or self.pan_channels != 1
-                or self.alignment_target != "SCHARR_OF_MEAN4_GT"):
-            raise ValueError("SENSOR5 requires interp23 global2 mean4 PAN-only geometry")
+                or self.alignment_target != "SCHARR_OF_RGB_MEAN_GT"):
+            raise ValueError("SENSOR5 requires interp23 global2 RGB-reference PAN-only geometry")
         if type(self.total_updates) is not int or self.total_updates not in {
                 row["total_updates"] for row in CASES.values() if row["sensor"] == self.sensor}:
             raise ValueError("Sensor5 requires the registered 30K/50K/60K sensor horizon")
@@ -177,6 +177,8 @@ class MatureSpec(Stage2Spec):
         result['student_input'] = input_manifest(self.input_variant,self.student_width)
         result['student_warp'] = deepcopy(WARP_MANIFEST)
         result['teacher_constructor_spec'] = self.teacher_reconstruction_spec.manifest()
+        result['loss_mask_policy_token'] = 'LEGACY_REDUCTION_COMPATIBILITY_ID'
+        result['actual_support_operator'] = 'TEACHER_STUDENT_LANCZOS4_INTERSECTION'
         return {**result, "student_upsampling": upsampler_manifest("interp23"),
                 "mature30_policy": policy_manifest(self),
                 "teacher_forward": "ORIGINAL_STAGE1_FULL_U",

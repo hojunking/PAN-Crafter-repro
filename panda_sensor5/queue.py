@@ -15,6 +15,7 @@ from directshift48.reporting import atomic_json, utc_now
 from .transition import (ROOT,campaign_root,state_of,predecessor_receipt,
                          container_gate,completed_run)
 from . import wv3_launch
+from .launch import sensor_container_name
 
 POLL_SECONDS=15
 REQUEST='USER_20261026_DATASET5_THEN_RESUME_WV3'
@@ -177,13 +178,12 @@ def advance(server,directory,chain):
             start_publisher(server,initial_cutover(server,directory).get('package','panda_tune30'))
             chain['stage']='START_SENSOR5'
     elif stage=='START_SENSOR5':
-        from .plan import dataset_for_server
-        sensor=dataset_for_server(server).lower()
-        name=f'panda-sensor5-stage12-{sensor}-{server}-v1'
+        from .plan import CAMPAIGN_ID
+        name=sensor_container_name(server)
         if inspect_optional(name) is None:
             subprocess.run(['bash','scripts/start_panda_sensor5_costed.sh',server],
                 cwd=ROOT,env=dict(os.environ,PAN_HOST_PYTHON=sys.executable),check=True)
-        chain.update(stage='WAIT_SENSOR5',sensor_container=name)
+        chain.update(stage='WAIT_SENSOR5',sensor_container=name,sensor_campaign_id=CAMPAIGN_ID)
     elif stage=='WAIT_SENSOR5':
         if wait_exit(chain['sensor_container']) and campaign_complete('panda_sensor5',server):
             chain['stage']='RESUME_TUNE30'
@@ -248,6 +248,13 @@ def main(argv=None):
         raise ValueError('Local server marker mismatch')
     directory=ROOT/'work_dir/panda_sensor5_launchers'/args.server
     directory.mkdir(parents=True,exist_ok=True)
+    chain_path=directory/'chain.json'
+    if chain_path.exists():
+        chain=json.loads(chain_path.read_text())
+        if (chain.get('stage')=='WAIT_SENSOR5'
+                and chain.get('sensor_container')!=sensor_container_name(args.server)):
+            raise ValueError('Old SENSOR5 chain requires checkpoint-safe migration: '
+                             'python -m panda_sensor5.migration --server '+args.server+' --apply')
     if not args.enqueue:
         if args.pin is None:
             p.error('--pin required for internal watcher')

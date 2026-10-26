@@ -1,18 +1,18 @@
-"""Four-band Aligner with a single global translation and mean4-GT target."""
+"""Four-band Aligner with a single global translation and RGB-GT reference."""
 from __future__ import annotations
 
 import torch
 
 from directshift48.method import DirectPANAligner, ScharrAbsolute
-from pa.warp import warp_pan, warp_support_mask
+from .warp import warp_pan, warp_support_mask
 
 
-GLOBAL_TARGET = "SCHARR_OF_MEAN4_GT"
+GLOBAL_TARGET = "SCHARR_OF_RGB_MEAN_GT"
 
 
 class BandPANAligner(DirectPANAligner):
     """Four-band input, one global dy/dx output; no bandwise branch."""
-    CHECKPOINT_REVISION = 5026
+    CHECKPOINT_REVISION = 5027
 
     def __init__(self, outputs=2):
         if type(outputs) is not int or outputs != 2:
@@ -39,8 +39,8 @@ def support_for_shifts(height, width, shifts, *, intersection=True):
     return warp_support_mask(height, width, shifts.detach())
 
 
-class AllBandScharr(ScharrAbsolute):
-    """Stage1 target is Scharr(mean4 GT), including NIR."""
+class RGBScharr(ScharrAbsolute):
+    """Same RGB-mean reference as Stage2 q; MS inputs/outputs retain NIR."""
     def __init__(self, outputs, *, sensor):
         super().__init__(sensor)
         if self.bands != 4:
@@ -58,15 +58,13 @@ class AllBandScharr(ScharrAbsolute):
                 or type(roi_margin) is not int or roi_margin != 8
                 or min(gt.shape[-2:]) <= 2*roi_margin):
             raise ValueError("Matched PAN/GT and fixed ROI8 required")
-        p, target = aligned_pan, gt.mean(1, keepdim=True)
+        p, target = aligned_pan, self.rgb_luminance(gt)
         delta = self.descriptor(p) - self.descriptor(target)
         return delta[..., roi_margin:-roi_margin, roi_margin:-roi_margin].abs().mean()
 
     def manifest(self):
         result = super().manifest()
-        result.pop("rgb_indices_R_G_B")
-        result.pop("rgb_mean_before_gradient")
         result.update(target=GLOBAL_TARGET,
-                      target_bands=list(range(4)), mean4_before_gradient=True,
+                      target_bands=list(self.rgb_indices), rgb_mean_before_gradient=True,
                       reduction="mean_samples_two_axes_fixed_ROI8")
         return result

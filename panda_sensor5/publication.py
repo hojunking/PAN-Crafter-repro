@@ -78,7 +78,7 @@ def _verify_corrections(evaluation, cfg):
             ("shift_unit", "CURRENT_PAN_PIXEL_NO_X4"),
             ("pan_execution", "LANCZOS4_WITH_POSITIVE_SCALE_TIMES_FROZEN_ALIGNER_U"),
             ("student_warp", WARP_MANIFEST),
-            ("loss_support", "STUDENT_LANCZOS4_AND_FIXED_FULL_U_TEACHER_BICUBIC_INTERSECTION"),
+            ("loss_support", "STUDENT_AND_FIXED_FULL_U_TEACHER_LANCZOS4_INTERSECTION"),
             ("teacher_policy", "FIXED_STAGE1_FORWARD_PAN_PLUS_FULL_U"),
             ("inference_aligner_usage", "REQUIRED_FROZEN_ALIGNER_APPLIED_POSITIVE_SCALED_CORRECTION"),
             ("evaluation_references", "ORIGINAL_UNSHIFTED_UNMASKED_RR20_FR20")):
@@ -203,7 +203,7 @@ def _candidate(record, root, server, verified_sources=None):
         _require(original["server"] == server and original["dataset"] == R.DATASETS[server],
                  "CROSS_SERVER_OR_SENSOR_DONOR_FORBIDDEN")
         _require(original.get("phase") == "donor" and original.get("upsampler") == "interp23"
-                 and original.get("alignment_target") == "SCHARR_OF_MEAN4_GT",
+                 and original.get("alignment_target") == "SCHARR_OF_RGB_MEAN_GT",
                  "UNREGISTERED_DONOR_SOURCE")
         source_root = selected.get("source_root", receipt.get("source_root"))
         _require(isinstance(source_root, str), "SOURCE_CAMPAIGN_ROOT_REQUIRED")
@@ -471,7 +471,7 @@ def row_requests(snapshot, value, server):
     for number, row in enumerate(snapshot['rows'], 5):
         if row[INDEX['Campaign_ID']] != R.CAMPAIGN_ID or row[INDEX['Server']] != server:
             continue
-        if row[INDEX['Dataset']] != R.DATASETS[server] or not str(row[INDEX['Run_ID']]).startswith('PSN5_'):
+        if row[INDEX['Dataset']] != R.DATASETS[server] or not str(row[INDEX['Run_ID']]).startswith('PSN5R2_'):
             raise ValueError('Own-row identity mismatch')
         if _key(row) not in owned_keys:
             raise ValueError('Remote own run absent from local evidence; never erase it')

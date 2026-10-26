@@ -1,0 +1,2770 @@
+{
+  "purpose": "DIAGNOSTIC_ONLY_NOT_PHYSICAL_DISPLACEMENT_GT",
+  "checkpoint": "work_dir/panda_sensor5/PANDA_S13_SENSOR5_STAGE12_20261026_v1/s1/QB/runs/PSN5_QB_S1_G4_MATURE_U23_NOSOFT_R1_S261016101/attempt_01/models/step_0038000.pt",
+  "registration": {
+    "descriptor": "gradient",
+    "bound": 8,
+    "margin": 16,
+    "target_rms_threshold": 0.0001
+  },
+  "splits": {
+    "rr": {
+      "reference": "GT_ORACLE_DIAGNOSTIC_ONLY",
+      "sigma_p": 0.8,
+      "sigma_r": 0.8,
+      "per_scene": [
+        {
+          "index": 0,
+          "predicted_u": [
+            0.1926419734954834,
+            -0.24326547980308533
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.5032019072219319,
+                -0.4624974067558586
+              ],
+              "valid": true,
+              "peak": 0.8166211843490601,
+              "peak_gap": 0.25894367694854736,
+              "boundary": false,
+              "target_rms": 0.004586211911152021,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.25464865062559616,
+                -0.1559608640913611
+              ],
+              "valid": true,
+              "peak": 0.8700428009033203,
+              "peak_gap": 0.39707693457603455,
+              "boundary": false,
+              "target_rms": 0.004586211911152021,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.6834588580797559,
+            "after_norm_px": 0.2986130043945859
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.5147174434365329,
+                -0.4636731380555415
+              ],
+              "valid": true,
+              "peak": 0.8765792846679688,
+              "peak_gap": 0.2561188340187073,
+              "boundary": false,
+              "target_rms": 0.004915989042584652,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.2666482352874818,
+                -0.15520183599775966
+              ],
+              "valid": true,
+              "peak": 0.9326568841934204,
+              "peak_gap": 0.39804595708847046,
+              "boundary": false,
+              "target_rms": 0.004915989042584652,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.692767511891337,
+            "after_norm_px": 0.30852697009986624
+          }
+        },
+        {
+          "index": 1,
+          "predicted_u": [
+            0.5318067073822021,
+            -0.7195841670036316
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.46156400648472895,
+                -0.4699828854982202
+              ],
+              "valid": true,
+              "peak": 0.8156635165214539,
+              "peak_gap": 0.2070888876914978,
+              "boundary": false,
+              "target_rms": 0.004564187377329914,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.07900686593013434,
+                0.2324003665932852
+              ],
+              "valid": true,
+              "peak": 0.8587036728858948,
+              "peak_gap": 0.31519830226898193,
+              "boundary": false,
+              "target_rms": 0.004564187377329914,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.6587300241703486,
+            "after_norm_px": 0.24546285922068856
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.5182955551387137,
+                -0.4780477618786058
+              ],
+              "valid": true,
+              "peak": 0.8865156769752502,
+              "peak_gap": 0.2166767120361328,
+              "boundary": false,
+              "target_rms": 0.005270076147646052,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.03651202734554013,
+                0.2303910039473916
+              ],
+              "valid": true,
+              "peak": 0.9423932433128357,
+              "peak_gap": 0.3729904890060425,
+              "boundary": false,
+              "target_rms": 0.005270076147646052,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.7050956992591089,
+            "after_norm_px": 0.23326624882474636
+          }
+        },
+        {
+          "index": 2,
+          "predicted_u": [
+            0.5896128416061401,
+            -0.30029797554016113
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.5013116239553822,
+                -0.47234382990880897
+              ],
+              "valid": true,
+              "peak": 0.8830733299255371,
+              "peak_gap": 0.2640831470489502,
+              "boundary": false,
+              "target_rms": 0.020197027674604073,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.04388436165402555,
+                -0.11562310835909316
+              ],
+              "valid": true,
+              "peak": 0.9587273001670837,
+              "peak_gap": 0.42433393001556396,
+              "boundary": false,
+              "target_rms": 0.020197027674604073,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.6887830122511039,
+            "after_norm_px": 0.12367109761136555
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.5033381548579934,
+                -0.45685651509185266
+              ],
+              "valid": true,
+              "peak": 0.9040850400924683,
+              "peak_gap": 0.27647650241851807,
+              "boundary": false,
+              "target_rms": 0.02052775564311909,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.04355775364707118,
+                -0.1033390808166869
+              ],
+              "valid": true,
+              "peak": 0.9815241694450378,
+              "peak_gap": 0.4404507279396057,
+              "boundary": false,
+              "target_rms": 0.02052775564311909,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.6797552305923961,
+            "after_norm_px": 0.11214385193498878
+          }
+        },
+        {
+          "index": 3,
+          "predicted_u": [
+            0.5176186561584473,
+            -0.3946762681007385
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.4885510477021322,
+                -0.4808075343939303
+              ],
+              "valid": true,
+              "peak": 0.8432307839393616,
+              "peak_gap": 0.29901665449142456,
+              "boundary": false,
+              "target_rms": 0.015007696544060152,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.010603020990272992,
+                -0.05195378186008993
+              ],
+              "valid": true,
+              "peak": 0.925614058971405,
+              "peak_gap": 0.5090569257736206,
+              "boundary": false,
+              "target_rms": 0.015007696544060152,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.6854618963449548,
+            "after_norm_px": 0.05302470654030986
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.49551855798161204,
+                -0.465362629448916
+              ],
+              "valid": true,
+              "peak": 0.8909350037574768,
+              "peak_gap": 0.3198910355567932,
+              "boundary": false,
+              "target_rms": 0.01541869848526363,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.013960455981894652,
+                -0.04015723994063659
+              ],
+              "valid": true,
+              "peak": 0.9761391878128052,
+              "peak_gap": 0.5389773547649384,
+              "boundary": false,
+              "target_rms": 0.01541869848526363,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.6797801248872942,
+            "after_norm_px": 0.04251468276810114
+          }
+        },
+        {
+          "index": 4,
+          "predicted_u": [
+            0.07712653279304504,
+            -0.33172667026519775
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.04595871878509073,
+                -0.44499132823999543
+              ],
+              "valid": true,
+              "peak": 0.9159003496170044,
+              "peak_gap": 0.33514225482940674,
+              "boundary": false,
+              "target_rms": 0.019672460932908396,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.03831111352212981,
+                -0.08944588847109262
+              ],
+              "valid": true,
+              "peak": 0.9529026746749878,
+              "peak_gap": 0.46058955788612366,
+              "boundary": false,
+              "target_rms": 0.019672460932908396,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.44735834187054385,
+            "after_norm_px": 0.09730523307453026
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.05875858688129765,
+                -0.43390971612240203
+              ],
+              "valid": true,
+              "peak": 0.9423786997795105,
+              "peak_gap": 0.3494719862937927,
+              "boundary": false,
+              "target_rms": 0.020022118104473036,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.02597968232938279,
+                -0.08032589858752516
+              ],
+              "valid": true,
+              "peak": 0.9795117974281311,
+              "peak_gap": 0.4920787215232849,
+              "boundary": false,
+              "target_rms": 0.020022118104473036,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.43787008721504433,
+            "after_norm_px": 0.08442270949116133
+          }
+        },
+        {
+          "index": 5,
+          "predicted_u": [
+            0.08976444602012634,
+            -0.344813734292984
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.043839119677075565,
+                -0.45108378995498494
+              ],
+              "valid": true,
+              "peak": 0.9220147132873535,
+              "peak_gap": 0.3112131953239441,
+              "boundary": false,
+              "target_rms": 0.021972202169337294,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.052906446741364715,
+                -0.083210677659453
+              ],
+              "valid": true,
+              "peak": 0.9575908780097961,
+              "peak_gap": 0.4727534055709839,
+              "boundary": false,
+              "target_rms": 0.021972202169337294,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.45320906210513257,
+            "after_norm_px": 0.09860582631539706
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.054386449170238944,
+                -0.44285073192725954
+              ],
+              "valid": true,
+              "peak": 0.945852518081665,
+              "peak_gap": 0.3233603835105896,
+              "boundary": false,
+              "target_rms": 0.022192184999444416,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.042559036699576974,
+                -0.07645022313652579
+              ],
+              "valid": true,
+              "peak": 0.9817842245101929,
+              "peak_gap": 0.4920126795768738,
+              "boundary": false,
+              "target_rms": 0.022192184999444416,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.4461778307153511,
+            "after_norm_px": 0.08749804696346383
+          }
+        },
+        {
+          "index": 6,
+          "predicted_u": [
+            0.03454389050602913,
+            -0.3522228002548218
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.03206333471093424,
+                -0.45304687849131525
+              ],
+              "valid": true,
+              "peak": 0.9270970225334167,
+              "peak_gap": 0.343126118183136,
+              "boundary": false,
+              "target_rms": 0.021619904429417632,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.004584035014664637,
+                -0.07992621624100264
+              ],
+              "valid": true,
+              "peak": 0.9671729803085327,
+              "peak_gap": 0.5060832798480988,
+              "boundary": false,
+              "target_rms": 0.021619904429417632,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.45418006511020487,
+            "after_norm_px": 0.08005756316313398
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.03936733054873242,
+                -0.44235773287344954
+              ],
+              "valid": true,
+              "peak": 0.9438466429710388,
+              "peak_gap": 0.3553497791290283,
+              "boundary": false,
+              "target_rms": 0.02190235291738989,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.0024252781958376134,
+                -0.07119895219130484
+              ],
+              "valid": true,
+              "peak": 0.98345947265625,
+              "peak_gap": 0.5249900817871094,
+              "boundary": false,
+              "target_rms": 0.02190235291738989,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.4441060127351028,
+            "after_norm_px": 0.0712402468234559
+          }
+        },
+        {
+          "index": 7,
+          "predicted_u": [
+            0.17946399748325348,
+            -0.39540985226631165
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.13209812367012982,
+                -0.4431495783565412
+              ],
+              "valid": true,
+              "peak": 0.8695493936538696,
+              "peak_gap": 0.27868586778640747,
+              "boundary": false,
+              "target_rms": 0.011207072164878219,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.058134369143195065,
+                -0.031712971979078006
+              ],
+              "valid": true,
+              "peak": 0.8996371626853943,
+              "peak_gap": 0.4176500737667084,
+              "boundary": false,
+              "target_rms": 0.011207072164878219,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.4624191422019088,
+            "after_norm_px": 0.06622172957136545
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.161607386910116,
+                -0.4377419555875391
+              ],
+              "valid": true,
+              "peak": 0.9415680170059204,
+              "peak_gap": 0.3111839294433594,
+              "boundary": false,
+              "target_rms": 0.012028620238708869,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.0307191489123414,
+                -0.026670566013491482
+              ],
+              "valid": true,
+              "peak": 0.9769436120986938,
+              "peak_gap": 0.4663624167442322,
+              "boundary": false,
+              "target_rms": 0.012028620238708869,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.4666207959205408,
+            "after_norm_px": 0.040681509330144236
+          }
+        },
+        {
+          "index": 8,
+          "predicted_u": [
+            0.13594409823417664,
+            -0.3487245440483093
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.12283018944352575,
+                -0.4622903802082611
+              ],
+              "valid": true,
+              "peak": 0.9068435430526733,
+              "peak_gap": 0.3075018525123596,
+              "boundary": false,
+              "target_rms": 0.019136070884477968,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.02414471013362499,
+                -0.08882023995671089
+              ],
+              "valid": true,
+              "peak": 0.9453089833259583,
+              "peak_gap": 0.47388651967048645,
+              "boundary": false,
+              "target_rms": 0.019136070884477968,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.4783300649884251,
+            "after_norm_px": 0.09204347914656678
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.13183603712962344,
+                -0.44903214469027936
+              ],
+              "valid": true,
+              "peak": 0.9434512853622437,
+              "peak_gap": 0.3255752921104431,
+              "boundary": false,
+              "target_rms": 0.01946298750957943,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.015497787888005472,
+                -0.07766751836698041
+              ],
+              "valid": true,
+              "peak": 0.9824811816215515,
+              "peak_gap": 0.4962623119354248,
+              "boundary": false,
+              "target_rms": 0.01946298750957943,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.46798569171631244,
+            "after_norm_px": 0.07919864164685432
+          }
+        },
+        {
+          "index": 9,
+          "predicted_u": [
+            0.10447794944047928,
+            -0.3821590542793274
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.08237013178219743,
+                -0.4518878376680525
+              ],
+              "valid": true,
+              "peak": 0.9239319562911987,
+              "peak_gap": 0.35182881355285645,
+              "boundary": false,
+              "target_rms": 0.021249892082747735,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.03455408855015169,
+                -0.055296184356970556
+              ],
+              "valid": true,
+              "peak": 0.9669197201728821,
+              "peak_gap": 0.5302979350090027,
+              "boundary": false,
+              "target_rms": 0.021249892082747735,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.4593337092377662,
+            "after_norm_px": 0.06520470105729954
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.09150250169141967,
+                -0.44319756775023356
+              ],
+              "valid": true,
+              "peak": 0.9399181604385376,
+              "peak_gap": 0.3622356653213501,
+              "boundary": false,
+              "target_rms": 0.021420715950037583,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.025688802904775855,
+                -0.04822644347666914
+              ],
+              "valid": true,
+              "peak": 0.982943594455719,
+              "peak_gap": 0.5549868643283844,
+              "boundary": false,
+              "target_rms": 0.021420715950037583,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.45254479543522663,
+            "after_norm_px": 0.054641599949935435
+          }
+        },
+        {
+          "index": 10,
+          "predicted_u": [
+            0.27846792340278625,
+            -0.37982940673828125
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.2739033180367304,
+                -0.4819534561461248
+              ],
+              "valid": true,
+              "peak": 0.8911844491958618,
+              "peak_gap": 0.3276015520095825,
+              "boundary": false,
+              "target_rms": 0.019836478077604917,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.028687471345031277,
+                -0.07037999584586731
+              ],
+              "valid": true,
+              "peak": 0.9458038210868835,
+              "peak_gap": 0.5279589295387268,
+              "boundary": false,
+              "target_rms": 0.019836478077604917,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.5543484116715091,
+            "after_norm_px": 0.07600207120491052
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.282734550147955,
+                -0.4727364261555633
+              ],
+              "valid": true,
+              "peak": 0.9231526851654053,
+              "peak_gap": 0.34690678119659424,
+              "boundary": false,
+              "target_rms": 0.020041698896401353,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.0195865707003324,
+                -0.06236477238855101
+              ],
+              "valid": true,
+              "peak": 0.9803752899169922,
+              "peak_gap": 0.5543910264968872,
+              "boundary": false,
+              "target_rms": 0.020041698896401353,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.5508344165551938,
+            "after_norm_px": 0.06536817717264949
+          }
+        },
+        {
+          "index": 11,
+          "predicted_u": [
+            0.20275112986564636,
+            -0.38367998600006104
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.18701082810240707,
+                -0.47089258394297967
+              ],
+              "valid": true,
+              "peak": 0.926874041557312,
+              "peak_gap": 0.2584836483001709,
+              "boundary": false,
+              "target_rms": 0.02328975284604924,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.028800619210773912,
+                -0.06252206377992096
+              ],
+              "valid": true,
+              "peak": 0.9631547331809998,
+              "peak_gap": 0.3983777165412903,
+              "boundary": false,
+              "target_rms": 0.02328975284604924,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.5066684077777538,
+            "after_norm_px": 0.06883664813327639
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.19254624520463604,
+                -0.4624777669443283
+              ],
+              "valid": true,
+              "peak": 0.9456347823143005,
+              "peak_gap": 0.26965564489364624,
+              "boundary": false,
+              "target_rms": 0.023564111057543732,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.02303692519636899,
+                -0.055834811146083164
+              ],
+              "valid": true,
+              "peak": 0.9828000068664551,
+              "peak_gap": 0.4122794270515442,
+              "boundary": false,
+              "target_rms": 0.023564111057543732,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.5009588221203578,
+            "after_norm_px": 0.060400546837109624
+          }
+        },
+        {
+          "index": 12,
+          "predicted_u": [
+            0.22694124281406403,
+            -0.3677290081977844
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.2218671139062453,
+                -0.4890885724956443
+              ],
+              "valid": true,
+              "peak": 0.9080910086631775,
+              "peak_gap": 0.3133397698402405,
+              "boundary": false,
+              "target_rms": 0.017812223986702385,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.021630995307638103,
+                -0.08971589546251792
+              ],
+              "valid": true,
+              "peak": 0.9570946097373962,
+              "peak_gap": 0.49522486329078674,
+              "boundary": false,
+              "target_rms": 0.017812223986702385,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.537059259280495,
+            "after_norm_px": 0.09228673716542646
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.22825639084040236,
+                -0.4828417924596104
+              ],
+              "valid": true,
+              "peak": 0.9326112270355225,
+              "peak_gap": 0.32611560821533203,
+              "boundary": false,
+              "target_rms": 0.0182102380334042,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.015529166788817057,
+                -0.08453623084809168
+              ],
+              "valid": true,
+              "peak": 0.9832130074501038,
+              "peak_gap": 0.5118743181228638,
+              "boundary": false,
+              "target_rms": 0.0182102380334042,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.5340760025549697,
+            "after_norm_px": 0.08595073790932076
+          }
+        },
+        {
+          "index": 13,
+          "predicted_u": [
+            0.14146310091018677,
+            -0.35718920826911926
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.15131191791590654,
+                -0.47988856354214404
+              ],
+              "valid": true,
+              "peak": 0.9020810723304749,
+              "peak_gap": 0.3010658025741577,
+              "boundary": false,
+              "target_rms": 0.01696950102236307,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.005406768892953012,
+                -0.09487706076056973
+              ],
+              "valid": true,
+              "peak": 0.944352924823761,
+              "peak_gap": 0.470459908246994,
+              "boundary": false,
+              "target_rms": 0.01696950102236307,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.5031782287837308,
+            "after_norm_px": 0.0950309939358031
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.15418098682162837,
+                -0.4710005491706666
+              ],
+              "valid": true,
+              "peak": 0.9381830096244812,
+              "peak_gap": 0.31879425048828125,
+              "boundary": false,
+              "target_rms": 0.0173108533531006,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.002626001035762417,
+                -0.0875589239631733
+              ],
+              "valid": true,
+              "peak": 0.9816949367523193,
+              "peak_gap": 0.49420008063316345,
+              "boundary": false,
+              "target_rms": 0.0173108533531006,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.49559388012399896,
+            "after_norm_px": 0.0875982936308042
+          }
+        },
+        {
+          "index": 14,
+          "predicted_u": [
+            0.28342685103416443,
+            -0.36811232566833496
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.270016297552358,
+                -0.5100322839076059
+              ],
+              "valid": true,
+              "peak": 0.8829765915870667,
+              "peak_gap": 0.24001538753509521,
+              "boundary": false,
+              "target_rms": 0.015493944933997075,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.03275099236365764,
+                -0.10229254442639273
+              ],
+              "valid": true,
+              "peak": 0.9308893084526062,
+              "peak_gap": 0.39945298433303833,
+              "boundary": false,
+              "target_rms": 0.015493944933997075,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.5770976794026227,
+            "after_norm_px": 0.10740759817643206
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.2925152998276818,
+                -0.5031878010280043
+              ],
+              "valid": true,
+              "peak": 0.9253423810005188,
+              "peak_gap": 0.2594900131225586,
+              "boundary": false,
+              "target_rms": 0.015757521233630955,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.012663317613893003,
+                -0.09534278311101228
+              ],
+              "valid": true,
+              "peak": 0.9784129858016968,
+              "peak_gap": 0.4283137321472168,
+              "boundary": false,
+              "target_rms": 0.015757521233630955,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.5820336448493997,
+            "after_norm_px": 0.09618007020346711
+          }
+        },
+        {
+          "index": 15,
+          "predicted_u": [
+            0.22390390932559967,
+            -0.38945722579956055
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.2035042894902805,
+                -0.4976427691116966
+              ],
+              "valid": true,
+              "peak": 0.8856959342956543,
+              "peak_gap": 0.29640477895736694,
+              "boundary": false,
+              "target_rms": 0.01652810585662463,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.04094066713370893,
+                -0.07834134813699242
+              ],
+              "valid": true,
+              "peak": 0.9329929351806641,
+              "peak_gap": 0.4763748347759247,
+              "boundary": false,
+              "target_rms": 0.01652810585662463,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.5376451631793048,
+            "after_norm_px": 0.08839403290536416
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.2223708290338272,
+                -0.4979716001580464
+              ],
+              "valid": true,
+              "peak": 0.9260787963867188,
+              "peak_gap": 0.3129384517669678,
+              "boundary": false,
+              "target_rms": 0.01693477385644221,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.02346248880770817,
+                -0.07767794922290064
+              ],
+              "valid": true,
+              "peak": 0.9776300191879272,
+              "peak_gap": 0.5019058287143707,
+              "boundary": false,
+              "target_rms": 0.01693477385644221,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.545366390758687,
+            "after_norm_px": 0.08114402120013131
+          }
+        },
+        {
+          "index": 16,
+          "predicted_u": [
+            0.08538753539323807,
+            -0.3726823925971985
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.0832478601180225,
+                -0.48194429175797615
+              ],
+              "valid": true,
+              "peak": 0.8985578417778015,
+              "peak_gap": 0.329318106174469,
+              "boundary": false,
+              "target_rms": 0.016250801202442305,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.013229489436745364,
+                -0.0865852050514773
+              ],
+              "valid": true,
+              "peak": 0.9440171718597412,
+              "peak_gap": 0.5263802409172058,
+              "boundary": false,
+              "target_rms": 0.016250801202442305,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.48908128830729874,
+            "after_norm_px": 0.08759005151593031
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.09281387280180058,
+                -0.4740360533781594
+              ],
+              "valid": true,
+              "peak": 0.9332635402679443,
+              "peak_gap": 0.3470378518104553,
+              "boundary": false,
+              "target_rms": 0.016629093106876148,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.0041229547233472275,
+                -0.0803002321777291
+              ],
+              "valid": true,
+              "peak": 0.9799332022666931,
+              "peak_gap": 0.5506056249141693,
+              "boundary": false,
+              "target_rms": 0.016629093106876148,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.4830368463034782,
+            "after_norm_px": 0.08040600750844411
+          }
+        },
+        {
+          "index": 17,
+          "predicted_u": [
+            0.12878304719924927,
+            -0.3889288008213043
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.119622770660467,
+                -0.48437826001399253
+              ],
+              "valid": true,
+              "peak": 0.8517562747001648,
+              "peak_gap": 0.24157607555389404,
+              "boundary": false,
+              "target_rms": 0.010774876028079389,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.02828433814522638,
+                -0.07393508603545618
+              ],
+              "valid": true,
+              "peak": 0.8872694969177246,
+              "peak_gap": 0.3994114100933075,
+              "boundary": false,
+              "target_rms": 0.010774876028079389,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.49893076276640796,
+            "after_norm_px": 0.07916060087811243
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.15688411020808543,
+                -0.4709475282275988
+              ],
+              "valid": true,
+              "peak": 0.9346491098403931,
+              "peak_gap": 0.27938711643218994,
+              "boundary": false,
+              "target_rms": 0.011259003137437974,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.006977893354992356,
+                -0.06191345055659989
+              ],
+              "valid": true,
+              "peak": 0.9755586981773376,
+              "peak_gap": 0.4564489722251892,
+              "boundary": false,
+              "target_rms": 0.011259003137437974,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.4963911747598537,
+            "after_norm_px": 0.06230542797781094
+          }
+        },
+        {
+          "index": 18,
+          "predicted_u": [
+            0.150670126080513,
+            -0.4060729742050171
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.16655272135825414,
+                -0.5180198266947811
+              ],
+              "valid": true,
+              "peak": 0.8619541525840759,
+              "peak_gap": 0.3055691123008728,
+              "boundary": false,
+              "target_rms": 0.015674548567814292,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.009283732006160606,
+                -0.09114340635862837
+              ],
+              "valid": true,
+              "peak": 0.9088743925094604,
+              "peak_gap": 0.4976697564125061,
+              "boundary": false,
+              "target_rms": 0.015674548567814292,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.5441363338729838,
+            "after_norm_px": 0.09161499987783807
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.18465117860116298,
+                -0.5058063311253509
+              ],
+              "valid": true,
+              "peak": 0.9147843718528748,
+              "peak_gap": 0.32592886686325073,
+              "boundary": false,
+              "target_rms": 0.015888888653071608,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.009865459050121258,
+                -0.07168515266096895
+              ],
+              "valid": true,
+              "peak": 0.969266951084137,
+              "peak_gap": 0.5454845428466797,
+              "boundary": false,
+              "target_rms": 0.015888888653071608,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.5384571499806523,
+            "after_norm_px": 0.07236082085145278
+          }
+        },
+        {
+          "index": 19,
+          "predicted_u": [
+            0.14841534197330475,
+            -0.4386516511440277
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                0.09295918619158326,
+                -0.4943074924195452
+              ],
+              "valid": true,
+              "peak": 0.8974825739860535,
+              "peak_gap": 0.3149777054786682,
+              "boundary": false,
+              "target_rms": 0.01762665880809392,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.07335057572839407,
+                -0.04079823683807279
+              ],
+              "valid": true,
+              "peak": 0.945093035697937,
+              "peak_gap": 0.5305940210819244,
+              "boundary": false,
+              "target_rms": 0.01762665880809392,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.5029724717710703,
+            "after_norm_px": 0.08393332525750634
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                0.10029531762145609,
+                -0.4845216857350033
+              ],
+              "valid": true,
+              "peak": 0.931767463684082,
+              "peak_gap": 0.336387574672699,
+              "boundary": false,
+              "target_rms": 0.01797514361649543,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.0660417821999776,
+                -0.03269674631101415
+              ],
+              "valid": true,
+              "peak": 0.9807494878768921,
+              "peak_gap": 0.5663555860519409,
+              "boundary": false,
+              "target_rms": 0.01797514361649543,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 0.4947933050115756,
+            "after_norm_px": 0.0736925655373464
+          }
+        }
+      ],
+      "rgb_mean": {
+        "valid_pairs": 20,
+        "before_norm_median": 0.5049233182807422,
+        "after_norm_median": 0.09000451639160112,
+        "before_norm_mean": 0.5361191091586661,
+        "after_norm_mean": 0.10452336295729214,
+        "improved_count": 20,
+        "before_shift_axis_median": [
+          0.15893231963708032,
+          -0.4761161967254765
+        ],
+        "after_shift_axis_median": [
+          -0.028744045277902593,
+          -0.08156844695022783
+        ]
+      },
+      "all4_mean": {
+        "valid_pairs": 20,
+        "before_norm_median": 0.49867499844010577,
+        "after_norm_median": 0.07980232457764921,
+        "before_norm_mean": 0.5347122706692942,
+        "after_norm_mean": 0.0939770588330627,
+        "improved_count": 20,
+        "before_shift_axis_median": [
+          0.1731292827556395,
+          -0.46815507883825735
+        ],
+        "after_shift_axis_median": [
+          -0.01755786874457473,
+          -0.07406768789874738
+        ]
+      }
+    },
+    "fr": {
+      "reference": "INPUT_ONLY_NATIVE_LMS",
+      "sigma_p": 1.98,
+      "sigma_r": 0.7,
+      "per_scene": [
+        {
+          "index": 0,
+          "predicted_u": [
+            1.8167296648025513,
+            -1.6599605083465576
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                2.0130698933279434,
+                -1.7062323344126613
+              ],
+              "valid": true,
+              "peak": 0.8297284841537476,
+              "peak_gap": 0.1334328055381775,
+              "boundary": false,
+              "target_rms": 0.00744492725580418,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.2365219744835781,
+                -0.07213866564382801
+              ],
+              "valid": true,
+              "peak": 0.8313868641853333,
+              "peak_gap": 0.10410511493682861,
+              "boundary": false,
+              "target_rms": 0.00744492725580418,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.6388783932607915,
+            "after_norm_px": 0.24727844931267742
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                2.0112284219538927,
+                -1.7028101896045738
+              ],
+              "valid": true,
+              "peak": 0.8554397225379944,
+              "peak_gap": 0.13625812530517578,
+              "boundary": false,
+              "target_rms": 0.007830200503256293,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.2345506466553195,
+                -0.06882871789044727
+              ],
+              "valid": true,
+              "peak": 0.8571312427520752,
+              "peak_gap": 0.1090347170829773,
+              "boundary": false,
+              "target_rms": 0.007830200503256293,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.635261335635673,
+            "after_norm_px": 0.24444099135143293
+          }
+        },
+        {
+          "index": 1,
+          "predicted_u": [
+            1.9647164344787598,
+            -1.6879758834838867
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                2.0766721558800274,
+                -1.699654919351671
+              ],
+              "valid": true,
+              "peak": 0.8696840405464172,
+              "peak_gap": 0.10694962739944458,
+              "boundary": false,
+              "target_rms": 0.010575157272211786,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.12522907530660943,
+                -0.04369401390780224
+              ],
+              "valid": true,
+              "peak": 0.8726434111595154,
+              "peak_gap": 0.10465818643569946,
+              "boundary": false,
+              "target_rms": 0.010575157272211786,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.683541333365994,
+            "after_norm_px": 0.1326329075061075
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                2.095095076406064,
+                -1.6781930190105148
+              ],
+              "valid": true,
+              "peak": 0.8934563398361206,
+              "peak_gap": 0.10683208703994751,
+              "boundary": false,
+              "target_rms": 0.010986804913679682,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.14340006376578257,
+                -0.022812041759441803
+              ],
+              "valid": true,
+              "peak": 0.8970658779144287,
+              "peak_gap": 0.10919183492660522,
+              "boundary": false,
+              "target_rms": 0.010986804913679682,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.6843537747913477,
+            "after_norm_px": 0.1452031939637177
+          }
+        },
+        {
+          "index": 2,
+          "predicted_u": [
+            1.9018758535385132,
+            -1.7718144655227661
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                2.0683791166144814,
+                -1.7952583284319021
+              ],
+              "valid": true,
+              "peak": 0.8663750886917114,
+              "peak_gap": 0.11209243535995483,
+              "boundary": false,
+              "target_rms": 0.008842393678060778,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.19669056102869176,
+                -0.06276542450098564
+              ],
+              "valid": true,
+              "peak": 0.8664686679840088,
+              "peak_gap": 0.09674745798110962,
+              "boundary": false,
+              "target_rms": 0.008842393678060778,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.7388217605114447,
+            "after_norm_px": 0.2064622854435416
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                2.068206970756304,
+                -1.7610136020642841
+              ],
+              "valid": true,
+              "peak": 0.9004509449005127,
+              "peak_gap": 0.11812043190002441,
+              "boundary": false,
+              "target_rms": 0.009260977835547175,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.19634949025324963,
+                -0.028857868780780522
+              ],
+              "valid": true,
+              "peak": 0.9013180136680603,
+              "peak_gap": 0.10488778352737427,
+              "boundary": false,
+              "target_rms": 0.009260977835547175,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.716366871492213,
+            "after_norm_px": 0.1984588091097992
+          }
+        },
+        {
+          "index": 3,
+          "predicted_u": [
+            1.6369632482528687,
+            -1.6419870853424072
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                2.027898019476347,
+                -1.7765893814014717
+              ],
+              "valid": true,
+              "peak": 0.776241660118103,
+              "peak_gap": 0.10971856117248535,
+              "boundary": false,
+              "target_rms": 0.007632828329795945,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.417404504234575,
+                -0.15961933732359868
+              ],
+              "valid": true,
+              "peak": 0.7699242830276489,
+              "peak_gap": 0.08459073305130005,
+              "boundary": false,
+              "target_rms": 0.007632828329795945,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.6960415811898293,
+            "after_norm_px": 0.44688348929327887
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                2.0674549488645613,
+                -1.7613831546176586
+              ],
+              "valid": true,
+              "peak": 0.8454738855361938,
+              "peak_gap": 0.11602789163589478,
+              "boundary": false,
+              "target_rms": 0.008006237385719204,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.4578997501555237,
+                -0.14468605726746042
+              ],
+              "valid": true,
+              "peak": 0.8378764986991882,
+              "peak_gap": 0.08489000797271729,
+              "boundary": false,
+              "target_rms": 0.008006237385719204,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.716033980449328,
+            "after_norm_px": 0.48021478148854796
+          }
+        },
+        {
+          "index": 4,
+          "predicted_u": [
+            1.776643991470337,
+            -1.7759968042373657
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                2.164373770097809,
+                -1.8417714923379076
+              ],
+              "valid": true,
+              "peak": 0.8206133842468262,
+              "peak_gap": 0.0942070484161377,
+              "boundary": false,
+              "target_rms": 0.007330286472402307,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.4323055121478768,
+                -0.1061614030570648
+              ],
+              "valid": true,
+              "peak": 0.8159096240997314,
+              "peak_gap": 0.06550461053848267,
+              "boundary": false,
+              "target_rms": 0.007330286472402307,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.841942301785173,
+            "after_norm_px": 0.44514974933440393
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                2.2048909145245226,
+                -1.8279815921006364
+              ],
+              "valid": true,
+              "peak": 0.8870576620101929,
+              "peak_gap": 0.09992891550064087,
+              "boundary": false,
+              "target_rms": 0.007739366549052719,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.4734531768475904,
+                -0.09266350697561651
+              ],
+              "valid": true,
+              "peak": 0.8814528584480286,
+              "peak_gap": 0.0679963231086731,
+              "boundary": false,
+              "target_rms": 0.007739366549052719,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.864098574772098,
+            "after_norm_px": 0.48243593998799034
+          }
+        },
+        {
+          "index": 5,
+          "predicted_u": [
+            2.025949001312256,
+            -1.7705881595611572
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                1.9991213117199411,
+                -1.7851910849288999
+              ],
+              "valid": true,
+              "peak": 0.8913148045539856,
+              "peak_gap": 0.10254508256912231,
+              "boundary": false,
+              "target_rms": 0.010286284922994658,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.037572154607810715,
+                -0.05348335248461517
+              ],
+              "valid": true,
+              "peak": 0.8927198648452759,
+              "peak_gap": 0.12231087684631348,
+              "boundary": false,
+              "target_rms": 0.010286284922994658,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.680185297452861,
+            "after_norm_px": 0.06536157735907866
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                2.0211935356033575,
+                -1.7558174851202226
+              ],
+              "valid": true,
+              "peak": 0.9152738451957703,
+              "peak_gap": 0.10239076614379883,
+              "boundary": false,
+              "target_rms": 0.010664964349205193,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.015567890613711027,
+                -0.024451476066984775
+              ],
+              "valid": true,
+              "peak": 0.917426347732544,
+              "peak_gap": 0.13205820322036743,
+              "boundary": false,
+              "target_rms": 0.010664964349205193,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.6773341871008003,
+            "after_norm_px": 0.028986788370131678
+          }
+        },
+        {
+          "index": 6,
+          "predicted_u": [
+            1.8932961225509644,
+            -1.7640409469604492
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                1.9642790933999172,
+                -1.8153027098370211
+              ],
+              "valid": true,
+              "peak": 0.8945269584655762,
+              "peak_gap": 0.11737602949142456,
+              "boundary": false,
+              "target_rms": 0.010951827649573618,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.1032006415361161,
+                -0.09000740638603316
+              ],
+              "valid": true,
+              "peak": 0.8950514197349548,
+              "peak_gap": 0.10998600721359253,
+              "boundary": false,
+              "target_rms": 0.010951827649573618,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.6746432070669974,
+            "after_norm_px": 0.13693686727030985
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                1.9851668556015962,
+                -1.790407523011594
+              ],
+              "valid": true,
+              "peak": 0.9145544171333313,
+              "peak_gap": 0.11757701635360718,
+              "boundary": false,
+              "target_rms": 0.01133990727478447,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.1239707597492977,
+                -0.06528052239937948
+              ],
+              "valid": true,
+              "peak": 0.9154947996139526,
+              "peak_gap": 0.11350876092910767,
+              "boundary": false,
+              "target_rms": 0.01133990727478447,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.673283850068234,
+            "after_norm_px": 0.1401081577837421
+          }
+        },
+        {
+          "index": 7,
+          "predicted_u": [
+            1.8522626161575317,
+            -1.7507604360580444
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                2.0351794434952986,
+                -1.842812504575404
+              ],
+              "valid": true,
+              "peak": 0.8811975717544556,
+              "peak_gap": 0.11131644248962402,
+              "boundary": false,
+              "target_rms": 0.009120826432045195,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.2208680038437576,
+                -0.1297297971528846
+              ],
+              "valid": true,
+              "peak": 0.8796189427375793,
+              "peak_gap": 0.09005314111709595,
+              "boundary": false,
+              "target_rms": 0.009120826432045195,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.7455260505493855,
+            "after_norm_px": 0.2561493614890631
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                2.062651580350772,
+                -1.8255979436213974
+              ],
+              "valid": true,
+              "peak": 0.9047031998634338,
+              "peak_gap": 0.11508393287658691,
+              "boundary": false,
+              "target_rms": 0.00936110259962753,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.24835335471485748,
+                -0.11259452183933909
+              ],
+              "valid": true,
+              "peak": 0.9031277298927307,
+              "peak_gap": 0.09274518489837646,
+              "boundary": false,
+              "target_rms": 0.00936110259962753,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.754512551011197,
+            "after_norm_px": 0.27268464413375615
+          }
+        },
+        {
+          "index": 8,
+          "predicted_u": [
+            1.6171776056289673,
+            -1.7084641456604004
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                2.0502694136510033,
+                -1.7415995294287625
+              ],
+              "valid": true,
+              "peak": 0.8349958658218384,
+              "peak_gap": 0.10252892971038818,
+              "boundary": false,
+              "target_rms": 0.007888235314521033,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.4569401154270289,
+                -0.06816867045080847
+              ],
+              "valid": true,
+              "peak": 0.8301515579223633,
+              "peak_gap": 0.06473660469055176,
+              "boundary": false,
+              "target_rms": 0.007888235314521033,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.6901251995881745,
+            "after_norm_px": 0.46199700942484184
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                2.0751270736540657,
+                -1.7217839022702839
+              ],
+              "valid": true,
+              "peak": 0.9019396901130676,
+              "peak_gap": 0.10810250043869019,
+              "boundary": false,
+              "target_rms": 0.008309715210647406,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.4825560428323068,
+                -0.0486625843027487
+              ],
+              "valid": true,
+              "peak": 0.896507203578949,
+              "peak_gap": 0.06741064786911011,
+              "boundary": false,
+              "target_rms": 0.008309715210647406,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.6964221067794956,
+            "after_norm_px": 0.48500348615757105
+          }
+        },
+        {
+          "index": 9,
+          "predicted_u": [
+            1.9316402673721313,
+            -1.9507243633270264
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                2.089061136464288,
+                -1.8345902179298
+              ],
+              "valid": true,
+              "peak": 0.9065938591957092,
+              "peak_gap": 0.08897215127944946,
+              "boundary": false,
+              "target_rms": 0.012668436439752385,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.18143516599572193,
+                0.09805786954574267
+              ],
+              "valid": true,
+              "peak": 0.906651496887207,
+              "peak_gap": 0.08007532358169556,
+              "boundary": false,
+              "target_rms": 0.012668436439752385,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.7802693573841317,
+            "after_norm_px": 0.20623788507387544
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                2.1046386418562975,
+                -1.8231802365801555
+              ],
+              "valid": true,
+              "peak": 0.9224992394447327,
+              "peak_gap": 0.0930408239364624,
+              "boundary": false,
+              "target_rms": 0.012930974647005586,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.1970432594008612,
+                0.1094333596494246
+              ],
+              "valid": true,
+              "peak": 0.9225201606750488,
+              "peak_gap": 0.08362996578216553,
+              "boundary": false,
+              "target_rms": 0.012930974647005586,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.7845089311853877,
+            "after_norm_px": 0.2253923385554074
+          }
+        },
+        {
+          "index": 10,
+          "predicted_u": [
+            1.834338903427124,
+            -1.8656721115112305
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                2.057709499775075,
+                -1.8325736284921852
+              ],
+              "valid": true,
+              "peak": 0.8949455618858337,
+              "peak_gap": 0.09884214401245117,
+              "boundary": false,
+              "target_rms": 0.011443874106624544,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.2632207099667084,
+                -0.002496216321265773
+              ],
+              "valid": true,
+              "peak": 0.8938981294631958,
+              "peak_gap": 0.07757532596588135,
+              "boundary": false,
+              "target_rms": 0.011443874106624544,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.755448146728514,
+            "after_norm_px": 0.26323254595756307
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                2.058681424912626,
+                -1.8097280592751652
+              ],
+              "valid": true,
+              "peak": 0.9129893183708191,
+              "peak_gap": 0.10463029146194458,
+              "boundary": false,
+              "target_rms": 0.011731313209899166,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.26413567916506603,
+                0.020185828620950204
+              ],
+              "valid": true,
+              "peak": 0.9122039675712585,
+              "peak_gap": 0.08225584030151367,
+              "boundary": false,
+              "target_rms": 0.011731313209899166,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.741037186505892,
+            "after_norm_px": 0.264905878917598
+          }
+        },
+        {
+          "index": 11,
+          "predicted_u": [
+            1.7634342908859253,
+            -1.6909198760986328
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                1.8329881380718756,
+                -1.698140674130888
+              ],
+              "valid": true,
+              "peak": 0.8811357617378235,
+              "peak_gap": 0.10135054588317871,
+              "boundary": false,
+              "target_rms": 0.010756245178385858,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.10983650348161586,
+                -0.04111086971657018
+              ],
+              "valid": true,
+              "peak": 0.8843401670455933,
+              "peak_gap": 0.10985219478607178,
+              "boundary": false,
+              "target_rms": 0.010756245178385858,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.498705117345764,
+            "after_norm_px": 0.11727813566867364
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                1.8576685891486684,
+                -1.6788285347626704
+              ],
+              "valid": true,
+              "peak": 0.900760293006897,
+              "peak_gap": 0.10060334205627441,
+              "boundary": false,
+              "target_rms": 0.011134102149656162,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.1343379172716302,
+                -0.02223993634145618
+              ],
+              "valid": true,
+              "peak": 0.904139518737793,
+              "peak_gap": 0.11311197280883789,
+              "boundary": false,
+              "target_rms": 0.011134102149656162,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.503876561702469,
+            "after_norm_px": 0.13616640843229794
+          }
+        },
+        {
+          "index": 12,
+          "predicted_u": [
+            1.7099870443344116,
+            -1.6468631029129028
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                1.8627837807437257,
+                -1.7373289985381695
+              ],
+              "valid": true,
+              "peak": 0.8930916786193848,
+              "peak_gap": 0.09844642877578735,
+              "boundary": false,
+              "target_rms": 0.012586244177172681,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.18839103097961266,
+                -0.11615892951493499
+              ],
+              "valid": true,
+              "peak": 0.8936035633087158,
+              "peak_gap": 0.0932493805885315,
+              "boundary": false,
+              "target_rms": 0.012586244177172681,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.5472093480834133,
+            "after_norm_px": 0.22132346793690227
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                1.8801775711397937,
+                -1.7277365010324668
+              ],
+              "valid": true,
+              "peak": 0.9048333764076233,
+              "peak_gap": 0.09898608922958374,
+              "boundary": false,
+              "target_rms": 0.012939060332257847,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.2056407315615126,
+                -0.10668171356325534
+              ],
+              "valid": true,
+              "peak": 0.9053239822387695,
+              "peak_gap": 0.09521383047103882,
+              "boundary": false,
+              "target_rms": 0.012939060332257847,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.553456699459978,
+            "after_norm_px": 0.23166591999244635
+          }
+        },
+        {
+          "index": 13,
+          "predicted_u": [
+            1.7693475484848022,
+            -1.7538288831710815
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                1.7963920727289744,
+                -1.7725649878448426
+              ],
+              "valid": true,
+              "peak": 0.8966491222381592,
+              "peak_gap": 0.08904576301574707,
+              "boundary": false,
+              "target_rms": 0.011084916238979973,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.06740499399939572,
+                -0.058390211702552736
+              ],
+              "valid": true,
+              "peak": 0.8988213539123535,
+              "peak_gap": 0.10300910472869873,
+              "boundary": false,
+              "target_rms": 0.011084916238979973,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.5236899799890016,
+            "after_norm_px": 0.08917875329206783
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                1.8155893122868132,
+                -1.7508955937769564
+              ],
+              "valid": true,
+              "peak": 0.9130598902702332,
+              "peak_gap": 0.09646952152252197,
+              "boundary": false,
+              "target_rms": 0.011395418992513343,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.08643832897708077,
+                -0.03694602930939703
+              ],
+              "valid": true,
+              "peak": 0.9155019521713257,
+              "peak_gap": 0.10670584440231323,
+              "boundary": false,
+              "target_rms": 0.011395418992513343,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.5223005235692404,
+            "after_norm_px": 0.09400315844736742
+          }
+        },
+        {
+          "index": 14,
+          "predicted_u": [
+            1.7364693880081177,
+            -1.788811445236206
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                1.813239972242791,
+                -1.755228991663402
+              ],
+              "valid": true,
+              "peak": 0.8938563466072083,
+              "peak_gap": 0.09091103076934814,
+              "boundary": false,
+              "target_rms": 0.011973719088547052,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.11483809490489581,
+                -0.008030679012325183
+              ],
+              "valid": true,
+              "peak": 0.8962743878364563,
+              "peak_gap": 0.09885203838348389,
+              "boundary": false,
+              "target_rms": 0.011973719088547052,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.5236220022251272,
+            "after_norm_px": 0.11511854692787282
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                1.831175185564993,
+                -1.7480830265064278
+              ],
+              "valid": true,
+              "peak": 0.9079273343086243,
+              "peak_gap": 0.09748053550720215,
+              "boundary": false,
+              "target_rms": 0.012320083318658009,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.13253751810635642,
+                -0.000874496133426495
+              ],
+              "valid": true,
+              "peak": 0.9102743268013,
+              "peak_gap": 0.10165441036224365,
+              "boundary": false,
+              "target_rms": 0.012320083318658009,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.531599657882118,
+            "after_norm_px": 0.1325404030825323
+          }
+        },
+        {
+          "index": 15,
+          "predicted_u": [
+            1.6644126176834106,
+            -1.5304200649261475
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                1.8440236233790082,
+                -1.7816784501776726
+              ],
+              "valid": true,
+              "peak": 0.8570836186408997,
+              "peak_gap": 0.08941364288330078,
+              "boundary": false,
+              "target_rms": 0.008823677894058685,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.20961484152093451,
+                -0.25415693420087193
+              ],
+              "valid": true,
+              "peak": 0.8548220992088318,
+              "peak_gap": 0.08809351921081543,
+              "boundary": false,
+              "target_rms": 0.008823677894058685,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.5641375203774386,
+            "after_norm_px": 0.3294451835863333
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                1.8635881877192362,
+                -1.7501480096700823
+              ],
+              "valid": true,
+              "peak": 0.9076944589614868,
+              "peak_gap": 0.0928349494934082,
+              "boundary": false,
+              "target_rms": 0.009359970401121942,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.22935952149852729,
+                -0.22252549996888396
+              ],
+              "valid": true,
+              "peak": 0.9058377742767334,
+              "peak_gap": 0.09922689199447632,
+              "boundary": false,
+              "target_rms": 0.009359970401121942,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.5565560797993103,
+            "after_norm_px": 0.31956750184966426
+          }
+        },
+        {
+          "index": 16,
+          "predicted_u": [
+            1.6666810512542725,
+            -1.731541633605957
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                1.6607558077556397,
+                -1.736207502623664
+              ],
+              "valid": true,
+              "peak": 0.8470354676246643,
+              "peak_gap": 0.08354949951171875,
+              "boundary": false,
+              "target_rms": 0.00791692480962298,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.024860991613717586,
+                -0.044118913323250464
+              ],
+              "valid": true,
+              "peak": 0.8525955677032471,
+              "peak_gap": 0.12106585502624512,
+              "boundary": false,
+              "target_rms": 0.00791692480962298,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.4026082379698916,
+            "after_norm_px": 0.050641360732525974
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                1.7255066816165492,
+                -1.7048256574546763
+              ],
+              "valid": true,
+              "peak": 0.8988314270973206,
+              "peak_gap": 0.10235559940338135,
+              "boundary": false,
+              "target_rms": 0.008352269713367938,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.08847937212122838,
+                -0.013000724328735412
+              ],
+              "valid": true,
+              "peak": 0.9040843844413757,
+              "peak_gap": 0.12656080722808838,
+              "boundary": false,
+              "target_rms": 0.008352269713367938,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.4256553404428924,
+            "after_norm_px": 0.08942940301734423
+          }
+        },
+        {
+          "index": 17,
+          "predicted_u": [
+            1.6933828592300415,
+            -1.8070590496063232
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                1.6713748137550182,
+                -1.821561119578167
+              ],
+              "valid": true,
+              "peak": 0.7743380069732666,
+              "peak_gap": 0.08648383617401123,
+              "boundary": false,
+              "target_rms": 0.006434431090394118,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.012576899762065729,
+                -0.05481017219784448
+              ],
+              "valid": true,
+              "peak": 0.7780400514602661,
+              "peak_gap": 0.1246299147605896,
+              "boundary": false,
+              "target_rms": 0.006434431090394118,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.4721607311041667,
+            "after_norm_px": 0.05623462797940796
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                1.6984130793160173,
+                -1.7702189745944512
+              ],
+              "valid": true,
+              "peak": 0.8658875226974487,
+              "peak_gap": 0.10458654165267944,
+              "boundary": false,
+              "target_rms": 0.006864903927585946,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.03941301837624208,
+                -0.004295242612091049
+              ],
+              "valid": true,
+              "peak": 0.8705068826675415,
+              "peak_gap": 0.14107602834701538,
+              "boundary": false,
+              "target_rms": 0.006864903927585946,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.4532187440189563,
+            "after_norm_px": 0.039646375958247666
+          }
+        },
+        {
+          "index": 18,
+          "predicted_u": [
+            1.2015464305877686,
+            -1.7115309238433838
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                1.1164772668939915,
+                -1.7729923622222226
+              ],
+              "valid": true,
+              "peak": 0.7152171730995178,
+              "peak_gap": 0.10300248861312866,
+              "boundary": false,
+              "target_rms": 0.00644443905928357,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.1259647869963865,
+                -0.09418778605711067
+              ],
+              "valid": true,
+              "peak": 0.7163389921188354,
+              "peak_gap": 0.1086726188659668,
+              "boundary": false,
+              "target_rms": 0.00644443905928357,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.095238269025605,
+            "after_norm_px": 0.15728466741988895
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                1.2514373539738075,
+                -1.7439966280106156
+              ],
+              "valid": true,
+              "peak": 0.8496913313865662,
+              "peak_gap": 0.1096123456954956,
+              "boundary": false,
+              "target_rms": 0.007071246618948999,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                0.007329393510427302,
+                -0.06690463311166753
+              ],
+              "valid": true,
+              "peak": 0.8543819785118103,
+              "peak_gap": 0.14086782932281494,
+              "boundary": false,
+              "target_rms": 0.007071246618948999,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.146536673209513,
+            "after_norm_px": 0.0673049028008921
+          }
+        },
+        {
+          "index": 19,
+          "predicted_u": [
+            1.1972593069076538,
+            -1.7534637451171875
+          ],
+          "rgb_mean": {
+            "before": {
+              "shift": [
+                1.1293588246073019,
+                -1.7508663473250758
+              ],
+              "valid": true,
+              "peak": 0.8054119944572449,
+              "peak_gap": 0.09032964706420898,
+              "boundary": false,
+              "target_rms": 0.008396605932895122,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.10996992387577498,
+                -0.03540992653783514
+              ],
+              "valid": true,
+              "peak": 0.8075386881828308,
+              "peak_gap": 0.0922272801399231,
+              "boundary": false,
+              "target_rms": 0.008396605932895122,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.0835028967855647,
+            "after_norm_px": 0.11553028630908271
+          },
+          "all4_mean": {
+            "before": {
+              "shift": [
+                1.2295398120520793,
+                -1.722833103642066
+              ],
+              "valid": true,
+              "peak": 0.8887098431587219,
+              "peak_gap": 0.09350079298019409,
+              "boundary": false,
+              "target_rms": 0.008924355195789106,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "after": {
+              "shift": [
+                -0.01118954869263057,
+                -0.008539260444325672
+              ],
+              "valid": true,
+              "peak": 0.8932358026504517,
+              "peak_gap": 0.11968415975570679,
+              "boundary": false,
+              "target_rms": 0.008924355195789106,
+              "local_maximum": true,
+              "fallback_reason": null
+            },
+            "before_norm_px": 2.116582635388001,
+            "after_norm_px": 0.014075687154834593
+          }
+        }
+      ],
+      "rgb_mean": {
+        "valid_pairs": 20,
+        "before_norm_median": 2.6567608001638945,
+        "after_norm_median": 0.1817612762468822,
+        "before_norm_mean": 2.581814836589464,
+        "after_norm_mean": 0.20601785786587484,
+        "improved_count": 20,
+        "before_shift_axis_median": [
+          1.9817002025599293,
+          -1.774790871811847
+        ],
+        "after_shift_axis_median": [
+          0.1533321206511657,
+          -0.06057781810176919
+        ]
+      },
+      "all4_mean": {
+        "valid_pairs": 20,
+        "before_norm_median": 2.6542725928519535,
+        "after_norm_median": 0.17183100153675845,
+        "before_norm_mean": 2.5876498132632073,
+        "after_norm_mean": 0.20461173852776607,
+        "improved_count": 20,
+        "before_shift_axis_median": [
+          1.9981976387777445,
+          -1.7505218017235193
+        ],
+        "after_shift_axis_median": [
+          0.1698747770095161,
+          -0.03290194904508877
+        ]
+      }
+    }
+  }
+}

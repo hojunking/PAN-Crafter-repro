@@ -1,4 +1,4 @@
-"""Pinned finite-support Lanczos-4 Student warp; frozen Teacher keeps pa.warp.
+"""Pinned Lanczos-4 for Stage1, epsilon injection, Teacher and Student.
 
 Adapted from the independently gradchecked panda_warp_candidates windowed sinc.
 No dynamic import of an experimental implementation enters this campaign.
@@ -10,6 +10,25 @@ from .contract import WARP_MANIFEST
 
 def warp_manifest():
     return deepcopy(WARP_MANIFEST)
+
+
+def boundary_manifest():
+    """R3 injection + four-tap radius fits the unchanged eight-pixel view."""
+    from directshift48.method import boundary_manifest as original_boundary
+    value = original_boundary()
+    value.pop('bicubic_conservative_tap_margin')
+    value.update(lanczos_conservative_tap_margin=4, minimum_clean_input_margin=7,
+                 aligner_view_rule='4*ceil((3+4)/4)=8_before_any_spatial_statistics')
+    return value
+
+
+def mask_manifest():
+    from donor30.masking import mask_manifest as original_mask
+    value = original_mask()
+    value.update(policy='DETACHED_LANCZOS8_SUPPORT_PER_SAMPLE_MEAN_V2',
+                 support='all_floor_q_minus3_through_plus4_taps_inside_original_PAN',
+                 coordinates='original_PAN_sampling_grid_before_reflection_extension')
+    return value
 
 
 def _validate(image, delta):

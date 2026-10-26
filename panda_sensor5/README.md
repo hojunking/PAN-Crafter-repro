@@ -1,10 +1,10 @@
 # SENSOR5: QB / GF2 Stage 1 + Stage 2
 
-Campaign: `PANDA_S13_SENSOR5_STAGE12_20261026_v1`
+Campaign: `PANDA_S13_SENSOR5_RGB_L4_STAGE12_20261026_v2`
 
-Method: `PANDA-SENSOR5-MEAN4-DIFFUBIL-HARDONLY-v1`
+Method: `PANDA-SENSOR5-RGB-L4-DIFFUBIL-HARDONLY-v2`
 
-2026-10-26 사용자 승인에 따라 서버별 **새 Stage 1 한 번 + 새 Student 다섯 번**을 실행한다. 현재 WV3 run의 등록 horizon까지 완료한 다음 시작하고, 센서별 여섯 run을 모두 마치면 **남은 WV3 TUNE30 → HARD36**을 자동 재개한다. 새 센서 실험을 기다리는 동안 WV3 다음 run은 시작하지 않는다.
+2026-10-26 추가 사용자 결정으로 QB/GF2부터 Stage 1·2의 RGB 구조 참조와 Lanczos-4 warp를 통일한다. v1 가중치·calibration을 이어 쓰지 않는 별도 v2 캠페인이다. 서버별 **새 Stage 1 한 번 + 새 Student 다섯 번**을 실행한다. 현재 WV3 run의 등록 horizon까지 완료한 다음 시작하고, 센서별 여섯 run을 모두 마치면 **남은 WV3 TUNE30 → HARD36**을 자동 재개한다. 새 센서 실험을 기다리는 동안 WV3 다음 run은 시작하지 않는다.
 
 | 서버 | 데이터셋 | 공동 목표 | Stage 1 | Stage 2 합계 |
 |---|---|---|---:|---:|
@@ -20,9 +20,9 @@ WV3의 유력 조건 `S100DIFFUBILC30`을 센서별로 이식한다. Aligner sca
 ## Stage 1: 센서마다 처음부터 학습
 
 - Aligner와 Teacher를 함께 50K 학습한다. 기존 WV3 가중치나 다른 서버의 donor는 가져오지 않는다.
-- 센서당 하나의 전역 `(dy, dx)`를 예측한다. 정합 기준은 **4밴드 GT 평균의 Scharr**이며 NIR도 포함한다.
+- 영상당 하나의 전역 `(dy, dx)`를 예측한다. 정합 기준은 **GT RGB [2,1,0] 단순 평균의 Scharr**로 Stage 2 q/g와 같다. Aligner의 MS 입력과 Teacher/Student 출력·복원 손실은 NIR을 포함한 전체 4밴드를 유지한다.
 - Teacher 입력은 corrected PAN 1채널 + `I_lrms` 4채널, 출력은 HRMS 4밴드이다. `I_lrms`는 LRMS를 interp23으로 확대한 재구성 base다.
-- Teacher W112/D123의 기존 BASE down/up 구조, bicubic PAN warp와 border 경계를 유지한다.
+- Teacher W112/D123의 기존 BASE down/up 구조를 유지한다. Stage 1 native 보정·ε 주입, Stage 2 frozen Teacher·Student 모두 정규화된 8-tap Lanczos-4와 whole-sample reflection을 사용한다.
 - LR A=1e-5, T=1e-4; 100 update warmup + cosine 50K; weight decay .01; FP32.
 - loss: reconstruction 1, absolute alignment 2, shift equivariance .003. ε는 반경 3 RR PAN pixel의 uniform-area disk다. 이 equivariance는 기존 **이동** 일관성이고 rotation consistency loss가 아니다.
 - effective batch 48, microbatch 12. 기존 paired flip/rot90 augmentation은 유지한다.
@@ -51,7 +51,7 @@ Student output = HRMS                     # 4 bands
 loss = mean[(1 + α d_e + γ d_e r̄_q) · band_mean(|Student - GT|)]
 ```
 
-Student는 W112/D123, UBIL(bilinear ×2 + 3×3 conv), 기존 stride-2 convolution downsample을 쓴다. 차영상 stem의 추가 열은 0으로 초기화한다. Teacher difficulty는 기존 bicubic Teacher 경로에서, conditional discrepancy는 L4 corrected PAN에서 계산한다. β=0이므로 Teacher 출력으로 Soft reconstruction distillation을 하지 않는다.
+Student는 W112/D123, UBIL(bilinear ×2 + 3×3 conv), 기존 stride-2 convolution downsample을 쓴다. 차영상 stem의 추가 열은 0으로 초기화한다. Teacher difficulty와 conditional discrepancy는 같은 L4 corrected PAN 경로에서 계산한다. difficulty는 전체 4밴드 Teacher 복원 오차, q/g는 RGB 평균의 Scharr 구조 참조를 쓴다. β=0이므로 Teacher 출력으로 Soft reconstruction distillation을 하지 않는다.
 
 Student warmup 100 update, 최소 LR 0, weight decay .01, FP32, effective batch 48/microbatch 12. rotation consistency loss, TTA, SWA/EMA, band-weighted loss, 새 정합 보조 loss를 추가하지 않는다. 공식 평가는 원본 PAN·원본 좌표 기준의 단일 forward다.
 
@@ -74,7 +74,7 @@ QB는 기존 `config/bglobal_rr/qb_original_lms.json`의 혼합 경로를 명시
 - QB: `QB-ablations` / gid `261001011`; GF2: `GF2-ablations` / gid `261001012`.
 - Stage 1은 실제 새 학습의 validation RRE 선정 모델을 게시한다. Stage 2는 **공동 목표를 만족한 모든 step + run별 대표 하나**를 게시한다.
 - 대표는 해당 센서 HQNR 목표를 만족한 결과 중 ERGAS 최소; HQNR 목표를 못 넘겼으면 HQNR 최대다. 대표 결과는 ERGAS 목표 미달이어도 게시한다.
-- 같은 모델 상태의 RR20와 FR20, checkpoint SHA, 실제 native cost를 검증한다. 실행 이름·메모에 scale, 입력, 구조, LR/horizon, α/β/γ, 선택 역할을 표시한다.
+- 같은 모델 상태의 RR20와 FR20, checkpoint SHA, 실제 native cost를 검증한다. 실행 이름·메모에 RGB 참조, A/T/S L4, scale, 입력, 구조, LR/horizon, α/β/γ, 선택 역할을 표시한다. v2 run ID는 PSN5R2로 구분하며 기존 v1 행은 그대로 보존한다.
 - 해당 센서 탭의 목표 안내와 게시 규칙 셀만 검증·백업 후 갱신한다. 기존 WV3 행과 다른 캠페인 행은 보존한다.
 
 ## 실행 / 인계
@@ -82,10 +82,12 @@ QB는 기존 `config/bglobal_rr/qb_original_lms.json`의 혼합 경로를 명시
 기존 학습·게시 Python 환경, Docker GPU 권한, DLPan-Toolbox, 데이터 경로, `gspread/account.json`, 서버에 맞는 `gspread/server.txt`가 필요하다. 기존 TUNE30 Docker 이미지와 실제 체크포인트를 재사용한다. 데이터·인증정보·work_dir는 Git 전송 대상이 아니다.
 
 ```bash
-# s3: 이 commit을 반영하고, 기존 학습 환경에서 저장소 루트로 이동한다.
+# 이미 v1을 사용 중인 서버는 먼저 아래 인계문의 pre-update 안전 종료 절차를 따른다.
+# 새 소스를 반영한 뒤 기존 학습 환경에서 저장소 루트로 이동한다.
 export PYTHONDONTWRITEBYTECODE=1
 python -m panda_sensor5 check --server s3
 python -m panda_sensor5 smoke
+python -m panda_sensor5.migration --server s3 --apply
 python -m panda_sensor5.queue --server s3 --enqueue
 ```
 
@@ -103,6 +105,17 @@ work_dir/panda_sensor5/<campaign>/<server>/<dataset>/campaign_state.json
 work_dir/panda_sensor5/<campaign>/<server>/<dataset>/sheet_publish_panda_sensor5/last_poll.json
 ```
 
-학습 컨테이너는 `panda-sensor5-stage12-qb-s1-v1` 또는 `panda-sensor5-stage12-gf2-s3-v1`이다. `docker logs --tail 30 <name>`으로 진행을 확인한다. 전체 큐 순서는 `CUTOVER → START_SENSOR5 → WAIT_SENSOR5 → RESUME_TUNE30 → RESUME_HARD36 → COMPLETED`다. `BLOCKED`이면 status의 오류와 watcher 로그를 먼저 확인하며, 체크포인트나 admission 파일을 삭제해 강제로 통과시키지 않는다.
+학습 컨테이너는 `panda-sensor5-stage12-qb-s1-v2` 또는 `panda-sensor5-stage12-gf2-s3-v2`이다. `docker logs --tail 30 <name>`으로 진행을 확인한다. 전체 큐 순서는 `CUTOVER → START_SENSOR5 → WAIT_SENSOR5 → RESUME_TUNE30 → RESUME_HARD36 → COMPLETED`다. `BLOCKED`이면 status의 오류와 watcher 로그를 먼저 확인하며, 체크포인트나 admission 파일을 삭제해 강제로 통과시키지 않는다.
 
 등록된 case 목록은 [s1 CSV](cases_s1.csv), [s3 CSV](cases_s3.csv)와 `python -m panda_sensor5 catalog --server s1 --csv`로 확인할 수 있다.
+
+
+## v1 → v2 전환과 QB 진단
+
+실행 중인 v1 소스에 직접 덮어쓰면 source pin이 중단을 발생시킨다. **checkout 전에** 새 commit의 `scripts/stop_panda_sensor5_before_update.py`를 `git show`로 외부 경로에 추출해 실행한다. 그 후 소스를 반영하고 migration을 적용한다. [정확한 s3 인계 절차](../research_log/PANDA_Sensor5_Stage12_Handoff_2026-10-26.md)를 따른다. migration은 기존 결과·모델·Sheet 행과 WV3 완료 증거를 보존하고 fresh Stage 1부터 새 donor/calibration을 만든다. 이미 WV3 재개 단계로 넘어간 서버는 자동으로 중단하지 않고 별도 확인한다.
+
+RGB/L4 전환에 맞춰 validation의 RGB texture eligibility와 정합 참조를 함께 변경했다. RRE estimator는 기존 gradient NCC, Gaussian σ=.8, search bound8을 유지하며 ROI margin을20으로 둔다. 검색±8과 Gaussian3+Scharr1의 footprint를 빼면 corrected PAN의 검사 영역은 `[8:-8]`이다. 기존 bicubic용 `[4:-4]`를 L4에 그대로 적용해 정상적인 1–2픽셀 보정을 탈락시키지 않는다. 학습 ROI8/stencil7은 그대로다.
+
+공유 masked reduction 라이브러리의 `MASK2` enum에 남아 있는 `BICUBIC4` 문자열은 호환용 식별자다. 실제 mask는 모든 경로에서 Lanczos의 floor−3…floor+4 support로 생성하며 별도의 operator manifest와 calibration metadata에 기록한다. 새 local calibration collector는 이전 bicubic donor/artifact를 거부한다. 기존 WV3의 고정 소스는 수정하지 않는다.
+
+[QB 낮은 HQNR의 실측 분석](../results_log/2026-10-26_qb-low-hqnr-audit.md)에 기존 v1 결과를 보존했다. 큰 FR shift가 곧 오정합이라는 해석은 독립 정합 진단으로 지지되지 않았다. 원본 PAN 기준 HQNR과 MS 기준 정합 사이의 차이가 큰 영향을 보였으며, RGB/L4 변경만으로 목표가 달성된다고 보장하지 않는다. 진단용 zero shift 또는 보정된 PAN 참조 결과는 공식 결과로 게시하거나 donor 선정에 쓰지 않는다.

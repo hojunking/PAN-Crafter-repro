@@ -9,6 +9,10 @@ import sys
 
 from . import plan
 
+
+def sensor_container_name(server):
+    return f'panda-sensor5-stage12-{plan.dataset_for_server(server).lower()}-{server}-v2'
+
 def command(args, **kwargs):
     return subprocess.run(args,check=True,cwd=plan.ROOT,**kwargs)
 
@@ -24,7 +28,7 @@ def launch(server):
     directory.mkdir(parents=True,exist_ok=True)
     with (directory/'start.lock').open('a+') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        name=f'panda-sensor5-stage12-{sensor.lower()}-{server}-v1'
+        name=sensor_container_name(server)
         old=subprocess.run(['docker','inspect',name],capture_output=True,text=True)
         if old.returncode==0: raise ValueError('Sensor5 container already exists; inspect, never overwrite')
         source=json.loads(command(['docker','inspect',f'panda-tune30-hardonly-wv3-{server}-v1'],

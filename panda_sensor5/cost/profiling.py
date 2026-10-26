@@ -117,13 +117,13 @@ def measure(cfg, step, sources, root, *, device="cuda", deadline_unix=None):
             "graph": "A+S" if cfg["phase"] == "stage2" else "A+T"}
         if cfg["phase"] == "stage2":
             _stage2_labels(value)
-            account_student_lanczos4(value)
+        account_student_lanczos4(value)
         for split in ("rr", "fr"):
             value["observations"][split]["sheet_fields"]["Cost_scope"] += (
                 "; Sensor5 interp23; geometry=" + source_sig["geometry_key"]
                 + "; sampling=" + source_sig["reconstructor_sampling"]["variant"]
                 + "; input=" + source_sig["reconstructor_input"]["variant"]
-                + "; warp=" + ("Lanczos4" if cfg["phase"] == "stage2" else "bicubic")
+                + "; warp=" + "Lanczos4"
                 + "; exact native deployment; independent isolated architecture measurement")
         return save_profile(cfg, step, root, value)
     finally:

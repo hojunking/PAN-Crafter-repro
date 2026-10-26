@@ -181,7 +181,7 @@ def row_requests(snapshot, value, server):
         if row[INDEX["Campaign_ID"]] != R.CAMPAIGN_ID or row[INDEX["Server"]] != server:
             continue
         if (row[INDEX["Dataset"]] != R.DATASETS[server]
-                or not str(row[INDEX["Run_ID"]]).startswith("PSN5_")
+                or not str(row[INDEX["Run_ID"]]).startswith("PSN5R2_")
                 or legacy._key(row) not in keys):
             raise ValueError("Unknown own run; never erase it")
         verify_owned(row, value)

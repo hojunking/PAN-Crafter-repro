@@ -15,7 +15,7 @@ from donor30.artifacts import _same, capture_rng
 from donor30.masking import masked_mean
 from panda_method.calibration import canonical_sha256, state_dict_sha256
 from panda_method.edge_data import EdgeDataSources
-from panda_stage2_condq.calibration import CalibrationBuilder
+from panda_sensor5.calibration_core import CalibrationBuilder
 from panda_stage2_condq.donor import LoadedDonor
 from panda_stage2_condq.losses import reference_maps
 from panda_stage2_condq.sources import RegisteredRRTrain
@@ -24,7 +24,7 @@ from panda_stage2_condq.stream import StreamSpec, TrainStream
 from ta2.evaluation import file_sha
 
 from panda_sensor5 import plan
-from panda_sensor5.aligner import BandPANAligner, AllBandScharr
+from panda_sensor5.aligner import BandPANAligner, RGBScharr
 from panda_sensor5.base_reconstruction import BandReconstructionSpec, build_reconstructor
 from panda_sensor5.calibration import bind_donor, binding_for_geometry
 from panda_sensor5.contract import CAMPAIGN_ID
@@ -35,7 +35,7 @@ from panda_sensor5.selection import validation_inventory, validate_inventory
 from panda_sensor5.spec import MatureSpec
 from panda_sensor5.stage1 import build_stage1, Stage1Stream, advance_stage1, save_stage1, load_stage1
 from panda_sensor5.warp import warp_pan
-from pa.warp import warp_pan as teacher_warp
+from panda_sensor5.warp import warp_pan as teacher_warp
 
 PINS = {'code_pin':{'synthetic_test':'a'*64},'evaluator_pin':{'synthetic_test':'b'*64}}
 
@@ -75,9 +75,9 @@ def make_donor(sensor, *, binding_source=None):
         'donor_checkpoint_id':'c'*64,
         'reconstruction_spec':{'bands':4,'width':112,'depth':[1,2,3],'input_layout':'P0','base_reference':'BICUBIC_MS'},
         'scharr':{'kernel':'absolute_xy_/32','padding':'reflect1','rgb_indices':[2,1,0],'roi_margin':8},
-        'warp':'bicubic_border_FP32_align_corners_false_current_pan_px',
+        'warp':'lanczos4_reflect_FP32_current_pan_px',
         'band30_teacher':{'campaign_id':CAMPAIGN_ID,'upsampler':'interp23','aligner_outputs':2,
-                          'alignment_target':'SCHARR_OF_MEAN4_GT','pan_channels':1},
+                          'alignment_target':'SCHARR_OF_RGB_MEAN_GT','pan_channels':1},
         'band30_reconstruction_spec':spec.manifest()}
     if binding_source is not None:
         binding.update(binding_source.inventory.manifest())
@@ -111,14 +111,18 @@ class CoreTests(unittest.TestCase):
     def tearDownClass(cls):
         torch.set_num_threads(cls.threads)
 
-    def test_stage1_mean4_includes_nir_and_cannot_use_rgb_target(self):
+    def test_stage1_rgb_reference_matches_q_and_excludes_nir_only_from_reference(self):
         for sensor in ('QB','GF2'):
-            spatial=AllBandScharr(2,sensor=sensor)
+            spatial=RGBScharr(2,sensor=sensor)
             gt=torch.zeros(1,4,64,64);gt[:,3,:,32:]=1.
-            pan=gt.mean(1,keepdim=True)
+            pan=torch.zeros(1,1,64,64)
             self.assertEqual(float(spatial.absolute_loss(pan,gt)),0.)
-            self.assertGreater(float(ScharrAbsolute(sensor).absolute_loss(pan,gt)),0.)
-            self.assertEqual(spatial.manifest()['target_bands'],[0,1,2,3])
+            gt[:,0,32:,:]=.5
+            _,_,q=reference_maps(ScharrAbsolute(sensor),gt,gt,pan)
+            torch.testing.assert_close(spatial.absolute_loss(pan,gt),q[...,8:-8,8:-8].mean())
+            self.assertGreater(float(spatial.absolute_loss(pan,gt)),0.)
+            self.assertEqual(spatial.manifest()['target_bands'],[2,1,0])
+            self.assertEqual(BandPANAligner().ms_bands,4)
 
     def test_both_stage1_update_and_complete_resume(self):
         for sensor,server in [('QB','s1'),('GF2','s3')]:

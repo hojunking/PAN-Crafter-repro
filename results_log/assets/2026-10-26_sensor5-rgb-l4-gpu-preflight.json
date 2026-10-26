@@ -1,0 +1,62 @@
+[
+  {
+    "case": "RGB_MATURE_U23",
+    "dataset": "QB",
+    "status": "PASS",
+    "phase": "donor",
+    "updates": 2,
+    "exact_resume_state": true,
+    "update_replay_bitwise": false,
+    "update_replay_max_abs": 9.313225746154785e-10,
+    "update_replay_relative_to_update_l2": 1.085041836736845e-06,
+    "native_shapes": {
+      "rr": [
+        1,
+        4,
+        256,
+        256
+      ],
+      "fr": [
+        1,
+        4,
+        512,
+        512
+      ]
+    },
+    "alignment_target": "SCHARR_OF_RGB_MEAN_GT",
+    "loss": 0.07005914580076933,
+    "disposable_resume_checkpoint": "work_dir/panda_sensor5_rgb_l4_audit/1793003461442390622/QB/stage1_resume.pt",
+    "seconds": 2.6449343080166727,
+    "production_donor_reused": false
+  },
+  {
+    "case": "RGB_MATURE_U23",
+    "dataset": "GF2",
+    "status": "PASS",
+    "phase": "donor",
+    "updates": 2,
+    "exact_resume_state": true,
+    "update_replay_bitwise": false,
+    "update_replay_max_abs": 1.862645149230957e-09,
+    "update_replay_relative_to_update_l2": 2.2773252414461206e-06,
+    "native_shapes": {
+      "rr": [
+        1,
+        4,
+        256,
+        256
+      ],
+      "fr": [
+        1,
+        4,
+        512,
+        512
+      ]
+    },
+    "alignment_target": "SCHARR_OF_RGB_MEAN_GT",
+    "loss": 0.06729912757873535,
+    "disposable_resume_checkpoint": "work_dir/panda_sensor5_rgb_l4_audit/1793003461442390622/GF2/stage1_resume.pt",
+    "seconds": 2.2594379860674962,
+    "production_donor_reused": false
+  }
+]
