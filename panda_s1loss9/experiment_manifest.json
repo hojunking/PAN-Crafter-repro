@@ -1,0 +1,127 @@
+{
+  "campaign_id": "PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1",
+  "notation_reference": "research_log/PANDA_Method_EquationStyle_2026-10-26.md",
+  "stage1_objective": "L_S1 = L_rec + lambda_abs * L_abs + lambda_epsilon * L_epsilon",
+  "bands": {
+    "QB": 4,
+    "GF2": 4,
+    "WV3_not_in_this_campaign": 8
+  },
+  "lanes": {
+    "s1": {
+      "dataset": "QB",
+      "HQNR_min": 0.9315,
+      "ERGAS_max": 3.5,
+      "case_catalog": "cases_s1.csv"
+    },
+    "s3": {
+      "dataset": "GF2",
+      "HQNR_min": 0.9645,
+      "ERGAS_max": 0.522,
+      "case_catalog": "cases_s3.csv"
+    }
+  },
+  "ordered_pairs": [
+    {
+      "pair": "A200_E003",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.003,
+      "stage1_case": "S1_A200_E003"
+    },
+    {
+      "pair": "A020_E003",
+      "lambda_abs": 0.2,
+      "lambda_epsilon": 0.003,
+      "stage1_case": "S1_A020_E003"
+    },
+    {
+      "pair": "A050_E003",
+      "lambda_abs": 0.5,
+      "lambda_epsilon": 0.003,
+      "stage1_case": "S1_A050_E003"
+    },
+    {
+      "pair": "A200_E0003",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.0003,
+      "stage1_case": "S1_A200_E0003"
+    },
+    {
+      "pair": "A200_E030",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.03,
+      "stage1_case": "S1_A200_E030"
+    },
+    {
+      "pair": "A020_E0003",
+      "lambda_abs": 0.2,
+      "lambda_epsilon": 0.0003,
+      "stage1_case": "S1_A020_E0003"
+    },
+    {
+      "pair": "A020_E030",
+      "lambda_abs": 0.2,
+      "lambda_epsilon": 0.03,
+      "stage1_case": "S1_A020_E030"
+    },
+    {
+      "pair": "A050_E0003",
+      "lambda_abs": 0.5,
+      "lambda_epsilon": 0.0003,
+      "stage1_case": "S1_A050_E0003"
+    },
+    {
+      "pair": "A050_E030",
+      "lambda_abs": 0.5,
+      "lambda_epsilon": 0.03,
+      "stage1_case": "S1_A050_E030"
+    }
+  ],
+  "per_pair": {
+    "stage1_updates": 50000,
+    "stage2_updates": 30000,
+    "Stage1_seed": 261016101,
+    "Student_seed": 261018101,
+    "independent_seed_replication": false,
+    "stage1_initialization": "FRESH",
+    "student_initialization": "FRESH",
+    "A_T_from_same_checkpoint": true,
+    "donor_selection": "RR_validation_RRE50_then_RRE90_then_Val_ERGAS_then_earlier_step",
+    "calibration": "EXACT_FULL_RR_TRAIN_PER_DONOR"
+  },
+  "fixed": {
+    "lr_A": 1e-05,
+    "lr_T": 0.0001,
+    "lr_S": 0.0001,
+    "alpha": 0.25,
+    "beta": 0.0,
+    "gamma": 0.5,
+    "aligner_scale": 1.0,
+    "epsilon_radius": 3.0,
+    "warmup_updates": 100,
+    "scheduler": "COSINE",
+    "PAN_warp": "LANCZOS4_ALL_PATHS",
+    "structural_reference": "GT_RGB_MEAN",
+    "Student_inputs": [
+      "corrected_PAN",
+      "corrected_PAN_minus_original_PAN",
+      "I_ms^lr"
+    ],
+    "Student_architecture": "W112D123_UBIL",
+    "MS_upsampling": "interp23",
+    "rotation_loss": false,
+    "TTA": false,
+    "SWA": false,
+    "band_weighted_loss": false
+  },
+  "priority": [
+    "finish_current_Sensor5_initial_donor_and_BASE",
+    "S1LOSS9",
+    "remaining_Sensor5_LR_LONG_HARD",
+    "WV3_TUNE30",
+    "WV3_HARD36"
+  ],
+  "time_limit_seconds": null,
+  "baseline_note": "FRESH_IMPLEMENTATION_REPRODUCTION_CONTROL_NOT_INDEPENDENT_SEED_CONFIRMATION",
+  "publication": "ALL_JOINT_TARGET_PASSES_PLUS_HQNR_QUALIFIED_MIN_ERGAS_REPRESENTATIVE_ELSE_MAX_HQNR"
+}
