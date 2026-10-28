@@ -120,3 +120,32 @@ bash scripts/enqueue_panda_sensor_refine.sh s3
 통합 테스트는 두 서버의 10-run 구성·센서별 스케줄, R3/R4 구분, 원래 WV3/LOSS9 source pin 불변, 실제 publication projection의 목표/대표 선정, 반경·계수 표시, 다른 캠페인 행 보존 및 쓰기 없는 dry-run을 확인한다. 가짜 수치를 실제 시트에 올리지 않는다. 실제 학습은 run 시작 시 GPU update/resume preflight를 통과해야 하며, 미시작 run의 GPU 검증이 완료됐다고 주장하지 않는다.
 
 오류 처리 검증에는 preflight-only 실패와 실제 학습 중 실패의 증거 구분, 이미 시작한 run의 preflight 실패 재분류 거부, 실패 donor에 종속된 Student만 보류하는 규칙을 포함한다. 이 검증은 모든 case가 반드시 끝까지 학습된다는 보장이 아니다. 미시작·완료·실패·보류를 남김없이 계산하고, 학습 오류를 감춘 정상 완료나 전체 큐의 무기록 중단을 피하는 것이 목적이다.
+
+## 2026-10-28 추가: QB Student 10K 조기 종료
+
+사용자 승인 정책 `USER_20261028_QB_S2_HQNR_8_9_10K_ALL_LT_090`을 현재 retained LOSS9와 이후 SENSOR_REFINE의 **QB Stage 2**에 적용한다. 위 launcher를 통해 실행해야 원본 LOSS9 코드의 변경 없이 제어 계층에서 적용된다.
+
+- 정확히 8K·9K·10K의 공식 FR20 평균 HQNR이 **모두 < .90**이면 10K 평가/checkpoint 저장 후 Student를 종료하고 다음 독립 case로 진행한다. 하나라도 .90 이상이면 계속한다. 1K 값만으로 중단하지 않는다.
+- 평가 누락은 중단 판정이 아니다. 같은 run/attempt/seed, RR20/FR20 전수, 동일 모델 상태의 평가, 고정 추론 조건, checkpoint SHA를 확인한다. 손상·출처 불일치는 성능 조기 종료로 위장하지 않는다.
+- 정책 적용 시 이미 10K를 넘긴 미완료 run은 같은 고정 8/9/10K 창으로 판단하되 실제 안전 종료 step을 기록한다. 이미 완료된 과거 run은 재분류하지 않는다.
+- `EARLY_STOPPED_HQNR` 및 `attempt_01/early_stop.json`에 근거와 실제 종료 step, 완전한 optimizer/data/RNG checkpoint를 보존한다. 30K 완료로 표시하지 않는다. 기존 대표 결과와 목표 통과 step 게시 정책은 유지한다.
+- REFINE 종료 상태 `FINISHED_WITH_EXPLICIT_EARLY_STOPS`는 모든 run의 완료·실패·보류·조기 종료 증거를 검증한 뒤에만 인정한다. 이후 WV3 TUNE30/HARD36으로 넘어간다.
+- Stage 1, GF2, WV3에는 이 .90 규칙을 적용하지 않는다. QB 목표는 HQNR ≥ .9315 / ERGAS ≤ 3.5, GF2 목표는 ≥ .9645 / ≤ .522 그대로다.
+
+s1 실제 적용: `QB_A050_E0003`의 8K=.802535771, 9K=.826606902, 10K=.823267386으로 조건 충족. **13,549 step**에 안전 종료했다. 다음 `S1_A050_E030`을 계속 진행하고, 해당 Student에도 동일 규칙을 적용한다. 종료 checkpoint와 두 번의 제어 경계 기록은 `work_dir/panda_sensor_refine_launchers/s1/qb_earlystop_20261028/`, `qb_earlystop_terminal_fix/`에 있다. 원본 LOSS9 admission/config/evaluator/code pin 및 WV3 코드는 변경하지 않았다. 아직 production admission이 없던 SENSOR_REFINE의 제어 코드만 갱신했다.
+
+이미 이전 SENSOR_REFINE 버전의 code pin을 고정하여 실행 중인 다른 checkout에 이번 파일을 덮어쓰지 않는다. 특히 s3 GF2에는 QB 규칙이 해당하지 않으므로, 기존 고정 checkout의 실행을 유지하고 신규 설치 또는 미시작 캠페인에서 이 버전을 사용한다. 시작된 SENSOR_REFINE의 admission SHA를 수작업으로 바꿔 재개하지 않는다.
+
+### QB HQNR 변동 분석
+
+재현: `python tools/qb_hqnr_volatility.py`. [공식 평가 집계 JSON](../results_log/assets/2026-10-28_qb-hqnr-volatility.json), [학습 곡선](../results_log/assets/2026-10-28_qb-hqnr-volatility.png).
+
+- 완료된 LOSS9 QB 6개와 미완료 1개의 모든 공식 평가에서 Aligner 가중치 SHA·추론 조건은 고정이고, FR 장면별 shift 변화는 정확히 0 px다. 변하는 것은 Student 출력이다.
+- 현재 중단 case의 8K→9K HQNR 변화 +.024071 중 D_s 항은 +.023974, 10K→11K 변화 −.016669 중 D_s 항은 −.016584다. 두 구간 모두 20/20 장면이 같은 방향으로 변했다. 소수 장면 하나가 평균을 끌어간 현상이 아니다.
+- 분해는 장면별 `H=(1−Dλ)(1−Ds)`에 대해 중간값 계수를 이용한 정확한 유한차분 후 평균했다. 평균 Dλ·평균 Ds의 곱으로 평균 HQNR을 대신하지 않았다. D_s는 위치뿐 아니라 PAN과 출력의 국소 평균·분산·공분산에 반응하므로, 이 수치만으로 Student의 기하 이동량을 확정하지 않는다.
+- 5–15K 구간, 완료 QB 6개 평균 1K 간 절대 HQNR 변화량은 약 .01018, WV3 DIFF+UBIL C30 3개는 약 .00155다. 상승 추세를 포함한 기술 통계이며 donor·센서·Stage 1 구조 참조가 다른 참고 비교다. 공통 Student LR=1e−4, batch48, warmup100, cosine30K이므로 단순히 QB의 LR이나 batch가 더 커서 생긴 차이는 아니다.
+- 전수 RGB 정합 진단의 QB train GT↔PAN 중앙값은 약 .502 RR PAN px, RR20은 .505 px, FR20 LMS↔PAN은 2.657 FR PAN px다. 해상도마다 pixel 단위가 다르므로 물리적 오정합이 5배라는 뜻은 아니다. 다만 Student가 보는 픽셀 간격과 차영상 구조가 달라져 FR에서 입력 사용 방식의 변화가 크게 드러날 수 있다.
+- 기존 같은 checkpoint 입력 ablation에서 `A020_E003 @15K`는 정상 입력 H=.935809, 차영상 제거 H=.739838이었다. 반면 `A200_E003 @15K`는 .801444→.715800이었다. 원 PAN을 되찾을 수 있는 차영상의 사용 방식이 중요하다는 직접 근거다. 다른 donor는 shift 외에도 Teacher difficulty와 Hard 가중을 바꾸므로, case 간 차이를 shift 크기 하나로 설명하지 않는다.
+- 초기의 큰 LR과 RR GT 목적/FR PAN 기준 D_s의 차이가 출력의 디테일·원 PAN/정합 PAN 활용 변화를 증폭한다는 해석이 가장 일관된다. 정확한 내부 이동량/밴드별 contrast 기여까지 분리한 인과 실험은 이번 분석에 포함되지 않았다. scale1에서 .9427이 나온 사실은 '완전 정합이면 QB HQNR이 반드시 붕괴한다'는 이전 일반화를 반박한다.
+
+조기 종료 관련 테스트는 strict .90 경계, 데이터셋·phase 범위, 누락/변조/NaN/장면 중복, 안전 checkpoint와 재시작, 외부 종료 신호 구분, 완료 기록 보존, 최종 accounting·프로세스 exit·WV3 후속 전환을 검증한다. 기존 core/controller/integration을 합쳐 40개 테스트가 통과했다.

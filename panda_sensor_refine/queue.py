@@ -296,17 +296,21 @@ def verify_core_failure(root, cfg, record, rows, state):
 
 
 def core_complete(server):
+    from . import early_stop
     from . import plan
     root = ROOT / 'work_dir/panda_sensor_refine' / plan.CAMPAIGN_ID / server / plan.dataset_for_server(server)
     state = read(root / 'campaign_state.json')
     configs = [plan.resolve_case(server, c, r) for g in plan.groups(server) for c, r in g['runs']]
     rows = {r['run_id']: r for r in state['runs']}
     failures, held = state.get('isolated_support_failures', {}), state.get('held_runs', {})
-    terminal = 'FINISHED_WITH_EXPLICIT_FAILURES' if failures or held else 'FINISHED_REGISTERED_QUEUE'
+    stopped = state.get('early_stopped_runs', {})
+    terminal = ('FINISHED_WITH_EXPLICIT_EARLY_STOPS' if stopped else
+                'FINISHED_WITH_EXPLICIT_FAILURES' if failures or held else 'FINISHED_REGISTERED_QUEUE')
     if state.get('status') != terminal:
         raise ValueError('Refinement campaign lacks explicit registered accounting')
     expected = {c['run_id']: c for c in configs}
     if (len(rows) != len(state['runs']) or set(rows) & set(held) or set(failures) & set(held)
+            or not set(stopped) <= set(rows) or set(stopped) & (set(failures) | set(held))
             or set(rows) | set(held) | set(failures) != set(expected)):
         raise ValueError('Refinement completion registry differs')
     external = predecessor_receipt(ROOT, server)['external_donor']
@@ -322,6 +326,9 @@ def core_complete(server):
                 raise ValueError('Held refinement run lacks a failed donor proof')
         elif key in failures:
             verify_core_failure(root, cfg, failures[key], rows, state)
+        elif key in stopped:
+            if early_stop.verify(rows[key], cfg) != stopped[key]:
+                raise ValueError('Refinement early-stop receipt differs from registry')
         else:
             row = rows[key]
             if row['status'] != 'COMPLETED' or row['step'] != cfg['planned_horizon']:

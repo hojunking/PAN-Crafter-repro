@@ -54,7 +54,8 @@ def main(argv=None):
     campaign=Campaign(args.server,output=args.output,device=args.device)
     state=campaign.run(catalog=Path(args.sources))
     print(json.dumps({'root':str(campaign.root),'status':state['status']}))
-    return int(state['status'] not in ('FINISHED_REGISTERED_QUEUE','FINISHED_WITH_EXPLICIT_FAILURES'))
+    return int(state['status'] not in ('FINISHED_REGISTERED_QUEUE','FINISHED_WITH_EXPLICIT_FAILURES',
+                                      'FINISHED_WITH_EXPLICIT_EARLY_STOPS'))
 
 if __name__=='__main__':
     raise SystemExit(main())

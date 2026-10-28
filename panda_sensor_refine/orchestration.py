@@ -188,6 +188,7 @@ def final_evidence(root, cfg):
 
 
 def build_completion(root, server, selected_ids):
+    from . import early_stop
     configs = legacy_configs(server)
     campaign = legacy_root(root, server)
     state = read(campaign / 'campaign_state.json')
@@ -201,11 +202,13 @@ def build_completion(root, server, selected_ids):
         if key not in expected or key in failures: raise ValueError('Unknown/duplicate legacy preflight failure')
         failures[key] = validate_preflight_failure(root, server, expected[key], record, state)
     failed_pairs = {expected[key]['loss_pair'] for key in failures if expected[key]['phase'] == 'donor'}
-    completed, held, skipped = [], [], []
+    completed, held, skipped, stopped = [], [], [], []
     for cfg in configs:
         key = cfg['run_id']; row = rows.get(key)
         if row and row['status'] == 'COMPLETED' and row['step'] == cfg['planned_horizon']:
             completed.append(final_evidence(campaign, cfg))
+        elif row and row['status'] == early_stop.STATUS:
+            stopped.append(early_stop.verify(row, cfg, root))
         elif key in failures:
             continue
         elif row:
@@ -220,7 +223,8 @@ def build_completion(root, server, selected_ids):
             'server': server, 'status': LEGACY_TERMINAL, 'selected_run_ids': list(selected_ids),
             'completed': completed, 'failed': list(failures.values()),
             'held_students': held, 'excluded_unstarted': skipped,
-            'all_original_runs_completed': not (failures or held or skipped)}
+            **({'early_stopped': stopped} if stopped else {}),
+            'all_original_runs_completed': not (failures or held or skipped or stopped)}
 
 
 def predecessor_receipt(root, server):
@@ -254,6 +258,7 @@ def predecessor_receipt(root, server):
 
 
 def run_legacy(server):
+    from . import early_stop
     from panda_s1loss9 import runtime, plan
     from directshift48.__main__ import require_idle_gpu
     require_idle_gpu('cuda')
@@ -307,6 +312,8 @@ def run_legacy(server):
                 if cfg['loss_pair'] in failed or cfg['run_id'] in failed_ids:
                     continue
                 camp.check()
+                if early_stop.finish_stopped(camp, cfg):
+                    continue
                 if not camp.completed(cfg):
                     camp.admit_group({'name': 'retain_' + cfg['case'], 'runs': [(cfg['case'], cfg['replica'])]})
                     try:
@@ -318,7 +325,7 @@ def run_legacy(server):
                         if cfg['phase'] == 'donor': failed.add(cfg['loss_pair'])
                         continue
                     try:
-                        camp.run_case(cfg)
+                        early_stop.run_case(camp, cfg, runtime.BudgetExpired)
                     except ValueError:
                         row = next(r for r in camp.state['runs'] if r['run_id'] == cfg['run_id'])
                         proof = support_failure(row, cfg)

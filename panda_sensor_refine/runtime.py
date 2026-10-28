@@ -799,6 +799,7 @@ class Campaign:
             'action':'PREFLIGHT_FAILED_NO_PRODUCTION_UPDATES_INDEPENDENT_CASES_CONTINUE'}
 
     def run(self, *, catalog=plan.ROOT/'ablr2/sensor_sources.json'):
+        from . import early_stop
         with (self.root/'.controller.lock').open('a+') as lock:
             fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
             old={sig:signal.signal(sig,lambda *a:setattr(self,'stop_requested',True))
@@ -822,6 +823,8 @@ class Campaign:
                         cfg=plan.resolve_case(self.server,case,replica)
                         if cfg['run_id'] in failures or cfg['run_id'] in held:
                             continue
+                        if early_stop.finish_stopped(self, cfg):
+                            continue
                         failed_donors = {r['case'] for r in failures.values()}
                         if cfg['phase'] == 'stage2' and (cfg['donor_version'] in failed_donors or
                                 (cfg['donor_version'] == plan.EXTERNAL_DONOR and external['status'] == 'FAILED_SUPPORT')):
@@ -836,7 +839,7 @@ class Campaign:
                                 in_preflight = True
                                 self.validate_preflight(cfg)
                                 in_preflight = False
-                                self.run_case(cfg)
+                                early_stop.run_case(self, cfg, BudgetExpired)
                             if case in plan.DONORS:
                                 self.register_donor(case)
                         except Exception as exc:
@@ -847,9 +850,12 @@ class Campaign:
                             failures[cfg['run_id']] = receipt
                             self.persist()
                 expected=[plan.resolve_case(self.server,c,r) for g in self.config['groups'] for c,r in g['runs']]
-                if not all(self.completed(c) or c['run_id'] in failures or c['run_id'] in held for c in expected):
+                stopped = self.state.get('early_stopped_runs', {})
+                if not all(self.completed(c) or c['run_id'] in failures or c['run_id'] in held
+                           or c['run_id'] in stopped for c in expected):
                     raise RuntimeError('Incomplete refinement registry')
-                self.state['status']=('FINISHED_WITH_EXPLICIT_FAILURES' if failures or held
+                self.state['status']=('FINISHED_WITH_EXPLICIT_EARLY_STOPS' if stopped else
+                                      'FINISHED_WITH_EXPLICIT_FAILURES' if failures or held
                                       else 'FINISHED_REGISTERED_QUEUE')
             except BudgetExpired as exc:
                 self.state.update(status='STOPPED_SAFE',reason=str(exc))

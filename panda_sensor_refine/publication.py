@@ -530,7 +530,8 @@ def _terminal_state(root):
         return None
     value = json.loads(path.read_text())
     return value if value.get('status') in (
-        'FINISHED_REGISTERED_QUEUE', 'FINISHED_WITH_EXPLICIT_FAILURES', 'FINISHED_CORE_OPTIONALS_BUDGET_SKIPPED',
+        'FINISHED_REGISTERED_QUEUE', 'FINISHED_WITH_EXPLICIT_FAILURES', 'FINISHED_WITH_EXPLICIT_EARLY_STOPS',
+        'FINISHED_CORE_OPTIONALS_BUDGET_SKIPPED',
         'FINISHED_WITH_BUDGET_SKIPS', 'FINISHED_WITH_EXPLICIT_SKIPS',
         'STOPPED_SAFE', 'FAILED') else None
 
