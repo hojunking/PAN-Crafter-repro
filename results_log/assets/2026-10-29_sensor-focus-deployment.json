@@ -1,0 +1,30 @@
+{
+  "at_utc": "2026-10-29T02:45:28.294299+00:00",
+  "server": "s1",
+  "controller_status": {
+    "at": "2026-10-29T02:45:19.537024+00:00",
+    "pid": 1554989,
+    "policy": "USER_20261029_SENSOR_FIXED_DONOR_FOCUS_KEEP_WV3",
+    "server": "s1",
+    "stage": "WAIT_RETAINED_REFINE",
+    "status": "WAIT_RETAINED_REFINE"
+  },
+  "controller_pin_matches": true,
+  "old_runtime_pin_matches_admission": true,
+  "old_watchers_remaining": [],
+  "trainer_running": true,
+  "trainer_container_id_unchanged": true,
+  "trainer_was_signalled": false,
+  "current_run": {
+    "case": "S1_A100_E030_R3",
+    "status": "RUNNING",
+    "step": 31000,
+    "run_id": "PSRF_QB_S1_S1_A100_E030_R3_NOSOFT_R1_S261016101"
+  },
+  "new_queue": {
+    "QB_student_runs": 6,
+    "GF2_student_runs": 5
+  },
+  "s3_state": "CODE_AND_HANDOFF_READY_NOT_REMOTELY_EXECUTED",
+  "push": "USER_WILL_PUSH"
+}
