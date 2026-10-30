@@ -45,7 +45,7 @@ def manifest():
             'comparisons': deepcopy(CHANGES), 'matched_seed_controls': deepcopy(CONTROLS),
             'stage1': 'REUSE_EXACT_AUTHENTICATED_S1_A200_E030_44000',
             'initialization': 'FRESH_STUDENT', 'time_cap_seconds': None,
-            'after': 'EXISTING_FOCUS_CONTROLLER_COMPLETED_INCLUDING_WV3',
+            'after': 'CURRENT_WV3_RUN_COMPLETED_THEN_QB_BEFORE_REMAINING_WV3',
             'queue_change_policy': 'USER_REQUESTED_REVIEW_THEN_VERSIONED_CHECKPOINT_BOUNDARY_MIGRATION',
             'early_stop': {'scope': 'QB_STAGE2_ONLY', 'steps': [8000, 9000, 10000],
                            'all_hqnr_strictly_below': .90, 'authenticated_safe_checkpoint_required': True},

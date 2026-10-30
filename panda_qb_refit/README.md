@@ -44,11 +44,22 @@ PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s panda_qb_refit/tests -v
 PYTHONDONTWRITEBYTECODE=1 python -m panda_qb_refit.enqueue --wait
 ```
 
-Keep the enqueue command in a persistent host session. It waits for the existing
-focus controller to report `COMPLETED`, including the unchanged WV3 TUNE30 and
-HARD36 queues. It authenticates the preceding six QB runs, performs read-only
+**Updated priority:** finish the currently active WV3 case, then all ten QB runs,
+then resume the remaining WV3 TUNE30 and HARD36 cases unchanged. The s1 host
+watcher is `python -u -m panda_qb_refit.priority`; do not start a second watcher.
+The reviewed handoff records are under `work_dir/panda_qb_refit/priority_s1/`.
+The former resume-all process saved a complete checkpoint at update 25,901;
+the same `S100DIFFUBILC30LR080 R1` continues to its original 30K horizon in
+the existing finish-current adapter, with unchanged code, optimizer and seeds.
+
+The priority watcher holds the prior controller locks, verifies the current
+run's final checkpoint/evaluation and normal container exit, and starts the
+enqueue command. The enqueue gate accepts that authenticated boundary (or full
+old-queue completion). It authenticates the preceding six QB runs, performs read-only
 data/donor checks and cost profiling, then starts the new training container and
-the publisher. It never interrupts another trainer. Control files and logs are
+the publisher. QB completion and terminal Sheet readback precede WV3 resumption.
+The prior control receipts are archived; no training cases were removed.
+The enqueue command itself never interrupts another trainer. Control files and logs are
 under `work_dir/panda_qb_refit/launcher_s1/`; campaign artifacts are under
 `work_dir/panda_qb_refit/PANDA_S1_QB_REFIT_FIXEDDONOR_20261030_v1/s1/QB/`.
 

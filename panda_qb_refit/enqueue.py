@@ -1,4 +1,4 @@
-"""Append QB refit after the existing s1 focus/WV3 queues and Sheet closeout.
+"""Start QB refit after an authenticated prerequisite and Sheet closeout.
 
 The waiting process pins its code and registry. It never stops an existing job,
 prunes a case, adopts a foreign container, or automatically restarts a failure.
@@ -115,7 +115,7 @@ def ensure_publisher():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--wait', action='store_true', help='Wait for the existing focus/WV3 controller')
+    parser.add_argument('--wait', action='store_true', help='Wait for full old queues or the selected WV3 boundary')
     args = parser.parse_args()
     if (ROOT / 'gspread/server.txt').read_text().strip() != 's1':
         raise ValueError('Execute only on s1; s3 GF2 and existing WV3 queues are untouched')

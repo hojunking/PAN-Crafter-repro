@@ -12,9 +12,11 @@ GF2는 PSNR을 포함한 새 목표, QB는 현재 결과를 기준으로 추가 
 해당 run은 `EARLY_STOPPED_HQNR`으로 별도 집계하며 30K/25K 완료로 표기하지 않는다.
 GF2에는 이 규칙을 적용하지 않는다.
 
-현재 WV3 실험과 기존 큐는 유지한다. 새 s1/QB와 s3/GF2 큐는 각 서버의 기존 focus/WV3
-controller가 `COMPLETED`가 된 뒤 실행한다. s1은 새 대기 launcher를 등록하고,
-s3는 사용자의 Git push 후 해당 서버 에이전트가 pull하여 등록한다.
+10월 30일 추가 요청에 따라 s1의 순서는 **현재 WV3 한 case 완료 → QB 후속 10개 →
+남은 WV3 TUNE30 → HARD36**으로 변경한다. 현재 `S100DIFFUBILC30LR080 R1`은
+25,901 step에서 optimizer·data·RNG까지 저장하고 같은 상태로 재개하여 원래 30K를 완료한다.
+기존 WV3 case/하이퍼파라미터/평가 규칙은 유지한다. s3/GF2의 대기 순서는 변경하지 않으며,
+사용자의 Git push 후 해당 서버 에이전트가 pull하여 등록한다.
 
 ## 2. 목표와 공통 method
 
@@ -106,8 +108,9 @@ torch 포함 환경으로 실행한다. s1에 이미 같은 대기 프로세스�
 # s1/QB
 python -m unittest discover -s panda_qb_refit/tests -v
 python -m panda_qb_refit catalog
-mkdir -p work_dir/panda_qb_refit/launcher_s1
-nohup python -u -m panda_qb_refit.enqueue --wait > work_dir/panda_qb_refit/launcher_s1/controller.log 2>&1 < /dev/null &
+# s1은 인계 receipt를 가진 priority watcher가 이미 관리한다. 중복 실행 금지.
+# 운영 명령: python -u -m panda_qb_refit.priority
+# 상태: work_dir/panda_qb_refit/priority_s1/status.json
 
 # s3/GF2
 python -m unittest discover -s panda_gf2_psnr/tests -v
@@ -116,9 +119,11 @@ mkdir -p work_dir/panda_gf2_psnr/launcher_s3
 nohup python -u -m panda_gf2_psnr.enqueue --wait > work_dir/panda_gf2_psnr/launcher_s3/controller.log 2>&1 < /dev/null &
 ```
 
-각 launcher는 기존 큐 완료, 원본 source/donor, 유휴 GPU를 확인한 뒤 cost 측정과 학습을 시작한다.
+각 launcher는 선행 조건(s1: 현재 WV3 완료, s3: 기존 큐 완료), 원본 source/donor,
+유휴 GPU를 확인한 뒤 cost 측정과 학습을 시작한다.
 데이터/성능의 합성 검증과 실제 s3 GPU preflight는 구분한다.
-실행 중인 기존 학습 프로세스를 종료하지 않는다.
+현재 case의 최종 checkpoint·평가와 정상 종료를 확인한 뒤 QB를 시작하며,
+QB 전체의 종료/인증된 조기 중단 및 Sheet 최종 readback 이후 남은 WV3를 재개한다.
 
 - QB는 `QB-ablations`, GF2는 `GF2-ablations`에 게시한다.
 - 두 데이터셋 모두 기존 H/E 통과 step 전체와 대표를 유지한다.

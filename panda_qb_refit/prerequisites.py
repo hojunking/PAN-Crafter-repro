@@ -63,8 +63,9 @@ def evidence(root, expected_code=None):
         status = read(controller)
     except FileNotFoundError as exc:
         raise ValueError('WAIT: existing focus/WV3 controller status is not available') from exc
+    priority = None
     if status.get('server') != 's1' or status.get('stage') != 'COMPLETED' or status.get('status') != 'COMPLETED':
-        raise ValueError('WAIT: existing focus/WV3 controller has not completed')
+        priority = priority_evidence(root)
     folder = root / 'work_dir/panda_sensor_focus' / G.OLD_CAMPAIGN / 's1/QB'
     proof = registry_completion(root, folder, G.OLD_CAMPAIGN, G.OLD_RUNS,
                                 {case: 30000 for case, _ in G.OLD_RUNS})
@@ -73,7 +74,37 @@ def evidence(root, expected_code=None):
         raise ValueError('Previous focus source pin changed')
     return {'schema': 'QB_REFIT_PREDECESSOR_V1', 'server': 's1', 'wv3_unchanged': True,
             'controller': {'stage': status['stage'], 'status': status['status']},
+            'priority_boundary': priority,
             'focus_admission_sha256': sha(folder / 'admission.json'), **proof}
+
+
+def priority_evidence(root):
+    """Allow QB after the selected WV3 run, never before its full final evidence.
+
+    Works inside read-only training containers without a Docker socket. The host
+    controller records normal container exit; state/final artifact hashes are
+    rechecked here. Remaining WV3 stays frozen throughout QB admission.
+    """
+    from panda_sensor5.transition import campaign_root, completed_run, state_of
+    root = Path(root)
+    directory = root / G.OUTPUT / 'priority_s1'
+    path = directory / 'boundary_complete.json'
+    if not path.exists():
+        raise ValueError('WAIT: existing focus/WV3 controller has not completed; priority boundary pending')
+    request, proof = read(directory / 'request.json'), read(path)
+    package, target = request['package'], request['target_run_id']
+    if (request.get('policy') != 'USER_20261030_FINISH_CURRENT_THEN_QB_THEN_WV3'
+            or request.get('server') != 's1' or package != 'panda_tune30'
+            or proof.get('request_sha256') != sha(directory / 'request.json')
+            or proof.get('container_exit_code') != 0):
+        raise ValueError('Invalid QB priority boundary identity/exit receipt')
+    state = state_of(root, package, 's1')
+    if (state.get('status') != 'PAUSED_FOR_SENSOR5'
+            or any(r['status'] in ('RUNNING', 'STOPPED') for r in state['runs'])
+            or sha(campaign_root(root, package, 's1') / 'campaign_state.json') != proof['state_sha256']
+            or completed_run(root, package, 's1', target) != proof['completed_run']):
+        raise ValueError('QB priority boundary lacks full completion or WV3 changed after the boundary')
+    return proof
 
 
 def terminal(root):
