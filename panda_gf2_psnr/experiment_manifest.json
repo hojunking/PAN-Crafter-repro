@@ -1,0 +1,170 @@
+{
+  "campaign_id": "PANDA_S3_GF2_PSNR4508_FIXEDDONOR_20261030_v1",
+  "server": "s3",
+  "dataset": "GF2",
+  "joint_target": {
+    "HQNR": 0.9645,
+    "ERGAS": 0.522,
+    "PSNR": 45.08
+  },
+  "cases": {
+    "GF2P_C60LR200": {
+      "sensor": "GF2",
+      "policy_id": "S100",
+      "scale": 1.0,
+      "alpha": 0.25,
+      "gamma": 0.5,
+      "lr_S": 0.0002,
+      "total_updates": 60000,
+      "student_width": 112,
+      "warmup_updates": 100,
+      "min_lr": 0.0,
+      "inherited_updates": 0,
+      "schedule_kind": "WARMUP_COSINE",
+      "sampling_variant": "UBIL",
+      "input_variant": "CORRECTED_DIFF",
+      "source_package": null,
+      "source_campaign": null,
+      "source_campaign_id": null,
+      "source_case": null,
+      "source_lr": null,
+      "source_horizon": null,
+      "source_warmup_updates": null,
+      "source_min_lr": null,
+      "donor_case": "RGB_MATURE_U23",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.003,
+      "epsilon_radius_rr": 3.0
+    },
+    "GF2P_C50LR150": {
+      "sensor": "GF2",
+      "policy_id": "S100",
+      "scale": 1.0,
+      "alpha": 0.25,
+      "gamma": 0.5,
+      "lr_S": 0.00015,
+      "total_updates": 50000,
+      "student_width": 112,
+      "warmup_updates": 100,
+      "min_lr": 0.0,
+      "inherited_updates": 0,
+      "schedule_kind": "WARMUP_COSINE",
+      "sampling_variant": "UBIL",
+      "input_variant": "CORRECTED_DIFF",
+      "source_package": null,
+      "source_campaign": null,
+      "source_campaign_id": null,
+      "source_case": null,
+      "source_lr": null,
+      "source_horizon": null,
+      "source_warmup_updates": null,
+      "source_min_lr": null,
+      "donor_case": "RGB_MATURE_U23",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.003,
+      "epsilon_radius_rr": 3.0
+    },
+    "GF2P_C60LR150A0125": {
+      "sensor": "GF2",
+      "policy_id": "S100",
+      "scale": 1.0,
+      "alpha": 0.125,
+      "gamma": 0.5,
+      "lr_S": 0.00015,
+      "total_updates": 60000,
+      "student_width": 112,
+      "warmup_updates": 100,
+      "min_lr": 0.0,
+      "inherited_updates": 0,
+      "schedule_kind": "WARMUP_COSINE",
+      "sampling_variant": "UBIL",
+      "input_variant": "CORRECTED_DIFF",
+      "source_package": null,
+      "source_campaign": null,
+      "source_campaign_id": null,
+      "source_case": null,
+      "source_lr": null,
+      "source_horizon": null,
+      "source_warmup_updates": null,
+      "source_min_lr": null,
+      "donor_case": "RGB_MATURE_U23",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.003,
+      "epsilon_radius_rr": 3.0
+    },
+    "GF2P_C60LR150W128": {
+      "sensor": "GF2",
+      "policy_id": "S100",
+      "scale": 1.0,
+      "alpha": 0.25,
+      "gamma": 0.5,
+      "lr_S": 0.00015,
+      "total_updates": 60000,
+      "student_width": 128,
+      "warmup_updates": 100,
+      "min_lr": 0.0,
+      "inherited_updates": 0,
+      "schedule_kind": "WARMUP_COSINE",
+      "sampling_variant": "UBIL",
+      "input_variant": "CORRECTED_DIFF",
+      "source_package": null,
+      "source_campaign": null,
+      "source_campaign_id": null,
+      "source_case": null,
+      "source_lr": null,
+      "source_horizon": null,
+      "source_warmup_updates": null,
+      "source_min_lr": null,
+      "donor_case": "RGB_MATURE_U23",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.003,
+      "epsilon_radius_rr": 3.0
+    }
+  },
+  "runs": [
+    [
+      "GF2P_C60LR200",
+      "R1"
+    ],
+    [
+      "GF2P_C60LR200",
+      "R2"
+    ],
+    [
+      "GF2P_C50LR150",
+      "R1"
+    ],
+    [
+      "GF2P_C50LR150",
+      "R2"
+    ],
+    [
+      "GF2P_C60LR150A0125",
+      "R1"
+    ],
+    [
+      "GF2P_C60LR150A0125",
+      "R2"
+    ],
+    [
+      "GF2P_C60LR150W128",
+      "R1"
+    ],
+    [
+      "GF2P_C60LR150W128",
+      "R2"
+    ]
+  ],
+  "stage1": "REUSE_EXACT_AUTHENTICATED_RGB_MATURE_U23_42000",
+  "initialization": "FRESH_STUDENT",
+  "after": "EXISTING_FOCUS_CONTROLLER_COMPLETED_INCLUDING_WV3",
+  "selection": "KEEP_HE_ALL_PASSES_AND_HE_REPRESENTATIVE; ANNOTATE_PSNR_AND_THREE_METRIC_PASS",
+  "prohibited": [
+    "SWA",
+    "EMA",
+    "TTA",
+    "rotation_loss",
+    "soft_loss",
+    "band_weighted_loss"
+  ]
+}
