@@ -18,6 +18,20 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTROL = ROOT / G.OUTPUT / 'launcher_s3'
 
 
+def source_pin():
+    """Match training's source pin without installing the process-local adapter."""
+    from panda_sensor_focus.runtime import code_pin
+    from .prerequisites import sha
+    files = (p for p in (ROOT / 'panda_gf2_psnr').rglob('*.py') if 'tests' not in p.parts)
+    return {**code_pin(), **{str(p.relative_to(ROOT)): sha(p) for p in files}}
+
+
+def verify_source_pin(expected):
+    if source_pin() != expected:
+        raise RuntimeError('GF2 launcher source changed; stop and restart this waiter before '
+                           'launching a revised queue. An admitted campaign requires an explicit migration.')
+
+
 def command(name=None):
     from panda_sensor_refine.launch import source_container
     source_name, source = source_container('s3', 'panda_sensor5')
@@ -79,7 +93,24 @@ def main():
     from directshift48.__main__ import require_idle_gpu
     with (CONTROL / 'controller.lock').open('a+') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        pinned = source_pin()
+        campaign_root = ROOT / G.OUTPUT / G.CAMPAIGN_ID / 's3/GF2'
+        admission = campaign_root / 'admission.json'
+        if admission.exists() and read(admission).get('code') != pinned:
+            raise ValueError('Existing GF2 admission has different source code; explicit migration required')
+        atomic_json(CONTROL / 'launcher_source_pin.json', {
+            'at': utc_now(), 'pid': os.getpid(), 'code': pinned,
+            'campaign_id': G.CAMPAIGN_ID, 'runs': G.RUNS})
+
+        def verify():
+            try:
+                verify_source_pin(pinned)
+            except RuntimeError as exc:
+                status('BLOCKED_SOURCE_CHANGED', reason=str(exc))
+                raise
+
         while True:
+            verify()
             try:
                 proof = evidence(ROOT)
                 break
@@ -88,6 +119,7 @@ def main():
                     raise
                 status('WAIT_EXISTING_QUEUES', reason=str(exc))
                 time.sleep(30)
+        verify()
         atomic_json(CONTROL / 'predecessor.json', proof)
         name = 'panda-gf2-psnr4508-s3-v1'
         train_args = ['python', '-m', 'panda_gf2_psnr', 'run']
@@ -97,9 +129,12 @@ def main():
             require_idle_gpu('cuda')
             check, _, _ = command()
             status('CHECKING_AND_PROFILING')
+            verify()
             subprocess.run(check + ['python', '-m', 'panda_gf2_psnr', 'check'], cwd=ROOT, check=True)
+            verify()
             subprocess.run(check + ['python', '-m', 'panda_gf2_psnr', 'cost'], cwd=ROOT, check=True)
             require_idle_gpu('cuda')
+            verify()
             subprocess.run(launch + train_args, cwd=ROOT, check=True)
             current = inspect_optional(name)
         if current['Image'] != image or current['Config']['Cmd'] != train_args:
@@ -110,8 +145,9 @@ def main():
         if path.exists() and read(path) != receipt:
             raise ValueError('Registered GF2 container was replaced')
         atomic_json(path, receipt)
-        root = ROOT / G.OUTPUT / G.CAMPAIGN_ID / 's3/GF2'
+        root = campaign_root
         while True:
+            verify()
             pid = ensure_publisher()
             current = inspect_optional(name)
             if current is None or current['Id'] != receipt['container_id']:

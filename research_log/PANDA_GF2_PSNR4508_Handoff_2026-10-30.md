@@ -29,6 +29,7 @@ scene MSE의 기하평균 기준 약 **1.03%**이며, 산술평균 MSE가 정확
 
 총 8개 fresh Student, 합계 **460K updates**. 시간 제한 없음.
 각 case는 기존 `GF2_C60LR150`과 비교하면 한 가지 설정만 다르다.
+`comparison_control`도 원본 focus campaign의 같은 replica/seed `GF2_C60LR150`을 가리킨다.
 `C50`은 기존 checkpoint를 이어 학습하는 실험이 아니라 처음부터 50K cosine으로 학습한다.
 R1/R2 seed는 기존과 같은 `261018101` / `261018102`이며 원본 정수 stream seed를 사용한다.
 
@@ -100,9 +101,13 @@ nohup python -u -m panda_gf2_psnr.enqueue --wait > work_dir/panda_gf2_psnr/launc
 원본 focus Python 파일/컨트롤러 파일에는 수정이 없다. 기존 모듈이 이미 로드된 혼합 프로세스는 거부한다.
 새 파일도 새 campaign의 source pin에 포함된다. 기존 s1 학습/컨트롤러 SHA pin이 그대로임을 확인했다.
 
-CPU 테스트 8개 통과: registry, 3목표 경계와 finite 검사, 기존 대표/행 ID 보존,
+CPU 테스트 10개 통과: registry, 3목표 경계와 finite 검사, 기존 대표/행 ID 보존,
 선행 WV3 대기, Docker write 범위, 전용 프로세스 격리, 네 설정의 실제 1-step 학습,
-정확한 optimizer/data/RNG resume, W112/W128 cost signature 및 publisher 빈 상태 검사.
+정확한 optimizer/data/RNG resume, W112/W128 cost signature 및 publisher 빈 상태 검사,
+대기 중 source 변경 차단과 기존 admission의 코드 일치 검사.
 이는 합성 데이터의 구현 검증이며 GF2 성능 결과가 아니다. 실제 s3 data/donor/GPU 검증은 실행 시 수행한다.
 
 상세 분석: [2026-10-30_sensor-results-and-gf2-psnr.md](../results_log/2026-10-30_sensor-results-and-gf2-psnr.md)
+
+QB 포함 최신 운영 규칙: [시간 제한 없는 후속 큐](PANDA_QB_GF2_OpenEnded_Tuning_2026-10-30.md).
+중간 결과에 따른 큐 변경은 사용자가 요청할 때 수행한다. 실행 중인 source/registry를 직접 수정하지 않는다.

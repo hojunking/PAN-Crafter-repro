@@ -1,0 +1,745 @@
+{
+  "source": "2026-10-30_sensor-results-analysis.json plus original evaluations",
+  "comparisons": [
+    {
+      "case": "QB_A200_E030",
+      "replica": "R1",
+      "source": "work_dir/panda_s1loss9/PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1/s1/QB/runs/PSL9_QB_S1_QB_A200_E030_NOSOFT_R1_S261018101/attempt_01",
+      "settings": {
+        "alpha": 0.25,
+        "gamma": 0.5,
+        "student_width": 112,
+        "lr": 0.0001,
+        "updates": 30000
+      },
+      "representative": {
+        "step": 29000,
+        "HQNR": 0.9426975246460065,
+        "D_s": 0.031545396527230235,
+        "D_lambda": 0.026618573492365766,
+        "ERGAS": 3.5148848455748842,
+        "PSNR": 38.435594510653615
+      },
+      "fixed_30K": {
+        "HQNR": 0.9426150816688988,
+        "ERGAS": 3.5152906052831,
+        "D_s": 0.031646723483312336,
+        "D_lambda": 0.026600698024423265
+      },
+      "mean_25_30K": {
+        "HQNR": 0.9419918111626111,
+        "ERGAS": 3.516392693687882
+      },
+      "paired_scene_30K": {
+        "scene_count": 20,
+        "improved_count": 0,
+        "worse_count": 0,
+        "mean_delta": 0.0,
+        "median_delta": 0.0,
+        "min_delta": 0.0,
+        "max_delta": 0.0,
+        "per_scene_delta": {
+          "QB:rr:0": 0.0,
+          "QB:rr:1": 0.0,
+          "QB:rr:2": 0.0,
+          "QB:rr:3": 0.0,
+          "QB:rr:4": 0.0,
+          "QB:rr:5": 0.0,
+          "QB:rr:6": 0.0,
+          "QB:rr:7": 0.0,
+          "QB:rr:8": 0.0,
+          "QB:rr:9": 0.0,
+          "QB:rr:10": 0.0,
+          "QB:rr:11": 0.0,
+          "QB:rr:12": 0.0,
+          "QB:rr:13": 0.0,
+          "QB:rr:14": 0.0,
+          "QB:rr:15": 0.0,
+          "QB:rr:16": 0.0,
+          "QB:rr:17": 0.0,
+          "QB:rr:18": 0.0,
+          "QB:rr:19": 0.0
+        }
+      }
+    },
+    {
+      "case": "QB_BASE",
+      "replica": "R2",
+      "source": "work_dir/panda_sensor_refine/PANDA_S13_SENSOR_REFINE_R34_20261028_v1/s1/QB/runs/PSRF_QB_S1_QB_BASE_NOSOFT_R2_S261018102/attempt_01",
+      "settings": {
+        "alpha": 0.25,
+        "gamma": 0.5,
+        "student_width": 112,
+        "lr": 0.0001,
+        "updates": 30000
+      },
+      "representative": {
+        "step": 26000,
+        "HQNR": 0.9453837458561996,
+        "D_s": 0.025819172695034122,
+        "D_lambda": 0.029631071107576235,
+        "ERGAS": 3.509656381114398,
+        "PSNR": 38.449570371158536
+      },
+      "fixed_30K": {
+        "HQNR": 0.9457512361904529,
+        "ERGAS": 3.510022908461017,
+        "D_s": 0.025575880237008852,
+        "D_lambda": 0.02950258070338403
+      },
+      "mean_25_30K": {
+        "HQNR": 0.9455923165893353,
+        "ERGAS": 3.511478376929434
+      },
+      "paired_scene_30K": {
+        "scene_count": 20,
+        "improved_count": 0,
+        "worse_count": 0,
+        "mean_delta": 0.0,
+        "median_delta": 0.0,
+        "min_delta": 0.0,
+        "max_delta": 0.0,
+        "per_scene_delta": {
+          "QB:rr:0": 0.0,
+          "QB:rr:1": 0.0,
+          "QB:rr:2": 0.0,
+          "QB:rr:3": 0.0,
+          "QB:rr:4": 0.0,
+          "QB:rr:5": 0.0,
+          "QB:rr:6": 0.0,
+          "QB:rr:7": 0.0,
+          "QB:rr:8": 0.0,
+          "QB:rr:9": 0.0,
+          "QB:rr:10": 0.0,
+          "QB:rr:11": 0.0,
+          "QB:rr:12": 0.0,
+          "QB:rr:13": 0.0,
+          "QB:rr:14": 0.0,
+          "QB:rr:15": 0.0,
+          "QB:rr:16": 0.0,
+          "QB:rr:17": 0.0,
+          "QB:rr:18": 0.0,
+          "QB:rr:19": 0.0
+        }
+      }
+    },
+    {
+      "case": "QB_LR120",
+      "replica": "R1",
+      "source": "work_dir/panda_sensor_refine/PANDA_S13_SENSOR_REFINE_R34_20261028_v1/s1/QB/runs/PSRF_QB_S1_QB_LR120_NOSOFT_R1_S261018101/attempt_01",
+      "settings": {
+        "alpha": 0.25,
+        "gamma": 0.5,
+        "student_width": 112,
+        "lr": 0.00012,
+        "updates": 30000
+      },
+      "representative": {
+        "step": 30000,
+        "HQNR": 0.9367561293101809,
+        "D_s": 0.030641628354850053,
+        "D_lambda": 0.03377235878892141,
+        "ERGAS": 3.544526629117057,
+        "PSNR": 38.36705464434645
+      },
+      "fixed_30K": {
+        "HQNR": 0.9367561293101809,
+        "ERGAS": 3.544526629117057,
+        "D_s": 0.030641628354850053,
+        "D_lambda": 0.03377235878892141
+      },
+      "mean_25_30K": {
+        "HQNR": 0.9368498444104343,
+        "ERGAS": 3.546351144152669
+      },
+      "paired_scene_30K": {
+        "scene_count": 20,
+        "improved_count": 3,
+        "worse_count": 17,
+        "mean_delta": 0.029236023833956827,
+        "median_delta": 0.03705715579618052,
+        "min_delta": -0.13408612950627363,
+        "max_delta": 0.10989768060980554,
+        "per_scene_delta": {
+          "QB:rr:0": -0.13408612950627363,
+          "QB:rr:1": -0.005220582545565122,
+          "QB:rr:2": -0.009752286143462463,
+          "QB:rr:3": 0.020092260293092856,
+          "QB:rr:4": 0.05279565327299807,
+          "QB:rr:5": 0.04110913749647427,
+          "QB:rr:6": 0.045025757694912016,
+          "QB:rr:7": 0.022322299044295946,
+          "QB:rr:8": 0.02520273588325983,
+          "QB:rr:9": 0.017831127858752183,
+          "QB:rr:10": 0.04755234980932377,
+          "QB:rr:11": 0.0392978184796533,
+          "QB:rr:12": 0.015570740118036941,
+          "QB:rr:13": 0.034816493112707736,
+          "QB:rr:14": 0.05730164403131699,
+          "QB:rr:15": 0.01809591143160949,
+          "QB:rr:16": 0.05824881691382533,
+          "QB:rr:17": 0.04438353804605821,
+          "QB:rr:18": 0.10989768060980554,
+          "QB:rr:19": 0.08423551077831526
+        }
+      }
+    },
+    {
+      "case": "QB_C40",
+      "replica": "R1",
+      "source": "work_dir/panda_sensor_refine/PANDA_S13_SENSOR_REFINE_R34_20261028_v1/s1/QB/runs/PSRF_QB_S1_QB_C40_NOSOFT_R1_S261018101/attempt_01",
+      "settings": {
+        "alpha": 0.25,
+        "gamma": 0.5,
+        "student_width": 112,
+        "lr": 0.0001,
+        "updates": 40000
+      },
+      "representative": {
+        "step": 26000,
+        "HQNR": 0.9353668469423267,
+        "D_s": 0.031638240952885775,
+        "D_lambda": 0.03413439459148037,
+        "ERGAS": 3.548152466509889,
+        "PSNR": 38.354182911861656
+      },
+      "fixed_30K": {
+        "HQNR": 0.9342638840051493,
+        "ERGAS": 3.549113007806819,
+        "D_s": 0.03243785931921873,
+        "D_lambda": 0.03448014338560098
+      },
+      "mean_25_30K": {
+        "HQNR": 0.9352211394875668,
+        "ERGAS": 3.55670955758446
+      },
+      "paired_scene_30K": {
+        "scene_count": 20,
+        "improved_count": 3,
+        "worse_count": 17,
+        "mean_delta": 0.03382240252371882,
+        "median_delta": 0.04218319251920266,
+        "min_delta": -0.09478029502676533,
+        "max_delta": 0.08273220817577087,
+        "per_scene_delta": {
+          "QB:rr:0": -0.09478029502676533,
+          "QB:rr:1": -0.004908214570435998,
+          "QB:rr:2": -0.008999233072731982,
+          "QB:rr:3": 0.03948457363754354,
+          "QB:rr:4": 0.04488181140086178,
+          "QB:rr:5": 0.04823029010812174,
+          "QB:rr:6": 0.029909268117850996,
+          "QB:rr:7": 0.048773295860274235,
+          "QB:rr:8": 0.024011945606179808,
+          "QB:rr:9": 0.016131920813843514,
+          "QB:rr:10": 0.036951391685181356,
+          "QB:rr:11": 0.04573657363420791,
+          "QB:rr:12": 0.020628608275171434,
+          "QB:rr:13": 0.019182526433236813,
+          "QB:rr:14": 0.056846680318066056,
+          "QB:rr:15": 0.04525870627990125,
+          "QB:rr:16": 0.08032261578539224,
+          "QB:rr:17": 0.06885058259231691,
+          "QB:rr:18": 0.07720279442038924,
+          "QB:rr:19": 0.08273220817577087
+        }
+      }
+    },
+    {
+      "case": "QB_H050",
+      "replica": "R1",
+      "source": "work_dir/panda_sensor_refine/PANDA_S13_SENSOR_REFINE_R34_20261028_v1/s1/QB/runs/PSRF_QB_S1_QB_H050_NOSOFT_R1_S261018101/attempt_01",
+      "settings": {
+        "alpha": 0.125,
+        "gamma": 0.25,
+        "student_width": 112,
+        "lr": 0.0001,
+        "updates": 30000
+      },
+      "representative": {
+        "step": 30000,
+        "HQNR": 0.9410701784307542,
+        "D_s": 0.02851666331766494,
+        "D_lambda": 0.03145378251123743,
+        "ERGAS": 3.5115039342844887,
+        "PSNR": 38.44605239199244
+      },
+      "fixed_30K": {
+        "HQNR": 0.9410701784307542,
+        "ERGAS": 3.5115039342844887,
+        "D_s": 0.02851666331766494,
+        "D_lambda": 0.03145378251123743
+      },
+      "mean_25_30K": {
+        "HQNR": 0.9414265846312813,
+        "ERGAS": 3.512900230222844
+      },
+      "paired_scene_30K": {
+        "scene_count": 20,
+        "improved_count": 12,
+        "worse_count": 8,
+        "mean_delta": -0.003786670998611519,
+        "median_delta": -0.003960571809439983,
+        "min_delta": -0.031374434722767575,
+        "max_delta": 0.028324896304942282,
+        "per_scene_delta": {
+          "QB:rr:0": 0.028324896304942282,
+          "QB:rr:1": -0.01609487154791278,
+          "QB:rr:2": -0.01774412742847664,
+          "QB:rr:3": -0.002616497417470054,
+          "QB:rr:4": 0.0007037678335022335,
+          "QB:rr:5": -0.020913391082546973,
+          "QB:rr:6": 0.002752969285320095,
+          "QB:rr:7": 0.0057158555100293995,
+          "QB:rr:8": -0.008292073363421526,
+          "QB:rr:9": -0.009836565623952076,
+          "QB:rr:10": 0.005589786932092888,
+          "QB:rr:11": -0.02192329378629143,
+          "QB:rr:12": -0.00710580683541151,
+          "QB:rr:13": -0.0027656427363713654,
+          "QB:rr:14": -0.005155500882508601,
+          "QB:rr:15": -0.031374434722767575,
+          "QB:rr:16": 0.007607642235337497,
+          "QB:rr:17": 0.014784302681654982,
+          "QB:rr:18": 0.015120197528069923,
+          "QB:rr:19": -0.012510632856049142
+        }
+      }
+    },
+    {
+      "case": "QB_W128",
+      "replica": "R1",
+      "source": "work_dir/panda_sensor_focus/PANDA_S13_SENSOR_FOCUS_FIXEDDONOR_20261029_v1/s1/QB/runs/PSFC_QB_S1_QB_W128_NOSOFT_R1_S261018101/attempt_01",
+      "settings": {
+        "alpha": 0.25,
+        "gamma": 0.5,
+        "student_width": 128,
+        "lr": 0.0001,
+        "updates": 30000
+      },
+      "representative": {
+        "step": 28000,
+        "HQNR": 0.9357018243674471,
+        "D_s": 0.031715105486879794,
+        "D_lambda": 0.033645344836138576,
+        "ERGAS": 3.511541370821798,
+        "PSNR": 38.45036586626703
+      },
+      "fixed_30K": {
+        "HQNR": 0.9347875188724265,
+        "ERGAS": 3.512909561931953,
+        "D_s": 0.031566256591612475,
+        "D_lambda": 0.03474015876425861
+      },
+      "mean_25_30K": {
+        "HQNR": 0.9352065779780818,
+        "ERGAS": 3.5133577878272892
+      },
+      "paired_scene_30K": {
+        "scene_count": 20,
+        "improved_count": 15,
+        "worse_count": 5,
+        "mean_delta": -0.002381043351147172,
+        "median_delta": -0.008906229830592194,
+        "min_delta": -0.04181174034543966,
+        "max_delta": 0.09009296976994685,
+        "per_scene_delta": {
+          "QB:rr:0": 0.09009296976994685,
+          "QB:rr:1": -0.008997804876509363,
+          "QB:rr:2": -0.008814654784675025,
+          "QB:rr:3": -0.004588767754060363,
+          "QB:rr:4": -0.0022442527363706333,
+          "QB:rr:5": -0.01529798738306809,
+          "QB:rr:6": -0.018100553406207087,
+          "QB:rr:7": 0.028685448982058936,
+          "QB:rr:8": -0.01266428479506665,
+          "QB:rr:9": -0.018966576004423086,
+          "QB:rr:10": -0.007310417796444479,
+          "QB:rr:11": -0.010069069481307036,
+          "QB:rr:12": -0.007802625248120698,
+          "QB:rr:13": -0.012715786827503628,
+          "QB:rr:14": -0.026978888224560738,
+          "QB:rr:15": -0.04181174034543966,
+          "QB:rr:16": 9.951612381930985e-05,
+          "QB:rr:17": -0.009211869268739292,
+          "QB:rr:18": 0.015134193368475213,
+          "QB:rr:19": 0.023942283665252084
+        }
+      }
+    },
+    {
+      "case": "QB_W128",
+      "replica": "R2",
+      "source": "work_dir/panda_sensor_focus/PANDA_S13_SENSOR_FOCUS_FIXEDDONOR_20261029_v1/s1/QB/runs/PSFC_QB_S1_QB_W128_NOSOFT_R2_S261018102/attempt_01",
+      "settings": {
+        "alpha": 0.25,
+        "gamma": 0.5,
+        "student_width": 128,
+        "lr": 0.0001,
+        "updates": 30000
+      },
+      "representative": {
+        "step": 21000,
+        "HQNR": 0.9419533634022015,
+        "D_s": 0.030065211190705328,
+        "D_lambda": 0.028923576946179492,
+        "ERGAS": 3.5117381581309592,
+        "PSNR": 38.44434462244255
+      },
+      "fixed_30K": {
+        "HQNR": 0.9442373817803398,
+        "ERGAS": 3.515361008991596,
+        "D_s": 0.02646268008460939,
+        "D_lambda": 0.03017345112526975
+      },
+      "mean_25_30K": {
+        "HQNR": 0.9444528485597533,
+        "ERGAS": 3.5154118293199392
+      },
+      "paired_scene_30K": {
+        "scene_count": 20,
+        "improved_count": 10,
+        "worse_count": 10,
+        "mean_delta": 0.005338100530578438,
+        "median_delta": -0.0015601305478289973,
+        "min_delta": -0.020689651848357027,
+        "max_delta": 0.06596457167202807,
+        "per_scene_delta": {
+          "QB:rr:0": 0.06596457167202807,
+          "QB:rr:1": -0.004501640494140258,
+          "QB:rr:2": -0.020689651848357027,
+          "QB:rr:3": 0.019315426667566804,
+          "QB:rr:4": -0.004102209294853054,
+          "QB:rr:5": -0.0036011743438830734,
+          "QB:rr:6": 0.00048091324822507886,
+          "QB:rr:7": 0.0193055381678624,
+          "QB:rr:8": -0.018984050355066007,
+          "QB:rr:9": 0.003165764071681565,
+          "QB:rr:10": 0.01557405453381211,
+          "QB:rr:11": -0.009716733706398362,
+          "QB:rr:12": 0.008686343260347229,
+          "QB:rr:13": -0.01205820273605962,
+          "QB:rr:14": -0.011127419092826774,
+          "QB:rr:15": -0.004063065135892607,
+          "QB:rr:16": 0.007999100162822792,
+          "QB:rr:17": 0.010682187620766115,
+          "QB:rr:18": 0.05253934107299418,
+          "QB:rr:19": -0.00810708285906081
+        }
+      }
+    },
+    {
+      "case": "QB_A0125",
+      "replica": "R1",
+      "source": "work_dir/panda_sensor_focus/PANDA_S13_SENSOR_FOCUS_FIXEDDONOR_20261029_v1/s1/QB/runs/PSFC_QB_S1_QB_A0125_NOSOFT_R1_S261018101/attempt_01",
+      "settings": {
+        "alpha": 0.125,
+        "gamma": 0.5,
+        "student_width": 112,
+        "lr": 0.0001,
+        "updates": 30000
+      },
+      "representative": {
+        "step": 27000,
+        "HQNR": 0.9362072405474884,
+        "D_s": 0.03496277670537596,
+        "D_lambda": 0.029895842469405957,
+        "ERGAS": 3.510305560697789,
+        "PSNR": 38.44568013246327
+      },
+      "fixed_30K": {
+        "HQNR": 0.9375603650943075,
+        "ERGAS": 3.511067785943805,
+        "D_s": 0.0337662268938269,
+        "D_lambda": 0.029704874975939894
+      },
+      "mean_25_30K": {
+        "HQNR": 0.9370003866326125,
+        "ERGAS": 3.5121316701116507
+      },
+      "paired_scene_30K": {
+        "scene_count": 20,
+        "improved_count": 12,
+        "worse_count": 8,
+        "mean_delta": -0.004222819339295314,
+        "median_delta": -0.003166624017400421,
+        "min_delta": -0.03365833473741375,
+        "max_delta": 0.020807238195834188,
+        "per_scene_delta": {
+          "QB:rr:0": -0.03365833473741375,
+          "QB:rr:1": 0.00612468228805918,
+          "QB:rr:2": -0.009448802984468596,
+          "QB:rr:3": -0.0033617536373231616,
+          "QB:rr:4": 0.0006098797896370023,
+          "QB:rr:5": -0.022281450254079793,
+          "QB:rr:6": -0.012481750846963457,
+          "QB:rr:7": -0.008223701722172905,
+          "QB:rr:8": -0.009127169586963468,
+          "QB:rr:9": -0.002971494397477681,
+          "QB:rr:10": 0.0001814770949386535,
+          "QB:rr:11": -0.015735300353346027,
+          "QB:rr:12": -0.00477229585122485,
+          "QB:rr:13": -0.0005759915241232427,
+          "QB:rr:14": 0.010745429792792027,
+          "QB:rr:15": -0.01572615311147807,
+          "QB:rr:16": 0.008230009887669087,
+          "QB:rr:17": 0.006520441826165069,
+          "QB:rr:18": 0.020807238195834188,
+          "QB:rr:19": 0.0006886533460335187
+        }
+      }
+    },
+    {
+      "case": "QB_A0125",
+      "replica": "R2",
+      "source": "work_dir/panda_sensor_focus/PANDA_S13_SENSOR_FOCUS_FIXEDDONOR_20261029_v1/s1/QB/runs/PSFC_QB_S1_QB_A0125_NOSOFT_R2_S261018102/attempt_01",
+      "settings": {
+        "alpha": 0.125,
+        "gamma": 0.5,
+        "student_width": 112,
+        "lr": 0.0001,
+        "updates": 30000
+      },
+      "representative": {
+        "step": 25000,
+        "HQNR": 0.9423192136984406,
+        "D_s": 0.024408974113890286,
+        "D_lambda": 0.034201595911094104,
+        "ERGAS": 3.520052571159108,
+        "PSNR": 38.42831863355699
+      },
+      "fixed_30K": {
+        "HQNR": 0.9398704810722961,
+        "ERGAS": 3.522639268771921,
+        "D_s": 0.02593622392753269,
+        "D_lambda": 0.035205100301876915
+      },
+      "mean_25_30K": {
+        "HQNR": 0.9406751256372173,
+        "ERGAS": 3.5223540342968533
+      },
+      "paired_scene_30K": {
+        "scene_count": 20,
+        "improved_count": 8,
+        "worse_count": 12,
+        "mean_delta": 0.012616360310903763,
+        "median_delta": 0.010138233052571666,
+        "min_delta": -0.013005211610999101,
+        "max_delta": 0.10662582047251945,
+        "per_scene_delta": {
+          "QB:rr:0": 0.10662582047251945,
+          "QB:rr:1": -0.0020461153080941763,
+          "QB:rr:2": 0.010265892443088287,
+          "QB:rr:3": 0.015235021927692216,
+          "QB:rr:4": -0.00823712306633606,
+          "QB:rr:5": 0.033468074119586966,
+          "QB:rr:6": -0.0009728731726799111,
+          "QB:rr:7": 0.03314151565791512,
+          "QB:rr:8": -0.0035636435609704975,
+          "QB:rr:9": 0.000670062819526418,
+          "QB:rr:10": 0.03349663143612558,
+          "QB:rr:11": 0.01462617552569867,
+          "QB:rr:12": 0.011633090932400947,
+          "QB:rr:13": -0.003843696231997651,
+          "QB:rr:14": -0.006705084080031121,
+          "QB:rr:15": -0.013005211610999101,
+          "QB:rr:16": 0.01219862139575234,
+          "QB:rr:17": 0.013062939644982396,
+          "QB:rr:18": 0.010010573662055045,
+          "QB:rr:19": -0.0037334667881596673
+        }
+      }
+    },
+    {
+      "case": "QB_H050",
+      "replica": "R2",
+      "source": "work_dir/panda_sensor_focus/PANDA_S13_SENSOR_FOCUS_FIXEDDONOR_20261029_v1/s1/QB/runs/PSFC_QB_S1_QB_H050_NOSOFT_R2_S261018102/attempt_01",
+      "settings": {
+        "alpha": 0.125,
+        "gamma": 0.25,
+        "student_width": 112,
+        "lr": 0.0001,
+        "updates": 30000
+      },
+      "representative": {
+        "step": 23000,
+        "HQNR": 0.9433936920840607,
+        "D_s": 0.023912272157661486,
+        "D_lambda": 0.033619389947779736,
+        "ERGAS": 3.512172805748463,
+        "PSNR": 38.44244904301637
+      },
+      "fixed_30K": {
+        "HQNR": 0.9447334673546249,
+        "ERGAS": 3.5150513302993254,
+        "D_s": 0.02273718990837235,
+        "D_lambda": 0.03342441759168169
+      },
+      "mean_25_30K": {
+        "HQNR": 0.9445086893744977,
+        "ERGAS": 3.515888631578858
+      },
+      "paired_scene_30K": {
+        "scene_count": 20,
+        "improved_count": 9,
+        "worse_count": 11,
+        "mean_delta": 0.005028421838307429,
+        "median_delta": 0.0018149824667079706,
+        "min_delta": -0.021817497063771008,
+        "max_delta": 0.05062074450344367,
+        "per_scene_delta": {
+          "QB:rr:0": 0.0016576690412080097,
+          "QB:rr:1": -0.016505307553024817,
+          "QB:rr:2": -0.008745164221793278,
+          "QB:rr:3": 0.0019722958922079314,
+          "QB:rr:4": 0.004665912110359827,
+          "QB:rr:5": -0.007658129307580808,
+          "QB:rr:6": -0.003864391580897575,
+          "QB:rr:7": 0.05062074450344367,
+          "QB:rr:8": 0.01393631472361978,
+          "QB:rr:9": -0.012118298579000264,
+          "QB:rr:10": 0.021965365510164148,
+          "QB:rr:11": 0.021970239552332682,
+          "QB:rr:12": 0.014897875479624734,
+          "QB:rr:13": -0.00854930003142762,
+          "QB:rr:14": -0.0014195439422617362,
+          "QB:rr:15": -0.021817497063771008,
+          "QB:rr:16": 0.013343727226742708,
+          "QB:rr:17": -0.0038735935134992516,
+          "QB:rr:18": 0.0337890782304755,
+          "QB:rr:19": 0.006300440289225939
+        }
+      }
+    },
+    {
+      "case": "QB_G000",
+      "replica": "R1",
+      "source": "work_dir/panda_sensor_focus/PANDA_S13_SENSOR_FOCUS_FIXEDDONOR_20261029_v1/s1/QB/runs/PSFC_QB_S1_QB_G000_NOSOFT_R1_S261018101/attempt_01",
+      "settings": {
+        "alpha": 0.25,
+        "gamma": 0.0,
+        "student_width": 112,
+        "lr": 0.0001,
+        "updates": 30000
+      },
+      "representative": {
+        "step": 27000,
+        "HQNR": 0.9423758711508705,
+        "D_s": 0.02620497176309669,
+        "D_lambda": 0.032405330685987846,
+        "ERGAS": 3.5120606200636493,
+        "PSNR": 38.44217985376259
+      },
+      "fixed_30K": {
+        "HQNR": 0.9415323483497146,
+        "ERGAS": 3.513016284537835,
+        "D_s": 0.026530841156018385,
+        "D_lambda": 0.03295730378659928
+      },
+      "mean_25_30K": {
+        "HQNR": 0.9419658321972202,
+        "ERGAS": 3.513866221278394
+      },
+      "paired_scene_30K": {
+        "scene_count": 20,
+        "improved_count": 10,
+        "worse_count": 10,
+        "mean_delta": -0.0022743207452653458,
+        "median_delta": -0.0004178507336112247,
+        "min_delta": -0.06506372335743782,
+        "max_delta": 0.0331926014301378,
+        "per_scene_delta": {
+          "QB:rr:0": -0.06506372335743782,
+          "QB:rr:1": 0.0043647494763270345,
+          "QB:rr:2": 0.0007243810360879621,
+          "QB:rr:3": 0.007485345961549594,
+          "QB:rr:4": -0.0010079681084658176,
+          "QB:rr:5": -0.017361687315460728,
+          "QB:rr:6": -0.012227513588003447,
+          "QB:rr:7": 0.004340306939094152,
+          "QB:rr:8": -0.015301765425224989,
+          "QB:rr:9": 0.0001722666412433682,
+          "QB:rr:10": -0.011348263415397408,
+          "QB:rr:11": -0.011046755981225065,
+          "QB:rr:12": -0.004537383020583263,
+          "QB:rr:13": 0.004049537877053755,
+          "QB:rr:14": -0.01610827230916767,
+          "QB:rr:15": -0.010230650250427242,
+          "QB:rr:16": 0.0331926014301378,
+          "QB:rr:17": 0.019282552319159763,
+          "QB:rr:18": 0.029895457745372944,
+          "QB:rr:19": 0.015240368440060159
+        }
+      }
+    }
+  ],
+  "caveats": [
+    "Matched init and sampling stream per replica; width changes initialization mapping and capacity so it is not a functional matched initialization.",
+    "Twenty fixed evaluation scenes; correlated adjacent checkpoints are not independent seed replicates.",
+    "No confidence claim from two seeds.",
+    "Weight decay and stronger alpha recommendations are untested hypotheses, not measured improvements."
+  ],
+  "recommended_cases": [
+    {
+      "priority": 1,
+      "name": "QB_C30LR080",
+      "updates": 30000,
+      "lr": 8e-05,
+      "alpha": 0.25,
+      "gamma": 0.5,
+      "reason": "Explore lower LR after matched LR120 harmed17/20 RR scenes."
+    },
+    {
+      "priority": 2,
+      "name": "QB_C30LR050",
+      "updates": 30000,
+      "lr": 5e-05,
+      "alpha": 0.25,
+      "gamma": 0.5,
+      "reason": "Broader low-LR bracket; not measured beneficial yet."
+    },
+    {
+      "priority": 3,
+      "name": "QB_C25LR100",
+      "updates": 25000,
+      "lr": 0.0001,
+      "alpha": 0.25,
+      "gamma": 0.5,
+      "reason": "Earlier cosine decay/end; C40 worse, but shorter schedule improvement remains a hypothesis."
+    },
+    {
+      "priority": 4,
+      "name": "QB_C30AG000",
+      "updates": 30000,
+      "lr": 0.0001,
+      "alpha": 0.0,
+      "gamma": 0.0,
+      "reason": "Exact existing masked GT L1 control with Aligner scale1 and residual input retained; isolates teacher-based weighting."
+    },
+    {
+      "priority": 5,
+      "name": "QB_C30G025",
+      "updates": 30000,
+      "lr": 0.0001,
+      "alpha": 0.25,
+      "gamma": 0.25,
+      "reason": "Isolate conditional-q reduction; earlier H050 jointly changed alpha and gamma."
+    }
+  ],
+  "recommended_common": {
+    "seeds": [
+      "R1",
+      "R2"
+    ],
+    "student_width": 112,
+    "weight_decay": 0.01,
+    "beta": 0.0,
+    "pan_aligner_scale": 1.0,
+    "input_variant": "CORRECTED_DIFF",
+    "sampling": "UBIL",
+    "fresh_student": true,
+    "same_stage1_reference": true,
+    "early_stop": "Existing QB only: at10K ifHQNR at8K,9K,10K all<.90",
+    "new_methods": false
+  }
+}

@@ -31,7 +31,9 @@ from panda_gf2_psnr import registry as G
 from panda_sensor_focus import reporting as R
 from panda_sensor_focus.runtime import code_pin
 from donor30.plan import canonical_sha256
+from panda_gf2_psnr.enqueue import source_pin
 assert 'panda_gf2_psnr/registry.py' in code_pin()
+assert source_pin()==code_pin()
 for c,r in G.RUNS:
     cfg=p.resolve_case('s3',c,r)
     R._config(cfg)
@@ -44,6 +46,12 @@ for c,r in G.RUNS:
     assert cfg['evaluation_steps'][-1]==cfg['planned_horizon']
     assert cfg['stage1_retrained'] is False
     assert cfg['comparison_control']['same_exact_donor_checkpoint']
+    assert cfg['comparison_control']['campaign_id']==G.OLD_CAMPAIGN
+    assert cfg['comparison_control']['case']=='GF2_C60LR150'
+    assert cfg['comparison_control']['replica']==r
+    assert cfg['comparison_control']['seed']==p.SEEDS[r]
+    assert cfg['comparison_control']['student_seed_differs_from_control'] is False
+    assert cfg['fixed_donor_source']==p.SOURCE_DONORS['s3']
 try: p.resolve_case('s1','QB_W128','R1')
 except ValueError: pass
 else: raise AssertionError('s1 must be rejected')
@@ -146,6 +154,47 @@ with tempfile.TemporaryDirectory() as temp:
             path.parent.mkdir(parents=True)
             path.write_text(json.dumps({'server':'s3','stage':'RESUME_HARD36','status':'RESUME_HARD36'}))
             with self.assertRaisesRegex(ValueError,'WAIT:'): evidence(root)
+
+    def test_source_change_while_waiting_refuses_launch(self):
+        from panda_gf2_psnr import enqueue
+        original = {'panda_gf2_psnr/registry.py': 'original'}
+        changed = {'panda_gf2_psnr/registry.py': 'changed'}
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / 'gspread').mkdir()
+            (root / 'gspread/server.txt').write_text('s3')
+            control = root / 'launcher'
+            with patch.object(enqueue, 'ROOT', root), patch.object(enqueue, 'CONTROL', control), \
+                 patch.object(enqueue, 'source_pin', side_effect=[original, original, changed]), \
+                 patch.object(enqueue, 'evidence', side_effect=ValueError('WAIT: original queue running')) as evidence, \
+                 patch.object(enqueue.time, 'sleep') as sleep, \
+                 patch.object(enqueue.subprocess, 'run') as launch, \
+                 patch.object(sys, 'argv', ['enqueue', '--wait']):
+                with self.assertRaisesRegex(RuntimeError, 'source changed'):
+                    enqueue.main()
+            evidence.assert_called_once_with(root)
+            sleep.assert_called_once_with(30)
+            launch.assert_not_called()
+            self.assertEqual(json.loads((control / 'status.json').read_text())['stage'], 'BLOCKED_SOURCE_CHANGED')
+
+    def test_existing_admission_refuses_changed_source(self):
+        from panda_gf2_psnr import enqueue
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / 'gspread').mkdir()
+            (root / 'gspread/server.txt').write_text('s3')
+            admission = root / G.OUTPUT / G.CAMPAIGN_ID / 's3/GF2/admission.json'
+            admission.parent.mkdir(parents=True)
+            admission.write_text(json.dumps({'code': {'source.py': 'old'}}))
+            with patch.object(enqueue, 'ROOT', root), patch.object(enqueue, 'CONTROL', root / 'launcher'), \
+                 patch.object(enqueue, 'source_pin', return_value={'source.py': 'new'}), \
+                 patch.object(enqueue, 'evidence') as evidence, \
+                 patch.object(enqueue.subprocess, 'run') as launch, \
+                 patch.object(sys, 'argv', ['enqueue', '--wait']):
+                with self.assertRaisesRegex(ValueError, 'admission has different source'):
+                    enqueue.main()
+            evidence.assert_not_called()
+            launch.assert_not_called()
 
     def test_only_new_output_is_writable_docker_mount(self):
         from panda_gf2_psnr.enqueue import command

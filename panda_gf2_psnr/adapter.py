@@ -43,6 +43,13 @@ def install():
         cfg = original_resolve(server, case, replica, attempt=attempt)
         cfg.update(run_display=f'GF2_PSNR4508 {case} {replica}', joint_target=deepcopy(G.TARGET),
                    psnr_min=45.08, question='GF2 H>=.9645 E<=.522 P>=45.08; fixed donor, fresh Student, one knob vs C60LR150')
+        cfg['comparison_control'] = {
+            'campaign_id': G.OLD_CAMPAIGN, 'case': 'GF2_C60LR150', 'server': server,
+            'replica': replica, 'seed': P.SEEDS[replica],
+            'fresh_student_no_weights_reused': True,
+            'same_exact_donor_checkpoint': True,
+            'student_seed_differs_from_control': False,
+        }
         return cfg
 
     P.default_config, P.resolve_case = default_config, resolve_case
