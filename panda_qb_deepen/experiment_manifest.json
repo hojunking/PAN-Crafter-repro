@@ -1,0 +1,276 @@
+{
+  "campaign_id": "PANDA_S3_QB_DEEPEN_OWNSTAGE1_20261030_v1",
+  "server": "s3",
+  "dataset": "QB",
+  "donor_origin_server": "s3",
+  "joint_target": {
+    "HQNR": 0.9315,
+    "ERGAS": 3.5
+  },
+  "cases": {
+    "QB3_CONTROL": {
+      "sensor": "QB",
+      "policy_id": "S100",
+      "scale": 1.0,
+      "alpha": 0.25,
+      "gamma": 0.5,
+      "lr_S": 0.0001,
+      "total_updates": 30000,
+      "student_width": 112,
+      "warmup_updates": 100,
+      "min_lr": 0.0,
+      "inherited_updates": 0,
+      "schedule_kind": "WARMUP_COSINE",
+      "sampling_variant": "UBIL",
+      "input_variant": "CORRECTED_DIFF",
+      "source_package": null,
+      "source_campaign": null,
+      "source_campaign_id": null,
+      "source_case": null,
+      "source_lr": null,
+      "source_horizon": null,
+      "source_warmup_updates": null,
+      "source_min_lr": null,
+      "weight_decay": 0.01,
+      "loss_pair": "A200_E030",
+      "donor_case": "S1_A200_E030",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.03
+    },
+    "QB3_WD000": {
+      "sensor": "QB",
+      "policy_id": "S100",
+      "scale": 1.0,
+      "alpha": 0.25,
+      "gamma": 0.5,
+      "lr_S": 0.0001,
+      "total_updates": 30000,
+      "student_width": 112,
+      "warmup_updates": 100,
+      "min_lr": 0.0,
+      "inherited_updates": 0,
+      "schedule_kind": "WARMUP_COSINE",
+      "sampling_variant": "UBIL",
+      "input_variant": "CORRECTED_DIFF",
+      "source_package": null,
+      "source_campaign": null,
+      "source_campaign_id": null,
+      "source_case": null,
+      "source_lr": null,
+      "source_horizon": null,
+      "source_warmup_updates": null,
+      "source_min_lr": null,
+      "weight_decay": 0.0,
+      "loss_pair": "A200_E030",
+      "donor_case": "S1_A200_E030",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.03
+    },
+    "QB3_WD100": {
+      "sensor": "QB",
+      "policy_id": "S100",
+      "scale": 1.0,
+      "alpha": 0.25,
+      "gamma": 0.5,
+      "lr_S": 0.0001,
+      "total_updates": 30000,
+      "student_width": 112,
+      "warmup_updates": 100,
+      "min_lr": 0.0,
+      "inherited_updates": 0,
+      "schedule_kind": "WARMUP_COSINE",
+      "sampling_variant": "UBIL",
+      "input_variant": "CORRECTED_DIFF",
+      "source_package": null,
+      "source_campaign": null,
+      "source_campaign_id": null,
+      "source_case": null,
+      "source_lr": null,
+      "source_horizon": null,
+      "source_warmup_updates": null,
+      "source_min_lr": null,
+      "weight_decay": 0.1,
+      "loss_pair": "A200_E030",
+      "donor_case": "S1_A200_E030",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.03
+    },
+    "QB3_A075": {
+      "sensor": "QB",
+      "policy_id": "S100",
+      "scale": 1.0,
+      "alpha": 0.75,
+      "gamma": 0.5,
+      "lr_S": 0.0001,
+      "total_updates": 30000,
+      "student_width": 112,
+      "warmup_updates": 100,
+      "min_lr": 0.0,
+      "inherited_updates": 0,
+      "schedule_kind": "WARMUP_COSINE",
+      "sampling_variant": "UBIL",
+      "input_variant": "CORRECTED_DIFF",
+      "source_package": null,
+      "source_campaign": null,
+      "source_campaign_id": null,
+      "source_case": null,
+      "source_lr": null,
+      "source_horizon": null,
+      "source_warmup_updates": null,
+      "source_min_lr": null,
+      "weight_decay": 0.01,
+      "loss_pair": "A200_E030",
+      "donor_case": "S1_A200_E030",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.03
+    }
+  },
+  "runs": [
+    [
+      "QB3_CONTROL",
+      "R1"
+    ],
+    [
+      "QB3_CONTROL",
+      "R2"
+    ],
+    [
+      "QB3_WD000",
+      "R1"
+    ],
+    [
+      "QB3_WD000",
+      "R2"
+    ],
+    [
+      "QB3_WD100",
+      "R1"
+    ],
+    [
+      "QB3_WD100",
+      "R2"
+    ],
+    [
+      "QB3_A075",
+      "R1"
+    ],
+    [
+      "QB3_A075",
+      "R2"
+    ]
+  ],
+  "ordered_runs": [
+    [
+      "S1_A200_E030",
+      "R1"
+    ],
+    [
+      "QB3_CONTROL",
+      "R1"
+    ],
+    [
+      "QB3_CONTROL",
+      "R2"
+    ],
+    [
+      "QB3_WD000",
+      "R1"
+    ],
+    [
+      "QB3_WD000",
+      "R2"
+    ],
+    [
+      "QB3_WD100",
+      "R1"
+    ],
+    [
+      "QB3_WD100",
+      "R2"
+    ],
+    [
+      "QB3_A075",
+      "R1"
+    ],
+    [
+      "QB3_A075",
+      "R2"
+    ]
+  ],
+  "comparisons": {
+    "QB3_CONTROL": {
+      "axes": [],
+      "purpose": "Local s3 independently trained Stage1 baseline; controls share this selected A/T pair"
+    },
+    "QB3_WD000": {
+      "axes": [
+        "weight_decay"
+      ],
+      "purpose": "Remove existing AdamW decay: .01 to 0"
+    },
+    "QB3_WD100": {
+      "axes": [
+        "weight_decay"
+      ],
+      "purpose": "Increase existing AdamW decay: .01 to .1"
+    },
+    "QB3_A075": {
+      "axes": [
+        "alpha"
+      ],
+      "purpose": "Increase existing Teacher-error weighting: .25 to .75, gamma .5 unchanged"
+    }
+  },
+  "historical_controls": {
+    "R1": {
+      "package": "panda_s1loss9",
+      "campaign_id": "PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1",
+      "case": "QB_A200_E030",
+      "replica": "R1",
+      "seed": 261018101,
+      "server": "s1"
+    },
+    "R2": {
+      "package": "panda_sensor_refine",
+      "campaign_id": "PANDA_S13_SENSOR_REFINE_R34_20261028_v1",
+      "case": "QB_BASE",
+      "replica": "R2",
+      "seed": 261018102,
+      "server": "s1"
+    }
+  },
+  "stage1": {
+    "case": "S1_A200_E030",
+    "seed": 261016301,
+    "updates": 50000,
+    "lambda_abs": 2.0,
+    "lambda_epsilon": 0.03,
+    "epsilon_radius_rr": 3.0,
+    "selection": "FULL50K_VAL_RRE50_RRE90_VAL_ERGAS_EARLIER_STEP",
+    "independent_local_training": true,
+    "external_donor_reuse": false
+  },
+  "initialization": "FRESH_STUDENT",
+  "time_cap_seconds": null,
+  "after": "AUTHENTICATED_GF2_TARGET_RETIREMENT",
+  "after_campaign": "STOP_NO_AUTOMATIC_WV3_RESUME",
+  "early_stop": {
+    "scope": "QB_STAGE2_ONLY",
+    "steps": [
+      8000,
+      9000,
+      10000
+    ],
+    "all_hqnr_strictly_below": 0.9,
+    "authenticated_safe_checkpoint_required": true
+  },
+  "selection": "ALL_HE_JOINT_PASSES_PLUS_HQUALIFIED_MIN_E_REP_ELSE_MAX_H_REP",
+  "prohibited": [
+    "SWA",
+    "EMA",
+    "TTA",
+    "rotation_loss",
+    "soft_loss",
+    "band_weighted_loss"
+  ]
+}
