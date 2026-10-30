@@ -1,7 +1,7 @@
 # s3 QB deepen — independent local Stage1, eight Student comparisons
 
-Campaign `PANDA_S3_QB_DEEPEN_OWNSTAGE1_20261030_v1`. Start after verified GF2
-retirement. s1 retains its independently trained Stage1 and current QB queue;
+Campaign `PANDA_S3_QB_DEEPEN_OWNSTAGE1_20261030_v1`. Each server trains its own
+Stage1 independently. s1 retains its independently trained Stage1 and current QB queue;
 s3 trains its own QB Aligner/Teacher. No model transfer or imported donor is
 required. No automatic WV3 resumption follows this campaign.
 
@@ -56,26 +56,31 @@ discussed common-interp23-input change is not silently introduced here.
 ## Launch
 
 After Git pull, use the existing torch-enabled host Python with
-`gspread/server.txt=s3`. Run `panda_gf2_closeout` first; its receipt must prove
-protected GF2 goal weights, safe trainer stop, and final Sheet readback.
+`gspread/server.txt=s3`. Preserve the GF2 goal weights and stop its active job
+to free the local GPU. `panda_gf2_closeout` is a separate helper for this work;
+QB does not require its receipt, other queues' completion, or their Sheet readback.
 
 ```bash
 python -m panda_qb_deepen catalog --csv
 mkdir -p work_dir/panda_qb_deepen/launcher_s3
-nohup python -u -m panda_qb_deepen.enqueue --wait \
+nohup python -u -m panda_qb_deepen.enqueue \
   > work_dir/panda_qb_deepen/launcher_s3/controller.log 2>&1 < /dev/null &
 ```
 
 No donor archive import step is required. The launcher clones the original s3
 runtime image/environment, adds QB data mounts, checks input SHA/populations,
 profiles both A+T and A+S deployments, and starts the single registered queue.
-The GF2 retirement gate is rechecked immediately before training launch.
+The launcher checks only local GPU availability. Optional `--wait` waits for
+that GPU; it does not wait for GF2/WV3 status files or another server.
+There is no waiting-controller source pin or queue-edit approval requirement.
+An unlaunched old plan is refreshed automatically, retaining its history.
 
 The original S1LOSS9 runtime's Stage1 build, update, checkpoint restore,
 full-horizon selector, and same-checkpoint donor loader are reused in an
 isolated process. Only registered case/lane configuration and queue control
-are adapted. Existing source files remain unchanged. Disconnected old
-campaigns keep their own identities and code pins.
+are adapted. Existing source files remain unchanged. Checkpoint/model integrity
+and exact-resume checks are retained, as is protection against duplicate local
+writers to the same output directory.
 
 Actual-data preflight checks Stage1 updates to both A/T and exact resume, then
 Stage2 update/resume before each new case. Every scheduled evaluation retains
@@ -110,6 +115,6 @@ PYTHONDONTWRITEBYTECODE=1 python -m unittest panda_qb_deepen.tests.test_campaign
 
 CPU tests cover Stage1 A/T updates and exact resume, independent stream seeds,
 complete50K selection requirements, Stage2 actual AdamW updates and exact
-resume for all four settings, lane isolation, QB Sheet thresholds, retirement
-fail-closed behavior and QB data mounts. These are implementation checks;
+resume for all four settings, lane isolation, QB Sheet thresholds, independent
+startup without other campaign records and QB data mounts. These are implementation checks;
 actual s3 data/GPU validation occurs before production training.

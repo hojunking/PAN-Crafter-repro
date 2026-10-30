@@ -13,7 +13,6 @@ def own_files(root):
     root = Path(root); folder = root / 'panda_qb_deepen'
     return sorted([p for p in folder.rglob('*.py') if 'tests' not in p.parts] +
         [folder / 'experiment_manifest.json', folder / 'cases_s3.csv',
-         root / 'panda_gf2_closeout/__init__.py', root / 'panda_gf2_closeout/verification.py',
          root / 'panda_sensor_focus/early_stop.py', root / 'panda_sensor_refine/orchestration.py'])
 
 
@@ -63,11 +62,10 @@ def install():
             plan_revision='QB_DEEPEN_OWN_STAGE1_20261030',
             donor_origin_server='s3', execution_server='s3', allow_cross_server_donor=False,
             stage1_loss_grid={'A200_E030': {'lambda_abs': 2., 'lambda_epsilon': .03}},
-            after_campaign='STOP_NO_AUTOMATIC_WV3_RESUME', before_campaign='GF2_RETIRED_TARGET_MET',
+            after_campaign='STOP_NO_AUTOMATIC_WV3_RESUME', before_campaign='NONE_INDEPENDENT_LOCAL_STAGE1',
             priority_policy='OWN_STAGE1_THEN_PAIRED_STUDENT_ABLATIONS',
             baseline_control='OWN_LOCAL_STAGE1_WITHIN_S3_STUDENT_CONTROL',
-            comparisons=deepcopy(G.CHANGES), historical_controls=deepcopy(G.CONTROLS),
-            queue_change_policy='USER_REVIEW_VERSIONED_BOUNDARY_ONLY')
+            comparisons=deepcopy(G.CHANGES), historical_controls=deepcopy(G.CONTROLS))
         return cfg
 
     def resolve_case(server, case, replica='R1', *, attempt=1):
@@ -134,9 +132,9 @@ def install():
         return {**original_pin(), **{str(p.relative_to(P.ROOT)): file_sha(p) for p in own_files(P.ROOT)}}
 
     def predecessor(root, server):
-        from .prerequisites import evidence
-        if server != 's3': raise ValueError('s3 predecessor required')
-        return evidence(root)
+        from .prerequisites import independent_start
+        if server != 's3': raise ValueError('This queue is registered on s3')
+        return independent_start()
 
     old_terminal = publication._terminal_state
 

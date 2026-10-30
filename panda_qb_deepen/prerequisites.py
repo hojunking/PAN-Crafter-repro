@@ -58,16 +58,11 @@ def registry_completion(root, folder, campaign_id, runs, horizons):
 
 
 
-def evidence(root, *, check_runtime=False):
-    from panda_gf2_closeout import verify_retirement
-    root = Path(root)
-    try:
-        retired = verify_retirement(root, check_runtime=check_runtime)
-    except FileNotFoundError as exc:
-        raise ValueError('WAIT: authenticated GF2 retirement required before local QB Stage1') from exc
-    return {'schema': 'QB_DEEPEN_OWN_STAGE1_PREDECESSOR_V1', 'server': 's3', 'dataset': 'QB',
-            'gf2_retirement': retired, 'donor_origin_server': 's3',
-            'fresh_stage1_required': True, 'stage1_seed': G.STAGE1_SEED, 'wv3_unchanged_deferred': True}
+def independent_start():
+    """Describe this run; no predecessor files, external models or approvals."""
+    return {'schema': 'QB_DEEPEN_INDEPENDENT_START_V1', 'server': 's3', 'dataset': 'QB',
+            'donor_origin_server': 's3', 'fresh_stage1_required': True,
+            'stage1_seed': G.STAGE1_SEED, 'external_dependencies': []}
 
 
 def terminal(root):

@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+from types import SimpleNamespace
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -46,6 +47,8 @@ from donor30.plan import stream_seeds
 assert all(stage1['stream_seeds'][key]==value for key,value in stream_seeds(261016301).items())
 assert stage1['lambda_abs']==2 and stage1['lambda_epsilon']==.03
 assert p.default_config('s3')['stage1_runs']==1 and not p.default_config('s3')['allow_cross_server_donor']
+assert p.default_config('s3')['before_campaign']=='NONE_INDEPENDENT_LOCAL_STAGE1'
+assert 'queue_change_policy' not in p.default_config('s3')
 from panda_sensor_focus.early_stop import eligible
 assert not eligible(stage1)
 assert R.destination('s3')['sheet_title']=='QB-ablations'
@@ -65,6 +68,9 @@ for name,rep in G.RUNS:
  else:raise AssertionError('unregistered WD must fail')
 assert 'panda_qb_deepen/runner.py' in code_pin()
 assert 'panda_qb_deepen/experiment_manifest.json' in code_pin()
+assert not any(name.startswith('panda_gf2_closeout/') for name in code_pin())
+from panda_s1loss9.orchestration import predecessor_receipt
+assert predecessor_receipt(Path('/does-not-exist'), 's3')['external_dependencies']==[]
 from panda_s1loss9.cost.profiling import registered_profiles
 assert {cfg['phase'] for cfg,step in registered_profiles('s3')}=={'donor','stage2'}
 try:p.resolve_case('s1','QB3_CONTROL','R1')
@@ -177,11 +183,72 @@ for case in p.CASES:
   assert _same(advance(fresh,restream),expected) and _same(fresh.state_dict(),state)
 ''')
 
-    def test_missing_retirement_fails_closed(self):
-        from panda_qb_deepen.prerequisites import evidence
-        with tempfile.TemporaryDirectory() as root:
-            with patch('panda_gf2_closeout.verify_retirement', side_effect=FileNotFoundError):
-                with self.assertRaisesRegex(ValueError, 'WAIT:'): evidence(root)
+    def test_launch_without_gf2_or_other_campaign_records_and_ignore_old_controller_pin(self):
+        from panda_qb_deepen import enqueue as E
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); control = root / G.OUTPUT / 'launcher_s3'
+            control.mkdir(parents=True)
+            (root / 'gspread').mkdir(); (root / 'gspread/server.txt').write_text('s3')
+            stale_pin = control / 'controller_pin.json'
+            stale_pin.write_text('{"old_source": "not-current"}')
+            output = root / G.OUTPUT / G.CAMPAIGN_ID / 's3/QB'
+            publication = output / 'sheet_publish_panda_s1loss9/terminal_upload.json'
+            publication.parent.mkdir(parents=True)
+            publication.write_text(json.dumps({'readback_verified': True,
+                                               'campaign_status': 'FINISHED_REGISTERED_QUEUE'}))
+            identity = {'source_container': 'local-image', 'image': 'image', 'user': '1:1',
+                        'working_dir': '/workspace', 'env': [], 'mounts': []}
+            old_intent = {'campaign_id': G.CAMPAIGN_ID, 'registry_digest': 'old-unlaunched-plan',
+                          'identity': identity, 'token': 'old'}
+            (control / 'launch_intent.json').write_text(json.dumps(old_intent))
+            running = {'Id': 'test-owned-container', 'State': {'Running': True}}
+            exited = {'Id': 'test-owned-container', 'State':
+                      {'Running': False, 'Status': 'exited', 'ExitCode': 0, 'OOMKilled': False}}
+            completed = {'campaign_status': 'FINISHED_REGISTERED_QUEUE',
+                         'completed_count': 9, 'early_stopped_count': 0}
+            with patch.object(E, 'ROOT', root), patch.object(E, 'CONTROL', control), \
+                 patch.object(sys, 'argv', ['enqueue']), \
+                 patch.object(E, 'command', return_value=(['docker', 'test-only'], identity)), \
+                 patch('panda_sensor_refine.launch.inspect_optional', side_effect=[None, running, exited]), \
+                 patch.object(E, 'authenticate_container', side_effect=lambda value, *_: value), \
+                 patch.object(E, 'ensure_publisher', return_value=123), \
+                 patch.object(E, 'terminal', return_value=completed), \
+                 patch('directshift48.__main__.require_idle_gpu') as idle, \
+                 patch.object(E.subprocess, 'run', return_value=SimpleNamespace(returncode=0)) as run, \
+                 patch('panda_gf2_closeout.verify_retirement', side_effect=AssertionError('No GF2 dependency')):
+                self.assertEqual(E.main(), 0)
+            self.assertEqual(idle.call_count, 2)
+            self.assertEqual([call.args[0][-1] for call in run.call_args_list], ['check', 'cost', 'run'])
+            self.assertFalse((control / 'predecessor.json').exists())
+            self.assertEqual(stale_pin.read_text(), '{"old_source": "not-current"}')
+            history = list(control.glob('previous_launch_intent_*.json'))
+            self.assertEqual(len(history), 1)
+            self.assertEqual(json.loads(history[0].read_text()), old_intent)
+            self.assertNotEqual(json.loads((control / 'launch_intent.json').read_text())['registry_digest'],
+                                old_intent['registry_digest'])
+
+    def test_wait_is_only_for_local_gpu_occupancy(self):
+        from panda_qb_deepen import enqueue as E
+        busy = RuntimeError('Active GPU compute workload; test')
+        with patch('directshift48.__main__.require_idle_gpu', side_effect=[busy, None]) as idle, \
+             patch.object(E.time, 'sleep') as sleep:
+            status = []
+            E.wait_for_gpu(True, lambda stage, **kw: status.append(stage))
+        self.assertEqual(idle.call_count, 2)
+        self.assertEqual(status, ['WAIT_LOCAL_GPU'])
+        sleep.assert_called_once_with(30)
+        for wait in (False, True):
+            with patch('directshift48.__main__.require_idle_gpu',
+                       side_effect=RuntimeError('Cannot verify idle GPU')) as idle, \
+                 patch.object(E.time, 'sleep') as sleep:
+                with self.assertRaisesRegex(RuntimeError, 'Cannot verify'):
+                    E.wait_for_gpu(wait, lambda *a, **kw: None)
+                sleep.assert_not_called()
+        with patch('directshift48.__main__.require_idle_gpu', side_effect=busy), \
+             patch.object(E.time, 'sleep') as sleep:
+            with self.assertRaisesRegex(RuntimeError, 'Active GPU'):
+                E.wait_for_gpu(False, lambda *a, **kw: None)
+            sleep.assert_not_called()
 
     def test_launcher_adds_actual_qb_symlink_targets(self):
         from panda_qb_deepen import enqueue as E

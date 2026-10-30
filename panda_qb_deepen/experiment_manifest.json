@@ -252,7 +252,7 @@
   },
   "initialization": "FRESH_STUDENT",
   "time_cap_seconds": null,
-  "after": "AUTHENTICATED_GF2_TARGET_RETIREMENT",
+  "after": "NONE_INDEPENDENT_LOCAL_STAGE1",
   "after_campaign": "STOP_NO_AUTOMATIC_WV3_RESUME",
   "early_stop": {
     "scope": "QB_STAGE2_ONLY",

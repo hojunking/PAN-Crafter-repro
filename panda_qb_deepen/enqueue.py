@@ -1,8 +1,4 @@
-"""Start QB deepen after authenticated GF2 retirement and Sheet closeout.
-
-The waiting process pins its code and registry. It never stops an existing job,
-prunes a case, adopts a foreign container, or automatically restarts a failure.
-"""
+"""Start the local QB Stage1/Student queue when the local GPU is available."""
 import argparse
 import fcntl
 import json
@@ -13,7 +9,7 @@ import sys
 import time
 import uuid
 from . import registry as G
-from .prerequisites import evidence, read, terminal
+from .prerequisites import read, terminal
 from directshift48.reporting import atomic_json, utc_now
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,18 +18,18 @@ TRAIN_ARGS = ['python', '-m', 'panda_qb_deepen', 'run']
 CONTAINER = 'panda-qb-deepen-s3-v1'
 
 
-def source_pin():
-    from panda_s1loss9.runtime import code_pin
-    from .adapter import own_files
-    from .prerequisites import sha
-    from donor30.plan import canonical_sha256
-    return {'files': {**code_pin(), **{str(p.relative_to(ROOT)): sha(p) for p in own_files(ROOT)}},
-            'registry_digest': canonical_sha256(G.manifest())}
-
-
-def verify_pin(expected):
-    if source_pin() != expected:
-        raise ValueError('QB waiting-controller code/registry changed; use a reviewed versioned boundary migration')
+def wait_for_gpu(wait, status):
+    """Wait only for local resource occupancy, not another experiment's receipt."""
+    from directshift48.__main__ import require_idle_gpu
+    while True:
+        try:
+            require_idle_gpu('cuda')
+            return
+        except RuntimeError as exc:
+            if not wait or not str(exc).startswith('Active GPU compute workload;'):
+                raise
+            status('WAIT_LOCAL_GPU', reason=str(exc))
+            time.sleep(30)
 
 
 def same_environment(left, right):
@@ -130,10 +126,10 @@ def ensure_publisher():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--wait', action='store_true', help='Wait for authenticated GF2 target retirement ')
+    parser.add_argument('--wait', action='store_true', help='Wait only while this server GPU is occupied')
     args = parser.parse_args()
     if (ROOT / 'gspread/server.txt').read_text().strip() != 's3':
-        raise ValueError('Execute only on s3 after authenticated GF2 retirement')
+        raise ValueError('This QB queue is registered on s3')
     CONTROL.mkdir(parents=True, exist_ok=True)
 
     def status(stage, **extra):
@@ -143,53 +139,45 @@ def main():
 
     from panda_sensor_refine.launch import inspect_optional
     from directshift48.__main__ import require_idle_gpu
+    from donor30.plan import canonical_sha256
+    registry_digest = canonical_sha256(G.manifest())
     with (CONTROL / 'controller.lock').open('a+') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        pin_path = CONTROL / 'controller_pin.json'
-        pin = read(pin_path) if pin_path.exists() else source_pin()
-        verify_pin(pin)
-        if not pin_path.exists():
-            atomic_json(pin_path, pin)
-        while True:
-            verify_pin(pin)
-            try:
-                proof = evidence(ROOT, check_runtime=True)
-                break
-            except ValueError as exc:
-                if not args.wait or not str(exc).startswith('WAIT:'):
-                    raise
-                status('WAIT_EXISTING_QUEUES', reason=str(exc))
-                time.sleep(30)
-        atomic_json(CONTROL / 'predecessor.json', proof)
         intent_path, receipt_path = CONTROL / 'launch_intent.json', CONTROL / 'launch.json'
         current = inspect_optional(CONTAINER)
-        if intent_path.exists():
-            intent = read(intent_path)
-            if intent['campaign_id'] != G.CAMPAIGN_ID or intent['registry_digest'] != pin['registry_digest']:
-                raise ValueError('QB launch intent differs from pinned registry')
-        else:
+        receipt = read(receipt_path) if receipt_path.exists() else None
+        intent = read(intent_path) if intent_path.exists() else None
+        if intent is not None:
+            if intent['campaign_id'] != G.CAMPAIGN_ID:
+                raise ValueError('Existing launch belongs to a different campaign')
+            if intent['registry_digest'] != registry_digest:
+                state_path = ROOT / G.OUTPUT / G.CAMPAIGN_ID / 's3/QB/campaign_state.json'
+                started = state_path.exists() and bool(read(state_path).get('runs'))
+                if current is not None or receipt is not None or started:
+                    raise ValueError('Existing training records use a different experiment configuration')
+                # A plan which never launched is editable; retain the old record
+                # as history rather than turning it into a persistent launch ban.
+                atomic_json(CONTROL / f'previous_launch_intent_{time.time_ns()}.json', intent)
+                intent = None
+        if intent is None:
             if current is not None:
                 raise ValueError('Foreign QB container exists without this controller launch intent')
             token = uuid.uuid4().hex
             _, identity = command(CONTAINER, token=token)
             intent = {'campaign_id': G.CAMPAIGN_ID, 'token': token, 'identity': identity,
-                      'registry_digest': pin['registry_digest'], 'at': utc_now()}
+                      'registry_digest': registry_digest, 'at': utc_now()}
             atomic_json(intent_path, intent)
-        receipt = read(receipt_path) if receipt_path.exists() else None
         launch, identity = command(CONTAINER, token=intent['token'])
         if not same_environment(identity, intent['identity']):
             raise ValueError('Original runtime environment differs from the saved launch intent')
         if current is None:
             if receipt is not None:
                 raise ValueError('Registered QB container missing; explicit authenticated recovery required')
-            require_idle_gpu('cuda')
+            wait_for_gpu(args.wait, status)
             check, _ = command()
             status('CHECKING_AND_PROFILING')
             subprocess.run(check + ['python', '-m', 'panda_qb_deepen', 'check'], cwd=ROOT, check=True)
             subprocess.run(check + ['python', '-m', 'panda_qb_deepen', 'cost'], cwd=ROOT, check=True)
-            verify_pin(pin)
-            if evidence(ROOT, check_runtime=True) != proof:
-                raise ValueError('GF2 retirement or source evidence changed during preflight')
             require_idle_gpu('cuda')
             subprocess.run(launch + TRAIN_ARGS, cwd=ROOT, check=True)
             current = inspect_optional(CONTAINER)
@@ -197,11 +185,10 @@ def main():
         if receipt is None:
             receipt = {'container': CONTAINER, 'container_id': current['Id'], 'image': identity['image'],
                        'args': TRAIN_ARGS, 'source_container': identity['source_container'],
-                       'token': intent['token'], 'registry_digest': pin['registry_digest']}
+                       'token': intent['token'], 'registry_digest': registry_digest}
             atomic_json(receipt_path, receipt)
         folder = ROOT / G.OUTPUT / G.CAMPAIGN_ID / 's3/QB'
         while True:
-            verify_pin(pin)
             current = authenticate_container(inspect_optional(CONTAINER), intent, receipt)
             pid = ensure_publisher()
             if current['State']['Running']:

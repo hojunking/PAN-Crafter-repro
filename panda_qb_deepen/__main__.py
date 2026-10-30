@@ -26,8 +26,6 @@ def main():
         from .selected import verify
         print(json.dumps(verify(plan.ROOT)))
         return 0
-    from .prerequisites import evidence
-    evidence(plan.ROOT)
     if args.command == 'cost':
         from panda_s1loss9.cost.__main__ import main as cost_main
         sys.argv = ['cost', '--server', 's3', '--root', str(root), '--seconds', '1200']

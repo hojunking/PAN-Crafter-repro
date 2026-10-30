@@ -119,7 +119,6 @@ class CloseoutTests(unittest.TestCase):
                           controller_processes=[{'pid': 123}], trainer={'container': 'exact-gf2'})
             with patch.object(C, 'plan', return_value=intent), \
                     patch.object(C, 'source_pin', return_value={}), \
-                    patch.object(C, 'verify_predecessors', return_value={}), \
                     patch.object(C, 'protect_winner', side_effect=lambda *a: events.append('archive') or []), \
                     patch.object(C, 'protect_all_goals', return_value=([], [])), \
                     patch.object(C, 'stop_processes', side_effect=lambda *a: events.append('controller_term')), \

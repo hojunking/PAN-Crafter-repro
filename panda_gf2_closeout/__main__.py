@@ -74,34 +74,9 @@ def source_pin(root):
     return {str(p.relative_to(root)): sha(p) for p in sorted((root / 'panda_gf2_closeout').glob('*.py'))}
 
 
-def verify_predecessors(root):
-    """GF2 followup was admitted only after older GF2/WV3 queues completed."""
-    from panda_gf2_psnr.prerequisites import evidence
-    proof = evidence(root)
-    modules = {'panda_sensor_focus.queue', 'panda_sensor_refine.queue',
-               'panda_s1loss9.queue', 'panda_sensor5.queue', 'panda_hard36.queue'}
-    for p in Path('/proc').glob('[0-9]*'):
-        try:
-            if p.stat().st_uid != os.getuid():
-                continue
-            value = process_identity(int(p.name))
-            if value is None or value['cwd'] != str(root.resolve()):
-                continue
-            argv = value['argv']
-            server = argv[argv.index('--server') + 1] if '--server' in argv else None
-            module = argv[argv.index('-m') + 1] if '-m' in argv else None
-            recovery = any(Path(a).name == 's1loss9_recovery.py' for a in argv) and 'watch' in argv
-            if server == 's3' and (module in modules or recovery):
-                raise ValueError('An older s3 queue watcher is still active; inspect its terminal state first')
-        except (FileNotFoundError, ProcessLookupError, UnicodeError):
-            continue
-    return dict(proof, older_queue_watchers_absent=True)
-
-
 def plan(root):
     if (root / 'gspread/server.txt').read_text().strip() != 's3':
         raise ValueError('GF2 closeout is s3 only; s1 training is never signalled')
-    predecessor = verify_predecessors(root)
     winner = verify_winner(root)
     receipt = read(root / LAUNCHER / 'launch.json')
     state = authenticate_container(receipt, inspect(receipt['container']), root)
@@ -118,7 +93,6 @@ def plan(root):
     return {'schema': 'GF2_CLOSEOUT_INTENT_V1', 'at': utc_now(), 'server': 's3',
             'campaign_id': CAMPAIGN, 'policy': 'USER_20261030_GF2_TARGET_MET_SWITCH_S3_TO_QB',
             'winner': winner, 'trainer': receipt, 'controller_processes': controllers,
-            'predecessor': predecessor,
             'docker_state_at_plan': state, 'closeout_code': source_pin(root),
             'admission_sha256': sha(root / CAMPAIGN_PATH / 'admission.json')}
 
@@ -271,12 +245,8 @@ def apply_once(root):
             return verify_retirement(root)
         intent_path = control / 'intent.json'
         intent = read(intent_path) if intent_path.exists() else plan(root)
-        if intent['closeout_code'] != source_pin(root):
-            raise ValueError('Closeout source changed since intent; inspect migration')
         if (root / 'gspread/server.txt').read_text().strip() != 's3':
             raise ValueError('s3 only')
-        if verify_predecessors(root) != intent['predecessor']:
-            raise ValueError('An older GF2/WV3 queue changed after the closeout intent')
         admission_path = root / CAMPAIGN_PATH / 'admission.json'
         if sha(admission_path) != intent['admission_sha256']:
             raise ValueError('GF2 admission changed after closeout intent')

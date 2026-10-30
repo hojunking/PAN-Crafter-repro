@@ -44,7 +44,7 @@ def manifest():
                    'selection': 'FULL50K_VAL_RRE50_RRE90_VAL_ERGAS_EARLIER_STEP',
                    'independent_local_training': True, 'external_donor_reuse': False},
         'initialization': 'FRESH_STUDENT', 'time_cap_seconds': None,
-        'after': 'AUTHENTICATED_GF2_TARGET_RETIREMENT', 'after_campaign': 'STOP_NO_AUTOMATIC_WV3_RESUME',
+        'after': 'NONE_INDEPENDENT_LOCAL_STAGE1', 'after_campaign': 'STOP_NO_AUTOMATIC_WV3_RESUME',
         'early_stop': {'scope': 'QB_STAGE2_ONLY', 'steps': [8000, 9000, 10000],
                        'all_hqnr_strictly_below': .90, 'authenticated_safe_checkpoint_required': True},
         'selection': 'ALL_HE_JOINT_PASSES_PLUS_HQUALIFIED_MIN_E_REP_ELSE_MAX_H_REP',

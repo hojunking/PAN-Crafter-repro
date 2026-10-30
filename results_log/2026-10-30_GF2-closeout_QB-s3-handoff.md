@@ -3,8 +3,8 @@
 ## 1. 결정과 실행 범위
 
 사용자 요청: GF2는 최종 목표 달성으로 종료하고, s3도 QB 실험에 배정한다.
-현재 s1 QB refit 큐는 유지한다. 이 문서와 신규 패키지는 기존 실행 코드의 pin을
-바꾸지 않는다. s3에 직접 접속한 작업은 없으며, **아래 절차를 s3 에이전트가 실행해야
+현재 s1 QB refit 큐는 유지한다. 이 작업은 기존 실행 코드를 변경하지 않는다.
+s3에 직접 접속한 작업은 없으며, **아래 절차를 s3 에이전트가 실행해야
 실제 GF2 종료와 QB 시작이 이루어진다.** Git push는 사용자가 담당한다.
 
 - GF2 종료 기준: 동일 checkpoint에서 **HQNR≥.9645, ERGAS≤.522, PSNR≥45.08**.
@@ -131,36 +131,32 @@ QB의 msfix train/val, original LMS train/val, RR20/FR20 데이터는 기존 등
 checkout 최신 커밋과 QB 데이터를 확보한 뒤, 프로젝트의 기존 Python 환경에서 실행한다.
 `gspread/server.txt`는 기존 s3 값을 유지한다. s1에서 서버 표기를 바꿔 실행하지 않는다.
 
-```bash
-export PYTHONDONTWRITEBYTECODE=1
-python -m panda_gf2_closeout plan
-python -m panda_gf2_closeout apply --wait
-python -m panda_gf2_closeout verify
-python -m panda_qb_deepen catalog --csv
-```
+GF2 목표 가중치를 보존하고 현재 GF2 작업을 안전 종료하여 GPU를 비운다.
+이를 위한 보조 도구로 `python -m panda_gf2_closeout apply --wait`를 사용할 수 있다.
+**QB는 GF2 종료 증명·시트 readback·다른 큐 완료·s1 모델 전달을 요구하지 않는다.**
+각 서버가 자체 Stage 1을 학습하므로 시작 절차를 다른 실험 이력과 연결하지 않는다.
+대기 controller의 코드 고정과 큐 수정 승인 지시도 제거했다.
 
-closeout은 목표 모델 보존 후 GF2 enqueue를 먼저 종료하고, 소유가 확인된 GF2
-trainer에 TERM을 전달한다. 학습 코드의 안전 저장이 끝나면 최종 GF2 Sheet 게시를
-검증하고 `work_dir/panda_gf2_closeout/s3/retirement.json`을 생성한다.
-미시작 run은 제외, 중단 run은 안전 중단으로 기록하며 완료로 위장하지 않는다.
-오류 시 강제 kill이나 파일 삭제로 우회하지 말고 보고된 불일치를 확인한다.
-
-그다음 다음 명령을 지속 가능한 세션에서 실행한다. 필요한 Docker 환경/데이터 mount,
+다음 명령을 지속 가능한 세션에서 실행한다. 필요한 Docker 환경/데이터 mount,
 check와 cost, trainer 및 Sheet publisher 시작은 enqueue가 담당한다.
 
 ```bash
-python -u -m panda_qb_deepen.enqueue --wait
+export PYTHONDONTWRITEBYTECODE=1
+python -m panda_qb_deepen catalog --csv
+python -u -m panda_qb_deepen.enqueue
 ```
+
+선택 옵션 `--wait`는 같은 서버 GPU가 사용 중일 때만 기다린다.
+동일 출력 디렉터리 중복 실행 방지와 checkpoint 무결성·정확한 재개 검사는 유지한다.
 
 QB 게시 대상은 `QB-ablations`이며 하이퍼파라미터, weight decay, 자체 Stage 1 선정 근거,
 실행 server를 함께 기록한다. H/E 공동 통과 결과 전체 + H 통과 중 최소 E 대표,
-H 통과가 없으면 최대 H 대표 규칙을 유지한다. GF2는 `GF2-ablations`에 마지막 상태를
-게시하고, 성공한 47K 행이 남는지 readback으로 확인해야 QB로 넘어간다.
+H 통과가 없으면 최대 H 대표 규칙을 유지한다. GF2의 마지막 게시와 47K 성공 행 확인은
+`GF2-ablations`에서 별도로 처리하며, QB 학습 시작을 막지 않는다.
 
 상태 확인 경로:
 
 ```text
-work_dir/panda_gf2_closeout/s3/retirement.json
 work_dir/panda_qb_deepen/launcher_s3/status.json
 work_dir/panda_qb_deepen/PANDA_S3_QB_DEEPEN_OWNSTAGE1_20261030_v1/s3/QB/campaign_state.json
 ```
@@ -182,9 +178,9 @@ sidecar의 실제 파일 SHA 및 publication artifact를 확인해야 한다.
 
 - GF2 종료·보존 검증 10개: 목표 모델과 대표 모델 구분, 파일 손상 거부,
   성공 모델 전체 보관, controller→trainer 종료 순서, s1 실행 거부, 보관본 변조 거부.
-- QB 큐 검증 6개: 자체 Stage 1의 A/T 실제 CPU 업데이트와 정확한 재개,
+- QB 큐 검증 7개: 자체 Stage 1의 A/T 실제 CPU 업데이트와 정확한 재개,
   Student 네 설정의 실제 AdamW 업데이트와 정확한 재개, 전체 50K 선정 조건,
-  9개 run·새 seed·QB 게시 기준·데이터 mount·GF2 종료 선행 조건.
+  9개 run·새 seed·QB 게시 기준·데이터 mount·다른 큐 기록 없이 독립 시작.
 - 기존 실행 패키지 소스 변경 없음. 새 패키지 Python 구문 검사 완료.
 
 CPU 검증은 실험 성능을 예측하는 결과가 아니다. 실제 s3의 GPU·데이터·프로파일링과

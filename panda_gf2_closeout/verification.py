@@ -100,7 +100,7 @@ def authenticate_container(receipt, value, root):
 
 
 def verify_retirement(root, *, check_runtime=True):
-    """Gate for the successor QB queue; never treats cancelled work as completed."""
+    """Audit GF2 preservation and stop records independently of future queues."""
     root = Path(root).resolve()
     receipt = read(root / CONTROL / 'retirement.json')
     if (receipt.get('schema') != SCHEMA or receipt.get('server') != 's3'
