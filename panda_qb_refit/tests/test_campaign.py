@@ -204,6 +204,21 @@ with tempfile.TemporaryDirectory() as temp:
         with self.assertRaises(ValueError):
             authenticate_container(current, intent, {'container_id': 'replacement'})
 
+    def test_source_environment_ignores_only_inspect_order(self):
+        from panda_qb_refit.enqueue import same_environment
+        value = {'image': 'fixed', 'source_container': 'original', 'env': ['A=1', 'B=2'],
+                 'mounts': [{'Source': '/repo', 'Destination': '/workspace', 'RW': False},
+                            {'Source': '/out', 'Destination': '/workspace/out', 'RW': True}]}
+        reordered = deepcopy(value)
+        reordered['env'].reverse(); reordered['mounts'].reverse()
+        self.assertTrue(same_environment(value, reordered))
+        for key in ('image', 'source_container', 'env', 'mounts'):
+            changed = deepcopy(reordered)
+            if key == 'env': changed[key][0] = 'B=3'
+            elif key == 'mounts': changed[key][0]['RW'] = False
+            else: changed[key] = 'changed'
+            self.assertFalse(same_environment(value, changed))
+
     def test_docker_writes_only_new_output_and_pins_launch_token(self):
         from panda_qb_refit.enqueue import command
         source = {'Config': {'User': '1000:1000', 'WorkingDir': '/workspace', 'Env': ['SAFE=1']},

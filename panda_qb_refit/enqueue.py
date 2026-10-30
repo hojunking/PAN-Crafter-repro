@@ -36,6 +36,14 @@ def verify_pin(expected):
         raise ValueError('QB waiting-controller code/registry changed; use a reviewed versioned boundary migration')
 
 
+def same_environment(left, right):
+    """Docker inspect may reorder mounts; compare contents, retaining permissions."""
+    def canonical(value):
+        return {**value, 'env': sorted(value['env']),
+                'mounts': sorted(value['mounts'], key=lambda m: (m['Destination'], m['Source'], m['RW']))}
+    return canonical(left) == canonical(right)
+
+
 def command(name=None, *, token=None):
     from panda_sensor_refine.launch import source_container
     source_name, source = source_container('s1', 'panda_sensor5')
@@ -163,7 +171,7 @@ def main():
             atomic_json(intent_path, intent)
         receipt = read(receipt_path) if receipt_path.exists() else None
         launch, identity = command(CONTAINER, token=intent['token'])
-        if identity != intent['identity']:
+        if not same_environment(identity, intent['identity']):
             raise ValueError('Original runtime environment differs from the saved launch intent')
         if current is None:
             if receipt is not None:
