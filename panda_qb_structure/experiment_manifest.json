@@ -1,0 +1,315 @@
+{
+  "campaign_id": "PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1",
+  "method_revision": "PANDA-QB-STRUCTURE-LOCALSTAGE1-S100-RGB-L4-HARDONLY-v1",
+  "dataset": "QB",
+  "joint_target": {
+    "HQNR": 0.9315,
+    "ERGAS": 3.5
+  },
+  "ordered_runs": {
+    "s1": [
+      [
+        "QB4_DIFFBASE",
+        "R1"
+      ],
+      [
+        "QB4_DIFFBASE",
+        "R2"
+      ],
+      [
+        "QB4_P0UBIL",
+        "R1"
+      ],
+      [
+        "QB4_P0UBIL",
+        "R2"
+      ],
+      [
+        "QB4_P0BASE",
+        "R1"
+      ],
+      [
+        "QB4_P0BASE",
+        "R2"
+      ],
+      [
+        "QB4_WD000",
+        "R1"
+      ],
+      [
+        "QB4_WD000",
+        "R2"
+      ],
+      [
+        "QB4_CONTROL",
+        "R3"
+      ],
+      [
+        "QB4_WD000",
+        "R3"
+      ]
+    ],
+    "s3": [
+      [
+        "QB4_P0UBIL",
+        "R1"
+      ],
+      [
+        "QB4_P0UBIL",
+        "R2"
+      ],
+      [
+        "QB4_DIFFBASE",
+        "R1"
+      ],
+      [
+        "QB4_DIFFBASE",
+        "R2"
+      ],
+      [
+        "QB4_P0BASE",
+        "R1"
+      ],
+      [
+        "QB4_P0BASE",
+        "R2"
+      ],
+      [
+        "QB4_CONTROL",
+        "R3"
+      ],
+      [
+        "QB4_WD000",
+        "R3"
+      ]
+    ]
+  },
+  "cases": {
+    "QB4_DIFFBASE": {
+      "sensor": "QB",
+      "policy_id": "S100",
+      "scale": 1.0,
+      "alpha": 0.25,
+      "gamma": 0.5,
+      "lr_S": 0.0001,
+      "total_updates": 30000,
+      "student_width": 112,
+      "warmup_updates": 100,
+      "min_lr": 0.0,
+      "inherited_updates": 0,
+      "schedule_kind": "WARMUP_COSINE",
+      "sampling_variant": "BASE",
+      "input_variant": "CORRECTED_DIFF",
+      "weight_decay": 0.01,
+      "donor_case": "S1_A200_E030",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.03,
+      "epsilon_radius_rr": 3.0,
+      "source_package": null,
+      "source_campaign": null,
+      "source_campaign_id": null,
+      "source_case": null,
+      "source_lr": null,
+      "source_horizon": null,
+      "source_warmup_updates": null,
+      "source_min_lr": null
+    },
+    "QB4_P0UBIL": {
+      "sensor": "QB",
+      "policy_id": "S100",
+      "scale": 1.0,
+      "alpha": 0.25,
+      "gamma": 0.5,
+      "lr_S": 0.0001,
+      "total_updates": 30000,
+      "student_width": 112,
+      "warmup_updates": 100,
+      "min_lr": 0.0,
+      "inherited_updates": 0,
+      "schedule_kind": "WARMUP_COSINE",
+      "sampling_variant": "UBIL",
+      "input_variant": "CORRECTED",
+      "weight_decay": 0.01,
+      "donor_case": "S1_A200_E030",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.03,
+      "epsilon_radius_rr": 3.0,
+      "source_package": null,
+      "source_campaign": null,
+      "source_campaign_id": null,
+      "source_case": null,
+      "source_lr": null,
+      "source_horizon": null,
+      "source_warmup_updates": null,
+      "source_min_lr": null
+    },
+    "QB4_P0BASE": {
+      "sensor": "QB",
+      "policy_id": "S100",
+      "scale": 1.0,
+      "alpha": 0.25,
+      "gamma": 0.5,
+      "lr_S": 0.0001,
+      "total_updates": 30000,
+      "student_width": 112,
+      "warmup_updates": 100,
+      "min_lr": 0.0,
+      "inherited_updates": 0,
+      "schedule_kind": "WARMUP_COSINE",
+      "sampling_variant": "BASE",
+      "input_variant": "CORRECTED",
+      "weight_decay": 0.01,
+      "donor_case": "S1_A200_E030",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.03,
+      "epsilon_radius_rr": 3.0,
+      "source_package": null,
+      "source_campaign": null,
+      "source_campaign_id": null,
+      "source_case": null,
+      "source_lr": null,
+      "source_horizon": null,
+      "source_warmup_updates": null,
+      "source_min_lr": null
+    },
+    "QB4_CONTROL": {
+      "sensor": "QB",
+      "policy_id": "S100",
+      "scale": 1.0,
+      "alpha": 0.25,
+      "gamma": 0.5,
+      "lr_S": 0.0001,
+      "total_updates": 30000,
+      "student_width": 112,
+      "warmup_updates": 100,
+      "min_lr": 0.0,
+      "inherited_updates": 0,
+      "schedule_kind": "WARMUP_COSINE",
+      "sampling_variant": "UBIL",
+      "input_variant": "CORRECTED_DIFF",
+      "weight_decay": 0.01,
+      "donor_case": "S1_A200_E030",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.03,
+      "epsilon_radius_rr": 3.0,
+      "source_package": null,
+      "source_campaign": null,
+      "source_campaign_id": null,
+      "source_case": null,
+      "source_lr": null,
+      "source_horizon": null,
+      "source_warmup_updates": null,
+      "source_min_lr": null
+    },
+    "QB4_WD000": {
+      "sensor": "QB",
+      "policy_id": "S100",
+      "scale": 1.0,
+      "alpha": 0.25,
+      "gamma": 0.5,
+      "lr_S": 0.0001,
+      "total_updates": 30000,
+      "student_width": 112,
+      "warmup_updates": 100,
+      "min_lr": 0.0,
+      "inherited_updates": 0,
+      "schedule_kind": "WARMUP_COSINE",
+      "sampling_variant": "UBIL",
+      "input_variant": "CORRECTED_DIFF",
+      "weight_decay": 0.0,
+      "donor_case": "S1_A200_E030",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.03,
+      "epsilon_radius_rr": 3.0,
+      "source_package": null,
+      "source_campaign": null,
+      "source_campaign_id": null,
+      "source_case": null,
+      "source_lr": null,
+      "source_horizon": null,
+      "source_warmup_updates": null,
+      "source_min_lr": null
+    }
+  },
+  "seeds": {
+    "R1": 261018101,
+    "R2": 261018102,
+    "R3": 261018103
+  },
+  "comparisons": {
+    "QB4_DIFFBASE": {
+      "axes": [
+        "sampling_variant"
+      ],
+      "purpose": "Restore transposed-convolution upsampling; keep PAN difference input"
+    },
+    "QB4_P0UBIL": {
+      "axes": [
+        "input_variant"
+      ],
+      "purpose": "Remove only the PAN difference input; retain corrected PAN and bilinear upsampling"
+    },
+    "QB4_P0BASE": {
+      "axes": [
+        "input_variant",
+        "sampling_variant"
+      ],
+      "purpose": "Complete input-by-upsampling factorial: corrected PAN only and original upsampling"
+    },
+    "QB4_CONTROL": {
+      "axes": [],
+      "purpose": "Third matched Student seed for the existing local-donor baseline"
+    },
+    "QB4_WD000": {
+      "axes": [
+        "weight_decay"
+      ],
+      "purpose": "AdamW weight decay zero; same local donor and matched Student seed"
+    }
+  },
+  "stage1_sources": {
+    "s1": {
+      "package": "panda_s1loss9",
+      "campaign_id": "PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1",
+      "case": "S1_A200_E030",
+      "seed": 261016101
+    },
+    "s3": {
+      "package": "panda_qb_deepen",
+      "campaign_id": "PANDA_S3_QB_DEEPEN_OWNSTAGE1_20261030_v1",
+      "case": "S1_A200_E030",
+      "seed": 261016301
+    }
+  },
+  "stage1_runs": 0,
+  "stage1_policy": "REUSE_EACH_SERVERS_COMPLETED_VALIDATION_SELECTED_LOCAL_STAGE1",
+  "cross_server_donor_transfer": false,
+  "time_cap_seconds": null,
+  "initialization": "FRESH_STUDENT_NO_TEACHER_WEIGHT_COPY",
+  "historical_s3_wd000": {
+    "package": "panda_qb_deepen",
+    "case": "QB3_WD000",
+    "replicas": [
+      "R1",
+      "R2"
+    ]
+  },
+  "early_stop": {
+    "scope": "QB_STAGE2_ONLY",
+    "steps": [
+      8000,
+      9000,
+      10000
+    ],
+    "all_hqnr_strictly_below": 0.9
+  },
+  "selection": "ALL_HE_JOINT_PASSES_PLUS_HQUALIFIED_MIN_E_REP_ELSE_MAX_H_REP",
+  "prohibited": [
+    "SWA",
+    "EMA",
+    "TTA",
+    "rotation_loss",
+    "soft_loss",
+    "band_weighted_loss"
+  ]
+}

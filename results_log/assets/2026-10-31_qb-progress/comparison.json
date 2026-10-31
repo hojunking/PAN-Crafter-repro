@@ -1,0 +1,758 @@
+{
+  "snapshot_utc": "2026-10-31T04:59:07.766Z",
+  "s1_checks": [
+    {
+      "case": "QB2_C30LR080",
+      "replica": "R1",
+      "step": 30000,
+      "path": "work_dir/panda_qb_refit/PANDA_S1_QB_REFIT_FIXEDDONOR_20261030_v1/s1/QB/runs/PSFC_QB_S1_QB2_C30LR080_NOSOFT_R1_S261018101/attempt_01/models/step_0030000.pt",
+      "sha256": "730d87e3953d0bb3106983bc0570c1feeedaf5ab07101e247944c5419b855b0e",
+      "bytes": 45279594,
+      "file_sidecar_sheet_hash_equal": true,
+      "sheet_metrics_equal": true
+    },
+    {
+      "case": "QB2_C30LR080",
+      "replica": "R2",
+      "step": 28000,
+      "path": "work_dir/panda_qb_refit/PANDA_S1_QB_REFIT_FIXEDDONOR_20261030_v1/s1/QB/runs/PSFC_QB_S1_QB2_C30LR080_NOSOFT_R2_S261018102/attempt_01/models/step_0028000.pt",
+      "sha256": "a614e4cc1bc3dfb5092d40946dcb672da3991d3000b8410c33eeb8c4f246f23e",
+      "bytes": 45279594,
+      "file_sidecar_sheet_hash_equal": true,
+      "sheet_metrics_equal": true
+    },
+    {
+      "case": "QB2_C30LR050",
+      "replica": "R1",
+      "step": 27000,
+      "path": "work_dir/panda_qb_refit/PANDA_S1_QB_REFIT_FIXEDDONOR_20261030_v1/s1/QB/runs/PSFC_QB_S1_QB2_C30LR050_NOSOFT_R1_S261018101/attempt_01/models/step_0027000.pt",
+      "sha256": "f63f0c9e7884b21e67160f7db736dc5abe8425d4713579eff2faf4a897712ba0",
+      "bytes": 45279594,
+      "file_sidecar_sheet_hash_equal": true,
+      "sheet_metrics_equal": true
+    },
+    {
+      "case": "QB2_C30LR050",
+      "replica": "R2",
+      "step": 30000,
+      "path": "work_dir/panda_qb_refit/PANDA_S1_QB_REFIT_FIXEDDONOR_20261030_v1/s1/QB/runs/PSFC_QB_S1_QB2_C30LR050_NOSOFT_R2_S261018102/attempt_01/models/step_0030000.pt",
+      "sha256": "0db760839038f41f11d5dda064803f6ca682b4000c180d70e5889500e0574ba4",
+      "bytes": 45279594,
+      "file_sidecar_sheet_hash_equal": true,
+      "sheet_metrics_equal": true
+    },
+    {
+      "case": "QB2_C25",
+      "replica": "R1",
+      "step": 22000,
+      "path": "work_dir/panda_qb_refit/PANDA_S1_QB_REFIT_FIXEDDONOR_20261030_v1/s1/QB/runs/PSFC_QB_S1_QB2_C25_NOSOFT_R1_S261018101/attempt_01/models/step_0022000.pt",
+      "sha256": "18019feddfdcdd41ab62f73124871607d4f723462e87dcd48f9e32f424307ed8",
+      "bytes": 45279530,
+      "file_sidecar_sheet_hash_equal": true,
+      "sheet_metrics_equal": true
+    },
+    {
+      "case": "QB2_C25",
+      "replica": "R2",
+      "step": 24000,
+      "path": "work_dir/panda_qb_refit/PANDA_S1_QB_REFIT_FIXEDDONOR_20261030_v1/s1/QB/runs/PSFC_QB_S1_QB2_C25_NOSOFT_R2_S261018102/attempt_01/models/step_0024000.pt",
+      "sha256": "05c1644b8c22cc6e91c9dceb6900b9a7a5276127b80b4a9c3fb4fc910e2dbe89",
+      "bytes": 45279530,
+      "file_sidecar_sheet_hash_equal": true,
+      "sheet_metrics_equal": true
+    },
+    {
+      "case": "QB2_C30AG000",
+      "replica": "R1",
+      "step": 27000,
+      "path": "work_dir/panda_qb_refit/PANDA_S1_QB_REFIT_FIXEDDONOR_20261030_v1/s1/QB/runs/PSFC_QB_S1_QB2_C30AG000_NOSOFT_R1_S261018101/attempt_01/models/step_0027000.pt",
+      "sha256": "cd18179ff988b9e08b062d49e4a603d0f484151dc3a5f25eaa86fce674b55612",
+      "bytes": 45279658,
+      "file_sidecar_sheet_hash_equal": true,
+      "sheet_metrics_equal": true
+    },
+    {
+      "case": "QB2_C30AG000",
+      "replica": "R2",
+      "step": 26000,
+      "path": "work_dir/panda_qb_refit/PANDA_S1_QB_REFIT_FIXEDDONOR_20261030_v1/s1/QB/runs/PSFC_QB_S1_QB2_C30AG000_NOSOFT_R2_S261018102/attempt_01/models/step_0026000.pt",
+      "sha256": "33611cac6d322ea1c444105f48c4ca5e7c02403626a2144639331761b068ebaa",
+      "bytes": 45279658,
+      "file_sidecar_sheet_hash_equal": true,
+      "sheet_metrics_equal": true
+    },
+    {
+      "case": "QB2_C30G025",
+      "replica": "R1",
+      "step": 27000,
+      "path": "work_dir/panda_qb_refit/PANDA_S1_QB_REFIT_FIXEDDONOR_20261030_v1/s1/QB/runs/PSFC_QB_S1_QB2_C30G025_NOSOFT_R1_S261018101/attempt_01/models/step_0027000.pt",
+      "sha256": "a181290653c49c46cb38af4f71824be2e2a371d78c0f0f77909408947aa9e956",
+      "bytes": 45279658,
+      "file_sidecar_sheet_hash_equal": true,
+      "sheet_metrics_equal": true
+    },
+    {
+      "case": "QB2_C30G025",
+      "replica": "R2",
+      "step": 24000,
+      "path": "work_dir/panda_qb_refit/PANDA_S1_QB_REFIT_FIXEDDONOR_20261030_v1/s1/QB/runs/PSFC_QB_S1_QB2_C30G025_NOSOFT_R2_S261018102/attempt_01/models/step_0024000.pt",
+      "sha256": "4ba5c15b1da73177b4dfc25490ead19c36b44abd9bcc5b72f3d2feff6e0ae410",
+      "bytes": 45279658,
+      "file_sidecar_sheet_hash_equal": true,
+      "sheet_metrics_equal": true
+    },
+    {
+      "case": "QB_BASE",
+      "replica": "R2",
+      "step": 26000,
+      "path": "work_dir/panda_sensor_refine/PANDA_S13_SENSOR_REFINE_R34_20261028_v1/s1/QB/runs/PSRF_QB_S1_QB_BASE_NOSOFT_R2_S261018102/attempt_01/models/step_0026000.pt",
+      "sha256": "035bae76099f19fcb97bd2278f3af44ee3cb42575020afa8d10b83ae38fe9146",
+      "bytes": 45269738,
+      "file_sidecar_sheet_hash_equal": true,
+      "sheet_metrics_equal": true
+    }
+  ],
+  "s1_representative_pairs": [
+    {
+      "case": "QB2_C30LR080",
+      "replica": "R1",
+      "HQNR": 0.9442287410477318,
+      "ERGAS": 3.5281245251100657,
+      "step": 30000,
+      "delta_HQNR": 0.001531216401725266,
+      "delta_ERGAS": 0.013239679535181459
+    },
+    {
+      "case": "QB2_C30LR080",
+      "replica": "R2",
+      "HQNR": 0.9400475209944792,
+      "ERGAS": 3.528823661447265,
+      "step": 28000,
+      "delta_HQNR": -0.005336224861720362,
+      "delta_ERGAS": 0.019167280332867076
+    },
+    {
+      "case": "QB2_C30LR050",
+      "replica": "R1",
+      "HQNR": 0.950912616987494,
+      "ERGAS": 3.551015684739851,
+      "step": 27000,
+      "delta_HQNR": 0.008215092341487429,
+      "delta_ERGAS": 0.036130839164966844
+    },
+    {
+      "case": "QB2_C30LR050",
+      "replica": "R2",
+      "HQNR": 0.9434967685766473,
+      "ERGAS": 3.5559312756253805,
+      "step": 30000,
+      "delta_HQNR": -0.0018869772795522266,
+      "delta_ERGAS": 0.046274894510982545
+    },
+    {
+      "case": "QB2_C25",
+      "replica": "R1",
+      "HQNR": 0.9376841970800893,
+      "ERGAS": 3.524364156382682,
+      "step": 22000,
+      "delta_HQNR": -0.005013327565917214,
+      "delta_ERGAS": 0.009479310807797958
+    },
+    {
+      "case": "QB2_C25",
+      "replica": "R2",
+      "HQNR": 0.944587015552473,
+      "ERGAS": 3.524107097576055,
+      "step": 24000,
+      "delta_HQNR": -0.0007967303037265117,
+      "delta_ERGAS": 0.014450716461657187
+    },
+    {
+      "case": "QB2_C30AG000",
+      "replica": "R1",
+      "HQNR": 0.9359410861855901,
+      "ERGAS": 3.519430192413059,
+      "step": 27000,
+      "delta_HQNR": -0.006756438460416403,
+      "delta_ERGAS": 0.0045453468381748685
+    },
+    {
+      "case": "QB2_C30AG000",
+      "replica": "R2",
+      "HQNR": 0.9323045992551675,
+      "ERGAS": 3.5125243269637805,
+      "step": 26000,
+      "delta_HQNR": -0.013079146601032043,
+      "delta_ERGAS": 0.002867945849382547
+    },
+    {
+      "case": "QB2_C30G025",
+      "replica": "R1",
+      "HQNR": 0.9469650079659422,
+      "ERGAS": 3.514880501202696,
+      "step": 27000,
+      "delta_HQNR": 0.00426748331993565,
+      "delta_ERGAS": -4.344372188214152e-06
+    },
+    {
+      "case": "QB2_C30G025",
+      "replica": "R2",
+      "HQNR": 0.940262312950171,
+      "ERGAS": 3.53608597692669,
+      "step": 24000,
+      "delta_HQNR": -0.005121432906028511,
+      "delta_ERGAS": 0.026429595812292206
+    }
+  ],
+  "s3_pairs": [
+    {
+      "case": "QB3_WD000",
+      "replica": 1,
+      "delta_ERGAS": 0.003384685385720232,
+      "delta_HQNR": 0.009359438664404807,
+      "comparison": "same-server same-donor same-seed, independently selected representative steps"
+    },
+    {
+      "case": "QB3_WD000",
+      "replica": 2,
+      "delta_ERGAS": -0.014135743993656025,
+      "delta_HQNR": 0.0027507558107554564,
+      "comparison": "same-server same-donor same-seed, independently selected representative steps"
+    },
+    {
+      "case": "QB3_WD100",
+      "replica": 1,
+      "delta_ERGAS": 0.01871000543672885,
+      "delta_HQNR": 0.00596237408271405,
+      "comparison": "same-server same-donor same-seed, independently selected representative steps"
+    },
+    {
+      "case": "QB3_WD100",
+      "replica": 2,
+      "delta_ERGAS": -0.022317887698921623,
+      "delta_HQNR": -0.010608500320581582,
+      "comparison": "same-server same-donor same-seed, independently selected representative steps"
+    },
+    {
+      "case": "QB3_A075",
+      "replica": 1,
+      "delta_ERGAS": 0.020485698690325904,
+      "delta_HQNR": 0.010023536152820811,
+      "comparison": "same-server same-donor same-seed, independently selected representative steps"
+    },
+    {
+      "case": "QB3_A075",
+      "replica": 2,
+      "delta_ERGAS": -0.01898475911186326,
+      "delta_HQNR": -0.00036670424437479365,
+      "comparison": "same-server same-donor same-seed, independently selected representative steps"
+    }
+  ],
+  "s3_rows": [
+    {
+      "sheet_row": 44,
+      "case": "S1_A200_E030",
+      "replica": 1,
+      "step": 39000,
+      "HQNR": 0.744051639401979,
+      "ERGAS": 3.5046177183044613,
+      "PSNR": 38.46441151030989,
+      "D_s": 0.23569064800610678,
+      "D_lambda": 0.026512853650042308,
+      "status": "COMPLETED",
+      "last_observed_at": "2026-10-30T11:05:15.321146+00:00",
+      "candidate_count": 1,
+      "planned_horizon": 50000,
+      "weights_saved": true,
+      "artifact_verification": "SELECTED_STAGE1_FILE_SHA256_VERIFIED",
+      "checkpoint_sha256": "274f7bc3bdcf8ff19ff4733b71834e7d2cd296a1231613c0fe196336ad91d7ae",
+      "checkpoint_path": "/home/user/Desktop/song/PAN-Crafter/work_dir/panda_qb_deepen/PANDA_S3_QB_DEEPEN_OWNSTAGE1_20261030_v1/s3/QB/runs/PSL9_QB_S3_S1_A200_E030_NOSOFT_R1_S261016301/attempt_01/models/step_0039000.pt",
+      "donor_sha256": null,
+      "donor_origin_server": "s3",
+      "validation": {
+        "RRE50": 0.27054740172383335,
+        "RRE90": 0.72717563689642,
+        "Val_ERGAS": 3.9357896515018997,
+        "eligible_count": 1905,
+        "epsilon": {
+          "EPE50": 0.15900806337594986,
+          "EPE90": 0.37834639847278606,
+          "count": 7620,
+          "gain_mean": 0.9582697971980637,
+          "gain_median": 0.9780400693416595
+        },
+        "excluded_gt_low_texture_count": 0,
+        "failure_count": 9,
+        "failure_fraction": 0.004724409448818898,
+        "failure_reasons": {
+          "GRID_BOUNDARY": 7,
+          "QUADRATIC_OUTSIDE_NEIGHBORHOOD": 2
+        },
+        "sample_count": 1905,
+        "selector_protocol_sha256": "c0d97d55846169bd285c6e1e4b41ad6454b649add38801336fe1570ab50364b8",
+        "validation_inventory_sha256": "d493426b17588bfd82b363fe89676b5d08ae3c018991ed6ee7af1ae612df5b9e"
+      }
+    },
+    {
+      "sheet_row": 45,
+      "case": "QB3_CONTROL",
+      "replica": 1,
+      "step": 27000,
+      "HQNR": 0.9356187897243344,
+      "ERGAS": 3.5149796092261996,
+      "PSNR": 38.427480967270675,
+      "D_s": 0.03351895910389111,
+      "D_lambda": 0.03185049784005343,
+      "status": "COMPLETED",
+      "last_observed_at": "2026-10-30T12:45:22.686680+00:00",
+      "candidate_count": 30,
+      "planned_horizon": 30000,
+      "weights_saved": true,
+      "artifact_verification": "SAME_STATE_FILE_SHA256_VERIFIED",
+      "checkpoint_sha256": "240aa851b95ce452bf00eb573d64ae7b88b5929462356a7ba0f216e7394a4a7f",
+      "checkpoint_path": "/home/user/Desktop/song/PAN-Crafter/work_dir/panda_qb_deepen/PANDA_S3_QB_DEEPEN_OWNSTAGE1_20261030_v1/s3/QB/runs/PSL9_QB_S3_QB3_CONTROL_NOSOFT_R1_S261018101/attempt_01/models/step_0027000.pt",
+      "donor_sha256": "274f7bc3bdcf8ff19ff4733b71834e7d2cd296a1231613c0fe196336ad91d7ae",
+      "donor_origin_server": "s3",
+      "settings": {
+        "alpha": 0.25,
+        "beta": 0.0,
+        "gamma": 0.5,
+        "lr": 0.0001,
+        "weight_decay": 0.01
+      }
+    },
+    {
+      "sheet_row": 47,
+      "case": "QB3_CONTROL",
+      "replica": 2,
+      "step": 19000,
+      "HQNR": 0.9496584625848236,
+      "ERGAS": 3.5368752757508104,
+      "PSNR": 38.38985873302176,
+      "D_s": 0.022110051878710568,
+      "D_lambda": 0.028893390930775982,
+      "status": "COMPLETED",
+      "last_observed_at": "2026-10-30T14:24:02.690911+00:00",
+      "candidate_count": 30,
+      "planned_horizon": 30000,
+      "weights_saved": true,
+      "artifact_verification": "SAME_STATE_FILE_SHA256_VERIFIED",
+      "checkpoint_sha256": "66ed1f7c326536bb7248e74728c3b6865d1d10e092287cdbe16822a1d987fe1b",
+      "checkpoint_path": "/home/user/Desktop/song/PAN-Crafter/work_dir/panda_qb_deepen/PANDA_S3_QB_DEEPEN_OWNSTAGE1_20261030_v1/s3/QB/runs/PSL9_QB_S3_QB3_CONTROL_NOSOFT_R2_S261018102/attempt_01/models/step_0019000.pt",
+      "donor_sha256": "274f7bc3bdcf8ff19ff4733b71834e7d2cd296a1231613c0fe196336ad91d7ae",
+      "donor_origin_server": "s3",
+      "settings": {
+        "alpha": 0.25,
+        "beta": 0.0,
+        "gamma": 0.5,
+        "lr": 0.0001,
+        "weight_decay": 0.01
+      }
+    },
+    {
+      "sheet_row": 49,
+      "case": "QB3_WD000",
+      "replica": 1,
+      "step": 25000,
+      "HQNR": 0.9449782283887392,
+      "ERGAS": 3.51836429461192,
+      "PSNR": 38.42349018755482,
+      "D_s": 0.02519832197420911,
+      "D_lambda": 0.030598325041300344,
+      "status": "COMPLETED",
+      "last_observed_at": "2026-10-30T16:02:55.576015+00:00",
+      "candidate_count": 30,
+      "planned_horizon": 30000,
+      "weights_saved": true,
+      "artifact_verification": "SAME_STATE_FILE_SHA256_VERIFIED",
+      "checkpoint_sha256": "0cce03fb1e58e9844fb4178e2067e66a561140345e36d6a60ff1239f825acdd6",
+      "checkpoint_path": "/home/user/Desktop/song/PAN-Crafter/work_dir/panda_qb_deepen/PANDA_S3_QB_DEEPEN_OWNSTAGE1_20261030_v1/s3/QB/runs/PSL9_QB_S3_QB3_WD000_NOSOFT_R1_S261018101/attempt_01/models/step_0025000.pt",
+      "donor_sha256": "274f7bc3bdcf8ff19ff4733b71834e7d2cd296a1231613c0fe196336ad91d7ae",
+      "donor_origin_server": "s3",
+      "settings": {
+        "alpha": 0.25,
+        "beta": 0.0,
+        "gamma": 0.5,
+        "lr": 0.0001,
+        "weight_decay": 0.0
+      }
+    },
+    {
+      "sheet_row": 51,
+      "case": "QB3_WD000",
+      "replica": 2,
+      "step": 25000,
+      "HQNR": 0.952409218395579,
+      "ERGAS": 3.5227395317571544,
+      "PSNR": 38.418873674438565,
+      "D_s": 0.018164916687808525,
+      "D_lambda": 0.030015420445070023,
+      "status": "COMPLETED",
+      "last_observed_at": "2026-10-30T17:41:20.638834+00:00",
+      "candidate_count": 30,
+      "planned_horizon": 30000,
+      "weights_saved": true,
+      "artifact_verification": "SAME_STATE_FILE_SHA256_VERIFIED",
+      "checkpoint_sha256": "21fe423395efc0bdb522bd8be5200f858f2f6660c26e1bb83209e8afd5e588c4",
+      "checkpoint_path": "/home/user/Desktop/song/PAN-Crafter/work_dir/panda_qb_deepen/PANDA_S3_QB_DEEPEN_OWNSTAGE1_20261030_v1/s3/QB/runs/PSL9_QB_S3_QB3_WD000_NOSOFT_R2_S261018102/attempt_01/models/step_0025000.pt",
+      "donor_sha256": "274f7bc3bdcf8ff19ff4733b71834e7d2cd296a1231613c0fe196336ad91d7ae",
+      "donor_origin_server": "s3",
+      "settings": {
+        "alpha": 0.25,
+        "beta": 0.0,
+        "gamma": 0.5,
+        "lr": 0.0001,
+        "weight_decay": 0.0
+      }
+    },
+    {
+      "sheet_row": 52,
+      "case": "QB3_WD100",
+      "replica": 1,
+      "step": 30000,
+      "HQNR": 0.9415811638070485,
+      "ERGAS": 3.5336896146629284,
+      "PSNR": 38.39489235250554,
+      "D_s": 0.024719389554974765,
+      "D_lambda": 0.0345864430181673,
+      "status": "COMPLETED",
+      "last_observed_at": "2026-10-30T19:19:59.777804+00:00",
+      "candidate_count": 30,
+      "planned_horizon": 30000,
+      "weights_saved": true,
+      "artifact_verification": "SAME_STATE_FILE_SHA256_VERIFIED",
+      "checkpoint_sha256": "cad828478683430fdfccf230ea7dde6c5d52c2508cb363a343848ce0d83c247c",
+      "checkpoint_path": "/home/user/Desktop/song/PAN-Crafter/work_dir/panda_qb_deepen/PANDA_S3_QB_DEEPEN_OWNSTAGE1_20261030_v1/s3/QB/runs/PSL9_QB_S3_QB3_WD100_NOSOFT_R1_S261018101/attempt_01/models/step_0030000.pt",
+      "donor_sha256": "274f7bc3bdcf8ff19ff4733b71834e7d2cd296a1231613c0fe196336ad91d7ae",
+      "donor_origin_server": "s3",
+      "settings": {
+        "alpha": 0.25,
+        "beta": 0.0,
+        "gamma": 0.5,
+        "lr": 0.0001,
+        "weight_decay": 0.1
+      }
+    },
+    {
+      "sheet_row": 54,
+      "case": "QB3_WD100",
+      "replica": 2,
+      "step": 25000,
+      "HQNR": 0.939049962264242,
+      "ERGAS": 3.5145573880518888,
+      "PSNR": 38.43468747115627,
+      "D_s": 0.0335323363051032,
+      "D_lambda": 0.028309361829249258,
+      "status": "COMPLETED",
+      "last_observed_at": "2026-10-30T20:59:03.764378+00:00",
+      "candidate_count": 30,
+      "planned_horizon": 30000,
+      "weights_saved": true,
+      "artifact_verification": "SAME_STATE_FILE_SHA256_VERIFIED",
+      "checkpoint_sha256": "f5c20e9661f8b4a1c0f23659123c167efa54df126a0d3a5211082de42d2289ed",
+      "checkpoint_path": "/home/user/Desktop/song/PAN-Crafter/work_dir/panda_qb_deepen/PANDA_S3_QB_DEEPEN_OWNSTAGE1_20261030_v1/s3/QB/runs/PSL9_QB_S3_QB3_WD100_NOSOFT_R2_S261018102/attempt_01/models/step_0025000.pt",
+      "donor_sha256": "274f7bc3bdcf8ff19ff4733b71834e7d2cd296a1231613c0fe196336ad91d7ae",
+      "donor_origin_server": "s3",
+      "settings": {
+        "alpha": 0.25,
+        "beta": 0.0,
+        "gamma": 0.5,
+        "lr": 0.0001,
+        "weight_decay": 0.1
+      }
+    },
+    {
+      "sheet_row": 56,
+      "case": "QB3_A075",
+      "replica": 1,
+      "step": 30000,
+      "HQNR": 0.9456423258771552,
+      "ERGAS": 3.5354653079165255,
+      "PSNR": 38.389922656480074,
+      "D_s": 0.023230878272544414,
+      "D_lambda": 0.03196173581546052,
+      "status": "COMPLETED",
+      "last_observed_at": "2026-10-30T22:38:11.194526+00:00",
+      "candidate_count": 30,
+      "planned_horizon": 30000,
+      "weights_saved": true,
+      "artifact_verification": "SAME_STATE_FILE_SHA256_VERIFIED",
+      "checkpoint_sha256": "4bee3ea519bfc287ee8269afc84b16455d445d9a912dafbf5d6885350633fbc6",
+      "checkpoint_path": "/home/user/Desktop/song/PAN-Crafter/work_dir/panda_qb_deepen/PANDA_S3_QB_DEEPEN_OWNSTAGE1_20261030_v1/s3/QB/runs/PSL9_QB_S3_QB3_A075_NOSOFT_R1_S261018101/attempt_01/models/step_0030000.pt",
+      "donor_sha256": "274f7bc3bdcf8ff19ff4733b71834e7d2cd296a1231613c0fe196336ad91d7ae",
+      "donor_origin_server": "s3",
+      "settings": {
+        "alpha": 0.75,
+        "beta": 0.0,
+        "gamma": 0.5,
+        "lr": 0.0001,
+        "weight_decay": 0.01
+      }
+    },
+    {
+      "sheet_row": 58,
+      "case": "QB3_A075",
+      "replica": 2,
+      "step": 25000,
+      "HQNR": 0.9492917583404488,
+      "ERGAS": 3.517890516638947,
+      "PSNR": 38.42484604658936,
+      "D_s": 0.021188198375631677,
+      "D_lambda": 0.030236157982915624,
+      "status": "COMPLETED",
+      "last_observed_at": "2026-10-31T00:16:50.894952+00:00",
+      "candidate_count": 30,
+      "planned_horizon": 30000,
+      "weights_saved": true,
+      "artifact_verification": "SAME_STATE_FILE_SHA256_VERIFIED",
+      "checkpoint_sha256": "2c0b466e554b160f7837a3c113e951b41223b7d5fe673d96a348f4a2157beaa4",
+      "checkpoint_path": "/home/user/Desktop/song/PAN-Crafter/work_dir/panda_qb_deepen/PANDA_S3_QB_DEEPEN_OWNSTAGE1_20261030_v1/s3/QB/runs/PSL9_QB_S3_QB3_A075_NOSOFT_R2_S261018102/attempt_01/models/step_0025000.pt",
+      "donor_sha256": "274f7bc3bdcf8ff19ff4733b71834e7d2cd296a1231613c0fe196336ad91d7ae",
+      "donor_origin_server": "s3",
+      "settings": {
+        "alpha": 0.75,
+        "beta": 0.0,
+        "gamma": 0.5,
+        "lr": 0.0001,
+        "weight_decay": 0.01
+      }
+    }
+  ],
+  "sheet_anomalies": [
+    {
+      "case": "QB_H050",
+      "replica": 1,
+      "field": "ERGAS",
+      "value": " "
+    }
+  ],
+  "c25_matched25K": [
+    {
+      "replica": "R1",
+      "delta_HQNR": -0.0044281036642057625,
+      "delta_ERGAS": 0.005917375288523541,
+      "delta_D_s": -0.001279896983637091,
+      "delta_D_lambda": 0.005857502732449175
+    },
+    {
+      "replica": "R2",
+      "delta_HQNR": -0.0007956961680365415,
+      "delta_ERGAS": 0.008983025474320172,
+      "delta_D_s": -0.0014277428562331773,
+      "delta_D_lambda": 0.0022429090970380976
+    }
+  ],
+  "runtime_snapshot": {
+    "panda_qb_refit": {
+      "status": "FINISHED_REGISTERED_QUEUE",
+      "runs": [
+        {
+          "case": "QB2_C30LR080",
+          "replica": "R1",
+          "status": "COMPLETED",
+          "step": 30000,
+          "started_at": "2026-10-30T02:04:33.555013+00:00",
+          "completed_at": "2026-10-30T04:28:48.831390+00:00"
+        },
+        {
+          "case": "QB2_C30LR080",
+          "replica": "R2",
+          "status": "COMPLETED",
+          "step": 30000,
+          "started_at": "2026-10-30T04:28:59.118364+00:00",
+          "completed_at": "2026-10-30T06:53:02.347051+00:00"
+        },
+        {
+          "case": "QB2_C30LR050",
+          "replica": "R1",
+          "status": "COMPLETED",
+          "step": 30000,
+          "started_at": "2026-10-30T06:53:12.650328+00:00",
+          "completed_at": "2026-10-30T09:17:21.868130+00:00"
+        },
+        {
+          "case": "QB2_C30LR050",
+          "replica": "R2",
+          "status": "COMPLETED",
+          "step": 30000,
+          "started_at": "2026-10-30T09:17:32.064104+00:00",
+          "completed_at": "2026-10-30T11:41:30.205378+00:00"
+        },
+        {
+          "case": "QB2_C25",
+          "replica": "R1",
+          "status": "COMPLETED",
+          "step": 25000,
+          "started_at": "2026-10-30T11:41:40.603970+00:00",
+          "completed_at": "2026-10-30T13:41:43.565522+00:00"
+        },
+        {
+          "case": "QB2_C25",
+          "replica": "R2",
+          "status": "COMPLETED",
+          "step": 25000,
+          "started_at": "2026-10-30T13:41:53.849138+00:00",
+          "completed_at": "2026-10-30T15:41:56.743735+00:00"
+        },
+        {
+          "case": "QB2_C30AG000",
+          "replica": "R1",
+          "status": "COMPLETED",
+          "step": 30000,
+          "started_at": "2026-10-30T15:42:07.198612+00:00",
+          "completed_at": "2026-10-30T17:53:51.351894+00:00"
+        },
+        {
+          "case": "QB2_C30AG000",
+          "replica": "R2",
+          "status": "COMPLETED",
+          "step": 30000,
+          "started_at": "2026-10-30T17:54:02.457905+00:00",
+          "completed_at": "2026-10-30T20:05:40.485985+00:00"
+        },
+        {
+          "case": "QB2_C30G025",
+          "replica": "R1",
+          "status": "COMPLETED",
+          "step": 30000,
+          "started_at": "2026-10-30T20:05:51.006627+00:00",
+          "completed_at": "2026-10-30T22:30:00.443259+00:00"
+        },
+        {
+          "case": "QB2_C30G025",
+          "replica": "R2",
+          "status": "COMPLETED",
+          "step": 30000,
+          "started_at": "2026-10-30T22:30:11.012853+00:00",
+          "completed_at": "2026-10-31T00:53:50.768991+00:00"
+        }
+      ],
+      "publisher": {
+        "action": "OWN_ROWS_VERIFIED",
+        "append_range": null,
+        "at": "2026-10-31T00:57:50.230395+00:00",
+        "extra_columns_preserved": true,
+        "foreign_rows_untouched": true,
+        "owned_columns": "A:BL",
+        "publication_policy": "PANDA_SENSOR_FOCUS_RRE_STAGE2_SENSOR_TARGETS_PASS_ALL_OR_BEST_FALLBACK_V1",
+        "publisher_pid": 185248,
+        "readback_verified": true,
+        "row_count": 10,
+        "sheet_rows": [
+          40,
+          41,
+          42,
+          43,
+          46,
+          48,
+          50,
+          53,
+          55,
+          57
+        ],
+        "transport": "PANDA_SENSOR_FOCUS_BEST_HQNR_LOGICAL_TABLE_V2"
+      }
+    },
+    "panda_tune30": {
+      "status": "RUNNING",
+      "runs": [
+        {
+          "case": "S100DIFFUBILC30",
+          "replica": "R3",
+          "status": "COMPLETED",
+          "step": 30000,
+          "started_at": "2026-10-26T00:01:29.372859+00:00",
+          "completed_at": "2026-10-26T02:27:08.459656+00:00"
+        },
+        {
+          "case": "S100DIFFUBILC25",
+          "replica": "R1",
+          "status": "COMPLETED",
+          "step": 25000,
+          "started_at": "2026-10-26T02:27:08.816431+00:00",
+          "completed_at": "2026-10-26T04:24:27.976444+00:00"
+        },
+        {
+          "case": "S100DIFFUBILC25",
+          "replica": "R2",
+          "status": "COMPLETED",
+          "step": 25000,
+          "started_at": "2026-10-29T20:54:03.781468+00:00",
+          "completed_at": "2026-10-29T22:49:06.381116+00:00"
+        },
+        {
+          "case": "S100DIFFUBILC30LR080",
+          "replica": "R1",
+          "status": "COMPLETED",
+          "step": 30000,
+          "started_at": "2026-10-29T22:49:06.585590+00:00",
+          "completed_at": "2026-10-30T01:08:04.794013+00:00"
+        },
+        {
+          "case": "S100DIFFUBILC30LR080",
+          "replica": "R2",
+          "status": "COMPLETED",
+          "step": 30000,
+          "started_at": "2026-10-31T00:57:06.802639+00:00",
+          "completed_at": "2026-10-31T03:15:02.852500+00:00"
+        },
+        {
+          "case": "S100DIFFUBILC30LR120",
+          "replica": "R1",
+          "status": "RUNNING",
+          "step": 23000,
+          "started_at": "2026-10-31T03:15:03.061986+00:00",
+          "completed_at": null
+        }
+      ],
+      "publisher": {
+        "action": "OWN_ROWS_VERIFIED",
+        "append_range": null,
+        "at": "2026-10-31T05:02:25.068230+00:00",
+        "extra_columns_preserved": true,
+        "foreign_rows_untouched": true,
+        "owned_columns": "A:BL",
+        "publication_policy": "PANDA_TUNE30_RRE_STAGE2_H9585_PASS_ALL_OR_BEST_FALLBACK_V1",
+        "publisher_pid": 2144007,
+        "readback_verified": true,
+        "row_count": 9,
+        "sheet_rows": [
+          239,
+          242,
+          244,
+          245,
+          246,
+          295,
+          297,
+          298,
+          299
+        ],
+        "transport": "PANDA_TUNE30_BEST_HQNR_LOGICAL_TABLE_V2"
+      }
+    },
+    "priority": {
+      "at": "2026-10-31T05:02:32.318981+00:00",
+      "panda_tune30_resume": {
+        "adapter_pin": {
+          "wv3.py": "daf6c5d3d57e74166b9ce4cc2ffc02ebb16332158ae1039d3582298457c13ca7"
+        },
+        "at": "2026-10-31T00:56:55.798389+00:00",
+        "container": "panda-sensor5-wv3-tune30-resume-all-s1-1793408215305785977",
+        "container_id": "b6038e994f1a476a71da728479c3fe874ed478d26177e8799987bb32399a5341",
+        "image": "sha256:ebe266ad6514c1602b423518f77bf87e57e9f6e51cca9d2ac21581a64d106887",
+        "mode": "resume-all",
+        "package": "panda_tune30",
+        "source_container": "panda-tune30-hardonly-wv3-s1-v1",
+        "target_run": null
+      },
+      "pid": 1370573,
+      "qb_completed": 10,
+      "qb_early_stopped": 0,
+      "qb_waiter_pid": 1370684,
+      "server": "s1",
+      "stage": "RESUME_TUNE30",
+      "status": "RESUME_TUNE30",
+      "target_run_id": "PTN30_WV3_S1_S100DIFFUBILC30LR080_NOSOFT_R1_S261018101"
+    }
+  }
+}
