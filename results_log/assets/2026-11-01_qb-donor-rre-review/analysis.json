@@ -1,0 +1,371 @@
+{
+  "recorded_at": "2026-11-01T20:26:31.954950+09:00",
+  "scientific_changes": false,
+  "queue_changes": false,
+  "notes": [
+    "Oracle-shift-corrected ERGAS is a diagnostic using GT, not an official result.",
+    "Eight complete runs include one radius-4 donor; early-stopped donors are not in endpoint correlation.",
+    "Cross-server comparisons use selected representatives, not common final checkpoints.",
+    "Same Student seeds are paired; Stage1 seed and server differ.",
+    "Only two radius-3 lambda_epsilon=.03 donors are in this correlation subset."
+  ],
+  "donors": [
+    {
+      "case": "QB_A200_E0003",
+      "donor": "PSL9_QB_S1_S1_A200_E0003_NOSOFT_R1_S261016101",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.0003,
+      "radius": 3.0,
+      "donor_seed": 261016101,
+      "donor_step": 41000,
+      "RRE50": 0.17211219174963463,
+      "RRE90": 0.5048399174383232,
+      "student_step": 30000,
+      "H": 0.8662338113063892,
+      "E": 3.5102198740003274,
+      "E_glob_oracle": 3.5063956257679165,
+      "diagnostic_E": 3.5102211404674577,
+      "source_receipt": "work_dir/panda_s1loss9/PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1/s1/QB/donors/S1_A200_E0003/rre_selection.json",
+      "source_evaluation": "work_dir/panda_s1loss9/PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1/s1/QB/runs/PSL9_QB_S1_QB_A200_E0003_NOSOFT_R1_S261018101/attempt_01/evaluation_0030000.json"
+    },
+    {
+      "case": "QB_A200_E003",
+      "donor": "PSL9_QB_S1_S1_A200_E003_NOSOFT_R1_S261016101",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.003,
+      "radius": 3.0,
+      "donor_seed": 261016101,
+      "donor_step": 38000,
+      "RRE50": 0.18182649826650238,
+      "RRE90": 0.4963422961997362,
+      "student_step": 30000,
+      "H": 0.8040903114176873,
+      "E": 3.5061295006031985,
+      "E_glob_oracle": 3.5053801117431194,
+      "diagnostic_E": 3.5061294221583017,
+      "source_receipt": "work_dir/panda_s1loss9/PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1/s1/QB/donors/S1_A200_E003/rre_selection.json",
+      "source_evaluation": "work_dir/panda_s1loss9/PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1/s1/QB/runs/PSL9_QB_S1_QB_A200_E003_NOSOFT_R1_S261018101/attempt_01/evaluation_0030000.json"
+    },
+    {
+      "case": "QB_A020_E0003",
+      "donor": "PSL9_QB_S1_S1_A020_E0003_NOSOFT_R1_S261016101",
+      "lambda_abs": 0.2,
+      "lambda_epsilon": 0.0003,
+      "radius": 3.0,
+      "donor_seed": 261016101,
+      "donor_step": 32000,
+      "RRE50": 0.1998485561879215,
+      "RRE90": 0.549469273633708,
+      "student_step": 30000,
+      "H": 0.8616653916724341,
+      "E": 3.5076677484338,
+      "E_glob_oracle": 3.5055452447854165,
+      "diagnostic_E": 3.507668831990741,
+      "source_receipt": "work_dir/panda_s1loss9/PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1/s1/QB/donors/S1_A020_E0003/rre_selection.json",
+      "source_evaluation": "work_dir/panda_s1loss9/PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1/s1/QB/runs/PSL9_QB_S1_QB_A020_E0003_NOSOFT_R1_S261018101/attempt_01/evaluation_0030000.json"
+    },
+    {
+      "case": "QB_A050_E003",
+      "donor": "PSL9_QB_S1_S1_A050_E003_NOSOFT_R1_S261016101",
+      "lambda_abs": 0.5,
+      "lambda_epsilon": 0.003,
+      "radius": 3.0,
+      "donor_seed": 261016101,
+      "donor_step": 45000,
+      "RRE50": 0.20563659863458317,
+      "RRE90": 0.5976928909079008,
+      "student_step": 30000,
+      "H": 0.8400161478415888,
+      "E": 3.5025041120072755,
+      "E_glob_oracle": 3.5026345831530614,
+      "diagnostic_E": 3.502504613153247,
+      "source_receipt": "work_dir/panda_s1loss9/PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1/s1/QB/donors/S1_A050_E003/rre_selection.json",
+      "source_evaluation": "work_dir/panda_s1loss9/PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1/s1/QB/runs/PSL9_QB_S1_QB_A050_E003_NOSOFT_R1_S261018101/attempt_01/evaluation_0030000.json"
+    },
+    {
+      "case": "QB_A020_E003",
+      "donor": "PSL9_QB_S1_S1_A020_E003_NOSOFT_R1_S261016101",
+      "lambda_abs": 0.2,
+      "lambda_epsilon": 0.003,
+      "radius": 3.0,
+      "donor_seed": 261016101,
+      "donor_step": 23000,
+      "RRE50": 0.2301465881331647,
+      "RRE90": 0.5902327347569191,
+      "student_step": 30000,
+      "H": 0.9209177357833089,
+      "E": 3.539939160376279,
+      "E_glob_oracle": 3.5197167856834213,
+      "diagnostic_E": 3.5399392699784173,
+      "source_receipt": "work_dir/panda_s1loss9/PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1/s1/QB/donors/S1_A020_E003/rre_selection.json",
+      "source_evaluation": "work_dir/panda_s1loss9/PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1/s1/QB/runs/PSL9_QB_S1_QB_A020_E003_NOSOFT_R1_S261018101/attempt_01/evaluation_0030000.json"
+    },
+    {
+      "case": "QB_A200_E030",
+      "donor": "PSL9_QB_S1_S1_A200_E030_NOSOFT_R1_S261016101",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.03,
+      "radius": 3.0,
+      "donor_seed": 261016101,
+      "donor_step": 44000,
+      "RRE50": 0.235294564418925,
+      "RRE90": 0.6874622478393647,
+      "student_step": 30000,
+      "H": 0.9426150816688988,
+      "E": 3.5152906052831,
+      "E_glob_oracle": 3.5144275958334097,
+      "diagnostic_E": 3.515290912448081,
+      "source_receipt": "work_dir/panda_s1loss9/PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1/s1/QB/donors/S1_A200_E030/rre_selection.json",
+      "source_evaluation": "work_dir/panda_s1loss9/PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1/s1/QB/runs/PSL9_QB_S1_QB_A200_E030_NOSOFT_R1_S261018101/attempt_01/evaluation_0030000.json"
+    },
+    {
+      "case": "QB_A200_E030_R4",
+      "donor": "PSRF_QB_S1_S1_A200_E030_R4_NOSOFT_R1_S261016101",
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.03,
+      "radius": 4.0,
+      "donor_seed": 261016101,
+      "donor_step": 47000,
+      "RRE50": 0.2440737383260578,
+      "RRE90": 0.7549185830876078,
+      "student_step": 30000,
+      "H": 0.9298309823772175,
+      "E": 3.5604871104606617,
+      "E_glob_oracle": 3.5303232837906906,
+      "diagnostic_E": 3.560487599656722,
+      "source_receipt": "work_dir/panda_sensor_refine/PANDA_S13_SENSOR_REFINE_R34_20261028_v1/s1/QB/donors/S1_A200_E030_R4/rre_selection.json",
+      "source_evaluation": "work_dir/panda_sensor_refine/PANDA_S13_SENSOR_REFINE_R34_20261028_v1/s1/QB/runs/PSRF_QB_S1_QB_A200_E030_R4_NOSOFT_R1_S261018101/attempt_01/evaluation_0030000.json"
+    },
+    {
+      "case": "QB_A100_E030_R3",
+      "donor": "PSRF_QB_S1_S1_A100_E030_R3_NOSOFT_R1_S261016101",
+      "lambda_abs": 1.0,
+      "lambda_epsilon": 0.03,
+      "radius": 3.0,
+      "donor_seed": 261016101,
+      "donor_step": 44000,
+      "RRE50": 0.29265167813149284,
+      "RRE90": 0.7971291709042471,
+      "student_step": 30000,
+      "H": 0.9366880094795231,
+      "E": 3.567756216057153,
+      "E_glob_oracle": 3.5318038427061813,
+      "diagnostic_E": 3.5677564950513085,
+      "source_receipt": "work_dir/panda_sensor_refine/PANDA_S13_SENSOR_REFINE_R34_20261028_v1/s1/QB/donors/S1_A100_E030_R3/rre_selection.json",
+      "source_evaluation": "work_dir/panda_sensor_refine/PANDA_S13_SENSOR_REFINE_R34_20261028_v1/s1/QB/runs/PSRF_QB_S1_QB_A100_E030_R3_NOSOFT_R1_S261018101/attempt_01/evaluation_0030000.json"
+    }
+  ],
+  "association": {
+    "all_complete": {
+      "E": {
+        "n": 8,
+        "pearson": 0.8539724100485989,
+        "slope_per_001px": 0.005742270297051963
+      },
+      "E_glob_oracle": {
+        "n": 8,
+        "pearson": 0.8783320493215858,
+        "slope_per_001px": 0.002630405591518017
+      }
+    },
+    "radius3_only": {
+      "E": {
+        "n": 7,
+        "pearson": 0.8792743173832231,
+        "slope_per_001px": 0.005176817622441861
+      },
+      "E_glob_oracle": {
+        "n": 7,
+        "pearson": 0.9163176782465817,
+        "slope_per_001px": 0.0023683180318101876
+      }
+    }
+  },
+  "s1_baselines": [
+    {
+      "replica": 1,
+      "seed": 261018101,
+      "representative": {
+        "step": 29000,
+        "H": 0.9426975246460065,
+        "E": 3.5148848455748842
+      },
+      "final": {
+        "step": 30000,
+        "H": 0.9426150816688988,
+        "E": 3.5152906052831
+      },
+      "source": "work_dir/panda_s1loss9/PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1/s1/QB/runs/PSL9_QB_S1_QB_A200_E030_NOSOFT_R1_S261018101/attempt_01"
+    },
+    {
+      "replica": 2,
+      "seed": 261018102,
+      "representative": {
+        "step": 26000,
+        "H": 0.9453837458561996,
+        "E": 3.509656381114398
+      },
+      "final": {
+        "step": 30000,
+        "H": 0.9457512361904529,
+        "E": 3.510022908461017
+      },
+      "source": "work_dir/panda_sensor_refine/PANDA_S13_SENSOR_REFINE_R34_20261028_v1/s1/QB/runs/PSRF_QB_S1_QB_BASE_NOSOFT_R2_S261018102/attempt_01"
+    },
+    {
+      "replica": 3,
+      "seed": 261018103,
+      "representative": {
+        "step": 27000,
+        "H": 0.936732381522566,
+        "E": 3.52059216547766
+      },
+      "final": {
+        "step": 30000,
+        "H": 0.9360459219193707,
+        "E": 3.5223710228669987
+      },
+      "source": "work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_CONTROL_NOSOFT_R3_S261018103/attempt_01"
+    }
+  ],
+  "s3_baselines": [
+    {
+      "case": "QB3_CONTROL",
+      "replica": 1,
+      "seed": 261018101,
+      "step": 27000,
+      "H": 0.9356187897243344,
+      "E": 3.5149796092261996,
+      "status": "COMPLETED"
+    },
+    {
+      "case": "QB3_CONTROL",
+      "replica": 2,
+      "seed": 261018102,
+      "step": 19000,
+      "H": 0.9496584625848236,
+      "E": 3.5368752757508104,
+      "status": "COMPLETED"
+    },
+    {
+      "case": "QB4_CONTROL",
+      "replica": 3,
+      "seed": 261018103,
+      "step": 27000,
+      "H": 0.9437334382048709,
+      "E": 3.52064113434369,
+      "status": "COMPLETED"
+    }
+  ],
+  "cross_server_paired": [
+    {
+      "replica": 1,
+      "seed": 261018101,
+      "s1_E": 3.5148848455748842,
+      "s3_E": 3.5149796092261996,
+      "delta_E": 9.476365131533271e-05
+    },
+    {
+      "replica": 2,
+      "seed": 261018102,
+      "s1_E": 3.509656381114398,
+      "s3_E": 3.5368752757508104,
+      "delta_E": 0.027218894636412472
+    },
+    {
+      "replica": 3,
+      "seed": 261018103,
+      "s1_E": 3.52059216547766,
+      "s3_E": 3.52064113434369,
+      "delta_E": 4.8968866029674984e-05
+    }
+  ],
+  "baseline_representative_means": {
+    "s1": 3.5150444640556473,
+    "s3": 3.524165339773566
+  },
+  "s3_batch96": [
+    {
+      "case": "QB5_B96C15LR100",
+      "mean_E": 3.571403226387099,
+      "delta_vs_s3_control_R1R2": 0.04547578389859419,
+      "rows": [
+        {
+          "case": "QB5_B96C15LR100",
+          "replica": 1,
+          "seed": 261018101,
+          "step": 15000,
+          "H": 0.9423419556034334,
+          "E": 3.594154488108785,
+          "status": "COMPLETED"
+        },
+        {
+          "case": "QB5_B96C15LR100",
+          "replica": 2,
+          "seed": 261018102,
+          "step": 15000,
+          "H": 0.9443272606096524,
+          "E": 3.548651964665413,
+          "status": "COMPLETED"
+        }
+      ]
+    },
+    {
+      "case": "QB5_B96C15LR200",
+      "mean_E": 3.5571442849938206,
+      "delta_vs_s3_control_R1R2": 0.031216842505315867,
+      "rows": [
+        {
+          "case": "QB5_B96C15LR200",
+          "replica": 1,
+          "seed": 261018101,
+          "step": 14000,
+          "H": 0.9436474194993961,
+          "E": 3.5697881026817244,
+          "status": "COMPLETED"
+        },
+        {
+          "case": "QB5_B96C15LR200",
+          "replica": 2,
+          "seed": 261018102,
+          "step": 13000,
+          "H": 0.9350350917632454,
+          "E": 3.544500467305917,
+          "status": "COMPLETED"
+        }
+      ]
+    }
+  ],
+  "current_c60": {
+    "state": {
+      "attempt": 1,
+      "case": "QB5_C60LR050",
+      "directory": "/workspace/work_dir/panda_qb40/PANDA_S13_QB40_LOCALSTAGE1_20261101_v1/s1/QB/runs/PQ40_QB_S1_QB5_C60LR050_NOSOFT_R1_S261018101/attempt_01",
+      "phase": "stage2",
+      "replica": "R1",
+      "run_id": "PQ40_QB_S1_QB5_C60LR050_NOSOFT_R1_S261018101",
+      "started_at": "2026-11-01T08:10:29.301639+00:00",
+      "status": "RUNNING",
+      "step": 37000
+    },
+    "latest_train": {
+      "at": "2026-11-01T11:26:31.857911+00:00",
+      "lifetime_update": 37424,
+      "local_update": 37424,
+      "seconds_including_IO": 0.28359652892686427,
+      "step": 37424
+    },
+    "latest_evaluation": {
+      "step": 37000,
+      "H": 0.9411226251056302,
+      "E": 3.523223718467149
+    },
+    "representative": {
+      "step": 37000,
+      "H": 0.9411226251056302,
+      "E": 3.523223718467149
+    },
+    "delta_at_30K_vs_baseline_R1": 0.013478846526174149,
+    "joint_pass_count": 0
+  }
+}

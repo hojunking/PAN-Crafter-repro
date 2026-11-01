@@ -1,0 +1,138 @@
+{
+  "recorded_at": "2026-11-01T21:02:12.624070+09:00",
+  "scientific_method_changed": false,
+  "old_qb40_source_changes": [],
+  "unchanged_old_pin_file_count": 463,
+  "current_run": "PQ40_QB_S1_QB5_C60LR050_NOSOFT_R1_S261018101",
+  "safe_stop": {
+    "checkpoint": "work_dir/panda_qb40/PANDA_S13_QB40_LOCALSTAGE1_20261101_v1/s1/QB/runs/PQ40_QB_S1_QB5_C60LR050_NOSOFT_R1_S261018101/attempt_01/models/stop_0043824_1793534337489542258.pt",
+    "checkpoint_sha256": "fde10cbbb2a0961251f25f80366762af7da03de8afccd0ba67c7892e002200b0",
+    "run_id": "PQ40_QB_S1_QB5_C60LR050_NOSOFT_R1_S261018101",
+    "step": 43824
+  },
+  "stopped_and_resumed_config_equal": true,
+  "stopped_code_pin_equal_to_original_admission": true,
+  "verified_live_step": 44368,
+  "latest_official_evaluation": {
+    "step": 44000,
+    "recorded_at": "2026-11-01T12:00:22.900165+00:00",
+    "HQNR": 0.9418801276902823,
+    "ERGAS": 3.524243336339191
+  },
+  "old_sheet_readback": {
+    "at": "2026-11-01T12:01:09.747483+00:00",
+    "readback_verified": true,
+    "action": "OWN_ROWS_VERIFIED"
+  },
+  "handoff": {
+    "at": "2026-11-01T12:02:03.019902+00:00",
+    "campaign_id": "PANDA_S13_QB_RRE_FOCUS_20261101_v1",
+    "pid": 1447618,
+    "server": "s1",
+    "stage": "FINISH_CURRENT"
+  },
+  "finish_launch": {
+    "at": "2026-11-01T11:59:02.115939+00:00",
+    "container": "panda-qb-rre-current-s1-v1",
+    "container_id": "999d6022be243ebdabba15107a3e5819012aebdd2448aeb37e8ee0c9f6cbabb5",
+    "target_run": "PQ40_QB_S1_QB5_C60LR050_NOSOFT_R1_S261018101"
+  },
+  "idempotent_second_apply": "WATCHING_SAME_OWNER_NO_RESTART",
+  "cpu_unique_tests_passed": 15,
+  "tests": [
+    "Stage1 exact loss/gradient parity",
+    "Student exact loss/gradient parity and optimizer/RNG/stream replay",
+    "Current-run boundary preservation",
+    "Four registered focus jobs without budget omission",
+    "Registry, server seeds, source ownership and mounts",
+    "Stage1 support failure blocks three Students; unknown errors abort",
+    "Publication targets and namespace; verified readback required before WV3"
+  ],
+  "native_readonly_check": {
+    "server": "s1",
+    "dataset": "QB",
+    "train_count": 17139,
+    "validation_rr_fr_access": "PASS"
+  },
+  "native_focus_cuda_preflight": "AUTOMATIC_AFTER_CURRENT_QB40_CASE_FINISHES",
+  "queues": {
+    "s1": [
+      {
+        "order": 1,
+        "case": "QB5_S1_A400_E030",
+        "replica": "R1",
+        "seed": 261016101,
+        "updates": 50000,
+        "stage1_lambda_abs": 4.0,
+        "stage1_lambda_epsilon": 0.03
+      },
+      {
+        "order": 2,
+        "case": "QB5_A400_E030",
+        "replica": "R1",
+        "seed": 261018101,
+        "updates": 30000,
+        "stage1_lambda_abs": 4.0,
+        "stage1_lambda_epsilon": 0.03
+      },
+      {
+        "order": 3,
+        "case": "QB5_A400_E030",
+        "replica": "R2",
+        "seed": 261018102,
+        "updates": 30000,
+        "stage1_lambda_abs": 4.0,
+        "stage1_lambda_epsilon": 0.03
+      },
+      {
+        "order": 4,
+        "case": "QB5_A400_E030",
+        "replica": "R3",
+        "seed": 261018103,
+        "updates": 30000,
+        "stage1_lambda_abs": 4.0,
+        "stage1_lambda_epsilon": 0.03
+      }
+    ],
+    "s3": [
+      {
+        "order": 1,
+        "case": "QB5_S1_A400_E030",
+        "replica": "R1",
+        "seed": 261016301,
+        "updates": 50000,
+        "stage1_lambda_abs": 4.0,
+        "stage1_lambda_epsilon": 0.03
+      },
+      {
+        "order": 2,
+        "case": "QB5_A400_E030",
+        "replica": "R1",
+        "seed": 261018101,
+        "updates": 30000,
+        "stage1_lambda_abs": 4.0,
+        "stage1_lambda_epsilon": 0.03
+      },
+      {
+        "order": 3,
+        "case": "QB5_A400_E030",
+        "replica": "R2",
+        "seed": 261018102,
+        "updates": 30000,
+        "stage1_lambda_abs": 4.0,
+        "stage1_lambda_epsilon": 0.03
+      },
+      {
+        "order": 4,
+        "case": "QB5_A400_E030",
+        "replica": "R3",
+        "seed": 261018103,
+        "updates": 30000,
+        "stage1_lambda_abs": 4.0,
+        "stage1_lambda_epsilon": 0.03
+      }
+    ]
+  },
+  "s3_status": "CODE_AND_HANDOFF_PREPARED_NOT_REMOTE_STARTED",
+  "push": "USER_HANDLES_PUSH"
+}

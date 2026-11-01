@@ -1,0 +1,5 @@
+order,server,dataset,phase,case,replica,seed,updates,lr_A,lr_U,lambda_abs,lambda_epsilon,donor_case,alpha,beta,gamma,scale,input_channels,HQNR_min,ERGAS_max,batch,microbatch,accumulation,warmup,width,weight_decay
+1,s3,QB,donor,QB5_S1_A400_E030,R1,261016301,50000,1e-05,0.0001,4.0,0.03,QB5_S1_A400_E030,,0,,1,5,0.9315,3.5,48,12,4,100,112,0.01
+2,s3,QB,stage2,QB5_A400_E030,R1,261018101,30000,0.0,0.0001,4.0,0.03,QB5_S1_A400_E030,0.25,0,0.5,1,6,0.9315,3.5,48,12,4,100,112,0.01
+3,s3,QB,stage2,QB5_A400_E030,R2,261018102,30000,0.0,0.0001,4.0,0.03,QB5_S1_A400_E030,0.25,0,0.5,1,6,0.9315,3.5,48,12,4,100,112,0.01
+4,s3,QB,stage2,QB5_A400_E030,R3,261018103,30000,0.0,0.0001,4.0,0.03,QB5_S1_A400_E030,0.25,0,0.5,1,6,0.9315,3.5,48,12,4,100,112,0.01

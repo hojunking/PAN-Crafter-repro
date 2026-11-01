@@ -1,0 +1,82 @@
+{
+  "sheet_url": "https://docs.google.com/spreadsheets/d/1_ANKPQjQzMZrw9fUc1OI3B9xF4K3sxNa_fybg1kjBXE/edit",
+  "sheet": "QB-ablations",
+  "read_date": "2026-11-01 KST",
+  "ranges": [
+    "A77:AY80",
+    "A45:AY47",
+    "A67:AY67",
+    "BI44:BI44"
+  ],
+  "donor": {
+    "RRE50": 0.27054740172383335,
+    "RRE90": 0.72717563689642,
+    "step": 39000,
+    "seed": 261016301
+  },
+  "rows": [
+    {
+      "case": "QB5_B96C15LR100",
+      "replica": 1,
+      "seed": 261018101,
+      "step": 15000,
+      "H": 0.9423419556034334,
+      "E": 3.594154488108785,
+      "status": "COMPLETED"
+    },
+    {
+      "case": "QB5_B96C15LR100",
+      "replica": 2,
+      "seed": 261018102,
+      "step": 15000,
+      "H": 0.9443272606096524,
+      "E": 3.548651964665413,
+      "status": "COMPLETED"
+    },
+    {
+      "case": "QB5_B96C15LR200",
+      "replica": 1,
+      "seed": 261018101,
+      "step": 14000,
+      "H": 0.9436474194993961,
+      "E": 3.5697881026817244,
+      "status": "COMPLETED"
+    },
+    {
+      "case": "QB5_B96C15LR200",
+      "replica": 2,
+      "seed": 261018102,
+      "step": 13000,
+      "H": 0.9350350917632454,
+      "E": 3.544500467305917,
+      "status": "COMPLETED"
+    },
+    {
+      "case": "QB3_CONTROL",
+      "replica": 1,
+      "seed": 261018101,
+      "step": 27000,
+      "H": 0.9356187897243344,
+      "E": 3.5149796092261996,
+      "status": "COMPLETED"
+    },
+    {
+      "case": "QB3_CONTROL",
+      "replica": 2,
+      "seed": 261018102,
+      "step": 19000,
+      "H": 0.9496584625848236,
+      "E": 3.5368752757508104,
+      "status": "COMPLETED"
+    },
+    {
+      "case": "QB4_CONTROL",
+      "replica": 3,
+      "seed": 261018103,
+      "step": 27000,
+      "H": 0.9437334382048709,
+      "E": 3.52064113434369,
+      "status": "COMPLETED"
+    }
+  ]
+}
