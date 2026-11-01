@@ -1,0 +1,1107 @@
+{
+  "captured_at": "2026-11-01T01:20:09.732635+00:00",
+  "campaign_id": "PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1",
+  "server": "s1",
+  "campaign_status": "RUNNING",
+  "campaign_elapsed_seconds": 62588.44130114629,
+  "runs": [
+    {
+      "case": "QB4_DIFFBASE",
+      "replica": "R1",
+      "run_id": "PSFC_QB_S1_QB4_DIFFBASE_NOSOFT_R1_S261018101",
+      "status": "COMPLETED",
+      "official_step": 30000,
+      "sampling": "BASE",
+      "input": "CORRECTED_DIFF",
+      "started_at": "2026-10-31T07:53:53.912301+00:00",
+      "through_at": "2026-10-31T10:16:50.999643+00:00",
+      "through_step_wall_hours": 2.382524261666667,
+      "train_seconds": 8138.071563522099,
+      "evaluation_seconds": 272.42109368764795,
+      "unattributed_setup_logging_save_seconds": 166.59468479025418,
+      "trace_count": 30000,
+      "trace_last_step": 30000,
+      "mean_update_seconds": 0.27126905211740326,
+      "p90_update_seconds": 0.27441882411949337,
+      "mean_eval_seconds": 9.080703122921598,
+      "representative": {
+        "step": 30000,
+        "HQNR": 0.946635372611951,
+        "ERGAS": 3.5232104029435405,
+        "PSNR": 38.41607302066818,
+        "recorded_at": "2026-10-31T10:16:50.304373+00:00",
+        "eval_seconds": 9.105925436131656
+      },
+      "joint_pass_count": 0,
+      "saved_official_weights": 30,
+      "calibration_historical_comparison": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/calibration/numeric_parity_03672633b347d8a4cb1cff50.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      }
+    },
+    {
+      "case": "QB4_DIFFBASE",
+      "replica": "R2",
+      "run_id": "PSFC_QB_S1_QB4_DIFFBASE_NOSOFT_R2_S261018102",
+      "status": "COMPLETED",
+      "official_step": 30000,
+      "sampling": "BASE",
+      "input": "CORRECTED_DIFF",
+      "started_at": "2026-10-31T10:17:01.563081+00:00",
+      "through_at": "2026-10-31T12:39:53.211737+00:00",
+      "through_step_wall_hours": 2.3810135155555554,
+      "train_seconds": 8138.349183028797,
+      "evaluation_seconds": 272.3650229172781,
+      "unattributed_setup_logging_save_seconds": 160.9344500539246,
+      "trace_count": 30000,
+      "trace_last_step": 30000,
+      "mean_update_seconds": 0.2712783061009599,
+      "p90_update_seconds": 0.2744314558804035,
+      "mean_eval_seconds": 9.078834097242604,
+      "representative": {
+        "step": 28000,
+        "HQNR": 0.9363827585582065,
+        "ERGAS": 3.5166271676957606,
+        "PSNR": 38.429424764732566,
+        "recorded_at": "2026-10-31T12:30:21.314454+00:00",
+        "eval_seconds": 9.0685687859077
+      },
+      "joint_pass_count": 0,
+      "saved_official_weights": 30,
+      "calibration_historical_comparison": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/calibration/numeric_parity_03672633b347d8a4cb1cff50.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      }
+    },
+    {
+      "case": "QB4_P0UBIL",
+      "replica": "R1",
+      "run_id": "PSFC_QB_S1_QB4_P0UBIL_NOSOFT_R1_S261018101",
+      "status": "EARLY_STOPPED_HQNR",
+      "official_step": 10000,
+      "sampling": "UBIL",
+      "input": "CORRECTED",
+      "started_at": "2026-10-31T12:40:04.069468+00:00",
+      "through_at": "2026-10-31T13:28:08.483405+00:00",
+      "through_step_wall_hours": 0.8012260936111111,
+      "train_seconds": 2744.8550029902253,
+      "evaluation_seconds": 79.56757301022299,
+      "unattributed_setup_logging_save_seconds": 59.99136099955149,
+      "trace_count": 10000,
+      "trace_last_step": 10000,
+      "mean_update_seconds": 0.2744855002990225,
+      "p90_update_seconds": 0.277602001093328,
+      "mean_eval_seconds": 7.956757301022298,
+      "representative": {
+        "step": 6000,
+        "HQNR": 0.7574663217340535,
+        "ERGAS": 3.692478555322564,
+        "PSNR": 38.01361502191391,
+        "recorded_at": "2026-10-31T13:08:54.122684+00:00",
+        "eval_seconds": 7.926234966143966
+      },
+      "joint_pass_count": 0,
+      "saved_official_weights": 10,
+      "calibration_historical_comparison": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/calibration/numeric_parity_03672633b347d8a4cb1cff50.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      },
+      "early_stop_decision": {
+        "comparison": "strict_less_than_all_three",
+        "policy": "USER_20261028_QB_S2_HQNR_8_9_10K_ALL_LT_090",
+        "run_id": "PSFC_QB_S1_QB4_P0UBIL_NOSOFT_R1_S261018101",
+        "stop": true,
+        "threshold": 0.9,
+        "window": [
+          {
+            "HQNR": 0.7561486276717977,
+            "checkpoint_sha256": "6ba60ae70465e29793b014414013ccdb3120200cf03d9a1cbc78f4f618199086",
+            "evaluation_sha256": "5df89a0d2ef75d656a0df004bdc0e18ae8fe1797c158dedd422f1ffc942f8b82",
+            "step": 8000
+          },
+          {
+            "HQNR": 0.7458038255273708,
+            "checkpoint_sha256": "1efb9af809039bdffed700535de808a8426d77110236584a1e75be73104e5039",
+            "evaluation_sha256": "f369ed41733611160f1221a15b5eafa0b5deb188160ba11010dd43015d6e009f",
+            "step": 9000
+          },
+          {
+            "HQNR": 0.7506520406688124,
+            "checkpoint_sha256": "fc9bdcdbb21dbf237c7de3e030c605b349a155ee92e4078b875f75545035d5c5",
+            "evaluation_sha256": "e41c5c268ea2fbde7dad5657ad033f5ba5e544bae7cbf8fcdb42e60b88808a77",
+            "step": 10000
+          }
+        ]
+      }
+    },
+    {
+      "case": "QB4_P0UBIL",
+      "replica": "R2",
+      "run_id": "PSFC_QB_S1_QB4_P0UBIL_NOSOFT_R2_S261018102",
+      "status": "EARLY_STOPPED_HQNR",
+      "official_step": 10000,
+      "sampling": "UBIL",
+      "input": "CORRECTED",
+      "started_at": "2026-10-31T13:28:19.779050+00:00",
+      "through_at": "2026-10-31T14:16:31.115356+00:00",
+      "through_step_wall_hours": 0.803148973888889,
+      "train_seconds": 2750.369156322209,
+      "evaluation_seconds": 79.90096160466783,
+      "unattributed_setup_logging_save_seconds": 61.06618807312316,
+      "trace_count": 10000,
+      "trace_last_step": 10000,
+      "mean_update_seconds": 0.27503691563222094,
+      "p90_update_seconds": 0.27800160087645054,
+      "mean_eval_seconds": 7.990096160466782,
+      "representative": {
+        "step": 8000,
+        "HQNR": 0.7635908407148936,
+        "ERGAS": 3.606868967158379,
+        "PSNR": 38.217296248260155,
+        "recorded_at": "2026-10-31T14:06:51.656592+00:00",
+        "eval_seconds": 7.911820617038757
+      },
+      "joint_pass_count": 0,
+      "saved_official_weights": 10,
+      "calibration_historical_comparison": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/calibration/numeric_parity_03672633b347d8a4cb1cff50.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      },
+      "early_stop_decision": {
+        "comparison": "strict_less_than_all_three",
+        "policy": "USER_20261028_QB_S2_HQNR_8_9_10K_ALL_LT_090",
+        "run_id": "PSFC_QB_S1_QB4_P0UBIL_NOSOFT_R2_S261018102",
+        "stop": true,
+        "threshold": 0.9,
+        "window": [
+          {
+            "HQNR": 0.7635908407148936,
+            "checkpoint_sha256": "ecefba358de1986044cd7bb2caac08311711eb83a388318b53fdec0c5169402a",
+            "evaluation_sha256": "1323315ef23d0d424ecb4d5175522512693e57b734116517b86e1478822aa8d8",
+            "step": 8000
+          },
+          {
+            "HQNR": 0.7444251285218165,
+            "checkpoint_sha256": "a78c35ff5fa041ee69c10bb0e89dedd13d28ccaaca5820b37aa2bdbcea497104",
+            "evaluation_sha256": "09835bf491f1851574350448f92e581b2661130f038e22fa31fb7ee341bc48d8",
+            "step": 9000
+          },
+          {
+            "HQNR": 0.7489730592421301,
+            "checkpoint_sha256": "6237df50bcf2bb992676c69291e56b73c524d15d8b99abbf7c3623d2d9cff1ba",
+            "evaluation_sha256": "03ca86f0d6eadb4b4e7b9589fb42a0917a9f7fa4816a77a6751fc08f5e942006",
+            "step": 10000
+          }
+        ]
+      }
+    },
+    {
+      "case": "QB4_P0BASE",
+      "replica": "R1",
+      "run_id": "PSFC_QB_S1_QB4_P0BASE_NOSOFT_R1_S261018101",
+      "status": "EARLY_STOPPED_HQNR",
+      "official_step": 10000,
+      "sampling": "BASE",
+      "input": "CORRECTED",
+      "started_at": "2026-10-31T14:16:42.581964+00:00",
+      "through_at": "2026-10-31T15:03:59.868998+00:00",
+      "through_step_wall_hours": 0.7881352872222223,
+      "train_seconds": 2686.997993243858,
+      "evaluation_seconds": 90.57238684990443,
+      "unattributed_setup_logging_save_seconds": 59.7166539062373,
+      "trace_count": 10000,
+      "trace_last_step": 10000,
+      "mean_update_seconds": 0.2686997993243858,
+      "p90_update_seconds": 0.27189337299205363,
+      "mean_eval_seconds": 9.057238684990443,
+      "representative": {
+        "step": 3000,
+        "HQNR": 0.7603205253647348,
+        "ERGAS": 3.837344046719058,
+        "PSNR": 37.69517682087402,
+        "recorded_at": "2026-10-31T14:30:57.831934+00:00",
+        "eval_seconds": 9.038007671013474
+      },
+      "joint_pass_count": 0,
+      "saved_official_weights": 10,
+      "calibration_historical_comparison": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/calibration/numeric_parity_03672633b347d8a4cb1cff50.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      },
+      "early_stop_decision": {
+        "comparison": "strict_less_than_all_three",
+        "policy": "USER_20261028_QB_S2_HQNR_8_9_10K_ALL_LT_090",
+        "run_id": "PSFC_QB_S1_QB4_P0BASE_NOSOFT_R1_S261018101",
+        "stop": true,
+        "threshold": 0.9,
+        "window": [
+          {
+            "HQNR": 0.7560206069515037,
+            "checkpoint_sha256": "6b62d4713e224928b6ea183366ab6576c77f4c2cdb380c569ea6fc9f0f02ed0b",
+            "evaluation_sha256": "92051f26a18a8e7eb062f047c6c303b5ce80e9e84402d8904b120fba10fe406c",
+            "step": 8000
+          },
+          {
+            "HQNR": 0.7398447583209831,
+            "checkpoint_sha256": "15939ca4b749cf6c624d37acef97681e44b462db4eb05fb63a29d0afb1eec566",
+            "evaluation_sha256": "65819fab418c93147401337c69b98b9af040d3dbd4f1d45c43c535743134606d",
+            "step": 9000
+          },
+          {
+            "HQNR": 0.7441360935973007,
+            "checkpoint_sha256": "166ddb12d703ff23a09d7def8db6ef62c4faae93164f3065e78819da3bf552d9",
+            "evaluation_sha256": "e19dd71c5c8b484e5c174cdd517bcf5246ce1012a7b326cf5a16b31c7d316e4a",
+            "step": 10000
+          }
+        ]
+      }
+    },
+    {
+      "case": "QB4_P0BASE",
+      "replica": "R2",
+      "run_id": "PSFC_QB_S1_QB4_P0BASE_NOSOFT_R2_S261018102",
+      "status": "EARLY_STOPPED_HQNR",
+      "official_step": 10000,
+      "sampling": "BASE",
+      "input": "CORRECTED",
+      "started_at": "2026-10-31T15:04:10.799587+00:00",
+      "through_at": "2026-10-31T15:51:30.983106+00:00",
+      "through_step_wall_hours": 0.7889398663888889,
+      "train_seconds": 2690.9777237682138,
+      "evaluation_seconds": 90.5762539987918,
+      "unattributed_setup_logging_save_seconds": 58.6295412329946,
+      "trace_count": 10000,
+      "trace_last_step": 10000,
+      "mean_update_seconds": 0.26909777237682136,
+      "p90_update_seconds": 0.2720525930635631,
+      "mean_eval_seconds": 9.05762539987918,
+      "representative": {
+        "step": 8000,
+        "HQNR": 0.7676399768901703,
+        "ERGAS": 3.642080734010846,
+        "PSNR": 38.134894920329046,
+        "recorded_at": "2026-10-31T15:42:03.781725+00:00",
+        "eval_seconds": 9.031527477083728
+      },
+      "joint_pass_count": 0,
+      "saved_official_weights": 10,
+      "calibration_historical_comparison": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/calibration/numeric_parity_03672633b347d8a4cb1cff50.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      },
+      "early_stop_decision": {
+        "comparison": "strict_less_than_all_three",
+        "policy": "USER_20261028_QB_S2_HQNR_8_9_10K_ALL_LT_090",
+        "run_id": "PSFC_QB_S1_QB4_P0BASE_NOSOFT_R2_S261018102",
+        "stop": true,
+        "threshold": 0.9,
+        "window": [
+          {
+            "HQNR": 0.7676399768901703,
+            "checkpoint_sha256": "293788fee8d05cb4464594cf56b9f4e11e666785dec87d19533eacd84c6fc551",
+            "evaluation_sha256": "7f37c2b433a2953138ad341b520740418a23dcc93bf80c54e0a22c015315c4c7",
+            "step": 8000
+          },
+          {
+            "HQNR": 0.7558728670856103,
+            "checkpoint_sha256": "53f4030d8dc117a1c15567db6c6757fd3a19be960b3430092cd2d38105ff2a17",
+            "evaluation_sha256": "9660d2596fe9aebce02242332c6c6aba5192e5f9fd9d6d75887f27f9ddfb6aeb",
+            "step": 9000
+          },
+          {
+            "HQNR": 0.7536666251051027,
+            "checkpoint_sha256": "90afb46e67a1101c0d8ed69f02b5a4f2366346acd7f547a21ddc6badc35c7c53",
+            "evaluation_sha256": "86646bf4aea967aef52d1e7a34e15255236d6598d1048e1d91846841d0d5363d",
+            "step": 10000
+          }
+        ]
+      }
+    },
+    {
+      "case": "QB4_WD000",
+      "replica": "R1",
+      "run_id": "PSFC_QB_S1_QB4_WD000_NOSOFT_R1_S261018101",
+      "status": "COMPLETED",
+      "official_step": 30000,
+      "sampling": "UBIL",
+      "input": "CORRECTED_DIFF",
+      "started_at": "2026-10-31T15:51:42.021653+00:00",
+      "through_at": "2026-10-31T18:15:59.986714+00:00",
+      "through_step_wall_hours": 2.4049902947222224,
+      "train_seconds": 8256.055765782017,
+      "evaluation_seconds": 239.91188575304113,
+      "unattributed_setup_logging_save_seconds": 161.9974094649424,
+      "trace_count": 30000,
+      "trace_last_step": 30000,
+      "mean_update_seconds": 0.27520185885940057,
+      "p90_update_seconds": 0.27822560211643577,
+      "mean_eval_seconds": 7.997062858434704,
+      "representative": {
+        "step": 27000,
+        "HQNR": 0.9416654159883564,
+        "ERGAS": 3.5204046462895455,
+        "PSNR": 38.425191888888165,
+        "recorded_at": "2026-10-31T18:01:33.949840+00:00",
+        "eval_seconds": 7.989530769176781
+      },
+      "joint_pass_count": 0,
+      "saved_official_weights": 30,
+      "calibration_historical_comparison": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/calibration/numeric_parity_03672633b347d8a4cb1cff50.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      }
+    },
+    {
+      "case": "QB4_WD000",
+      "replica": "R2",
+      "run_id": "PSFC_QB_S1_QB4_WD000_NOSOFT_R2_S261018102",
+      "status": "COMPLETED",
+      "official_step": 30000,
+      "sampling": "UBIL",
+      "input": "CORRECTED_DIFF",
+      "started_at": "2026-10-31T18:16:11.110939+00:00",
+      "through_at": "2026-10-31T20:40:46.553540+00:00",
+      "through_step_wall_hours": 2.4098451669444447,
+      "train_seconds": 8273.419016168686,
+      "evaluation_seconds": 239.83303893567063,
+      "unattributed_setup_logging_save_seconds": 162.1905458956444,
+      "trace_count": 30000,
+      "trace_last_step": 30000,
+      "mean_update_seconds": 0.2757806338722895,
+      "p90_update_seconds": 0.27893130714073777,
+      "mean_eval_seconds": 7.994434631189021,
+      "representative": {
+        "step": 25000,
+        "HQNR": 0.940003235588248,
+        "ERGAS": 3.5203053599723995,
+        "PSNR": 38.423245706947775,
+        "recorded_at": "2026-10-31T20:16:42.153807+00:00",
+        "eval_seconds": 8.012405838817358
+      },
+      "joint_pass_count": 0,
+      "saved_official_weights": 30,
+      "calibration_historical_comparison": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/calibration/numeric_parity_03672633b347d8a4cb1cff50.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      }
+    },
+    {
+      "case": "QB4_CONTROL",
+      "replica": "R3",
+      "run_id": "PSFC_QB_S1_QB4_CONTROL_NOSOFT_R3_S261018103",
+      "status": "COMPLETED",
+      "official_step": 30000,
+      "sampling": "UBIL",
+      "input": "CORRECTED_DIFF",
+      "started_at": "2026-10-31T20:40:57.448412+00:00",
+      "through_at": "2026-10-31T23:05:27.162861+00:00",
+      "through_step_wall_hours": 2.408254013611111,
+      "train_seconds": 8265.155211800942,
+      "evaluation_seconds": 239.24389709462412,
+      "unattributed_setup_logging_save_seconds": 165.31534010443283,
+      "trace_count": 30000,
+      "trace_last_step": 30000,
+      "mean_update_seconds": 0.2755051737266981,
+      "p90_update_seconds": 0.27862794208340347,
+      "mean_eval_seconds": 7.974796569820804,
+      "representative": {
+        "step": 27000,
+        "HQNR": 0.936732381522566,
+        "ERGAS": 3.52059216547766,
+        "PSNR": 38.432194679539876,
+        "recorded_at": "2026-10-31T22:51:01.953614+00:00",
+        "eval_seconds": 7.989201094023883
+      },
+      "joint_pass_count": 0,
+      "saved_official_weights": 30,
+      "calibration_historical_comparison": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/calibration/numeric_parity_03672633b347d8a4cb1cff50.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      }
+    },
+    {
+      "case": "QB4_WD000",
+      "replica": "R3",
+      "run_id": "PSFC_QB_S1_QB4_WD000_NOSOFT_R3_S261018103",
+      "status": "RUNNING",
+      "official_step": 27000,
+      "sampling": "UBIL",
+      "input": "CORRECTED_DIFF",
+      "started_at": "2026-10-31T23:05:37.868958+00:00",
+      "through_at": "2026-11-01T01:15:32.238430+00:00",
+      "through_step_wall_hours": 2.165102631111111,
+      "train_seconds": 7433.102916751523,
+      "evaluation_seconds": 215.46420074766502,
+      "unattributed_setup_logging_save_seconds": 145.80235450081273,
+      "trace_count": 27000,
+      "trace_last_step": 27000,
+      "mean_update_seconds": 0.27530010802783417,
+      "p90_update_seconds": 0.2784163390751928,
+      "mean_eval_seconds": 7.9801555832468525,
+      "representative": {
+        "step": 27000,
+        "HQNR": 0.9456718670839367,
+        "ERGAS": 3.5163235034968787,
+        "PSNR": 38.434357956759044,
+        "recorded_at": "2026-11-01T01:15:32.238430+00:00",
+        "eval_seconds": 7.9923458190169185
+      },
+      "joint_pass_count": 0,
+      "saved_official_weights": 27,
+      "calibration_historical_comparison": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/calibration/numeric_parity_03672633b347d8a4cb1cff50.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      }
+    }
+  ],
+  "checkpoint_audit": [
+    {
+      "case": "QB4_DIFFBASE",
+      "replica": "R1",
+      "step": 30000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_DIFFBASE_NOSOFT_R1_S261018101/attempt_01/models/step_0030000.pt",
+      "bytes": 43775466,
+      "actual_sha256": "007d848aac394e8093348b78778f68b1e3d34f1910d935971475efea15f28e31",
+      "expected_sha256": "007d848aac394e8093348b78778f68b1e3d34f1910d935971475efea15f28e31",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_DIFFBASE",
+      "replica": "R2",
+      "step": 28000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_DIFFBASE_NOSOFT_R2_S261018102/attempt_01/models/step_0028000.pt",
+      "bytes": 43775402,
+      "actual_sha256": "7a66c82d8d9cc777032e528c559566f4abd81abc0fb5ada7ab41d7c7c9cfed07",
+      "expected_sha256": "7a66c82d8d9cc777032e528c559566f4abd81abc0fb5ada7ab41d7c7c9cfed07",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_DIFFBASE",
+      "replica": "R2",
+      "step": 30000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_DIFFBASE_NOSOFT_R2_S261018102/attempt_01/models/step_0030000.pt",
+      "bytes": 43775402,
+      "actual_sha256": "a0b196b5c7750a1536ff88ba0bbf6cfd4947f950008f0f7a4035d1626daf1818",
+      "expected_sha256": "a0b196b5c7750a1536ff88ba0bbf6cfd4947f950008f0f7a4035d1626daf1818",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_P0UBIL",
+      "replica": "R1",
+      "step": 6000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_P0UBIL_NOSOFT_R1_S261018101/attempt_01/models/step_0006000.pt",
+      "bytes": 45267178,
+      "actual_sha256": "e37be1a976b97a464c326c0ac5f85e164519e2847bd0c28adc55b0d8ae6c0ed8",
+      "expected_sha256": "e37be1a976b97a464c326c0ac5f85e164519e2847bd0c28adc55b0d8ae6c0ed8",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_P0UBIL",
+      "replica": "R1",
+      "step": 10000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_P0UBIL_NOSOFT_R1_S261018101/attempt_01/models/step_0010000.pt",
+      "bytes": 45267178,
+      "actual_sha256": "fc9bdcdbb21dbf237c7de3e030c605b349a155ee92e4078b875f75545035d5c5",
+      "expected_sha256": "fc9bdcdbb21dbf237c7de3e030c605b349a155ee92e4078b875f75545035d5c5",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_P0UBIL",
+      "replica": "R2",
+      "step": 8000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_P0UBIL_NOSOFT_R2_S261018102/attempt_01/models/step_0008000.pt",
+      "bytes": 45267178,
+      "actual_sha256": "ecefba358de1986044cd7bb2caac08311711eb83a388318b53fdec0c5169402a",
+      "expected_sha256": "ecefba358de1986044cd7bb2caac08311711eb83a388318b53fdec0c5169402a",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_P0UBIL",
+      "replica": "R2",
+      "step": 10000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_P0UBIL_NOSOFT_R2_S261018102/attempt_01/models/step_0010000.pt",
+      "bytes": 45267178,
+      "actual_sha256": "6237df50bcf2bb992676c69291e56b73c524d15d8b99abbf7c3623d2d9cff1ba",
+      "expected_sha256": "6237df50bcf2bb992676c69291e56b73c524d15d8b99abbf7c3623d2d9cff1ba",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_P0BASE",
+      "replica": "R1",
+      "step": 3000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_P0BASE_NOSOFT_R1_S261018101/attempt_01/models/step_0003000.pt",
+      "bytes": 43761580,
+      "actual_sha256": "1f5b33f7e95a674dfe3ec9c00e08809e63a41ee730389082962df82c718326bb",
+      "expected_sha256": "1f5b33f7e95a674dfe3ec9c00e08809e63a41ee730389082962df82c718326bb",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_P0BASE",
+      "replica": "R1",
+      "step": 10000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_P0BASE_NOSOFT_R1_S261018101/attempt_01/models/step_0010000.pt",
+      "bytes": 43761580,
+      "actual_sha256": "166ddb12d703ff23a09d7def8db6ef62c4faae93164f3065e78819da3bf552d9",
+      "expected_sha256": "166ddb12d703ff23a09d7def8db6ef62c4faae93164f3065e78819da3bf552d9",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_P0BASE",
+      "replica": "R2",
+      "step": 8000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_P0BASE_NOSOFT_R2_S261018102/attempt_01/models/step_0008000.pt",
+      "bytes": 43761580,
+      "actual_sha256": "293788fee8d05cb4464594cf56b9f4e11e666785dec87d19533eacd84c6fc551",
+      "expected_sha256": "293788fee8d05cb4464594cf56b9f4e11e666785dec87d19533eacd84c6fc551",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_P0BASE",
+      "replica": "R2",
+      "step": 10000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_P0BASE_NOSOFT_R2_S261018102/attempt_01/models/step_0010000.pt",
+      "bytes": 43761580,
+      "actual_sha256": "90afb46e67a1101c0d8ed69f02b5a4f2366346acd7f547a21ddc6badc35c7c53",
+      "expected_sha256": "90afb46e67a1101c0d8ed69f02b5a4f2366346acd7f547a21ddc6badc35c7c53",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_WD000",
+      "replica": "R1",
+      "step": 27000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_WD000_NOSOFT_R1_S261018101/attempt_01/models/step_0027000.pt",
+      "bytes": 45280746,
+      "actual_sha256": "9ddcde71aedcdf0f13a818c7a0ebf4dac2f45e231862104064ad34fc7833282e",
+      "expected_sha256": "9ddcde71aedcdf0f13a818c7a0ebf4dac2f45e231862104064ad34fc7833282e",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_WD000",
+      "replica": "R1",
+      "step": 30000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_WD000_NOSOFT_R1_S261018101/attempt_01/models/step_0030000.pt",
+      "bytes": 45280746,
+      "actual_sha256": "5276428bd882c2101db86f75987b9cf6fb46748f3e808c1b07c75b2c1b230ae0",
+      "expected_sha256": "5276428bd882c2101db86f75987b9cf6fb46748f3e808c1b07c75b2c1b230ae0",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_WD000",
+      "replica": "R2",
+      "step": 25000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_WD000_NOSOFT_R2_S261018102/attempt_01/models/step_0025000.pt",
+      "bytes": 45280746,
+      "actual_sha256": "3eeea199029cd805a5d49f84f26230130fb81ea672830b6571d89994d3713b8e",
+      "expected_sha256": "3eeea199029cd805a5d49f84f26230130fb81ea672830b6571d89994d3713b8e",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_WD000",
+      "replica": "R2",
+      "step": 30000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_WD000_NOSOFT_R2_S261018102/attempt_01/models/step_0030000.pt",
+      "bytes": 45280746,
+      "actual_sha256": "c76945160309eedfa7efcd94fbb895e3cc35b75dabbb9988bcb0c61e2edfd869",
+      "expected_sha256": "c76945160309eedfa7efcd94fbb895e3cc35b75dabbb9988bcb0c61e2edfd869",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_CONTROL",
+      "replica": "R3",
+      "step": 27000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_CONTROL_NOSOFT_R3_S261018103/attempt_01/models/step_0027000.pt",
+      "bytes": 45280746,
+      "actual_sha256": "c89b6155d68f67488ca969d8f9d213751f60228b3754c8d70529937dd05027ba",
+      "expected_sha256": "c89b6155d68f67488ca969d8f9d213751f60228b3754c8d70529937dd05027ba",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_CONTROL",
+      "replica": "R3",
+      "step": 30000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_CONTROL_NOSOFT_R3_S261018103/attempt_01/models/step_0030000.pt",
+      "bytes": 45280746,
+      "actual_sha256": "a6f2733e9605c1f11a13a8086b0ea6690440370cfc16d4a80e0082973eff8dcc",
+      "expected_sha256": "a6f2733e9605c1f11a13a8086b0ea6690440370cfc16d4a80e0082973eff8dcc",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    },
+    {
+      "case": "QB4_WD000",
+      "replica": "R3",
+      "step": 27000,
+      "path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_WD000_NOSOFT_R3_S261018103/attempt_01/models/step_0027000.pt",
+      "bytes": 45280746,
+      "actual_sha256": "e1c9874d43e14293e92f47f3997c51f46d59439e871b3234ac13c9d243110066",
+      "expected_sha256": "e1c9874d43e14293e92f47f3997c51f46d59439e871b3234ac13c9d243110066",
+      "hash_verified": true,
+      "artifact_verified": true,
+      "same_state_verified": null
+    }
+  ],
+  "calibration": {
+    "elapsed_seconds": 47.50332335499115,
+    "file_sha256": "6fa2becffc24f0f07589cf3d64f6aeab89252b8f2d0d25dbfce374a412a1fa02",
+    "n_e": 55684611,
+    "n_q": 39488256,
+    "sample_count": 17139,
+    "tau_e": 0.010525926947593689,
+    "numeric_parity_status": "EXACT_HISTORICAL_NUMERIC_PARITY",
+    "historical_control_comparison_valid": true,
+    "references": [
+      {
+        "replica": "R1",
+        "status": "FOUND",
+        "numeric_tables_exact": true,
+        "metadata_differences": [],
+        "physical_binding_differences": []
+      },
+      {
+        "replica": "R2",
+        "status": "FOUND",
+        "numeric_tables_exact": true,
+        "metadata_differences": [],
+        "physical_binding_differences": []
+      }
+    ]
+  },
+  "publisher": {
+    "action": "OWN_ROWS_VERIFIED",
+    "append_range": null,
+    "at": "2026-11-01T01:19:22.414286+00:00",
+    "extra_columns_preserved": true,
+    "foreign_rows_untouched": true,
+    "owned_columns": "A:BL",
+    "publication_policy": "PANDA_SENSOR_FOCUS_RRE_STAGE2_SENSOR_TARGETS_PASS_ALL_OR_BEST_FALLBACK_V1",
+    "publisher_pid": 1123355,
+    "readback_verified": true,
+    "row_count": 10,
+    "sheet_rows": [
+      62,
+      64,
+      68,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76
+    ],
+    "transport": "PANDA_SENSOR_FOCUS_BEST_HQNR_LOGICAL_TABLE_V2"
+  },
+  "launcher": {
+    "args": [
+      "python",
+      "-m",
+      "panda_qb_structure",
+      "run",
+      "--server",
+      "s1"
+    ],
+    "at": "2026-11-01T01:20:04.660008+00:00",
+    "campaign_id": "PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1",
+    "container": "panda-qb-structure-s1-v1",
+    "container_id": "a7c10917fc64926ac00a3f7fd5ab9494184bc5b3596f5a65437127284b5d9788",
+    "image": "sha256:ebe266ad6514c1602b423518f77bf87e57e9f6e51cca9d2ac21581a64d106887",
+    "pid": 1120500,
+    "publisher_pid": 1123355,
+    "registry_digest": "eba6db3dea9f77047c98cb1d8c212e51a1d8314d5cf8d298676db0a0a9d47300",
+    "server": "s1",
+    "source_container": "panda-sensor5-stage12-qb-s1-v2",
+    "stage": "RUNNING",
+    "token": "c593997e564d408cabafe0991f6c2c76"
+  },
+  "priority": {
+    "at": "2026-11-01T01:20:02.404010+00:00",
+    "campaign_id": "PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1",
+    "pid": 837080,
+    "qb_waiter_pid": 1120500,
+    "server": "s1",
+    "stage": "QB_STRUCTURE",
+    "status": "QB_STRUCTURE"
+  },
+  "preflight": [
+    {
+      "file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/preflight/QB4_WD000_R2_passed.json",
+      "case": "QB4_WD000",
+      "seconds": 2.019761055940762
+    },
+    {
+      "file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/preflight/QB4_WD000_R3_passed.json",
+      "case": "QB4_WD000",
+      "seconds": 2.033861964941025
+    },
+    {
+      "file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/preflight/QB4_CONTROL_R3_passed.json",
+      "case": "QB4_CONTROL",
+      "seconds": 2.032998187933117
+    },
+    {
+      "file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/preflight/QB4_DIFFBASE_R1_passed.json",
+      "case": "QB4_DIFFBASE",
+      "seconds": 2.1906803271267563
+    },
+    {
+      "file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/preflight/QB4_P0UBIL_R2_passed.json",
+      "case": "QB4_P0UBIL",
+      "seconds": 2.111479229060933
+    },
+    {
+      "file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/preflight/QB4_DIFFBASE_R2_passed.json",
+      "case": "QB4_DIFFBASE",
+      "seconds": 2.1073790160007775
+    },
+    {
+      "file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/preflight/QB4_P0BASE_R2_passed.json",
+      "case": "QB4_P0BASE",
+      "seconds": 2.1186799111310393
+    },
+    {
+      "file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/preflight/QB4_P0UBIL_R1_passed.json",
+      "case": "QB4_P0UBIL",
+      "seconds": 2.0180877030361444
+    },
+    {
+      "file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/preflight/QB4_WD000_R1_passed.json",
+      "case": "QB4_WD000",
+      "seconds": 2.0377563091460615
+    },
+    {
+      "file": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/preflight/QB4_P0BASE_R1_passed.json",
+      "case": "QB4_P0BASE",
+      "seconds": 2.1115816759411246
+    }
+  ],
+  "s1_cost_summary": {
+    "completed_full30K_runs": 5,
+    "mean_wall_30K_hours": 2.3973254505,
+    "minimum": 2.3810135155555554,
+    "maximum": 2.4098451669444447
+  },
+  "s3_historical_timing_source": {
+    "snapshot_captured_utc": "2026-10-31T04:59:07.766Z",
+    "note": "Selected-prefix timings; use only Updates=30000 rows as full30K costs."
+  },
+  "s3_historical_timing": [
+    {
+      "case": "QB3_CONTROL",
+      "replica": 1,
+      "selected_step": 27000,
+      "train_hours": 1.372670612054256,
+      "eval_hours": 0.03546939328959626,
+      "wall_hours": 1.479697681111111,
+      "status": "COMPLETED",
+      "projected_30K_hours": 1.6441085345679012
+    },
+    {
+      "case": "QB3_CONTROL",
+      "replica": 2,
+      "selected_step": 19000,
+      "train_hours": 0.9673428400140256,
+      "eval_hours": 0.02475456772242776,
+      "wall_hours": 1.0414142744444443,
+      "status": "COMPLETED",
+      "projected_30K_hours": 1.644338328070175
+    },
+    {
+      "case": "QB3_WD000",
+      "replica": 1,
+      "selected_step": 25000,
+      "train_hours": 1.27161421252932,
+      "eval_hours": 0.03289505391899082,
+      "wall_hours": 1.3725033558333333,
+      "status": "COMPLETED",
+      "projected_30K_hours": 1.6470040270000001
+    },
+    {
+      "case": "QB3_WD000",
+      "replica": 2,
+      "selected_step": 25000,
+      "train_hours": 1.2703684511309903,
+      "eval_hours": 0.03245413545648464,
+      "wall_hours": 1.365853105,
+      "status": "COMPLETED",
+      "projected_30K_hours": 1.639023726
+    },
+    {
+      "case": "QB3_WD100",
+      "replica": 1,
+      "selected_step": 30000,
+      "train_hours": 1.5224959313465902,
+      "eval_hours": 0.03898470885715344,
+      "wall_hours": 1.6429743433333333,
+      "status": "COMPLETED",
+      "projected_30K_hours": 1.6429743433333333
+    },
+    {
+      "case": "QB3_WD100",
+      "replica": 2,
+      "selected_step": 25000,
+      "train_hours": 1.2702147036871045,
+      "eval_hours": 0.03259463598253205,
+      "wall_hours": 1.3752202516666665,
+      "status": "COMPLETED",
+      "projected_30K_hours": 1.6502643019999996
+    },
+    {
+      "case": "QB3_A075",
+      "replica": 1,
+      "selected_step": 30000,
+      "train_hours": 1.5258328882845429,
+      "eval_hours": 0.03904418402351439,
+      "wall_hours": 1.6507966405555556,
+      "status": "COMPLETED",
+      "projected_30K_hours": 1.6507966405555556
+    },
+    {
+      "case": "QB3_A075",
+      "replica": 2,
+      "selected_step": 25000,
+      "train_hours": 1.2695358734932314,
+      "eval_hours": 0.032415564558986164,
+      "wall_hours": 1.367917921388889,
+      "status": "COMPLETED",
+      "projected_30K_hours": 1.6415015056666669
+    }
+  ],
+  "live_progress_recheck": {
+    "step": 28396,
+    "at": "2026-11-01T01:22:12.149757+00:00",
+    "seconds_including_IO": 0.2755590530578047,
+    "case": "QB4_WD000",
+    "replica": "R3",
+    "estimated_remaining_seconds": 463.8768
+  },
+  "gpu_snapshot": "name, utilization.gpu [%], memory.used [MiB], memory.total [MiB], temperature.gpu\nNVIDIA GeForce RTX 4090, 32 %, 3276 MiB, 24564 MiB, 60",
+  "s3_current_sheet_timings": [
+    {
+      "case": "QB_STRUCTURE QB4_P0UBIL R1",
+      "status": "EARLY_STOPPED_HQNR",
+      "selected_step": 8000,
+      "last_observed_at": "2026-10-31T06:56:38.670893+00:00",
+      "train_h": 0.40621870869434334,
+      "eval_h": 0.010411172010418442,
+      "wall_h": 0.43847563638888887,
+      "calibration_audit": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s3/QB/calibration/numeric_parity_a86b15df67a57f1271198af5.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      }
+    },
+    {
+      "case": "QB_STRUCTURE QB4_P0UBIL R2",
+      "status": "EARLY_STOPPED_HQNR",
+      "selected_step": 8000,
+      "last_observed_at": "2026-10-31T07:29:48.572195+00:00",
+      "train_h": 0.4072960979033572,
+      "eval_h": 0.010470308016519993,
+      "wall_h": 0.4410694130555556,
+      "calibration_audit": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s3/QB/calibration/numeric_parity_a86b15df67a57f1271198af5.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      }
+    },
+    {
+      "case": "QB_STRUCTURE QB4_DIFFBASE R1",
+      "status": "COMPLETED",
+      "selected_step": 15000,
+      "last_observed_at": "2026-10-31T09:07:15.847803+00:00",
+      "train_h": 0.747829501699501,
+      "eval_h": 0.019239565754412775,
+      "wall_h": 0.8088476625,
+      "calibration_audit": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s3/QB/calibration/numeric_parity_a86b15df67a57f1271198af5.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      }
+    },
+    {
+      "case": "QB_STRUCTURE QB4_DIFFBASE R2",
+      "status": "COMPLETED",
+      "selected_step": 10000,
+      "last_observed_at": "2026-10-31T10:44:46.714769+00:00",
+      "train_h": 0.4981613081890262,
+      "eval_h": 0.01279711669569628,
+      "wall_h": 0.54340408,
+      "calibration_audit": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s3/QB/calibration/numeric_parity_a86b15df67a57f1271198af5.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      }
+    },
+    {
+      "case": "QB_STRUCTURE QB4_P0BASE R1",
+      "status": "EARLY_STOPPED_HQNR",
+      "selected_step": 8000,
+      "last_observed_at": "2026-10-31T11:17:14.836956+00:00",
+      "train_h": 0.3955387839467989,
+      "eval_h": 0.010242944554322295,
+      "wall_h": 0.43131195944444445,
+      "calibration_audit": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s3/QB/calibration/numeric_parity_a86b15df67a57f1271198af5.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      }
+    },
+    {
+      "case": "QB_STRUCTURE QB4_P0BASE R2",
+      "status": "EARLY_STOPPED_HQNR",
+      "selected_step": 8000,
+      "last_observed_at": "2026-10-31T11:49:30.742267+00:00",
+      "train_h": 0.39525381504971946,
+      "eval_h": 0.010176683005669878,
+      "wall_h": 0.42846165611111114,
+      "calibration_audit": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s3/QB/calibration/numeric_parity_a86b15df67a57f1271198af5.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      }
+    },
+    {
+      "case": "QB_STRUCTURE QB4_CONTROL R3",
+      "status": "COMPLETED",
+      "selected_step": 27000,
+      "last_observed_at": "2026-10-31T13:28:54.892419+00:00",
+      "train_h": 1.3752888013624276,
+      "eval_h": 0.03550001185051062,
+      "wall_h": 1.488738031111111,
+      "calibration_audit": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s3/QB/calibration/numeric_parity_a86b15df67a57f1271198af5.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      }
+    },
+    {
+      "case": "QB_STRUCTURE QB4_WD000 R3",
+      "status": "COMPLETED",
+      "selected_step": 27000,
+      "last_observed_at": "2026-10-31T15:08:37.609462+00:00",
+      "train_h": 1.374452499080346,
+      "eval_h": 0.03511053239098853,
+      "wall_h": 1.4948408941666667,
+      "calibration_audit": {
+        "historical_control_comparison_valid": true,
+        "path": "/workspace/work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s3/QB/calibration/numeric_parity_a86b15df67a57f1271198af5.json",
+        "status": "EXACT_HISTORICAL_NUMERIC_PARITY"
+      }
+    }
+  ],
+  "s3_current_cost_summary": {
+    "source": "Sheet completion-to-completion intervals, includes small between-run setup; not direct remote process/filesystem evidence",
+    "ubildiff_30K_hours": 1.6618658452777777,
+    "basediff_30K_hours": 1.6252408238888887,
+    "planning_30K_hours": 1.67
+  },
+  "s1_w128_cost": [
+    {
+      "case": "QB_W128",
+      "replica": "R1",
+      "full30K_wall_hours": 2.411280521944444
+    },
+    {
+      "case": "QB_W128",
+      "replica": "R2",
+      "full30K_wall_hours": 2.4049979883333332
+    }
+  ],
+  "stage1_cost": {
+    "s1": {
+      "full50K_wall_hours": 2.922712360277778,
+      "selection_and_transition_to_student_seconds": 222.250469,
+      "through_student_ready_hours": 2.9844486016666667,
+      "planning_hours": 3.1
+    },
+    "s3": {
+      "observed_selected_step": 39000,
+      "observed_selected_prefix_wall_hours": 1.4746866744444445,
+      "projected_50K_hours": 1.8906239415954416,
+      "planning_hours_including_selection": 2.1,
+      "limitation": "Projection from selected-prefix evidence; actual full50K remote state unavailable"
+    }
+  },
+  "budget_40h": {
+    "assumptions": "Existing W112/UBIL or previously measured W128, same batch/evaluator; time cap is planning only, no automatic truncation or pruning assumed. Do not budget expected early stops as guaranteed savings.",
+    "s1_student_only_30K": {
+      "runs": 15,
+      "hours": 36.150000000000006,
+      "reserve_hours": 3.8499999999999943
+    },
+    "s3_student_only_30K": {
+      "runs": 22,
+      "hours": 36.739999999999995,
+      "reserve_hours": 3.260000000000005
+    },
+    "s1_fresh_stage1_plus_students30K": {
+      "stage1_runs": 1,
+      "student_runs": 14,
+      "hours": 36.84,
+      "reserve_hours": 3.1599999999999966
+    },
+    "s3_fresh_stage1_plus_students30K": {
+      "stage1_runs": 1,
+      "student_runs": 21,
+      "hours": 37.17,
+      "reserve_hours": 2.8299999999999983
+    },
+    "s1_single_new_donor_two_students_hours": 7.92,
+    "s3_single_new_donor_two_students_hours": 5.4399999999999995,
+    "s1_alternative_40K_students_no_fresh_stage1": {
+      "runs": 11,
+      "hours": 35.34666666666667
+    },
+    "s3_alternative_40K_students_no_fresh_stage1": {
+      "runs": 17,
+      "hours": 37.85333333333333
+    },
+    "new_stage1_matched_pair_even_run_option": {
+      "s1": "1 Stage1 + 14 Students@30K ~=36.84h",
+      "s3": "1 Stage1 +16 Students@30K +4 Students@40K ~=37.73h"
+    }
+  },
+  "updated_at": "2026-11-01T01:22:12.385413+00:00"
+}

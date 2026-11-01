@@ -1,0 +1,134 @@
+{
+  "captured_utc": "2026-11-01T01:31:19.763532+00:00",
+  "campaign_status": "FINISHED_WITH_EXPLICIT_EARLY_STOPS",
+  "runs": [
+    {
+      "case": "QB4_DIFFBASE",
+      "replica": "R1",
+      "status": "COMPLETED",
+      "step": 30000,
+      "completed_at": "2026-10-31T10:16:50.999643+00:00"
+    },
+    {
+      "case": "QB4_DIFFBASE",
+      "replica": "R2",
+      "status": "COMPLETED",
+      "step": 30000,
+      "completed_at": "2026-10-31T12:39:53.211737+00:00"
+    },
+    {
+      "case": "QB4_P0UBIL",
+      "replica": "R1",
+      "status": "EARLY_STOPPED_HQNR",
+      "step": 10000,
+      "completed_at": null
+    },
+    {
+      "case": "QB4_P0UBIL",
+      "replica": "R2",
+      "status": "EARLY_STOPPED_HQNR",
+      "step": 10000,
+      "completed_at": null
+    },
+    {
+      "case": "QB4_P0BASE",
+      "replica": "R1",
+      "status": "EARLY_STOPPED_HQNR",
+      "step": 10000,
+      "completed_at": null
+    },
+    {
+      "case": "QB4_P0BASE",
+      "replica": "R2",
+      "status": "EARLY_STOPPED_HQNR",
+      "step": 10000,
+      "completed_at": null
+    },
+    {
+      "case": "QB4_WD000",
+      "replica": "R1",
+      "status": "COMPLETED",
+      "step": 30000,
+      "completed_at": "2026-10-31T18:15:59.986714+00:00"
+    },
+    {
+      "case": "QB4_WD000",
+      "replica": "R2",
+      "status": "COMPLETED",
+      "step": 30000,
+      "completed_at": "2026-10-31T20:40:46.553540+00:00"
+    },
+    {
+      "case": "QB4_CONTROL",
+      "replica": "R3",
+      "status": "COMPLETED",
+      "step": 30000,
+      "completed_at": "2026-10-31T23:05:27.162861+00:00"
+    },
+    {
+      "case": "QB4_WD000",
+      "replica": "R3",
+      "status": "COMPLETED",
+      "step": 30000,
+      "completed_at": "2026-11-01T01:29:59.034944+00:00"
+    }
+  ],
+  "final_weight_checks": [
+    {
+      "step": 29000,
+      "path": "work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_WD000_NOSOFT_R3_S261018103/attempt_01/models/step_0029000.pt",
+      "sha256": "44045c209532e21816715a69ba9a72850901ba4383ad2cf7bc2f09c96ebb0017",
+      "bytes": 45280746,
+      "verified": true
+    },
+    {
+      "step": 30000,
+      "path": "work_dir/panda_qb_structure/PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1/s1/QB/runs/PSFC_QB_S1_QB4_WD000_NOSOFT_R3_S261018103/attempt_01/models/step_0030000.pt",
+      "sha256": "3e85f62e0a6b0cead578bd0ff0881d6dd94457bc29bd833efabd007cf2bf8bc6",
+      "bytes": 45280746,
+      "verified": true
+    }
+  ],
+  "priority": {
+    "at": "2026-11-01T01:32:36.845658+00:00",
+    "campaign_id": "PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1",
+    "pid": 837080,
+    "qb_waiter_pid": 1120500,
+    "server": "s1",
+    "stage": "RESUME_TUNE30",
+    "status": "RESUME_TUNE30"
+  },
+  "launcher": {
+    "args": [
+      "python",
+      "-m",
+      "panda_qb_structure",
+      "run",
+      "--server",
+      "s1"
+    ],
+    "at": "2026-11-01T01:32:11.055901+00:00",
+    "campaign_id": "PANDA_S13_QB_STRUCTURE_LOCALSTAGE1_20261031_v1",
+    "completed_count": 6,
+    "container": "panda-qb-structure-s1-v1",
+    "container_id": "a7c10917fc64926ac00a3f7fd5ab9494184bc5b3596f5a65437127284b5d9788",
+    "early_stopped_count": 4,
+    "image": "sha256:ebe266ad6514c1602b423518f77bf87e57e9f6e51cca9d2ac21581a64d106887",
+    "pid": 1120500,
+    "registry_digest": "eba6db3dea9f77047c98cb1d8c212e51a1d8314d5cf8d298676db0a0a9d47300",
+    "server": "s1",
+    "sheet_verified": true,
+    "source_container": "panda-sensor5-stage12-qb-s1-v2",
+    "stage": "COMPLETED"
+  },
+  "terminal_upload": {
+    "at": "2026-11-01T01:32:09.147123+00:00",
+    "campaign_status": "FINISHED_WITH_EXPLICIT_EARLY_STOPS",
+    "policy": "PANDA_SENSOR_FOCUS_RRE_STAGE2_SENSOR_TARGETS_PASS_ALL_OR_BEST_FALLBACK_V1",
+    "raw_count": 244,
+    "readback_verified": true,
+    "row_count": 10,
+    "source_digest": "5fe06cc26b58999edb121a5abd4c9de8644dca6d721fd1c24d5b7ed56aa3707d"
+  },
+  "updated_utc": "2026-11-01T01:33:12.972194+00:00"
+}
