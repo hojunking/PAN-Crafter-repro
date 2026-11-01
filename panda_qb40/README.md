@@ -81,6 +81,33 @@ read-only로 추가 마운트하고, 새 `work_dir/panda_qb40`만 쓰기 가능�
 QB Student의 공식 8K/9K/10K HQNR이 **모두 엄격히 .90 미만**이면 기존 규칙대로 안전 중단한다.
 B96도 이 절대 update 규칙을 바꾸지 않는다. Teacher Stage 1에는 적용하지 않는다.
 수치/코드 오류는 `FAILED`로 명시하고 반복 재시작하지 않는다.
+단, Stage 1의 알려진 `SUPPORT_VIOLATION`은 실패 기록·정상 저장된 중단 checkpoint·학습 trace를
+검증한 뒤 해당 branch만 보류한다. 그 Stage 1을 필요로 하는 Student는
+`BLOCKED_FAILED_STAGE1`로 남기고, 독립 case는 원래 순서대로 진행한다.
+이 경우 최종 상태는 `FINISHED_WITH_FAILED_BRANCHES`이며 실패/보류 개수를 별도로 표시한다.
+실패한 Stage 1의 부분 checkpoint는 donor로 선택하지 않는다. ROI/warp/손실은 바꾸지 않는다.
+알 수 없는 오류, optimizer 부분 실패 또는 checkpoint 저장 오류는 계속 전체 중단 대상으로 둔다.
+
+### 2026-11-01 s1 복구
+
+첫 `QB5_S1_A200_E100` Stage 1이 14,219 update에서 support 검사로 중단됐다.
+해당 Stage 1과 `QB5_A200_E100 R1/R2`를 보류하고, `QB5_C60LR050 R1`부터
+독립 작업 9개를 이어 실행한다. 기존 실패 기록·모든 weights·원래 admission은 보존한다.
+
+```bash
+python -m panda_qb40.recovery --server s1 --wait
+```
+
+이 명령은 진단된 실패 컨테이너를 검증하고, 제어 코드 변경만 기록한 명시적 복구 receipt를 만든다.
+학습 코드·데이터·평가·실험 설정 변경이나 이전 trainer의 재개는 허용하지 않는다.
+`admission_control_v2.json`에 새 제어 버전의 admission을 기록하고 원래 `admission.json`은 유지한다.
+40시간 시계의 시작점도 유지한다. QB 큐 종료 및 Sheet readback 후 기존 WV3 큐를 이어간다.
+
+s3가 QB40을 아직 시작하지 않았다면 수정 커밋을 pull한 후 위의 기존 enqueue 명령으로 실행한다.
+새 실패 분기 처리는 s3에도 적용되지만, s1의 실패 판정을 s3 모델에 전파하지 않는다.
+이미 QB40을 실행 중인 서버에서는 실행 중 소스가 바뀌지 않도록 pull을 학습 종료 후에 한다.
+복구 명령은 기존 실행이 모두 인증된 Stage 1 support 실패인 상황만 처리하며,
+정상 실행 중인 trainer나 이미 완료된 다른 case가 있는 캠페인을 임의로 재등록하지 않는다.
 
 ## Sheet
 

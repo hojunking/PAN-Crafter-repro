@@ -1,0 +1,132 @@
+{
+  "checked_at": "2026-11-01T17:16:58.252485+09:00",
+  "campaign_status": "RUNNING",
+  "active_run": {
+    "run_id": "PQ40_QB_S1_QB5_C60LR050_NOSOFT_R1_S261018101",
+    "case": "QB5_C60LR050",
+    "replica": "R1",
+    "status": "RUNNING",
+    "step": 1000
+  },
+  "observed_live_step": 1199,
+  "evaluation_1000": {
+    "HQNR": 0.7846991098803524,
+    "ERGAS": 4.472927732401871,
+    "checkpoint_sha256": "c77080c3b33cf4caaae9da857d4c8b902006ab464fed95175d96cc20d766a355",
+    "recorded_at": "2026-11-01T08:15:54.720922+00:00"
+  },
+  "sheet_readback": {
+    "action": "OWN_ROWS_VERIFIED",
+    "append_range": "'QB-ablations'!A81:BL81",
+    "at": "2026-11-01T08:16:51.084012+00:00",
+    "extra_columns_preserved": true,
+    "foreign_rows_untouched": true,
+    "owned_columns": "A:BL",
+    "publication_policy": "PANDA_S1LOSS9_RRE_STAGE2_SENSOR_TARGETS_PASS_ALL_OR_BEST_FALLBACK_V1",
+    "publisher_pid": 799046,
+    "readback_verified": true,
+    "row_count": 1,
+    "sheet_rows": [
+      81
+    ],
+    "transport": "PANDA_S1LOSS9_BEST_HQNR_LOGICAL_TABLE_V2"
+  },
+  "retained_failed_weights": [
+    {
+      "file": "step_0001000.pt",
+      "sha256": "967e1a2f907f9397d9e08a0322fc7052536d4ef9d032d34f39a704ac945e4e13"
+    },
+    {
+      "file": "step_0002000.pt",
+      "sha256": "10f77aae1a77aed9b2a45d70f38806a28e41c8d395379493b0bb368d651f8e57"
+    },
+    {
+      "file": "step_0003000.pt",
+      "sha256": "4b5aaf44731203eb2ce5a0513e934a636e889bfda1490a4e4db78441843d152e"
+    },
+    {
+      "file": "step_0004000.pt",
+      "sha256": "7908c97919f53323cf3424033f4aaa526b39248f9b596d1905cd451e6bc1deb8"
+    },
+    {
+      "file": "step_0005000.pt",
+      "sha256": "c72f4a077f50f5eb3b33207177212f57a4bbbf7f6f1d6373537c791b46a910f4"
+    },
+    {
+      "file": "step_0006000.pt",
+      "sha256": "1d5858f7f06368180c301f3bd0c8755f13ce3b927d8f9c8b6b9b70038a1513c5"
+    },
+    {
+      "file": "step_0007000.pt",
+      "sha256": "a608393388ba38407404b9f21432df6cc4cb7dc1b6fc2e8cba44a6cede35b532"
+    },
+    {
+      "file": "step_0008000.pt",
+      "sha256": "cd1dffda93045f6c60e67615f5c3ff59983b91d649331f636eb3490e7c9301fc"
+    },
+    {
+      "file": "step_0009000.pt",
+      "sha256": "e8f5eb9fa0d61a6d64ac59efc35a37f21d0258b39fb2306cf9447d47397a08d8"
+    },
+    {
+      "file": "step_0010000.pt",
+      "sha256": "9659ab62590a1ea99ebc276eb81e3d897748046ecd5bcad22300fbf8b851511f"
+    },
+    {
+      "file": "step_0011000.pt",
+      "sha256": "f7a334e3b3cc853de9aa9572c0e163e9937882ffb9a6f79529f5f3f734132f68"
+    },
+    {
+      "file": "step_0012000.pt",
+      "sha256": "889d39b2d135ea9e3bcc5383b2b85642a6942483d461de01f3f7208b3b4abc93"
+    },
+    {
+      "file": "step_0013000.pt",
+      "sha256": "dd177fa2d40f3fe4afc46ec6eb8959f87b361f30508254906dce95cd427d79ee"
+    },
+    {
+      "file": "step_0014000.pt",
+      "sha256": "7fc9790ea3ac18e6caa187c0674fcee5d8bf88a17adc37a7b3da8b1f098b5bc9"
+    },
+    {
+      "file": "stop_0014219_1793508055414901928.pt",
+      "sha256": "096e3c22dde5729f74231dbd9cd1616938eb46c90731895bb288423911477f5e"
+    }
+  ],
+  "failed_cases": [
+    "QB5_S1_A200_E100"
+  ],
+  "blocked_students": [
+    {
+      "case": "QB5_A200_E100",
+      "donor_version": "QB5_S1_A200_E100",
+      "failed_run_id": "PQ40_QB_S1_QB5_S1_A200_E100_NOSOFT_R1_S261016101",
+      "reason": "ValueError('SUPPORT_VIOLATION: every predicted PAN view must support fixed ROI8/stencil7')",
+      "replica": "R1",
+      "status": "BLOCKED_FAILED_STAGE1"
+    },
+    {
+      "case": "QB5_A200_E100",
+      "donor_version": "QB5_S1_A200_E100",
+      "failed_run_id": "PQ40_QB_S1_QB5_S1_A200_E100_NOSOFT_R1_S261016101",
+      "reason": "ValueError('SUPPORT_VIOLATION: every predicted PAN view must support fixed ROI8/stencil7')",
+      "replica": "R2",
+      "status": "BLOCKED_FAILED_STAGE1"
+    }
+  ],
+  "original_admission_unchanged": true,
+  "new_admission_verified": true,
+  "original_budget_start_unchanged": true,
+  "tests": {
+    "failure_recovery": 10,
+    "runner": 3,
+    "enqueue": 5,
+    "priority": 11,
+    "contract": 5,
+    "total_passed": 34
+  },
+  "native_read_only_check": {
+    "train_count": 17139,
+    "status": "READ_ONLY_CHECK_OK"
+  }
+}

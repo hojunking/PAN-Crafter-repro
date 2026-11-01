@@ -216,6 +216,8 @@ def execute(server, wait, status):
                 if report.get('readback_verified') and report.get('campaign_status') == finished['campaign_status']:
                     atomic_json(control / 'completion.json', finished)
                     status('COMPLETED', sheet_verified=True, completed_count=finished['completed_count'],
+                           campaign_status=finished['campaign_status'],
+                           failed_count=finished.get('failed_count',0),blocked_count=finished.get('blocked_count',0),
                            early_stopped_count=finished['early_stopped_count'],pending_count=finished['pending_count'], **receipt)
                     return 0
             status('WAIT_SHEET_READBACK', publisher_pid=pid, completed_count=finished['completed_count'],

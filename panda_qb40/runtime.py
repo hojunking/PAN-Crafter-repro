@@ -181,9 +181,14 @@ class Campaign:
             'environment':environment_manifest(self.device)})
         path=self.root/'admission.json'
         if path.exists() and json.loads(path.read_text()) != pin:
-            raise ValueError('Admission/data/code/environment changed; use a new campaign root')
-        atomic_json(path,pin)
+            # Explicit control-only recovery never changes old admission or
+            # checkpoint pins, and cannot resume a pre-revision trainer.
+            from .recovery import accept_admission
+            accept_admission(self,pin)
+        else:
+            atomic_json(path,pin)
         self.state['status']='RUNNING'
+        self.state.pop('error',None); self.state.pop('traceback',None)
         self.persist()
 
     def calibration_cached(self, cfg):

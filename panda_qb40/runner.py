@@ -6,7 +6,8 @@ from copy import deepcopy
 from directshift48.reporting import utc_now
 from . import registry as G
 
-TERMINAL=('FINISHED_REGISTERED_QUEUE','FINISHED_WITH_EXPLICIT_EARLY_STOPS','BUDGET_COMPLETE_WITH_PENDING')
+TERMINAL=('FINISHED_REGISTERED_QUEUE','FINISHED_WITH_EXPLICIT_EARLY_STOPS',
+          'BUDGET_COMPLETE_WITH_PENDING','FINISHED_WITH_FAILED_BRANCHES')
 
 def estimate_seconds(campaign,cfg):
     row=G.job(campaign.server,cfg['case'],cfg['replica'])
@@ -26,15 +27,19 @@ def estimate_seconds(campaign,cfg):
 def run(camp,*,catalog):
     from . import plan
     from .runtime import BudgetExpired
+    from . import failures
     from panda_sensor_focus import early_stop
     with (camp.root/'.controller.lock').open('a+') as mutex:
         fcntl.flock(mutex,fcntl.LOCK_EX|fcntl.LOCK_NB)
         handlers={sig:signal.signal(sig,lambda *a:setattr(camp,'stop_requested',True)) for sig in (signal.SIGINT,signal.SIGTERM)}
         try:
             camp.persist();camp.admission(catalog)
+            failures.synchronize(camp)
+            camp.persist()
             pending=[]
             for index,group in enumerate(camp.config['groups']):
                 case,replica=group['runs'][0];cfg=plan.resolve_case(camp.server,case,replica)
+                if failures.held(camp,cfg): continue
                 if camp.completed(cfg):
                     if case in plan.DONORS: camp.register_donor(case)
                     continue
@@ -47,13 +52,24 @@ def run(camp,*,catalog):
                     predicted_seconds=needed,remaining_seconds=left,budget_policy='40H_FULL_RUN_ADMISSION'))
                 camp.persist()
                 if not admitted:
-                    pending=[deepcopy(g) for g in camp.config['groups'][index:]]
+                    pending=[deepcopy(g) for g in camp.config['groups'][index:]
+                             if not failures.held(camp,plan.resolve_case(camp.server,*g['runs'][0]))]
                     break
                 camp.check()
                 if cfg['donor_version']=='S1_A200_E030' and 'S1_A200_E030' not in camp.state['donors']:
                     camp.register_external_donor()
                 camp.validate_preflight(cfg)
-                early_stop.run_case(camp,cfg,BudgetExpired)
+                try:
+                    early_stop.run_case(camp,cfg,BudgetExpired)
+                except ValueError as exc:
+                    if cfg['phase']!='donor' or repr(exc)!=failures.SUPPORT_ERROR: raise
+                    # Only a saved, nonpoisoned pre-optimizer support failure is
+                    # isolated. Unknown errors and failed saves still abort.
+                    failures.synchronize(camp)
+                    if cfg['run_id'] not in camp.state['failed_runs']: raise
+                    camp.persist()
+                    print(f"[QB40 HOLD] {case}/{replica}: Stage1 failed; dependent Students blocked",flush=True)
+                    continue
                 if case in plan.DONORS: camp.register_donor(case)
             camp.state['pending_groups']=pending
             if pending:
@@ -61,10 +77,12 @@ def run(camp,*,catalog):
             else:
                 expected=[plan.resolve_case(camp.server,*g['runs'][0]) for g in camp.config['groups']]
                 stopped=camp.state.get('early_stopped_runs',{})
-                if not all(camp.completed(c) or c['run_id'] in stopped for c in expected):
+                failed=camp.state.get('failed_runs',{})
+                if not all(camp.completed(c) or c['run_id'] in stopped or failures.held(camp,c) for c in expected):
                     raise RuntimeError('Incomplete QB40 run accounting')
-                camp.state.update(status='FINISHED_WITH_EXPLICIT_EARLY_STOPS' if stopped else 'FINISHED_REGISTERED_QUEUE',
-                                  all_registered_completed=not stopped)
+                camp.state.update(status=failures.STATUS if failed else
+                                  'FINISHED_WITH_EXPLICIT_EARLY_STOPS' if stopped else 'FINISHED_REGISTERED_QUEUE',
+                                  all_registered_completed=not stopped and not failed)
         except BudgetExpired as exc:
             camp.state.update(status='STOPPED_SAFE',reason=str(exc))
         except Exception as exc:
