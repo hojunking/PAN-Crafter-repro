@@ -1,0 +1,29 @@
+test_empty_projection_target_and_namespace (panda_qb40.tests.test_contract.ContractTests) ... ok
+test_no_predecessor_gate (panda_qb40.tests.test_contract.ContractTests) ... ok
+test_plan_is_executable_without_recipe_drift (panda_qb40.tests.test_contract.ContractTests) ... ok
+test_s3_dedicated_source_dispatch (panda_qb40.tests.test_contract.ContractTests) ... ok
+test_source_paths_preserve_origin (panda_qb40.tests.test_contract.ContractTests) ... ok
+test_both_servers_mount_qb_data_read_only_and_only_new_output_writable (panda_qb40.tests.test_enqueue.EnqueueTests) ... ok
+test_completed_container_and_sheet_readback_without_predecessor_records (panda_qb40.tests.test_enqueue.EnqueueTests) ... ok
+test_container_ownership_and_server_are_not_interchangeable (panda_qb40.tests.test_enqueue.EnqueueTests) ... ok
+test_gpu_wait_only_retries_occupied_gpu (panda_qb40.tests.test_enqueue.EnqueueTests) ... ok
+test_only_unstarted_intents_may_refresh (panda_qb40.tests.test_enqueue.EnqueueTests) ... ok
+test_appearing_owner_prevents_unowned_signal (panda_qb40.tests.test_priority.PriorityTests) ... ok
+test_container_collision_rejected (panda_qb40.tests.test_priority.PriorityTests) ... ok
+test_failed_launch_is_not_restarted_in_a_loop (panda_qb40.tests.test_priority.PriorityTests) ... ok
+test_finish_current_requires_normal_exit_and_final_model_proof (panda_qb40.tests.test_priority.PriorityTests) ... ok
+test_intentional_exit_one_requires_complete_resume_artifact (panda_qb40.tests.test_priority.PriorityTests) ... ok
+test_no_premature_qb_launch (panda_qb40.tests.test_priority.PriorityTests) ... ok
+test_qb_completion_requires_sheet_and_own_terminal_evidence (panda_qb40.tests.test_priority.PriorityTests) ... ok
+test_qb_wait_and_closeout_precede_wv3_resume (panda_qb40.tests.test_priority.PriorityTests) ... ok
+test_reused_owner_pid_never_receives_a_signal (panda_qb40.tests.test_priority.PriorityTests) ... ok
+test_safe_stop_rejects_oom_unexpected_exit_or_different_target (panda_qb40.tests.test_priority.PriorityTests) ... ok
+test_saved_own_launch_is_reused (panda_qb40.tests.test_priority.PriorityTests) ... ok
+test_completed_stage1_is_selected_again_on_recovery_without_retraining (panda_qb40.tests.test_runner.RunnerTests) ... ok
+test_full_plan_visits_exact_order_and_selects_each_new_donor (panda_qb40.tests.test_runner.RunnerTests) ... ok
+test_insufficient_budget_retains_every_unstarted_job (panda_qb40.tests.test_runner.RunnerTests) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 2.747s
+
+OK

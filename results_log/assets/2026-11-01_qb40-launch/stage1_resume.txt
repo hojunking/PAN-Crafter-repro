@@ -1,0 +1,6 @@
+test_stage1_full_optimizer_rng_save_restore (panda_qb40.tests.test_execution.ExecutionTests) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 77.056s
+
+OK

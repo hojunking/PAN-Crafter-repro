@@ -1,0 +1,6 @@
+test_same_weights_forward_hard_loss_and_gradient (panda_qb40.tests.test_parity.ParityTest) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.232s
+
+OK

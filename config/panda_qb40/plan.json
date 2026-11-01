@@ -1,6 +1,6 @@
 {
   "plan_id": "PANDA_S13_QB40_PROPOSAL_20261101_v1",
-  "status": "PLANNED_NOT_REGISTERED",
+  "status": "REGISTERED_EXECUTABLE",
   "dataset": "QB",
   "joint_target": {
     "HQNR": 0.9315,
@@ -67,7 +67,7 @@
     "s3 Stage1 estimate partly extrapolated from the selected-step timing.",
     "Reserve covers profiling, full donor selection/calibration and timing drift."
   ],
-  "runtime_policy": "Plan only. No live queue edits, no process signals, no automatic launch.",
+  "runtime_policy": "Execute via panda_qb40; s1 finishes current case then QB40 then remaining WV3; s3 starts locally. 40h complete-run admission; pending work remains explicit.",
   "future_admission": "Before a run, require measured full-run prediction plus closeout reserve to fit remaining budget; retain unfunded runs as pending, not completed.",
   "queues": {
     "s1": [
@@ -1322,5 +1322,6 @@
       "measured_30k_student_hours": 1.67,
       "stage1_allowance_hours": 2.1
     }
-  }
+  },
+  "campaign_id": "PANDA_S13_QB40_LOCALSTAGE1_20261101_v1"
 }

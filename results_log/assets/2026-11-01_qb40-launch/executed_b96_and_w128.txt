@@ -1,0 +1,12 @@
+test_empty_projection_target_and_namespace (test_contract.ContractTests) ... ok
+test_no_predecessor_gate (test_contract.ContractTests) ... ok
+test_plan_is_executable_without_recipe_drift (test_contract.ContractTests) ... ok
+test_s3_dedicated_source_dispatch (test_contract.ContractTests) ... ok
+test_source_paths_preserve_origin (test_contract.ContractTests) ... ok
+test_new_branch_donor_and_w128_native_forward (test_execution.ExecutionTests) ... ok
+test_registered_b96_actual_adam_stream_and_resume (test_execution.ExecutionTests) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 153.172s
+
+OK

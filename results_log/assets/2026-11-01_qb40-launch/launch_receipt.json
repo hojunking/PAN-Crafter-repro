@@ -1,0 +1,115 @@
+{
+  "request": {
+    "at": "2026-11-01T02:58:07.662354+00:00",
+    "campaign_id": "PANDA_S13_QB40_LOCALSTAGE1_20261101_v1",
+    "observed_step": 18000,
+    "old_owner": {
+      "argv": [
+        "/home/knuvi/miniconda3/envs/pancrafter/bin/python",
+        "-u",
+        "-m",
+        "panda_qb_structure.priority",
+        "watch"
+      ],
+      "cwd": "/home/knuvi/Desktop/song/PAN-Crafter",
+      "generation": "139583464",
+      "pid": 837080,
+      "uid": 1000
+    },
+    "original_receipt": {
+      "adapter_pin": {
+        "wv3.py": "daf6c5d3d57e74166b9ce4cc2ffc02ebb16332158ae1039d3582298457c13ca7"
+      },
+      "at": "2026-11-01T01:33:07.441202+00:00",
+      "container": "panda-sensor5-wv3-tune30-resume-all-s1-1793496786951381198",
+      "container_id": "13fe192400866c41bcce9790aab5ca8c7adadec9107f4df905509167d7da387a",
+      "image": "sha256:ebe266ad6514c1602b423518f77bf87e57e9f6e51cca9d2ac21581a64d106887",
+      "mode": "resume-all",
+      "package": "panda_tune30",
+      "source_container": "panda-tune30-hardonly-wv3-s1-v1",
+      "target_run": null
+    },
+    "package": "panda_tune30",
+    "policy": "USER_20261101_CURRENT_WV3_THEN_QB40_THEN_REMAINING_WV3",
+    "server": "s1",
+    "target_run_id": "PTN30_WV3_S1_S100DIFFUBILC30G025_NOSOFT_R1_S261018101"
+  },
+  "status": {
+    "at": "2026-11-01T03:00:21.413041+00:00",
+    "campaign_id": "PANDA_S13_QB40_LOCALSTAGE1_20261101_v1",
+    "pid": 4172752,
+    "server": "s1",
+    "stage": "FINISH_CURRENT",
+    "status": "FINISH_CURRENT"
+  },
+  "safe_stop": {
+    "at": "2026-11-01T02:58:18.282646+00:00",
+    "checkpoint": {
+      "checkpoint": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30G025_NOSOFT_R1_S261018101/attempt_01/models/stop_0018573_1793501888271183165.pt",
+      "checkpoint_sha256": "074e75641fe699f161f5f2561a803e14b3b1f47639c97bb3ca7c51f521b22abd",
+      "run_id": "PTN30_WV3_S1_S100DIFFUBILC30G025_NOSOFT_R1_S261018101",
+      "step": 18573
+    },
+    "container": {
+      "adapter_pin": {
+        "wv3.py": "daf6c5d3d57e74166b9ce4cc2ffc02ebb16332158ae1039d3582298457c13ca7"
+      },
+      "at": "2026-11-01T01:33:07.441202+00:00",
+      "container": "panda-sensor5-wv3-tune30-resume-all-s1-1793496786951381198",
+      "container_id": "13fe192400866c41bcce9790aab5ca8c7adadec9107f4df905509167d7da387a",
+      "image": "sha256:ebe266ad6514c1602b423518f77bf87e57e9f6e51cca9d2ac21581a64d106887",
+      "mode": "resume-all",
+      "package": "panda_tune30",
+      "source_container": "panda-tune30-hardonly-wv3-s1-v1",
+      "target_run": null
+    },
+    "docker_state": {
+      "Dead": false,
+      "Error": "",
+      "ExitCode": 1,
+      "FinishedAt": "2026-11-01T02:58:09.737186362Z",
+      "OOMKilled": false,
+      "Paused": false,
+      "Pid": 0,
+      "Restarting": false,
+      "Running": false,
+      "StartedAt": "2026-11-01T01:33:07.135987388Z",
+      "Status": "exited"
+    }
+  },
+  "finish_current": {
+    "adapter_pin": {
+      "wv3.py": "daf6c5d3d57e74166b9ce4cc2ffc02ebb16332158ae1039d3582298457c13ca7"
+    },
+    "at": "2026-11-01T02:58:18.935515+00:00",
+    "container": "panda-sensor5-wv3-tune30-finish-current-s1-1793501898386748261",
+    "container_id": "a0aaf435f01802cc89ca994cd39b1e7f0d3d0c309e2f5cce928ef6e18b169e0b",
+    "image": "sha256:ebe266ad6514c1602b423518f77bf87e57e9f6e51cca9d2ac21581a64d106887",
+    "mode": "finish-current",
+    "package": "panda_tune30",
+    "source_container": "panda-tune30-hardonly-wv3-s1-v1",
+    "target_run": "PTN30_WV3_S1_S100DIFFUBILC30G025_NOSOFT_R1_S261018101"
+  },
+  "at": "2026-11-01T03:00:46.433583+00:00",
+  "qb_training_started": false,
+  "queued_action": "FINISH_CURRENT_THEN_QB40_THEN_REMAINING_WV3",
+  "verified_resumed_progress": {
+    "saved_step": 18573,
+    "later_logged_step": 18795
+  },
+  "s3": "IMPLEMENTED_FOR_GIT_HANDOFF_NOT_REMOTELY_STARTED",
+  "source_verification": {
+    "schema": "QB_STRUCTURE_LOCAL_STAGE1_V1",
+    "server": "s1",
+    "dataset": "QB",
+    "source_campaign_id": "PANDA_S13_S1LOSS9_RGB_L4_STAGE12_20261026_v1",
+    "source_run_id": "PSL9_QB_S1_S1_A200_E030_NOSOFT_R1_S261016101",
+    "seed": 261016101,
+    "selected_step": 44000,
+    "checkpoint_sha256": "7fa4491f0c0e7b8c5d559263c50fff18f84abd7a820852a0d24666928191ed34",
+    "receipt_sha256": "bea177873b2611822c60f9952c86f3a9f4982832142a7295c1053974e50e748b",
+    "full_selection_horizon": 50000,
+    "cross_server_transfer": false,
+    "stage1_retrained": false
+  }
+}

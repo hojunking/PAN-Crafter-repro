@@ -1,0 +1,13 @@
+test_completed_stage1_is_selected_again_on_recovery_without_retraining (panda_qb40.tests.test_runner.RunnerTests) ... ok
+test_full_plan_visits_exact_order_and_selects_each_new_donor (panda_qb40.tests.test_runner.RunnerTests) ... ok
+test_insufficient_budget_retains_every_unstarted_job (panda_qb40.tests.test_runner.RunnerTests) ... ok
+test_empty_projection_target_and_namespace (panda_qb40.tests.test_contract.ContractTests) ... ok
+test_no_predecessor_gate (panda_qb40.tests.test_contract.ContractTests) ... ok
+test_plan_is_executable_without_recipe_drift (panda_qb40.tests.test_contract.ContractTests) ... ok
+test_s3_dedicated_source_dispatch (panda_qb40.tests.test_contract.ContractTests) ... ok
+test_source_paths_preserve_origin (panda_qb40.tests.test_contract.ContractTests) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 2.665s
+
+OK

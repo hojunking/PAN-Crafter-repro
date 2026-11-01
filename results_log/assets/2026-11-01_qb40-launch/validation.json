@@ -1,0 +1,18 @@
+{
+  "unique_tests_passed": 28,
+  "native_cuda_preflight": "AUTOMATIC_AFTER_CURRENT_WV3_BOUNDARY",
+  "read_only_real_data_check": {
+    "dataset": "QB",
+    "train_count": 17139,
+    "stage1_runs": 2,
+    "stage2_runs": 10
+  },
+  "no_historical_runtime_source_edits": true,
+  "logs": {
+    "fast_contract_controls": "fast_contract_controls.txt",
+    "executed_b96_and_w128": "executed_b96_and_w128.txt",
+    "stage1_resume": "stage1_resume.txt",
+    "previous_engine_parity": "previous_engine_parity.txt"
+  },
+  "final_runner_and_contract_recheck": "last_checks.txt"
+}
