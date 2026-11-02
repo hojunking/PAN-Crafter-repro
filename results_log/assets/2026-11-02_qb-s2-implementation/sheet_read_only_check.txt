@@ -1,0 +1,1 @@
+{"status": "SHEET_READ_ONLY_CHECK_OK", "destination": {"spreadsheet_id": "1_ANKPQjQzMZrw9fUc1OI3B9xF4K3sxNa_fybg1kjBXE", "sheet_title": "QB-ablations", "sheet_id": 261001011}}

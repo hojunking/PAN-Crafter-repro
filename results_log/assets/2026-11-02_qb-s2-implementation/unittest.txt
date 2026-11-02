@@ -1,0 +1,26 @@
+test_completed_stage1_is_not_retrained_on_resume (test_contracts.ContractTests) ... ok
+test_fresh_container_mounts_and_identity_without_previous_runtime (test_contracts.ContractTests) ... ok
+test_full_queue_runs_without_old_donors_or_wallclock_cutoff (test_contracts.ContractTests) ... ok
+test_registered_order_and_seed_pairing (test_contracts.ContractTests) ... ok
+test_same_coefficient_different_seed_donor_is_rejected (test_contracts.ContractTests) ... ok
+test_sheet_target_and_distinct_namespace (test_contracts.ContractTests) ... ok
+test_support_failure_skips_only_its_student_and_keeps_other_seed (test_contracts.ContractTests) ... ok
+test_unknown_failure_is_not_silently_skipped (test_contracts.ContractTests) ... ok
+test_duplicate_launch_is_idempotent_and_modified_container_is_rejected (test_lifecycle.LifecycleTests) ... ok
+test_interrupted_launch_adopts_only_its_authenticated_container (test_lifecycle.LifecycleTests) ... ok
+test_resume_uses_original_container_without_new_cost_or_training_command (test_lifecycle.LifecycleTests) ... ok
+test_worker_requires_fresh_verified_final_sheet_readback (test_lifecycle.LifecycleTests) ... ok
+test_worker_stops_training_if_publisher_process_dies (test_lifecycle.LifecycleTests) ... ok
+test_all_six_student_rows_thresholds_and_deduplication (test_publication.PublicationTests) ... ok
+test_fallback_retained_until_hqnr_qualified_checkpoint (test_publication.PublicationTests) ... ok
+test_fresh_donor_selected_rre_receipt_is_counted_as_new_training (test_publication.PublicationTests) ... ok
+test_two_donor_pairs_publish_distinct_rows_and_cannot_swap_receipts (test_publication.PublicationTests) ... ok
+test_all_six_donors_match_reference_operators_and_requested_loss_weights (test_science.ScienceTests) ... ok
+test_real_stage1_loss_and_gradients_match_qb40 (test_science.ScienceTests) ... ok
+test_real_student_parity_and_complete_resume (test_science.ScienceTests) ... ok
+test_stage1_complete_optimizer_rng_sampler_resume (test_science.ScienceTests) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 161.835s
+
+OK

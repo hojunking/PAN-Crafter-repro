@@ -1,0 +1,1 @@
+{"status": "READ_ONLY_CHECK_OK", "server": "s2", "dataset": "QB", "train_count": 17139, "split_counts": {"train": 17139, "val": 1905, "rr": 20, "fr": 20}, "stage1_runs": 6, "stage2_runs": 6, "joint_target": {"HQNR": 0.9315, "ERGAS": 3.5}}

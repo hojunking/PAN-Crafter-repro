@@ -1,0 +1,64 @@
+{
+  "recorded_at_utc": "2026-11-02T01:14:58.375022+00:00",
+  "campaign": "PANDA_S2_QB_STAGE1_BALANCE_20261102_v1",
+  "status": "IMPLEMENTED_AND_LOCALLY_VALIDATED_NOT_STARTED_ON_S2",
+  "reference_commit": "ae8e7545f5fb210a6b7878ff4fecc6d818a64391",
+  "reference_files_unchanged": 463,
+  "release": {
+    "status": "RELEASE_VERIFIED",
+    "source_sha256": "9aee2918d703033a738350d89b10e48f3648abb1ba161b9633f2652b26ec9307",
+    "file_count": 471,
+    "environment_checked": false
+  },
+  "tests": {
+    "passed": 21,
+    "failed": 0,
+    "clean_checkout": true,
+    "seconds": 161.835,
+    "command": "CUDA_VISIBLE_DEVICES= OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s panda_qb_s2/tests -v",
+    "post_test_python_changes_ast_identical": [
+      "panda_qb_s2/cost/profiling.py",
+      "panda_qb_s2/tests/test_publication.py",
+      "panda_qb_s2/tests/test_science.py"
+    ],
+    "note": "After the full suite, only a profiling comment and test-file trailing newlines changed in Python runtime/tests; final release and catalog reverified in the clean checkout."
+  },
+  "clean_checkout": {
+    "source": "git archive of staged tree; no untracked files or work_dir copied",
+    "release_verified": true,
+    "registered_csv_identical": true
+  },
+  "native_no_gpu_check": {
+    "status": "READ_ONLY_CHECK_OK",
+    "server": "s2",
+    "dataset": "QB",
+    "train_count": 17139,
+    "split_counts": {
+      "train": 17139,
+      "val": 1905,
+      "rr": 20,
+      "fr": 20
+    },
+    "stage1_runs": 6,
+    "stage2_runs": 6,
+    "joint_target": {
+      "HQNR": 0.9315,
+      "ERGAS": 3.5
+    }
+  },
+  "native_image_id": "sha256:ebe266ad6514c1602b423518f77bf87e57e9f6e51cca9d2ac21581a64d106887",
+  "sheet_read_only_check": {
+    "status": "SHEET_READ_ONLY_CHECK_OK",
+    "destination": {
+      "spreadsheet_id": "1_ANKPQjQzMZrw9fUc1OI3B9xF4K3sxNa_fybg1kjBXE",
+      "sheet_title": "QB-ablations",
+      "sheet_id": 261001011
+    }
+  },
+  "live_sheet_writes_performed": false,
+  "s1_gpu_training_launched": false,
+  "s2_training_launched": false,
+  "cuda_preflight": "Runs automatically on s2 before each training phase; not executed on the occupied s1 GPU",
+  "original_queues_modified": false,
+  "git_push": "USER_HANDLES_PUSH"
+}
