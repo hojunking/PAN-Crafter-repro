@@ -1,0 +1,75 @@
+{
+  "schema": "WV3_COMPONENT_IMPLEMENTATION_VALIDATION_V1",
+  "date": "2026-11-02",
+  "source_release_sha256": "b6f48a21529a03c13d4f55e65394300549f6af15347746825b957522fb4e471a",
+  "pinned_file_count": 394,
+  "queue": {
+    "s1": {
+      "stage": "stage2",
+      "cases": 9,
+      "repeats": 3,
+      "runs": 27
+    },
+    "s3": {
+      "stage": "stage1",
+      "cases": 5,
+      "repeats": 3,
+      "runs": 15
+    },
+    "order": "ALL_CASES_R1_THEN_ALL_CASES_R2_THEN_ALL_CASES_R3",
+    "cross_server_weight_transfer": false
+  },
+  "tests": {
+    "command": "CUDA_VISIBLE_DEVICES= python -m unittest discover -s panda_wv3_ablation/tests -v",
+    "passed": 21,
+    "failed": 0,
+    "clean_staged_checkout": true,
+    "seconds_clean_checkout": 14.026,
+    "checks": [
+      "real W112 loss and gradient equivalence",
+      "paired initialization and streams",
+      "frozen donor",
+      "Stage1 and Stage2 complete resume",
+      "Scharr sign and subpixel",
+      "conditional/global rank",
+      "mean-weight control",
+      "round-major order and repaired-error retry",
+      "official complete RR20/FR20 protocol",
+      "Sheet selection and retained artifacts",
+      "foreign-row preservation and bounded append",
+      "s3 WV3 mounts"
+    ]
+  },
+  "local_native": {
+    "original_donor_sha_verified": true,
+    "original_calibration_sha_verified": true,
+    "real_WV3_Stage1_all_five_forward_backward": "PASS",
+    "real_WV3_Stage2_E_ONLY_forward_backward": "PASS"
+  },
+  "local_docker": {
+    "image": "hojunqueen/pancrafter-env:latest",
+    "s1_check_only": "PASS",
+    "s3_check_only": "PASS",
+    "gpu_enabled": false,
+    "remote_s3_tested": false,
+    "s3_stage1_needs_donor_weights": false
+  },
+  "sheet": {
+    "tab": "WV3-ablations",
+    "s1_dry_run_new_rows": 27,
+    "s3_dry_run_new_rows": 15,
+    "writes_performed": false
+  },
+  "anchor_replay": {
+    "evidence": "reference_replay_cpu.json",
+    "rr_scenes": 20,
+    "fr_scenes": 20,
+    "HQNR": 0.9603361215276607,
+    "ERGAS": 2.034058812867267,
+    "new_ablation_result": false
+  },
+  "scharr_preflight": "scharr_preflight.json",
+  "training_started": false,
+  "existing_campaigns_modified": false,
+  "checkpoint_weights_committed": false
+}

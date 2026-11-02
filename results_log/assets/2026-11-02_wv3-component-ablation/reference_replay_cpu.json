@@ -1,0 +1,43 @@
+{
+  "purpose": "ORIGINAL_29K_CHECKPOINT_REPLAY_THROUGH_NEW_INFERENCE_PATH_NOT_AN_ABLATION",
+  "device": "CPU",
+  "source_checkpoint": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30G025_NOSOFT_R1_S261018101/attempt_01/models/step_0029000.pt",
+  "source_checkpoint_sha256": "64b96cc49b6f0c6780ba3de8b8b5b0ff58868b79deb89f6097b82d0b0d106006",
+  "metrics": {
+    "rr": {
+      "ERGAS": 2.034058812867267,
+      "SCC": 0.9882404501765747,
+      "SAM": 2.7625302180299096,
+      "PSNR": 38.033556929953704,
+      "SSIM": 0.976014705482525,
+      "Q8": 0.9224667184445643,
+      "RMSE": 26.243036435630046,
+      "CC": 0.9912409895039055
+    },
+    "fr": {
+      "HQNR": 0.9603361215276607,
+      "D_s": 0.0280716256247196,
+      "D_lambda": 0.011928787386955714,
+      "JQM": 0.9736276214583934
+    }
+  },
+  "difference_from_original_gpu_evaluation": {
+    "rr": {
+      "ERGAS": 8.331899614688609e-08,
+      "SCC": -7.201765850339825e-10,
+      "SAM": -2.359927941952833e-08,
+      "PSNR": -2.0621656915409403e-07,
+      "SSIM": -5.962452753749403e-11,
+      "Q8": 1.4869593256694458e-07,
+      "RMSE": 4.699977580457926e-07,
+      "CC": -4.1315895149551807e-10
+    },
+    "fr": {
+      "HQNR": -1.1719005765797874e-09,
+      "D_s": 8.177090220218286e-10,
+      "D_lambda": 3.711403025186133e-10,
+      "JQM": 1.6678480818654862e-10
+    }
+  },
+  "seconds": 95.09269936592318
+}

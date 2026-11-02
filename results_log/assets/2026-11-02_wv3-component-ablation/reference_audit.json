@@ -1,0 +1,244 @@
+{
+  "schema": "WV3_ANCHORED_ABLATION_REFERENCE_AUDIT_V2",
+  "audited_date": "2026-11-02",
+  "source": "LOCAL_CONFIG_SELECTION_RECEIPT_EVAL_AND_CHECKPOINT_FILES",
+  "stage1": {
+    "stage": "stage1",
+    "run_id": "PB30_WV3_S1_G8_S1_U23_R1_S261016101",
+    "server": "s1",
+    "case": "G8_S1_U23",
+    "seed": 261016101,
+    "checkpoint": "work_dir/panda_band30/PANDA_S1_ALLBAND_WARP_BANDWISE_30H_20261019_v1/s1/WV3/runs/PB30_WV3_S1_G8_S1_U23_R1_S261016101/attempt_01/models/step_0050000.pt",
+    "file_sha256": "62f1c445b8500070429f46503a68fb972a9144a4321fc9da10ccd45891186b8d",
+    "evaluation": "work_dir/panda_band30/PANDA_S1_ALLBAND_WARP_BANDWISE_30H_20261019_v1/s1/WV3/runs/PB30_WV3_S1_G8_S1_U23_R1_S261016101/attempt_01/evaluation_0050000.json",
+    "evaluation_sha256": "95e8c45c017688457d83b9386471bcf0e520aa4b757fc0c82c51a76982ca5d00",
+    "metrics": {
+      "rr": {
+        "CC": 0.99115512551662,
+        "ERGAS": 2.0401150771450913,
+        "PSNR": 37.99254292608528,
+        "Q8": 0.9220143159835039,
+        "RMSE": 26.342549311690362,
+        "SAM": 2.7712673157593803,
+        "SCC": 0.9882729412450676,
+        "SSIM": 0.975898333493654
+      },
+      "fr": {
+        "D_lambda": 0.011200771374786016,
+        "D_s": 0.06890375172913635,
+        "HQNR": 0.9207387597683567,
+        "JQM": 0.9508133093147547
+      }
+    },
+    "alias": "G8_MATURE_U23",
+    "step": 50000,
+    "selection": "VALIDATION_RRE50_RRE90_ERGAS_UPDATE",
+    "validation": {
+      "RRE50": 0.09486163230946981,
+      "RRE90": 0.24132622484502317,
+      "Val_ERGAS": 2.1279711867337565,
+      "eligible_count": 1077,
+      "excluded_gt_low_texture_count": 3,
+      "failure_count": 3,
+      "failure_fraction": 0.002785515320334262,
+      "sample_count": 1080,
+      "selector_protocol_sha256": "f3d14c206fd9a8bbfc7d7a2d600ffbfe0ba95b2ee87043d67bb1377c5ac1e4a9",
+      "validation_inventory_sha256": "5600c42a9aca11cbb4e92d011cae08d3fdca62eaa22da62deb0fd94e2d462815"
+    },
+    "epsilon_response": {
+      "EPE50": 0.22734615206718445,
+      "EPE90": 0.4717470735311508,
+      "count": 4320,
+      "gain_mean": 0.8526111532287258,
+      "gain_median": 0.855831652879715
+    },
+    "training": {
+      "lambda_abs": 2.0,
+      "lambda_epsilon": 0.003,
+      "lr_A": 1e-05,
+      "lr_U": 0.0001,
+      "weight_decay": 0.01,
+      "training_spec": {
+        "adam_eps": 1e-08,
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "effective_batch_size": 48,
+        "full_audit_interval": 100,
+        "gradient_log_interval": 100,
+        "lr": 0.0001,
+        "microbatch_size": 12,
+        "min_lr": 0.0,
+        "total_updates": 50000,
+        "warmup_updates": 100,
+        "weight_decay": 0.01
+      }
+    },
+    "alignment_target": "SCHARR_OF_MEAN8_GT",
+    "warp": "BICUBIC_BORDER",
+    "epsilon_radius_pan_px": 3,
+    "teacher_architecture": {
+      "bands": 8,
+      "depth": [
+        1,
+        2,
+        3
+      ],
+      "width": 112
+    },
+    "stream_seeds": {
+      "A_init": 4845287253923864201,
+      "S_init": 8603517912180812184,
+      "T_init": 6863215692793968084,
+      "rr_augmentation": 8698253011799411398,
+      "rr_band_augmentation": 1985042388444442507,
+      "rr_data": 7901792392715392634,
+      "rr_epsilon": 4661544191740197408
+    },
+    "stream_seed_protocol": "donor30.sha256.seed-label.v1+rr_band_augmentation"
+  },
+  "stage2": {
+    "stage": "stage2",
+    "run_id": "PTN30_WV3_S1_S100DIFFUBILC30G025_NOSOFT_R1_S261018101",
+    "server": "s1",
+    "case": "S100DIFFUBILC30G025",
+    "seed": 261018101,
+    "checkpoint": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30G025_NOSOFT_R1_S261018101/attempt_01/models/step_0029000.pt",
+    "file_sha256": "64b96cc49b6f0c6780ba3de8b8b5b0ff58868b79deb89f6097b82d0b0d106006",
+    "evaluation": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30G025_NOSOFT_R1_S261018101/attempt_01/evaluation_0029000.json",
+    "evaluation_sha256": "fcb6566840205f94b597c730e03a108c9730fef9291d83f2838f83d31ebd2048",
+    "metrics": {
+      "rr": {
+        "CC": 0.9912409899170644,
+        "ERGAS": 2.034058729548271,
+        "PSNR": 38.03355713617027,
+        "Q8": 0.9224665697486317,
+        "RMSE": 26.243035965632288,
+        "SAM": 2.762530241629189,
+        "SCC": 0.9882404508967513,
+        "SSIM": 0.9760147055421495
+      },
+      "fr": {
+        "D_lambda": 0.011928787015815411,
+        "D_s": 0.028071624807010576,
+        "HQNR": 0.9603361226995613,
+        "JQM": 0.9736276212916086
+      }
+    },
+    "step": 29000,
+    "horizon": 30000,
+    "run_display": "TUNE30 L4 S100DIFFUBILC30G025 R1",
+    "stage2_spec": {
+      "aligner_outputs": 2,
+      "alignment_target": "SCHARR_OF_MEAN8_GT",
+      "alpha": 0.25,
+      "beta": 0.0,
+      "delta": 1e-06,
+      "frame": "pan",
+      "gamma": 0.25,
+      "input_variant": "CORRECTED_DIFF",
+      "mask_policy": "DETACHED_BICUBIC4_SUPPORT_PER_SAMPLE_MEAN_V1",
+      "pan_channels": 1,
+      "policy_id": "S100",
+      "sampling_variant": "UBIL",
+      "seed": 6445957059257307984,
+      "sensor": "WV3",
+      "student_width": 112,
+      "total_updates": 30000,
+      "upsampler": "interp23",
+      "variant": "panda_condq"
+    },
+    "training_spec": {
+      "adam_eps": 1e-08,
+      "betas": [
+        0.9,
+        0.999
+      ],
+      "effective_batch_size": 48,
+      "full_audit_interval": 100,
+      "gradient_log_interval": 100,
+      "inherited_updates": 0,
+      "lr": 0.0001,
+      "microbatch_size": 12,
+      "min_lr": 0.0,
+      "schedule_kind": "WARMUP_COSINE",
+      "source_horizon": null,
+      "source_lr": null,
+      "source_min_lr": null,
+      "source_warmup_updates": null,
+      "total_updates": 30000,
+      "warmup_updates": 100,
+      "weight_decay": 0.01
+    },
+    "student_architecture": {
+      "bands": 8,
+      "base_reference": "BICUBIC_MS",
+      "depth": [
+        1,
+        2,
+        3
+      ],
+      "input_layout": "P0",
+      "width": 112
+    },
+    "student_sampling": {
+      "down": "CONV3_STRIDE2_PAD1",
+      "down_count": 2,
+      "rotation_equivariance_claimed": false,
+      "schema": "PANDA_STUDENT_SAMPLING_V1",
+      "shared_parameter_initialization": "ORIGINAL_NAMED_SEED_ROLE_VALUES",
+      "student_depth": [
+        1,
+        2,
+        3
+      ],
+      "student_parameters": 2785336,
+      "student_width": 112,
+      "teacher_sampling": "ORIGINAL_BASE_UNCHANGED",
+      "up": "BILINEAR_X2_ALIGN_CORNERS_FALSE_THEN_CONV3_PAD1",
+      "up_count": 2,
+      "variant": "UBIL"
+    },
+    "student_warp": {
+      "boundary": "WHOLE_SAMPLE_REFLECTION",
+      "convention": "OUTPUT_YX_READ_Y_PLUS_DY_X_PLUS_DX",
+      "dtype": "FP32",
+      "method": "lanczos4",
+      "normalization": "SUM_TO_ONE",
+      "radius": 4,
+      "schema": "PANDA_NEXT30_STUDENT_WARP_V1",
+      "shift_unit": "CURRENT_PAN_PIXEL",
+      "taps_per_axis": 8,
+      "teacher_warp": "ORIGINAL_BICUBIC_BORDER"
+    },
+    "actual_ms_base": "INTERP23",
+    "aligner_ms_input": "NATIVE_STORED_LMS_8",
+    "student_input_order": [
+      "CORRECTED_PAN",
+      "CORRECTED_MINUS_ORIGINAL_PAN",
+      "INTERP23_MS_8"
+    ],
+    "delta_stem_initialization": "ZERO_SHARED_COLUMNS_PRESERVED",
+    "shift_scale": 1.0,
+    "checkpoint_internal_update_verified": 29000,
+    "checkpoint_internal_metrics_match": true,
+    "model_state_sha256": "f3aa142d16232a74c98fcc44b8183fadb796efe06c027d61b27e8eaf0ec607c3",
+    "stream_seeds": {
+      "A_init": 1041835763260063236,
+      "T_init": 3473072722666675002,
+      "S_init": 6445957059257307984,
+      "rr_data": 3352418279673344227,
+      "rr_augmentation": 5456187404623824354,
+      "rr_epsilon": 3663875796882096132,
+      "rr_band_augmentation": 6377243126148532115
+    },
+    "stream_seed_protocol": "donor30.sha256.seed-label.v1+rr_band_augmentation"
+  },
+  "notes": [
+    "The external evaluation JSON checkpoint fields are null; existence and SHA above were independently read from the retained model files.",
+    "The 0.9736276212916086 metric is JQM in the stored evaluation, not a newly computed QNR.",
+    "Historical S1 spatial target is mean8 despite inherited RGB entries in baseline metadata.",
+    "Student actual base is interp23 despite legacy student_architecture.base_reference=BICUBIC_MS."
+  ]
+}
