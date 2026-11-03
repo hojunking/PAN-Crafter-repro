@@ -1,0 +1,314 @@
+[
+  {
+    "case": "S100DIFFUBILC25",
+    "replica": "R1",
+    "step": 25000,
+    "config_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC25_NOSOFT_R1_S261018101/attempt_01/config.json",
+    "evaluation_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC25_NOSOFT_R1_S261018101/attempt_01/evaluation_0025000.json",
+    "evaluation_sha256": "e87daa17ef4364e33deb46632a027bfd3f580ae50ba81b3d88855f983ae82406",
+    "rr": {
+      "CC": 0.9911767686267557,
+      "ERGAS": 2.0443392560081985,
+      "PSNR": 37.99903397595311,
+      "Q8": 0.9217764088173059,
+      "RMSE": 26.341061654705225,
+      "SAM": 2.774127945631222,
+      "SCC": 0.9880999978536543,
+      "SSIM": 0.9757853517158643
+    },
+    "fr": {
+      "D_lambda": 0.012410313903208353,
+      "D_s": 0.027514731691204542,
+      "HQNR": 0.9604183057016055,
+      "JQM": 0.9711236857404476
+    }
+  },
+  {
+    "case": "S100DIFFUBILC25",
+    "replica": "R2",
+    "step": 25000,
+    "config_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC25_NOSOFT_R2_S261018102/attempt_01/config.json",
+    "evaluation_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC25_NOSOFT_R2_S261018102/attempt_01/evaluation_0025000.json",
+    "evaluation_sha256": "003f6b1206eeda7705edc749236c7d52406e27dd0762756f21e0173579c94ac5",
+    "rr": {
+      "CC": 0.9912108465823735,
+      "ERGAS": 2.0389584495237414,
+      "PSNR": 38.01411210059338,
+      "Q8": 0.9218693058294212,
+      "RMSE": 26.29198023022152,
+      "SAM": 2.7687985975843055,
+      "SCC": 0.9881433299014478,
+      "SSIM": 0.9759234119936769
+    },
+    "fr": {
+      "D_lambda": 0.01201196176203923,
+      "D_s": 0.03106938314556209,
+      "HQNR": 0.9572993025567476,
+      "JQM": 0.970380502734279
+    }
+  },
+  {
+    "case": "S100DIFFUBILC30G025",
+    "replica": "R1",
+    "step": 29000,
+    "config_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30G025_NOSOFT_R1_S261018101/attempt_01/config.json",
+    "evaluation_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30G025_NOSOFT_R1_S261018101/attempt_01/evaluation_0029000.json",
+    "evaluation_sha256": "fcb6566840205f94b597c730e03a108c9730fef9291d83f2838f83d31ebd2048",
+    "rr": {
+      "CC": 0.9912409899170644,
+      "ERGAS": 2.034058729548271,
+      "PSNR": 38.03355713617027,
+      "Q8": 0.9224665697486317,
+      "RMSE": 26.243035965632288,
+      "SAM": 2.762530241629189,
+      "SCC": 0.9882404508967513,
+      "SSIM": 0.9760147055421495
+    },
+    "fr": {
+      "D_lambda": 0.011928787015815411,
+      "D_s": 0.028071624807010576,
+      "HQNR": 0.9603361226995613,
+      "JQM": 0.9736276212916086
+    }
+  },
+  {
+    "case": "S100DIFFUBILC30G025",
+    "replica": "R1",
+    "step": 30000,
+    "config_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30G025_NOSOFT_R1_S261018101/attempt_01/config.json",
+    "evaluation_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30G025_NOSOFT_R1_S261018101/attempt_01/evaluation_0030000.json",
+    "evaluation_sha256": "6aa04bb9fcebb716d23e9f0f279b52fc1c953d1b6fff6ff90a505ee725b0b0b3",
+    "rr": {
+      "CC": 0.9912429056480313,
+      "ERGAS": 2.0338970663532074,
+      "PSNR": 38.03436509668843,
+      "Q8": 0.9224228539319681,
+      "RMSE": 26.24086193987473,
+      "SAM": 2.7625513672027937,
+      "SCC": 0.9882448403738626,
+      "SSIM": 0.9760231084896354
+    },
+    "fr": {
+      "D_lambda": 0.01195166859526577,
+      "D_s": 0.028062879212749064,
+      "HQNR": 0.9603225455081914,
+      "JQM": 0.9736360524586232
+    }
+  },
+  {
+    "case": "S100DIFFUBILC30G025",
+    "replica": "R2",
+    "step": 29000,
+    "config_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30G025_NOSOFT_R2_S261018102/attempt_01/config.json",
+    "evaluation_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30G025_NOSOFT_R2_S261018102/attempt_01/evaluation_0029000.json",
+    "evaluation_sha256": "0a019fd11e66fd7d7ae042d5755d1a6ace449e4f94f3ce2e68e44129dcd43a8d",
+    "rr": {
+      "CC": 0.9912437393300836,
+      "ERGAS": 2.0359887392470997,
+      "PSNR": 38.02992138496208,
+      "Q8": 0.9220589774381154,
+      "RMSE": 26.2434782320009,
+      "SAM": 2.7618429613328748,
+      "SCC": 0.9882215720855531,
+      "SSIM": 0.9760118883842921
+    },
+    "fr": {
+      "D_lambda": 0.012110039091916375,
+      "D_s": 0.030438620788132375,
+      "HQNR": 0.9578277518244201,
+      "JQM": 0.9711913088771663
+    }
+  },
+  {
+    "case": "S100DIFFUBILC30G025",
+    "replica": "R2",
+    "step": 30000,
+    "config_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30G025_NOSOFT_R2_S261018102/attempt_01/config.json",
+    "evaluation_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30G025_NOSOFT_R2_S261018102/attempt_01/evaluation_0030000.json",
+    "evaluation_sha256": "cdd089a073ef2cc8152e651435dd6fea8ff8d9b7db59069f699c6aa82f51e94e",
+    "rr": {
+      "CC": 0.9912435398059612,
+      "ERGAS": 2.036268246334843,
+      "PSNR": 38.029811293395255,
+      "Q8": 0.9220230311372702,
+      "RMSE": 26.24387618116065,
+      "SAM": 2.7618963538211316,
+      "SCC": 0.9882195299322477,
+      "SSIM": 0.9760079545121693
+    },
+    "fr": {
+      "D_lambda": 0.012110801268993781,
+      "D_s": 0.03054697040466541,
+      "HQNR": 0.9577201393466883,
+      "JQM": 0.9711126108265485
+    }
+  },
+  {
+    "case": "S100DIFFUBILC30LR080",
+    "replica": "R1",
+    "step": 30000,
+    "config_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30LR080_NOSOFT_R1_S261018101/attempt_01/config.json",
+    "evaluation_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30LR080_NOSOFT_R1_S261018101/attempt_01/evaluation_0030000.json",
+    "evaluation_sha256": "899425652703272e116ea7fda9453cebad6451d5ba35a42c4939d881f32745dd",
+    "rr": {
+      "CC": 0.9911630401267658,
+      "ERGAS": 2.044958808335804,
+      "PSNR": 37.99154687234596,
+      "Q8": 0.9217704161996683,
+      "RMSE": 26.364412232660534,
+      "SAM": 2.771458257722766,
+      "SCC": 0.9880314108137916,
+      "SSIM": 0.9758280682683192
+    },
+    "fr": {
+      "D_lambda": 0.011393348528985842,
+      "D_s": 0.032242806781364534,
+      "HQNR": 0.9567385892899047,
+      "JQM": 0.9716460071032842
+    }
+  },
+  {
+    "case": "S100DIFFUBILC30LR080",
+    "replica": "R2",
+    "step": 30000,
+    "config_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30LR080_NOSOFT_R2_S261018102/attempt_01/config.json",
+    "evaluation_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30LR080_NOSOFT_R2_S261018102/attempt_01/evaluation_0030000.json",
+    "evaluation_sha256": "5a0d48db670654f683133f2df0b7c122f81859a8fa76b63fcad2dd1d8c0c0f60",
+    "rr": {
+      "CC": 0.9911796398738684,
+      "ERGAS": 2.0424471370219375,
+      "PSNR": 37.99794900369107,
+      "Q8": 0.9214324886910882,
+      "RMSE": 26.34175738114938,
+      "SAM": 2.7714867723696726,
+      "SCC": 0.9880887278311729,
+      "SSIM": 0.9757641174037917
+    },
+    "fr": {
+      "D_lambda": 0.013367673679716214,
+      "D_s": 0.032639738302960505,
+      "HQNR": 0.9544407561574456,
+      "JQM": 0.970396943284604
+    }
+  },
+  {
+    "case": "S100DIFFUBILC30LR120",
+    "replica": "R1",
+    "step": 30000,
+    "config_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30LR120_NOSOFT_R1_S261018101/attempt_01/config.json",
+    "evaluation_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30LR120_NOSOFT_R1_S261018101/attempt_01/evaluation_0030000.json",
+    "evaluation_sha256": "911944a99d09d1a4d0f22a797530e2cf294a5c770a65d8f93f7659313c615a0a",
+    "rr": {
+      "CC": 0.9912541567588938,
+      "ERGAS": 2.0341273852342607,
+      "PSNR": 38.03882268957087,
+      "Q8": 0.9224816872922315,
+      "RMSE": 26.218738681580824,
+      "SAM": 2.7587781970202303,
+      "SCC": 0.9882546497835165,
+      "SSIM": 0.9760716236205071
+    },
+    "fr": {
+      "D_lambda": 0.011765819944878514,
+      "D_s": 0.030615774280027493,
+      "HQNR": 0.957984157579714,
+      "JQM": 0.9727471911950563
+    }
+  },
+  {
+    "case": "S100DIFFUBILC30LR120",
+    "replica": "R2",
+    "step": 30000,
+    "config_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30LR120_NOSOFT_R2_S261018102/attempt_01/config.json",
+    "evaluation_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30LR120_NOSOFT_R2_S261018102/attempt_01/evaluation_0030000.json",
+    "evaluation_sha256": "cbe5ac8e27ff703e0307c1fa1b26f6091a57b77ac6440fbc34618d61a725e9c8",
+    "rr": {
+      "CC": 0.9912886987510768,
+      "ERGAS": 2.029356276098824,
+      "PSNR": 38.05154063303861,
+      "Q8": 0.9223689013972638,
+      "RMSE": 26.182892661319688,
+      "SAM": 2.7571250648001877,
+      "SCC": 0.988352476391071,
+      "SSIM": 0.9760807913021379
+    },
+    "fr": {
+      "D_lambda": 0.01184073128926506,
+      "D_s": 0.036439291625126984,
+      "HQNR": 0.9521679641762649,
+      "JQM": 0.9689454787902345
+    }
+  },
+  {
+    "case": "S100DIFFUBILC30",
+    "replica": "R3",
+    "step": 30000,
+    "config_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30_NOSOFT_R3_S261018103/attempt_01/config.json",
+    "evaluation_path": "work_dir/panda_tune30/PANDA_S13_TUNE_HARDONLY_30H_20261025_v1/s1/WV3/runs/PTN30_WV3_S1_S100DIFFUBILC30_NOSOFT_R3_S261018103/attempt_01/evaluation_0030000.json",
+    "evaluation_sha256": "c08948fc16d5530be401383cc71756e2bea2e2c8bc4e5486dc72ee350e43afa0",
+    "rr": {
+      "CC": 0.9912570877822379,
+      "ERGAS": 2.033196814318977,
+      "PSNR": 38.04122997147432,
+      "Q8": 0.9220692389183995,
+      "RMSE": 26.217156131735806,
+      "SAM": 2.765104379502054,
+      "SCC": 0.9882866018823533,
+      "SSIM": 0.9759779948335623
+    },
+    "fr": {
+      "D_lambda": 0.011853989502603756,
+      "D_s": 0.03092136288819001,
+      "HQNR": 0.9576002746859615,
+      "JQM": 0.9710867608188792
+    }
+  },
+  {
+    "case": "S100DIFFUBILC30",
+    "replica": "R1",
+    "step": 30000,
+    "config_path": "work_dir/panda_follow30/PANDA_S13_FOLLOW_HARDONLY_20261024_v1/s1/WV3/runs/PF30_WV3_S1_S100DIFFUBILC30_NOSOFT_R1_S261018101/attempt_01/config.json",
+    "evaluation_path": "work_dir/panda_follow30/PANDA_S13_FOLLOW_HARDONLY_20261024_v1/s1/WV3/runs/PF30_WV3_S1_S100DIFFUBILC30_NOSOFT_R1_S261018101/attempt_01/evaluation_0030000.json",
+    "evaluation_sha256": "69ccc929014372f56c8a82ee6394ee00c9ffd270cc704ae3b5f89a924fef9048",
+    "rr": {
+      "CC": 0.9912569435216027,
+      "ERGAS": 2.0340504561912267,
+      "PSNR": 38.03789269990019,
+      "Q8": 0.9223240443758746,
+      "RMSE": 26.22188433103068,
+      "SAM": 2.7645143966226615,
+      "SCC": 0.9882583335807755,
+      "SSIM": 0.9760028306022901
+    },
+    "fr": {
+      "D_lambda": 0.012045767097824539,
+      "D_s": 0.03294538316328848,
+      "HQNR": 0.9554108132266868,
+      "JQM": 0.9705665436802333
+    }
+  },
+  {
+    "case": "S100DIFFUBILC30",
+    "replica": "R2",
+    "step": 30000,
+    "config_path": "work_dir/panda_follow30/PANDA_S13_FOLLOW_HARDONLY_20261024_v1/s1/WV3/runs/PF30_WV3_S1_S100DIFFUBILC30_NOSOFT_R2_S261018102/attempt_01/config.json",
+    "evaluation_path": "work_dir/panda_follow30/PANDA_S13_FOLLOW_HARDONLY_20261024_v1/s1/WV3/runs/PF30_WV3_S1_S100DIFFUBILC30_NOSOFT_R2_S261018102/attempt_01/evaluation_0030000.json",
+    "evaluation_sha256": "fa88684bfbf0e318004d04a272b84c0474fd1114d72dd9d57605851b3aaabea9",
+    "rr": {
+      "CC": 0.9912817599043011,
+      "ERGAS": 2.030662624583681,
+      "PSNR": 38.04966325513182,
+      "Q8": 0.9222032385231561,
+      "RMSE": 26.1851803078087,
+      "SAM": 2.7596403213892504,
+      "SCC": 0.9883581388129533,
+      "SSIM": 0.9760943450025469
+    },
+    "fr": {
+      "D_lambda": 0.01225567666419552,
+      "D_s": 0.033820745000915434,
+      "HQNR": 0.9543463729342697,
+      "JQM": 0.9691275999735552
+    }
+  }
+]
