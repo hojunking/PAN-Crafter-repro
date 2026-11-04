@@ -1,0 +1,42 @@
+{
+  "checked_at": "2026-11-04T08:10:25.505882+00:00",
+  "status": "LOCAL_IMPLEMENTATION_VALIDATED_REMOTE_NOT_STARTED",
+  "campaign_id": "PANDA_S2_QB_FROZEN_S2_20261104_v1",
+  "stage1_training_runs": 0,
+  "new_student_runs": 22,
+  "archived_baselines": 2,
+  "unit_tests": {
+    "passed": 15,
+    "failed": 0,
+    "seconds": 106.627,
+    "environment": "synthetic CPU; CUDA_VISIBLE_DEVICES empty",
+    "clean_index_export": true,
+    "log": "unittest.txt"
+  },
+  "source_release": {
+    "file_count": 509,
+    "source_sha256": "f13e52c2d0a494e67a1c62455dc08c533001bee4a48c365325cee26ec39b7ddf",
+    "clean_index_export_verified": true
+  },
+  "reference_environment": {
+    "verified": true,
+    "image": "hojunqueen/pancrafter-env:torch2.4.0-cu118",
+    "gpu_exposed": false,
+    "network": "none",
+    "command": "python -m panda_qb_s2_frozen.release --environment"
+  },
+  "case_csv_matches_registry": true,
+  "archived_baseline_posted_configs_match_original_code": {
+    "D4": true,
+    "D2": true
+  },
+  "remote_s2_files_verified": false,
+  "remote_s2_training_started": false,
+  "live_sheet_modified": false,
+  "source_weights_transferred": false,
+  "existing_campaign_code_changed": false,
+  "limitations": [
+    "s2 actual donor/checkpoint/calibration SHA and CUDA preflight run on s2 launcher",
+    "full 30K training not exercised in local implementation validation"
+  ]
+}

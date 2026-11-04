@@ -1,0 +1,20 @@
+test_exact_selected_donor_identity_is_required (test_campaign.CampaignTests) ... ok
+test_full_student_queue_and_resume (test_campaign.CampaignTests) ... ok
+test_missing_sources_never_fall_back_to_training (test_campaign.CampaignTests) ... ok
+test_queue_seed_recipe_and_source_protocol (test_campaign.CampaignTests) ... ok
+test_raw_thresholds_rounded_display_and_pass_deduplication (test_campaign.CampaignTests) ... ok
+test_source_mount_is_read_only_and_output_is_distinct (test_campaign.CampaignTests) ... ok
+test_unknown_student_error_stops_with_evidence (test_campaign.CampaignTests) ... ok
+test_duplicate_launch_is_idempotent_and_modified_container_is_rejected (test_lifecycle.LifecycleTests) ... ok
+test_interrupted_launch_adopts_only_its_authenticated_container (test_lifecycle.LifecycleTests) ... ok
+test_resume_uses_original_container_without_new_cost_or_training_command (test_lifecycle.LifecycleTests) ... ok
+test_worker_requires_fresh_verified_final_sheet_readback (test_lifecycle.LifecycleTests) ... ok
+test_worker_stops_training_if_publisher_process_dies (test_lifecycle.LifecycleTests) ... ok
+test_archived_baseline_r1_forward_loss_gradient_and_calibration_exact_parity (test_science.ScienceTests) ... ok
+test_every_recipe_actual_graph_loss_and_frozen_modules (test_science.ScienceTests) ... ok
+test_w128_actual_adam_rng_stream_complete_resume_and_frozen_hashes (test_science.ScienceTests) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 106.627s
+
+OK
