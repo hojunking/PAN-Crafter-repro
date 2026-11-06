@@ -1,0 +1,21 @@
+{
+  "external_wald_sha256": "c7d076395eec052dd4ed391e6f51e5fa79661a3fc283816a63ccdb100ff5bdbf",
+  "files": {
+    "ta2/evaluation.py": "15405c198a9dd52236ea1042d40cdebec516db4d8f5a70177577b6c865075b7d",
+    "tools/eval_dlpan.py": "5671d44da1026653ac028ff97f81375420fa195a55fd3721ee8140904239fdab",
+    "tools/metrics/eval_fr.py": "b511d42b4db46d863c737b50606e9488c8ca5d9c7b07678ddc5bb7c1d9df01d4",
+    "tools/metrics/eval_rr.py": "a64a95ffde9b7d0278fa883bda1acaf895cca74d2b07b79f56285c60e8ba0c4a",
+    "tools/metrics/jqm.py": "6962af58f8ac251fb087fbcf6dbde40bc502ec34083bd60a543b2daf0f8ce94b",
+    "tools/metrics/q2n.py": "89d1bf28a211e18a6fa8a2b6f8f7162f4b6716d15b2097888e773f1f73be10d1"
+  },
+  "fr_protocol": "all20 full512 originalPAN/nativeLMS; scene-wise HQNR mean; no alignment mask",
+  "jqm_variant": "SRF-substitute (NNLS-normalized), MTF41 phase2, global CMSC v1=0.5; not SIPSA-equivalent",
+  "metric_conversion": "clip DN [0,maxDN], no rounding except internal Q2n",
+  "numpy": "1.26.4",
+  "precision": "FP32; TF32 disabled",
+  "prediction_export": "unclipped float32 DN; no rounding",
+  "rr_protocol": "all20 dim_cut21 [20:-21], Q32, SCC2Dzero, PSNRglobal, SSIMgauss11",
+  "scipy": "1.13.1",
+  "skimage": "0.24.0",
+  "torch": "2.4.0"
+}

@@ -52,6 +52,12 @@ before deleting; uncommitted missing files or changed evidence stop execution.
 For future republication of a retired campaign, use its
 `CHECKPOINT_RETIREMENT.json` command, for example:
 
+WV3-main changed to four decimal places later on 2026-11-06. For its historical
+RGB rows use `python -m panda_wv3_reporting4 publish --kind rgb --apply` as
+documented in [the precision overlay](../panda_wv3_reporting4/README.md).
+The original command below remains the generic entrypoint for other campaigns;
+do not use its old three-decimal RGB view after migrating WV3-main.
+
 ```bash
 python -m checkpoint_cleanup publish --family panda_wv3_main_rgb --apply
 ```
