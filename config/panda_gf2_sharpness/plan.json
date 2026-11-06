@@ -1,0 +1,75 @@
+{
+  "campaign_id": "PANDA_S3_GF2_SHARPNESS_REVIEW_20261106_v1",
+  "server": "s3",
+  "dataset": "GF2",
+  "cases": [
+    {
+      "case": "GF2_C60LR150",
+      "replica": "R1",
+      "seed": 261018101,
+      "lr": 0.00015,
+      "run_id": "PSFC_GF2_S3_GF2_C60LR150_NOSOFT_R1_S261018101",
+      "original_directory": "work_dir/panda_sensor_focus/PANDA_S13_SENSOR_FOCUS_FIXEDDONOR_20261029_v1/s3/GF2/runs/PSFC_GF2_S3_GF2_C60LR150_NOSOFT_R1_S261018101/attempt_01"
+    },
+    {
+      "case": "GF2P_C60LR200",
+      "replica": "R1",
+      "seed": 261018101,
+      "lr": 0.0002,
+      "run_id": "PSFC_GF2_S3_GF2P_C60LR200_NOSOFT_R1_S261018101",
+      "original_directory": "work_dir/panda_gf2_psnr/PANDA_S3_GF2_PSNR4508_FIXEDDONOR_20261030_v1/s3/GF2/runs/PSFC_GF2_S3_GF2P_C60LR200_NOSOFT_R1_S261018101/attempt_01"
+    },
+    {
+      "case": "GF2_C60LR150",
+      "replica": "R2",
+      "seed": 261018102,
+      "lr": 0.00015,
+      "run_id": "PSFC_GF2_S3_GF2_C60LR150_NOSOFT_R2_S261018102",
+      "original_directory": "work_dir/panda_sensor_focus/PANDA_S13_SENSOR_FOCUS_FIXEDDONOR_20261029_v1/s3/GF2/runs/PSFC_GF2_S3_GF2_C60LR150_NOSOFT_R2_S261018102/attempt_01"
+    },
+    {
+      "case": "GF2P_C60LR200",
+      "replica": "R2",
+      "seed": 261018102,
+      "lr": 0.0002,
+      "run_id": "PSFC_GF2_S3_GF2P_C60LR200_NOSOFT_R2_S261018102",
+      "original_directory": "work_dir/panda_gf2_psnr/PANDA_S3_GF2_PSNR4508_FIXEDDONOR_20261030_v1/s3/GF2/runs/PSFC_GF2_S3_GF2P_C60LR200_NOSOFT_R2_S261018102/attempt_01"
+    }
+  ],
+  "inspect_steps": [
+    1000,
+    2000,
+    5000,
+    10000,
+    20000,
+    30000,
+    47000,
+    60000
+  ],
+  "missing_early_replay_steps": [
+    1000,
+    2000,
+    5000
+  ],
+  "replay_saves": [
+    500,
+    1000,
+    2000,
+    3000,
+    5000
+  ],
+  "execution_stop": 5000,
+  "optimizer_horizon": 60000,
+  "donor_step": 42000,
+  "donor_sha256": "937ac56b559b76a151df661bbb853119512d6f9cab283346c61186db27ff7478",
+  "stage1_training": false,
+  "cross_server_weight_transfer": false,
+  "target": {
+    "HQNR": 0.9645,
+    "ERGAS": 0.522,
+    "PSNR": 45.08
+  },
+  "publication": "LOCAL_DIAGNOSTIC_ONLY; existing scientific rows unchanged",
+  "missing_late_weights": "Report unavailable; do not train to 47K/60K for this review",
+  "baseline": "Current qualitative GF2_C60LR150 R1 47K; numerical goal GF2P_C60LR200 R2 47K"
+}

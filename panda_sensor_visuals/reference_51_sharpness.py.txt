@@ -1,0 +1,97 @@
+"""Perceived sharpness on QB / GF2 (FR), current Ours (QB 21K, GF2 47K) vs all comparison methods; WV3 as reference.
+All methods read from their rendered output PNGs (same to_rgb 1-99 % stretch), luminance = mean RGB / 255.
+Scene-wide: edge acutance at PAN strong edges, hf energy, flat-area grain, hf correlation with PAN.
+Small objects (WV3 car detector): acutance around objects, peak-vs-surround separability.
+Sheets (PAN | LRMS | CANConv | U-Know | PAN-Crafter | Ours) -> argv[1]."""
+import json, os, sys, numpy as np
+from PIL import Image, ImageDraw
+from scipy.ndimage import gaussian_filter, maximum_filter, minimum_filter, uniform_filter, sobel
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import common as C
+Q = os.path.join(C.ROOT, "qualitative_results")
+OUT = sys.argv[1] if len(sys.argv) > 1 else None
+def gm(x): return np.hypot(sobel(x, 1, mode="nearest"), sobel(x, 0, mode="nearest"))
+def lstd(x, k):
+    m = uniform_filter(x, k); return np.sqrt(np.maximum(uniform_filter(x * x, k) - m * m, 0))
+def objs(pan):
+    bg = gaussian_filter(pan, 6.); dd = pan - bg; flat = lstd(bg, 21) < .045
+    pk = (dd == maximum_filter(dd, 7)) & (dd > .10) & flat
+    ys, xs = np.where(pk); k = (ys > 8) & (ys < 503) & (xs > 8) & (xs < 503); return ys[k], xs[k]
+def load(p): return np.asarray(Image.open(p).convert("RGB"))
+def lum(a): return a.astype(np.float32).mean(2) / 255
+def methods(s):
+    m = {k: os.path.join(Q, k, s, "full", "output") for k in
+         ["CANConv", "DCPNet", "FusionNet", "LAGNet", "PanDiff", "PanNet", "S2DBPN", "TMDiff"]}
+    m["U-Know"] = os.path.join(Q, "FSA-S", s, "full", "output")
+    m["PAN-Crafter (old set)"] = os.path.join(Q, "pan-crafter", s, "full", "output")
+    m["PAN-Crafter (s5)"] = os.path.join(C.FALLBACK, "qualitative_results", "PAN-Crafter-s5", s, "full", "output")
+    m["Ours"] = os.path.join(Q, "PANDA", s, "full", "output")
+    if s == "wv3":
+        m["Ours"] = os.path.join(Q, "PANDA", "wv3", "full", "output")
+        m["Ours v2 (1K)"] = os.path.join(Q, "PANDA", "wv3_v2", "full", "output")
+    return m
+COLS = ["CANConv", "U-Know", "PAN-Crafter (s5)", "Ours"]
+NAMES = ["edge acut", "hf", "flat grain", "hf corr PAN", "obj acut", "obj sep",
+         "edge acut+-2", "hfcorr best", "|shift|", "obj sep+-2", "own grad p95"]
+summary = {}
+for s in ["qb", "gf2", "wv3"]:
+    M = methods(s); res = {k: [] for k in M}; nobj = 0; wins = []
+    for i in range(20):
+        pan = lum(load(os.path.join(Q, "PANDA", s, "full", "pan", "testimg%d.png" % i)))
+        g = gm(pan); E = g >= np.quantile(g, .90)
+        ps = lstd(pan, 9); F = ps <= np.quantile(ps, .20)
+        hp = pan - gaussian_filter(pan, 1.5)
+        ys, xs = objs(pan); nobj += len(ys)
+        near = np.zeros_like(pan, bool)
+        for y, x in zip(ys, xs): near[y-4:y+5, x-4:x+5] = True
+        for k, p in M.items():
+            L = lum(load(os.path.join(p, "testimg%d.png" % i))); h = L - gaussian_filter(L, 1.5)
+            gL = gm(L)
+            sep = (maximum_filter(L, 3) - minimum_filter(L, 9))[ys, xs].mean() if len(ys) else np.nan
+            a, b = h - h.mean(), hp - hp.mean()                       # circular x-corr, best integer shift within +-3 px
+            xc = np.real(np.fft.ifft2(np.fft.fft2(a) * np.conj(np.fft.fft2(b)))) / (np.linalg.norm(a) * np.linalg.norm(b))
+            sh_ = [(dy, dx) for dy in range(-3, 4) for dx in range(-3, 4)]
+            j = int(np.argmax([xc[dy % 512, dx % 512] for dy, dx in sh_]))
+            sep2 = (maximum_filter(L, 5) - minimum_filter(L, 11))[ys, xs].mean() if len(ys) else np.nan
+            res[k].append((gL[E].mean(), np.abs(h).mean(), lstd(L, 5)[F].mean(),
+                           np.corrcoef(h.ravel(), hp.ravel())[0, 1],
+                           gL[near].mean() if near.any() else np.nan, sep,
+                           maximum_filter(gL, 5)[E].mean(), xc[sh_[j][0] % 512, sh_[j][1] % 512],
+                           float(np.hypot(*sh_[j])), sep2,
+                           np.quantile(gL, .95)))
+        if s != "wv3":   # candidate windows for the visual sheet: 128 px, stride 32
+            cm = np.zeros_like(pan); cm[ys, xs] = 1
+            for y0 in range(0, 385, 32):
+                for x0 in range(0, 385, 32):
+                    wins.append((i, y0, x0, float(g[y0:y0+128, x0:x0+128].mean()), int(cm[y0:y0+128, x0:x0+128].sum())))
+    tab = {k: np.nanmean(np.array(v, float), 0) for k, v in res.items()}
+    summary[s] = {k: [float(x) for x in v] for k, v in tab.items()}
+    print("\n== %s  (small objects detected: %d over 20 scenes)" % (s.upper(), nobj))
+    print("%-22s" % "method" + "".join("%13s" % n for n in NAMES))
+    for k in sorted(tab, key=lambda k: -tab[k][0]):
+        print("%-22s" % k + "".join("%13.4f" % x for x in tab[k]))
+    ranks = {n: 1 + sorted([-tab[k][j] if j not in (2, 8) else tab[k][j] for k in tab]).index(-tab["Ours"][j] if j not in (2, 8) else tab["Ours"][j])
+             for j, n in enumerate(NAMES)}
+    print("Ours rank of %d (grain: lower = better):" % len(tab), ranks)
+    if s == "wv3" or OUT is None: continue
+    pick, used = [], set()
+    for key in (lambda w: -w[4], lambda w: -w[3]):          # 4 object-rich, then 4 edge-rich, distinct scenes
+        n = 0
+        for w in sorted(wins, key=key):
+            if w[0] in used: continue
+            pick.append(w); used.add(w[0]); n += 1
+            if n == 4: break
+    S = 256; names = ["PAN", "LRMS"] + COLS
+    sh = Image.new("RGB", (70 + len(names) * (S + 4), 18 + len(pick) * (S + 4)), "white"); dr = ImageDraw.Draw(sh)
+    for c, nm in enumerate(names): dr.text((74 + c * (S + 4), 3), nm, fill="black")
+    for t, (i, y0, x0, ge, no) in enumerate(pick):
+        imgs = [load(os.path.join(Q, "PANDA", s, "full", "pan", "testimg%d.png" % i)),
+                load(os.path.join(Q, "PANDA", s, "full", "lms", "testimg%d.png" % i))] + \
+               [load(os.path.join(M[k], "testimg%d.png" % i)) for k in COLS]
+        yy = 18 + t * (S + 4)
+        dr.text((2, yy + 4), "%s s%d\n(%d,%d)\n%d obj" % (s.upper(), i, x0, y0, no), fill="black")
+        for c, a in enumerate(imgs):
+            sh.paste(Image.fromarray(a[y0:y0+128, x0:x0+128]).resize((S, S), Image.BILINEAR), (74 + c * (S + 4), yy))
+    sh.save(os.path.join(OUT, "sharp_%s.png" % s))
+    summary[s + "_sheet"] = [list(map(float, w)) for w in pick]
+json.dump(summary, open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "_sharpness_qb_gf2.json"), "w"), indent=1)
