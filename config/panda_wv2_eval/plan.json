@@ -1,0 +1,196 @@
+{
+  "campaign_id": "PANDA_WV2_ZEROSHOT_S1_20261106_v1",
+  "server": "s1",
+  "target_dataset": "WV2",
+  "training_dataset": "WV3",
+  "created_at": "2026-11-06",
+  "output": "work_dir/panda_wv2_eval/PANDA_WV2_ZEROSHOT_S1_20261106_v1/s1/WV2",
+  "cases": [
+    {
+      "case_id": "Z1_M5_R3_29K",
+      "experiment": "WV2 ZS Z1_M5_R3_29K",
+      "source_experiment": "WV3-MAIN-M5-LR110 R3 (RGB)",
+      "source_run_id": "WMRGB_WV3_S1_M5_LR110_R3_S261018103",
+      "source_campaign": "PANDA_WV3_MAIN_RGB_S1_20261103_v1",
+      "source_step": 29000,
+      "width": 112,
+      "checkpoint": "work_dir/panda_wv3_main_rgb/PANDA_WV3_MAIN_RGB_S1_20261103_v1/s1/WV3/runs/WMRGB_WV3_S1_M5_LR110_R3_S261018103/models/step_0029000.pt",
+      "checkpoint_sha256": "b4c362301d26bd943678aeac8dadb5dddaeff92f68c2f1cf91423bcabaf67814",
+      "evaluation": "work_dir/panda_wv3_main_rgb/PANDA_WV3_MAIN_RGB_S1_20261103_v1/s1/WV3/runs/WMRGB_WV3_S1_M5_LR110_R3_S261018103/evaluation_0029000.json",
+      "evaluation_sha256": "3b5e39a4ad56b9a50f9ec87deede2783c1547204cfcc8a5d31423513b1f57a0e",
+      "config": "work_dir/panda_wv3_main_rgb/PANDA_WV3_MAIN_RGB_S1_20261103_v1/s1/WV3/runs/WMRGB_WV3_S1_M5_LR110_R3_S261018103/config.json",
+      "config_sha256": "b86053dddd9f0793e3d935fd567f1b45a53606d47fa1563256b4b31990b8bd7d",
+      "source_metrics": {
+        "rr": {
+          "CC": 0.9912001936403844,
+          "ERGAS": 2.0394382066452796,
+          "PSNR": 38.0112352266526,
+          "Q8": 0.9219927585935016,
+          "RMSE": 26.302398762173986,
+          "SAM": 2.765077411572579,
+          "SCC": 0.9881293388951908,
+          "SSIM": 0.9759370246963573
+        },
+        "fr": {
+          "D_lambda": 0.012362283160784138,
+          "D_s": 0.027371443052503996,
+          "HQNR": 0.9606112044852628,
+          "JQM": 0.975130641702733
+        }
+      },
+      "source_repeat": 3,
+      "source_seed": 261018103,
+      "source_lr": 0.00011,
+      "source_alpha": 0.25,
+      "source_gamma": 0.25
+    },
+    {
+      "case_id": "Z2_W128_W1_R1_30K",
+      "experiment": "WV2 ZS Z2_W128_W1_R1_30K",
+      "source_experiment": "WV3 MAIN W128 W1_G025_LR100 R1 (RGB)",
+      "source_run_id": "WM128_WV3_S1_W1_G025_LR100_R1_S261018101",
+      "source_campaign": "PANDA_WV3_W128_FROZEN_S1_20261106_v1",
+      "source_step": 30000,
+      "width": 128,
+      "checkpoint": "work_dir/panda_wv3_w128/PANDA_WV3_W128_FROZEN_S1_20261106_v1/s1/WV3/runs/WM128_WV3_S1_W1_G025_LR100_R1_S261018101/models/step_0030000.pt",
+      "checkpoint_sha256": "15dceccc31b2842cccc30ae69375dc3662609fe96afb2d20e29512a47541cc34",
+      "evaluation": "work_dir/panda_wv3_w128/PANDA_WV3_W128_FROZEN_S1_20261106_v1/s1/WV3/runs/WM128_WV3_S1_W1_G025_LR100_R1_S261018101/evaluation_0030000.json",
+      "evaluation_sha256": "116e5d0203e0d4a5f349939bbef26666b910a62d0109018e1fd47c7d6f2ad8c6",
+      "config": "work_dir/panda_wv3_w128/PANDA_WV3_W128_FROZEN_S1_20261106_v1/s1/WV3/runs/WM128_WV3_S1_W1_G025_LR100_R1_S261018101/config.json",
+      "config_sha256": "5be29e4c22f00cd08e5515530e3b688a519bb30a7511ffdf4b01f41301e09375",
+      "source_metrics": {
+        "rr": {
+          "CC": 0.9912358291606592,
+          "ERGAS": 2.0327495631419117,
+          "PSNR": 38.03044158155885,
+          "Q8": 0.9224663635092121,
+          "RMSE": 26.2494175478123,
+          "SAM": 2.7616675625304676,
+          "SCC": 0.9882260886546227,
+          "SSIM": 0.9760394406450519
+        },
+        "fr": {
+          "D_lambda": 0.012505077852703028,
+          "D_s": 0.028064906095528176,
+          "HQNR": 0.9597951118066502,
+          "JQM": 0.9753042766242659
+        }
+      },
+      "source_repeat": 1,
+      "source_seed": 261018101,
+      "source_lr": 0.0001,
+      "source_alpha": 0.25,
+      "source_gamma": 0.25
+    },
+    {
+      "case_id": "Z3_M0_R2_28K",
+      "experiment": "WV2 ZS Z3_M0_R2_28K",
+      "source_experiment": "WV3-MAIN-M0-OURS R2 (RGB)",
+      "source_run_id": "WMRGB_WV3_S1_M0_OURS_R2_S261018102",
+      "source_campaign": "PANDA_WV3_MAIN_RGB_S1_20261103_v1",
+      "source_step": 28000,
+      "width": 112,
+      "checkpoint": "work_dir/panda_wv3_main_rgb/PANDA_WV3_MAIN_RGB_S1_20261103_v1/s1/WV3/runs/WMRGB_WV3_S1_M0_OURS_R2_S261018102/models/step_0028000.pt",
+      "checkpoint_sha256": "d3fb2841ac7a5cc8b09bb8db16222659c8244800a0adcd35ec0c90c8dccd5b19",
+      "evaluation": "work_dir/panda_wv3_main_rgb/PANDA_WV3_MAIN_RGB_S1_20261103_v1/s1/WV3/runs/WMRGB_WV3_S1_M0_OURS_R2_S261018102/evaluation_0028000.json",
+      "evaluation_sha256": "fae60c59a17fb1ec637e6405c0a505bcfaff562ad0490fb272a9f8ccc3cb7242",
+      "config": "work_dir/panda_wv3_main_rgb/PANDA_WV3_MAIN_RGB_S1_20261103_v1/s1/WV3/runs/WMRGB_WV3_S1_M0_OURS_R2_S261018102/config.json",
+      "config_sha256": "94c62059e08745822100d0de4c925bb26753532011c181a82d53ccf66347c4de",
+      "source_metrics": {
+        "rr": {
+          "CC": 0.9912144255549876,
+          "ERGAS": 2.0393691896110333,
+          "PSNR": 38.020385237000404,
+          "Q8": 0.9221507045673729,
+          "RMSE": 26.28623976260363,
+          "SAM": 2.765813327764557,
+          "SCC": 0.9881793457557247,
+          "SSIM": 0.9759262824028557
+        },
+        "fr": {
+          "D_lambda": 0.012221504601198984,
+          "D_s": 0.02897257424924978,
+          "HQNR": 0.9591662145107472,
+          "JQM": 0.9745246619234338
+        }
+      },
+      "source_repeat": 2,
+      "source_seed": 261018102,
+      "source_lr": 0.0001,
+      "source_alpha": 0.25,
+      "source_gamma": 0.25
+    }
+  ],
+  "data": {
+    "rr": {
+      "path": "data/PanCollection/WV2/reduced_examples_h5/test_wv2_multiExm1.h5",
+      "sha256": "ccba7ddf6674eea7f3699e50fe8278ec7ba4f109a2d331a6be8f4c8f2a22a09b"
+    },
+    "fr": {
+      "path": "data/PanCollection/WV2/full_examples_h5/test_wv2_OrigScale_multiExm1.h5",
+      "sha256": "6dc8a2354d98e0b9fbce82c1887642c06aad5c9e8468dd8f95e01bc38782173d"
+    }
+  },
+  "band_order": [
+    "Coastal",
+    "Blue",
+    "Green",
+    "Yellow",
+    "Red",
+    "Red Edge",
+    "NIR1",
+    "NIR2"
+  ],
+  "peak_DN": 2047.0,
+  "ratio": 4,
+  "fr_h5_matches_mat20": {
+    "path": "data/PanCollection/WV2/full_examples_mat20/test_wv2_OrigScale_mat20.h5",
+    "sha256": "e4395a09ea4e7da632dc56508be7a18ae063286fefc7a9b450cbee714b2e8469",
+    "all_20_pan_ms_lms_equal": true
+  },
+  "dependency": {
+    "state_path": "work_dir/panda_wv3_w128/PANDA_WV3_W128_FROZEN_S1_20261106_v1/s1/WV3/campaign_state.json",
+    "campaign_id": "PANDA_WV3_W128_FROZEN_S1_20261106_v1",
+    "queue_sha256": "e8b317ca917a86cccc075188135a2f45f568a4a67cb45511ba8f84752aa177cc",
+    "run_ids": [
+      "WM128_WV3_S1_W2_G050_LR100_R1_S261018101",
+      "WM128_WV3_S1_W1_G025_LR100_R1_S261018101",
+      "WM128_WV3_S1_W3_G025_LR110_R1_S261018101",
+      "WM128_WV3_S1_W4_G050_LR110_R1_S261018101",
+      "WM128_WV3_S1_W5_G0125_LR100_R1_S261018101",
+      "WM128_WV3_S1_W6_G0125_LR110_R1_S261018101",
+      "WM128_WV3_S1_W2_G050_LR100_R2_S261018102",
+      "WM128_WV3_S1_W1_G025_LR100_R2_S261018102",
+      "WM128_WV3_S1_W3_G025_LR110_R2_S261018102",
+      "WM128_WV3_S1_W4_G050_LR110_R2_S261018102",
+      "WM128_WV3_S1_W5_G0125_LR100_R2_S261018102",
+      "WM128_WV3_S1_W6_G0125_LR110_R2_S261018102",
+      "WM128_WV3_S1_W2_G050_LR100_R3_S261018103",
+      "WM128_WV3_S1_W1_G025_LR100_R3_S261018103",
+      "WM128_WV3_S1_W3_G025_LR110_R3_S261018103",
+      "WM128_WV3_S1_W4_G050_LR110_R3_S261018103",
+      "WM128_WV3_S1_W5_G0125_LR100_R3_S261018103",
+      "WM128_WV3_S1_W6_G0125_LR110_R3_S261018103"
+    ],
+    "required_step": 30000,
+    "required_status": "COMPLETED"
+  },
+  "destination": {
+    "spreadsheet_id": "1_ANKPQjQzMZrw9fUc1OI3B9xF4K3sxNa_fybg1kjBXE",
+    "sheet_id": 261001013,
+    "sheet_title": "WV2-ablations"
+  },
+  "method": {
+    "training_updates": 0,
+    "aligner_scale": 1,
+    "warp": "LANCZOS4_REFLECTION",
+    "base": "interp23_from_LRMS",
+    "aligner_MS": "stored_LMS",
+    "student_input": "corrected_PAN, corrected-original_PAN, LRMS_base",
+    "TTA": false,
+    "adaptation": false,
+    "selection": "THREE_FIXED_WV3_CHECKPOINTS_BEFORE_ANY_WV2_RESULT",
+    "WV2_targets": null
+  },
+  "sheet_policy": "ALL_THREE_ZERO_SHOT_RESULTS_NO_WV2_TARGET_FILTER"
+}
