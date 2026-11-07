@@ -1,0 +1,7 @@
+{
+  "status": "VERIFIED",
+  "files": 482,
+  "source_release": "d19f165c1beaf36b0dd346df0aff4a31d3df0d25a732030a906faaba2e5c62cc",
+  "tests": 26,
+  "test_scope": "clean indexed source closure without local untracked packages/data/weights"
+}

@@ -1,0 +1,83 @@
+[
+  {
+    "case": "H2_REF",
+    "repeat": 1,
+    "status": "VERIFIED",
+    "primary_step": 29000,
+    "records": 30,
+    "primary_weight_status": "METRICS_ONLY_WEIGHT_PRUNED",
+    "receipt_sha256": "939911e8ebf0a0360a386b0496763b2e43c381bed0c7cc98634d31c770a6c7f8"
+  },
+  {
+    "case": "H2_A0125",
+    "repeat": 1,
+    "status": "VERIFIED",
+    "primary_step": 29000,
+    "records": 30,
+    "primary_weight_status": "METRICS_ONLY_WEIGHT_PRUNED",
+    "receipt_sha256": "b4bc58893bae4382251dfe96371dcd17b799f32bb7d35ea17470a478f8c819e8"
+  },
+  {
+    "case": "H2_G0125",
+    "repeat": 1,
+    "status": "VERIFIED",
+    "primary_step": 29000,
+    "records": 30,
+    "primary_weight_status": "METRICS_ONLY_WEIGHT_PRUNED",
+    "receipt_sha256": "0aeb113c8b1156a0221a97cdbe6947aea4f2b4087a717990c3fd48b52c06aa21"
+  },
+  {
+    "case": "H2_REF",
+    "repeat": 2,
+    "status": "VERIFIED",
+    "primary_step": 29000,
+    "records": 30,
+    "primary_weight_status": "VERIFIED_RETAINED_WEIGHT",
+    "receipt_sha256": "52c1674abee9c88170fe454abb1ca0bd4ed4ae8c5404efe0914f459055a70d08"
+  },
+  {
+    "case": "H2_A0125",
+    "repeat": 2,
+    "status": "VERIFIED",
+    "primary_step": 29000,
+    "records": 30,
+    "primary_weight_status": "METRICS_ONLY_WEIGHT_PRUNED",
+    "receipt_sha256": "7441ecd6056947053391db581eb90432dace91abdc2e27dc34cec3a241c9e4db"
+  },
+  {
+    "case": "H2_G0125",
+    "repeat": 2,
+    "status": "VERIFIED",
+    "primary_step": 29000,
+    "records": 30,
+    "primary_weight_status": "METRICS_ONLY_WEIGHT_PRUNED",
+    "receipt_sha256": "21ece1e6b4f7faf0b87df33bc171d7914e3d921073b9664e027d2782bd93bd53"
+  },
+  {
+    "case": "H2_REF",
+    "repeat": 3,
+    "status": "VERIFIED",
+    "primary_step": 29000,
+    "records": 30,
+    "primary_weight_status": "METRICS_ONLY_WEIGHT_PRUNED",
+    "receipt_sha256": "3291c48e13dc15821712ce07a2e16d0efa1fb6e17a2b7ca57c758c3a5dd7ae61"
+  },
+  {
+    "case": "H2_A0125",
+    "repeat": 3,
+    "status": "VERIFIED",
+    "primary_step": 29000,
+    "records": 30,
+    "primary_weight_status": "METRICS_ONLY_WEIGHT_PRUNED",
+    "receipt_sha256": "757c497515288743657228044ace5407e191f8feeb3141e1164d9134922aa2c8"
+  },
+  {
+    "case": "H2_G0125",
+    "repeat": 3,
+    "status": "VERIFIED",
+    "primary_step": 29000,
+    "records": 30,
+    "primary_weight_status": "METRICS_ONLY_WEIGHT_PRUNED",
+    "receipt_sha256": "90a3697e25b565316ddc3ae73e08163648d68d01235645a08046e788b48400b2"
+  }
+]

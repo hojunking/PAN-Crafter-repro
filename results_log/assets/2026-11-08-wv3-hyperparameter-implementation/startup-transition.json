@@ -1,0 +1,12 @@
+{
+  "schema": "WV3_HYPER_PRELAUNCH_RESET_V1",
+  "reason": "Fix Sheet allocation and complete portable source manifest before first1K evaluation",
+  "archived_directory": "work_dir/panda_wv3_hyper/PANDA_WV3_HYPER_S13_20261108_v1/s1/startup_attempt_01_transport_fix/WV3",
+  "archived_updates": 67,
+  "new_updates": 0,
+  "scientific_recipe_changed": false,
+  "evaluated_fresh_checkpoints": 0,
+  "same_seed_fresh_restart": true,
+  "old_container": "panda-wv3-hyper-s1-startup-transport-v1",
+  "sheet_restoration_verified": true
+}
