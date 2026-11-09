@@ -1,0 +1,15 @@
+{
+  "schema": "GF2_CPU_SELECTION_RELEASE_V1",
+  "files": {
+    "config/panda_gf2_sharpness/reference_metrics.json": "b900d85f45c628fe62c15e4d20bf3922c21d4efbb467002317782a2fcb3949cc",
+    "panda_gf2_sharpness/SELECTION.md": "3f382bd7e7c97fa36c9d6852257f5a65d20a7d7a8ad6b3b77b0c47f926fa72ba",
+    "panda_gf2_sharpness/__init__.py": "3c1a9ecb8d167acfda3bde229a8ded33d31f2356a090ad87498ca11aa57a23fc",
+    "panda_gf2_sharpness/select.py": "53e9af1456bc81d6bb26595fc3c410b20e1f49c052164ecbc4ef8c43a48ee833",
+    "panda_gf2_sharpness/selection_metrics.py": "aea3cad1ceb3afd0727a9268150d077ec0b19d89ae2a055e2869cd674c59030f",
+    "panda_gf2_sharpness/tests/test_selection.py": "3d58ae5726acd7a7670affb8668af4c0188c13d81cb497954cb9116c434680ce",
+    "panda_sensor_visuals/__init__.py": "f8abd322cd6c8be335ff3d2dcebe4a64600d257f30ad628ac0e3ef0143309cb3",
+    "panda_sensor_visuals/common.py": "85f7581c11545554a32f71c0a374a20fcd477b9c5809c9b13ad8305a4b178734",
+    "panda_sensor_visuals/metrics.py": "2000c784875d239ba881836f2c67f60036dc6d4cd9df228b65e9f5e2f76bcebc"
+  },
+  "source_sha256": "12b6f94047796376090dab08d559f714da6295d94f3a0bd347d5e7a53ef6fc51"
+}
