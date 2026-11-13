@@ -1,0 +1,12 @@
+{
+  "campaign_id": "PANDA_WV3_S2_EQ40_20261113_v1",
+  "method_revision": "CORRECTED_ONLY_A0_G025_C40_DUAL_FR_V1",
+  "donor_selection": {
+    "ERGAS_max": 2.04,
+    "PSNR_min": 38.0,
+    "rank": "ORIGINAL_PAN_HQNR_DESC",
+    "uses_test_for_selection": true
+  },
+  "execution": "FINISH_EXISTING_S1_R2_THEN_NEW_S2_R1_R2",
+  "preserve_previous_results": true
+}
