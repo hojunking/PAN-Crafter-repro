@@ -1,0 +1,42 @@
+{
+  "campaign_id": "PANDA_S23_QB_GF2_EQ40_20261113_v1",
+  "method_revision": "CORRECTED_ONLY_A0_G025_C40_RGBN_DUAL_FR_V1",
+  "servers": {
+    "s2": "QB",
+    "s3": "GF2"
+  },
+  "targets": {
+    "QB": {
+      "HQNR_min": 0.9315,
+      "ERGAS_max": 3.5
+    },
+    "GF2": {
+      "HQNR_min": 0.9645,
+      "ERGAS_max": 0.522,
+      "PSNR_min": 45.08
+    }
+  },
+  "donor_selection": {
+    "QB": {
+      "ergas_max": 3.5,
+      "psnr_min": null,
+      "order": "PSNR_HQNR"
+    },
+    "GF2": {
+      "ergas_max": 0.522,
+      "psnr_min": 45.08,
+      "order": "HQNR"
+    }
+  },
+  "student_lr": {
+    "QB": 0.0001,
+    "GF2": 0.0002
+  },
+  "student_repeats": 2,
+  "student_horizon": 40000,
+  "gf2_stage1_horizon": 50000,
+  "cross_server_weight_transfer": false,
+  "qb_donor": "ORIGINAL_S2_UNIFIED_RGBN_R1",
+  "gf2_donor": "FRESH_LOCAL_S3_RGBN_SAME_REPEAT",
+  "retention": "All evaluated1K models and latest2 complete optimizer/RNG resume generations"
+}
