@@ -1,0 +1,23 @@
+{
+  "campaign_id": "PANDA_UNIFIED_WV3_QB_20261113_v1",
+  "method_revision": "UNIFIED_UBIL_L4_RGB_RGBN_COMMON_VALID_MASK_V1",
+  "servers": {"s1": "WV3", "s2": "QB"},
+  "wv3_repeats": 2,
+  "qb_modes": ["RGB", "RGBN"],
+  "qb_stage2_cases": [
+    {"recipe": "Q2BASE", "alpha": 0.25, "gamma": 0.50, "lr": 0.00010},
+    {"recipe": "H050", "alpha": 0.125, "gamma": 0.25, "lr": 0.00010},
+    {"recipe": "G025", "alpha": 0.25, "gamma": 0.25, "lr": 0.00010},
+    {"recipe": "LR090", "alpha": 0.25, "gamma": 0.50, "lr": 0.00009},
+    {"recipe": "LR110", "alpha": 0.25, "gamma": 0.50, "lr": 0.00011}
+  ],
+  "targets": {"WV3": {"HQNR_min": 0.9585, "ERGAS_max": 2.040}, "QB": {"HQNR_min": 0.9315, "ERGAS_max": 3.5}},
+  "qb_historical_reference": {
+    "case": "QFS2 Q2_W128 R1", "step": 23000,
+    "HQNR": 0.9389469340058131, "ERGAS": 3.495269912500685,
+    "sheet": "QB-ablations", "row": 105,
+    "scope": "Recipe reference only; fresh local donors with unified Teacher UBIL/W128, L4 and common mask are new experiments, not identical historical reproduction."
+  },
+  "execution": "NO_DEADLINE_FRESH_LOCAL_DONORS_NO_WEIGHT_TRANSFER",
+  "retention": "Every 1K evaluated model; latest two complete resume generations"
+}

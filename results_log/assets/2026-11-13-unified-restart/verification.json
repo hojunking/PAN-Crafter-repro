@@ -1,0 +1,97 @@
+{
+  "checked_at_utc": "2026-11-13T02:50:20.777990+00:00",
+  "campaign": "PANDA_UNIFIED_WV3_QB_20261113_v1",
+  "container": "panda-unified-s1-v1",
+  "source_sha256": "04b1e84c7b694b59ed5e918d08a5d73c2ed45f8d50ccfcd63fa58258a39f9542",
+  "s1_state": {
+    "campaign_id": "PANDA_UNIFIED_WV3_QB_20261113_v1",
+    "queue_sha256": "c9d6441bd7120433ad4dedf1de498ba7d830fb2a72eef1e9b59153d7a6e41972",
+    "runs": [
+      {
+        "case": "S1_RGBN_FULL",
+        "repeat": 1,
+        "run_id": "UNIFIED_WV3_S1_S1_RGBN_FULL_R1_S261016101",
+        "seed": 261016101,
+        "status": "RUNNING",
+        "step": 400,
+        "updated_at": "2026-11-13T02:50:20.550920+00:00"
+      },
+      {
+        "case": "S2_RGBN_OURS_LR110",
+        "repeat": 1,
+        "run_id": "UNIFIED_WV3_S1_S2_RGBN_OURS_LR110_R1_S261018101",
+        "seed": 261018101,
+        "status": "QUEUED",
+        "step": 0
+      },
+      {
+        "case": "S1_RGBN_FULL",
+        "repeat": 2,
+        "run_id": "UNIFIED_WV3_S1_S1_RGBN_FULL_R2_S261016102",
+        "seed": 261016102,
+        "status": "QUEUED",
+        "step": 0
+      },
+      {
+        "case": "S2_RGBN_OURS_LR110",
+        "repeat": 2,
+        "run_id": "UNIFIED_WV3_S1_S2_RGBN_OURS_LR110_R2_S261018102",
+        "seed": 261018102,
+        "status": "QUEUED",
+        "step": 0
+      }
+    ],
+    "schema": "PANDA_UNIFIED_QUEUE_V1",
+    "server": "s1",
+    "status": "RUNNING"
+  },
+  "s1_publication": {
+    "action": "OWN_ROWS_VERIFIED",
+    "appended_rows": [
+      9975,
+      9976,
+      9977,
+      9978
+    ],
+    "at": "2026-11-13T02:49:08.679132+00:00",
+    "extra_columns_preserved": true,
+    "foreign_rows_untouched": true,
+    "owned_columns": "A:BL",
+    "publication_policy": "UNIFIED_FIXED_AND_REPRESENTATIVE_4DP_V1",
+    "publisher_pid": 2658134,
+    "readback_verified": true,
+    "row_count": 4,
+    "sheet_rows": [
+      9975,
+      9976,
+      9977,
+      9978
+    ],
+    "transport": "WV3_HYPER_OWN_ROWS_ATOMIC_APPEND_V2"
+  },
+  "s2_actual_training_started": false,
+  "s2_status": "implementation, data/environment/Sheet dry run and disposable CUDA preflight verified locally; user push and s2 pull/launch required",
+  "tests": {
+    "core_regressions": 12,
+    "campaign_regressions": 7,
+    "passed": 19,
+    "evaluation_path_smoke": {
+      "WV3_RGBN": {
+        "RR": 20,
+        "FR": 20,
+        "val": 1080
+      },
+      "QB_RGB": {
+        "RR": 20,
+        "FR": 20,
+        "val": 1905
+      },
+      "QB_RGBN": {
+        "RR": 20,
+        "FR": 20,
+        "val": 1905
+      }
+    },
+    "evaluation_smoke_trained_or_published": false
+  }
+}

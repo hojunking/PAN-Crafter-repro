@@ -1,0 +1,19 @@
+{
+  "campaign": "PANDA_WV3_RGBN_L4_S1_20261113_v1",
+  "deleted_path": "/home/knuvi/Desktop/song/PAN-Crafter/work_dir/panda_wv3_rgbn_l4/PANDA_WV3_RGBN_L4_S1_20261113_v1",
+  "file_count": 185,
+  "bytes": 1896349683,
+  "authorized_scope": "current campaign local results and Sheet rows only",
+  "source_archive_preserved": "results_log/assets/2026-11-13-architecture-notation-review/active_source_ea29df0e5f9d.tar.gz",
+  "sheet_rows_cleared_and_hidden": [
+    9966,
+    9967,
+    9968,
+    9969,
+    9970,
+    9971
+  ],
+  "sheet_index_policy": "contents deleted and empty rows hidden; other row indexes preserved",
+  "time_utc": "2026-11-13T02:37:20.649509+00:00",
+  "verified_absent": true
+}

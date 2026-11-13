@@ -1,0 +1,256 @@
+{
+  "spreadsheet_id": "1_ANKPQjQzMZrw9fUc1OI3B9xF4K3sxNa_fybg1kjBXE",
+  "tab": "QB-ablations",
+  "row": 105,
+  "read_utc": "2026-11-13",
+  "experiment": "QB S2 Frozen Q2_W128 R1",
+  "run": "QFS2_QB_S2_Q2_W128_R1_S261018101",
+  "metrics": {
+    "HQNR": 0.9389469340058131,
+    "ERGAS": 3.495269912500685
+  },
+  "display": [
+    "대표 · ERGAS 최소 · 조건 충족 · 23,000",
+    "0.9390",
+    "0.0270",
+    "0.0350",
+    "0.9040",
+    "3.4950",
+    "0.9840",
+    "4.3500",
+    "38.4730"
+  ],
+  "configuration": {
+    "student_architecture": {
+      "bands": 4,
+      "base_reference": "BICUBIC_MS",
+      "depth": [
+        1,
+        2,
+        3
+      ],
+      "input_layout": "P0",
+      "width": 128
+    },
+    "lr_S": 0.0001,
+    "schedule": "WARMUP_COSINE",
+    "stage2": true,
+    "stage2_spec": {
+      "aligner_outputs": 2,
+      "alignment_target": "SCHARR_OF_RGB_MEAN_GT",
+      "alpha": 0.25,
+      "beta": 0,
+      "delta": 0.000001,
+      "frame": "pan",
+      "gamma": 0.5,
+      "input_variant": "CORRECTED_DIFF",
+      "mask_policy": "DETACHED_BICUBIC4_SUPPORT_PER_SAMPLE_MEAN_V1",
+      "pan_channels": 1,
+      "policy_id": "S100",
+      "sampling_variant": "UBIL",
+      "seed": 6445957059257308000,
+      "sensor": "QB",
+      "student_width": 128,
+      "total_updates": 30000,
+      "upsampler": "interp23",
+      "variant": "panda_condq"
+    },
+    "tuning_parameters": {
+      "alpha": 0.25,
+      "donor_case": "QB6_S1_A400_E030_D301",
+      "effective_batch_size": 48,
+      "gamma": 0.5,
+      "inherited_updates": 0,
+      "input_variant": "CORRECTED_DIFF",
+      "lambda_abs": 4,
+      "lambda_epsilon": 0.03,
+      "loss_pair": "A400_E030",
+      "lr_S": 0.0001,
+      "microbatch_size": 12,
+      "min_lr": 0,
+      "policy_id": "S100",
+      "sampling_variant": "UBIL",
+      "scale": 1,
+      "schedule_kind": "WARMUP_COSINE",
+      "sensor": "QB",
+      "source_campaign": null,
+      "source_campaign_id": null,
+      "source_case": null,
+      "source_horizon": null,
+      "source_lr": null,
+      "source_min_lr": null,
+      "source_package": null,
+      "source_warmup_updates": null,
+      "student_width": 128,
+      "total_updates": 30000,
+      "warmup_updates": 100,
+      "weight_decay": 0.01
+    },
+    "training_spec": {
+      "adam_eps": 1e-8,
+      "betas": [
+        0.9,
+        0.999
+      ],
+      "effective_batch_size": 48,
+      "full_audit_interval": 100,
+      "gradient_log_interval": 100,
+      "inherited_updates": 0,
+      "lr": 0.0001,
+      "microbatch_size": 12,
+      "min_lr": 0,
+      "schedule_kind": "WARMUP_COSINE",
+      "source_horizon": null,
+      "source_lr": null,
+      "source_min_lr": null,
+      "source_warmup_updates": null,
+      "total_updates": 30000,
+      "warmup_updates": 100,
+      "weight_decay": 0.01
+    },
+    "lambda_abs": 0,
+    "lambda_epsilon": 0,
+    "donor_version": "QB6_S1_A400_E030_D301",
+    "donor_binding": {
+      "aligner_state_sha256": "15b1311c87bec4e405d0d5541345de9c3e39e747b2832f3f1768ff1ea0469294",
+      "band30_reconstruction_spec": {
+        "attention": false,
+        "bands": 4,
+        "base_reference": "BICUBIC_MS",
+        "base_reference_is_constructor_compatibility_only": true,
+        "depth": [
+          1,
+          2,
+          3
+        ],
+        "dropout": 0,
+        "input_channels": 5,
+        "input_layout": "P0",
+        "input_order": [
+          "PAN_0",
+          "MS_0",
+          "MS_1",
+          "MS_2",
+          "MS_3"
+        ],
+        "mode_modulation": false,
+        "norm": "ln",
+        "pan_channels": 1,
+        "schema": "PANDA_S1LOSS9_RECONSTRUCTION_V1",
+        "stem_initialization": "original_PAN_column_preserved_optional_difference_column_zero",
+        "width": 112
+      },
+      "band30_teacher": {
+        "aligner_outputs": 2,
+        "alignment_target": "SCHARR_OF_RGB_MEAN_GT",
+        "campaign_id": "PANDA_S2_QB_STAGE1_BALANCE_20261102_v1",
+        "lambda_abs": 4,
+        "lambda_epsilon": 0.03,
+        "pan_channels": 1,
+        "upsampler": "interp23"
+      },
+      "catalog_sha256": "3231245a12069a7a2b61e75f621008d5ad09883b6e559fc2326a355987c6d0c6",
+      "donor_checkpoint_id": "30883a100962a94b004db9ba8758ed6bffcd84eba7d2c4bcd6e7815c71891127",
+      "donor_checkpoint_sha256": "30883a100962a94b004db9ba8758ed6bffcd84eba7d2c4bcd6e7815c71891127",
+      "donor_run_id": "PQS2_QB_S2_QB6_S1_A400_E030_D301_NOSOFT_R1_S261016301",
+      "donor_source_mask_policy": "DETACHED_LANCZOS8_SUPPORT_PER_SAMPLE_MEAN_V2",
+      "donor_step": 48000,
+      "mature30_base": {
+        "actual_support_operator": "TEACHER_STUDENT_LANCZOS4_INTERSECTION",
+        "alignment_target": "SCHARR_OF_RGB_MEAN_GT",
+        "base": {
+          "actual_shift_warp": "lanczos4_whole_sample_reflection_FP32",
+          "aligner_reference": "PROVIDED_STORED_LMS_UNCHANGED",
+          "augmentation_order": "LRMS_Hflip_Vflip_CCW_rotation_then_upsampling",
+          "augmentation_phase": "phase2_corrected_by_exact_integer_Rv_minus_v_roll",
+          "base_usage": "same_explicit_base_for_U_input_and_residual_skip",
+          "implementation": "DLPAN_INTERP23TAP_X4_POST_AUG_PHASE_CORRECTED_V1",
+          "kind": "interp23",
+          "scale": 4
+        },
+        "geometry_unit": "CURRENT_PAN_PIXEL_NO_X4",
+        "gt_and_output_coordinates": "ORIGINAL_MS",
+        "loss_mask_policy": "DETACHED_BICUBIC4_SUPPORT_PER_SAMPLE_MEAN_V1",
+        "loss_mask_policy_token": "LEGACY_REDUCTION_COMPATIBILITY_ID",
+        "q_pan": "ACTUAL_STUDENT_GEOMETRY",
+        "q_target": "ORIGINAL_RGB_MEAN_2_1_0",
+        "schema": "PANDA_NEXT30_BASE_BINDING_V1",
+        "student_warp": {
+          "boundary": "WHOLE_SAMPLE_REFLECTION",
+          "convention": "OUTPUT_YX_READ_Y_PLUS_DY_X_PLUS_DX",
+          "dtype": "FP32",
+          "epsilon_warp": "SAME_LANCZOS4_REFLECTION",
+          "method": "lanczos4",
+          "normalization": "SUM_TO_ONE",
+          "radius": 4,
+          "schema": "PANDA_S1LOSS9_UNIFIED_WARP_V2",
+          "shift_unit": "CURRENT_PAN_PIXEL",
+          "taps_per_axis": 8,
+          "teacher_warp": "SAME_LANCZOS4_REFLECTION"
+        },
+        "teacher_policy": "FIXED_STAGE1_FULL_U_SAME_CHECKPOINT_A_T",
+        "teacher_warp": "STAGE1_LANCZOS4_REFLECT_FULL_U"
+      },
+      "mature30_selector_sha256": "196a3683247166e7a673903ad28d59edde982ac679aa7f9e15a0b81d28870e76",
+      "mature30_teacher": {
+        "aligner_outputs": 2,
+        "alignment_target": "SCHARR_OF_RGB_MEAN_GT",
+        "campaign_id": "PANDA_S2_QB_STAGE1_BALANCE_20261102_v1",
+        "lambda_abs": 4,
+        "lambda_epsilon": 0.03,
+        "pan_channels": 1,
+        "upsampler": "interp23"
+      },
+      "mature30_validation_inventory_sha256": "d493426b17588bfd82b363fe89676b5d08ae3c018991ed6ee7af1ae612df5b9e",
+      "reconstruction_spec": {
+        "bands": 4,
+        "base_reference": "BICUBIC_MS",
+        "depth": [
+          1,
+          2,
+          3
+        ],
+        "input_layout": "P0",
+        "width": 112
+      },
+      "sample_count": 17139,
+      "sample_ids_sha256": "cb1292f3cbd83aef4bc29425f3a5a80a80afc7e953934a3b40aae0666ae61278",
+      "scharr": {
+        "kernel": "absolute_xy_/32",
+        "padding": "reflect1",
+        "rgb_indices": [
+          2,
+          1,
+          0
+        ],
+        "roi_margin": 8
+      },
+      "sensor": "QB",
+      "source_campaign_id": "PANDA_S2_QB_STAGE1_BALANCE_20261102_v1",
+      "source_h5_sha256": "c7fb3ef0744f3fd21330925003f6bd6eb110f8a181c23ea6d9ce086c81710ba9",
+      "source_manifest_sha256": "30b90c9fea24c353f56b9748d229197449c2cbda463a1e085641265947c8e213",
+      "source_split": "RR_train_only",
+      "teacher_state_sha256": "b01150a4f1a552dac5bced738c481d94dcfa69eaf5e58e93fc2a59dc38c422a9",
+      "warp": "lanczos4_reflect_FP32_current_pan_px"
+    },
+    "seed": 261018101,
+    "student_input": {
+      "additional_parameters": 1152,
+      "channels": 6,
+      "delta_sign": "CORRECTED_MINUS_ORIGINAL",
+      "delta_stem_initialization": "ZERO_SHARED_COLUMNS_PRESERVED",
+      "extra_supervision": false,
+      "loss": "UNCHANGED_GT_HARD",
+      "order": [
+        "CORRECTED_PAN",
+        "CORRECTED_MINUS_ORIGINAL_PAN",
+        "MS_BASE_4"
+      ],
+      "output_channels": 4,
+      "pan_channels": 2,
+      "schema": "PANDA_S1LOSS9_STUDENT_INPUT_V1",
+      "variant": "CORRECTED_DIFF"
+    },
+    "sampling_variant": "UBIL"
+  }
+}
