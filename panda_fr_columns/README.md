@@ -1,5 +1,10 @@
 # Corrected-PAN FR columns (reporting only)
 
+**Current main runs:** the zero-discrepancy fix supersedes the EQ40 main launch
+commands below. Use [panda_eq40_zeroq](../panda_eq40_zeroq/README.md) and
+`python3 -m panda_eq40_zeroq.enqueue --server s1` (or s2/s3). The reporting
+adapter remains shared; the Table3 compatibility command below is still valid.
+
 The current EQ40 publications use one row per selected checkpoint. The same
 prediction, checkpoint and FR20 evaluation have two reference triplets:
 

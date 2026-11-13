@@ -9,7 +9,7 @@ from sheet_publish_v2.transport import atomic_json, _typed, _matrix_equal, _cell
 from .adapter import GoogleSheets
 from .schema import BOOK
 
-PACKAGES = ('panda_wv3_s2_eq40','panda_sensor_eq40')
+PACKAGES = ('panda_wv3_s2_eq40','panda_sensor_eq40','panda_eq40_zeroq')
 
 
 def cell_equal(actual, expected):
