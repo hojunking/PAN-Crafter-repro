@@ -1,5 +1,12 @@
 # Shared ZEROQ Stage2 restart — s1 WV3 / s2 QB / s3 GF2
 
+**Current selection policy (2026-11-14): corrected-PAN HQNR.** Use
+[panda_corrected_hqnr](../panda_corrected_hqnr/README.md) and
+`python3 -m panda_corrected_hqnr.enqueue --server s1` (or s2/s3) to resume
+this same campaign with the new selection/stopping policy. The launch commands
+below document the original rollout; the numerical training implementation is
+still the one in this package.
+
 The user requested an explicit zero-discrepancy exception and fresh Stage2
 training. The frozen historical source files and their manifests are preserved.
 The new campaign is `PANDA_S123_EQ40_ZEROQ_20261113_v1`; new experiments contain

@@ -1,0 +1,13 @@
+{
+  "schema": "CORRECTED_HQNR_CONTROL_RELEASE_V1",
+  "files": {
+    "panda_corrected_hqnr/__init__.py": "67dcdcb36a0e1eabca2987ac4efe9e375a80576cdc001c166451e4f175cb5021",
+    "panda_corrected_hqnr/__main__.py": "52266714b3418d436bb8cbcf6962133b87960bc7195a91bc9c5247e8f353444c",
+    "panda_corrected_hqnr/enqueue.py": "e1d0517513a1f451d6c7c339923790f302ba9b019624d06ed0415c883c62decb",
+    "panda_corrected_hqnr/policy.py": "59caecf2edcf06405d460d793070c568842b8a9a77ab0757faa1649ed5b4a109",
+    "panda_corrected_hqnr/release.py": "e2ce4dbdae683bf563d6cac17a34f6a840644c95e6c369e4699d5326617bcd53",
+    "panda_corrected_hqnr/test_policy.py": "0fd6ee7cc98bed431ad108b759195dfe871406051cc6d31dfef5002e0153d88a"
+  },
+  "training_release": "9aac03b151ec1782026e8cccd4d998d95575832a0533b15bd0b00169a812b0ef",
+  "source_sha256": "3fea010c448d510309c9e8645ab8df484af415b2b291743cf79bef3994b91cbe"
+}
