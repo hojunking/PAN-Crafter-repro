@@ -1,0 +1,16 @@
+{
+  "path_in_author_workspace": "research_log/method_writing/ICLR2027_pansharpening (2).pdf",
+  "sha256": "71a496d51b1a13c71811a677d788ea8632988b56e69889edb1b0cda7dec03754",
+  "page_1based": 8,
+  "table": 3,
+  "caption_a": "edge-based global translation",
+  "caption_b": "aligner trained using only reconstruction loss",
+  "row_order": [
+    "(a)",
+    "(b)",
+    "(c)",
+    "(d)",
+    "Ours"
+  ],
+  "historical_numbers_reused": false
+}

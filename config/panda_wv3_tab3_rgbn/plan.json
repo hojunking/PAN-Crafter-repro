@@ -1,0 +1,22 @@
+{
+  "campaign_id": "PANDA_WV3_TAB3_RGBN_S3_20261113_v1",
+  "method_revision": "TAB3_RGBN_UBIL_L4_COMMON_SUPPORT_FIXED50_V1",
+  "server": "s3",
+  "sensor": "WV3",
+  "repeats": [1, 2, 3],
+  "cases": [
+    {"id": "A_SCHARR", "table_row": "(a)", "alignment": "SCHARR", "lambda_abs": 0.0, "lambda_epsilon": 0.0},
+    {"id": "B_REC", "table_row": "(b)", "alignment": "LEARNED", "lambda_abs": 0.0, "lambda_epsilon": 0.0},
+    {"id": "C_REC_SPA", "table_row": "(c)", "alignment": "LEARNED", "lambda_abs": 2.0, "lambda_epsilon": 0.0},
+    {"id": "D_REC_EPS", "table_row": "(d)", "alignment": "LEARNED", "lambda_abs": 0.0, "lambda_epsilon": 0.003},
+    {"id": "OURS", "table_row": "Ours", "alignment": "LEARNED", "lambda_abs": 2.0, "lambda_epsilon": 0.003}
+  ],
+  "evaluation_steps": [30000, 40000, 50000],
+  "publication_steps": [50000],
+  "checkpoint_selection": "FIXED_50000_NO_METRIC_SELECTION",
+  "aggregation": "ALL_THREE_REPEATS_MEAN_SAMPLE_STD_DDOF1_NO_SUBSET_SELECTION",
+  "retention": "30K/40K/50K evaluated weights and validation; latest two complete resume generations",
+  "execution": "ROUND_MAJOR_STAGE1_ONLY_NO_DEADLINE",
+  "cutover": "STOP_EXPLICIT_OLD_S3_JOB_IMMEDIATELY_PRESERVE_RESULTS",
+  "source_table": "ICLR2027_pansharpening (2).pdf, Table 3, page 8; caption defines (a) as edge-based global translation"
+}
