@@ -1,0 +1,29 @@
+{
+  "campaign_id": "PANDA_WV3_S2ABL5_S1_20261114_v1",
+  "fixed_donor": {
+    "run_id": "UNIFIED_WV3_S1_S1_RGBN_FULL_R1_S261016101",
+    "step": 27000,
+    "checkpoint_file_sha256": "bf8e9f5624bb49e6d2f5aa437505029b3d03a09dbd3fde7a319734c83c05d0d8",
+    "model_sha256": "b517af60ff1e4286ef776508a8e54ca14204039af5b5f386a005d7df74c5679d",
+    "selection_receipt_sha256": "d86f89355328590edf703ca4cb133c5f932948dfa3403e1c7e2aaae447136273",
+    "selection_file_sha256": "67e9a3e91b26de1410701fe277ef8e7c91098a113995b1485335b9bd16a94866",
+    "selection_path": "work_dir/panda_wv3_s2_eq40/PANDA_WV3_S2_EQ40_20261113_v1/s1/WV3/donors/RGBN_R1/selection.json",
+    "calibration_path": "work_dir/panda_wv3_s2_eq40/PANDA_WV3_S2_EQ40_20261113_v1/s1/WV3/donors/RGBN_R1/calibration",
+    "calibration_file_sha256": "8bfa827a38c42faa9d836883320850a1fc26a45ab7c4b5bb042d1668ebcc752e",
+    "calibration_artifact_sha256": "c0009c560fb731461a2ce16e9974f16c918252ca434c6d0fc52cc9a579eca055"
+  },
+  "repeats": 3,
+  "horizon": 40000,
+  "primary_step": 40000,
+  "reuse_ours_r1": true,
+  "case_order": [
+    "A_RAW_L1",
+    "B_ALIGN_L1",
+    "C_DE_ONLY",
+    "D_RQ_ONLY",
+    "E_OURS"
+  ],
+  "global_rank": false,
+  "summary": "ALL_THREE_SEEDS_FIXED40K_MEAN_SAMPLE_STD",
+  "reference": "SAME_FIXED_R1_27K_ALIGNER_CORRECTED_PAN_FOR_ALL_CASES"
+}
