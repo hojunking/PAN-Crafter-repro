@@ -1,5 +1,11 @@
 # QB s2/s3 인계: 기존 Stage 1 3개 checkpoint × Stage 2 3개 스케줄
 
+**보류(2026-11-15 사용자 지시): 아래 18회 큐를 새로 실행하거나 재개하지 않는다.**
+우선순위는 s1=WV3·s2=QB·s3=GF2에서 기존 Stage 1을 사용하는
+원본 PAN / 원본 PAN+corrected PAN / corrected PAN+correction residual
+입력 비교 실험으로 변경되었다. 이 패키지와 기존 결과는 보존한다.
+명시적 재개 요청 전에는 이 큐를 자동으로 이어 실행하지 않는다.
+
 최종 사용자 확정: **Stage 1 새 학습 없음. 서버별 Stage 2 9회, 총18회.**
 직전 `77690e68`의 LATEVAL 단일 donor 선택안을 대체한다.
 대화 중 검토한 새 Stage 1 1회 학습안은 취소했으며 실행하지 않았다.

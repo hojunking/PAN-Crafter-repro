@@ -1,6 +1,11 @@
 # QB: existing local donor checkpoints × Stage 2 schedules
 
-This is the current s2/s3 QB plan. It supersedes the single-donor
+**ON HOLD — user instruction on 2026-11-15. Do not launch or resume this queue.**
+The higher-priority experiment compares three Student PAN input layouts on
+s1=WV3, s2=QB, s3=GF2, using existing local Stage 1 models. Preserve this
+package and any results for a possible later resumption; do not auto-resume it.
+
+The following is the retained s2/s3 QB plan. It supersedes the single-donor
 `panda_qb_lateval` queue. **No new Stage 1 training. No weight transfer.**
 
 Each server uses 40K, 48K and 50K checkpoints from its own completed Stage 1:

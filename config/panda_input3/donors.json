@@ -1,0 +1,26 @@
+{
+  "QB": {
+    "repeat": 1,
+    "step": 32000,
+    "run_id": "UNIFIED_QB_S2_S1_RGBN_FULL_R1_S261016301",
+    "checkpoint_file_sha256": "37c7d718233e6d85c89fd96301c31ca8ff93fe7b2bd6d3f767b61e3b86d84724",
+    "model_sha256": "b8a34774e69fd59904965613b7e495bf275d35bb3dc37af8eab23c83dae09605",
+    "evaluation_sha256": "0e9fd4ef71d74f46538d37ff4084f30cce33a0aee5f11e837af6a23648809220"
+  },
+  "GF2": {
+    "repeat": 2,
+    "step": 42000,
+    "run_id": "SEQ40_GF2_S3_S1_RGBN_FULL_R2_S261016302",
+    "checkpoint_file_sha256": "b69fe5619123f2c8cc4d3bb5f184f5108a6253eec3dd45f8547fc3fec7badd06",
+    "model_sha256": "5d047481cddce61ad3249515a32a34224e5a2cbcf46e8a41dc36d03519159e07",
+    "evaluation_sha256": "b2a3783742eba3fb346cbd1f24dd54ea214fbdb342695fc97fba4875e98e94be"
+  },
+  "WV3": {
+    "run_id": "UNIFIED_WV3_S1_S1_RGBN_FULL_R1_S261016101",
+    "step": 27000,
+    "checkpoint_file_sha256": "bf8e9f5624bb49e6d2f5aa437505029b3d03a09dbd3fde7a319734c83c05d0d8",
+    "model_sha256": "b517af60ff1e4286ef776508a8e54ca14204039af5b5f386a005d7df74c5679d",
+    "repeat": 1,
+    "evaluation_sha256": "3735da76dbc59e83d91c9aa91779698ad8cc5549f52fc7541077a1dd9ec39d32"
+  }
+}
