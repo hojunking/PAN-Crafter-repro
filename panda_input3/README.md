@@ -39,23 +39,24 @@ actual input order, and rejects B↔C model substitution despite equal shapes.
 
 ## Launch
 
-After the user pushes this commit, each server pulls and starts its local queue:
+Current publication policy (2026-11-15): use the reporting-only target-gated
+launcher below. The original training code/release stays immutable so existing
+optimizer states resume exactly. See [target-reporting handoff](../panda_input3_targets/README.md).
 
 ```bash
 git pull --ff-only
-python3 -m panda_input3.release
-python3 -m panda_input3.enqueue --server s1
+python3 -m panda_input3_targets.release
+python3 -m panda_input3_targets.enqueue --server s1
 # s2: --server s2 ; s3: --server s3
 ```
 
-The launcher first verifies the release, data/evaluator, exact donor SHA and
-Sheet. It then requests graceful stop of the explicitly registered prior queue,
-verifies its retained restart checkpoint, marks unfinished jobs HELD_BY_USER,
-disables automatic container restart, and starts INPUT3. Historical results and
-weights are preserved. Unrelated GPU workloads are not stopped.
-`--check-only` performs read-only admission/Sheet checks. `--resume` restarts
-this campaign's authenticated stopped container. Never use it for an old held
-campaign without a new user instruction.
+This launcher verifies the reporting release, original training release,
+data/evaluator, exact donor SHA and Sheet. It gracefully stops the previous
+INPUT3 container, verifies its complete restart checkpoint, and resumes the
+same run with the new publisher. Completed runs and all weights/evaluations
+remain intact. `--check-only` performs read-only checks. Other GPU workloads
+and old held campaigns are not restarted. Do not restart the old INPUT3
+publisher after target-policy migration.
 
 ## Evidence and Sheet
 
@@ -63,9 +64,11 @@ campaign without a new user instruction.
   one row, four decimal places, in `WV3-ablations`, `QB-ablations`, or
   `GF2-ablations`. Bucket=ablation. Experiment names include the input case;
   Approach includes LR/horizon/width/guidance/donor step.
-- Representative: minimum ERGAS among corrected-HQNR-qualified checkpoints;
-  otherwise maximum corrected HQNR. Fixed endpoint, unrestricted min-ERGAS and
-  max-PSNR slots are also retained. GF2 notes report the PSNR45.08 goal as well.
+- Representative: minimum ERGAS among corrected-HQNR-qualified checkpoints,
+  explicitly labelling any missed ERGAS/GF2 PSNR goal. All other step rows,
+  including endpoints, require ALL dataset goals simultaneously. No HQNR-failing
+  fallback or unrestricted diagnostic results are uploaded. Until HQNR qualifies,
+  show only case status with blank metrics. All local evaluations/weights remain.
 - Goals unchanged: WV3 H≥.9585/E≤2.040; QB H≥.9315/E≤3.5;
   GF2 H≥.9645/E≤.522/PSNR≥45.08, using corrected-PAN HQNR.
 - Checkpoints: `work_dir/panda_input3/PANDA_S123_INPUT3_20261115_v1/<server>/<sensor>/runs/`.

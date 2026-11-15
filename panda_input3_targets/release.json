@@ -1,0 +1,14 @@
+{
+  "schema": "INPUT3_TARGET_REPORTING_RELEASE_V1",
+  "training_release": "7e26aef437b91d516f83092ecbe5c06e719a6f07e01325a388bd6068c5c74117",
+  "files": {
+    "panda_input3_targets/__init__.py": "2d5c3786f351c85c102303a71beef93d1d103a1d57e2f7dada6c864c5d360428",
+    "panda_input3_targets/__main__.py": "381ffb836b60f0bf6bd01b320f9ebd3aa28d50172356c4d2f289c732840e9242",
+    "panda_input3_targets/enqueue.py": "b87880520fc88938f7fc514b571b6ed338e93a5dbd905d0663f35c66b61685d5",
+    "panda_input3_targets/policy.py": "a133034c43007a411c01288b11c29417c8e620d79c5f1d2a9bc109a65b0b68ad",
+    "panda_input3_targets/release.py": "8b2f0efd91e42ad3978947a215f4a1287fd5c555cd8b1b3518d0ecae6195d981",
+    "panda_input3_targets/reporting.py": "29fceaa8ee9f26f8cb8aadcc79924a162fa1dc00e72c0db7e89233f83b8d1ae3",
+    "panda_input3_targets/test_reporting.py": "dcbce6980b4a298ae1ae3280bc0c4c9f6c19bb9947ce628781f922b9723bf9bd"
+  },
+  "source_sha256": "7758cbd9f705999423513637de400a4efdae475795fedff3d35468ce2206faa0"
+}
