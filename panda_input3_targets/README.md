@@ -1,5 +1,9 @@
 # INPUT3 publication: HQNR-qualified representative and all-target detail rows
 
+**최신 정책(2026-11-15 정정): 현재 INPUT3/C30는 기존 PAN HQNR을 선정 기준으로 사용한다.**
+[panda_input3_original](../panda_input3_original/README.md)의 launcher로 전환한다.
+이 패키지의 V3 corrected-PAN 코드는 기존 training release와 이행 검증을 위해 보존한다.
+
 This reporting-only release keeps the HQNR-qualified representative, removes
 the HQNR-failing fallback and unrestricted ERGAS/PSNR diagnostic rows, and
 requires all dataset goals for other result rows. It does not change training,

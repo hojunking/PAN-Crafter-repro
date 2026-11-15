@@ -1,5 +1,9 @@
 # INPUT3 fresh 30K — s1 WV3 / s2 QB / s3 GF2
 
+**최신 게시 정책(2026-11-15 정정): 기존 PAN 기준 HQNR로 선정한다.**
+실행 중인 큐의 전환 명령은 [panda_input3_original](../panda_input3_original/README.md)을 따른다.
+아래 corrected-PAN 선정 설명은 처음 C30를 배포했을 때의 기록이며 새 정책으로 대체됐다.
+
 2026-11-15 사용자 요청: 아직 시작하지 않은 INPUT3 case는 30K로 교체하고,
 이미 시작했거나 완료한 case는 기존 결과를 보존하면서 새 30K 실행을 추가한다.
 
