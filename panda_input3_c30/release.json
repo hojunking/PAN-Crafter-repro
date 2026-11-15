@@ -1,0 +1,16 @@
+{
+  "schema": "INPUT3_C30_RELEASE_V1",
+  "training_release": "7e26aef437b91d516f83092ecbe5c06e719a6f07e01325a388bd6068c5c74117",
+  "reporting_release": "7758cbd9f705999423513637de400a4efdae475795fedff3d35468ce2206faa0",
+  "files": {
+    "panda_input3_c30/__init__.py": "2f9ef24a04d56eaedf1c599ab54a6a97f6b111a07e8ff5b72b8695e0b47bccd3",
+    "panda_input3_c30/__main__.py": "93f655c40a868abb899525a8b6cf895615ebb32a7e49a10cf429f8cb5bafe05e",
+    "panda_input3_c30/enqueue.py": "e9ed85196f26a83af4f2aaed045be3c860483f3c96b857b84b4786ee3a6f0f4d",
+    "panda_input3_c30/install.py": "59ec0cc01f0e0f82c5912aae3e8023ef70854ea042fe8f4dd52b1ac689b69bf5",
+    "panda_input3_c30/recipes.py": "49e68187b1db8a861a3795fb14a158423663c9e6c2ee4241c1f22bffd56362bb",
+    "panda_input3_c30/release.py": "200f6b4c0048fd089c9c35c9d81acd9791bfc22933719b08fd3006837a148ea9",
+    "panda_input3_c30/test_c30.py": "d866f6948a44645c181f7abea7a87d599788bf43cd8ec5e87695a9dce9694008",
+    "panda_input3_c30/transition.py": "18c4cd32e3df6b57a0a46839e987b6b7f8e246ca4bdd03264970649c9977b533"
+  },
+  "source_sha256": "c1df5bbdd7d3c1bef05482722b6b86188846131e4422f4ae778c884095b113a1"
+}
