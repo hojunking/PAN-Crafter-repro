@@ -1,0 +1,13 @@
+{
+  "run_id": "QBS3_QB_S3_S1_RGBN_FULL_R1_S261016303",
+  "step": 34000,
+  "checkpoint_path": "work_dir/panda_qb_s3_parallel/PANDA_QB_S3_PARALLEL_20261114_v1/s3/QB/runs/QBS3_QB_S3_S1_RGBN_FULL_R1_S261016303/models/step_0034000.pt",
+  "checkpoint_file_sha256": "c81695dfcd22985729724da57255479e57990fc24e456c6768a7f68f6bd29314",
+  "model_sha256": "cfdf6cb505012ae99a4b1199cc41c59ab8e8ba6350bee3510a95b035aca8d202",
+  "evaluation_sha256": "235141804d37358d9893b8feb89ba2b1633c29533dd6701b6b2549b5bb5e379d",
+  "receipt_sha256": "6b63de4b6195bec94c15c6ac5bb7b76eb832a0b3fe8b60475e4d17c0bdb8e44d",
+  "source_config_sha256": "31a0cfae8682ade7620f83eb5a12ff3df780ec7f94aa7fce69532ab8b3b0e9ec",
+  "source": "QB-ablations A159 note; existing s3 P1 donor; file presence/hash must be verified on s3",
+  "reference_mode": "RGBN",
+  "reuse_calibration": "existing same-donor RGBN calibration; validate complete binding"
+}

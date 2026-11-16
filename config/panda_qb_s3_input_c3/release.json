@@ -1,0 +1,22 @@
+{
+  "schema": "QB_S3_INPUT_C3_RELEASE_V1",
+  "input_release": "580893218a1b854e211ff92a08e55701786af3a8599224f7bf80a2e57d93d8d1",
+  "donor_release": "f00a16ff6c2a4babb53c80c59b3deded6c672a9c7b5cf85a3a6243ac7d155c79",
+  "predecessor_release": "fa84fa10b27bcc242885d7d7571457b69a912c60db3ded0bd426601910dde77f",
+  "files": {
+    "panda_qb_s3_input_c3/__init__.py": "18565e81fe30596103aaec174dd953350e74678176454d38537abe51b262ee81",
+    "panda_qb_s3_input_c3/__main__.py": "2c6522194a7a27107a67dc0f83eef90d073eaa9890b195d3cebd96412e3bd836",
+    "panda_qb_s3_input_c3/assets.py": "2daae4940b72f91e474a9e098b1691af5430a8bfb40aa51c1630e44c154f2b68",
+    "panda_qb_s3_input_c3/enqueue.py": "932e4d0b8636ffab2c9624f10bd4673f1323834981d81e93c29aae7a72ec6a83",
+    "panda_qb_s3_input_c3/install.py": "d453e3b60e523ca09176169191e7c78c3e0126a7d7d4920986aed1d009898c96",
+    "panda_qb_s3_input_c3/plan.py": "86f756b953d68a0f9f202ea3c7c4907642fff21c378872dcbe0517934d9562d2",
+    "panda_qb_s3_input_c3/predecessor.py": "6c757f85934d5613524a7bd7a8570a509392287215bd60a481e428761d8233d6",
+    "panda_qb_s3_input_c3/preflight.py": "c611fabfcfb2e808d01b962765aa381bd4ac9b5dce994e4e282a27ca69dad5dc",
+    "panda_qb_s3_input_c3/release.py": "0bb130a068b63e652a23cb9a7494d74c56c4236095600b95175dbfee8c7c4d7e",
+    "panda_qb_s3_input_c3/test_c3.py": "d446c2eb7a353b09dd57a9897291b0cb993c9c898e9144d56d08a5b69f2a138e",
+    "config/panda_qb_s3_input_c3/campaign.json": "47b842bed4c9dbda4883ae9a076cad59a571bf8fdd62e0eba2ade9777603d095",
+    "config/panda_qb_s3_input_c3/cases_s3.csv": "1f501fc2175d8626fe8e9d7cd2075ca666d497d8be0b8832d71c6b346bb31194",
+    "config/panda_qb_s3_input_c3/donor.json": "ee30a8c264505355abb0a9b884dc16006fec8146d408689f107df9661c9835cc"
+  },
+  "source_sha256": "472dc4c460290e933c6ba9e27cd21eae9ba542d64890dd8bf39bdfd3e3e0c50c"
+}
