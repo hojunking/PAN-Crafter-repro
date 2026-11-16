@@ -1,0 +1,15 @@
+test_failed_hqnr_still_has_original_reference_representative (panda_qb_repfix.test_reporting.RecoveryTests.test_failed_hqnr_still_has_original_reference_representative) ... ok
+test_passing_details_and_existing_qualified_row_stay_valid (panda_qb_repfix.test_reporting.RecoveryTests.test_passing_details_and_existing_qualified_row_stay_valid) ... ok
+test_qualified_min_ergas_remains_even_when_rr_misses (panda_qb_repfix.test_reporting.RecoveryTests.test_qualified_min_ergas_remains_even_when_rr_misses) ... ok
+test_raw_threshold_nonfinite_and_conflicting_evidence (panda_qb_repfix.test_reporting.RecoveryTests.test_raw_threshold_nonfinite_and_conflicting_evidence) ... ok
+test_v4_blank_upgrades_same_row_id_and_verifies_prior_evidence (panda_qb_repfix.test_reporting.RecoveryTests.test_v4_blank_upgrades_same_row_id_and_verifies_prior_evidence) ... ok
+test_five_predeclared_jobs_architecture_alpha_and_paired_streams (panda_qb_s2_donor_c.test_campaign.DonorCampaignTests.test_five_predeclared_jobs_architecture_alpha_and_paired_streams) ... ok
+test_mounts_only_new_output_and_old_publication_are_writable (panda_qb_s2_donor_c.test_campaign.DonorCampaignTests.test_mounts_only_new_output_and_old_publication_are_writable) ... ok
+test_predecessors_must_finish_and_no_other_queue_is_mutated (panda_qb_s2_donor_c.test_campaign.DonorCampaignTests.test_predecessors_must_finish_and_no_other_queue_is_mutated) ... ok
+test_real_serialized_same_arch_donors_C_input_frozen_and_exact_resume (panda_qb_s2_donor_c.test_campaign.DonorCampaignTests.test_real_serialized_same_arch_donors_C_input_frozen_and_exact_resume) ... ok
+test_real_transport_restores_fallback_and_dual_FR_without_foreign_changes (panda_qb_s2_donor_c.test_campaign.DonorCampaignTests.test_real_transport_restores_fallback_and_dual_FR_without_foreign_changes) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 11.792s
+
+OK

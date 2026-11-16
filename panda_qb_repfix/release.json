@@ -1,0 +1,13 @@
+{
+  "schema": "QB_REPRESENTATIVE_FALLBACK_RELEASE_V1",
+  "previous_release": "580893218a1b854e211ff92a08e55701786af3a8599224f7bf80a2e57d93d8d1",
+  "files": {
+    "panda_qb_repfix/__init__.py": "26b959f749ebf1f758e71be1e5bcbbf59e4a2df67faf10d11df7efe4e3dbcc99",
+    "panda_qb_repfix/__main__.py": "4fac88eb34b93e14a06a69fb0489f18978bee05679d256bdb0ccff4b3a83c16f",
+    "panda_qb_repfix/policy.py": "bcb729742409ec58d743d46edf9747621fb1faec0a8a325b42e0b030bc449d72",
+    "panda_qb_repfix/release.py": "147fde6386c3b84f6157f578ca41250507a0f5ed00e4628d48646691f05247e1",
+    "panda_qb_repfix/reporting.py": "68ec2ea64f252c71081aa8e885eab1d6891db0d8d7aad4e5203091755730e00a",
+    "panda_qb_repfix/test_reporting.py": "1e19b57bae39e2b1333c9e7ec3afeaaec00ecb149645517d7c95efb213c4f5cb"
+  },
+  "source_sha256": "9a9bf7f482597effcab9176a29bc02ca82740a538afcc077d6deccce30f4226b"
+}

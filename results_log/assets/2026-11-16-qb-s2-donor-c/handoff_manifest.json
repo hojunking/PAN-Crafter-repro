@@ -1,0 +1,32 @@
+{
+  "schema": "QB_S2_DONOR_C_TRANSFER_V1",
+  "base_commit": "62c184f370ab01bec9419d704c00e9ad1d8ea670",
+  "campaign_source_sha256": "4b9fd00b8e4e641f06b930b8c86d9eef5f7224c8eaaacf194ac02e429a2ee8fb",
+  "files": {
+    "panda_qb_repfix/README.md": "5f6312e0b6092ac2d959292ff7381940f3a6829bd2983bb3a15e387d82295671",
+    "panda_qb_repfix/__init__.py": "26b959f749ebf1f758e71be1e5bcbbf59e4a2df67faf10d11df7efe4e3dbcc99",
+    "panda_qb_repfix/__main__.py": "4fac88eb34b93e14a06a69fb0489f18978bee05679d256bdb0ccff4b3a83c16f",
+    "panda_qb_repfix/policy.py": "bcb729742409ec58d743d46edf9747621fb1faec0a8a325b42e0b030bc449d72",
+    "panda_qb_repfix/release.json": "5da9a11a6c9914ab6996f8fcb751d785ee23da721e9ff793ea77b904d472f345",
+    "panda_qb_repfix/release.py": "147fde6386c3b84f6157f578ca41250507a0f5ed00e4628d48646691f05247e1",
+    "panda_qb_repfix/reporting.py": "68ec2ea64f252c71081aa8e885eab1d6891db0d8d7aad4e5203091755730e00a",
+    "panda_qb_repfix/test_reporting.py": "1e19b57bae39e2b1333c9e7ec3afeaaec00ecb149645517d7c95efb213c4f5cb",
+    "panda_qb_s2_donor_c/README.md": "bb55ccac2a9812bc2d2f919b9e88403a15f65fc051cf19977d0a7d5ca1685579",
+    "panda_qb_s2_donor_c/__init__.py": "5521b24bfc3031545c7e979ea41c62f18b57045883b00a8afad8f71efccaa56e",
+    "panda_qb_s2_donor_c/__main__.py": "7a589798784835b70f2ce1eaec3cb72839e2a9d7ec414d82cbdba603052b1269",
+    "panda_qb_s2_donor_c/assets.py": "e7fb3eb27c78086ff7d6836530877f7ba2ad2947b074bbd88332359bebe34007",
+    "panda_qb_s2_donor_c/enqueue.py": "338d995a22aac4a93ef90f736e89b3d5bbbc1deab4e8571a0ca98c65cd0591a1",
+    "panda_qb_s2_donor_c/install.py": "5f67e6bf2d5f2ced15ca52daca3099f29fd7a12b7de28562fad1bfd00ecf2c10",
+    "panda_qb_s2_donor_c/plan.py": "4872e558210a878824cb691fd5017c3ae00bb97464b7f3b99e2be227d32fb791",
+    "panda_qb_s2_donor_c/predecessor.py": "a9ed9a7221f394b45a0427b993cd9b4ebadf891fe5b64ec50d50bd69c90e994e",
+    "panda_qb_s2_donor_c/preflight.py": "f09da3de9996e94817e3942dbafe565d38cc65ac2a73cc88e2b90f5c365902cc",
+    "panda_qb_s2_donor_c/release.py": "fb8d668fc752df29c4e5838906bbfec6f06530120c9afc462ff083a5f23a7485",
+    "panda_qb_s2_donor_c/test_campaign.py": "b293dc2b405d7d52da5e08ea9db31dd24c35ddf0f9d56d441e643167b3f950b1",
+    "config/panda_qb_s2_donor_c/campaign.json": "88b7a9d58bd82e5901ace5ab1b1122c338a058563450ac2a4b09a451267906f1",
+    "config/panda_qb_s2_donor_c/cases_s2.csv": "e8e9565b376186d0db98b7679358b066f9ff9b4d99dbd8275fc26120758dfedc",
+    "config/panda_qb_s2_donor_c/release.json": "16824492870380996984a421b2d000e472446e20fc4edfb7228f37a88531d279",
+    "results_log/2026-11-16_s2_QB_donor_C_handoff.md": "77d1f93d593f92f76aed85a7dc1abbdebcaf41078719033b8503bb2847d361fe",
+    "results_log/assets/2026-11-16-qb-s2-donor-c/tests.log": "dc07df3e9005c1f241b3730595b914142e4e02be0cd779ea4d8bc490c877fa50",
+    "results_log/assets/2026-11-16-qb-s2-donor-c/verification.json": "996b78e96272a522fcc4c220da7c833d3253cb63f841dfe501e4b80a55a519ab"
+  }
+}
