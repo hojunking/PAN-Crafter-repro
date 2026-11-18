@@ -4,7 +4,7 @@ from pathlib import Path
 import time
 
 from pcrepro.common import (ROOT,atomic_json,read,read_json,read_config,object_sha,sha256,
-    source_identity,apply_runtime_policy,run_dir,camp,immutable_json,utcnow)
+    source_identity,apply_runtime_policy,run_dir,camp,immutable_json,utcnow,case_camp)
 from pcrepro.plan import CAMPAIGN_ID,RECIPE_ID,RECIPE_SHA256,GRID,case_for,validate_config
 
 LABELS=('EXACT_50000','RR_VAL_ERGAS_MIN')
@@ -16,7 +16,7 @@ def selected_evidence(case,root=ROOT):
     wd=run_dir(source,root);cfg=read_config(wd/'meta/config.resolved.yaml')
     if validate_config(cfg,require_bound=True)!=source:raise ValueError('Source config differs')
     field=cfg['pcrepro']
-    expected=dict(campaign_id=CAMPAIGN_ID,run_id=source.run_id,recipe_id=RECIPE_ID,
+    expected=dict(campaign_id=source.to_dict()['campaign_id'],run_id=source.run_id,recipe_id=RECIPE_ID,
         recipe_sha256=RECIPE_SHA256,source_identity=field['source_identity'],data_sha=field['data_sha'],
         config_sha=object_sha(cfg),model_seed=source.seed,num_bands=source.num_bands,max_pixel=source.max_dn)
     if expected['source_identity']!=source_identity(root):raise ValueError('Source checkpoint runtime/code changed')
@@ -77,7 +77,7 @@ def execute(config_path,root=ROOT,device='cuda',stopcheck=None):
     datasets={split:NativeDataset(manifest,split,root=root) for split in ('rr','fr')}
     poststart=wd/'meta/postrun_start.json'
     if not poststart.exists():immutable_json(poststart,dict(started_at_utc=utcnow(),source_identity=f['source_identity']))
-    control=camp(root,c.server)/'control.json'
+    control=case_camp(root,c)/'control.json'
     paused=lambda:read(control).get('command')=='STOP_NOW_SAFE' or bool(stopcheck and stopcheck())
     preprocessing=time.monotonic()-started;selections={};evaluated={};profile=None;profile_seconds=0.
     for label in LABELS:
@@ -96,7 +96,13 @@ def execute(config_path,root=ROOT,device='cuda',stopcheck=None):
                         raise ValueError('Profile checkpoint/source differs')
                     profile=saved['profile'];profile_seconds=saved['seconds']
                 else:
-                    t=time.monotonic();profile=profile_model(model,c.num_bands,device,stop_check=paused);profile_seconds=time.monotonic()-t
+                    from pcrepro.plan import FiniteCase
+                    if isinstance(c,FiniteCase):
+                        from pcrepro.finite_cost import profile_model as finite_profile
+                        t=time.monotonic();profile=finite_profile(model,datasets,device,stop_check=paused)
+                    else:
+                        t=time.monotonic();profile=profile_model(model,c.num_bands,device,stop_check=paused)
+                    profile_seconds=time.monotonic()-t
                     immutable_json(profile_path,dict(profile=profile,seconds=profile_seconds,checkpoint_sha256=digest,source_identity=f['source_identity']))
             del model
             torch.cuda.empty_cache()
@@ -108,19 +114,19 @@ def execute(config_path,root=ROOT,device='cuda',stopcheck=None):
             evaluation_path=str(value['path'].relative_to(wd)),rr=metrics['rr'],fr=metrics['fr'])
     tr=read(wd/'meta/training_status.json');start=read(wd/'meta/training_start_manifest.json')
     costs=dict(tr.get('costs',{}));costs.update(test_seconds=sum(v['metrics']['seconds'] for v in evaluated.values()),profile_seconds=profile_seconds)
-    costs['preprocessing_seconds']=costs.get('preprocessing_seconds',0)+preprocessing+read(camp(root,c.server)/'preflight'/f'{c.dataset}.json').get('preprocessing_seconds',0)
+    costs['preprocessing_seconds']=costs.get('preprocessing_seconds',0)+preprocessing+read(case_camp(root,c)/'preflight'/f'{c.dataset}.json').get('preprocessing_seconds',0)
     if c.source_run_id:costs.update(training_seconds=0.,validation_seconds=0.,io_seconds=0.)
     start_at=start.get('started_at_utc',read_json(poststart)['started_at_utc']);end=utcnow()
     costs['wall_seconds']=(datetime.fromisoformat(end.replace('Z','+00:00'))-datetime.fromisoformat(start_at.replace('Z','+00:00'))).total_seconds()
     verified=all(v['metrics']['metadata']['paper_comparable'] for v in evaluated.values())
-    summary=dict(campaign_id=CAMPAIGN_ID,recipe_id=RECIPE_ID,run_id=c.run_id,case=c.to_dict(),
+    summary=dict(campaign_id=c.to_dict()['campaign_id'],recipe_id=RECIPE_ID,run_id=c.run_id,case=c.to_dict(),
         status='COMPLETE' if verified else 'PAPERSET_IDENTITY_UNVERIFIED',complete=True,
         actual_updates=c.updates,source_identity=f['source_identity'],data_sha256=f['data_sha'],
         config_sha256=object_sha(cfg),recipe_manifest_sha256=RECIPE_SHA256,
         evaluation_manifest_sha256=object_sha({k:v['evaluation_manifest_sha256'] for k,v in selections.items()}),
         paper_identity_status='VERIFIED' if verified else 'UNVERIFIED',
         started_at_utc=start_at,completed_at_utc=end,costs=costs,profile=profile,
-        runtime=read(camp(root,c.server)/'preflight'/f'{c.dataset}.json').get('gpu',{}),
+        runtime=read(case_camp(root,c)/'preflight'/f'{c.dataset}.json').get('gpu',{}),
         selections=selections,source_run_id=c.source_run_id)
     if c.source_run_id:
         summary['source_wv3_training_seconds']=read(run_dir(c.source_run_id,root)/'meta/training_status.json')['costs']['training_seconds']

@@ -17,6 +17,10 @@ def read_config(path):
         import yaml
         return yaml.safe_load(text)
 def camp(root,server):verify_server(server);return Path(root)/'work_dir/_pcrepro'/server
+def case_camp(root,case):
+    from pcrepro.plan import FiniteCase
+    c=case_for(case)
+    return Path(root)/'work_dir/_pcrepro_qbgf2_s5_20261118' if isinstance(c,FiniteCase) else camp(root,c.server)
 def run_dir(case,root=ROOT):return Path(root)/'work_dir'/case_for(case).run_id
 def machine_lock(kind='runner'):
     if kind not in ('runner','worker'):raise ValueError('Unknown local lock kind')
@@ -49,7 +53,7 @@ def source_identity(root=ROOT):
     names=['fh12/common.py','fh12/upload.py','fh12/plan.py',
         'model/pancrafter_paper.py','model/pancrafter.py','model/swin.py',
         'gspread/gspread_upload.py','gspread/sheet_categories.py','reporting_extra/sensor_backfill.py',
-        'tools/eval_dlpan.py',SOURCE_PLAN]
+        'tools/eval_dlpan.py','tools/additional_models_flops.py','ablr2/sensor_sources.json',SOURCE_PLAN]
     paths=[root/n for n in names]+list((root/'pcrepro').glob('*.py'))+list((root/'pcrepro').glob('*.json'))
     paths+=list((root/'tools').glob('pcrepro_*'))+list((root/'tools/metrics').glob('*.py'))
     files={str(p.relative_to(root)):sha256(p) for p in sorted(paths) if not p.name.startswith('test_')}

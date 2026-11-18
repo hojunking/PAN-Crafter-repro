@@ -1,0 +1,176 @@
+{
+  "cuda_used": false,
+  "training_started": false,
+  "datasets": {
+    "QB": {
+      "counts": {
+        "train": 17139,
+        "val": 1905,
+        "rr": 20,
+        "fr": 20
+      },
+      "paths": {
+        "train": "data/PanCollection/QB/train_qb.h5",
+        "val": "data/PanCollection/QB/valid_qb.h5",
+        "rr": "data/PanCollection/QB/reduced_examples_h5/test_qb_multiExm1.h5",
+        "fr": "data/PanCollection/QB/full_examples_mat20/test_qb_OrigScale_mat20.h5"
+      },
+      "parameters": {
+        "total": 7129476,
+        "trainable": 7129476,
+        "fixed_gather_parameters": 0
+      },
+      "cpu_native64_mars_pairs": 1,
+      "cpu_native64_mars_batch": 2,
+      "optimizer_updates": 0,
+      "finite_forward_backward": true,
+      "smoke_loss": 0.09975159168243408,
+      "prepared_native_parity_bit_equal": true,
+      "arithmetic_native64_gflops": 19.56137216,
+      "unsupported_float_operators": {},
+      "metric_parity_scope": "scene0; identical bounded DN prediction; reference ta2.evaluation",
+      "rr_absolute_differences": {
+        "ergas": 0.0,
+        "sam": 0.0,
+        "scc": 0.0,
+        "psnr": 0.0,
+        "ssim": 0.0,
+        "q4": 0.0,
+        "rmse": 0.0,
+        "cc": 0.0
+      },
+      "fr_absolute_differences": {
+        "hqnr": 0.0,
+        "d_s": 0.0,
+        "d_lambda": 0.0,
+        "jqm": 0.0
+      },
+      "seconds": 13.767002685926855
+    },
+    "GF2": {
+      "counts": {
+        "train": 19809,
+        "val": 2201,
+        "rr": 20,
+        "fr": 20
+      },
+      "paths": {
+        "train": "data/PanCollection/GF2/train_gf2.h5",
+        "val": "data/PanCollection/GF2/valid_gf2.h5",
+        "rr": "data/PanCollection/GF2/reduced_examples_h5/test_gf2_multiExm1.h5",
+        "fr": "data/PanCollection/GF2/full_examples_mat20/test_gf2_OrigScale_mat20.h5"
+      },
+      "parameters": {
+        "total": 7129476,
+        "trainable": 7129476,
+        "fixed_gather_parameters": 0
+      },
+      "cpu_native64_mars_pairs": 1,
+      "cpu_native64_mars_batch": 2,
+      "optimizer_updates": 0,
+      "finite_forward_backward": true,
+      "smoke_loss": 0.10424124449491501,
+      "prepared_native_parity_bit_equal": true,
+      "arithmetic_native64_gflops": 19.56137216,
+      "unsupported_float_operators": {},
+      "metric_parity_scope": "scene0; identical bounded DN prediction; reference ta2.evaluation",
+      "rr_absolute_differences": {
+        "ergas": 0.0,
+        "sam": 0.0,
+        "scc": 0.0,
+        "psnr": 0.0,
+        "ssim": 0.0,
+        "q4": 0.0,
+        "rmse": 0.0,
+        "cc": 0.0
+      },
+      "fr_absolute_differences": {
+        "hqnr": 0.0,
+        "d_s": 0.0,
+        "d_lambda": 0.0,
+        "jqm": 0.0
+      },
+      "seconds": 19.233099738135934
+    }
+  },
+  "source_identity": {
+    "files": {
+      "ablr2/sensor_sources.json": "3231245a12069a7a2b61e75f621008d5ad09883b6e559fc2326a355987c6d0c6",
+      "fh12/common.py": "992dc568c5733c058a9c63b665ed3c094db8e811d62d2c726297c56683a46200",
+      "fh12/plan.py": "34ad6dfb397abe940950dea81e48557dccf7e0fd834ef6fb37fe2a8dee4caa4d",
+      "fh12/upload.py": "19bf04c44c68a6e1a4f566d6babeabafee4ef6fd647ec64ce915f18934c49676",
+      "gspread/gspread_upload.py": "640211c2702a8e7a1477a9b05b11384f60f8a92c6c388842abcf0ff816ccdcf2",
+      "gspread/sheet_categories.py": "ce944f99a73062bdaf83b7397e74ea30007aa35e08fdb75fba280eaec7c7efbd",
+      "model/pancrafter.py": "7bd4a28ff874e74602aefb319da1f93d620e78ca931bd24129f38b980492dd5a",
+      "model/pancrafter_paper.py": "a766a01a5e21d86924bd87e41b064b58dcd0407d5b4cf3200e2d8aea22603de8",
+      "model/swin.py": "cdc270141d0209a34bec67b2a615fb51b23e30f4a0455398ba17c951252c2a99",
+      "pcrepro/__init__.py": "2ac3dbe872f8b5317b04e97c64d9ff33e28f4828b6a4317dddfb897bc92371bd",
+      "pcrepro/bindings.example.json": "eca10dcc85ec43c388497adfed69ce4e2c41d6924cb0ff43255d9d8bb11aa1ed",
+      "pcrepro/checkpoint.py": "af55609912e626ff490a8ac3301710b711c6837b6a559c27c1b09e4ca84be85a",
+      "pcrepro/common.py": "39f3f56cf954e41cfb8a4b5ad9a5998f46446dc44de79d46e1f17fc26b81cd82",
+      "pcrepro/controller.py": "b7f52926e914426ef43ca1992b101c62f0e73d52affde0ca92046cef0032b672",
+      "pcrepro/data.py": "0521887d405262ad2362785460a65667eb08c1a0fa046bfa85ae868c29d2ed4a",
+      "pcrepro/deployment.py": "477fb7ddeb1a24b25cf9d3e41412055ceb10ba264d488b445781eade609b5a0f",
+      "pcrepro/evaluation.py": "1eb1a9c64575ae177bf816b074a9cdcfa01d84e461543231cc4a7cc0c5e2359f",
+      "pcrepro/finite.py": "37317d679c7bba5d5b66bd19c0a4979212f7d2d86b192bd49f614c023f09137b",
+      "pcrepro/finite_cost.py": "1a1fc7cbeba6a4a76f26c150ded815daa7695afe25219c9d697e083b7237cea6",
+      "pcrepro/handoff.py": "ef0d314566d5178627708ba809cbfb292e9ae766284eb88ac81c9891d270337d",
+      "pcrepro/model.py": "8d4281d725423d9b28974ad7d4a9a4e111ef66410e0b0e31a24fe654ebd7bad7",
+      "pcrepro/plan.py": "7cbe368c994f790f8c44c4bdef435275b9065db176b82e61e491cb5da5e3ad40",
+      "pcrepro/postrun.py": "b62c15a5a31e1107e330114fbe32a43545ced5ff852c77122d6803eae4872aef",
+      "pcrepro/preflight.py": "6ad96252896a9a2bc69f200a2089a5a5ebcc6f429cdbcdbe0d3811b16b8fa140",
+      "pcrepro/profile.py": "38adf7569fd4566bc8aef10c6704c758a67e0095dce8c2063b82944efd15cf28",
+      "pcrepro/recipe.json": "a757b940f7e2e10b466b8fdae18fb411f432e5bf4fe9b722302bb78aa2ae010e",
+      "pcrepro/reporting.py": "9da0bc568056660dec5469f7c6939ea9d7a3d30fd537742438606a284b75de99",
+      "pcrepro/training.py": "675b476fb52eb07e7030c6664a4d6d4c8ddb7b63540ab375e5cdf8d546ac1557",
+      "pcrepro/upload.py": "41eb37789e8fc43160b4a12b174ef4db2135dc57cd9c909a9c9b4747dc2bc32e",
+      "reporting_extra/sensor_backfill.py": "02e71fb9a61d013be81c0cdd629593a943af7e785fd96fc963aad15e845f69a6",
+      "research_log/PANCRAFTER_Reproduction_CasePlan_KR_2026-09-22.md": "087773ffd59fcfb230198fd76d79a95dbaf96d34d0d1da66294d37f4d2e61eb2",
+      "tools/additional_models_flops.py": "8a11689226ea02035d1c4aecc5d34869f3292285a18698da5d6fba711abfa04d",
+      "tools/eval_dlpan.py": "5671d44da1026653ac028ff97f81375420fa195a55fd3721ee8140904239fdab",
+      "tools/metrics/__init__.py": "37a799c555396f30cb55cfdb64d9bc5089b009caf894aa2c235eedfaad009734",
+      "tools/metrics/eval_fr.py": "b511d42b4db46d863c737b50606e9488c8ca5d9c7b07678ddc5bb7c1d9df01d4",
+      "tools/metrics/eval_rr.py": "a64a95ffde9b7d0278fa883bda1acaf895cca74d2b07b79f56285c60e8ba0c4a",
+      "tools/metrics/jqm.py": "6962af58f8ac251fb087fbcf6dbde40bc502ec34083bd60a543b2daf0f8ce94b",
+      "tools/metrics/q2n.py": "89d1bf28a211e18a6fa8a2b6f8f7162f4b6716d15b2097888e773f1f73be10d1",
+      "tools/pcrepro_qbgf2.py": "3f6cdf4da0e7326e4c679080326ec99864e48e020eec350da1d3f798ea358a58",
+      "tools/pcrepro_runner.py": "28363c89b1ba08c1f95c8e058856090d06f589d93a903a1c75c028304b6f6614",
+      "tools/pcrepro_start.sh": "32baa5e94c67f50b9907b9188d4eaf2e2204211d5318869bdfd331fdbd277a4c",
+      "external/DLPan/wald_utilities.py": "c7d076395eec052dd4ed391e6f51e5fa79661a3fc283816a63ccdb100ff5bdbf"
+    },
+    "content_sha256": "6cb4cb1005387e8255768b7fab70588ba79d165408e625bf438fecff093cc604",
+    "git_release": "64c5579c4821d40d6c3e81d66b8274d4833529e8",
+    "recipe_sha256": "f4e795b66e4e1e28f73afaeb01f72df92d5ee09e2676b48d304d9bea87f83102",
+    "torch": "2.4.0",
+    "numpy": "1.26.4",
+    "scipy": "1.13.1",
+    "skimage": "0.24.0",
+    "cuda": "11.8",
+    "cudnn": 90100,
+    "runtime_policy": {
+      "precision": "float32",
+      "amp": false,
+      "tf32_matmul": false,
+      "tf32_cudnn": false,
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "deterministic_algorithms": false
+    },
+    "runtime_readback": {
+      "dtype": "torch.float32",
+      "tf32_matmul": false,
+      "tf32_cudnn": false,
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "deterministic_algorithms": false
+    },
+    "packages": {
+      "h5py": "3.12.1",
+      "safetensors": "0.4.4",
+      "timm": "1.0.9",
+      "gspread": "6.2.1",
+      "PyYAML": "6.0.1"
+    }
+  },
+  "complete": true
+}

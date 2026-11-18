@@ -1,5 +1,9 @@
 # PCREPRO: s3·s4·s5 PAN-Crafter 재현
 
+**2026-11-18 s5 QB·GF2 각1회 실행은 [S5_RUN.md](S5_RUN.md)를 따른다.**
+Pull 후 `python tools/pcrepro_qbgf2_s5.py start`로 고정된 두 실험을 시작한다.
+아래의 과거 무기한 캠페인 실행 명령과 구분한다.
+
 기준: `research_log/PANCRAFTER_Reproduction_CasePlan_KR_2026-09-22.md`.
 기존 PANDA/GF2 모델·trainer를 바꾸지 않고 별도 모듈로 추가했다.
 원본 문서가 말하는 동봉 bundle은 제공되지 않아 이 MD로 recipe/생성기/검사를 구현했다.

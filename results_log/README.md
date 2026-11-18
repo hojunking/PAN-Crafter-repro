@@ -14,6 +14,7 @@
 
 | 날짜 | 서버 | 문서 | 요지 |
 |---|---|---|---|
+| 2026-11-18 | s1 준비 → s5 실행 | [PAN-Crafter 논문 기준 QB·GF2 재현 인계](2026-11-18_pcrepro-qbgf2-s5-guide.md) | PCREPRO Eq11, seed2025·fresh50K 각1회. 원본 QB/GF2 데이터·RR20/FR20·metric parity 확인, 146 tests 통과. pull 후 고정 commit 자동 배포·batch1 cost·각1회 실행, s5 학습 미실행 |
 | 2026-11-16 | s2 인계 | [QB 대표 게시 복구·donor C 5개 실행](2026-11-16_s2_QB_donor_C_handoff.md) | Teacher W128·α0 고정, 같은 RGBN Stage1 donor48/40/50K R1→48K R2/R3. 조건 미달 fallback 대표 복구 후 fresh30K×5. s1 CPU10개 검증 통과, s2 에이전트 실행 인계 |
 | 2026-10-22 | s1 실행·s3 인계 | [PAN Aligner 양의 scale와 Hard 튜닝 30h WIP](2026-10-22_WIP_s1_scale30.md) | scale .1–.5 · 기존 Hard 계수/LR · 단일 view · 회전 일관성 제외 · 서버별 8 case, 실측 30h admission · HQNR 최고 한 행 게시 |
 | 2026-10-20 | s1 | [Mature30 Hard-only 전환 WIP](2026-10-20_WIP_s1_mature30-hardonly.md) | 사용자 결정: 다음 Stage2부터 Soft 제거(beta=0), e/q Hard·정합 큐 유지. 이전 case 50K 완료; v1 donor 직렬화 비교 오류 수정 후 별도 NOSOFT v2로 진행. 기존 30h 마감 승계, Sheet 규칙 유지 |

@@ -83,7 +83,7 @@ def _costs(summary):
 
 
 def validate_summary(summary, case):
-    if (summary.get('campaign_id') != CAMPAIGN_ID or summary.get('recipe_id') != RECIPE_ID
+    if (summary.get('campaign_id') != case.to_dict()['campaign_id'] or summary.get('recipe_id') != RECIPE_ID
             or summary.get('run_id') != case.run_id):
         raise ValueError('Summary belongs to another campaign/run/recipe')
     if summary.get('case') and summary['case'] != case.to_dict():
@@ -294,7 +294,11 @@ def _verify_envelope(envelope, case):
 
 
 def spool_run(run, root=ROOT):
-    case = case_for(run); payload = row_values(case.run_id, root)
+    case = case_for(run)
+    from pcrepro.plan import FiniteCase
+    if isinstance(case, FiniteCase):
+        raise ValueError('Finite QB/GF2 results target addtional-models; export the finite transfer payload')
+    payload = row_values(case.run_id, root)
     path = camp(root, case.server) / 'upload_spool' / (case.run_id + '.json')
     digest = object_sha(payload); old = read(path)
     if old: _verify_envelope(old, case)
@@ -397,6 +401,9 @@ def _deliver(case, envelope, root, worksheet=None):
 
 def upload_run(run, root=ROOT, *, activated=False, worksheet=None):
     if not activated: raise PermissionError('Explicit PCREPRO activation required for live Sheet writes')
+    from pcrepro.plan import FiniteCase
+    if isinstance(case_for(run),FiniteCase):
+        raise ValueError('Finite QB/GF2 results target addtional-models; export the finite transfer payload')
     case=case_for(run); envelope=spool_run(case.run_id,root)
     if envelope.get('status')=='READBACK_VERIFIED': return envelope['receipt']
     return _deliver(case,envelope,root,worksheet)

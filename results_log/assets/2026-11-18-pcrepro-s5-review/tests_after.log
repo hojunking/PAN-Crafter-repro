@@ -1,0 +1,18 @@
+............................................................PCPAPER_QB_s5_S2025_F50K_20261118_v1 preflight
+PCPAPER_QB_s5_S2025_F50K_20261118_v1 train
+PCPAPER_QB_s5_S2025_F50K_20261118_v1 postrun
+PCPAPER_GF2_s5_S2025_F50K_20261118_v1 preflight
+PCPAPER_GF2_s5_S2025_F50K_20261118_v1 train
+PCPAPER_GF2_s5_S2025_F50K_20261118_v1 postrun
+PCPAPER_QB_s5_S2025_F50K_20261118_v1 preflight
+....................................................Preparing worktree (detached HEAD dcc3f7d)
+HEAD is now at dcc3f7d fixture
+.Preparing fixed QB/GF2 seed2025 study; log: /tmp/tmp0yulzwwg/repo/work_dir/_pcrepro_qbgf2_s5_20261118/logs/prepare.log
+..Preparing fixed QB/GF2 seed2025 study; log: /tmp/tmp5ij44s9k/repo/work_dir/_pcrepro_qbgf2_s5_20261118/logs/prepare.log
+..Preparing worktree (detached HEAD cd3c4d0)
+HEAD is now at cd3c4d0 fixture
+.............................
+----------------------------------------------------------------------
+Ran 146 tests in 7.810s
+
+OK

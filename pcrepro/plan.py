@@ -19,6 +19,7 @@ SENSORS={name:dict(bands=8 if name in ('WV3','WV2') else 4,max_dn=1023 if name==
 RECIPE=json.loads((ROOT/'pcrepro/recipe.json').read_text())
 def digest(value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
 RECIPE_SHA256=digest(RECIPE)
+FINITE_CAMPAIGN_ID='PC_PAPER_QBGF2_S5_20261118_v1'
 GRID=tuple(range(1000,50001,1000))
 def verify_sources(root=ROOT):
     if hashlib.sha256((Path(root)/SOURCE_PLAN).read_bytes()).hexdigest()!=SOURCE_PLAN_SHA256:
@@ -68,13 +69,51 @@ def cases_for(server,cycle=0):
     verify_server(server)
     return tuple(Case(server,cycle,d) for d in ORDERS[server])
 def case_for(value):
-    if isinstance(value,Case):return value
+    if isinstance(value,(Case,FiniteCase)):return value
+    finite=re.fullmatch(r'PCPAPER_(QB|GF2)_s5_S(\d+)_F50K_20261118_v1',str(value))
+    if finite:
+        case=FiniteCase(finite[1],int(finite[2]))
+        if case.run_id!=value:raise ValueError('Noncanonical finite run ID')
+        return case
     match=re.fullmatch(r'PCREPRO_(WV3toWV2|WV3|QB|GF2)_(s[345])_C(\d{6,})_S(\d+)_(F50K|EVAL)_v1',str(value))
     if not match:raise ValueError('Unregistered reproduction run ID')
     dataset,server,cycle,seed,stage=match.groups()
     c=Case(server,int(cycle),'WV2' if dataset=='WV3toWV2' else dataset)
     if c.run_id!=value:raise ValueError('Run ID is not the predeclared cycle/seed')
     return c
+
+@dataclass(frozen=True)
+class FiniteCase:
+    """Same scientific recipe, separately named finite s5 reproduction."""
+    dataset:str
+    seed:int=2025
+    server:str='s5'
+    cycle:int=0
+    def __post_init__(self):
+        if (self.dataset not in ('QB','GF2') or self.server!='s5' or self.cycle!=0
+                or type(self.seed)is not int or not 0<=self.seed<2**32):
+            raise ValueError('Finite study requires s5, QB/GF2, and an explicit uint32 seed')
+    @property
+    def stage(self):return 'TRAIN'
+    @property
+    def train_dataset(self):return self.dataset
+    @property
+    def num_bands(self):return 4
+    @property
+    def max_dn(self):return SENSORS[self.dataset]['max_dn']
+    @property
+    def updates(self):return 50000
+    @property
+    def recipe_id(self):return RECIPE_ID
+    @property
+    def source_run_id(self):return None
+    @property
+    def run_id(self):return f'PCPAPER_{self.dataset}_s5_S{self.seed}_F50K_20261118_v1'
+    def to_dict(self):
+        return dict(asdict(self),campaign_id=FINITE_CAMPAIGN_ID,recipe_id=RECIPE_ID,
+            stage=self.stage,train_dataset=self.dataset,num_bands=4,max_dn=self.max_dn,
+            updates=50000,run_id=self.run_id,source_run_id=None,
+            repeat_kind='PAPER_SEED_2025' if self.seed==2025 else 'EXPLICIT_ADDITIONAL_SEED')
 def build_config(case,data_manifest=None,data_sha=None,source_identity=None):
     c=case_for(case);t=RECIPE['training']
     return dict(seed=c.seed,work_dir=f'work_dir/{c.run_id}',trainer='pcrepro',num_iter=c.updates,

@@ -14,10 +14,10 @@ def disk_guard(root,estimated_bytes=0):
     required=max(20*1024**3,int(estimated_bytes*1.25)+2*1024**3)
     return dict(allowed=free>=required,free_bytes=free,required_bytes=required,measured_path=str(target),automatic_pruning=False)
 
-def execute(root,server,dataset,bindings,device='cuda',stopcheck=None):
+def execute(root,server,dataset,bindings,device='cuda',stopcheck=None,*,campaign_dir=None):
     verify_server(server);verify_sources(root);apply_runtime_policy(root)
     if dataset not in DATASETS:raise ValueError('Unknown dataset')
-    start=time.monotonic();folder=camp(root,server)
+    start=time.monotonic();folder=Path(campaign_dir) if campaign_dir is not None else camp(root,server)
     supplied=read_json(bindings) if not isinstance(bindings,dict) else bindings
     binding=supplied.get('datasets',{}).get(dataset)
     if not binding:raise ValueError('BLOCKED_DATASET: explicit '+dataset+' original data binding missing')

@@ -13,7 +13,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from pcrepro.common import (ROOT,apply_runtime_policy,atomic_json,camp,immutable_json,
-    object_sha,read,read_json,read_config,resolved_path,source_identity,utcnow)
+    object_sha,read,read_json,read_config,resolved_path,source_identity,utcnow,case_camp)
 from pcrepro.model import build_model,parameter_counts,state_hash
 from pcrepro.checkpoint import save_resume,load_resume,save_model,selection_checkpoints,tensor_cpu_tree
 from pcrepro.plan import validate_config,GRID
@@ -94,10 +94,13 @@ def verify_resume_environment(work_dir,runtime_policy,gpu_name):
 
 def train_run(config_path,root=ROOT,device='cuda',resume=False):
     from pcrepro.controller import authorize_train
+    from pcrepro.plan import FiniteCase
     from pcrepro.data import NativeDataset,PairedBatchStream
     from pcrepro.evaluation import validation_metrics
     initialization_started=time.monotonic()
     root=Path(root);cfg=read_config(config_path);case=validate_config(cfg,require_bound=True)
+    if isinstance(case,FiniteCase):
+        from pcrepro.finite import authorize_train
     if case.stage!='TRAIN' or cfg['num_iter']!=50000:raise ValueError('WV2 has no training path')
     authorize_train(root,case.server,config_path)
     policy=apply_runtime_policy(root)
@@ -140,7 +143,7 @@ def train_run(config_path,root=ROOT,device='cuda',resume=False):
             initialization='fresh_seed_no_checkpoint',initial_model_hash=state_hash(model.state_dict()),
             params=parameter_counts(model),runtime_policy=policy,gpu=torch.cuda.get_device_name(dev),
             optimizer_reset=True,updates=50000,test_during_training=False))
-    control=camp(root,case.server)/'control.json'
+    control=case_camp(root,case)/'control.json'
     interrupted=[False];handlers={sig:signal.getsignal(sig) for sig in (signal.SIGINT,signal.SIGTERM)}
     for sig in handlers:signal.signal(sig,lambda *_:interrupted.__setitem__(0,True))
 
